@@ -2,21 +2,94 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
     previewFeatures = ["jsonProtocol"]
 }
 
 datasource db {
-    provider = "sqlite"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+    provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
-model Example {
-    id        String   @id @default(cuid())
+model Experiment {
+    id    String @id @default(uuid()) @db.Uuid
+    label String
+
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+    InputVariable InputVariable[]
+    PromptVariant PromptVariant[]
+}
+
+model PromptVariant {
+    id String @id @default(uuid()) @db.Uuid
+
+    experimentId String     @db.Uuid
+    experiment   Experiment @relation(fields: [experimentId], references: [id])
+
+    sortIndex Int    @default(0)
+    label     String
+
+    config Json
+
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
+    ModelOutput ModelOutput[]
+}
+
+model TestScenario {
+    id String @id @default(uuid()) @db.Uuid
+
+    sortIndex Int @default(0)
+
+    createdAt           DateTime              @default(now())
+    updatedAt           DateTime              @updatedAt
+    ScenarioVariableVal ScenarioVariableVal[]
+    ModelOutput         ModelOutput[]
+}
+
+model InputVariable {
+    id String @id @default(uuid()) @db.Uuid
+
+    label String
+
+    experimentId String     @db.Uuid
+    experiment   Experiment @relation(fields: [experimentId], references: [id])
+
+    createdAt           DateTime              @default(now())
+    updatedAt           DateTime              @updatedAt
+    ScenarioVariableVal ScenarioVariableVal[]
+}
+
+model ScenarioVariableVal {
+    id String @id @default(uuid()) @db.Uuid
+
+    inputVariableId String         @db.Uuid
+    inputVariable   InputVariable? @relation(fields: [inputVariableId], references: [id])
+
+    testScenarioId String        @db.Uuid
+    testScenario   TestScenario? @relation(fields: [testScenarioId], references: [id])
+
+    value String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([inputVariableId, testScenarioId])
+}
+
+model ModelOutput {
+    id String @id @default(uuid()) @db.Uuid
+
+    promptVariantId String        @db.Uuid
+    promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id])
+
+    testScenarioId String       @db.Uuid
+    testScenario   TestScenario @relation(fields: [testScenarioId], references: [id])
+
+    variableValues Json
+    inputsHash     String @unique
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

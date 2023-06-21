@@ -41,7 +41,8 @@ Prompt Bench currently supports GPT-3.5 and GPT-4. Wider model support is planne
 We'll have a hosted version of Prompt Bench soon to make onboarding easier but for now you can run it locally.
 
 1. Install [NodeJS 20](https://nodejs.org/en/download/current) (earlier versions will likely work but aren't tested)
-2. Clone this repository: `git clone https://github.com/prompt-bench/prompt-bench`
-3. Install the dependencies: `cd prompt-bench && npm install`
-4. Start the app: `npm start`
-5. Navigate to [http://localhost:3080](http://localhost:3080)
+2. Install `pnpm`: `npm i -g pnpm`
+3. Clone this repository: `git clone https://github.com/prompt-lab/prompt-lab`
+4. Install the dependencies: `cd prompt-lab && pnpm install`
+5. Start the app: `pnpm start`
+6. Navigate to [http://localhost:3000](http://localhost:3000)
