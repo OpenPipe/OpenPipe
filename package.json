@@ -1,5 +1,6 @@
 {
   "name": "prompt-lab",
+  "type": "module",
   "version": "0.1.0",
   "license": "AGPL",
   "scripts": {
@@ -18,11 +19,13 @@
     "@trpc/next": "^10.26.0",
     "@trpc/react-query": "^10.26.0",
     "@trpc/server": "^10.26.0",
+    "dotenv": "^16.3.1",
     "next": "^13.4.2",
     "next-auth": "^4.22.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "superjson": "1.12.2",
+    "tsx": "^3.12.7",
     "zod": "^3.21.4"
   },
   "devDependencies": {
@@ -39,5 +42,8 @@
   },
   "ct3aMetadata": {
     "initVersion": "7.14.0"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }

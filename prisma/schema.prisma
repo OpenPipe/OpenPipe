@@ -15,22 +15,24 @@ model Experiment {
     id    String @id @default(uuid()) @db.Uuid
     label String
 
-    createdAt     DateTime        @default(now())
-    updatedAt     DateTime        @updatedAt
-    InputVariable InputVariable[]
-    PromptVariant PromptVariant[]
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
+    TemplateVariable TemplateVariable[]
+    PromptVariant    PromptVariant[]
+    TestScenario     TestScenario[]
 }
 
 model PromptVariant {
-    id String @id @default(uuid()) @db.Uuid
+    id    String @id @default(uuid()) @db.Uuid
+    label String
+
+    visible   Boolean @default(true)
+    sortIndex Int     @default(0)
+
+    config Json
 
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id])
-
-    sortIndex Int    @default(0)
-    label     String
-
-    config Json
 
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @updatedAt
@@ -40,15 +42,20 @@ model PromptVariant {
 model TestScenario {
     id String @id @default(uuid()) @db.Uuid
 
-    sortIndex Int @default(0)
+    visible   Boolean @default(true)
+    sortIndex Int     @default(0)
 
-    createdAt           DateTime              @default(now())
-    updatedAt           DateTime              @updatedAt
-    ScenarioVariableVal ScenarioVariableVal[]
-    ModelOutput         ModelOutput[]
+    variableValues Json
+
+    experimentId String     @db.Uuid
+    experiment   Experiment @relation(fields: [experimentId], references: [id])
+
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
+    ModelOutput ModelOutput[]
 }
 
-model InputVariable {
+model TemplateVariable {
     id String @id @default(uuid()) @db.Uuid
 
     label String
@@ -56,26 +63,8 @@ model InputVariable {
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id])
 
-    createdAt           DateTime              @default(now())
-    updatedAt           DateTime              @updatedAt
-    ScenarioVariableVal ScenarioVariableVal[]
-}
-
-model ScenarioVariableVal {
-    id String @id @default(uuid()) @db.Uuid
-
-    inputVariableId String         @db.Uuid
-    inputVariable   InputVariable? @relation(fields: [inputVariableId], references: [id])
-
-    testScenarioId String        @db.Uuid
-    testScenario   TestScenario? @relation(fields: [testScenarioId], references: [id])
-
-    value String
-
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-
-    @@unique([inputVariableId, testScenarioId])
 }
 
 model ModelOutput {
@@ -92,6 +81,8 @@ model ModelOutput {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@unique([promptVariantId, testScenarioId])
 }
 
 // Necessary for Next auth
