@@ -27,8 +27,8 @@ export default function Home() {
             >
               <h3 className={styles.cardTitle}>First Steps →</h3>
               <div className={styles.cardText}>
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
+                Just the basics - Everything you need to know to set up your database and
+                authentication.
               </div>
             </Link>
             <Link
@@ -38,8 +38,7 @@ export default function Home() {
             >
               <h3 className={styles.cardTitle}>Documentation →</h3>
               <div className={styles.cardText}>
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
+                Learn more about Create T3 App, the libraries it uses, and how to deploy it.
               </div>
             </Link>
           </div>
@@ -60,7 +59,7 @@ function AuthShowcase() {
 
   const { data: secretMessage } = api.example.getSecretMessage.useQuery(
     undefined, // no input
-    { enabled: sessionData?.user !== undefined },
+    { enabled: sessionData?.user !== undefined }
   );
 
   return (
