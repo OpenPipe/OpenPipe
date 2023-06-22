@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createStyles, Navbar, Group, Code, getStylesRef, rem } from "@mantine/core";
+import { createStyles, Navbar, Group, Code, getStylesRef, rem, Box } from "@mantine/core";
 import {
   IconBellRinging,
   IconFingerprint,
@@ -11,6 +11,7 @@ import {
   IconSwitchHorizontal,
   IconLogout,
 } from "@tabler/icons-react";
+import Head from "next/head";
 // import { MantineLogo } from '@mantine/ds';
 
 const useStyles = createStyles((theme) => ({
@@ -78,7 +79,7 @@ const data = [
   { link: "", label: "Other Settings", icon: IconSettings },
 ];
 
-export default function AppNav({ children }: { children: React.ReactNode }) {
+export default function AppNav(props: { children: React.ReactNode; title?: string }) {
   const { classes, cx } = useStyles();
   const [active, setActive] = useState("Billing");
 
@@ -99,7 +100,10 @@ export default function AppNav({ children }: { children: React.ReactNode }) {
 
   return (
     <Group h="100vh">
-      <Navbar height="100%" width={{ sm: 300 }} p="md">
+      <Head>
+        <title>{props.title && `${props.title} | `}Prompt Bench</title>
+      </Head>
+      <Navbar height="100%" width={{ sm: 250 }} p="md">
         <Navbar.Section grow>
           <Group className={classes.header} position="apart">
             {/* <MantineLogo size={28} /> */}
@@ -120,7 +124,7 @@ export default function AppNav({ children }: { children: React.ReactNode }) {
           </a>
         </Navbar.Section>
       </Navbar>
-      {children}
+      <Box sx={{ flex: 1 }}>{props.children}</Box>
     </Group>
   );
 }

@@ -1,5 +1,7 @@
 import { promptVariantsRouter } from "~/server/api/routers/promptVariants.router";
 import { createTRPCRouter } from "~/server/api/trpc";
+import { experimentsRouter } from "./routers/experiments.router";
+import { scenariosRouter } from "./routers/scenarios.router";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +10,8 @@ import { createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   promptVariants: promptVariantsRouter,
+  experiments: experimentsRouter,
+  scenarios: scenariosRouter,
 });
 
 // export type definition of API
