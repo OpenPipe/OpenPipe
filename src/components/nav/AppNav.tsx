@@ -60,10 +60,10 @@ const useStyles = createStyles((theme) => ({
 
   linkActive: {
     "&, &:hover": {
-      backgroundColor: theme.fn.variant({ variant: "light", color: theme.primaryColor }).background,
-      color: theme.fn.variant({ variant: "light", color: theme.primaryColor }).color,
+      backgroundColor: theme.fn.variant({ variant: "dark", color: theme.primaryColor }).background,
+      color: theme.fn.variant({ variant: "dark", color: theme.primaryColor }).color,
       [`& .${getStylesRef("icon")}`]: {
-        color: theme.fn.variant({ variant: "light", color: theme.primaryColor }).color,
+        color: theme.fn.variant({ variant: "dark", color: theme.primaryColor }).color,
       },
     },
   },
@@ -99,14 +99,13 @@ export default function AppNav(props: { children: React.ReactNode; title?: strin
   ));
 
   return (
-    <Group h="100vh">
+    <Box mih="100vh" sx={{ display: "flex" }}>
       <Head>
         <title>{props.title && `${props.title} | `}Prompt Bench</title>
       </Head>
-      <Navbar height="100%" width={{ sm: 250 }} p="md">
+      <Navbar height="100vh" width={{ sm: 250 }} p="md" bg="gray.1">
         <Navbar.Section grow>
           <Group className={classes.header} position="apart">
-            {/* <MantineLogo size={28} /> */}
             <Code sx={{ fontWeight: 700 }}>v3.1.2</Code>
           </Group>
           {links}
@@ -125,6 +124,6 @@ export default function AppNav(props: { children: React.ReactNode; title?: strin
         </Navbar.Section>
       </Navbar>
       <Box sx={{ flex: 1 }}>{props.children}</Box>
-    </Group>
+    </Box>
   );
 }
