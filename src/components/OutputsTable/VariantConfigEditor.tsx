@@ -1,25 +1,33 @@
-import { Box, Button, Stack, Title } from "@mantine/core";
+import { Box, Button, Group, Stack, Title } from "@mantine/core";
 import { useMonaco } from "@monaco-editor/react";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { set } from "zod";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 
 let isThemeDefined = false;
 
 export default function VariantConfigEditor(props: {
-  initialConfig: string;
+  savedConfig: string;
   onSave: (currentConfig: string) => Promise<void>;
 }) {
   const monaco = useMonaco();
   const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
   const [isChanged, setIsChanged] = useState(false);
+  const savedConfigRef = useRef(props.savedConfig);
+
+  const checkForChanges = useCallback(() => {
+    if (!editorRef.current) return;
+    const currentConfig = editorRef.current.getValue();
+    setIsChanged(currentConfig !== savedConfigRef.current);
+  }, []);
 
   const [onSave] = useHandledAsyncCallback(async () => {
     const currentConfig = editorRef.current?.getValue();
     if (!currentConfig) return;
     await props.onSave(currentConfig);
-  }, [props.onSave]);
+    checkForChanges();
+  }, [props.onSave, checkForChanges]);
 
   useEffect(() => {
     if (monaco) {
@@ -36,7 +44,7 @@ export default function VariantConfigEditor(props: {
       }
 
       editorRef.current = monaco.editor.create(document.getElementById(editorId) as HTMLElement, {
-        value: props.initialConfig,
+        value: props.savedConfig,
         language: "json",
         theme: "customTheme",
         lineNumbers: "off",
@@ -50,28 +58,56 @@ export default function VariantConfigEditor(props: {
         wordWrapBreakBeforeCharacters: "",
       });
 
-      editorRef.current.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, onSave);
-
-      editorRef.current.onDidChangeModelContent(() => {
-        const currentConfig = editorRef.current?.getValue();
-        if (currentConfig !== props.initialConfig) {
-          setIsChanged(true);
-        } else {
-          setIsChanged(false);
-        }
+      editorRef.current.onDidFocusEditorText(() => {
+        // Workaround because otherwise the command only works on whatever
+        // editor was loaded on the page last.
+        // https://github.com/microsoft/monaco-editor/issues/2947#issuecomment-1422265201
+        editorRef.current?.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, onSave);
       });
 
-      return () => editorRef.current?.dispose();
+      editorRef.current.onDidChangeModelContent(checkForChanges);
+
+      return () => {
+        editorRef.current?.dispose();
+      };
     }
-  }, [monaco, editorId, props.initialConfig, onSave]);
+
+    // We intentionally skip the onSave and props.savedConfig dependencies here because
+    // we don't want to re-render the editor from scratch
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [monaco, editorId]);
+
+  useEffect(() => {
+    const savedConfigChanged = savedConfigRef.current !== props.savedConfig;
+
+    savedConfigRef.current = props.savedConfig;
+
+    if (savedConfigChanged && editorRef.current?.getValue() !== props.savedConfig) {
+      editorRef.current?.setValue(props.savedConfig);
+    }
+
+    checkForChanges();
+  }, [props.savedConfig, checkForChanges]);
 
   return (
     <Box w="100%" pos="relative">
       <div id={editorId} style={{ height: "300px", width: "100%" }}></div>
       {isChanged && (
-        <Button size="xs" sx={{ position: "absolute", bottom: 0, right: 0 }} onClick={onSave}>
-          Save
-        </Button>
+        <Group sx={{ position: "absolute", bottom: 0, right: 0 }} spacing={4}>
+          <Button
+            size="xs"
+            onClick={() => {
+              editorRef.current?.setValue(props.savedConfig);
+              checkForChanges();
+            }}
+            color="gray"
+          >
+            Reset
+          </Button>
+          <Button size="xs" onClick={onSave}>
+            Save
+          </Button>
+        </Group>
       )}
     </Box>
   );

@@ -1,9 +1,7 @@
-import { Button, Stack, Title } from "@mantine/core";
-import { useMonaco } from "@monaco-editor/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Stack, Title } from "@mantine/core";
+import { useCallback } from "react";
 import type { PromptVariant } from "./types";
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback } from "~/utils/hooks";
 import { notifications } from "@mantine/notifications";
 import { type JSONSerializable } from "~/server/types";
 import VariantConfigEditor from "./VariantConfigEditor";
@@ -44,16 +42,13 @@ export default function VariantHeader({ variant }: { variant: PromptVariant }) {
 
       // TODO: invalidate the variants query
     },
-    [variant.id, replaceWithConfig]
+    [variant.id, replaceWithConfig, utils.promptVariants.list]
   );
 
   return (
     <Stack w="100%">
       <Title order={4}>{variant.label}</Title>
-      <VariantConfigEditor
-        initialConfig={JSON.stringify(variant.config, null, 2)}
-        onSave={onSave}
-      />
+      <VariantConfigEditor savedConfig={JSON.stringify(variant.config, null, 2)} onSave={onSave} />
     </Stack>
   );
 }

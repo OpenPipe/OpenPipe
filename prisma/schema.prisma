@@ -26,6 +26,8 @@ model PromptVariant {
     id    String @id @default(uuid()) @db.Uuid
     label String
 
+    uiId String @default(uuid()) @db.Uuid
+
     visible   Boolean @default(true)
     sortIndex Int     @default(0)
 
@@ -37,6 +39,8 @@ model PromptVariant {
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @updatedAt
     ModelOutput ModelOutput[]
+
+    @@index([uiId])
 }
 
 model TestScenario {

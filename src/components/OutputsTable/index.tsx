@@ -31,10 +31,6 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
   );
 
   const columns = useMemo<MRT_ColumnDef<TableRow>[]>(() => {
-    console.log(
-      "rebuilding cols",
-      variants.data?.map((variant) => variant.label)
-    );
     return [
       {
         id: "scenario",
@@ -47,7 +43,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       },
       ...(variants.data?.map(
         (variant): MRT_ColumnDef<TableRow> => ({
-          id: variant.id,
+          id: variant.uiId,
           header: variant.label,
           Header: <VariantHeader variant={variant} />,
           size: 400,
@@ -87,9 +83,6 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       enableHiding={false}
       enableColumnActions={false}
       enableColumnResizing
-      state={{
-        columnOrder: ["scenario", ...variants.data.map((variant) => variant.id)],
-      }}
       mantineTableProps={{
         sx: {
           th: {

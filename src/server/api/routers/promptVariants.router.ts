@@ -30,9 +30,6 @@ export const promptVariantsRouter = createTRPCRouter({
         },
       });
 
-      console.log("got existing", existing);
-      console.log("config", input.config);
-
       let parsedConfig;
       try {
         parsedConfig = JSON.parse(input.config) as OpenAIChatConfig;
@@ -44,19 +41,32 @@ export const promptVariantsRouter = createTRPCRouter({
         throw new Error(`Prompt Variant with id ${input.id} does not exist`);
       }
 
+      console.log("new config", {
+        experimentId: existing.experimentId,
+        label: existing.label,
+        sortIndex: existing.sortIndex,
+        uiId: existing.uiId,
+        config: parsedConfig,
+      });
+
       // Create a duplicate with only the config changed
       const newVariant = await prisma.promptVariant.create({
         data: {
           experimentId: existing.experimentId,
           label: existing.label,
           sortIndex: existing.sortIndex,
+          uiId: existing.uiId,
           config: parsedConfig,
         },
       });
 
-      await prisma.promptVariant.update({
+      // Hide anything with the same uiId besides the new one
+      await prisma.promptVariant.updateMany({
         where: {
-          id: input.id,
+          uiId: existing.uiId,
+          id: {
+            not: newVariant.id,
+          },
         },
         data: {
           visible: false,
