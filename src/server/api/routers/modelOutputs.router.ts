@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import fillTemplate, { JSONSerializable, VariableMap } from "~/server/utils/fillTemplate";
+import fillTemplate, { VariableMap } from "~/server/utils/fillTemplate";
+import { JSONSerializable } from "~/server/types";
 import { getChatCompletion } from "~/server/utils/openai";
 
 export const modelOutputsRouter = createTRPCRouter({

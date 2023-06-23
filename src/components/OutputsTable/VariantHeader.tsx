@@ -1,59 +1,59 @@
-import { Header, Stack, Title } from "@mantine/core";
-import { PromptVariant } from "@prisma/client";
+import { Button, Stack, Title } from "@mantine/core";
 import { useMonaco } from "@monaco-editor/react";
-import { useEffect, useRef, useState } from "react";
-
-let isThemeDefined = false;
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { PromptVariant } from "./types";
+import { api } from "~/utils/api";
+import { useHandledAsyncCallback } from "~/utils/hooks";
+import { notifications } from "@mantine/notifications";
+import { type JSONSerializable } from "~/server/types";
+import VariantConfigEditor from "./VariantConfigEditor";
 
 export default function VariantHeader({ variant }: { variant: PromptVariant }) {
-  const monaco = useMonaco();
-  const editorRef = useRef(null);
-  const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
+  const replaceWithConfig = api.promptVariants.replaceWithConfig.useMutation();
+  const utils = api.useContext();
 
-  useEffect(() => {
-    if (monaco && !isThemeDefined) {
-      monaco.editor.defineTheme("customTheme", {
-        base: "vs",
-        inherit: true,
-        rules: [],
-        colors: {
-          "editor.background": "#fafafa",
-        },
-      });
-      isThemeDefined = true;
-    }
-  }, [monaco]);
-
-  useEffect(() => {
-    if (monaco) {
-      editorRef.current = monaco.editor.create(document.getElementById(editorId), {
-        value: JSON.stringify(variant.config, null, 2),
-        language: "json",
-        theme: "customTheme",
-        lineNumbers: "off",
-        minimap: { enabled: false },
-        wrappingIndent: "indent",
-        wrappingStrategy: "advanced",
-        wordWrap: "on",
-        folding: false,
-        scrollbar: { vertical: "hidden" },
-        wordWrapBreakAfterCharacters: "",
-        wordWrapBreakBeforeCharacters: "",
-      });
-    }
-
-    // Clean up the editor instance on unmount
-    return () => {
-      if (editorRef.current) {
-        editorRef.current.dispose();
+  const onSave = useCallback(
+    async (currentConfig: string) => {
+      let parsedConfig: JSONSerializable;
+      try {
+        parsedConfig = JSON.parse(currentConfig) as JSONSerializable;
+      } catch (e) {
+        notifications.show({
+          title: "Invalid JSON",
+          message: "Please fix the JSON before saving.",
+          color: "red",
+        });
+        return;
       }
-    };
-  }, [monaco, variant, editorId]);
+
+      if (parsedConfig === null) {
+        notifications.show({
+          title: "Invalid JSON",
+          message: "Please fix the JSON before saving.",
+          color: "red",
+        });
+        return;
+      }
+
+      await replaceWithConfig.mutateAsync({
+        id: variant.id,
+        config: currentConfig,
+      });
+
+      await utils.promptVariants.list.invalidate();
+
+      // TODO: invalidate the variants query
+    },
+    [variant.id, replaceWithConfig]
+  );
 
   return (
     <Stack w="100%">
       <Title order={4}>{variant.label}</Title>
-      <div id={editorId} style={{ height: "300px", width: "100%" }}></div>
+      <VariantConfigEditor
+        initialConfig={JSON.stringify(variant.config, null, 2)}
+        onSave={onSave}
+      />
     </Stack>
   );
 }

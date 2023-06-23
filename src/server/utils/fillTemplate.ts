@@ -1,10 +1,4 @@
-export type JSONSerializable =
-  | string
-  | number
-  | boolean
-  | null
-  | JSONSerializable[]
-  | { [key: string]: JSONSerializable };
+import { JSONSerializable } from "../types";
 
 export type VariableMap = Record<string, string>;
 

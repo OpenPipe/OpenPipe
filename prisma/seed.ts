@@ -12,6 +12,14 @@ const experiment = await prisma.experiment.upsert({
   },
 });
 
+await prisma.modelOutput.deleteMany({
+  where: {
+    promptVariant: {
+      experimentId,
+    },
+  },
+});
+
 await prisma.promptVariant.deleteMany({
   where: {
     experimentId,
