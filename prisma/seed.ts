@@ -61,7 +61,7 @@ await prisma.templateVariable.createMany({
   data: [
     {
       experimentId,
-      label: "input",
+      label: "state",
     },
   ],
 });
@@ -83,7 +83,13 @@ await prisma.testScenario.createMany({
     {
       experimentId,
       variableValues: {
-        state: "Georgia",
+        state: "California",
+      },
+    },
+    {
+      experimentId,
+      variableValues: {
+        state: "Utah",
       },
     },
   ],

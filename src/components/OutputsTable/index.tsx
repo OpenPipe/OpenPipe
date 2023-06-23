@@ -4,6 +4,7 @@ import { RouterOutputs, api } from "~/utils/api";
 import { PromptVariant } from "./types";
 import VariantHeader from "./VariantHeader";
 import OutputCell from "./OutputCell";
+import ScenarioHeader from "./ScenarioHeader";
 
 type CellData = {
   variant: PromptVariant;
@@ -15,11 +16,6 @@ type TableRow = {
 } & Record<string, CellData>;
 
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
-  const experiment = api.experiments.get.useQuery(
-    { id: experimentId as string },
-    { enabled: !!experimentId }
-  );
-
   const variants = api.promptVariants.list.useQuery(
     { experimentId: experimentId as string },
     { enabled: !!experimentId }
@@ -37,9 +33,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         header: "Scenario",
         enableColumnDragging: false,
         size: 200,
-        Cell: ({ row }) => {
-          return <div>{JSON.stringify(row.original.scenario.variableValues)}</div>;
-        },
+        Cell: ({ row }) => <ScenarioHeader scenario={row.original.scenario} />,
       },
       ...(variants.data?.map(
         (variant): MRT_ColumnDef<TableRow> => ({
@@ -91,7 +85,6 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           "& .mantine-TableHeadCell-Content": {
             width: "100%",
             height: "100%",
-            // display: "flex",
 
             "& .mantine-TableHeadCell-Content-Actions": {
               alignSelf: "flex-start",

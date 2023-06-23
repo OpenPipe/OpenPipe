@@ -1,8 +1,8 @@
-import { Box, Button, Group, Stack, Title } from "@mantine/core";
+import { Box, Button, Group, Stack, Title, Tooltip } from "@mantine/core";
 import { useMonaco } from "@monaco-editor/react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { set } from "zod";
-import { useHandledAsyncCallback } from "~/utils/hooks";
+import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
 
 let isThemeDefined = false;
 
@@ -15,6 +15,8 @@ export default function VariantConfigEditor(props: {
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
   const [isChanged, setIsChanged] = useState(false);
   const savedConfigRef = useRef(props.savedConfig);
+
+  const modifierKey = useModifierKeyLabel();
 
   const checkForChanges = useCallback(() => {
     if (!editorRef.current) return;
@@ -104,9 +106,11 @@ export default function VariantConfigEditor(props: {
           >
             Reset
           </Button>
-          <Button size="xs" onClick={onSave}>
-            Save
-          </Button>
+          <Tooltip label={`${modifierKey} + Enter`} withArrow>
+            <Button size="xs" onClick={onSave}>
+              Save
+            </Button>
+          </Tooltip>
         </Group>
       )}
     </Box>

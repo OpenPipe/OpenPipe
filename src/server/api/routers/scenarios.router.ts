@@ -7,7 +7,51 @@ export const scenariosRouter = createTRPCRouter({
     return await prisma.testScenario.findMany({
       where: {
         experimentId: input.experimentId,
+        visible: true,
       },
     });
   }),
+
+  replaceWithValues: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        values: z.record(z.string()),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const existing = await prisma.testScenario.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (!existing) {
+        throw new Error(`Scenario with id ${input.id} does not exist`);
+      }
+
+      const newScenario = await prisma.testScenario.create({
+        data: {
+          experimentId: existing.experimentId,
+          sortIndex: existing.sortIndex,
+          variableValues: input.values,
+          uiId: existing.uiId,
+        },
+      });
+
+      // Hide the old scenario
+      await prisma.testScenario.updateMany({
+        where: {
+          uiId: existing.uiId,
+          id: {
+            not: newScenario.id,
+          },
+        },
+        data: {
+          visible: false,
+        },
+      });
+
+      return newScenario;
+    }),
 });

@@ -26,12 +26,11 @@ model PromptVariant {
     id    String @id @default(uuid()) @db.Uuid
     label String
 
-    uiId String @default(uuid()) @db.Uuid
+    config Json
 
+    uiId      String  @default(uuid()) @db.Uuid
     visible   Boolean @default(true)
     sortIndex Int     @default(0)
-
-    config Json
 
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id])
@@ -46,10 +45,11 @@ model PromptVariant {
 model TestScenario {
     id String @id @default(uuid()) @db.Uuid
 
+    variableValues Json
+
+    uiId      String  @default(uuid()) @db.Uuid
     visible   Boolean @default(true)
     sortIndex Int     @default(0)
-
-    variableValues Json
 
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id])

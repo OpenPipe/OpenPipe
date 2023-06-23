@@ -8,6 +8,17 @@ export const experimentsRouter = createTRPCRouter({
       where: {
         id: input.id,
       },
+      include: {
+        TemplateVariable: {
+          orderBy: {
+            createdAt: "asc",
+          },
+          select: {
+            id: true,
+            label: true,
+          },
+        },
+      },
     });
   }),
 });
