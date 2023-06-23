@@ -18,6 +18,7 @@
     "@mantine/form": "^6.0.14",
     "@mantine/hooks": "^6.0.14",
     "@mantine/next": "^6.0.14",
+    "@monaco-editor/react": "^4.5.1",
     "@next-auth/prisma-adapter": "^1.0.5",
     "@prisma/client": "^4.14.0",
     "@t3-oss/env-nextjs": "^0.3.1",

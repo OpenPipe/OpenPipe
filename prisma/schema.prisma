@@ -70,14 +70,13 @@ model TemplateVariable {
 model ModelOutput {
     id String @id @default(uuid()) @db.Uuid
 
+    output Json
+
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id])
 
     testScenarioId String       @db.Uuid
     testScenario   TestScenario @relation(fields: [testScenarioId], references: [id])
-
-    variableValues Json
-    inputsHash     String @unique
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

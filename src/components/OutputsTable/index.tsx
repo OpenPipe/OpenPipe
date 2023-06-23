@@ -1,9 +1,12 @@
 import { MRT_ColumnDef, MantineReactTable } from "mantine-react-table";
 import { useMemo } from "react";
 import { RouterOutputs, api } from "~/utils/api";
+import { PromptVariant } from "./types";
+import VariantHeader from "./VariantHeader";
+import OutputCell from "./OutputCell";
 
 type CellData = {
-  variant: NonNullable<RouterOutputs["promptVariants"]["list"]>[0];
+  variant: PromptVariant;
   scenario: NonNullable<RouterOutputs["scenarios"]["list"]>[0];
 };
 
@@ -42,15 +45,9 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         (variant): MRT_ColumnDef<TableRow> => ({
           id: variant.id,
           header: variant.label,
-          // size: 300,
-          Cell: ({ row }) => {
-            const cellData = row.original[variant.id];
-            return (
-              <div>
-                {row.original.scenario.id} | {variant.id}
-              </div>
-            );
-          },
+          Header: <VariantHeader variant={variant} />,
+          size: 400,
+          Cell: ({ row }) => <OutputCell scenario={row.original.scenario} variant={variant} />,
         })
       ) ?? []),
     ],
@@ -64,8 +61,10 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           scenario,
         } as TableRow;
       }) ?? [],
-    [variants.data, scenarios.data]
+    [scenarios.data]
   );
+
+  if (!variants.data || !scenarios.data) return null;
 
   return (
     <MantineReactTable
@@ -83,8 +82,34 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       enableDensityToggle={false}
       enableFullScreenToggle={false}
       enableHiding={false}
-      enableRowDragging
+      enableColumnActions={false}
+      enableColumnResizing
+      mantineTableProps={{
+        sx: {
+          th: {
+            verticalAlign: "bottom",
+          },
+          "& .mantine-TableHeadCell-Content": {
+            width: "100%",
+            height: "100%",
+            // display: "flex",
+
+            "& .mantine-TableHeadCell-Content-Actions": {
+              alignSelf: "flex-start",
+            },
+
+            "& > .mantine-TableHeadCell-Content-Labels": {
+              width: "100%",
+              height: "100%",
+
+              "& > .mantine-TableHeadCell-Content-Wrapper": {
+                width: "100%",
+                height: "100%",
+              },
+            },
+          },
+        },
+      }}
     />
   );
-  // return <div>OutputsTable</div>;
 }

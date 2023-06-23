@@ -22,21 +22,21 @@ const resp = await prisma.promptVariant.createMany({
   data: [
     {
       experimentId,
-      label: "Variant 1",
+      label: "Prompt Variant 1",
       sortIndex: 0,
       config: {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: "What is the capitol of {{input}}?" }],
+        messages: [{ role: "user", content: "What is the capitol of {{state}}?" }],
         temperature: 0,
       },
     },
     {
       experimentId,
-      label: "Variant 2",
+      label: "Prompt Variant 2",
       sortIndex: 1,
       config: {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: "What is the capitol of the US state {{input}}?" }],
+        messages: [{ role: "user", content: "What is the capitol of the US state {{state}}?" }],
         temperature: 0,
       },
     },
@@ -69,13 +69,13 @@ await prisma.testScenario.createMany({
     {
       experimentId,
       variableValues: {
-        input: "Washington",
+        state: "Washington",
       },
     },
     {
       experimentId,
       variableValues: {
-        input: "Georgia",
+        state: "Georgia",
       },
     },
   ],

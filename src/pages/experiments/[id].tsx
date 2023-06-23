@@ -7,16 +7,15 @@ import { api } from "~/utils/api";
 export default function Experiment() {
   const router = useRouter();
 
-  console.log(router.query.id);
   const experiment = api.experiments.get.useQuery(
     { id: router.query.id as string },
     { enabled: !!router.query.id }
   );
 
-  if (!experiment.data) {
+  if (!experiment.isLoading && !experiment.data) {
     return (
       <AppNav title="Experiment not found">
-        <Center>
+        <Center h="100vh">
           <div>Experiment not found 😕</div>
         </Center>
       </AppNav>
@@ -24,7 +23,7 @@ export default function Experiment() {
   }
 
   return (
-    <AppNav title={experiment.data.label}>
+    <AppNav title={experiment.data?.label}>
       <Box sx={{ minHeight: "100vh" }}>
         <OutputsTable experimentId={router.query.id as string | undefined} />
       </Box>

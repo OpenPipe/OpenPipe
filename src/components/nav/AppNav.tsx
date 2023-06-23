@@ -19,7 +19,7 @@ const useStyles = createStyles((theme) => ({
     paddingBottom: theme.spacing.md,
     marginBottom: `calc(${theme.spacing.md} * 1.5)`,
     borderBottom: `${rem(1)} solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[2]
+      theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4]
     }`,
   },
 
@@ -27,12 +27,12 @@ const useStyles = createStyles((theme) => ({
     paddingTop: theme.spacing.md,
     marginTop: theme.spacing.md,
     borderTop: `${rem(1)} solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[2]
+      theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4]
     }`,
   },
 
   link: {
-    ...theme.fn.focusStyles(),
+    ...(theme.fn.focusStyles() as Record<string, any>),
     display: "flex",
     alignItems: "center",
     textDecoration: "none",
@@ -101,7 +101,7 @@ export default function AppNav(props: { children: React.ReactNode; title?: strin
   return (
     <Box mih="100vh" sx={{ display: "flex" }}>
       <Head>
-        <title>{props.title && `${props.title} | `}Prompt Bench</title>
+        <title>{props.title ? `${props.title} | Prompt Bench` : "Prompt Bench"}</title>
       </Head>
       <Navbar height="100vh" width={{ sm: 250 }} p="md" bg="gray.1">
         <Navbar.Section grow>
