@@ -1,6 +1,6 @@
 import { api } from "~/utils/api";
 import { PromptVariant, Scenario } from "./types";
-import { Center, Text } from "@chakra-ui/react";
+import { Center, Spinner, Text } from "@chakra-ui/react";
 import { useExperiment } from "~/utils/hooks";
 
 export default function OutputCell({
@@ -33,7 +33,12 @@ export default function OutputCell({
       </Center>
     );
 
-  if (output.isLoading) return <Center h="100%">Loading...</Center>;
+  if (output.isLoading)
+    return (
+      <Center h="100%">
+        <Spinner />
+      </Center>
+    );
 
   if (!output.data) return <Center h="100%">No output</Center>;
 

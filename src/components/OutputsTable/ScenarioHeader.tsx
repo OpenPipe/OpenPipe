@@ -61,7 +61,7 @@ export default function ScenarioHeader({ scenario }: { scenario: Scenario }) {
               flex={layoutDirection === "row" ? 1 : undefined}
               borderColor={hasChanged ? "blue.300" : "transparent"}
               _hover={{ borderColor: "gray.300" }}
-              _focus={{ borderColor: "blue.500", outline: "none" }}
+              _focus={{ borderColor: "blue.500", outline: "none", bg: "white" }}
             />
           </Flex>
         );

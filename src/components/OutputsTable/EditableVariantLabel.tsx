@@ -31,6 +31,7 @@ export default function EditableVariantLabel(props: { variant: PromptVariant }) 
       _hover={{ borderColor: "gray.300" }}
       _focus={{ borderColor: "blue.500", outline: "none" }}
       onBlur={onBlur}
+      px={4}
       py={2}
     >
       {props.variant.label}
