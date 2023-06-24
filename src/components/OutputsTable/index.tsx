@@ -4,11 +4,11 @@ import { type PromptVariant } from "./types";
 import VariantHeader from "./VariantHeader";
 import OutputCell from "./OutputCell";
 import ScenarioHeader from "./ScenarioHeader";
-import { Box, Header, Title } from "@mantine/core";
 import React from "react";
+import { Box, Heading } from "@chakra-ui/react";
 
-const cellPaddingX = 8;
-const cellPaddingY = 4;
+const cellPaddingX = 4;
+const cellPaddingY = 2;
 
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
   const variants = api.promptVariants.list.useQuery(
@@ -24,7 +24,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
   if (!variants.data || !scenarios.data) return null;
 
   return (
-    <Box p={12}>
+    <Box p={4}>
       <div
         style={{
           display: "grid",
@@ -33,7 +33,9 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         }}
       >
         <Box px={cellPaddingX} py={cellPaddingY} display="flex" sx={{}}>
-          <Title order={4}>Scenario</Title>
+          <Heading size="md" fontWeight="bold">
+            Scenario
+          </Heading>
         </Box>
         {variants.data.map((variant) => (
           <Box key={variant.uiId} px={cellPaddingX} py={cellPaddingY}>

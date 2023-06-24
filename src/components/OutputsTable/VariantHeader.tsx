@@ -1,15 +1,15 @@
-import { Stack, Title } from "@mantine/core";
 import { useCallback } from "react";
 import type { PromptVariant } from "./types";
 import { api } from "~/utils/api";
-import { notifications } from "@mantine/notifications";
 import { type JSONSerializable } from "~/server/types";
 import VariantConfigEditor from "./VariantConfigEditor";
 import EditableVariantLabel from "./EditableVariantLabel";
+import { Stack, useToast } from "@chakra-ui/react";
 
 export default function VariantHeader({ variant }: { variant: PromptVariant }) {
   const replaceWithConfig = api.promptVariants.replaceWithConfig.useMutation();
   const utils = api.useContext();
+  const toast = useToast();
 
   const onSave = useCallback(
     async (currentConfig: string) => {
@@ -17,10 +17,12 @@ export default function VariantHeader({ variant }: { variant: PromptVariant }) {
       try {
         parsedConfig = JSON.parse(currentConfig) as JSONSerializable;
       } catch (e) {
-        notifications.show({
+        toast({
           title: "Invalid JSON",
-          message: "Please fix the JSON before saving.",
-          color: "red",
+          description: "Please fix the JSON before saving.",
+          status: "error",
+          duration: 5000,
+          position: "top",
         });
         return;
       }

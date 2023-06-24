@@ -1,8 +1,8 @@
 import { useRef } from "react";
-import { Title } from "@mantine/core";
 import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
+import { Heading } from "@chakra-ui/react";
 
 export default function EditableVariantLabel(props: { variant: PromptVariant }) {
   const labelRef = useRef<HTMLHeadingElement | null>(null);
@@ -20,8 +20,15 @@ export default function EditableVariantLabel(props: { variant: PromptVariant }) 
   }, [mutation, props.variant.id, props.variant.label]);
 
   return (
-    <Title order={4} ref={labelRef} contentEditable suppressContentEditableWarning onBlur={onBlur}>
+    <Heading
+      fontWeight="bold"
+      size="md"
+      ref={labelRef}
+      contentEditable
+      suppressContentEditableWarning
+      onBlur={onBlur}
+    >
       {props.variant.label}
-    </Title>
+    </Heading>
   );
 }

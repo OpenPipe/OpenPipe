@@ -1,4 +1,4 @@
-import { Box, Center } from "@mantine/core";
+import { Box, Center } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import OutputsTable from "~/components/OutputsTable";
 import AppNav from "~/components/nav/AppNav";

@@ -1,9 +1,9 @@
 import { api } from "~/utils/api";
 import { isEqual } from "lodash";
 import { PromptVariant, Scenario } from "./types";
-import { Badge, Button, Group, Stack, TextInput, Textarea, Tooltip } from "@mantine/core";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useState } from "react";
+import { Badge, Button, Flex, HStack, Stack, Textarea } from "@chakra-ui/react";
 
 export default function ScenarioHeader({ scenario }: { scenario: Scenario }) {
   const savedValues = scenario.variableValues as Record<string, string>;
@@ -31,21 +31,23 @@ export default function ScenarioHeader({ scenario }: { scenario: Scenario }) {
     <Stack>
       {variableLabels.map((key) => {
         return (
-          <Textarea
-            key={key}
-            label={key}
-            value={values[key] ?? ""}
-            onChange={(e) => {
-              setValues((prev) => ({ ...prev, [key]: e.target.value }));
-            }}
-            autosize
-            rows={1}
-            maxRows={20}
-          />
+          <Flex key={key}>
+            <Badge>{key}</Badge>
+            <Textarea
+              key={key}
+              value={values[key] ?? ""}
+              onChange={(e) => {
+                setValues((prev) => ({ ...prev, [key]: e.target.value }));
+              }}
+              rows={1}
+              // TODO: autosize
+              maxRows={20}
+            />
+          </Flex>
         );
       })}
       {hasChanged && (
-        <Group spacing={4} position="right">
+        <HStack spacing={4}>
           <Button
             size="xs"
             onClick={() => {
@@ -58,7 +60,7 @@ export default function ScenarioHeader({ scenario }: { scenario: Scenario }) {
           <Button size="xs" onClick={onSave}>
             Save
           </Button>
-        </Group>
+        </HStack>
       )}
     </Stack>
   );

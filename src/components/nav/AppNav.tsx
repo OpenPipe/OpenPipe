@@ -1,129 +1,15 @@
-import { useState } from "react";
-import { createStyles, Navbar, Group, Code, getStylesRef, rem, Box } from "@mantine/core";
-import {
-  IconBellRinging,
-  IconFingerprint,
-  IconKey,
-  IconSettings,
-  Icon2fa,
-  IconDatabaseImport,
-  IconReceipt2,
-  IconSwitchHorizontal,
-  IconLogout,
-} from "@tabler/icons-react";
+import { Box, Flex } from "@chakra-ui/react";
 import Head from "next/head";
-// import { MantineLogo } from '@mantine/ds';
-
-const useStyles = createStyles((theme) => ({
-  header: {
-    paddingBottom: theme.spacing.md,
-    marginBottom: `calc(${theme.spacing.md} * 1.5)`,
-    borderBottom: `${rem(1)} solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4]
-    }`,
-  },
-
-  footer: {
-    paddingTop: theme.spacing.md,
-    marginTop: theme.spacing.md,
-    borderTop: `${rem(1)} solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4]
-    }`,
-  },
-
-  link: {
-    ...(theme.fn.focusStyles() as Record<string, any>),
-    display: "flex",
-    alignItems: "center",
-    textDecoration: "none",
-    fontSize: theme.fontSizes.sm,
-    color: theme.colorScheme === "dark" ? theme.colors.dark[1] : theme.colors.gray[7],
-    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-    borderRadius: theme.radius.sm,
-    fontWeight: 500,
-
-    "&:hover": {
-      backgroundColor: theme.colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[0],
-      color: theme.colorScheme === "dark" ? theme.white : theme.black,
-
-      [`& .${getStylesRef("icon")}`]: {
-        color: theme.colorScheme === "dark" ? theme.white : theme.black,
-      },
-    },
-  },
-
-  linkIcon: {
-    ref: getStylesRef("icon"),
-    color: theme.colorScheme === "dark" ? theme.colors.dark[2] : theme.colors.gray[6],
-    marginRight: theme.spacing.sm,
-  },
-
-  linkActive: {
-    "&, &:hover": {
-      backgroundColor: theme.fn.variant({ variant: "dark", color: theme.primaryColor }).background,
-      color: theme.fn.variant({ variant: "dark", color: theme.primaryColor }).color,
-      [`& .${getStylesRef("icon")}`]: {
-        color: theme.fn.variant({ variant: "dark", color: theme.primaryColor }).color,
-      },
-    },
-  },
-}));
-
-const data = [
-  { link: "", label: "Notifications", icon: IconBellRinging },
-  { link: "", label: "Billing", icon: IconReceipt2 },
-  { link: "", label: "Security", icon: IconFingerprint },
-  { link: "", label: "SSH Keys", icon: IconKey },
-  { link: "", label: "Databases", icon: IconDatabaseImport },
-  { link: "", label: "Authentication", icon: Icon2fa },
-  { link: "", label: "Other Settings", icon: IconSettings },
-];
 
 export default function AppNav(props: { children: React.ReactNode; title?: string }) {
-  const { classes, cx } = useStyles();
-  const [active, setActive] = useState("Billing");
-
-  const links = data.map((item) => (
-    <a
-      className={cx(classes.link, { [classes.linkActive]: item.label === active })}
-      href={item.link}
-      key={item.label}
-      onClick={(event) => {
-        event.preventDefault();
-        setActive(item.label);
-      }}
-    >
-      <item.icon className={classes.linkIcon} stroke={1.5} />
-      <span>{item.label}</span>
-    </a>
-  ));
-
   return (
-    <Box mih="100vh" sx={{ display: "flex" }}>
+    <Flex minH="100vh" align="stretch">
       <Head>
         <title>{props.title ? `${props.title} | Prompt Bench` : "Prompt Bench"}</title>
       </Head>
-      <Navbar height="100vh" width={{ sm: 250 }} p="md" bg="gray.1">
-        <Navbar.Section grow>
-          <Group className={classes.header} position="apart">
-            <Code sx={{ fontWeight: 700 }}>v3.1.2</Code>
-          </Group>
-          {links}
-        </Navbar.Section>
-
-        <Navbar.Section className={classes.footer}>
-          <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
-            <IconSwitchHorizontal className={classes.linkIcon} stroke={1.5} />
-            <span>Change account</span>
-          </a>
-
-          <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
-            <IconLogout className={classes.linkIcon} stroke={1.5} />
-            <span>Logout</span>
-          </a>
-        </Navbar.Section>
-      </Navbar>
-      <Box sx={{ flex: 1 }}>{props.children}</Box>
-    </Box>
+      {/* Placeholder for now */}
+      <Box bgColor="gray.100" height="100vh" width="200px" />
+      <Box flex={1}>{props.children}</Box>
+    </Flex>
   );
 }

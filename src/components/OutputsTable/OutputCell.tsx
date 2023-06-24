@@ -1,6 +1,6 @@
 import { api } from "~/utils/api";
 import { PromptVariant, Scenario } from "./types";
-import { Center } from "@mantine/core";
+import { Center } from "@chakra-ui/react";
 
 export default function OutputCell({
   scenario,

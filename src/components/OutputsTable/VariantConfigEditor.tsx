@@ -1,7 +1,6 @@
-import { Box, Button, Group, Stack, Title, Tooltip } from "@mantine/core";
+import { Box, Button, HStack, Tooltip } from "@chakra-ui/react";
 import { useMonaco } from "@monaco-editor/react";
 import { useRef, useEffect, useState, useCallback } from "react";
-import { set } from "zod";
 import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
 
 let isThemeDefined = false;
@@ -109,23 +108,23 @@ export default function VariantConfigEditor(props: {
     <Box w="100%" pos="relative">
       <div id={editorId} style={{ height: "300px", width: "100%" }}></div>
       {isChanged && (
-        <Group sx={{ position: "absolute", bottom: 0, right: 0 }} spacing={4}>
+        <HStack pos="absolute" bottom={0} right={0} spacing={4}>
           <Button
+            colorScheme="gray"
             size="xs"
             onClick={() => {
               editorRef.current?.setValue(props.savedConfig);
               checkForChanges();
             }}
-            color="gray"
           >
             Reset
           </Button>
-          <Tooltip label={`${modifierKey} + Enter`} withArrow>
-            <Button size="xs" onClick={onSave}>
+          <Tooltip label={`${modifierKey} + Enter`}>
+            <Button size="xs" onClick={onSave} colorScheme="blue">
               Save
             </Button>
           </Tooltip>
-        </Group>
+        </HStack>
       )}
     </Box>
   );
