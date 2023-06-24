@@ -1,9 +1,11 @@
 import { api } from "~/utils/api";
 import { isEqual } from "lodash";
-import { PromptVariant, Scenario } from "./types";
+import { type Scenario } from "./types";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useState } from "react";
-import { Badge, Button, Flex, HStack, Stack, Textarea } from "@chakra-ui/react";
+import ResizeTextarea from "react-textarea-autosize";
+
+import { Box, Button, Flex, HStack, Stack, Textarea } from "@chakra-ui/react";
 
 export default function ScenarioHeader({ scenario }: { scenario: Scenario }) {
   const savedValues = scenario.variableValues as Record<string, string>;
@@ -30,34 +32,53 @@ export default function ScenarioHeader({ scenario }: { scenario: Scenario }) {
   return (
     <Stack>
       {variableLabels.map((key) => {
+        const value = values[key] ?? "";
+        const layoutDirection = value.length > 20 ? "column" : "row";
         return (
-          <Flex key={key}>
-            <Badge>{key}</Badge>
+          <Flex
+            key={key}
+            direction={layoutDirection}
+            alignItems={layoutDirection === "column" ? "flex-start" : "center"}
+            flexWrap="wrap"
+          >
+            <Box bgColor="blue.100" color="blue.600" px={2} fontSize="xs" fontWeight="bold">
+              {key}
+            </Box>
             <Textarea
-              key={key}
-              value={values[key] ?? ""}
+              borderRadius={0}
+              px={2}
+              py={1}
+              placeholder="empty"
+              value={value}
               onChange={(e) => {
                 setValues((prev) => ({ ...prev, [key]: e.target.value }));
               }}
-              rows={1}
-              // TODO: autosize
-              maxRows={20}
+              resize="none"
+              overflow="hidden"
+              minRows={1}
+              minH="unset"
+              as={ResizeTextarea}
+              flex={layoutDirection === "row" ? 1 : undefined}
+              borderColor={hasChanged ? "blue.300" : "transparent"}
+              _hover={{ borderColor: "gray.300" }}
+              _focus={{ borderColor: "blue.500", outline: "none" }}
             />
           </Flex>
         );
       })}
       {hasChanged && (
-        <HStack spacing={4}>
+        <HStack justify="right">
           <Button
-            size="xs"
-            onClick={() => {
+            size="sm"
+            borderRadius={0}
+            onMouseDown={() => {
               setValues(savedValues);
             }}
-            color="gray"
+            colorScheme="gray"
           >
             Reset
           </Button>
-          <Button size="xs" onClick={onSave}>
+          <Button size="sm" borderRadius={0} onMouseDown={onSave} colorScheme="blue">
             Save
           </Button>
         </HStack>

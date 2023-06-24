@@ -24,7 +24,7 @@ export default function Experiment() {
 
   return (
     <AppNav title={experiment.data?.label}>
-      <Box sx={{ minHeight: "100vh" }}>
+      <Box minH="100vh" mb={50}>
         <OutputsTable experimentId={router.query.id as string | undefined} />
       </Box>
     </AppNav>

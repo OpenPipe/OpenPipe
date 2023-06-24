@@ -108,19 +108,20 @@ export default function VariantConfigEditor(props: {
     <Box w="100%" pos="relative">
       <div id={editorId} style={{ height: "300px", width: "100%" }}></div>
       {isChanged && (
-        <HStack pos="absolute" bottom={0} right={0} spacing={4}>
+        <HStack pos="absolute" bottom={0} right={0}>
           <Button
             colorScheme="gray"
-            size="xs"
+            size="sm"
             onClick={() => {
               editorRef.current?.setValue(props.savedConfig);
               checkForChanges();
             }}
+            borderRadius={0}
           >
             Reset
           </Button>
           <Tooltip label={`${modifierKey} + Enter`}>
-            <Button size="xs" onClick={onSave} colorScheme="blue">
+            <Button size="sm" onClick={onSave} colorScheme="blue" borderRadius={0}>
               Save
             </Button>
           </Tooltip>

@@ -21,17 +21,15 @@ export default function VariantHeader({ variant }: { variant: PromptVariant }) {
           title: "Invalid JSON",
           description: "Please fix the JSON before saving.",
           status: "error",
-          duration: 5000,
-          position: "top",
         });
         return;
       }
 
       if (parsedConfig === null) {
-        notifications.show({
+        toast({
           title: "Invalid JSON",
-          message: "Please fix the JSON before saving.",
-          color: "red",
+          description: "Please fix the JSON before saving.",
+          status: "error",
         });
         return;
       }
@@ -43,7 +41,7 @@ export default function VariantHeader({ variant }: { variant: PromptVariant }) {
 
       await utils.promptVariants.list.invalidate();
     },
-    [variant.id, replaceWithConfig, utils.promptVariants.list]
+    [variant.id, replaceWithConfig, utils.promptVariants.list, toast]
   );
 
   return (

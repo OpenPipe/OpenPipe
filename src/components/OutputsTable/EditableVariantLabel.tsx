@@ -26,7 +26,12 @@ export default function EditableVariantLabel(props: { variant: PromptVariant }) 
       ref={labelRef}
       contentEditable
       suppressContentEditableWarning
+      borderWidth={1}
+      borderColor="transparent"
+      _hover={{ borderColor: "gray.300" }}
+      _focus={{ borderColor: "blue.500", outline: "none" }}
       onBlur={onBlur}
+      py={2}
     >
       {props.variant.label}
     </Heading>

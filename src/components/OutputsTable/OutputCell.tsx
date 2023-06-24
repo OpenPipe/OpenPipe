@@ -1,6 +1,7 @@
 import { api } from "~/utils/api";
 import { PromptVariant, Scenario } from "./types";
-import { Center } from "@chakra-ui/react";
+import { Center, Text } from "@chakra-ui/react";
+import { useExperiment } from "~/utils/hooks";
 
 export default function OutputCell({
   scenario,
@@ -9,12 +10,32 @@ export default function OutputCell({
   scenario: Scenario;
   variant: PromptVariant;
 }) {
-  const output = api.outputs.get.useQuery({
-    scenarioId: scenario.id,
-    variantId: variant.id,
-  });
+  const experiment = useExperiment();
 
-  if (!output.data) return null;
+  const experimentVariables = experiment.data?.TemplateVariable.map((v) => v.label) ?? [];
+  const scenarioVariables = scenario.variableValues as Record<string, string>;
+  const templateHasVariables =
+    experimentVariables.length === 0 ||
+    experimentVariables.some((v) => scenarioVariables[v] !== undefined);
+
+  const output = api.outputs.get.useQuery(
+    {
+      scenarioId: scenario.id,
+      variantId: variant.id,
+    },
+    { enabled: templateHasVariables }
+  );
+
+  if (!templateHasVariables)
+    return (
+      <Center h="100%">
+        <Text color="gray.500">Add a scenario variable to see output</Text>
+      </Center>
+    );
+
+  if (output.isLoading) return <Center h="100%">Loading...</Center>;
+
+  if (!output.data) return <Center h="100%">No output</Center>;
 
   return (
     <Center h="100%">
