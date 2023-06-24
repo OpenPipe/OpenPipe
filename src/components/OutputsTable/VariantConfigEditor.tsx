@@ -1,19 +1,24 @@
-import { Box, Button, HStack, Tooltip } from "@chakra-ui/react";
+import { Box, Button, HStack, Tooltip, useToast } from "@chakra-ui/react";
 import { useMonaco } from "@monaco-editor/react";
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
+import { PromptVariant } from "./types";
+import { JSONSerializable } from "~/server/types";
+import { api } from "~/utils/api";
 
 let isThemeDefined = false;
 
-export default function VariantConfigEditor(props: {
-  savedConfig: string;
-  onSave: (currentConfig: string) => Promise<void>;
-}) {
+export default function VariantConfigEditor(props: { variant: PromptVariant }) {
   const monaco = useMonaco();
   const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
   const [isChanged, setIsChanged] = useState(false);
-  const savedConfigRef = useRef(props.savedConfig);
+
+  const savedConfig = useMemo(
+    () => JSON.stringify(props.variant.config, null, 2),
+    [props.variant.config]
+  );
+  const savedConfigRef = useRef(savedConfig);
 
   const modifierKey = useModifierKeyLabel();
 
@@ -23,12 +28,44 @@ export default function VariantConfigEditor(props: {
     setIsChanged(currentConfig !== savedConfigRef.current);
   }, []);
 
+  const replaceWithConfig = api.promptVariants.replaceWithConfig.useMutation();
+  const utils = api.useContext();
+  const toast = useToast();
+
   const [onSave] = useHandledAsyncCallback(async () => {
     const currentConfig = editorRef.current?.getValue();
     if (!currentConfig) return;
-    await props.onSave(currentConfig);
+
+    let parsedConfig: JSONSerializable;
+    try {
+      parsedConfig = JSON.parse(currentConfig) as JSONSerializable;
+    } catch (e) {
+      toast({
+        title: "Invalid JSON",
+        description: "Please fix the JSON before saving.",
+        status: "error",
+      });
+      return;
+    }
+
+    if (parsedConfig === null) {
+      toast({
+        title: "Invalid JSON",
+        description: "Please fix the JSON before saving.",
+        status: "error",
+      });
+      return;
+    }
+
+    await replaceWithConfig.mutateAsync({
+      id: props.variant.id,
+      config: currentConfig,
+    });
+
+    await utils.promptVariants.list.invalidate();
+
     checkForChanges();
-  }, [props.onSave, checkForChanges]);
+  }, [checkForChanges]);
 
   useEffect(() => {
     if (monaco) {
@@ -47,7 +84,7 @@ export default function VariantConfigEditor(props: {
       const container = document.getElementById(editorId) as HTMLElement;
 
       editorRef.current = monaco.editor.create(container, {
-        value: props.savedConfig,
+        value: savedConfig,
         language: "json",
         theme: "customTheme",
         lineNumbers: "off",
@@ -93,16 +130,16 @@ export default function VariantConfigEditor(props: {
   }, [monaco, editorId]);
 
   useEffect(() => {
-    const savedConfigChanged = savedConfigRef.current !== props.savedConfig;
+    const savedConfigChanged = savedConfigRef.current !== savedConfig;
 
-    savedConfigRef.current = props.savedConfig;
+    savedConfigRef.current = savedConfig;
 
-    if (savedConfigChanged && editorRef.current?.getValue() !== props.savedConfig) {
-      editorRef.current?.setValue(props.savedConfig);
+    if (savedConfigChanged && editorRef.current?.getValue() !== savedConfig) {
+      editorRef.current?.setValue(savedConfig);
     }
 
     checkForChanges();
-  }, [props.savedConfig, checkForChanges]);
+  }, [savedConfig, checkForChanges]);
 
   return (
     <Box w="100%" pos="relative">
@@ -113,7 +150,7 @@ export default function VariantConfigEditor(props: {
             colorScheme="gray"
             size="sm"
             onClick={() => {
-              editorRef.current?.setValue(props.savedConfig);
+              editorRef.current?.setValue(savedConfig);
               checkForChanges();
             }}
             borderRadius={0}

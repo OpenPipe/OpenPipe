@@ -47,7 +47,7 @@ export default function VariantHeader({ variant }: { variant: PromptVariant }) {
   return (
     <Stack w="100%">
       <EditableVariantLabel variant={variant} />
-      <VariantConfigEditor savedConfig={JSON.stringify(variant.config, null, 2)} onSave={onSave} />
+      <VariantConfigEditor variant={variant} />
     </Stack>
   );
 }

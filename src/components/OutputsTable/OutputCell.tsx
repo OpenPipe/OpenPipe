@@ -2,6 +2,7 @@ import { api } from "~/utils/api";
 import { PromptVariant, Scenario } from "./types";
 import { Center, Spinner, Text } from "@chakra-ui/react";
 import { useExperiment } from "~/utils/hooks";
+import { JSONSerializable } from "~/server/types";
 
 export default function OutputCell({
   scenario,
@@ -18,18 +19,25 @@ export default function OutputCell({
     experimentVariables.length === 0 ||
     experimentVariables.some((v) => scenarioVariables[v] !== undefined);
 
+  let disabledReason: string | null = null;
+
+  if (!templateHasVariables) disabledReason = "Add a scenario variable to see output";
+
+  if (variant.config === null || Object.keys(variant.config).length === 0)
+    disabledReason = "Save your prompt variant to see output";
+
   const output = api.outputs.get.useQuery(
     {
       scenarioId: scenario.id,
       variantId: variant.id,
     },
-    { enabled: templateHasVariables }
+    { enabled: disabledReason === null }
   );
 
-  if (!templateHasVariables)
+  if (disabledReason)
     return (
       <Center h="100%">
-        <Text color="gray.500">Add a scenario variable to see output</Text>
+        <Text color="gray.500">{disabledReason}</Text>
       </Center>
     );
 

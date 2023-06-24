@@ -6,6 +6,9 @@ import ScenarioHeader from "./ScenarioHeader";
 import React, { useState } from "react";
 import { Box, Grid, GridItem, Heading } from "@chakra-ui/react";
 import NewScenarioButton from "./NewScenarioButton";
+import NewVariantButton from "./NewVariantButton";
+import EditableVariantLabel from "./EditableVariantLabel";
+import VariantConfigEditor from "./VariantConfigEditor";
 
 const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -54,8 +57,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
     <Grid
       p={4}
       display="grid"
-      gridTemplateColumns={`200px repeat(${variants.data.length}, minmax(300px, 1fr))`}
-      overflowX="auto"
+      gridTemplateColumns={`200px repeat(${variants.data.length}, minmax(300px, 1fr)) 40px`}
       sx={{
         "> *": {
           borderColor: "gray.300",
@@ -69,14 +71,33 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         },
       }}
     >
-      <GridItem display="flex" alignItems="flex-end">
+      <GridItem display="flex" alignItems="flex-end" rowSpan={2}>
         <Heading size="md" fontWeight="bold">
           Scenario
         </Heading>
       </GridItem>
       {variants.data.map((variant) => (
+        <GridItem
+          key={variant.uiId}
+          padding={0}
+          sx={{ position: "sticky", top: 0, backgroundColor: "#fff", zIndex: 1 }}
+        >
+          <EditableVariantLabel variant={variant} />
+        </GridItem>
+      ))}
+      <GridItem
+        borderBottomWidth={0}
+        rowSpan={scenarios.data.length + 1}
+        padding={0}
+        borderRightWidth={0}
+        sx={{ position: "sticky", top: 0, backgroundColor: "#fff", zIndex: 1 }}
+      >
+        <NewVariantButton />
+      </GridItem>
+
+      {variants.data.map((variant) => (
         <GridItem key={variant.uiId} padding={0}>
-          <VariantHeader key={variant.uiId} variant={variant} />
+          <VariantConfigEditor variant={variant} />
         </GridItem>
       ))}
       {scenarios.data.map((scenario) => (

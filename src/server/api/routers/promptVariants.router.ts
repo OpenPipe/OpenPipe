@@ -16,6 +16,37 @@ export const promptVariantsRouter = createTRPCRouter({
     });
   }),
 
+  create: publicProcedure
+    .input(
+      z.object({
+        experimentId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const maxSortIndex =
+        (
+          await prisma.promptVariant.aggregate({
+            where: {
+              experimentId: input.experimentId,
+            },
+            _max: {
+              sortIndex: true,
+            },
+          })
+        )._max.sortIndex ?? 0;
+
+      const newScenario = await prisma.promptVariant.create({
+        data: {
+          experimentId: input.experimentId,
+          label: `Prompt Variant ${maxSortIndex + 1}`,
+          sortIndex: maxSortIndex + 1,
+          config: {},
+        },
+      });
+
+      return newScenario;
+    }),
+
   update: publicProcedure
     .input(
       z.object({
