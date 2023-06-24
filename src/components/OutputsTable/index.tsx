@@ -1,19 +1,14 @@
-import { MRT_ColumnDef, MantineReactTable } from "mantine-react-table";
 import { useMemo } from "react";
 import { RouterOutputs, api } from "~/utils/api";
-import { PromptVariant } from "./types";
+import { type PromptVariant } from "./types";
 import VariantHeader from "./VariantHeader";
 import OutputCell from "./OutputCell";
 import ScenarioHeader from "./ScenarioHeader";
+import { Box, Header, Title } from "@mantine/core";
+import React from "react";
 
-type CellData = {
-  variant: PromptVariant;
-  scenario: NonNullable<RouterOutputs["scenarios"]["list"]>[0];
-};
-
-type TableRow = {
-  scenario: NonNullable<RouterOutputs["scenarios"]["list"]>[0];
-} & Record<string, CellData>;
+const cellPaddingX = 8;
+const cellPaddingY = 4;
 
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
   const variants = api.promptVariants.list.useQuery(
@@ -26,82 +21,38 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
     { enabled: !!experimentId }
   );
 
-  const columns = useMemo<MRT_ColumnDef<TableRow>[]>(() => {
-    return [
-      {
-        id: "scenario",
-        header: "Scenario",
-        enableColumnDragging: false,
-        size: 200,
-        Cell: ({ row }) => <ScenarioHeader scenario={row.original.scenario} />,
-      },
-      ...(variants.data?.map(
-        (variant): MRT_ColumnDef<TableRow> => ({
-          id: variant.uiId,
-          header: variant.label,
-          Header: <VariantHeader variant={variant} />,
-          size: 400,
-          Cell: ({ row }) => <OutputCell scenario={row.original.scenario} variant={variant} />,
-        })
-      ) ?? []),
-    ];
-  }, [variants.data]);
-
-  const tableData = useMemo(
-    () =>
-      scenarios.data?.map((scenario) => {
-        return {
-          scenario,
-        } as TableRow;
-      }) ?? [],
-    [scenarios.data]
-  );
-
   if (!variants.data || !scenarios.data) return null;
 
   return (
-    <MantineReactTable
-      mantinePaperProps={{
-        withBorder: false,
-        shadow: "none",
-      }}
-      columns={columns}
-      data={tableData}
-      enableBottomToolbar={false}
-      enableTopToolbar={false}
-      enableColumnDragging
-      enableGlobalFilter={false}
-      enableFilters={false}
-      enableDensityToggle={false}
-      enableFullScreenToggle={false}
-      enableHiding={false}
-      enableColumnActions={false}
-      enableColumnResizing
-      mantineTableProps={{
-        sx: {
-          th: {
-            verticalAlign: "bottom",
-          },
-          "& .mantine-TableHeadCell-Content": {
-            width: "100%",
-            height: "100%",
-
-            "& .mantine-TableHeadCell-Content-Actions": {
-              alignSelf: "flex-start",
-            },
-
-            "& > .mantine-TableHeadCell-Content-Labels": {
-              width: "100%",
-              height: "100%",
-
-              "& > .mantine-TableHeadCell-Content-Wrapper": {
-                width: "100%",
-                height: "100%",
-              },
-            },
-          },
-        },
-      }}
-    />
+    <Box p={12}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `200px repeat(${variants.data.length}, minmax(300px, 1fr))`,
+          overflowX: "auto",
+        }}
+      >
+        <Box px={cellPaddingX} py={cellPaddingY} display="flex" sx={{}}>
+          <Title order={4}>Scenario</Title>
+        </Box>
+        {variants.data.map((variant) => (
+          <Box key={variant.uiId} px={cellPaddingX} py={cellPaddingY}>
+            <VariantHeader key={variant.uiId} variant={variant} />
+          </Box>
+        ))}
+        {scenarios.data.map((scenario) => (
+          <React.Fragment key={scenario.uiId}>
+            <Box px={cellPaddingX} py={cellPaddingY}>
+              <ScenarioHeader scenario={scenario} />
+            </Box>
+            {variants.data.map((variant) => (
+              <Box key={variant.id} px={cellPaddingX} py={cellPaddingY}>
+                <OutputCell key={variant.id} scenario={scenario} variant={variant} />
+              </Box>
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+    </Box>
   );
 }

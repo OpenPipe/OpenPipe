@@ -1,5 +1,6 @@
 import { api } from "~/utils/api";
 import { PromptVariant, Scenario } from "./types";
+import { Center } from "@mantine/core";
 
 export default function OutputCell({
   scenario,
@@ -15,5 +16,9 @@ export default function OutputCell({
 
   if (!output.data) return null;
 
-  return <div>{JSON.stringify(output.data.output.choices[0].message.content, null, 2)}</div>;
+  return (
+    <Center h="100%">
+      {JSON.stringify(output.data.output.choices[0].message.content, null, 2)}
+    </Center>
+  );
 }

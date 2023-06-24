@@ -9,6 +9,9 @@ export const scenariosRouter = createTRPCRouter({
         experimentId: input.experimentId,
         visible: true,
       },
+      orderBy: {
+        sortIndex: "asc",
+      },
     });
   }),
 

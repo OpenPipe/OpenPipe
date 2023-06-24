@@ -76,18 +76,21 @@ await prisma.testScenario.createMany({
   data: [
     {
       experimentId,
+      sortIndex: 0,
       variableValues: {
         state: "Washington",
       },
     },
     {
       experimentId,
+      sortIndex: 1,
       variableValues: {
         state: "California",
       },
     },
     {
       experimentId,
+      sortIndex: 2,
       variableValues: {
         state: "Utah",
       },

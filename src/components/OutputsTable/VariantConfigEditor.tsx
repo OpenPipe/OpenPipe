@@ -45,7 +45,9 @@ export default function VariantConfigEditor(props: {
         isThemeDefined = true;
       }
 
-      editorRef.current = monaco.editor.create(document.getElementById(editorId) as HTMLElement, {
+      const container = document.getElementById(editorId) as HTMLElement;
+
+      editorRef.current = monaco.editor.create(container, {
         value: props.savedConfig,
         language: "json",
         theme: "customTheme",
@@ -55,7 +57,13 @@ export default function VariantConfigEditor(props: {
         wrappingStrategy: "advanced",
         wordWrap: "on",
         folding: false,
-        scrollbar: { vertical: "hidden", alwaysConsumeMouseWheel: false },
+        scrollbar: {
+          vertical: "hidden",
+          alwaysConsumeMouseWheel: false,
+          verticalScrollbarSize: 0,
+
+          // Don't let you scroll to an empty line
+        },
         wordWrapBreakAfterCharacters: "",
         wordWrapBreakBeforeCharacters: "",
       });
@@ -69,7 +77,13 @@ export default function VariantConfigEditor(props: {
 
       editorRef.current.onDidChangeModelContent(checkForChanges);
 
+      const resizeObserver = new ResizeObserver(() => {
+        editorRef.current?.layout();
+      });
+      resizeObserver.observe(container);
+
       return () => {
+        resizeObserver.disconnect();
         editorRef.current?.dispose();
       };
     }

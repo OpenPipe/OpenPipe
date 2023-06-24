@@ -45,8 +45,7 @@ export default function VariantHeader({ variant }: { variant: PromptVariant }) {
   );
 
   return (
-    // title="" to hide the title text that mantine-react-table likes to add
-    <Stack w="100%" title="">
+    <Stack w="100%">
       <EditableVariantLabel variant={variant} />
       <VariantConfigEditor savedConfig={JSON.stringify(variant.config, null, 2)} onSave={onSave} />
     </Stack>
