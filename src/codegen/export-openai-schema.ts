@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 import YAML from "yaml";
 import fs from "fs";
 import path from "path";
 import { openapiSchemaToJsonSchema } from "@openapi-contrib/openapi-schema-to-json-schema";
 import assert from "assert";
+import { AcceptibleInputSchema } from "@openapi-contrib/openapi-schema-to-json-schema/dist/mjs/openapi-schema-types";
 
 const OPENAPI_URL =
   "https://raw.githubusercontent.com/openai/openai-openapi/0c432eb66fd0c758fd8b9bd69db41c1096e5f4db/openapi.yaml";
@@ -13,7 +16,7 @@ const convertOpenApiToJsonSchema = async (url: string) => {
   const openApiYaml = await response.text();
 
   // Parse the yaml document
-  const openApiDocument = YAML.parse(openApiYaml) as unknown;
+  const openApiDocument = YAML.parse(openApiYaml) as AcceptibleInputSchema;
 
   // Convert the openapi schema to json schema
   const jsonSchema = openapiSchemaToJsonSchema(openApiDocument);

@@ -5,6 +5,7 @@ import fillTemplate, { VariableMap } from "~/server/utils/fillTemplate";
 import { JSONSerializable } from "~/server/types";
 import { getChatCompletion } from "~/server/utils/openai";
 import crypto from "crypto";
+import type { Prisma } from "@prisma/client";
 
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
@@ -62,7 +63,7 @@ export const modelOutputsRouter = createTRPCRouter({
         data: {
           promptVariantId: input.variantId,
           testScenarioId: input.scenarioId,
-          output: modelResponse,
+          output: modelResponse as Prisma.InputJsonObject,
           inputHash,
         },
       });

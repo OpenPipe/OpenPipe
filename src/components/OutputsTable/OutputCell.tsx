@@ -58,6 +58,7 @@ export default function OutputCell({
   if (!output.data) return <CellShell>No output</CellShell>;
 
   return (
+    // @ts-expect-error TODO proper typing and error checks
     <CellShell>{JSON.stringify(output.data.output.choices[0].message.content, null, 2)}</CellShell>
   );
 }
