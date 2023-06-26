@@ -18,24 +18,21 @@ export default function NewVariantButton() {
   }, [mutation]);
 
   return (
-    <Tooltip label="Add Prompt Variant" placement="right">
-      <Button
-        w="100%"
-        borderRadius={0}
-        alignItems="center"
-        justifyContent="center"
-        fontWeight="normal"
-        bgColor="transparent"
-        _hover={{ bgColor: "gray.100" }}
-        px={cellPadding.x}
-        // py={cellPadding.y}
-        onClick={onClick}
-        height="unset"
-        minH={headerMinHeight}
-      >
-        <BsPlus size={24} />
-        New Variant
-      </Button>
-    </Tooltip>
+    <Button
+      w="100%"
+      borderRadius={0}
+      alignItems="center"
+      justifyContent="center"
+      fontWeight="normal"
+      bgColor="transparent"
+      _hover={{ bgColor: "gray.100" }}
+      px={cellPadding.x}
+      onClick={onClick}
+      height="unset"
+      minH={headerMinHeight}
+    >
+      <BsPlus size={24} />
+      New Variant
+    </Button>
   );
 }

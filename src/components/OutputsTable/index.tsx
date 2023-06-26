@@ -1,13 +1,14 @@
-import { RouterOutputs, api } from "~/utils/api";
-import { Scenario, type PromptVariant } from "./types";
-import OutputCell from "./OutputCell";
-import ScenarioEditor from "./ScenarioEditor";
+import { Box, Grid, GridItem, Heading, type SystemStyleObject } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { Box, Grid, GridItem, Heading, SystemStyleObject } from "@chakra-ui/react";
+import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
-import VariantHeader from "./VariantHeader";
+import OutputCell from "./OutputCell";
+import ScenarioEditor from "./ScenarioEditor";
 import VariantConfigEditor from "./VariantConfigEditor";
+import VariantHeader from "./VariantHeader";
+import type { Scenario, PromptVariant } from "./types";
+import { cellPadding } from "../constants";
 
 const stickyHeaderStyle: SystemStyleObject = {
   position: "sticky",
@@ -76,8 +77,8 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       }}
     >
       <GridItem display="flex" alignItems="flex-end" rowSpan={2}>
-        <Box sx={stickyHeaderStyle} flex={1}>
-          <Heading size="md" fontWeight="bold">
+        <Box sx={stickyHeaderStyle} flex={1} px={cellPadding.x} py={cellPadding.y}>
+          <Heading size="sm" fontWeight="bold">
             Scenario
           </Heading>
         </Box>

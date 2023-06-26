@@ -143,4 +143,73 @@ export const promptVariantsRouter = createTRPCRouter({
 
       return newVariant;
     }),
+
+  reorder: publicProcedure
+    .input(
+      z.object({
+        draggedId: z.string(),
+        droppedId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const dragged = await prisma.promptVariant.findUnique({
+        where: {
+          id: input.draggedId,
+        },
+      });
+
+      const dropped = await prisma.promptVariant.findUnique({
+        where: {
+          id: input.droppedId,
+        },
+      });
+
+      if (!dragged || !dropped || dragged.experimentId !== dropped.experimentId) {
+        throw new Error(
+          `Prompt Variant with id ${input.draggedId} or ${input.droppedId} does not exist`
+        );
+      }
+
+      const visibleItems = await prisma.promptVariant.findMany({
+        where: {
+          experimentId: dragged.experimentId,
+          visible: true,
+        },
+        orderBy: {
+          sortIndex: "asc",
+        },
+      });
+
+      // Remove the dragged item from its current position
+      const orderedItems = visibleItems.filter((item) => item.id !== dragged.id);
+
+      // Find the index of the dragged item and the dropped item
+      const dragIndex = visibleItems.findIndex((item) => item.id === dragged.id);
+      const dropIndex = orderedItems.findIndex((item) => item.id === dropped.id);
+
+      // Determine the new index for the dragged item
+      let newIndex;
+      if (dragIndex < dropIndex) {
+        newIndex = dropIndex + 1; // Insert after the dropped item
+      } else {
+        newIndex = dropIndex; // Insert before the dropped item
+      }
+
+      // Insert the dragged item at the new position
+      orderedItems.splice(newIndex, 0, dragged);
+
+      // Now, we need to update all the items with their new sortIndex
+      await prisma.$transaction(
+        orderedItems.map((item, index) => {
+          return prisma.promptVariant.update({
+            where: {
+              id: item.id,
+            },
+            data: {
+              sortIndex: index,
+            },
+          });
+        })
+      );
+    }),
 });

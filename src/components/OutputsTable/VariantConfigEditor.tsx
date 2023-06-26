@@ -94,11 +94,8 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
         wordWrap: "on",
         folding: false,
         scrollbar: {
-          vertical: "hidden",
           alwaysConsumeMouseWheel: false,
           verticalScrollbarSize: 0,
-
-          // Don't let you scroll to an empty line
         },
         wordWrapBreakAfterCharacters: "",
         wordWrapBreakBeforeCharacters: "",
@@ -145,7 +142,7 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
     <Box w="100%" pos="relative">
       <div id={editorId} style={{ height: "300px", width: "100%" }}></div>
       {isChanged && (
-        <HStack pos="absolute" bottom={0} right={0}>
+        <HStack pos="absolute" bottom={2} right={2}>
           <Button
             colorScheme="gray"
             size="sm"
