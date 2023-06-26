@@ -5,7 +5,7 @@ export default function AppNav(props: { children: React.ReactNode; title?: strin
   return (
     <Flex minH="100vh">
       <Head>
-        <title>{props.title ? `${props.title} | Prompt Bench` : "Prompt Bench"}</title>
+        <title>{props.title ? `${props.title} | Prompt Lab` : "Prompt Lab"}</title>
       </Head>
       {/* Placeholder for now */}
       <Box bgColor="gray.100" flexShrink={0} width="200px">

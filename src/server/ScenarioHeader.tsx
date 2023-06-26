@@ -13,7 +13,7 @@ export default function ScenarioHeader() {
   const [variables, setVariables] = useState<string[]>(initialVariables.map((v) => v.label));
   const [newVariable, setNewVariable] = useState<string>("");
 
-  const [editing, setEditing] = useState(true);
+  const [editing, setEditing] = useState(false);
 
   const utils = api.useContext();
   const setVarsMutation = api.experiments.setTemplateVariables.useMutation();
@@ -50,7 +50,7 @@ export default function ScenarioHeader() {
             rightIcon={<Icon as={BsChevronDown} />}
             onClick={() => setEditing(true)}
           >
-            Edit Vars
+            Configure
           </Button>
         )}
       </HStack>

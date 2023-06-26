@@ -23,7 +23,16 @@ export const promptVariantsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      const maxSortIndex =
+      const lastScenario = await prisma.promptVariant.findFirst({
+        where: {
+          experimentId: input.experimentId,
+        },
+        orderBy: {
+          sortIndex: "desc",
+        },
+      });
+
+      const largestSortIndex =
         (
           await prisma.promptVariant.aggregate({
             where: {
@@ -33,14 +42,14 @@ export const promptVariantsRouter = createTRPCRouter({
               sortIndex: true,
             },
           })
-        )._max.sortIndex ?? 0;
+        )._max?.sortIndex ?? 0;
 
       const newScenario = await prisma.promptVariant.create({
         data: {
           experimentId: input.experimentId,
-          label: `Prompt Variant ${maxSortIndex + 1}`,
-          sortIndex: maxSortIndex + 1,
-          config: {},
+          label: `Prompt Variant ${largestSortIndex + 2}`,
+          sortIndex: (lastScenario?.sortIndex ?? 0) + 1,
+          config: lastScenario?.config ?? {},
         },
       });
 
