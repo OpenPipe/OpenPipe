@@ -83,12 +83,8 @@ export const promptVariantsRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       return await prisma.promptVariant.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          visible: false,
-        },
+        where: { id: input.id },
+        data: { visible: false },
       });
     }),
 
@@ -185,7 +181,7 @@ export const promptVariantsRouter = createTRPCRouter({
 
       // Find the index of the dragged item and the dropped item
       const dragIndex = visibleItems.findIndex((item) => item.id === dragged.id);
-      const dropIndex = orderedItems.findIndex((item) => item.id === dropped.id);
+      const dropIndex = visibleItems.findIndex((item) => item.id === dropped.id);
 
       // Determine the new index for the dragged item
       let newIndex;

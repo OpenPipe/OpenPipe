@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type DragEvent } from "react";
 import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
@@ -32,9 +32,9 @@ export default function VariantHeader(props: { variant: PromptVariant }) {
 
   const reorderMutation = api.promptVariants.reorder.useMutation();
   const [onReorder] = useHandledAsyncCallback(
-    async (e: DragEvent) => {
+    async (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault();
-      console.log("onDrop");
+      setIsDragTarget(false);
       const draggedId = e.dataTransfer.getData("text/plain");
       const droppedId = props.variant.id;
       if (!draggedId || !droppedId || draggedId === droppedId) return;

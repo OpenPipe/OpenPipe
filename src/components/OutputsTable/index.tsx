@@ -31,7 +31,7 @@ const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) =
         onMouseLeave={() => setIsHovered(false)}
         sx={isHovered ? highlightStyle : undefined}
       >
-        <ScenarioEditor scenario={props.scenario} />
+        <ScenarioEditor scenario={props.scenario} hovered={isHovered} />
       </GridItem>
       {props.variants.map((variant) => (
         <GridItem
@@ -64,7 +64,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
     <Grid
       p={4}
       display="grid"
-      gridTemplateColumns={`200px repeat(${variants.data.length}, minmax(300px, 1fr)) auto`}
+      gridTemplateColumns={`250px repeat(${variants.data.length}, minmax(300px, 1fr)) auto`}
       sx={{
         "> *": {
           borderColor: "gray.300",
@@ -94,7 +94,6 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         // Have to use `style` instead of emotion style props to work around css specificity issues conflicting with the "> *" selector on Grid
         style={{ borderRightWidth: 0, borderBottomWidth: 0 }}
         sx={stickyHeaderStyle}
-        className="new-variant-button"
       >
         <NewVariantButton />
       </GridItem>
