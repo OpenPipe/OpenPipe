@@ -88,7 +88,7 @@ export default function ScenarioEditor({
       onDrop={onReorder}
       backgroundColor={isDragTarget ? "gray.100" : "transparent"}
     >
-      <Stack alignSelf="flex-start" opacity={hovered ? 1 : 0}>
+      <Stack alignSelf="flex-start" opacity={hovered ? 1 : 0} spacing={0}>
         <Tooltip label="Hide scenario" hasArrow>
           {/* for some reason the tooltip can't position itself properly relative to the icon without the wrapping box */}
           <Button

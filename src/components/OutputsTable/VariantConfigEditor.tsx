@@ -2,11 +2,12 @@ import { Box, Button, HStack, Tooltip, useToast } from "@chakra-ui/react";
 import { useMonaco } from "@monaco-editor/react";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
-import { PromptVariant } from "./types";
-import { JSONSerializable } from "~/server/types";
+import { type PromptVariant } from "./types";
+import { type JSONSerializable } from "~/server/types";
 import { api } from "~/utils/api";
+import openaiSchema from "~/codegen/openai.schema.json";
 
-let isThemeDefined = false;
+let isEditorConfigured = false;
 
 export default function VariantConfigEditor(props: { variant: PromptVariant }) {
   const monaco = useMonaco();
@@ -69,7 +70,7 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
 
   useEffect(() => {
     if (monaco) {
-      if (!isThemeDefined) {
+      if (!isEditorConfigured) {
         monaco.editor.defineTheme("customTheme", {
           base: "vs",
           inherit: true,
@@ -78,7 +79,21 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
             "editor.background": "#fafafa",
           },
         });
-        isThemeDefined = true;
+        monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+          validate: true,
+          schemas: [
+            {
+              uri: "https://api.openai.com/v1",
+              fileMatch: ["*"],
+              schema: {
+                $schema: "http://json-schema.org/draft-07/schema#",
+                $ref: "#/components/schemas/CreateChatCompletionRequest",
+                components: openaiSchema.components,
+              },
+            },
+          ],
+        });
+        isEditorConfigured = true;
       }
 
       const container = document.getElementById(editorId) as HTMLElement;

@@ -8,7 +8,8 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "codegen": "tsx src/codegen/export-openai-schema.ts"
   },
   "dependencies": {
     "@chakra-ui/next-js": "^2.1.4",
@@ -41,6 +42,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@openapi-contrib/openapi-schema-to-json-schema": "^4.0.5",
     "@types/eslint": "^8.37.0",
     "@types/lodash": "^4.14.195",
     "@types/node": "^18.16.0",
@@ -51,7 +53,8 @@
     "eslint": "^8.40.0",
     "eslint-config-next": "^13.4.2",
     "prisma": "^4.14.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "yaml": "^2.3.1"
   },
   "ct3aMetadata": {
     "initVersion": "7.14.0"
