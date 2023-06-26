@@ -91,7 +91,7 @@ export default function VariantHeader(props: { variant: PromptVariant }) {
         px={cellPadding.x}
       />
       <Tooltip label="Hide Variant" hasArrow>
-        <Button variant="ghost" colorScheme="gray" size="sm" onClick={onHide} borderRadius={0}>
+        <Button variant="ghost" colorScheme="gray" size="sm" onClick={onHide}>
           <Icon as={BsX} boxSize={6} />
         </Button>
       </Tooltip>

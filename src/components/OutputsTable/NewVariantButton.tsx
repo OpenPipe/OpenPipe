@@ -20,7 +20,6 @@ export default function NewVariantButton() {
   return (
     <Button
       w="100%"
-      borderRadius={0}
       alignItems="center"
       justifyContent="center"
       fontWeight="normal"

@@ -9,6 +9,7 @@ import VariantConfigEditor from "./VariantConfigEditor";
 import VariantHeader from "./VariantHeader";
 import type { Scenario, PromptVariant } from "./types";
 import { cellPadding } from "../constants";
+import ScenarioHeader from "~/server/ScenarioHeader";
 
 const stickyHeaderStyle: SystemStyleObject = {
   position: "sticky",
@@ -30,6 +31,7 @@ const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) =
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         sx={isHovered ? highlightStyle : undefined}
+        borderLeftWidth={1}
       >
         <ScenarioEditor scenario={props.scenario} hovered={isHovered} />
       </GridItem>
@@ -77,14 +79,10 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       }}
     >
       <GridItem display="flex" alignItems="flex-end" rowSpan={2}>
-        <Box sx={stickyHeaderStyle} flex={1} px={cellPadding.x} py={cellPadding.y}>
-          <Heading size="sm" fontWeight="bold">
-            Scenario
-          </Heading>
-        </Box>
+        <ScenarioHeader />
       </GridItem>
       {variants.data.map((variant) => (
-        <GridItem key={variant.uiId} padding={0} sx={stickyHeaderStyle}>
+        <GridItem key={variant.uiId} padding={0} sx={stickyHeaderStyle} borderTopWidth={1}>
           <VariantHeader variant={variant} />
         </GridItem>
       ))}

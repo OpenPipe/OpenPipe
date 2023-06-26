@@ -128,7 +128,6 @@ export default function ScenarioEditor({
                 {key}
               </Box>
               <Textarea
-                borderRadius={0}
                 px={2}
                 py={1}
                 placeholder="empty"
@@ -153,7 +152,6 @@ export default function ScenarioEditor({
           <HStack justify="right">
             <Button
               size="sm"
-              borderRadius={0}
               onMouseDown={() => {
                 setValues(savedValues);
               }}
@@ -161,7 +159,7 @@ export default function ScenarioEditor({
             >
               Reset
             </Button>
-            <Button size="sm" borderRadius={0} onMouseDown={onSave} colorScheme="blue">
+            <Button size="sm" onMouseDown={onSave} colorScheme="blue">
               Save
             </Button>
           </HStack>

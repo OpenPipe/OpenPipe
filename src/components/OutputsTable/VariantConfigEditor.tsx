@@ -165,12 +165,11 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
               editorRef.current?.setValue(savedConfig);
               checkForChanges();
             }}
-            borderRadius={0}
           >
             Reset
           </Button>
           <Tooltip label={`${modifierKey} + Enter`}>
-            <Button size="sm" onClick={onSave} colorScheme="blue" borderRadius={0}>
+            <Button size="sm" onClick={onSave} colorScheme="blue">
               Save
             </Button>
           </Tooltip>

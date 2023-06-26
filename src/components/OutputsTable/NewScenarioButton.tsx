@@ -18,7 +18,6 @@ export default function NewScenarioButton() {
   return (
     <Button
       w="100%"
-      borderRadius={0}
       alignItems="center"
       justifyContent="flex-start"
       fontWeight="normal"

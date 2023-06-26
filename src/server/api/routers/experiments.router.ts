@@ -21,4 +21,32 @@ export const experimentsRouter = createTRPCRouter({
       },
     });
   }),
+
+  setTemplateVariables: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        labels: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const existing = await prisma.templateVariable.findMany({
+        where: { experimentId: input.id },
+      });
+      const toDelete = existing.filter((e) => !input.labels.includes(e.label));
+
+      const toCreate = new Set(
+        input.labels.filter((l) => !existing.map((e) => e.label).includes(l))
+      ).values();
+
+      await prisma.$transaction([
+        prisma.templateVariable.deleteMany({
+          where: { id: { in: toDelete.map((e) => e.id) } },
+        }),
+        prisma.templateVariable.createMany({
+          data: [...toCreate].map((l) => ({ label: l, experimentId: input.id })),
+        }),
+      ]);
+      return null;
+    }),
 });

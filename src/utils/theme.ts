@@ -8,6 +8,23 @@ const theme = extendTheme({
     heading: systemFont,
     body: systemFont,
   },
+
+  components: {
+    Button: {
+      baseStyle: {
+        borderRadius: "sm",
+      },
+    },
+    Input: {
+      sizes: {
+        md: {
+          field: {
+            borderRadius: "sm",
+          },
+        },
+      },
+    },
+  },
 });
 
 export default theme;
