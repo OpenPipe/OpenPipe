@@ -4,6 +4,7 @@ import { prisma } from "~/server/db";
 import fillTemplate, { VariableMap } from "~/server/utils/fillTemplate";
 import { JSONSerializable } from "~/server/types";
 import { getChatCompletion } from "~/server/utils/openai";
+import crypto from "crypto";
 
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
@@ -39,13 +40,30 @@ export const modelOutputsRouter = createTRPCRouter({
         scenario.variableValues as VariableMap
       );
 
-      const modelResponse = await getChatCompletion(filledTemplate, process.env.OPENAI_API_KEY!);
+      const inputHash = crypto
+        .createHash("sha256")
+        .update(JSON.stringify(filledTemplate))
+        .digest("hex");
+
+      // TODO: we should probably only use this if temperature=0
+      const existingResponse = await prisma.modelOutput.findFirst({
+        where: { inputHash },
+      });
+
+      let modelResponse: JSONSerializable;
+
+      if (existingResponse) {
+        modelResponse = existingResponse.output as JSONSerializable;
+      } else {
+        modelResponse = await getChatCompletion(filledTemplate, process.env.OPENAI_API_KEY!);
+      }
 
       const modelOutput = await prisma.modelOutput.create({
         data: {
           promptVariantId: input.variantId,
           testScenarioId: input.scenarioId,
           output: modelResponse,
+          inputHash,
         },
       });
 

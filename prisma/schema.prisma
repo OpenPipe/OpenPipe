@@ -74,7 +74,8 @@ model TemplateVariable {
 model ModelOutput {
     id String @id @default(uuid()) @db.Uuid
 
-    output Json
+    inputHash String
+    output    Json
 
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id])
@@ -86,6 +87,7 @@ model ModelOutput {
     updatedAt DateTime @updatedAt
 
     @@unique([promptVariantId, testScenarioId])
+    @@index([inputHash])
 }
 
 // Necessary for Next auth
