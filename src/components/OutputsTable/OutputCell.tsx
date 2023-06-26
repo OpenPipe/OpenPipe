@@ -3,6 +3,13 @@ import { PromptVariant, Scenario } from "./types";
 import { Center, Spinner, Text } from "@chakra-ui/react";
 import { useExperiment } from "~/utils/hooks";
 import { JSONSerializable } from "~/server/types";
+import { cellPadding } from "../constants";
+
+const CellShell = ({ children }: { children: React.ReactNode }) => (
+  <Center h="100%" w="100%" px={cellPadding.x} py={cellPadding.y}>
+    {children}
+  </Center>
+);
 
 export default function OutputCell({
   scenario,
@@ -36,23 +43,21 @@ export default function OutputCell({
 
   if (disabledReason)
     return (
-      <Center h="100%">
+      <CellShell>
         <Text color="gray.500">{disabledReason}</Text>
-      </Center>
+      </CellShell>
     );
 
   if (output.isLoading)
     return (
-      <Center h="100%">
+      <CellShell>
         <Spinner />
-      </Center>
+      </CellShell>
     );
 
-  if (!output.data) return <Center h="100%">No output</Center>;
+  if (!output.data) return <CellShell>No output</CellShell>;
 
   return (
-    <Center h="100%">
-      {JSON.stringify(output.data.output.choices[0].message.content, null, 2)}
-    </Center>
+    <CellShell>{JSON.stringify(output.data.output.choices[0].message.content, null, 2)}</CellShell>
   );
 }

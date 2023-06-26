@@ -1,11 +1,12 @@
 import { extendTheme } from "@chakra-ui/react";
-import "@fontsource/poppins";
-import "@fontsource/roboto";
+
+const systemFont =
+  'ui-sans-serif, -apple-system, "system-ui", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"';
 
 const theme = extendTheme({
   fonts: {
-    heading: "Poppins, sans-serif",
-    body: "Roboto, sans-serif",
+    heading: systemFont,
+    body: systemFont,
   },
 });
 

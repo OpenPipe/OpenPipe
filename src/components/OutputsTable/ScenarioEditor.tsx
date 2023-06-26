@@ -6,8 +6,9 @@ import { useState } from "react";
 import ResizeTextarea from "react-textarea-autosize";
 
 import { Box, Button, Flex, HStack, Stack, Textarea } from "@chakra-ui/react";
+import { cellPadding } from "../constants";
 
-export default function ScenarioHeader({ scenario }: { scenario: Scenario }) {
+export default function ScenarioEditor({ scenario }: { scenario: Scenario }) {
   const savedValues = scenario.variableValues as Record<string, string>;
   const utils = api.useContext();
 
@@ -30,7 +31,7 @@ export default function ScenarioHeader({ scenario }: { scenario: Scenario }) {
   }, [mutation, values]);
 
   return (
-    <Stack>
+    <Stack px={cellPadding.x} py={cellPadding.y}>
       {variableLabels.map((key) => {
         const value = values[key] ?? "";
         const layoutDirection = value.length > 20 ? "column" : "row";

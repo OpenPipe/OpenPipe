@@ -2,6 +2,7 @@ import { Button, Tooltip } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import { cellPadding, headerMinHeight } from "../constants";
 
 export default function NewVariantButton() {
   const experiment = useExperiment();
@@ -21,16 +22,19 @@ export default function NewVariantButton() {
       <Button
         w="100%"
         borderRadius={0}
-        alignItems="flex-start"
+        alignItems="center"
         justifyContent="center"
         fontWeight="normal"
-        bgColor="blue.100"
-        _hover={{ bgColor: "blue.200" }}
-        py={2}
-        px={0}
+        bgColor="transparent"
+        _hover={{ bgColor: "gray.100" }}
+        px={cellPadding.x}
+        // py={cellPadding.y}
         onClick={onClick}
+        height="unset"
+        minH={headerMinHeight}
       >
         <BsPlus size={24} />
+        New Variant
       </Button>
     </Tooltip>
   );

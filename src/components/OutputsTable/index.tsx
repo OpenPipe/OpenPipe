@@ -1,14 +1,20 @@
 import { RouterOutputs, api } from "~/utils/api";
 import { Scenario, type PromptVariant } from "./types";
-import VariantHeader from "./VariantHeader";
 import OutputCell from "./OutputCell";
-import ScenarioHeader from "./ScenarioHeader";
+import ScenarioEditor from "./ScenarioEditor";
 import React, { useState } from "react";
-import { Box, Grid, GridItem, Heading } from "@chakra-ui/react";
+import { Box, Grid, GridItem, Heading, SystemStyleObject } from "@chakra-ui/react";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
-import EditableVariantLabel from "./EditableVariantLabel";
+import VariantHeader from "./VariantHeader";
 import VariantConfigEditor from "./VariantConfigEditor";
+
+const stickyHeaderStyle: SystemStyleObject = {
+  position: "sticky",
+  top: 0,
+  backgroundColor: "#fff",
+  zIndex: 1,
+};
 
 const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -22,16 +28,16 @@ const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) =
       <GridItem
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        sx={isHovered ? highlightStyle : null}
+        sx={isHovered ? highlightStyle : undefined}
       >
-        <ScenarioHeader scenario={props.scenario} />
+        <ScenarioEditor scenario={props.scenario} />
       </GridItem>
       {props.variants.map((variant) => (
         <GridItem
           key={variant.id}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          sx={isHovered ? highlightStyle : null}
+          sx={isHovered ? highlightStyle : undefined}
         >
           <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />
         </GridItem>
@@ -57,14 +63,12 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
     <Grid
       p={4}
       display="grid"
-      gridTemplateColumns={`200px repeat(${variants.data.length}, minmax(300px, 1fr)) 40px`}
+      gridTemplateColumns={`200px repeat(${variants.data.length}, minmax(300px, 1fr)) auto`}
       sx={{
         "> *": {
           borderColor: "gray.300",
           borderBottomWidth: 1,
           borderRightWidth: 1,
-          paddingX: 4,
-          paddingY: 2,
         },
         "> *:last-child": {
           borderRightWidth: 0,
@@ -72,25 +76,24 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       }}
     >
       <GridItem display="flex" alignItems="flex-end" rowSpan={2}>
-        <Heading size="md" fontWeight="bold">
-          Scenario
-        </Heading>
+        <Box sx={stickyHeaderStyle} flex={1}>
+          <Heading size="md" fontWeight="bold">
+            Scenario
+          </Heading>
+        </Box>
       </GridItem>
       {variants.data.map((variant) => (
-        <GridItem
-          key={variant.uiId}
-          padding={0}
-          sx={{ position: "sticky", top: 0, backgroundColor: "#fff", zIndex: 1 }}
-        >
-          <EditableVariantLabel variant={variant} />
+        <GridItem key={variant.uiId} padding={0} sx={stickyHeaderStyle}>
+          <VariantHeader variant={variant} />
         </GridItem>
       ))}
       <GridItem
-        borderBottomWidth={0}
         rowSpan={scenarios.data.length + 1}
         padding={0}
-        borderRightWidth={0}
-        sx={{ position: "sticky", top: 0, backgroundColor: "#fff", zIndex: 1 }}
+        // Have to use `style` instead of emotion style props to work around css specificity issues conflicting with the "> *" selector on Grid
+        style={{ borderRightWidth: 0, borderBottomWidth: 0 }}
+        sx={stickyHeaderStyle}
+        className="new-variant-button"
       >
         <NewVariantButton />
       </GridItem>

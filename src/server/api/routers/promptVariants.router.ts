@@ -75,6 +75,23 @@ export const promptVariantsRouter = createTRPCRouter({
       });
     }),
 
+  hide: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await prisma.promptVariant.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          visible: false,
+        },
+      });
+    }),
+
   replaceWithConfig: publicProcedure
     .input(
       z.object({

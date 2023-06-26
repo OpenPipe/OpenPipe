@@ -1,53 +1,66 @@
-import { useCallback } from "react";
-import type { PromptVariant } from "./types";
+import { useRef } from "react";
+import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
-import { type JSONSerializable } from "~/server/types";
-import VariantConfigEditor from "./VariantConfigEditor";
-import EditableVariantLabel from "./EditableVariantLabel";
-import { Stack, useToast } from "@chakra-ui/react";
+import { useHandledAsyncCallback } from "~/utils/hooks";
+import { Button, HStack, Heading, Tooltip } from "@chakra-ui/react";
+import { BsX } from "react-icons/bs";
+import { cellPadding, headerMinHeight } from "../constants";
 
-export default function VariantHeader({ variant }: { variant: PromptVariant }) {
-  const replaceWithConfig = api.promptVariants.replaceWithConfig.useMutation();
+export default function VariantHeader(props: { variant: PromptVariant }) {
   const utils = api.useContext();
-  const toast = useToast();
 
-  const onSave = useCallback(
-    async (currentConfig: string) => {
-      let parsedConfig: JSONSerializable;
-      try {
-        parsedConfig = JSON.parse(currentConfig) as JSONSerializable;
-      } catch (e) {
-        toast({
-          title: "Invalid JSON",
-          description: "Please fix the JSON before saving.",
-          status: "error",
-        });
-        return;
-      }
-
-      if (parsedConfig === null) {
-        toast({
-          title: "Invalid JSON",
-          description: "Please fix the JSON before saving.",
-          status: "error",
-        });
-        return;
-      }
-
-      await replaceWithConfig.mutateAsync({
-        id: variant.id,
-        config: currentConfig,
+  const labelRef = useRef<HTMLHeadingElement | null>(null);
+  const updateMutation = api.promptVariants.update.useMutation();
+  const [onSaveLabel] = useHandledAsyncCallback(async () => {
+    const newLabel = labelRef.current?.innerText;
+    if (newLabel && newLabel !== props.variant.label) {
+      await updateMutation.mutateAsync({
+        id: props.variant.id,
+        updates: { label: newLabel },
       });
+    }
+  }, [updateMutation, props.variant.id, props.variant.label]);
 
-      await utils.promptVariants.list.invalidate();
-    },
-    [variant.id, replaceWithConfig, utils.promptVariants.list, toast]
-  );
+  const hideMutation = api.promptVariants.hide.useMutation();
+  const [onHide] = useHandledAsyncCallback(async () => {
+    await hideMutation.mutateAsync({
+      id: props.variant.id,
+    });
+    await utils.promptVariants.list.invalidate();
+  }, [hideMutation, props.variant.id]);
 
   return (
-    <Stack w="100%">
-      <EditableVariantLabel variant={variant} />
-      <VariantConfigEditor variant={variant} />
-    </Stack>
+    <HStack spacing={4} alignItems="center" minH={headerMinHeight}>
+      <Heading
+        fontWeight="bold"
+        size="md"
+        ref={labelRef}
+        contentEditable
+        suppressContentEditableWarning
+        borderWidth={1}
+        borderColor="transparent"
+        _hover={{ borderColor: "gray.300" }}
+        _focus={{ borderColor: "blue.500", outline: "none" }}
+        onBlur={onSaveLabel}
+        flex={1}
+        px={cellPadding.x}
+        // py={cellPadding.y}
+      >
+        {props.variant.label}
+      </Heading>
+      <Tooltip label="Hide Variant" hasArrow>
+        <Button
+          variant="ghost"
+          colorScheme="gray"
+          size="sm"
+          onClick={onHide}
+          borderRadius={0}
+          // px={cellPadding.x}
+          // py={cellPadding.y}
+        >
+          <BsX size={24} />
+        </Button>
+      </Tooltip>
+    </HStack>
   );
 }
