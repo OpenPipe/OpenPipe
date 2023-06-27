@@ -4,6 +4,7 @@ import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 import { ChakraProvider } from "@chakra-ui/react";
 import theme from "~/utils/theme";
+import Favicon from "~/components/Favicon";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -11,6 +12,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
+      <Favicon />
       <ChakraProvider theme={theme}>
         <Component {...pageProps} />
       </ChakraProvider>

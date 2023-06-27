@@ -9,6 +9,8 @@ import {
   HStack,
   BoxProps,
   forwardRef,
+  Divider,
+  Image,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { api } from "~/utils/api";
@@ -22,10 +24,10 @@ const ExperimentLink = forwardRef<BoxProps & { active: boolean | undefined }, "a
   ({ children, active, ...props }, ref) => (
     <Box
       ref={ref}
-      bgColor={active ? "gray.200" : "transparent"}
-      _hover={{ bgColor: "gray.200" }}
+      bgColor={active ? "gray.300" : "transparent"}
+      _hover={{ bgColor: "gray.300" }}
       borderRadius={4}
-      px={2}
+      px={4}
       py={2}
       justifyContent="start"
       cursor="pointer"
@@ -56,15 +58,27 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
       <Head>
         <title>{props.title ? `${props.title} | Prompt Lab` : "Prompt Lab"}</title>
       </Head>
-      <Box bgColor="gray.100" flexShrink={0} width="220px" p={4}>
+      <Box bgColor="gray.100" flexShrink={0} width="220px" p={2}>
         <VStack align="stretch">
-          <HStack align="center" spacing={2}>
-            <Icon as={RiFlaskLine} boxSize={6} />
-            <Heading size="sm" textAlign="center">
+          <HStack spacing={0}>
+            <Image
+              src="/flask2.svg"
+              alt=""
+              w={6}
+              h={6}
+              // filter="drop-shadow(0 0 2px rgb(0 0 0 / 0.4))"
+            />
+            <Heading size="md" p={2}>
+              Prompt Lab
+            </Heading>
+          </HStack>
+          <Box h="1px" bgColor="gray.400" />
+          <HStack align="center" spacing={2} p={2}>
+            <Heading size="xs" textAlign="center">
               Experiments
             </Heading>
           </HStack>
-          <VStack spacing={0} align="stretch" ml={2}>
+          <VStack spacing={1} align="stretch">
             {experiments?.data?.map((exp) => (
               <ExperimentLink
                 key={exp.id}
@@ -72,17 +86,20 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
                 active={exp.id === currentId}
                 href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}
               >
+                <Icon as={RiFlaskLine} boxSize={4} mr={2} />
+
                 {exp.label}
               </ExperimentLink>
             ))}
-            <ExperimentLink onClick={createExperiment} active={false}>
+            <ExperimentLink
+              onClick={createExperiment}
+              active={false}
+              display="flex"
+              alignItems="center"
+            >
               <Icon as={BsPlusSquare} boxSize={4} mr={2} />
               New Experiment
             </ExperimentLink>
-            {/* <Box as={Button} leftIcon={<Icon as={BsPlusSquare} />} onClick={createExperiment}>
-              New Experiment
-            </Box> */}
-            {/* <NavButton label="New Experiment" onClick={createExperiment} /> */}
           </VStack>
         </VStack>
       </Box>
