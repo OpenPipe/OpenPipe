@@ -1,11 +1,14 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import fillTemplate, { VariableMap } from "~/server/utils/fillTemplate";
-import { JSONSerializable } from "~/server/types";
+import fillTemplate, { type VariableMap } from "~/server/utils/fillTemplate";
+import { type JSONSerializable } from "~/server/types";
 import { getChatCompletion } from "~/server/utils/openai";
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
+import { env } from "~/env.mjs";
+
+env;
 
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
@@ -56,7 +59,7 @@ export const modelOutputsRouter = createTRPCRouter({
       if (existingResponse) {
         modelResponse = existingResponse.output as JSONSerializable;
       } else {
-        modelResponse = await getChatCompletion(filledTemplate, process.env.OPENAI_API_KEY!);
+        modelResponse = await getChatCompletion(filledTemplate, env.OPENAI_API_KEY);
       }
 
       const modelOutput = await prisma.modelOutput.create({

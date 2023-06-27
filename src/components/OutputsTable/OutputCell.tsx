@@ -1,5 +1,5 @@
 import { api } from "~/utils/api";
-import { PromptVariant, Scenario } from "./types";
+import { type PromptVariant, type Scenario } from "./types";
 import { Center, Spinner, Text } from "@chakra-ui/react";
 import { useExperiment } from "~/utils/hooks";
 import { cellPadding } from "../constants";

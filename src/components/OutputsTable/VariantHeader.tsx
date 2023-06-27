@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from "react";
+import { useState, type DragEvent } from "react";
 import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";

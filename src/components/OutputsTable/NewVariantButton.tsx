@@ -1,4 +1,4 @@
-import { Button, Tooltip } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";

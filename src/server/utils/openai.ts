@@ -1,4 +1,4 @@
-import { JSONSerializable } from "../types";
+import { type JSONSerializable } from "../types";
 
 export async function getChatCompletion(payload: JSONSerializable, apiKey: string) {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {

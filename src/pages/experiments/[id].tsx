@@ -9,10 +9,9 @@ import {
   HStack,
   Icon,
   Input,
-  Tooltip,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { BsTrash } from "react-icons/bs";
 import { RiFlaskLine } from "react-icons/ri";
 import OutputsTable from "~/components/OutputsTable";

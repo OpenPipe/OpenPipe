@@ -1,4 +1,4 @@
-import { RouterOutputs } from "~/utils/api";
+import { type RouterOutputs } from "~/utils/api";
 
 export type PromptVariant = NonNullable<RouterOutputs["promptVariants"]["list"]>[0];
 

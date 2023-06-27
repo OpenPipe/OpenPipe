@@ -1,6 +1,6 @@
-import { Text, Box, Button, HStack, Heading, Icon, Input, Stack, Code } from "@chakra-ui/react";
+import { Text, Button, HStack, Heading, Icon, Input, Stack, Code } from "@chakra-ui/react";
 import { useState } from "react";
-import { BsCheck, BsChevronDown, BsChevronUp, BsX } from "react-icons/bs";
+import { BsCheck, BsChevronDown, BsX } from "react-icons/bs";
 import { cellPadding } from "~/components/constants";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
@@ -85,7 +85,7 @@ export default function ScenarioHeader() {
           </HStack>
 
           <HStack spacing={2} py={4} wrap="wrap">
-            {vars.map((variable, i) => (
+            {vars.map((variable) => (
               <HStack
                 key={variable.id}
                 spacing={0}

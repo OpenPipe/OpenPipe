@@ -1,4 +1,4 @@
-import { JSONSerializable } from "../types";
+import { type JSONSerializable } from "../types";
 
 export type VariableMap = Record<string, string>;
 

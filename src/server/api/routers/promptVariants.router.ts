@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { OpenAIChatConfig } from "~/server/types";
+import { type OpenAIChatConfig } from "~/server/types";
 
 export const promptVariantsRouter = createTRPCRouter({
   list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {

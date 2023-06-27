@@ -1,15 +1,12 @@
 import {
   Box,
   Flex,
-  Stack,
-  Button,
   Heading,
   VStack,
   Icon,
   HStack,
-  BoxProps,
+  type BoxProps,
   forwardRef,
-  Divider,
   Image,
 } from "@chakra-ui/react";
 import Head from "next/head";
