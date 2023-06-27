@@ -2,7 +2,6 @@ import {
   Box,
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   Button,
   Center,
   Flex,
@@ -78,11 +77,9 @@ export default function Experiment() {
         <HStack px={4} py={2}>
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
-              <BreadcrumbLink>
-                <Flex alignItems="center">
-                  <Icon as={RiFlaskLine} boxSize={4} mr={2} /> Experiments
-                </Flex>
-              </BreadcrumbLink>
+              <Flex alignItems="center">
+                <Icon as={RiFlaskLine} boxSize={4} mr={2} /> Experiments
+              </Flex>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
               <Input

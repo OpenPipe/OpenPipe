@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 import { ChakraProvider } from "@chakra-ui/react";
 import theme from "~/utils/theme";
 import Favicon from "~/components/Favicon";
+import "~/utils/analytics";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,

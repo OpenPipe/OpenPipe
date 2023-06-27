@@ -12,14 +12,16 @@ export const useExperiment = () => {
   return experiment;
 };
 
-export function useHandledAsyncCallback<T extends (...args: unknown[]) => Promise<unknown>>(
-  callback: T,
+type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
+
+export function useHandledAsyncCallback<T extends unknown[], U>(
+  callback: AsyncFunction<T, U>,
   deps: React.DependencyList
 ) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const wrappedCallback = useCallback((...args: Parameters<T>) => {
+  const wrappedCallback = useCallback((...args: T) => {
     setLoading(true);
     setError(null);
 
@@ -31,7 +33,8 @@ export function useHandledAsyncCallback<T extends (...args: unknown[]) => Promis
       .finally(() => {
         setLoading(false);
       });
-    /* eslint-disable react-hooks/exhaustive-deps */
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   return [wrappedCallback, loading, error] as const;
