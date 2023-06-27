@@ -31,7 +31,7 @@ export default function NewVariantButton() {
       minH={headerMinHeight}
     >
       <BsPlus size={24} />
-      New Variant
+      Add Variant
     </Button>
   );
 }

@@ -143,6 +143,7 @@ export default function ScenarioEditor({
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                       e.preventDefault();
+                      e.currentTarget.blur();
                       onSave();
                     }
                   }}

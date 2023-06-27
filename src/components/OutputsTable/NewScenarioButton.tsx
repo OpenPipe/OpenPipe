@@ -27,7 +27,7 @@ export default function NewScenarioButton() {
       onClick={onClick}
     >
       <BsPlus size={24} />
-      New Scenario
+      Add Scenario
     </Button>
   );
 }

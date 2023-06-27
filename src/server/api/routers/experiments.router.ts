@@ -47,7 +47,7 @@ export const experimentsRouter = createTRPCRouter({
             messages: [
               {
                 role: "system",
-                content: "count to three in Spanish...",
+                content: "count to three in {{input}}...",
               },
             ],
           },
@@ -56,7 +56,13 @@ export const experimentsRouter = createTRPCRouter({
       prisma.testScenario.create({
         data: {
           experimentId: exp.id,
-          variableValues: {},
+          variableValues: { input: "Spanish" },
+        },
+      }),
+      prisma.templateVariable.create({
+        data: {
+          experimentId: exp.id,
+          label: "input",
         },
       }),
     ]);
