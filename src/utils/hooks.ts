@@ -12,7 +12,7 @@ export const useExperiment = () => {
   return experiment;
 };
 
-export function useHandledAsyncCallback<T extends (...args: any[]) => Promise<any>>(
+export function useHandledAsyncCallback<T extends (...args: unknown[]) => Promise<unknown>>(
   callback: T,
   deps: React.DependencyList
 ) {
@@ -31,6 +31,7 @@ export function useHandledAsyncCallback<T extends (...args: any[]) => Promise<an
       .finally(() => {
         setLoading(false);
       });
+    /* eslint-disable react-hooks/exhaustive-deps */
   }, deps);
 
   return [wrappedCallback, loading, error] as const;

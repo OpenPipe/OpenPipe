@@ -34,7 +34,7 @@ export const scenariosRouter = createTRPCRouter({
           })
         )._max.sortIndex ?? 0;
 
-      const newScenario = await prisma.testScenario.create({
+      await prisma.testScenario.create({
         data: {
           experimentId: input.experimentId,
           sortIndex: maxSortIndex + 1,

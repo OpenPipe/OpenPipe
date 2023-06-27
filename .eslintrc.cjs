@@ -30,7 +30,6 @@ const config = {
         fixStyle: "inline-type-imports",
       },
     ],
-    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
 
     "unused-imports/no-unused-imports": "error",
     "unused-imports/no-unused-vars": [

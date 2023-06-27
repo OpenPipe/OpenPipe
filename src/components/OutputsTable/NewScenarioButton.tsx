@@ -9,8 +9,9 @@ export default function NewScenarioButton() {
   const utils = api.useContext();
 
   const [onClick] = useHandledAsyncCallback(async () => {
+    if (!experiment.data) return;
     await mutation.mutateAsync({
-      experimentId: experiment.data!.id,
+      experimentId: experiment.data.id,
     });
     await utils.scenarios.list.invalidate();
   }, [mutation]);
