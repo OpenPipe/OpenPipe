@@ -73,7 +73,7 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
             </Heading>
           </HStack>
           <Box h="1px" bgColor="gray.400" />
-          <HStack align="center" spacing={2} p={2}>
+          <HStack align="center" spacing={2} p={2} pb={0}>
             <Heading size="xs" textAlign="center">
               Experiments
             </Heading>
@@ -85,9 +85,10 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
                 as={Link}
                 active={exp.id === currentId}
                 href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}
+                display="flex"
+                alignItems="center"
               >
                 <Icon as={RiFlaskLine} boxSize={4} mr={2} />
-
                 {exp.label}
               </ExperimentLink>
             ))}

@@ -3,7 +3,7 @@ import { prisma } from "~/server/db";
 const experimentId = "11111111-1111-1111-1111-111111111111";
 
 // Delete the existing experiment
-await prisma.experiment.delete({
+await prisma.experiment.deleteMany({
   where: {
     id: experimentId,
   },
