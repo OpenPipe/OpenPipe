@@ -69,4 +69,34 @@ export const experimentsRouter = createTRPCRouter({
 
     return exp;
   }),
+
+  update: publicProcedure
+    .input(z.object({ id: z.string(), updates: z.object({ label: z.string() }) }))
+    .mutation(async ({ input }) => {
+      return await prisma.experiment.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          label: input.updates.label,
+        },
+      });
+    }),
+
+  delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
+    await prisma.experiment.delete({
+      where: {
+        id: input.id,
+      },
+    });
+
+    // Return the ID of the newest existing experiment so the client can redirect to it
+    const newestExperiment = await prisma.experiment.findFirst({
+      orderBy: {
+        sortIndex: "desc",
+      },
+    });
+
+    return newestExperiment?.id;
+  }),
 });

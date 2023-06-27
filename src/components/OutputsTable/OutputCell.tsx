@@ -39,7 +39,7 @@ export default function OutputCell({
     { enabled: disabledReason === null }
   );
 
-  if (!vars) return;
+  if (!vars) return null;
 
   if (disabledReason)
     return (
