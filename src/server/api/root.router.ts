@@ -3,6 +3,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
 import { experimentsRouter } from "./routers/experiments.router";
 import { scenariosRouter } from "./routers/scenarios.router";
 import { modelOutputsRouter } from "./routers/modelOutputs.router";
+import { templateVarsRouter } from "./routers/templateVariables.router";
 
 /**
  * This is the primary router for your server.
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   experiments: experimentsRouter,
   scenarios: scenariosRouter,
   outputs: modelOutputsRouter,
+  templateVars: templateVarsRouter,
 });
 
 // export type definition of API

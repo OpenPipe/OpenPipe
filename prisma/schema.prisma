@@ -15,6 +15,8 @@ model Experiment {
     id    String @id @default(uuid()) @db.Uuid
     label String
 
+    sortIndex Int @default(0)
+
     createdAt        DateTime           @default(now())
     updatedAt        DateTime           @updatedAt
     TemplateVariable TemplateVariable[]
@@ -33,7 +35,7 @@ model PromptVariant {
     sortIndex Int     @default(0)
 
     experimentId String     @db.Uuid
-    experiment   Experiment @relation(fields: [experimentId], references: [id])
+    experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @updatedAt
@@ -52,7 +54,7 @@ model TestScenario {
     sortIndex Int     @default(0)
 
     experimentId String     @db.Uuid
-    experiment   Experiment @relation(fields: [experimentId], references: [id])
+    experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @updatedAt
@@ -65,7 +67,7 @@ model TemplateVariable {
     label String
 
     experimentId String     @db.Uuid
-    experiment   Experiment @relation(fields: [experimentId], references: [id])
+    experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -78,10 +80,10 @@ model ModelOutput {
     output    Json
 
     promptVariantId String        @db.Uuid
-    promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id])
+    promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
 
     testScenarioId String       @db.Uuid
-    testScenario   TestScenario @relation(fields: [testScenarioId], references: [id])
+    testScenario   TestScenario @relation(fields: [testScenarioId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

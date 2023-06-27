@@ -1,14 +1,18 @@
 import { prisma } from "~/server/db";
 
 const experimentId = "11111111-1111-1111-1111-111111111111";
-const experiment = await prisma.experiment.upsert({
+
+// Delete the existing experiment
+await prisma.experiment.delete({
   where: {
     id: experimentId,
   },
-  update: {},
-  create: {
+});
+
+const experiment = await prisma.experiment.create({
+  data: {
     id: experimentId,
-    label: "Quick Start",
+    label: "Country Capitals Example",
   },
 });
 
@@ -34,7 +38,7 @@ const resp = await prisma.promptVariant.createMany({
       sortIndex: 0,
       config: {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: "What is the capitol of {{state}}?" }],
+        messages: [{ role: "user", content: "What is the capital of {{country}}?" }],
         temperature: 0,
       },
     },
@@ -44,7 +48,12 @@ const resp = await prisma.promptVariant.createMany({
       sortIndex: 1,
       config: {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: "What is the capitol of the US state {{state}}?" }],
+        messages: [
+          {
+            role: "user",
+            content: "What is the capital of {{country}}? Only return the city name.",
+          },
+        ],
         temperature: 0,
       },
     },
@@ -61,7 +70,7 @@ await prisma.templateVariable.createMany({
   data: [
     {
       experimentId,
-      label: "state",
+      label: "country",
     },
   ],
 });
@@ -78,21 +87,21 @@ await prisma.testScenario.createMany({
       experimentId,
       sortIndex: 0,
       variableValues: {
-        state: "Washington",
+        country: "USA",
       },
     },
     {
       experimentId,
       sortIndex: 1,
       variableValues: {
-        state: "California",
+        country: "Spain",
       },
     },
     {
       experimentId,
       sortIndex: 2,
       variableValues: {
-        state: "Utah",
+        country: "Chile",
       },
     },
   ],

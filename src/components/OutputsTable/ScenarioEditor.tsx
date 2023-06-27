@@ -25,8 +25,9 @@ export default function ScenarioEditor({
   const [values, setValues] = useState<Record<string, string>>(savedValues);
 
   const experiment = useExperiment();
+  const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data;
 
-  const variableLabels = experiment.data?.TemplateVariable.map((v) => v.label) ?? [];
+  const variableLabels = vars?.map((v) => v.label) ?? [];
 
   const hasChanged = !isEqual(savedValues, values);
 
@@ -113,58 +114,69 @@ export default function ScenarioEditor({
           _hover={{ color: "gray.800", cursor: "pointer" }}
         />
       </Stack>
-      <Stack>
-        {variableLabels.map((key) => {
-          const value = values[key] ?? "";
-          const layoutDirection = value.length > 20 ? "column" : "row";
-          return (
-            <Flex
-              key={key}
-              direction={layoutDirection}
-              alignItems={layoutDirection === "column" ? "flex-start" : "center"}
-              flexWrap="wrap"
-            >
-              <Box bgColor="blue.100" color="blue.600" px={2} fontSize="xs" fontWeight="bold">
-                {key}
-              </Box>
-              <Textarea
-                px={2}
-                py={1}
-                placeholder="empty"
-                value={value}
-                onChange={(e) => {
-                  setValues((prev) => ({ ...prev, [key]: e.target.value }));
+      {variableLabels.length === 0 ? (
+        <Box color="gray.500">No scenario variables configured</Box>
+      ) : (
+        <Stack>
+          {variableLabels.map((key) => {
+            const value = values[key] ?? "";
+            const layoutDirection = value.length > 20 ? "column" : "row";
+            return (
+              <Flex
+                key={key}
+                direction={layoutDirection}
+                alignItems={layoutDirection === "column" ? "flex-start" : "center"}
+                flexWrap="wrap"
+              >
+                <Box bgColor="blue.100" color="blue.600" px={2} fontSize="xs" fontWeight="bold">
+                  {key}
+                </Box>
+                <Textarea
+                  px={2}
+                  py={1}
+                  placeholder="empty"
+                  borderRadius="sm"
+                  value={value}
+                  onChange={(e) => {
+                    setValues((prev) => ({ ...prev, [key]: e.target.value }));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault();
+                      onSave();
+                    }
+                  }}
+                  resize="none"
+                  overflow="hidden"
+                  minRows={1}
+                  minH="unset"
+                  as={ResizeTextarea}
+                  flex={layoutDirection === "row" ? 1 : undefined}
+                  borderColor={hasChanged ? "blue.300" : "transparent"}
+                  _hover={{ borderColor: "gray.300" }}
+                  _focus={{ borderColor: "blue.500", outline: "none", bg: "white" }}
+                />
+              </Flex>
+            );
+          })}
+          {hasChanged && (
+            <HStack justify="right">
+              <Button
+                size="sm"
+                onMouseDown={() => {
+                  setValues(savedValues);
                 }}
-                resize="none"
-                overflow="hidden"
-                minRows={1}
-                minH="unset"
-                as={ResizeTextarea}
-                flex={layoutDirection === "row" ? 1 : undefined}
-                borderColor={hasChanged ? "blue.300" : "transparent"}
-                _hover={{ borderColor: "gray.300" }}
-                _focus={{ borderColor: "blue.500", outline: "none", bg: "white" }}
-              />
-            </Flex>
-          );
-        })}
-        {hasChanged && (
-          <HStack justify="right">
-            <Button
-              size="sm"
-              onMouseDown={() => {
-                setValues(savedValues);
-              }}
-              colorScheme="gray"
-            >
-              Reset
-            </Button>
-            <Button size="sm" onMouseDown={onSave} colorScheme="blue">
-              Save
-            </Button>
-          </HStack>
-        )}
-      </Stack>
+                colorScheme="gray"
+              >
+                Reset
+              </Button>
+              <Button size="sm" onMouseDown={onSave} colorScheme="blue">
+                Save
+              </Button>
+            </HStack>
+          )}
+        </Stack>
+      )}
     </HStack>
   );
 }

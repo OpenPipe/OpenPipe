@@ -3,50 +3,64 @@ import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/
 import { prisma } from "~/server/db";
 
 export const experimentsRouter = createTRPCRouter({
+  list: publicProcedure.query(async () => {
+    return await prisma.experiment.findMany({
+      orderBy: {
+        sortIndex: "asc",
+      },
+    });
+  }),
+
   get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     return await prisma.experiment.findFirst({
       where: {
         id: input.id,
       },
-      include: {
-        TemplateVariable: {
-          orderBy: {
-            createdAt: "asc",
-          },
-          select: {
-            id: true,
-            label: true,
-          },
-        },
-      },
     });
   }),
 
-  setTemplateVariables: publicProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        labels: z.array(z.string()),
-      })
-    )
-    .mutation(async ({ input }) => {
-      const existing = await prisma.templateVariable.findMany({
-        where: { experimentId: input.id },
-      });
-      const toDelete = existing.filter((e) => !input.labels.includes(e.label));
+  create: publicProcedure.input(z.object({})).mutation(async () => {
+    const maxSortIndex =
+      (
+        await prisma.experiment.aggregate({
+          _max: {
+            sortIndex: true,
+          },
+        })
+      )._max?.sortIndex ?? 0;
 
-      const toCreate = new Set(
-        input.labels.filter((l) => !existing.map((e) => e.label).includes(l))
-      ).values();
+    const exp = await prisma.experiment.create({
+      data: {
+        sortIndex: maxSortIndex + 1,
+        label: `Experiment ${maxSortIndex + 1}`,
+      },
+    });
 
-      await prisma.$transaction([
-        prisma.templateVariable.deleteMany({
-          where: { id: { in: toDelete.map((e) => e.id) } },
-        }),
-        prisma.templateVariable.createMany({
-          data: [...toCreate].map((l) => ({ label: l, experimentId: input.id })),
-        }),
-      ]);
-      return null;
-    }),
+    await prisma.$transaction([
+      prisma.promptVariant.create({
+        data: {
+          experimentId: exp.id,
+          label: "Prompt Variant 1",
+          sortIndex: 0,
+          config: {
+            model: "gpt-3.5-turbo",
+            messages: [
+              {
+                role: "system",
+                content: "count to three in Spanish...",
+              },
+            ],
+          },
+        },
+      }),
+      prisma.testScenario.create({
+        data: {
+          experimentId: exp.id,
+          variableValues: {},
+        },
+      }),
+    ]);
+
+    return exp;
+  }),
 });

@@ -1,4 +1,4 @@
-import { Box, Grid, GridItem, Heading, type SystemStyleObject } from "@chakra-ui/react";
+import { Grid, GridItem, type SystemStyleObject } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
@@ -8,7 +8,6 @@ import ScenarioEditor from "./ScenarioEditor";
 import VariantConfigEditor from "./VariantConfigEditor";
 import VariantHeader from "./VariantHeader";
 import type { Scenario, PromptVariant } from "./types";
-import { cellPadding } from "../constants";
 import ScenarioHeader from "~/server/ScenarioHeader";
 
 const stickyHeaderStyle: SystemStyleObject = {

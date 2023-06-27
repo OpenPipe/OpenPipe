@@ -1,7 +1,7 @@
 import { Box, Center } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import OutputsTable from "~/components/OutputsTable";
-import AppNav from "~/components/nav/AppNav";
+import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 
 export default function Experiment() {
@@ -14,19 +14,19 @@ export default function Experiment() {
 
   if (!experiment.isLoading && !experiment.data) {
     return (
-      <AppNav title="Experiment not found">
+      <AppShell title="Experiment not found">
         <Center h="100vh">
           <div>Experiment not found 😕</div>
         </Center>
-      </AppNav>
+      </AppShell>
     );
   }
 
   return (
-    <AppNav title={experiment.data?.label}>
+    <AppShell title={experiment.data?.label}>
       <Box minH="100vh" mb={50}>
         <OutputsTable experimentId={router.query.id as string | undefined} />
       </Box>
-    </AppNav>
+    </AppShell>
   );
 }

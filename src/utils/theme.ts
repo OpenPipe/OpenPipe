@@ -16,11 +16,17 @@ const theme = extendTheme({
       },
     },
     Input: {
-      sizes: {
-        md: {
-          field: {
-            borderRadius: "sm",
-          },
+      baseStyle: {
+        field: {
+          borderRadius: "sm",
+        },
+      },
+    },
+    Textarea: {
+      baseStyle: {
+        borderRadius: "sm",
+        field: {
+          borderRadius: "sm",
         },
       },
     },

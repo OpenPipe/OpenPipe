@@ -2,7 +2,6 @@ import { api } from "~/utils/api";
 import { PromptVariant, Scenario } from "./types";
 import { Center, Spinner, Text } from "@chakra-ui/react";
 import { useExperiment } from "~/utils/hooks";
-import { JSONSerializable } from "~/server/types";
 import { cellPadding } from "../constants";
 
 const CellShell = ({ children }: { children: React.ReactNode }) => (
@@ -19,12 +18,11 @@ export default function OutputCell({
   variant: PromptVariant;
 }) {
   const experiment = useExperiment();
+  const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data;
 
-  const experimentVariables = experiment.data?.TemplateVariable.map((v) => v.label) ?? [];
   const scenarioVariables = scenario.variableValues as Record<string, string>;
   const templateHasVariables =
-    experimentVariables.length === 0 ||
-    experimentVariables.some((v) => scenarioVariables[v] !== undefined);
+    vars?.length === 0 || vars?.some((v) => scenarioVariables[v.label] !== undefined);
 
   let disabledReason: string | null = null;
 
@@ -40,6 +38,8 @@ export default function OutputCell({
     },
     { enabled: disabledReason === null }
   );
+
+  if (!vars) return;
 
   if (disabledReason)
     return (
