@@ -26,7 +26,7 @@ export default function OutputCell({
 
   let disabledReason: string | null = null;
 
-  if (!templateHasVariables) disabledReason = "Add a scenario variable to see output";
+  if (!templateHasVariables) disabledReason = "Add a value to the scenario variables to see output";
 
   if (variant.config === null || Object.keys(variant.config).length === 0)
     disabledReason = "Save your prompt variant to see output";
@@ -59,6 +59,6 @@ export default function OutputCell({
 
   return (
     // @ts-expect-error TODO proper typing and error checks
-    <CellShell>{JSON.stringify(output.data.output.choices[0].message.content, null, 2)}</CellShell>
+    <CellShell>{output.data.output.choices[0].message.content}</CellShell>
   );
 }
