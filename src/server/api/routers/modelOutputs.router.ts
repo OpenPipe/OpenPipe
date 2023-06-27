@@ -3,7 +3,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import fillTemplate, { type VariableMap } from "~/server/utils/fillTemplate";
 import { type JSONSerializable } from "~/server/types";
-import { getChatCompletion } from "~/server/utils/openai";
+import { getChatCompletion } from "~/server/utils/getChatCompletion";
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
 import { env } from "~/env.mjs";
@@ -51,13 +51,17 @@ export const modelOutputsRouter = createTRPCRouter({
 
       // TODO: we should probably only use this if temperature=0
       const existingResponse = await prisma.modelOutput.findFirst({
-        where: { inputHash },
+        where: { inputHash, errorMessage: null },
       });
 
-      let modelResponse: JSONSerializable;
+      let modelResponse: Awaited<ReturnType<typeof getChatCompletion>>;
 
       if (existingResponse) {
-        modelResponse = existingResponse.output as JSONSerializable;
+        modelResponse = {
+          output: existingResponse.output as Prisma.InputJsonValue,
+          statusCode: existingResponse.statusCode,
+          errorMessage: existingResponse.errorMessage,
+        };
       } else {
         modelResponse = await getChatCompletion(filledTemplate, env.OPENAI_API_KEY);
       }
@@ -66,8 +70,8 @@ export const modelOutputsRouter = createTRPCRouter({
         data: {
           promptVariantId: input.variantId,
           testScenarioId: input.scenarioId,
-          output: modelResponse as Prisma.InputJsonObject,
           inputHash,
+          ...modelResponse,
         },
       });
 

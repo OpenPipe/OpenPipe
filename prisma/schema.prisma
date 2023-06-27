@@ -76,8 +76,10 @@ model TemplateVariable {
 model ModelOutput {
     id String @id @default(uuid()) @db.Uuid
 
-    inputHash String
-    output    Json
+    inputHash    String
+    output       Json
+    statusCode   Int
+    errorMessage String?
 
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)

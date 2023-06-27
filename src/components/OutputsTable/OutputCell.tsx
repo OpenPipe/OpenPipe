@@ -55,7 +55,20 @@ export default function OutputCell({
       </CellShell>
     );
 
-  if (!output.data) return <CellShell>No output</CellShell>;
+  if (!output.data)
+    return (
+      <CellShell>
+        <Text color="gray.500">Error retrieving output</Text>
+      </CellShell>
+    );
+
+  if (output.data.errorMessage) {
+    return (
+      <CellShell>
+        <Text color="red.600">Error: {output.data.errorMessage}</Text>
+      </CellShell>
+    );
+  }
 
   return (
     // @ts-expect-error TODO proper typing and error checks
