@@ -1,14 +1,12 @@
 import { api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "./types";
-import { Center, Spinner, Text } from "@chakra-ui/react";
+import { Spinner, Text, Box } from "@chakra-ui/react";
 import { useExperiment } from "~/utils/hooks";
-import { cellPadding } from "../constants";
-
-const CellShell = ({ children }: { children: React.ReactNode }) => (
-  <Center h="100%" w="100%" px={cellPadding.x} py={cellPadding.y}>
-    {children}
-  </Center>
-);
+import { type CreateChatCompletionResponse } from "openai";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
+import stringify from "json-stringify-pretty-compact";
+import { type ReactElement } from "react";
 
 export default function OutputCell({
   scenario,
@@ -16,7 +14,7 @@ export default function OutputCell({
 }: {
   scenario: Scenario;
   variant: PromptVariant;
-}) {
+}): ReactElement | null {
   const experiment = useExperiment();
   const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data;
 
@@ -41,37 +39,34 @@ export default function OutputCell({
 
   if (!vars) return null;
 
-  if (disabledReason)
-    return (
-      <CellShell>
-        <Text color="gray.500">{disabledReason}</Text>
-      </CellShell>
-    );
+  if (disabledReason) return <Text color="gray.500">{disabledReason}</Text>;
 
-  if (output.isLoading)
-    return (
-      <CellShell>
-        <Spinner />
-      </CellShell>
-    );
+  if (output.isLoading) return <Spinner />;
 
-  if (!output.data)
-    return (
-      <CellShell>
-        <Text color="gray.500">Error retrieving output</Text>
-      </CellShell>
-    );
+  if (!output.data) return <Text color="gray.500">Error retrieving output</Text>;
 
   if (output.data.errorMessage) {
+    return <Text color="red.600">Error: {output.data.errorMessage}</Text>;
+  }
+
+  const response = output.data?.output as unknown as CreateChatCompletionResponse;
+  const message = response?.choices?.[0]?.message;
+
+  if (message?.function_call) {
     return (
-      <CellShell>
-        <Text color="red.600">Error: {output.data.errorMessage}</Text>
-      </CellShell>
+      <Box fontSize="xs">
+        <SyntaxHighlighter language="json" style={docco}>
+          {stringify(
+            {
+              function: message.function_call.name,
+              args: JSON.parse(message.function_call.arguments ?? "null"),
+            },
+            { maxLength: 40 }
+          )}
+        </SyntaxHighlighter>
+      </Box>
     );
   }
 
-  return (
-    // @ts-expect-error TODO proper typing and error checks
-    <CellShell>{output.data.output.choices[0].message.content}</CellShell>
-  );
+  return <Box>{message?.content ?? JSON.stringify(output.data.output)}</Box>;
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { autogenerateScenarioValues } from "../autogen";
 
 export const scenariosRouter = createTRPCRouter({
   list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
@@ -19,6 +20,7 @@ export const scenariosRouter = createTRPCRouter({
     .input(
       z.object({
         experimentId: z.string(),
+        autogenerate: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -38,7 +40,9 @@ export const scenariosRouter = createTRPCRouter({
         data: {
           experimentId: input.experimentId,
           sortIndex: maxSortIndex + 1,
-          variableValues: {},
+          variableValues: input.autogenerate
+            ? await autogenerateScenarioValues(input.experimentId)
+            : {},
         },
       });
     }),

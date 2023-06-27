@@ -1,4 +1,4 @@
-import { Grid, GridItem, type SystemStyleObject } from "@chakra-ui/react";
+import { Center, Grid, GridItem, type SystemStyleObject } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
@@ -9,6 +9,7 @@ import VariantConfigEditor from "./VariantConfigEditor";
 import VariantHeader from "./VariantHeader";
 import type { Scenario, PromptVariant } from "./types";
 import ScenarioHeader from "~/server/ScenarioHeader";
+import { cellPadding } from "../constants";
 
 const stickyHeaderStyle: SystemStyleObject = {
   position: "sticky",
@@ -41,7 +42,9 @@ const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) =
           onMouseLeave={() => setIsHovered(false)}
           sx={isHovered ? highlightStyle : undefined}
         >
-          <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />
+          <Center h="100%" w="100%" px={cellPadding.x} py={cellPadding.y}>
+            <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />
+          </Center>
         </GridItem>
       ))}
     </React.Fragment>
