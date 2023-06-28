@@ -26,6 +26,7 @@ export const promptVariantsRouter = createTRPCRouter({
       const lastScenario = await prisma.promptVariant.findFirst({
         where: {
           experimentId: input.experimentId,
+          visible: true,
         },
         orderBy: {
           sortIndex: "desc",

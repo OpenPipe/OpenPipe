@@ -64,7 +64,7 @@ export default function Experiment() {
   if (!experiment.isLoading && !experiment.data) {
     return (
       <AppShell title="Experiment not found">
-        <Center h="100vh">
+        <Center h="100%">
           <div>Experiment not found 😕</div>
         </Center>
       </AppShell>
@@ -73,7 +73,7 @@ export default function Experiment() {
 
   return (
     <AppShell title={experiment.data?.label}>
-      <Box minH="100vh" mb={50}>
+      <Box minH="100%" pb={50}>
         <HStack px={4} py={2}>
           <Breadcrumb flex={1}>
             <BreadcrumbItem>

@@ -30,7 +30,7 @@ await prisma.promptVariant.deleteMany({
   },
 });
 
-const resp = await prisma.promptVariant.createMany({
+await prisma.promptVariant.createMany({
   data: [
     {
       experimentId,
@@ -87,14 +87,14 @@ await prisma.testScenario.createMany({
       experimentId,
       sortIndex: 0,
       variableValues: {
-        country: "USA",
+        country: "Spain",
       },
     },
     {
       experimentId,
       sortIndex: 1,
       variableValues: {
-        country: "Spain",
+        country: "USA",
       },
     },
     {
