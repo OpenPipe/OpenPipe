@@ -19,6 +19,7 @@ FROM base as builder
 
 # Include all NEXT_PUBLIC_* env vars here
 ARG NEXT_PUBLIC_POSTHOG_KEY
+ARG NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
