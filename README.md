@@ -35,5 +35,6 @@ Prompt Lab currently supports GPT-3.5 and GPT-4. Wider model support is planned.
 4. Clone this repository: `git clone https://github.com/prompt-lab/prompt-lab`
 5. Install the dependencies: `cd prompt-lab && pnpm install`
 6. Create a `.env` file (`cp .env.example .env`) and enter your `OPENAI_API_KEY`.
-7. Start the app: `pnpm dev`
-8. Navigate to [http://localhost:3000](http://localhost:3000)
+7. Update `DATABASE_URL` and run `pnpm prisma db push` to create the database.
+8. Start the app: `pnpm dev`
+9. Navigate to [http://localhost:3000](http://localhost:3000)
