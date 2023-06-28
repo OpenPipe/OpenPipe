@@ -2,7 +2,7 @@
 
 Prompt Lab is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
-[]
+![main](https://github.com/corbt/prompt-lab/assets/176426/bc5ceb5d-b898-4710-8d62-af622c0d2d19)
 
 Currently there's a public playground available at [https://promptlab.corbt.com/](https://promptlab.corbt.com/), but the recommended approach is to [run locally](#running-locally).
 
@@ -18,11 +18,11 @@ Currently there's a public playground available at [https://promptlab.corbt.com/
 
  - **Prompt Validation and Typeahead** - We use OpenAI's OpenAPI spec to automatically provide typeahead and validate prompts.
 
-[]
+![typeahead](https://github.com/corbt/prompt-lab/assets/176426/d475d88e-473a-4e7d-b20a-a1e7ed097c3e)
 
  - **Function Call Support** - Natively supports [OpenAI function calls](https://openai.com/blog/function-calling-and-other-api-updates) on supported models.
 
-[]
+<img width="811" alt="function calls" src="https://github.com/corbt/prompt-lab/assets/176426/48ad13fe-af2f-4294-bf32-62015597fd9b">
 
 ## Supported Models
 Prompt Lab currently supports GPT-3.5 and GPT-4. Wider model support is planned.
