@@ -72,9 +72,12 @@ export default function OutputCell({
     return (
       <Box fontSize="xs" width="100%" flexWrap="wrap" overflowX="auto">
         <SyntaxHighlighter
+          customStyle={{ overflowX: "unset" }}
           language="json"
           style={docco}
-          lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}}
+          lineProps={{
+            style: { wordBreak: "break-all", whiteSpace: "pre-wrap" },
+          }}
           wrapLines
         >
           {stringify(
