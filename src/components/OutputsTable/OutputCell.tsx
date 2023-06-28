@@ -16,15 +16,19 @@ export default function OutputCell({
   variant: PromptVariant;
 }): ReactElement | null {
   const experiment = useExperiment();
-  const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data;
+  const vars = api.templateVars.list.useQuery({
+    experimentId: experiment.data?.id ?? "",
+  }).data;
 
   const scenarioVariables = scenario.variableValues as Record<string, string>;
   const templateHasVariables =
-    vars?.length === 0 || vars?.some((v) => scenarioVariables[v.label] !== undefined);
+    vars?.length === 0 ||
+    vars?.some((v) => scenarioVariables[v.label] !== undefined);
 
   let disabledReason: string | null = null;
 
-  if (!templateHasVariables) disabledReason = "Add a value to the scenario variables to see output";
+  if (!templateHasVariables)
+    disabledReason = "Add a value to the scenario variables to see output";
 
   if (variant.config === null || Object.keys(variant.config).length === 0)
     disabledReason = "Save your prompt variant to see output";
@@ -43,23 +47,40 @@ export default function OutputCell({
 
   if (output.isLoading) return <Spinner />;
 
-  if (!output.data) return <Text color="gray.500">Error retrieving output</Text>;
+  if (!output.data)
+    return <Text color="gray.500">Error retrieving output</Text>;
 
   if (output.data.errorMessage) {
     return <Text color="red.600">Error: {output.data.errorMessage}</Text>;
   }
 
-  const response = output.data?.output as unknown as CreateChatCompletionResponse;
+  const response = output.data
+    ?.output as unknown as CreateChatCompletionResponse;
   const message = response?.choices?.[0]?.message;
 
   if (message?.function_call) {
+    const rawArgs = message.function_call.arguments ?? "null";
+    let parsedArgs: string;
+    try {
+      parsedArgs = JSON.parse(rawArgs);
+    } catch (e: any) {
+      parsedArgs = `Failed to parse arguments as JSON: ${
+        e.message as string
+      }  ${rawArgs}`;
+    }
+
     return (
-      <Box fontSize="xs">
-        <SyntaxHighlighter language="json" style={docco}>
+      <Box fontSize="xs" width="100%" flexWrap="wrap" overflowX="auto">
+        <SyntaxHighlighter
+          language="json"
+          style={docco}
+          lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}}
+          wrapLines
+        >
           {stringify(
             {
               function: message.function_call.name,
-              args: JSON.parse(message.function_call.arguments ?? "null"),
+              args: parsedArgs,
             },
             { maxLength: 40 }
           )}
