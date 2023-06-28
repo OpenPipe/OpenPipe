@@ -64,9 +64,9 @@ export default function OutputCell({
     try {
       parsedArgs = JSON.parse(rawArgs);
     } catch (e: any) {
-      parsedArgs = `Failed to parse arguments as JSON: ${
+      parsedArgs = `Failed to parse arguments as JSON: '${rawArgs}' ERROR: ${
         e.message as string
-      }  ${rawArgs}`;
+      }`;
     }
 
     return (
