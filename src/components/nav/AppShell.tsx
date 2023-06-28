@@ -1,6 +1,5 @@
 import {
   Box,
-  Flex,
   Heading,
   VStack,
   Icon,
@@ -8,13 +7,16 @@ import {
   type BoxProps,
   forwardRef,
   Image,
+  Link,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import { BsPlusSquare } from "react-icons/bs";
+import { BsGithub, BsPlusSquare, BsTwitter } from "react-icons/bs";
 import { RiFlaskLine } from "react-icons/ri";
 import { useRouter } from "next/router";
-import Link from "next/link";
+import NextLink from "next/link";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import PublicPlaygroundWarning from "../PublicPlaygroundWarning";
 
@@ -38,7 +40,9 @@ const ExperimentLink = forwardRef<BoxProps & { active: boolean | undefined }, "a
 
 ExperimentLink.displayName = "ExperimentLink";
 
-export default function AppShell(props: { children: React.ReactNode; title?: string }) {
+const Separator = () => <Box h="1px" bgColor="gray.300" />;
+
+const NavSidebar = () => {
   const experiments = api.experiments.list.useQuery();
   const router = useRouter();
   const utils = api.useContext();
@@ -52,62 +56,88 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
   }, [createMutation, router]);
 
   return (
-    <VStack align="stretch" spacing={0} h="100vh">
-      <PublicPlaygroundWarning />
-      <Flex flex={1}>
-        <Head>
-          <title>{props.title ? `${props.title} | Prompt Lab` : "Prompt Lab"}</title>
-        </Head>
-        <Box bgColor="gray.100" flexShrink={0} width="220px" p={2}>
-          <VStack align="stretch">
-            <HStack spacing={0}>
-              <Image
-                src="/flask2.svg"
-                alt=""
-                w={6}
-                h={6}
-                // filter="drop-shadow(0 0 2px rgb(0 0 0 / 0.4))"
-              />
-              <Heading size="md" p={2}>
-                Prompt Lab
-              </Heading>
-            </HStack>
-            <Box h="1px" bgColor="gray.400" />
-            <HStack align="center" spacing={2} p={2} pb={0}>
-              <Heading size="xs" textAlign="center">
-                Experiments
-              </Heading>
-            </HStack>
-            <VStack spacing={1} align="stretch">
-              {experiments?.data?.map((exp) => (
-                <ExperimentLink
-                  key={exp.id}
-                  as={Link}
-                  active={exp.id === currentId}
-                  href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}
-                  display="flex"
-                  alignItems="center"
-                >
-                  <Icon as={RiFlaskLine} boxSize={4} mr={2} />
-                  {exp.label}
-                </ExperimentLink>
-              ))}
-              <ExperimentLink
-                onClick={createExperiment}
-                active={false}
-                display="flex"
-                alignItems="center"
-              >
-                <Icon as={BsPlusSquare} boxSize={4} mr={2} />
-                New Experiment
-              </ExperimentLink>
-            </VStack>
-          </VStack>
-        </Box>
-        <Box flex={1} overflowX="auto" overflowY="auto" h="100vh">
-          {props.children}
-        </Box>
-      </Flex>
+    <VStack align="stretch" bgColor="gray.100" p={2} pb={0} height="100%">
+      <HStack spacing={0}>
+        <Image src="/flask2.svg" alt="" w={6} h={6} />
+        <Heading size="md" p={2}>
+          Prompt Lab
+        </Heading>
+      </HStack>
+      <Separator />
+      <VStack spacing={0} align="flex-start" overflowY="auto" flex={1}>
+        <Heading size="xs" textAlign="center" p={2}>
+          Experiments
+        </Heading>
+        <VStack spacing={1} align="stretch" flex={1}>
+          <ExperimentLink
+            onClick={createExperiment}
+            active={false}
+            display="flex"
+            alignItems="center"
+          >
+            <Icon as={BsPlusSquare} boxSize={4} mr={2} />
+            New Experiment
+          </ExperimentLink>
+
+          {experiments?.data?.map((exp) => (
+            <ExperimentLink
+              key={exp.id}
+              as={NextLink}
+              active={exp.id === currentId}
+              href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}
+              display="flex"
+              alignItems="center"
+            >
+              <Icon as={RiFlaskLine} boxSize={4} mr={2} />
+              {exp.label}
+            </ExperimentLink>
+          ))}
+        </VStack>
+      </VStack>
+
+      <Separator />
+      <HStack align="center" justify="center" spacing={4} p={2}>
+        <Link
+          href="https://github.com/corbt/prompt-lab"
+          target="_blank"
+          color="gray.500"
+          _hover={{ color: "gray.800" }}
+        >
+          <Icon as={BsGithub} boxSize={8} />
+        </Link>
+        <Link
+          href="https://twitter.com/corbtt"
+          target="_blank"
+          color="gray.500"
+          _hover={{ color: "gray.800" }}
+        >
+          <Icon as={BsTwitter} boxSize={8} />
+        </Link>
+      </HStack>
     </VStack>
+  );
+};
+
+export default function AppShell(props: { children: React.ReactNode; title?: string }) {
+  return (
+    <Grid
+      h="100vh"
+      templateColumns="220px minmax(0, 1fr)"
+      templateRows="max-content 1fr"
+      templateAreas={'"warning warning"\n"sidebar main"'}
+    >
+      <Head>
+        <title>{props.title ? `${props.title} | Prompt Lab` : "Prompt Lab"}</title>
+      </Head>
+      <GridItem area="warning">
+        <PublicPlaygroundWarning />
+      </GridItem>
+      <GridItem area="sidebar" overflow="auto">
+        <NavSidebar />
+      </GridItem>
+      <GridItem area="main" overflowY="auto">
+        {props.children}
+      </GridItem>
+    </Grid>
   );
 }

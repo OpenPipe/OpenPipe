@@ -1,5 +1,4 @@
-import { Button, type ButtonProps, Fade, HStack, Spinner, Icon } from "@chakra-ui/react";
-import { useState } from "react";
+import { Button, type ButtonProps, HStack, Spinner, Icon } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";

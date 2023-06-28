@@ -3,7 +3,6 @@ import { BsExclamationTriangleFill } from "react-icons/bs";
 import { env } from "~/env.mjs";
 
 export default function PublicPlaygroundWarning() {
-  console.log(env);
   if (!env.NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND) return null;
 
   return (
@@ -12,7 +11,7 @@ export default function PublicPlaygroundWarning() {
       <Text>
         Warning: this is a public playground. Anyone can see, edit or delete your experiments. For
         private use,{" "}
-        <Link textDecor="underline" href="https://github.com/corbt/prompt-lab">
+        <Link textDecor="underline" href="https://github.com/corbt/prompt-lab" target="_blank">
           run a local copy
         </Link>
         .

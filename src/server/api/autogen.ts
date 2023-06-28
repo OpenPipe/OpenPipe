@@ -104,23 +104,6 @@ export const autogenerateScenarioValues = async (
     return acc;
   }, {} as Record<string, { type: "string" }>);
 
-  console.log({
-    model: "gpt-3.5-turbo-0613",
-    messages,
-    functions: [
-      {
-        name: "add_scenario",
-        parameters: {
-          type: "object",
-          properties: variableProperties,
-        },
-      },
-    ],
-
-    function_call: { name: "add_scenario" },
-    temperature: 0.5,
-  });
-
   try {
     const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
