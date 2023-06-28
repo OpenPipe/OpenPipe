@@ -8,31 +8,19 @@ Currently there's a public playground available at [https://promptlab.corbt.com/
 
 ## High-Level Features
 
-**Configure Multiple Prompts**
+**Configure Multiple Prompts** - Set up multiple prompt configurations and compare their output side-by-side. Each configuration can be configured independently.
 
-Set up multiple prompt configurations and compare their output side-by-side. Each configuration can be configured independently.
+**Visualize Responses** - Inspect prompt completions side-by-side.
 
-**Visualize Responses**
+**Test Many Inputs** - Prompt Lab lets you *template* a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broader coverage of your problem space than you'd get with manual testing.
 
-Inspect prompt completions side-by-side.
+**🪄 Auto-generate Test Scenarios** - Prompt Lab includes a tool to generate new test scenarios based on your existing prompts and scenarios. Just click "Autogenerate Scenario" to try it out!
 
-**Test Many Inputs**
-
-Prompt Lab lets you *template* a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broader coverage of your problem space than you'd get with manual testing.
-
-**🪄 Auto-generate Test Scenarios**
-
-Prompt Lab includes a tool to generate new test scenarios based on your existing prompts and scenarios. Just click "Autogenerate Scenario" to try it out!
-
-**Prompt Validation and Typeahead**
-
-We use OpenAI's OpenAPI spec to automatically provide typeahead and validate prompts.
+**Prompt Validation and Typeahead** - We use OpenAI's OpenAPI spec to automatically provide typeahead and validate prompts.
 
 []
 
-**Function Call Support**
-
-Natively supports [OpenAI function calls](https://openai.com/blog/function-calling-and-other-api-updates) on supported models.
+**Function Call Support** - Natively supports [OpenAI function calls](https://openai.com/blog/function-calling-and-other-api-updates) on supported models.
 
 []
 
