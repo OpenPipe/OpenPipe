@@ -51,7 +51,8 @@ await prisma.promptVariant.createMany({
         messages: [
           {
             role: "user",
-            content: "What is the capital of {{country}}? Only return the city name.",
+            content:
+              "What is the capital of {{country}}? Return just the city name and nothing else.",
           },
         ],
         temperature: 0,
