@@ -1,4 +1,4 @@
-import { Button, type ButtonProps, Fade, HStack } from "@chakra-ui/react";
+import { Button, type ButtonProps, Fade, HStack, Spinner, Icon } from "@chakra-ui/react";
 import { useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import { api } from "~/utils/api";
@@ -21,7 +21,6 @@ export default function NewScenarioButton() {
   const experiment = useExperiment();
   const mutation = api.scenarios.create.useMutation();
   const utils = api.useContext();
-  const [hovering, setHovering] = useState(false);
 
   const [onClick] = useHandledAsyncCallback(async () => {
     if (!experiment.data) return;
@@ -31,7 +30,7 @@ export default function NewScenarioButton() {
     await utils.scenarios.list.invalidate();
   }, [mutation]);
 
-  const [onAutogenerate] = useHandledAsyncCallback(async () => {
+  const [onAutogenerate, autogenerating] = useHandledAsyncCallback(async () => {
     if (!experiment.data) return;
     await mutation.mutateAsync({
       experimentId: experiment.data.id,
@@ -41,21 +40,15 @@ export default function NewScenarioButton() {
   }, [mutation]);
 
   return (
-    <HStack
-      spacing={2}
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
-    >
+    <HStack spacing={2}>
       <StyledButton onClick={onClick}>
-        <BsPlus size={24} />
+        <Icon as={BsPlus} boxSize={6} />
         Add Scenario
       </StyledButton>
-      <Fade in={hovering}>
-        <StyledButton onClick={onAutogenerate}>
-          <BsPlus size={24} />
-          Autogenerate Scenario
-        </StyledButton>
-      </Fade>
+      <StyledButton onClick={onAutogenerate}>
+        <Icon as={autogenerating ? Spinner : BsPlus} boxSize={6} />
+        Autogenerate Scenario
+      </StyledButton>
     </HStack>
   );
 }
