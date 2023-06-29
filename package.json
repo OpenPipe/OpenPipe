@@ -68,5 +68,8 @@
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
+  },
+  "prettier": {
+    "printWidth": 100
   }
 }
