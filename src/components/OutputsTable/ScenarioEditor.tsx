@@ -68,6 +68,7 @@ export default function ScenarioEditor({
 
   return (
     <HStack
+      alignItems="flex-start"
       pr={cellPadding.x}
       py={cellPadding.y}
       height="100%"
@@ -128,7 +129,7 @@ export default function ScenarioEditor({
                 alignItems={layoutDirection === "column" ? "flex-start" : "center"}
                 flexWrap="wrap"
               >
-                <Box bgColor="blue.100" color="blue.600" px={2} fontSize="xs" fontWeight="bold">
+                <Box bgColor="blue.100" color="blue.600" px={2} my="3px" fontSize="xs" fontWeight="bold">
                   {key}
                 </Box>
                 <Textarea
