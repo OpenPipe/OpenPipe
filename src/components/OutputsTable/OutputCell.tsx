@@ -8,6 +8,7 @@ import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
 import { type ReactElement } from "react";
 import { BsClock } from "react-icons/bs";
+import { type ModelOutput } from "@prisma/client";
 
 export default function OutputCell({
   scenario,
@@ -60,8 +61,6 @@ export default function OutputCell({
   const response = output.data?.output as unknown as CreateChatCompletionResponse;
   const message = response?.choices?.[0]?.message;
 
-  const timeToComplete = output.data.timeToComplete;
-
   if (message?.function_call) {
     const rawArgs = message.function_call.arguments ?? "null";
     let parsedArgs: string;
@@ -90,6 +89,7 @@ export default function OutputCell({
             { maxLength: 40 }
           )}
         </SyntaxHighlighter>
+        <OutputStats modelOutput={output.data} />
       </Box>
     );
   }
@@ -97,10 +97,18 @@ export default function OutputCell({
   return (
     <Flex w="100%" h="100%" direction="column" justifyContent="space-between" whiteSpace="pre-wrap">
       {message?.content ?? JSON.stringify(output.data.output)}
-      <Flex justifyContent="flex-end" alignItems="center" color="gray.500" fontSize="xs">
-        <Icon as={BsClock} mr={0.5} />
-        <Text>{(timeToComplete / 1000).toFixed(2)}s</Text>
-      </Flex>
+      <OutputStats modelOutput={output.data} />
     </Flex>
   );
 }
+
+const OutputStats = ({ modelOutput }: { modelOutput: ModelOutput }) => {
+  const timeToComplete = modelOutput.timeToComplete;
+
+  return (
+    <Flex justifyContent="flex-end" alignItems="center" color="gray.500" fontSize="xs" mt={2}>
+      <Icon as={BsClock} mr={0.5} />
+      <Text>{(timeToComplete / 1000).toFixed(2)}s</Text>
+    </Flex>
+  );
+};
