@@ -6,12 +6,14 @@ type CompletionResponse = {
   output: Prisma.InputJsonValue | typeof Prisma.JsonNull;
   statusCode: number;
   errorMessage: string | null;
+  timeToComplete: number
 };
 
 export async function getChatCompletion(
   payload: JSONSerializable,
   apiKey: string
 ): Promise<CompletionResponse> {
+  const start = Date.now();
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -25,10 +27,12 @@ export async function getChatCompletion(
     output: Prisma.JsonNull,
     errorMessage: null,
     statusCode: response.status,
+    timeToComplete: 0
   };
 
   try {
     resp.output = await response.json();
+    resp.timeToComplete = Date.now() - start;
 
     if (!response.ok) {
       // If it's an object, try to get the error message

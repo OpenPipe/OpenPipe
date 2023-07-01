@@ -61,6 +61,7 @@ export const modelOutputsRouter = createTRPCRouter({
           output: existingResponse.output as Prisma.InputJsonValue,
           statusCode: existingResponse.statusCode,
           errorMessage: existingResponse.errorMessage,
+          timeToComplete: existingResponse.timeToComplete,
         };
       } else {
         modelResponse = await getChatCompletion(filledTemplate, env.OPENAI_API_KEY);
