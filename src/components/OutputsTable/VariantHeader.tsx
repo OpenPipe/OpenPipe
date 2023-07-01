@@ -2,10 +2,11 @@ import { useState, type DragEvent } from "react";
 import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
-import { Button, HStack, Input, Icon, Tooltip } from "@chakra-ui/react"; // Changed here
+import { Button, HStack, Icon, Tooltip } from "@chakra-ui/react"; // Changed here
 import { BsX } from "react-icons/bs";
 import { RiDraggable } from "react-icons/ri";
 import { cellPadding, headerMinHeight } from "../constants";
+import AutoResizeTextArea from "../AutoResizeTextArea";
 
 export default function VariantHeader(props: { variant: PromptVariant }) {
   const utils = api.useContext();
@@ -76,11 +77,12 @@ export default function VariantHeader(props: { variant: PromptVariant }) {
         color="gray.400"
         _hover={{ color: "gray.800", cursor: "pointer" }}
       />
-      <Input // Changed to Input
+      <AutoResizeTextArea // Changed to Input
         size="sm"
         value={label}
         onChange={(e) => setLabel(e.target.value)}
         onBlur={onSaveLabel}
+        placeholder="Variant Name"
         borderWidth={1}
         borderColor="transparent"
         fontWeight="bold"

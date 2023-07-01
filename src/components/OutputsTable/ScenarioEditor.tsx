@@ -4,12 +4,12 @@ import { isEqual } from "lodash";
 import { type Scenario } from "./types";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useState } from "react";
-import ResizeTextarea from "react-textarea-autosize";
 
-import { Box, Button, Flex, HStack, Icon, Stack, Textarea, Tooltip } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Icon, Stack, Tooltip } from "@chakra-ui/react";
 import { cellPadding } from "../constants";
 import { BsX } from "react-icons/bs";
 import { RiDraggable } from "react-icons/ri";
+import AutoResizeTextArea from "../AutoResizeTextArea";
 
 export default function ScenarioEditor({
   scenario,
@@ -132,7 +132,7 @@ export default function ScenarioEditor({
                 <Box bgColor="blue.100" color="blue.600" px={2} my="3px" fontSize="xs" fontWeight="bold">
                   {key}
                 </Box>
-                <Textarea
+                <AutoResizeTextArea
                   px={2}
                   py={1}
                   placeholder="empty"
@@ -150,9 +150,6 @@ export default function ScenarioEditor({
                   }}
                   resize="none"
                   overflow="hidden"
-                  minRows={1}
-                  minH="unset"
-                  as={ResizeTextarea}
                   flex={layoutDirection === "row" ? 1 : undefined}
                   borderColor={hasChanged ? "blue.300" : "transparent"}
                   _hover={{ borderColor: "gray.300" }}
