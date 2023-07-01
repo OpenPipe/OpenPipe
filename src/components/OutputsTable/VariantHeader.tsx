@@ -11,6 +11,7 @@ import AutoResizeTextArea from "../AutoResizeTextArea";
 export default function VariantHeader(props: { variant: PromptVariant }) {
   const utils = api.useContext();
   const [isDragTarget, setIsDragTarget] = useState(false);
+  const [isInputHovered, setIsInputHovered] = useState(false);
   const [label, setLabel] = useState(props.variant.label);
 
   const updateMutation = api.promptVariants.update.useMutation();
@@ -53,7 +54,7 @@ export default function VariantHeader(props: { variant: PromptVariant }) {
       spacing={4}
       alignItems="center"
       minH={headerMinHeight}
-      draggable
+      draggable={!isInputHovered}
       onDragStart={(e) => {
         e.dataTransfer.setData("text/plain", props.variant.id);
         e.currentTarget.style.opacity = "0.4";
@@ -91,6 +92,8 @@ export default function VariantHeader(props: { variant: PromptVariant }) {
         _focus={{ borderColor: "blue.500", outline: "none" }}
         flex={1}
         px={cellPadding.x}
+        onMouseEnter={() => setIsInputHovered(true)}
+        onMouseLeave={() => setIsInputHovered(false)}
       />
       <Tooltip label="Hide Variant" hasArrow>
         <Button variant="ghost" colorScheme="gray" size="sm" onClick={onHide}>
