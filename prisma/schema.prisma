@@ -80,7 +80,7 @@ model ModelOutput {
     output         Json
     statusCode     Int
     errorMessage   String?
-    timeToComplete Int
+    timeToComplete Int  @default(0)
 
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
