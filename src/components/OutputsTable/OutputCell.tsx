@@ -1,6 +1,6 @@
 import { api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "./types";
-import { Spinner, Text, Box } from "@chakra-ui/react";
+import { Spinner, Text, Box, Center } from "@chakra-ui/react";
 import { useExperiment } from "~/utils/hooks";
 import { type CreateChatCompletionResponse } from "openai";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -45,7 +45,7 @@ export default function OutputCell({
 
   if (disabledReason) return <Text color="gray.500">{disabledReason}</Text>;
 
-  if (output.isLoading) return <Spinner />;
+  if (output.isLoading) return <Center h="100%" w="100%"><Spinner /></Center>;
 
   if (!output.data)
     return <Text color="gray.500">Error retrieving output</Text>;
