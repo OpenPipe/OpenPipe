@@ -1,4 +1,4 @@
-import { Center, Grid, GridItem, type SystemStyleObject } from "@chakra-ui/react";
+import { Box, Grid, GridItem, type SystemStyleObject } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
@@ -42,9 +42,9 @@ const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) =
           onMouseLeave={() => setIsHovered(false)}
           sx={isHovered ? highlightStyle : undefined}
         >
-          <Center h="100%" w="100%" px={cellPadding.x} py={cellPadding.y}>
+          <Box h="100%" w="100%" px={cellPadding.x} py={cellPadding.y}>
             <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />
-          </Center>
+          </Box>
         </GridItem>
       ))}
     </React.Fragment>
