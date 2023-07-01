@@ -92,5 +92,5 @@ export default function OutputCell({
     );
   }
 
-  return <Box>{message?.content ?? JSON.stringify(output.data.output)}</Box>;
+  return <Box whiteSpace="pre-wrap">{message?.content ?? JSON.stringify(output.data.output)}</Box>;
 }
