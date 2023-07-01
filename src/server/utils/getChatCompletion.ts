@@ -31,8 +31,8 @@ export async function getChatCompletion(
   };
 
   try {
-    resp.output = await response.json();
     resp.timeToComplete = Date.now() - start;
+    resp.output = await response.json();
 
     if (!response.ok) {
       // If it's an object, try to get the error message
