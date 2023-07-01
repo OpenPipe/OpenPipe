@@ -21,6 +21,7 @@ export default function ScenarioEditor({
   const savedValues = scenario.variableValues as Record<string, string>;
   const utils = api.useContext();
   const [isDragTarget, setIsDragTarget] = useState(false);
+  const [variableInputHovered, setVariableInputHovered] = useState(false);
 
   const [values, setValues] = useState<Record<string, string>>(savedValues);
 
@@ -72,7 +73,7 @@ export default function ScenarioEditor({
       pr={cellPadding.x}
       py={cellPadding.y}
       height="100%"
-      draggable
+      draggable={!variableInputHovered}
       onDragStart={(e) => {
         e.dataTransfer.setData("text/plain", scenario.id);
         e.currentTarget.style.opacity = "0.4";
@@ -154,6 +155,8 @@ export default function ScenarioEditor({
                   borderColor={hasChanged ? "blue.300" : "transparent"}
                   _hover={{ borderColor: "gray.300" }}
                   _focus={{ borderColor: "blue.500", outline: "none", bg: "white" }}
+                  onMouseEnter={() => setVariableInputHovered(true)}
+                  onMouseLeave={() => setVariableInputHovered(false)}
                 />
               </Flex>
             );
