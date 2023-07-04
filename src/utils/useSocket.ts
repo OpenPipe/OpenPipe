@@ -5,7 +5,7 @@ import { env } from "~/env.mjs";
 
 const url = env.NEXT_PUBLIC_SOCKET_URL;
 
-export default function useSocket(channelId?: string) {
+export default function useSocket(channel?: string) {
   const socketRef = useRef<Socket>();
   const [message, setMessage] = useState<ChatCompletion | null>(null);
 
@@ -15,8 +15,8 @@ export default function useSocket(channelId?: string) {
 
     socketRef.current.on("connect", () => {
       // Join the specific room
-      if (channelId) {
-        socketRef.current?.emit("join", channelId);
+      if (channel) {
+        socketRef.current?.emit("join", channel);
 
         // Listen for 'message' events
         socketRef.current?.on("message", (message: ChatCompletion) => {
@@ -28,14 +28,14 @@ export default function useSocket(channelId?: string) {
     // Unsubscribe and disconnect on cleanup
     return () => {
       if (socketRef.current) {
-        if (channelId) {
+        if (channel) {
           socketRef.current.off("message");
         }
         socketRef.current.disconnect();
       }
       setMessage(null);
     };
-  }, [channelId]);
+  }, [channel]);
 
   return message;
 }

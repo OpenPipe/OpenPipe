@@ -16,7 +16,7 @@ type CompletionResponse = {
 export async function getChatCompletion(
   payload: JSONSerializable,
   apiKey: string,
-  channelId?: string,
+  channel?: string,
 ): Promise<CompletionResponse> {
   const start = Date.now();
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -36,13 +36,13 @@ export async function getChatCompletion(
   };
 
   try {
-    if (channelId) {
+    if (channel) {
       const completion = streamChatCompletion(payload as unknown as CompletionCreateParams);
       let finalOutput: ChatCompletion | null = null;
       await (async () => {
         for await (const partialCompletion of completion) {
           finalOutput = partialCompletion
-          wsConnection.emit("message", { channel: channelId, payload: partialCompletion });
+          wsConnection.emit("message", { channel, payload: partialCompletion });
         }
       })().catch((err) => console.error(err));
       resp.output = finalOutput as unknown as Prisma.InputJsonValue;

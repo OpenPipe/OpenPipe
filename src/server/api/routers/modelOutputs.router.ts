@@ -12,7 +12,7 @@ env;
 
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
-    .input(z.object({ scenarioId: z.string(), variantId: z.string(), channelId: z.string().optional() }))
+    .input(z.object({ scenarioId: z.string(), variantId: z.string(), channel: z.string().optional() }))
     .query(async ({ input }) => {
       const existing = await prisma.modelOutput.findUnique({
         where: {
@@ -64,7 +64,7 @@ export const modelOutputsRouter = createTRPCRouter({
           timeToComplete: existingResponse.timeToComplete,
         };
       } else {
-        modelResponse = await getChatCompletion(filledTemplate, env.OPENAI_API_KEY, input.channelId);
+        modelResponse = await getChatCompletion(filledTemplate, env.OPENAI_API_KEY, input.channel);
       }
 
       const modelOutput = await prisma.modelOutput.create({

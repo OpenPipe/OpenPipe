@@ -9,7 +9,7 @@ import { useMemo, type ReactElement } from "react";
 import { BsClock } from "react-icons/bs";
 import { type ModelOutput } from "@prisma/client";
 import { type ChatCompletion } from "openai/resources/chat";
-import { generateChannelId } from "~/server/utils/generateChannelId";
+import { generateChannel } from "~/utils/generateChannel";
 import { isObject } from "lodash";
 import useSocket from "~/utils/useSocket";
 
@@ -42,22 +42,22 @@ export default function OutputCell({
     isObject(variant.config) &&
     "stream" in variant.config &&
     variant.config.stream === true;
-  const channelId = useMemo(() => {
+  const channel = useMemo(() => {
     if (!shouldStream) return;
-    return generateChannelId();
+    return generateChannel();
   }, [shouldStream]);
 
   const output = api.outputs.get.useQuery(
     {
       scenarioId: scenario.id,
       variantId: variant.id,
-      channelId,
+      channel,
     },
     { enabled: disabledReason === null }
   );
 
   // Disconnect from socket if we're not streaming anymore
-  const streamedMessage = useSocket(output.isLoading ? channelId : undefined);
+  const streamedMessage = useSocket(output.isLoading ? channel : undefined);
   const streamedContent = streamedMessage?.choices?.[0]?.message?.content;
 
   if (!vars) return null;
