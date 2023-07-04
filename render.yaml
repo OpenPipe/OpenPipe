@@ -19,3 +19,18 @@ services:
           name: prompt-lab-prod
           property: connectionString
       - fromGroup: prompt-lab-prod
+      - key: NEXT_PUBLIC_SOCKET_URL
+        value: https://prompt-lab-prod-wss.onrender.com
+      # Render support says we need to manually set this because otherwise
+      # sometimes it checks a different random port that NextJS opens for
+      # liveness and the liveness check fails.
+      - key: PORT
+        value: 10000
+
+  - type: web
+    name: prompt-lab-prod-wss
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    plan: free
+    dockerCommand: pnpm tsx src/wss-server.ts
