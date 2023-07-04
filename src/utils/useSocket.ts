@@ -20,7 +20,6 @@ export default function useSocket(channelId?: string) {
 
         // Listen for 'message' events
         socketRef.current?.on("message", (message: ChatCompletion) => {
-          console.log("message", message);
           setMessage(message);
         });
       }
