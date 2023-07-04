@@ -1,4 +1,5 @@
-import { type CreateChatCompletionRequest } from "openai";
+
+import { type CompletionCreateParams } from "openai/resources/chat";
 import { prisma } from "../db";
 import { openai } from "../utils/openai";
 import { pick } from "lodash";
@@ -62,7 +63,7 @@ export const autogenerateScenarioValues = async (
 
   if (!experiment || !(variables?.length > 0) || !prompt) return {};
 
-  const messages: CreateChatCompletionRequest["messages"] = [
+  const messages: CompletionCreateParams.CreateChatCompletionRequestNonStreaming["messages"] = [
     {
       role: "system",
       content:
@@ -90,7 +91,6 @@ export const autogenerateScenarioValues = async (
     .forEach((vals) => {
       messages.push({
         role: "assistant",
-        // @ts-expect-error the openai type definition is wrong, the content field is required
         content: null,
         function_call: {
           name: "add_scenario",
@@ -105,7 +105,7 @@ export const autogenerateScenarioValues = async (
   }, {} as Record<string, { type: "string" }>);
 
   try {
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo-0613",
       messages,
       functions: [
@@ -123,7 +123,7 @@ export const autogenerateScenarioValues = async (
     });
 
     const parsed = JSON.parse(
-      completion.data.choices[0]?.message?.function_call?.arguments ?? "{}"
+      completion.choices[0]?.message?.function_call?.arguments ?? "{}"
     ) as Record<string, string>;
     return parsed;
   } catch (e) {
