@@ -24,6 +24,7 @@ export const env = createEnv({
       .optional()
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
+    NEXT_PUBLIC_SOCKET_URL: z.string().url().default("http://localhost:3318"),
   },
 
   /**
@@ -36,6 +37,7 @@ export const env = createEnv({
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND: process.env.NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND,
+    NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
