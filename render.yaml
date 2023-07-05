@@ -1,26 +1,28 @@
 databases:
-  - name: prompt-lab-prod
-    databaseName: prompt_lab_prod
-    user: prompt_lab
+  - name: querykey-prod
+    databaseName: querykey_prod
+    user: querykey
     plan: starter
 
 services:
   - type: web
-    name: prompt-lab-prod-web
+    name: querykey-prod-web
     env: docker
     dockerfilePath: Dockerfile
     dockerContext: .
     plan: standard
+    domains:
+      - querykey.dev
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: prompt-lab-prod
+          name: querykey-prod
           property: connectionString
-      - fromGroup: prompt-lab-prod
+      - fromGroup: querykey-prod
       - key: NEXT_PUBLIC_SOCKET_URL
-        value: https://prompt-lab-prod-wss.onrender.com
+        value: https://querykey-prod-wss.onrender.com
       # Render support says we need to manually set this because otherwise
       # sometimes it checks a different random port that NextJS opens for
       # liveness and the liveness check fails.
@@ -28,7 +30,7 @@ services:
         value: 10000
 
   - type: web
-    name: prompt-lab-prod-wss
+    name: querykey-prod-wss
     env: docker
     dockerfilePath: Dockerfile
     dockerContext: .
