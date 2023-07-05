@@ -58,9 +58,9 @@ const NavSidebar = () => {
   return (
     <VStack align="stretch" bgColor="gray.100" p={2} pb={0} height="100%">
       <HStack spacing={0}>
-        <Image src="/flask2.svg" alt="" w={6} h={6} />
+        <Image src="/logo.svg" alt="" w={6} h={6} />
         <Heading size="md" p={2}>
-          Prompt Lab
+          QueryKey
         </Heading>
       </HStack>
       <Separator />
@@ -98,7 +98,7 @@ const NavSidebar = () => {
       <Separator />
       <HStack align="center" justify="center" spacing={4} p={2}>
         <Link
-          href="https://github.com/corbt/prompt-lab"
+          href="https://github.com/corbt/querykey"
           target="_blank"
           color="gray.500"
           _hover={{ color: "gray.800" }}
@@ -127,7 +127,7 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
       templateAreas={'"warning warning"\n"sidebar main"'}
     >
       <Head>
-        <title>{props.title ? `${props.title} | Prompt Lab` : "Prompt Lab"}</title>
+        <title>{props.title ? `${props.title} | QueryKey` : "QueryKey"}</title>
       </Head>
       <GridItem area="warning">
         <PublicPlaygroundWarning />

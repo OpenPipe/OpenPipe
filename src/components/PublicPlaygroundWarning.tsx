@@ -11,7 +11,7 @@ export default function PublicPlaygroundWarning() {
       <Text>
         Warning: this is a public playground. Anyone can see, edit or delete your experiments. For
         private use,{" "}
-        <Link textDecor="underline" href="https://github.com/corbt/prompt-lab" target="_blank">
+        <Link textDecor="underline" href="https://github.com/corbt/querykey" target="_blank">
           run a local copy
         </Link>
         .
