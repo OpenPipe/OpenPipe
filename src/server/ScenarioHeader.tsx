@@ -38,7 +38,7 @@ export default function ScenarioHeader() {
     <Stack flex={1} px={cellPadding.x} py={cellPadding.y}>
       <HStack>
         <Heading size="sm" fontWeight="bold" flex={1}>
-          Scenario Vars
+          Scenarios
         </Heading>
         {
           <Button
@@ -70,6 +70,11 @@ export default function ScenarioHeader() {
                 if (e.key === "Enter") {
                   e.preventDefault();
                   onAddVar();
+                }
+                // If the user types a space, replace it with an underscore
+                if (e.key === " ") {
+                  e.preventDefault();
+                  setNewVariable((v) => v + "_");
                 }
               }}
             />
