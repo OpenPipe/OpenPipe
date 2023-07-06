@@ -44,6 +44,7 @@ export const experimentsRouter = createTRPCRouter({
           sortIndex: 0,
           config: {
             model: "gpt-3.5-turbo",
+            stream: true,
             messages: [
               {
                 role: "system",
