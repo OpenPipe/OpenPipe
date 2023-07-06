@@ -149,7 +149,7 @@ export default function ScenarioEditor({
                   onChange={(e) => {
                     setValues((prev) => ({ ...prev, [key]: e.target.value }));
                   }}
-                  maxH="60"
+                  maxH="32"
                   overflowY="auto"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
