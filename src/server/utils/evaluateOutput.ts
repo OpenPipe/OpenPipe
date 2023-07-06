@@ -8,7 +8,7 @@ export const evaluateOutput = (
   evaluation: Evaluation
 ): boolean => {
   const output = modelOutput.output as unknown as ChatCompletion;
-  const message = output.choices?.[0]?.message;
+  const message = output?.choices?.[0]?.message;
 
   if (!message) return false;
 
