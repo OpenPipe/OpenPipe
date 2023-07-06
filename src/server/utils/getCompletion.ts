@@ -4,9 +4,10 @@ import { Prisma } from "@prisma/client";
 import { streamChatCompletion } from "./openai";
 import { wsConnection } from "~/utils/wsConnection";
 import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
-import { type JSONSerializable, OpenAIChatModels } from "../types";
+import { type JSONSerializable, OpenAIChatModel } from "../types";
 import { env } from "~/env.mjs";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
+import { getModelName } from "./getModelName";
 
 env;
 
@@ -23,7 +24,8 @@ export async function getCompletion(
   payload: JSONSerializable,
   channel?: string
 ): Promise<CompletionResponse> {
-  if (!payload || !isObject(payload))
+  const modelName = getModelName(payload);
+  if (!modelName)
     return {
       output: Prisma.JsonNull,
       statusCode: 400,
@@ -31,9 +33,7 @@ export async function getCompletion(
       timeToComplete: 0,
     };
   if (
-    "model" in payload &&
-    typeof payload.model === "string" &&
-    payload.model in OpenAIChatModels
+    modelName in OpenAIChatModel
   ) {
     return getOpenAIChatCompletion(
       payload as unknown as CompletionCreateParams,
@@ -109,7 +109,7 @@ export async function getOpenAIChatCompletion(
       resp.promptTokens = usage.prompt_tokens;
       resp.completionTokens = usage.completion_tokens;
     } else if (isObject(resp.output) && 'choices' in resp.output) {
-      const model = payload.model as unknown as OpenAIChatModels
+      const model = payload.model as unknown as OpenAIChatModel
       resp.promptTokens = countOpenAIChatTokens(
         model,
         payload.messages

@@ -1,6 +1,6 @@
 import { type ChatCompletion } from "openai/resources/chat";
 import { GPTTokens } from "gpt-tokens";
-import { type OpenAIChatModels } from "~/server/types";
+import { type OpenAIChatModel } from "~/server/types";
 
 interface GPTTokensMessageItem {
   name?: string;
@@ -9,7 +9,7 @@ interface GPTTokensMessageItem {
 }
 
 export const countOpenAIChatTokens = (
-  model: OpenAIChatModels,
+  model: OpenAIChatModel,
   messages: ChatCompletion.Choice.Message[]
 ) => {
   return new GPTTokens({ model, messages: messages as unknown as GPTTokensMessageItem[] })
