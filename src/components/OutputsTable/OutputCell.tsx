@@ -114,7 +114,8 @@ export default function OutputCell({
     );
   }
 
-  const contentToDisplay = message?.content ?? streamedContent ?? JSON.stringify(output.data?.output);
+  const contentToDisplay =
+    message?.content ?? streamedContent ?? JSON.stringify(output.data?.output);
 
   return (
     <Flex w="100%" h="100%" direction="column" justifyContent="space-between" whiteSpace="pre-wrap">

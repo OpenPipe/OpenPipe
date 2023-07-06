@@ -51,7 +51,8 @@
     "socket.io-client": "^4.7.1",
     "superjson": "1.12.2",
     "tsx": "^3.12.7",
-    "zod": "^3.21.4"
+    "zod": "^3.21.4",
+    "zustand": "^4.3.9"
   },
   "devDependencies": {
     "@openapi-contrib/openapi-schema-to-json-schema": "^4.0.5",

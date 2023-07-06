@@ -11,12 +11,14 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { BsTrash } from "react-icons/bs";
+import { BsGearFill, BsTrash } from "react-icons/bs";
 import { RiFlaskLine } from "react-icons/ri";
 import OutputsTable from "~/components/OutputsTable";
+import SettingsDrawer from "~/components/OutputsTable/SettingsDrawer";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import { useStore } from "~/utils/store";
 
 const DeleteButton = (props: { experimentId: string }) => {
   const mutation = api.experiments.delete.useMutation();
@@ -44,6 +46,7 @@ export default function Experiment() {
   const router = useRouter();
   const experiment = useExperiment();
   const utils = api.useContext();
+  const openDrawer = useStore((s) => s.openDrawer);
 
   const [label, setLabel] = useState(experiment.data?.label || "");
   useEffect(() => {
@@ -98,8 +101,19 @@ export default function Experiment() {
               />
             </BreadcrumbItem>
           </Breadcrumb>
+          <Button
+            size="sm"
+            variant="ghost"
+            colorScheme="gray"
+            fontWeight="normal"
+            onClick={openDrawer}
+            leftIcon={<Icon as={BsGearFill} boxSize={4} color="gray.600" />}
+          >
+            Edit Vars & Evals
+          </Button>
           <DeleteButton experimentId={router.query.id as string} />
         </HStack>
+        <SettingsDrawer />
         <OutputsTable experimentId={router.query.id as string | undefined} />
       </Box>
     </AppShell>

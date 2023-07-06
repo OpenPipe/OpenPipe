@@ -1,11 +1,20 @@
-import { Box, Grid, GridItem, Heading, type SystemStyleObject } from "@chakra-ui/react";
-import ScenarioHeader from "~/server/ScenarioHeader";
+import {
+  Button,
+  Grid,
+  GridItem,
+  HStack,
+  Heading,
+  type SystemStyleObject,
+} from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
 import ScenarioRow from "./ScenarioRow";
 import VariantConfigEditor from "./VariantConfigEditor";
 import VariantHeader from "./VariantHeader";
+import { cellPadding } from "../constants";
+import { BsPencil } from "react-icons/bs";
+import { useStore } from "~/utils/store";
 
 const stickyHeaderStyle: SystemStyleObject = {
   position: "sticky",
@@ -19,6 +28,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
     { experimentId: experimentId as string },
     { enabled: !!experimentId }
   );
+  const openDrawer = useStore((s) => s.openDrawer);
 
   const scenarios = api.scenarios.list.useQuery(
     { experimentId: experimentId as string },
@@ -42,8 +52,28 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         },
       }}
     >
-      <GridItem display="flex" alignItems="flex-end" rowSpan={2}>
-        <ScenarioHeader />
+      <GridItem
+        display="flex"
+        alignItems="flex-end"
+        rowSpan={2}
+        px={cellPadding.x}
+        py={cellPadding.y}
+      >
+        <HStack w="100%">
+          <Heading size="sm" fontWeight="bold" flex={1}>
+            Scenario
+          </Heading>
+          <Button
+            size="xs"
+            variant="ghost"
+            color="gray.500"
+            aria-label="Edit"
+            leftIcon={<BsPencil />}
+            onClick={openDrawer}
+          >
+            Edit Vars
+          </Button>
+        </HStack>
       </GridItem>
 
       {variants.data.map((variant) => (
