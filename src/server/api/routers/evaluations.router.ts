@@ -14,15 +14,6 @@ export const evaluationsRouter = createTRPCRouter({
     });
   }),
 
-  results: publicProcedure.input(z.object({ variantId: z.string() })).query(async ({ input }) => {
-    return await prisma.evaluationResult.findMany({
-      where: {
-        promptVariantId: input.variantId,
-      },
-      include: { evaluation: true },
-    });
-  }),
-
   create: publicProcedure
     .input(
       z.object({
