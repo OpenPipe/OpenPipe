@@ -3,12 +3,9 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import fillTemplate, { type VariableMap } from "~/server/utils/fillTemplate";
 import { type JSONSerializable } from "~/server/types";
-import { getChatCompletion } from "~/server/utils/getChatCompletion";
+import { getCompletion } from "~/server/utils/getCompletion";
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
-import { env } from "~/env.mjs";
-
-env;
 
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
@@ -54,7 +51,7 @@ export const modelOutputsRouter = createTRPCRouter({
         where: { inputHash, errorMessage: null },
       });
 
-      let modelResponse: Awaited<ReturnType<typeof getChatCompletion>>;
+      let modelResponse: Awaited<ReturnType<typeof getCompletion>>;
 
       if (existingResponse) {
         modelResponse = {
@@ -64,7 +61,7 @@ export const modelOutputsRouter = createTRPCRouter({
           timeToComplete: existingResponse.timeToComplete,
         };
       } else {
-        modelResponse = await getChatCompletion(filledTemplate, env.OPENAI_API_KEY, input.channel);
+        modelResponse = await getCompletion(filledTemplate, input.channel);
       }
 
       const modelOutput = await prisma.modelOutput.create({
