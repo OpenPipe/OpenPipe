@@ -7,7 +7,7 @@ type StoreState = {
 };
 
 export const useStore = create<StoreState>()((set) => ({
-  drawerOpen: true,
+  drawerOpen: false,
   openDrawer: () => set({ drawerOpen: true }),
   closeDrawer: () => set({ drawerOpen: false }),
 }));
