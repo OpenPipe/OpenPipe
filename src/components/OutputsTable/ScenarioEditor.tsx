@@ -130,7 +130,14 @@ export default function ScenarioEditor({
                 alignItems={layoutDirection === "column" ? "flex-start" : "center"}
                 flexWrap="wrap"
               >
-                <Box bgColor="blue.100" color="blue.600" px={2} my="3px" fontSize="xs" fontWeight="bold">
+                <Box
+                  bgColor="blue.100"
+                  color="blue.600"
+                  px={2}
+                  my="3px"
+                  fontSize="xs"
+                  fontWeight="bold"
+                >
                   {key}
                 </Box>
                 <AutoResizeTextArea
@@ -142,6 +149,8 @@ export default function ScenarioEditor({
                   onChange={(e) => {
                     setValues((prev) => ({ ...prev, [key]: e.target.value }));
                   }}
+                  maxH="60"
+                  overflowY="auto"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                       e.preventDefault();
