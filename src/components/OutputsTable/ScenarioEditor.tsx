@@ -26,9 +26,9 @@ export default function ScenarioEditor({
   const [values, setValues] = useState<Record<string, string>>(savedValues);
 
   const experiment = useExperiment();
-  const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data;
+  const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" });
 
-  const variableLabels = vars?.map((v) => v.label) ?? [];
+  const variableLabels = vars.data?.map((v) => v.label) ?? [];
 
   const hasChanged = !isEqual(savedValues, values);
 
@@ -117,7 +117,7 @@ export default function ScenarioEditor({
         />
       </Stack>
       {variableLabels.length === 0 ? (
-        <Box color="gray.500">No scenario variables configured</Box>
+        <Box color="gray.500">{vars.data ? "No scenario variables configured" : "Loading..."}</Box>
       ) : (
         <Stack>
           {variableLabels.map((key) => {

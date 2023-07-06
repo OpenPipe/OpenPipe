@@ -13,7 +13,7 @@ export const modelOutputsRouter = createTRPCRouter({
     .input(
       z.object({ scenarioId: z.string(), variantId: z.string(), channel: z.string().optional() })
     )
-    .query(async ({ input }) => {
+    .mutation(async ({ input }) => {
       const existing = await prisma.modelOutput.findUnique({
         where: {
           promptVariantId_testScenarioId: {

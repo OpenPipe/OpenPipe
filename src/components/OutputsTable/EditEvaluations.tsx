@@ -65,14 +65,14 @@ export function EvaluationEditor(props: {
       </HStack>
       <FormControl>
         <FormLabel fontSize="sm">Match String</FormLabel>
-        <FormHelperText>
-          This string will be interpreted as a regex and checked against each model output.
-        </FormHelperText>
         <Input
           size="sm"
           value={values.matchString}
           onChange={(e) => setValues((values) => ({ ...values, matchString: e.target.value }))}
         />
+        <FormHelperText>
+          This string will be interpreted as a regex and checked against each model output.
+        </FormHelperText>
       </FormControl>
       <HStack alignSelf="flex-end">
         <Button size="sm" onClick={props.onCancel} colorScheme="gray">
