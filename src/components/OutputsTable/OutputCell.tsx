@@ -65,7 +65,7 @@ export default function OutputCell({
       channel,
     });
     setOutput(output);
-    await utils.evaluations.results.invalidate();
+    await utils.promptVariants.stats.invalidate();
   }, [outputMutation, scenario.id, variant.id, channel]);
 
   useEffect(fetchOutput, []);
