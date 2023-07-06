@@ -1,11 +1,4 @@
-import {
-  Button,
-  Grid,
-  GridItem,
-  HStack,
-  Heading,
-  type SystemStyleObject,
-} from "@chakra-ui/react";
+import { Button, Grid, GridItem, HStack, Heading, type SystemStyleObject } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
@@ -15,6 +8,7 @@ import VariantHeader from "./VariantHeader";
 import { cellPadding } from "../constants";
 import { BsPencil } from "react-icons/bs";
 import { useStore } from "~/utils/store";
+import VariantStats from "./VariantStats";
 
 const stickyHeaderStyle: SystemStyleObject = {
   position: "sticky",
@@ -38,6 +32,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
   if (!variants.data || !scenarios.data) return null;
 
   const allCols = variants.data.length + 1;
+  const headerRows = 3;
 
   return (
     <Grid
@@ -55,7 +50,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       <GridItem
         display="flex"
         alignItems="flex-end"
-        rowSpan={2}
+        rowSpan={headerRows}
         px={cellPadding.x}
         py={cellPadding.y}
       >
@@ -82,7 +77,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         </GridItem>
       ))}
       <GridItem
-        rowSpan={scenarios.data.length + 2}
+        rowSpan={scenarios.data.length + headerRows}
         padding={0}
         // Have to use `style` instead of emotion style props to work around css specificity issues conflicting with the "> *" selector on Grid
         style={{ borderRightWidth: 0, borderBottomWidth: 0 }}
@@ -92,8 +87,13 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       </GridItem>
 
       {variants.data.map((variant) => (
-        <GridItem key={variant.uiId} padding={0}>
+        <GridItem key={variant.uiId}>
           <VariantConfigEditor variant={variant} />
+        </GridItem>
+      ))}
+      {variants.data.map((variant) => (
+        <GridItem key={variant.uiId}>
+          <VariantStats variant={variant} />
         </GridItem>
       ))}
       {scenarios.data.map((scenario) => (

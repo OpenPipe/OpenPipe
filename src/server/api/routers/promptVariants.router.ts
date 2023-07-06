@@ -10,9 +10,7 @@ export const promptVariantsRouter = createTRPCRouter({
         experimentId: input.experimentId,
         visible: true,
       },
-      orderBy: {
-        sortIndex: "asc",
-      },
+      orderBy: { sortIndex: "asc" },
     });
   }),
 

@@ -1,4 +1,4 @@
-import { Button } from "@chakra-ui/react";
+import { Button, Icon, Spinner } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
@@ -9,7 +9,7 @@ export default function NewVariantButton() {
   const mutation = api.promptVariants.create.useMutation();
   const utils = api.useContext();
 
-  const [onClick] = useHandledAsyncCallback(async () => {
+  const [onClick, loading] = useHandledAsyncCallback(async () => {
     if (!experiment.data) return;
     await mutation.mutateAsync({
       experimentId: experiment.data.id,
@@ -30,7 +30,7 @@ export default function NewVariantButton() {
       height="unset"
       minH={headerMinHeight}
     >
-      <BsPlus size={24} />
+      <Icon as={loading ? Spinner : BsPlus} boxSize={6} mr={loading ? 1 : 0} />
       Add Variant
     </Button>
   );

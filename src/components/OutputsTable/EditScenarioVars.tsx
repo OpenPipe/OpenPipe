@@ -33,8 +33,8 @@ export default function EditScenarioVars() {
 
   return (
     <Stack>
-      <Heading size="sm">Edit Scenario Variables</Heading>
-      <Stack spacing={2} pt={2}>
+      <Heading size="sm">Scenario Variables</Heading>
+      <Stack spacing={2}>
         <Text fontSize="sm">
           Scenario variables can be used in your prompt variants as well as evaluations. Reference
           them using <Code>{"{{curly_braces}}"}</Code>.

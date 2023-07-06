@@ -1,15 +1,18 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import fillTemplate, { type VariableMap } from "~/server/utils/fillTemplate";
+import { fillTemplateJson, type VariableMap } from "~/server/utils/fillTemplate";
 import { type JSONSerializable } from "~/server/types";
-import { getCompletion } from "~/server/utils/getCompletion";
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
+import { reevaluateVariant } from "~/server/utils/evaluations";
+import { getCompletion } from "~/server/utils/getCompletion";
 
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
-    .input(z.object({ scenarioId: z.string(), variantId: z.string(), channel: z.string().optional() }))
+    .input(
+      z.object({ scenarioId: z.string(), variantId: z.string(), channel: z.string().optional() })
+    )
     .query(async ({ input }) => {
       const existing = await prisma.modelOutput.findUnique({
         where: {
@@ -36,7 +39,7 @@ export const modelOutputsRouter = createTRPCRouter({
 
       if (!variant || !scenario) return null;
 
-      const filledTemplate = fillTemplate(
+      const filledTemplate = fillTemplateJson(
         variant.config as JSONSerializable,
         scenario.variableValues as VariableMap
       );
@@ -72,6 +75,8 @@ export const modelOutputsRouter = createTRPCRouter({
           ...modelResponse,
         },
       });
+
+      await reevaluateVariant(input.variantId);
 
       return modelOutput;
     }),

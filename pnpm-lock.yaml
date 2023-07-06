@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -50,6 +50,9 @@ dependencies:
   '@trpc/server':
     specifier: ^10.26.0
     version: 10.26.0
+  chroma-js:
+    specifier: ^2.4.2
+    version: 2.4.2
   concurrently:
     specifier: ^8.2.0
     version: 8.2.0
@@ -130,6 +133,9 @@ devDependencies:
   '@openapi-contrib/openapi-schema-to-json-schema':
     specifier: ^4.0.5
     version: 4.0.5
+  '@types/chroma-js':
+    specifier: ^2.4.0
+    version: 2.4.0
   '@types/cors':
     specifier: ^2.8.13
     version: 2.8.13
@@ -2072,6 +2078,10 @@ packages:
       '@types/node': 18.16.0
     dev: true
 
+  /@types/chroma-js@2.4.0:
+    resolution: {integrity: sha512-JklMxityrwjBTjGY2anH8JaTx3yjRU3/sEHSblLH1ba5lqcSh1LnImXJZO5peJfXyqKYWjHTGy4s5Wz++hARrw==}
+    dev: true
+
   /@types/connect@3.4.35:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
@@ -2695,6 +2705,10 @@ packages:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.2
+    dev: false
+
+  /chroma-js@2.4.2:
+    resolution: {integrity: sha512-U9eDw6+wt7V8z5NncY2jJfZa+hUH8XEj8FQHgFJTrUFnJfXYf4Ml4adI2vXZOjqRDpFWtYVWypDfZwnJ+HIR4A==}
     dev: false
 
   /client-only@0.0.1:

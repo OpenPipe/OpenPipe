@@ -1,17 +1,18 @@
 import { api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "./types";
-import { Spinner, Text, Box, Center, Flex, Icon } from "@chakra-ui/react";
+import { Spinner, Text, Box, Center, Flex, Icon, HStack } from "@chakra-ui/react";
 import { useExperiment } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
 import { useMemo, type ReactElement } from "react";
-import { BsClock } from "react-icons/bs";
+import { BsCheck, BsClock, BsX } from "react-icons/bs";
 import { type ModelOutput } from "@prisma/client";
 import { type ChatCompletion } from "openai/resources/chat";
 import { generateChannel } from "~/utils/generateChannel";
 import { isObject } from "lodash";
 import useSocket from "~/utils/useSocket";
+import { evaluateOutput } from "~/server/utils/evaluateOutput";
 
 export default function OutputCell({
   scenario,
@@ -109,7 +110,7 @@ export default function OutputCell({
             { maxLength: 40 }
           )}
         </SyntaxHighlighter>
-        <OutputStats modelOutput={output.data} />
+        <OutputStats modelOutput={output.data} scenario={scenario} />
       </Box>
     );
   }
@@ -120,18 +121,44 @@ export default function OutputCell({
   return (
     <Flex w="100%" h="100%" direction="column" justifyContent="space-between" whiteSpace="pre-wrap">
       {contentToDisplay}
-      {output.data && <OutputStats modelOutput={output.data} />}
+      {output.data && <OutputStats modelOutput={output.data} scenario={scenario} />}
     </Flex>
   );
 }
 
-const OutputStats = ({ modelOutput }: { modelOutput: ModelOutput }) => {
+const OutputStats = ({
+  modelOutput,
+  scenario,
+}: {
+  modelOutput: ModelOutput;
+  scenario: Scenario;
+}) => {
   const timeToComplete = modelOutput.timeToComplete;
+  const experiment = useExperiment();
+  const evals =
+    api.evaluations.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data ?? [];
 
   return (
-    <Flex justifyContent="flex-end" alignItems="center" color="gray.500" fontSize="xs" mt={2}>
-      <Icon as={BsClock} mr={0.5} />
-      <Text>{(timeToComplete / 1000).toFixed(2)}s</Text>
-    </Flex>
+    <HStack align="center" color="gray.500" fontSize="xs" mt={2}>
+      <HStack flex={1}>
+        {evals.map((evaluation) => {
+          const passed = evaluateOutput(modelOutput, scenario, evaluation);
+          return (
+            <HStack spacing={0} key={evaluation.id}>
+              <Text>{evaluation.name}</Text>
+              <Icon
+                as={passed ? BsCheck : BsX}
+                color={passed ? "green.500" : "red.500"}
+                boxSize={6}
+              />
+            </HStack>
+          );
+        })}
+      </HStack>
+      <HStack>
+        <Icon as={BsClock} mr={0.5} />
+        <Text>{(timeToComplete / 1000).toFixed(2)}s</Text>
+      </HStack>
+    </HStack>
   );
 };

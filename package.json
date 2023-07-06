@@ -29,6 +29,7 @@
     "@trpc/next": "^10.26.0",
     "@trpc/react-query": "^10.26.0",
     "@trpc/server": "^10.26.0",
+    "chroma-js": "^2.4.2",
     "concurrently": "^8.2.0",
     "cors": "^2.8.5",
     "dayjs": "^1.11.8",
@@ -57,6 +58,7 @@
   },
   "devDependencies": {
     "@openapi-contrib/openapi-schema-to-json-schema": "^4.0.5",
+    "@types/chroma-js": "^2.4.0",
     "@types/cors": "^2.8.13",
     "@types/eslint": "^8.37.0",
     "@types/express": "^4.17.17",

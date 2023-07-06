@@ -22,6 +22,7 @@ model Experiment {
     TemplateVariable TemplateVariable[]
     PromptVariant    PromptVariant[]
     TestScenario     TestScenario[]
+    Evaluation       Evaluation[]
 }
 
 model PromptVariant {
@@ -37,9 +38,10 @@ model PromptVariant {
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
-    ModelOutput ModelOutput[]
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
+    ModelOutput      ModelOutput[]
+    EvaluationResult EvaluationResult[]
 
     @@index([uiId])
 }
@@ -80,7 +82,7 @@ model ModelOutput {
     output         Json
     statusCode     Int
     errorMessage   String?
-    timeToComplete Int  @default(0)
+    timeToComplete Int     @default(0)
 
     promptTokens     Int? // Added promptTokens field
     completionTokens Int? // Added completionTokens field
@@ -96,6 +98,44 @@ model ModelOutput {
 
     @@unique([promptVariantId, testScenarioId])
     @@index([inputHash])
+}
+
+enum EvaluationMatchType {
+    CONTAINS
+    DOES_NOT_CONTAIN
+}
+
+model Evaluation {
+    id String @id @default(uuid()) @db.Uuid
+
+    name        String
+    matchString String
+    matchType   EvaluationMatchType
+
+    experimentId String     @db.Uuid
+    experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
+    EvaluationResult EvaluationResult[]
+}
+
+model EvaluationResult {
+    id String @id @default(uuid()) @db.Uuid
+
+    passCount Int
+    failCount Int
+
+    evaluationId String     @db.Uuid
+    evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+    promptVariantId String        @db.Uuid
+    promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([evaluationId, promptVariantId])
 }
 
 // Necessary for Next auth

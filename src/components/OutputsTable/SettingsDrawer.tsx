@@ -6,9 +6,11 @@ import {
   DrawerHeader,
   DrawerOverlay,
   Heading,
+  Stack,
 } from "@chakra-ui/react";
 import { useStore } from "~/utils/store";
 import EditScenarioVars from "./EditScenarioVars";
+import EditEvaluations from "./EditEvaluations";
 
 export default function SettingsDrawer() {
   const isOpen = useStore((state) => state.drawerOpen);
@@ -23,8 +25,10 @@ export default function SettingsDrawer() {
           <Heading size="md">Settings</Heading>
         </DrawerHeader>
         <DrawerBody>
-          <EditScenarioVars />
-          {/* <EditEvaluations /> */}
+          <Stack spacing={6}>
+            <EditScenarioVars />
+            <EditEvaluations />
+          </Stack>
         </DrawerBody>
       </DrawerContent>
     </Drawer>
