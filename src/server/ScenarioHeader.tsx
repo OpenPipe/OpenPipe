@@ -38,7 +38,7 @@ export default function ScenarioHeader() {
     <Stack flex={1} px={cellPadding.x} py={cellPadding.y}>
       <HStack>
         <Heading size="sm" fontWeight="bold" flex={1}>
-          Scenarios
+          Scenario
         </Heading>
         {
           <Button
@@ -48,7 +48,7 @@ export default function ScenarioHeader() {
             rightIcon={<Icon as={editing ? BsCheck : BsChevronDown} />}
             onClick={() => setEditing((editing) => !editing)}
           >
-            {editing ? "Finish" : "Configure"}
+            {editing ? "Finish" : "Edit Vars"}
           </Button>
         }
       </HStack>

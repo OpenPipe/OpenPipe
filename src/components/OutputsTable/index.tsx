@@ -1,7 +1,6 @@
-import { Grid, GridItem, Heading, type SystemStyleObject } from "@chakra-ui/react";
+import { Box, Grid, GridItem, Heading, type SystemStyleObject } from "@chakra-ui/react";
 import ScenarioHeader from "~/server/ScenarioHeader";
 import { api } from "~/utils/api";
-import NewEvaluationButton from "./NewEvaluationButton";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
 import ScenarioRow from "./ScenarioRow";
@@ -41,12 +40,12 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           borderBottomWidth: 1,
           borderRightWidth: 1,
         },
-        "> *:last-child": {
-          borderRightWidth: 0,
-        },
       }}
     >
-      <GridItem borderBottomWidth={0} rowSpan={2} />
+      <GridItem display="flex" alignItems="flex-end" rowSpan={2}>
+        <ScenarioHeader />
+      </GridItem>
+
       {variants.data.map((variant) => (
         <GridItem key={variant.uiId} padding={0} sx={stickyHeaderStyle} borderTopWidth={1}>
           <VariantHeader variant={variant} />
@@ -67,31 +66,12 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           <VariantConfigEditor variant={variant} />
         </GridItem>
       ))}
-      <GridItem
-        display="flex"
-        alignItems="flex-end"
-        borderRightWidth={0}
-        pt={4}
-        sx={{ ...stickyHeaderStyle, top: -4 }}
-      >
-        <ScenarioHeader />
-      </GridItem>
-      <GridItem colSpan={allCols - 1} borderRightWidth={0} />
-
       {scenarios.data.map((scenario) => (
         <ScenarioRow key={scenario.uiId} scenario={scenario} variants={variants.data} />
       ))}
-      <GridItem borderBottomWidth={0} w="100%" colSpan={allCols} padding={0}>
+      <GridItem borderBottomWidth={0} borderRightWidth={0} w="100%" colSpan={allCols} padding={0}>
         <NewScenarioButton />
       </GridItem>
-      {/* <GridItem borderBottomWidth={0} colSpan={allCols} px={2} pt={4}>
-        <Heading size="sm" fontWeight="bold" flex={1}>
-          Evaluations
-        </Heading>
-      </GridItem>
-      <GridItem borderBottomWidth={0} w="100%" colSpan={allCols} padding={0}>
-        <NewEvaluationButton />
-      </GridItem> */}
     </Grid>
   );
 }
