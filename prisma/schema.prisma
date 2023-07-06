@@ -82,6 +82,9 @@ model ModelOutput {
     errorMessage   String?
     timeToComplete Int  @default(0)
 
+    promptTokens     Int? // Added promptTokens field
+    completionTokens Int? // Added completionTokens field
+
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
 
