@@ -55,8 +55,7 @@ export async function getOpenAIChatCompletion(
   channel?: string
 ): Promise<CompletionResponse> {
   // If functions are enabled, disable streaming so that we get the full response with token counts
-  // if (payload.functions?.length) payload.stream = false;
-  console.log('payload', payload)
+  if (payload.functions?.length) payload.stream = false;
   const start = Date.now();
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -76,7 +75,6 @@ export async function getOpenAIChatCompletion(
 
   try {
     if (payload.stream) {
-      console.log('streaming!!!!!!')
       const completion = streamChatCompletion(payload as unknown as CompletionCreateParams);
       let finalOutput: ChatCompletion | null = null;
       await (async () => {
