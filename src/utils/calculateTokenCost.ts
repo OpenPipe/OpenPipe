@@ -22,18 +22,25 @@ const openAICompletionTokensToDollars: { [key in OpenAIChatModel]: number } = {
   "gpt-3.5-turbo-16k-0613": 0.000004,
 };
 
-export const calculateTokenCost = (model: SupportedModel, numTokens: number, isCompletion = false) => {
-    if (model in OpenAIChatModel) {
-        return calculateOpenAIChatTokenCost(model as OpenAIChatModel, numTokens, isCompletion);
-    }
-    return 0;
-}
+export const calculateTokenCost = (
+  model: SupportedModel | null,
+  numTokens: number,
+  isCompletion = false
+) => {
+  if (!model) return 0;
+  if (model in OpenAIChatModel) {
+    return calculateOpenAIChatTokenCost(model as OpenAIChatModel, numTokens, isCompletion);
+  }
+  return 0;
+};
 
 const calculateOpenAIChatTokenCost = (
   model: OpenAIChatModel,
   numTokens: number,
   isCompletion: boolean
 ) => {
-    const tokensToDollars = isCompletion ? openAICompletionTokensToDollars[model] : openAIPromptTokensToDollars[model];
-    return tokensToDollars * numTokens;
+  const tokensToDollars = isCompletion
+    ? openAICompletionTokensToDollars[model]
+    : openAIPromptTokensToDollars[model];
+  return tokensToDollars * numTokens;
 };

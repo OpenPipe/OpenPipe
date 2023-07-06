@@ -105,7 +105,7 @@ export default function EditEvaluations() {
   const [onDelete] = useHandledAsyncCallback(async (id: string) => {
     await deleteMutation.mutateAsync({ id });
     await utils.evaluations.list.invalidate();
-    await utils.evaluations.results.invalidate();
+    await utils.promptVariants.stats.invalidate();
   }, []);
 
   const [onSave] = useHandledAsyncCallback(async (id: string | undefined, vals: EvalValues) => {
@@ -124,7 +124,7 @@ export default function EditEvaluations() {
       });
     }
     await utils.evaluations.list.invalidate();
-    await utils.evaluations.results.invalidate();
+    await utils.promptVariants.stats.invalidate();
   }, []);
 
   const onCancel = useCallback(() => {

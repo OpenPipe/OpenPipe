@@ -2,6 +2,8 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { type OpenAIChatConfig } from "~/server/types";
+import { getModelName } from "~/server/utils/getModelName";
+import { calculateTokenCost } from "~/utils/calculateTokenCost";
 
 export const promptVariantsRouter = createTRPCRouter({
   list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
@@ -12,6 +14,46 @@ export const promptVariantsRouter = createTRPCRouter({
       },
       orderBy: { sortIndex: "asc" },
     });
+  }),
+
+  stats: publicProcedure.input(z.object({ variantId: z.string() })).query(async ({ input }) => {
+    const variant = await prisma.promptVariant.findUnique({
+      where: {
+        id: input.variantId,
+      },
+    });
+
+    if (!variant) {
+      throw new Error(`Prompt Variant with id ${input.variantId} does not exist`);
+    }
+
+    const evalResults = await prisma.evaluationResult.findMany({
+      where: {
+        promptVariantId: input.variantId,
+      },
+      include: { evaluation: true },
+    });
+
+    const overallTokens = await prisma.modelOutput.aggregate({
+      where: {
+        promptVariantId: input.variantId,
+      },
+      _sum: {
+        promptTokens: true,
+        completionTokens: true,
+      },
+    });
+
+    const model = getModelName(variant.config);
+
+    const promptTokens = overallTokens._sum?.promptTokens ?? 0;
+    const overallPromptCost = calculateTokenCost(model, promptTokens);
+    const completionTokens = overallTokens._sum?.completionTokens ?? 0;
+    const overallCompletionCost = calculateTokenCost(model, completionTokens, true);
+
+    const overallCost = overallPromptCost + overallCompletionCost;
+
+    return { evalResults, overallCost };
   }),
 
   create: publicProcedure

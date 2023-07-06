@@ -62,6 +62,8 @@ export const modelOutputsRouter = createTRPCRouter({
           statusCode: existingResponse.statusCode,
           errorMessage: existingResponse.errorMessage,
           timeToComplete: existingResponse.timeToComplete,
+          promptTokens: existingResponse.promptTokens ?? undefined,
+          completionTokens: existingResponse.completionTokens ?? undefined,
         };
       } else {
         modelResponse = await getCompletion(filledTemplate, input.channel);
