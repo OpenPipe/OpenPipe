@@ -1,54 +1,18 @@
-import { Box, Grid, GridItem, type SystemStyleObject } from "@chakra-ui/react";
-import React, { useState } from "react";
+import { Grid, GridItem, Heading, type SystemStyleObject } from "@chakra-ui/react";
+import ScenarioHeader from "~/server/ScenarioHeader";
 import { api } from "~/utils/api";
+import NewEvaluationButton from "./NewEvaluationButton";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
-import OutputCell from "./OutputCell";
-import ScenarioEditor from "./ScenarioEditor";
+import ScenarioRow from "./ScenarioRow";
 import VariantConfigEditor from "./VariantConfigEditor";
 import VariantHeader from "./VariantHeader";
-import type { Scenario, PromptVariant } from "./types";
-import ScenarioHeader from "~/server/ScenarioHeader";
-import { cellPadding } from "../constants";
 
 const stickyHeaderStyle: SystemStyleObject = {
   position: "sticky",
-  top: 0,
+  top: "-1px",
   backgroundColor: "#fff",
   zIndex: 1,
-};
-
-const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  const highlightStyle = {
-    backgroundColor: "gray.50", // or any color you prefer
-  };
-
-  return (
-    <React.Fragment>
-      <GridItem
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        sx={isHovered ? highlightStyle : undefined}
-        borderLeftWidth={1}
-      >
-        <ScenarioEditor scenario={props.scenario} hovered={isHovered} />
-      </GridItem>
-      {props.variants.map((variant) => (
-        <GridItem
-          key={variant.id}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          sx={isHovered ? highlightStyle : undefined}
-        >
-          <Box h="100%" w="100%" px={cellPadding.x} py={cellPadding.y}>
-            <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />
-          </Box>
-        </GridItem>
-      ))}
-    </React.Fragment>
-  );
 };
 
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
@@ -63,6 +27,8 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
   );
 
   if (!variants.data || !scenarios.data) return null;
+
+  const allCols = variants.data.length + 1;
 
   return (
     <Grid
@@ -80,16 +46,14 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         },
       }}
     >
-      <GridItem display="flex" alignItems="flex-end" rowSpan={2}>
-        <ScenarioHeader />
-      </GridItem>
+      <GridItem borderBottomWidth={0} rowSpan={2} />
       {variants.data.map((variant) => (
         <GridItem key={variant.uiId} padding={0} sx={stickyHeaderStyle} borderTopWidth={1}>
           <VariantHeader variant={variant} />
         </GridItem>
       ))}
       <GridItem
-        rowSpan={scenarios.data.length + 1}
+        rowSpan={scenarios.data.length + 2}
         padding={0}
         // Have to use `style` instead of emotion style props to work around css specificity issues conflicting with the "> *" selector on Grid
         style={{ borderRightWidth: 0, borderBottomWidth: 0 }}
@@ -103,12 +67,31 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           <VariantConfigEditor variant={variant} />
         </GridItem>
       ))}
+      <GridItem
+        display="flex"
+        alignItems="flex-end"
+        borderRightWidth={0}
+        pt={4}
+        sx={{ ...stickyHeaderStyle, top: -4 }}
+      >
+        <ScenarioHeader />
+      </GridItem>
+      <GridItem colSpan={allCols - 1} borderRightWidth={0} />
+
       {scenarios.data.map((scenario) => (
         <ScenarioRow key={scenario.uiId} scenario={scenario} variants={variants.data} />
       ))}
-      <GridItem borderBottomWidth={0} w="100%" colSpan={variants.data.length + 1} padding={0}>
+      <GridItem borderBottomWidth={0} w="100%" colSpan={allCols} padding={0}>
         <NewScenarioButton />
       </GridItem>
+      {/* <GridItem borderBottomWidth={0} colSpan={allCols} px={2} pt={4}>
+        <Heading size="sm" fontWeight="bold" flex={1}>
+          Evaluations
+        </Heading>
+      </GridItem>
+      <GridItem borderBottomWidth={0} w="100%" colSpan={allCols} padding={0}>
+        <NewEvaluationButton />
+      </GridItem> */}
     </Grid>
   );
 }
