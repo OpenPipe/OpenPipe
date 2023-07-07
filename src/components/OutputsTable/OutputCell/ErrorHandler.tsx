@@ -23,23 +23,30 @@ export const ErrorHandler = ({
 
   useEffect(() => {
     if (!shouldAutoRetry) return;
-    
-    let remainingTime = calculateDelay(numPreviousTries);
+
+    const initialWaitTime = calculateDelay(numPreviousTries);
+    const msModuloOneSecond = initialWaitTime % 1000;
+    let remainingTime = initialWaitTime - msModuloOneSecond;
     setMsToWait(remainingTime);
-    
-    const interval = setInterval(() => {
-      remainingTime -= 1000;
-      setMsToWait(remainingTime);
-      
-      if (remainingTime <= 0) {
-        refetchOutput();
-        clearInterval(interval);
-      }
-    }, 1000);
-  
-    return () => clearInterval(interval);
+
+    let interval: NodeJS.Timeout;
+    const timeout = setTimeout(() => {
+      interval = setInterval(() => {
+        remainingTime -= 1000;
+        setMsToWait(remainingTime);
+
+        if (remainingTime <= 0) {
+          refetchOutput();
+          clearInterval(interval);
+        }
+      }, 1000);
+    }, msModuloOneSecond);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, [shouldAutoRetry, setMsToWait, refetchOutput, numPreviousTries]);
-  
 
   return (
     <VStack w="full">
