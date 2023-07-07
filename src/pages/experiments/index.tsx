@@ -29,7 +29,7 @@ export default function ExperimentsPage() {
           </Breadcrumb>
           <NewExperimentButton mr={4} borderRadius={8} />
         </HStack>
-        <SimpleGrid w="full" columns={3} spacing={8} p="4">
+        <SimpleGrid w="full" columns={{ sm: 1, md: 2, lg: 3, xl: 4 }} spacing={8} p="4">
           {experiments?.data?.map((exp) => (
             <ExperimentCard key={exp.id} exp={exp} />
           ))}
