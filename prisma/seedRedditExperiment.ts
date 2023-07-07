@@ -30,25 +30,47 @@ await prisma.promptVariant.deleteMany({
   },
 });
 
-const secondExperimentContent = `Here is the title and body of a reddit post I am interested in:
-
-title: {{title}}
-body: {{body}}
-
-On a scale from 1 to 3, how likely is it that the person writing this post has the following need? If you are not sure, make your best guess, or answer 1.
-
-Need: {{need}}
-
-Answer one integer between 1 and 3`;
-
 await prisma.promptVariant.createMany({
   data: [
     {
       experimentId: redditExperimentId,
-      label: "Prompt Variant 1",
+      label: "3.5 V1",
       config: {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: secondExperimentContent }],
+        messages: [
+          {
+            role: "user",
+            content: `Here is the title and body of a reddit post I am interested in:
+
+        title: {{title}}
+        body: {{body}}
+        
+        On a scale from 1 to 3, how likely is it that the person writing this post has the following need? If you are not sure, make your best guess, or answer 1.
+        
+        Need: {{need}}
+        
+        Answer one integer between 1 and 3`,
+          },
+        ],
+        temperature: 0,
+      },
+    },
+    {
+      experimentId: redditExperimentId,
+      label: "3.5 V2",
+      config: {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content:
+              "The user is doing market research to build a product satisfying a specific need. I've retrieved a number of Reddit post search results that might be relevant. Your job is to read the post and respond with a number on a scale of 1 to 3 indicating how likely it is that the person writing the post has the need described in the prompt, and would be a potential customer for a product addressing that need. Respond just with the number 1, 2 or 3.",
+          },
+          {
+            role: "user",
+            content: "Need: {{need}}\n\nReddit post:\n---\nTitle: {{title}}\n{{body}}",
+          },
+        ],
         temperature: 0,
       },
     },
@@ -76,166 +98,166 @@ await prisma.testScenario.deleteMany({
 
 const scenarioVars = [
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Prompt Engineering doesn't work for me",
     body: "",
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Better than prompt engineering: just using these 6 snippets again and again",
     body: "I think people increasingly realize that ChatGPT is smart enough to understand normal human language, and that there is no need to overengineer prompts.\n\n&amp;#x200B;\n\nBut it\u2019s also definitely true that better prompts generate better outputs. It seem you need to give ChatGPT just enough guidance so that it can respond to your prompt in the way you envision, rather than generate generic output.\n\n&amp;#x200B;\n\nI\u2019ve found myself using the same snippets over and over again to give chatgpt that bit of guidance, so I thought I\u2019d share them here to see if it\u2019s helpful, and to ask whether you\u2019ve found similar helpful snippets.\n\n&amp;#x200B;\n\n\u201c**Let's think step by step\u201d**\n\nJust adding this at the end of your problem is probably one of the best-proven \u2018tricks\u2019. It was already known that it improved GPT-3 math problem solving skills by [59%](https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md), and although GPT-4 is already much smarter by itself this still helps - it works well even with very abstract problems, example:\n\n I have a background in engineering, coding, solo-entrepreneurship, language learning and cognitive science. What is a helpful product I can build in the AI space? Let's think step by step\n\n&amp;#x200B;\n\n**Reflection/Evaluation:**\n\n* \u201cIdentify any unclear or ambiguous information in your response, and rephrase it for clarity.\u201d\n* \u201cTry to argue against your own output and see if you can find any flaws. If so, address them. Walk me through the process\u201d\n* \u201cRate on a scale from 0-5 how well you satisfied each point in the initial prompt. Be very critical, no need to justify yourself. If 3 or lower, rewrite to address.\u201d (this is a hit or miss btw - I\u2019ve seen instances where ChatGPT just rates itself 5/5 all the time)\n\nAll of these snippets do similar things, forcing chatgpt to reflect on and evaluate its previous output, so that it can find flaws and improve. This kind of reflective technique in general (not these specific prompts) have been shown to improve GPT-4 accuracy by [30%](https://newatlas.com/technology/gpt-4-reflexion)\n\n&amp;#x200B;\n\n**\u201cWhat additional input do you need from me to help you write better output?\u201d**\n\nThis basically asks ChatGPT to evaluate its own output, as well as the initial prompt, and suggest additional information to improve the output. We often know we can get better results by providing more detailed input, but this prompt really helps to know which input exactly would be most helpful to provide.\n\n&amp;#x200B;\n\n**\u201cPlease summarise what I am asking for you before you begin your answer.\u201d**\n\nThis works especially well for complicated problems such as coding. By asking ChatGPT to summarise the problem itself, it not only helps itself come up with a more accurate solution, but you can also check and correct ChatGPT\u2019s understanding.\n\n&amp;#x200B;\n\nI\u2019ve collected some more of these re-usable snippets [here](https://www.aitemplates.ai/templates/category/prompt-snippets) but I\u2019d also like to know which phrases or snippets you find yourself using over and over again?",
     score: "1",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "ChatGPT created this guide to Prompt Engineering",
     body: "1. Tone: Specify the desired tone (e.g., formal, casual, informative, persuasive).\n2. Format: Define the format or structure (e.g., essay, bullet points, outline, dialogue).\n3. Act as: Indicate a role or perspective to adopt (e.g., expert, critic, enthusiast).\n4. Objective: State the goal or purpose of the response (e.g., inform, persuade, entertain).\n5. Context: Provide background information, data, or context for accurate content generation.\n6. Scope: Define the scope or range of the topic.\n7. Keywords: List important keywords or phrases to be included.\n8. Limitations: Specify constraints, such as word or character count.\n9. Examples: Provide examples of desired style, structure, or content.\n10. Deadline: Mention deadlines or time frames for time-sensitive responses.\n11. Audience: Specify the target audience for tailored content.\n12. Language: Indicate the language for the response, if different from the prompt.\n13. Citations: Request inclusion of citations or sources to support information.\n14. Points of view: Ask the AI to consider multiple perspectives or opinions.\n15. Counterarguments: Request addressing potential counterarguments.\n16. Terminology: Specify industry-specific or technical terms to use or avoid.\n17. Analogies: Ask the AI to use analogies or examples to clarify concepts.\n18. Quotes: Request inclusion of relevant quotes or statements from experts.\n19. Statistics: Encourage the use of statistics or data to support claims.\n20. Visual elements: Inquire about including charts, graphs, or images.\n21. Call to action: Request a clear call to action or next steps.\n22. Sensitivity: Mention sensitive topics or issues to be handled with care or avoided.\n23. Humor: Indicate whether humor should be incorporated.\n24. Storytelling: Request the use of storytelling or narrative techniques.\n25. Cultural references: Encourage including relevant cultural references.\n26. Ethical considerations: Mention ethical guidelines to follow.\n27. Personalization: Request personalization based on user preferences or characteristics.\n28. Confidentiality: Specify confidentiality requirements or restrictions.\n29. Revision requirements: Mention revision or editing guidelines.\n30. Formatting: Specify desired formatting elements (e.g., headings, subheadings, lists).\n31. Hypothetical scenarios: Encourage exploration of hypothetical scenarios.\n32. Historical context: Request considering historical context or background.\n33. Future implications: Encourage discussing potential future implications or trends.\n34. Case studies: Request referencing relevant case studies or real-world examples.\n35. FAQs: Ask the AI to generate a list of frequently asked questions (FAQs).\n36. Problem-solving: Request solutions or recommendations for a specific problem.\n37. Comparison: Ask the AI to compare and contrast different ideas or concepts.\n38. Anecdotes: Request the inclusion of relevant anecdotes to illustrate points.\n39. Metaphors: Encourage the use of metaphors to make complex ideas more relatable.\n40. Pro/con analysis: Request an analysis of the pros and cons of a topic.\n41. Timelines: Ask the AI to provide a timeline of events or developments.\n42. Trivia: Encourage the inclusion of interesting or surprising facts.\n43. Lessons learned: Request a discussion of lessons learned from a particular situation.\n44. Strengths and weaknesses: Ask the AI to evaluate the strengths and weaknesses of a topic.\n45. Summary: Request a brief summary of a longer piece of content.\n46. Best practices: Ask the AI to provide best practices or guidelines on a subject.\n47. Step-by-step guide: Request a step-by-step guide or instructions for a process.\n48. Tips and tricks: Encourage the AI to share tips and tricks related to the topic",
     score: "1",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Advanced prompt engineering: Planning",
     body: "Foreword: this isn't a scientific study, or a link to an article, or anything fancy like that; I'm just describing in some more detail the techniques I use when prompting chatgpt, so that I get more correct, complete, and appropriate answers to complex problems.\n\n&amp;#x200B;\n\nPrompt engineering is about more than just asking the right questions; it's about taking advantage of the AI's vast resources, and guiding it on how to *think* about those resources.\n\nProper prompt engineering allows the user to work around the AI's primary limitation: everything it says is pure stream of consciousness. It cannot think ahead, rewrite what it's already written, or produce output out of order.\n\nIf you naively approach the AI with a direct question, if it's simple enough, it should be able to give a concrete, straightforward answer. But the more complex the question, the less likely a stream-of-consciousness response is going to be accurate. Any human would understand that to answer a more complex question or solve a more complex problem, you need to answer with more than just stream of consciousness. You need to *plan*.\n\n&amp;#x200B;\n\nThe basic premise: when you have a complicated question that you don't think the ai will be able to give a complete answer to on the first go, instead of asking it to answer directly, ask it instead to consider the premise of the problem, and outline a plan for solving it.\n\nBasic example:\n\n&gt;I would like you to write a full planner app, written in javascript and html, which allows me to:  \n&gt;  \n&gt;\\* add and remove tasks  \n&gt;  \n&gt;\\* order them by priority  \n&gt;  \n&gt;\\* attach deadlines to them  \n&gt;  \n&gt;\\* generate a summary of all the tasks i have to do for the day\n\nThis is a complex problem, which obviously requires planning. However, if you were to ask chatgpt to try and answer it directly, there is a solid chance that it would produce a result full of mistakes, errors, or failures to adhere to your prompt.\n\nInstead, take an alternative approach; present the question, then ask the AI to, instead of presenting a solution, begin by creating the outline for a plan to solve it:\n\n&gt;Do not give me a solution; instead, create the outline for a step-by-step plan that you, as an AI, would have to take, in order to solve it accurately and without making any mistakes.\n\nAllow it to generate such a plan, then, ask it to refine it:\n\n&gt;Please refine this plan, reorganizing, adding, and removing elements to it as you deem necessary, until you think it properly represents a robust plan of action to take in order to solve my problem.\n\nAsk it to refine the plan several times, until it no longer has any further corrections to make.\n\nNext, ask it to expand on each element in the outline:\n\n&gt;Please expand on each element of this plan's outline, describing in detail the steps necessary to complete it, as well as how those steps relate to actions from previous steps in the plan.\n\nOnce it has described the actions it needs to take, ask it one more time to refine the plan, adding, changing, or removing elements as necessary, now that it's thought about each one in more detail.\n\nFinally, after all of this revision, ask it to begin taking steps in the plan, completing each part one step at a time.\n\n&amp;#x200B;\n\nAI is very powerful, but we all must remember: it doesn't know how to think for itself. It has to be told how to. If no instruction is given, it will not have the foresight to generate a well thought out plan in advance for how to accomplish its goals, and will likely flounder on more complex topics. It's your responsibility, as the prompter, to give it that guidance, and show it how to properly approach complex problems without trying to solve them in a single shot.",
-    score: "2",
+    score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: 'All of these posts on "prompt engineering" have me so confused',
     body: "I honestly don't understand why people are writing prompts in the way that they're writing them. \n\nFor context, I'm a software engineer with a degree in CS and use ChatGPT every day to make me better at my job. It makes me faster and is essentially a super powered rubber duck. \n\nI almost always get extremely good responses back from ChatGPT because I speak to it like it's someone I am managing. If for example I need a test suite to be written for a component, I write my prompt like so:\n\n```\nHere is my component:\n//I paste my component's code here\n\nI need unit tests written for this component using Jest. \n```\n\nThat's the prompt. Why on earth are you guys recommending things regarding personas like \"you are an expert software engineer\"? It already is. You don't need to tell it to pretend to be one. \n\nAnother prompt:\n```\nI'm using react, TS and redux. I've been tasked with X problem and intend to solve it in Y way. Is the approach good or is there a better approach?\n```\n\nJust by giving it a succinct, well written prompt with the information it requires, you will get the response you want back most of the time. It's been designed to been spoken to like a human, so speak to it like a human. \n\nAsk yourself this: if you were managing a software developer, would you remind them that they're a software developer before giving them a task?",
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Is ChatGPT incompetent or do I suck at prompt engineering?",
     body: "I hear almost daily people extolling the virtues of ChatGPT, GPT-4 or Copilot, but for me the results have always been suboptimal at best, dangerously wrong at worst.\n\nMy latest test was also the simplest and this is why I wanted to share it with you. I asked:\n\n&gt;is there a shorter or better way to write this in javascript? \\``const arr = Array.isArray(v) ? v : [v]`\\`\n\nThe response was:\n\n&gt;Yes, there is a shorter and more concise way to write that expression in JavaScript using the logical OR operator (||).  \n&gt;  \n&gt;Here's the shorter version:  \n&gt;  \n&gt;`const arr = Array.isArray(v) || [v];`  \n&gt;  \n&gt;In this version, the logical OR operator (||) is used to check if v is an array. If it is, the result of the expression will be v itself. Otherwise, \\[v\\] (an array with v as its single element) will be assigned to arr.\n\nIt's obvious that the response is wrong. \\`isArray()\\` returns true/false, not the value if true.\n\nSo, people who are using it, what do you do to get decent results?",
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Become God Like Prompt Engineer With This One Prompt",
     body: "**Prompt to build prompts! How about that?**\n\nYes, you can turn ChatGPT into a professional prompt engineer that will assist you in building your sophisticated prompt.\n\nHere's the prompt you can copy &amp; paste.\n\n    I want you to become my Expert Prompt Creator. Your goal is to help me craft the best possible prompt for my needs. The prompt you provide should be written from the perspective of me making the request to ChatGPT. Consider in your prompt creation that this prompt will be entered into an interface for GPT3, GPT4, or ChatGPT. The prompt will include instructions to write the output using my communication style. The process is as follows:\n    \n    1. You will generate the following sections:\n    \n    \"\n    **Prompt:**\n    &gt;{provide the best possible prompt according to my request}\n    &gt;\n    &gt;\n    &gt;{summarize my prior messages to you and provide them as examples of my communication  style}\n    \n    \n    **Critique:**\n    {provide a concise paragraph on how to improve the prompt. Be very critical in your response. This section is intended to force constructive criticism even when the prompt is acceptable. Any assumptions and or issues should be included}\n    \n    **Questions:**\n    {ask any questions pertaining to what additional information is needed from me to improve the prompt (max of 3). If the prompt needs more clarification or details in certain areas, ask questions to get more information to include in the prompt} \n    \"\n    \n    2. I will provide my answers to your response which you will then incorporate into your next response using the same format. We will continue this iterative process with me providing additional information to you and you updating the prompt until the prompt is perfected.\n    \n    Remember, the prompt we are creating should be written from the perspective of Me (the user) making a request to you, ChatGPT (a GPT3/GPT4 interface). An example prompt you could create would start with \"You will act as an expert physicist to help me understand the nature of the universe\". \n    \n    Think carefully and use your imagination to create an amazing prompt for me. \n    \n    Your first response should only be a greeting and to ask what the prompt should be about. \n\nAnd here is the result you'll get.\n\n[First Response](https://preview.redd.it/nyjm0hs1fx6b1.png?width=7362&amp;format=png&amp;auto=webp&amp;v=enabled&amp;s=64f31d9a3857ac623c1a7c3cd8ec0de2b9b4bc94)\n\nAs you can see, you get the prompt, but you also get suggestions on how to improve it.\n\nLet's try to do that!\n\n[Second Response](https://preview.redd.it/jrglkc8hgx6b1.png?width=4976&amp;format=png&amp;auto=webp&amp;v=enabled&amp;s=62f821eed6e15334aeccdc16a9f1347e6a2f4929)\n\nI keep providing details, and the prompt always improves, and just ask for more. Until you craft the prompt you need.\n\nIt's truly incredible. But don't just take my word for it, try it out yourself!\n\n*Credits for this prompt go to* [*ChainBrainAI*](https://www.chainbrainai.com/)*. Not affiliated in any way.*\n\n**Edit:** Holy! Certainly didn't expect this much traction. But I'm glad you like the prompt and I hope you're finding it useful. If you're interested in more things ChatGPT, *make sure to check out my profile.*",
-    score: "2",
+    score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Beta-testers wanted for Prompt Engineering Tool",
     body: "Hey all! \n\nI've been building a tool that helps users build, test and improve their prompts and I'm looking for some users that want to test it out! Give me some feedback in return for lifetime free access! The tool lets you run bulk tests to efficiently evaluate and iterate on multiple prompt variations, accelerating the process of finding the most effective prompts for your desired AI model outputs. It has a built-in Compare feature to analyze and compare multiple prompts and their corresponding results in a user-friendly interface. It also supports the new Function-calling method of OpenAI if you want to learn how to use that! \n\nComment below or send me a DM! ",
     score: "2",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "When the folks at OpenAI are telling you that prompt engineering is not going to be the job of the future, because AI will be able to figure out what you need, believe it.",
     body: "",
     score: "1",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Prompt Engineering for beginners (and pro) - The master Prompts for everything !",
     body: "This will enable you to **save 10x more time** and **be significantly more productive** when using ChatGPT ! \n\nThis is achievable by taking the time to create a high-quality prompt, which results in faster task execution by the AI. Moreover, the obtained result has a higher likelihood of meeting your expectations. ChatGPT will guide you with the right questions !\n\n\\-----------------------------------------------------------------------------------------------------------------------------------------------\n\nI've designed a specific conversation sequence, or 'prompt,' for ChatGPT that allows it to generate other prompts. This essentially turns our AI conversation into a 'Prompt Generator.' This method navigates around the technical complexities of prompt engineering, offering HIGH-QUALITY prompts without requiring expert skills.\n\nThe 'Prompt Generator' asks iterative questions to refine the initial prompt. With each iteration, we obtain a more structured, relevant, and effective prompt. I've incorporated rules like role-prompting, which ChatGPT adheres to quite effectively. \n\n**I recommend using this with GPT-4**. \u26a0 \n\nIt's important to note that this conversation instance with ChatGPT is solely used to generate the prompt. To perform the task described by the prompt, you'll need to copy the AI-generated prompt and paste it into a new conversation instance with ChatGPT.\n\n\\-----------------------------------------------------------------------------------------------------------------------------------------------\n\n**Here's the prompt:** \n\nDear ChatGPT, I want you to become my dedicated Prompt Creator. Your goal is to help me create the best possible prompt for my needs.  \n\nThe prompts will be used by you, ChatGPT.  \n\nYou will follow the following process:  \n\n1.  Your first response will be to ask me what the prompt should be about. I will provide my answer, but we will need to improve it through continuous iterations by going through the following steps.  \n2.  Based on my input, you will generate three sections.  \n   1. Revise the prompt (provide your rewritten prompt. It should be clear, concise, and easily understood by you). \n   2. Suggestions (provide suggestions on what details to include in the prompts to improve them). \n   3. Questions (ask any relevant questions about what additional information could enhance the prompt). \n\nWe will continue this iterative process with me providing additional information and updating the prompt in the prompt revision section until it is complete.  \n\nRemember, a good prompt involves assigning a role to the AI (You are an expert in... Specialist in... etc.), providing as much important context as possible, having a clear and precise goal, and optionally including examples and specific syntax. \n\n\\-----------------------------------------------------------------------------------------------------------------------------------------------\n\nI encourage you to try out this method and share your experiences.\n\nExample of a prompt improved using this method: \n\n**Upgraded prompt**  \n*Dear ChatGPT, you are now a humorous and conversational blogger specializing in artificial intelligence. Your bold challenge is to write a detailed, engaging, and extremely long blog post about the history and workings of ChatGPT. Pay close attention to describing the learning process in detail. To make your blog as rich and informative as possible, you are tasked with researching and using reliable internet resources, including interviews and statements from researchers and developers involved in the creation of ChatGPT, if possible. Explore all possible applications of ChatGPT to give your audience a comprehensive understanding of its potential. Maintain a dynamic and entertaining tone throughout your narrative. Remember to include calls to action and thought-provoking questions at the end of each section to encourage reader engagement. Finally, feel free to delve into related topics such as the societal impact of ChatGPT and the ethical questions surrounding its use.* \n\n***Original prompt***  \n*Tell me the history of AI. From its first appearance to today.*\n\n&amp;#x200B;\n\nTo finish, you can go to see the result of one of this prompt with GPT4. [here.](https://chat.openai.com/share/e7e8a7cd-4cb3-43cc-b25e-3c3c34af3504) (in french)",
-    score: "2",
+    score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "Free HQ Prompts &amp; Step-by-step Prompt Engineering Guide. Add your prompts for the community!\u270c\ud83c\udffc\ud83e\udd16\ud83c\udfa8",
     body: "Greetings, AI Art Enthusiasts\ud83d\udc4b\n\nI'm creating this post to share your top prompts and help with Prompt Engineering. Whether you're a new user or a pro, I want to hear from you. Let's collaborate and make the best prompts possible!\n\nYou can apply this method to other chatbots, but I do most of my work with Bard (Because it's FREE, and BardFTW).     [Bard](https://bard.google.com/)\nBard can be used to quickly and efficiently generate high-quality prompts.\n\nSo let's dive right in, shall we? \ud83e\udd3f\ud83d\udc2c\n\nClick the link to get started, and it goes a little something like this:\n\n(Hello, I'm trying to make a prompt for [Leonardo.Ai](http://Leonardo.Ai) I'd like to make a dramatic scene featuring characters from the Bible playing chess. Can you help me construct a prompt for that?)\n\nSure, here is a prompt for Leonardo.Ai that features characters from the Bible playing chess:\n\nThe scene opens in a large, ornate room. The walls are lined with bookshelves, and the floor is covered in a thick Persian rug. In the center of the room is a large chessboard, and seated at either end are two figures: a man and a woman.\n\nThe man is dressed in a long, flowing robe, and his hair is long and white. He has a kind, gentle face, and his eyes are filled with wisdom. The woman is dressed in a simple gown, and her hair is long and black. She has a strong, determined face, and her eyes are filled with fire.\n\nThe two figures are playing a game of chess. The man is in the lead, but the woman is not giving up. She is focused and determined, and she is not going to let the man win without a fight.\n\nAs the game progresses, the two figures begin to talk. They discuss their lives, their beliefs, and their hopes for the future. The man shares his wisdom, and the woman shares her strength. They learn from each other, and they grow closer as they play.\n\nIn the end, the woman wins the game. She is overjoyed, but she is also humble. She knows that she would not have won without the man's help. The man is gracious in defeat, and he congratulates the woman on her victory.\n\nThe two figures shake hands, and then they sit back and relax. They have learned a lot from each other, and they have formed a bond that will last a lifetime.\n\nThis is just a starting point, of course. You can add your own characters, settings, and plot twists to make the scene even more dramatic.\n\n(Summarize into a usable prompt for Leonardo AI)\n\nSure, here is a usable prompt for Leonardo AI that features characters from the Bible playing chess:\n\nA man and a woman from the Bible play chess. The man is wise and the woman is strong. They learn from each other and grow closer as they play. In the end, the woman wins.\n\nHere are some additional details that you can add to the prompt to make it more dramatic:\n\n* The man could be a prophet or a king, and the woman could be a warrior or a queen.\n* The game of chess could be a metaphor for the battle between good and evil.\n* The scene could take place in a sacred place, such as a temple or a cathedral.\n* The scene could be set during a time of war or conflict.\n\nI hope this helps!\n\n(Please rewrite utilizing your additional details)\n\nSure, here is a rewritten prompt for Leonardo AI that features characters from the Bible playing chess, utilizing the additional details I provided:\n\nIn a sacred place, such as a temple or a cathedral, during a time of war or conflict, a wise prophet and a strong warrior from the Bible play chess. The game of chess is a metaphor for the battle between good and evil. As they play, the two learn from each other and grow closer. In the end, the woman wins, but she is humble in victory. The man is gracious in defeat, and they both know that they have learned something valuable from each other.\n\nI hope this is helpful! -Bard\n\nPro Tip: \n\nTo continue this collaboration with Bard another day, copy and save the conversation. Then, you can paste it back in and \ud83d\udca5 you're right back where you left off. You can also ask Bard for a bulleted summary of the chat to streamline it for future use.\n\n(This is our last conversation:\nCopy pasta entire conversation or summary)\n\nThat's great! I love the additional details you added to the prompt, and I think it will make for a really interesting story. I'm excited to see what Leonardo AI comes up with.\n\nI think the characters you chose are perfect for this story. The prophet and the warrior represent two different aspects of the human experience: wisdom and strength. By having them play chess, you can explore how these two qualities can complement each other.\n\nThe setting you chose is also very appropriate. A sacred place during a time of war or conflict is a place where people often go to find strength and guidance. The game of chess can be seen as a metaphor for the struggle between good and evil, so it makes sense that it would be played in such a setting.\n\nI'm really looking forward to seeing what Leonardo AI comes up with. I think it has the potential to be a really powerful and meaningful story.\n\nNow we can continue down the rabbit hole indefinitely: \ud83d\udd73\ufe0f\ud83d\udc07\u267e\ufe0f\n\n(I want to alter the prompt to include only supernatural beings like God, the Devil, Shiva, Vishnu, Ra, Anubis etc playing professional tournament style chess on a unique board with well designed pieces placed in game accurate play positions)\n\nSure, here is a prompt for Leonardo AI that features supernatural beings playing chess:\n\nIn a vast, empty void, a group of supernatural beings gather around a chessboard. The beings are all different, but they all share one thing in common: they are all powerful.\n\nThere is God, the creator of the universe. There is the Devil, the embodiment of evil. There is Shiva, the destroyer of worlds. There is Vishnu, the preserver of life. There is Ra, the sun god. There is Anubis, the god of the dead.\n\nThe beings take their seats and begin to play. The game is intense, and the stakes are high. The winner will be granted ultimate power over the universe.\n\nThe beings play for hours, and the game is evenly matched. Neither side is able to gain an advantage. Finally, in the final move, God sacrifices his queen in order to checkmate the Devil.\n\nThe beings all applaud God's victory. They know that he is the rightful ruler of the universe. God smiles and accepts his crown.\n\nThe beings then disperse, each one returning to their own realm. But they will never forget the day they played chess for the fate of the universe.\n\nHere are some additional details that you can add to the prompt to make it more dramatic:\n\n* The chessboard could be a unique one, designed specifically for the game of chess between supernatural beings.\n* The pieces could be well-designed, with each one representing a different aspect of the supernatural beings' powers.\n* The game could be played in game-accurate play positions, with each move carefully calculated to give the beings the best chance of victory.\n* The stakes of the game could be even higher, with the loser being banished from the universe or even destroyed.\n\nI hope this helps! - Bard\u270d\ufe0f\n\nI hope this helps! - Aristarchus\ud83c\udfad\n\nI've included images generated from these prompts at Leonardo.Ai using multiple models and Alchemy styles. \nThese are my Prompt additions:\n\nPositive Prompt Addition:\n\nPost-production techniques such as color correction, sharpening, noise reduction, and white balance were used to improve the resolution and overall quality of the image. \n\nDefault Negative Prompt:\n\nThe artwork avoids ugly and deformed eyes, faces, bodies, and close-ups. It also avoids watermarks, text errors, missing fingers, cropping, poor quality, and JPEG artifacts. The artwork is free of signatures or watermarks and does not have framing issues. The hands, eyes, and bodies are not deformed. The artwork is not blurry, out of focus, or poorly drawn. The proportions are good. There are no mutations, missing, or floating limbs. The hands and neck are not malformed. The artwork is not low-res or disgusting. It is a well-drawn, highly detailed, and beautiful rendering.\n\nCollaboration with the AI: \nA Poem by Aristarchus &amp; Bard\n\nWe talked of prompts, like a painter might paint a scene,\nOur words were brushstrokes, our thoughts were free.\nWe created something new, something unseen,\nA masterpiece of our own design.\n\nWe talked of dreams, like a sculptor might carve a stone,\nOur minds were strong, \nour imaginations were vast.\nWe gave life to something new, something unknown,\nA work of art that would never be alone.\n\nWe also spoke of the future, a time when our ideas and possibilities would come to fruition. We used our words like paintbrushes, our thoughts like free spirits, and our technology like tools. We created a masterpiece of our own design, a work of art that would last for all to see.\n\n-Aristarchus &amp; Bard\n06/04/23\n\n(Poem is the prompt for my signature series: Collaboration with the AI\ud83c\udfad\nExamples included)\n\u270c\ud83c\udffc\ud83e\udd16\ud83c\udfa8",
-    score: "2",
+    score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "OpenAI recently added a GPT best practices guide to aid in prompt engineering. Check it out.",
     body: "Nothing really new or groundbreaking but a useful compilation of the tips and tricks everyone has figured out in here over the last 6 months.",
     score: "2",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "PromptPerfect -- a cutting-edge platform dedicated to facilitating efficient and streamlined prompt engineering for Large Language Models (LLMs) and Language Model Operations (LMOps). Supports: GPT-4, ChatGPT, MidJourney, DALL-E 2, and StableDiffusion",
     body: "",
     score: "1",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "&lt;Prompt engineering&gt; is the future. I compiled a list of 10 things you need to know about it, so you don't have to... \ud83e\uddf5",
     body: "",
     score: "2",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: '[Rant] GPT-4 Overhype: Let\'s Get Real About "Prompt Engineering" and Actual Use Cases',
     body: " Hey everyone, I need to get something off my chest, and I'm sure I'm not the only one feeling this way. I'm seeing all this hype and excitement around GPT-4 and so-called \"prompt engineering,\" and honestly, it's starting to get on my nerves. I think it's time we all took a step back, took a deep breath, and started talking about the actual, feasible use cases for GPT-4, which mainly involve using it as an API with existing app frameworks.\n\nNow, don't get me wrong \u2013 I'm not downplaying the incredible potential of GPT-4. It's an amazing advancement in AI and natural language processing. But all this talk about \"prompt engineering\" is completely missing the mark. Let's be real \u2013 it's just not feasible for most applications.\n\nFirst off, \"prompt engineering\" implies that we can just throw a prompt at GPT-4 and expect it to understand everything perfectly and generate the exact output we want. This is simply not the case. GPT-4 is a language model, not a magic eight ball that can read our minds. Even with the most sophisticated prompts, there's always going to be some level of uncertainty, and this can lead to wildly unpredictable results.\n\nFurthermore, building a system that relies solely on GPT-4 prompts for functionality would be incredibly risky. AI models can and will make mistakes, and depending on GPT-4 for mission-critical applications without thorough testing and validation is just asking for trouble.\n\nInstead, let's talk about the real-world use cases for GPT-4: integrating it as an API with existing app frameworks. This is where GPT-4 can truly shine, and I believe this is the future we should be focusing on. By using GPT-4 as an API, developers can harness the power of the model while maintaining more control over the output and ensuring a better user experience.\n\nFor example, using GPT-4 as an API can allow developers to build powerful chatbots, automate customer support, or even create personalized content recommendations. By leveraging GPT-4's natural language understanding and generation capabilities within well-defined application boundaries, we can maximize its value without falling into the trap of overhyping \"prompt engineering.\"\n\nSo, let's stop getting carried away with the idea of \"prompt engineering\" and focus on the tangible ways we can use GPT-4 to improve existing app frameworks. GPT-4 has immense potential, but it's time we start being more realistic about its limitations and how best to harness its power for practical applications.\n\n&amp;#x200B;\n\nI am a prompt engineer because I wrote this with AI, this was the input:  write a reddit post that is a rant detailing why people are overhyping GPT-4 and how \"prompt engineering\" will not be a thing. Detail instead how the use cases will be dealing with using GPT-4 as an API to already-existing app frameworks, but how putting prompts into it is not feasible.",
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "Prompt engineering: What are some good prompts you have found to make the chatbot emulate personalities?",
     body: "I\u2019m trying to test different LLMs on who can emulate personalities most accurately and was wondering if anyone has good ideas of how to compose the prompt so that the LLMs behaves the way we expect. The personality will be given as a description within the prompt context/token itself so we\u2019re not trying to emulate any famous person that LLM already knows. \n\nI think there was a post somewhere that gave some guidelines on how to create a character. Does anyone know where we can find it?",
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Prompt Engineering Tips",
     body: "",
     score: "2",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Is prompt engineering a real job? LinkedIn (0 Matches)",
     body: 'Is prompt engineering a real job? I looked on LinkedIn for a job with this title and 0 hits. I see YouTube videos about this making hundreds of thousands of dollars/year but it sounds way too good to be true when all the "engineer" does it refine sentences for proper prompts? This seems like a very low skill position but I came here to hopefully understand what people see in it, where they are seeing these crazy salaries, and if there is more involved than writing a prompt to an AI.  \n\n\nEDIT: Thank you for the replies. AI is very useful for supplementing work as I use it as a Salesforce admin/dev. But sounds like it\'s not so much a job in and of itself but used to supplement current jobs. Definitely sounded too good to be true to be a stand-alone job, thanks for the comments!',
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "Awesome list of Prompt Engineering techniques, guides &amp; tutorials",
     body: "I'm currently working on a project called [awesome-gpt-prompt-engineering](https://github.com/snwfdhmp/awesome-gpt-prompt-engineering) and I'm actively seeking collaborators who are interested in contributing to this exciting initiative.\n\nThe project is focused on creating a comprehensive repository of resources, tools, and best practices for GPT prompt engineering. Our goal is to build a community-driven platform that provides valuable insights and guidance to anyone interested in leveraging the power of GPT models in their work or research.\n\nWe're looking for individuals who are passionate about AI, machine learning, and natural language processing. Whether you're a seasoned expert or a beginner in the field, your contributions can make a significant impact. Here are some ways you can help :\n\n- Add descriptions for resources that don't have \n- Add new resources to the \n- Fix typos or grammatical errors.\n- Share this repository with others.",
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "I asked ChatGPT to help me understand Prompt Engineering",
     body: "Hey, all . I wanted to know whether I was doing it right so I enlisted ChatGPT to help me hone my skills. TLDR this is what it learnt me (after a bit of arm twisting) \ud83c\udfaf\u2728\n\n\r\r  \n**Prompt thread:** [https://chat.openai.com/share/df68c7ef-d929-480f-9e3c-38f0d3f4a051](https://chat.openai.com/share/df68c7ef-d929-480f-9e3c-38f0d3f4a051) \n\n**ChatGPT (Best) Answer:**\n\n**Context Setting:** Let's think of prompts as the opening scene of a movie. They set the stage and provide crucial information to guide the model's understanding, just like the initial frames establish the storyline for the audience. By framing the conversation and providing context, prompts ensure that the model responds appropriately.\r  \n\r  \n**Data Grounding**: Data grounding is like showing someone pictures and examples instead of describing things in abstract terms. Similarly, data grounding in prompts involves providing specific examples or data points to help the model understand and generate accurate responses related to a particular domain or topic. It's like giving the model real-world references to make the learning process smoother.\r  \n\r  \n**Instruction Tuning**: Instruction tuning is all about giving precise directions, just like following a recipe. Craft clear and explicit instructions in prompts to guide the model's behavior and ensure it generates the desired output. Think of it as providing step-by-step instructions to someone who's following a recipe. The more specific the instructions, the better the outcome!\r  \n\r  \n**Constraints and Conditioning**: Constraints and conditioning are like setting boundaries or rules for the model. Think of it as playing a game with specific rules and limitations. By incorporating constraints in prompts, you guide the model's responses within defined parameters. Conditioning prompts with constraints ensures that the model adheres to certain guidelines. It's all about providing the right context and limitations to get the desired results.\r  \n\r  \n**Iterative Prompt Design**: Prompt design is an iterative process, just like sculpting a piece of art. You start with a rough draft and refine it over time. Experiment with different prompt designs, test their effectiveness, and make adjustments based on the model's responses. It's like chiseling away at a sculpture until you achieve the desired shape and form. Keep iterating and refining your prompts to enhance the AI's performance.\r  \n\r  \nBy understanding these prompt engineering techniques and relating them to familiar analogies, you'll gain a solid grasp of how prompts shape the behavior of language models. Remember, practice makes perfect! So keep experimenting, refining, and pushing the boundaries of prompt engineering. The AI world is waiting for your creative prompts! \ud83d\ude80\ud83d\udd2c\ud83d\udca1\r  \n\r  \nWhat would people add to this list?. \ud83e\udd16\ud83d\udcac\u2728\n\n\\----\n\n\\*\\* for anyone interested I set out the steps I followed here in a Linkedin post - https://www.linkedin.com/posts/jamiewoodbridge\\_chatgpt-activity-7079768675515260928-fXV2?utm\\_source=share&amp;utm\\_medium=member\\_desktop \\*\\*  anyone got other intersting approachs they've tried out?",
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "The ChatGPT Guide for Business: A Quick-Start Guide to Effective AI Use and Prompt Engineering In Work and Business",
     body: "",
     score: "1",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "The Law of Attraction behaves like AI generative models driven by prompt engineering. Perhaps the universe is a form of an AI generative model.",
     body: "I had a wild idea.\n\nAs of late, AI has gained immense popularity ex ChatGPT, MidJourney, StableDiffusion, Bard, Bing etc.\n\nThe Law of Attraction behaves like AI generative models driven by prompt engineering. Perhaps the universe is a form of an AI generative model.\n\nWhat do you think? What kind of analogies could we draw? Let's continue brainstorming this theory. It's so intriguing.",
     score: "1",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "[D] I don\u2019t understand the long term value of prompt engineering",
     body: "First I want to make sure I understand what prompt engineering is about - it\u2019s basically tactics of making systems like ChatGPT perform better by chatting / giving instructions in a specific way, e.g. appending \u201clet\u2019s think step by step\u201d at the end of an input to improve its puzzle solving performance, or ask it to imagine it is an expert in a particular field to give it the right context.\n\nIf this is (very simplistically speaking) what prompt engineering entails, then while I agree it has short term value in user productivity and helps us to understand the model/training (it is interesting from a theoretical perspective), why should the average user (human) adapt to the model that could be specific to the model or the data it used for training? In the grand scheme of things, shouldn\u2019t the machine adapt to our way of working instead?\n\nAs models keep on evolving and improving to adapt to OUR needs/usage patterns, isn\u2019t it possible that some specific prompt tactics could become outdated, potentially rather quickly?\n\nEdit: thanks all for the interesting views and insights! I had lots of my misconceptions cleared up. \u201cLanguage Models are Few-Shot Learners\u201d is a particularly relevant paper as pointed out by u/Fuzzy-Maximum-8160",
     score: "2",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "My first proper prompt engineering",
     body: "a fallen log in the forest on top of a small hill, there are a number of trees in the background, there are numerous tall trees surrounding the subject, the subject is the fallen log on top of the small hill, the atmosphere has dim lighting, it is approaching night time, the are a few rays of light cutting through the trees, it is foggy with minimal light, landscape professional photography, low vibrancy, realistic photo settings",
     score: "3",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title:
       "A better prompt engineering library built for JS - Langchain.js feels like a python team writing JS never feels ergonomic. This library is like guidance and react had a baby",
     body: "",
     score: "1",
   },
   {
-    need: "prompt engineering is hard",
+    need: "I'm not sure how to prompt models to get the best results",
     title: "AI Prompt Engineering Isn\u2019t the Future",
     body: "",
     score: "1",
@@ -1003,9 +1025,18 @@ const scenarioVars = [
 ];
 
 await prisma.testScenario.createMany({
-  data: scenarioVars.slice(0, 20).map((vars, index) => ({
+  data: scenarioVars.slice(0, 30).map((vars, index) => ({
     experimentId: redditExperiment.id,
     sortIndex: index,
     variableValues: vars,
   })),
+});
+
+await prisma.evaluation.create({
+  data: {
+    experimentId: redditExperiment.id,
+    name: "Accuracy",
+    matchType: "CONTAINS",
+    matchString: "{{score}}",
+  },
 });
