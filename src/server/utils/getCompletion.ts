@@ -58,7 +58,7 @@ export async function getOpenAIChatCompletion(
   // If functions are enabled, disable streaming so that we get the full response with token counts
   if (payload.functions?.length) payload.stream = false;
   const start = Date.now();
-  const responseCallback = () => fetch("https://api.openai.com/v1/chat/completions", {
+  const requestCallback = () => fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -67,7 +67,7 @@ export async function getOpenAIChatCompletion(
     body: JSON.stringify(payload),
   });
 
-  const response = await requestWithRetries(responseCallback);
+  const response = await requestWithRetries(requestCallback);
 
   const resp: CompletionResponse = {
     output: Prisma.JsonNull,
