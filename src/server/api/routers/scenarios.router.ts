@@ -45,6 +45,15 @@ export const scenariosRouter = createTRPCRouter({
             : {},
         },
       });
+
+      await prisma.experiment.update({
+        where: {
+          id: input.experimentId,
+        },
+        data: {
+          updatedAt: new Date(),
+        },
+      });
     }),
 
   hide: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {

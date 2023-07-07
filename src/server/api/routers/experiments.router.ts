@@ -4,11 +4,37 @@ import { prisma } from "~/server/db";
 
 export const experimentsRouter = createTRPCRouter({
   list: publicProcedure.query(async () => {
-    return await prisma.experiment.findMany({
+    const experiments = await prisma.experiment.findMany({
       orderBy: {
         sortIndex: "asc",
       },
     });
+
+    const experimentsWithCounts = await Promise.all(
+      experiments.map(async (experiment) => {
+        const visibleTestScenarioCount = await prisma.testScenario.count({
+          where: {
+            experimentId: experiment.id,
+            visible: true,
+          },
+        });
+
+        const visiblePromptVariantCount = await prisma.promptVariant.count({
+          where: {
+            experimentId: experiment.id,
+            visible: true,
+          },
+        });
+
+        return {
+          ...experiment,
+          testScenarioCount: visibleTestScenarioCount,
+          promptVariantCount: visiblePromptVariantCount,
+        };
+      }),
+    );
+
+    return experimentsWithCounts;
   }),
 
   get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {

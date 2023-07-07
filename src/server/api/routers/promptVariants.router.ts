@@ -63,7 +63,7 @@ export const promptVariantsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      const lastScenario = await prisma.promptVariant.findFirst({
+      const lastVariant = await prisma.promptVariant.findFirst({
         where: {
           experimentId: input.experimentId,
           visible: true,
@@ -85,16 +85,25 @@ export const promptVariantsRouter = createTRPCRouter({
           })
         )._max?.sortIndex ?? 0;
 
-      const newScenario = await prisma.promptVariant.create({
+      const newVariant = await prisma.promptVariant.create({
         data: {
           experimentId: input.experimentId,
           label: `Prompt Variant ${largestSortIndex + 2}`,
-          sortIndex: (lastScenario?.sortIndex ?? 0) + 1,
-          config: lastScenario?.config ?? {},
+          sortIndex: (lastVariant?.sortIndex ?? 0) + 1,
+          config: lastVariant?.config ?? {},
         },
       });
 
-      return newScenario;
+      await prisma.experiment.update({
+        where: {
+          id: input.experimentId,
+        },
+        data: {
+          updatedAt: new Date(),
+        },
+      });
+
+      return newVariant;
     }),
 
   update: publicProcedure
