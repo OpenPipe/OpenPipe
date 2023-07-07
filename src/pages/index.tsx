@@ -1,12 +1,15 @@
-import { Center } from "@chakra-ui/react";
-import AppShell from "~/components/nav/AppShell";
+import { type GetServerSideProps } from 'next';
+
+// eslint-disable-next-line @typescript-eslint/require-await
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    redirect: {
+      destination: '/experiments',
+      permanent: false,
+    },
+  }
+}
 
 export default function Home() {
-  return (
-    <AppShell>
-      <Center h="100%">
-        <div>Select an experiment from the sidebar to get started!</div>
-      </Center>
-    </AppShell>
-  );
+  return null;
 }
