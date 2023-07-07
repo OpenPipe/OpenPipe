@@ -5,7 +5,7 @@ import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
-import { useMemo, type ReactElement, useState, useEffect } from "react";
+import { type ReactElement, useState, useEffect, useRef } from "react";
 import { BsCheck, BsClock, BsX, BsCurrencyDollar } from "react-icons/bs";
 import { type ModelOutput } from "@prisma/client";
 import { type ChatCompletion } from "openai/resources/chat";
@@ -43,22 +43,26 @@ export default function OutputCell({
 
   const model = getModelName(variant.config as JSONSerializable);
 
-  const shouldStream =
-    isObject(variant) &&
-    "config" in variant &&
-    isObject(variant.config) &&
-    "stream" in variant.config &&
-    variant.config.stream === true;
-  const channel = useMemo(() => {
-    if (!shouldStream) return;
-    return generateChannel();
-  }, [shouldStream]);
-
   const outputMutation = api.outputs.get.useMutation();
 
   const [output, setOutput] = useState<RouterOutputs["outputs"]["get"]>(null);
-
+  const [channel, setChannel] = useState<string | undefined>(undefined);
+  const fetchMutex = useRef(false);
   const [fetchOutput, fetchingOutput] = useHandledAsyncCallback(async () => {
+    if (fetchMutex.current) return;
+    fetchMutex.current = true;
+    setOutput(null);
+
+    const shouldStream =
+      isObject(variant) &&
+      "config" in variant &&
+      isObject(variant.config) &&
+      "stream" in variant.config &&
+      variant.config.stream === true;
+
+    const channel = shouldStream ? generateChannel() : undefined;
+    setChannel(channel);
+
     const output = await outputMutation.mutateAsync({
       scenarioId: scenario.id,
       variantId: variant.id,
@@ -66,9 +70,10 @@ export default function OutputCell({
     });
     setOutput(output);
     await utils.promptVariants.stats.invalidate();
-  }, [outputMutation, scenario.id, variant.id, channel]);
+    fetchMutex.current = false;
+  }, [outputMutation, scenario.id, variant.id]);
 
-  useEffect(fetchOutput, []);
+  useEffect(fetchOutput, [scenario.id, variant.id]);
 
   // Disconnect from socket if we're not streaming anymore
   const streamedMessage = useSocket(fetchingOutput ? channel : undefined);

@@ -18,11 +18,11 @@ export function useHandledAsyncCallback<T extends unknown[], U>(
   callback: AsyncFunction<T, U>,
   deps: React.DependencyList
 ) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(0);
   const [error, setError] = useState<Error | null>(null);
 
   const wrappedCallback = useCallback((...args: T) => {
-    setLoading(true);
+    setLoading((loading) => loading + 1);
     setError(null);
 
     callback(...args)
@@ -31,13 +31,13 @@ export function useHandledAsyncCallback<T extends unknown[], U>(
         console.error(error);
       })
       .finally(() => {
-        setLoading(false);
+        setLoading((loading) => loading - 1);
       });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return [wrappedCallback, loading, error] as const;
+  return [wrappedCallback, loading > 0, error] as const;
 }
 
 // Have to do this ugly thing to convince Next not to try to access `navigator`
