@@ -11,6 +11,7 @@ import {
   Box,
   type BoxProps,
   type LinkProps,
+  Link,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { BsGithub, BsTwitter } from "react-icons/bs";
@@ -25,6 +26,7 @@ const IconLink = ({ icon, label, href, target, ...props }: IconLinkProps) => {
   const isActive = useRouter().pathname.startsWith(href);
   return (
     <Box
+      as={Link}
       href={href}
       target={target}
       w="full"
