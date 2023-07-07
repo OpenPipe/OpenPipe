@@ -50,16 +50,16 @@ const NavSidebar = () => {
     <VStack align="stretch" bgColor="gray.100" py={2} pb={0} height="100%">
       <HStack spacing={0} pl="4">
         <Image src="/logo.svg" alt="" w={6} h={6} />
-        <Heading size="md" p={2}>
+        <Heading size="md" p={2} pl={{base: 16, md: 2}}>
           OpenPipe
         </Heading>
       </HStack>
       <Divider />
-      <VStack spacing={0} align="flex-start" overflowY="auto" flex={1}>
+      <VStack spacing={0} align="flex-start" overflowY="auto" overflowX="hidden" flex={1}>
         <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
       </VStack>
       <Divider />
-      <VStack align="center" spacing={4} p={2}>
+      <VStack align="center" spacing={4} pb={2}>
         <IconLink
           icon={BsGithub}
           label="GitHub"
@@ -86,7 +86,7 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
     <Grid
       h="100vh"
       w="100vw"
-      templateColumns="220px minmax(0, 1fr)"
+      templateColumns={{ base: "56px minmax(0, 1fr)", md: "200px minmax(0, 1fr)" }}
       templateRows="max-content 1fr"
       templateAreas={'"warning warning"\n"sidebar main"'}
     >
@@ -96,7 +96,7 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
       <GridItem area="warning">
         <PublicPlaygroundWarning />
       </GridItem>
-      <GridItem area="sidebar" overflow="auto">
+      <GridItem area="sidebar" overflow="hidden">
         <NavSidebar />
       </GridItem>
       <GridItem area="main" overflowY="auto">
