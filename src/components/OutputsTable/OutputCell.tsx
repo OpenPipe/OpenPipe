@@ -59,6 +59,7 @@ export default function OutputCell({
   const [output, setOutput] = useState<RouterOutputs["outputs"]["get"]>(null);
 
   const [fetchOutput, fetchingOutput] = useHandledAsyncCallback(async () => {
+    setOutput(null);
     const output = await outputMutation.mutateAsync({
       scenarioId: scenario.id,
       variantId: variant.id,
@@ -68,7 +69,7 @@ export default function OutputCell({
     await utils.promptVariants.stats.invalidate();
   }, [outputMutation, scenario.id, variant.id, channel]);
 
-  useEffect(fetchOutput, []);
+  useEffect(fetchOutput, [scenario.id, variant.id, channel]);
 
   // Disconnect from socket if we're not streaming anymore
   const streamedMessage = useSocket(fetchingOutput ? channel : undefined);
