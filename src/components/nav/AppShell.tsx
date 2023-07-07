@@ -59,7 +59,7 @@ const NavSidebar = () => {
         <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
       </VStack>
       <Divider />
-      <VStack align="center" spacing={4} pb={2}>
+      <VStack w="full" spacing={0} pb={2}>
         <IconLink
           icon={BsGithub}
           label="GitHub"
