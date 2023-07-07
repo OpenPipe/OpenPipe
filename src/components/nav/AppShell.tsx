@@ -122,6 +122,7 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
   return (
     <Grid
       h="100vh"
+      w="100vw"
       templateColumns="220px minmax(0, 1fr)"
       templateRows="max-content 1fr"
       templateAreas={'"warning warning"\n"sidebar main"'}
