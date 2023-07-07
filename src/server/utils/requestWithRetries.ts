@@ -1,3 +1,5 @@
+import { sleep } from "./sleep";
+
 export async function requestWithRetries(
   requestCallback: () => Promise<Response>,
   numRetries = 3
@@ -14,7 +16,7 @@ export async function requestWithRetries(
       const jitter = Math.random() * baseDelay;
       const delay = baseDelay + jitter;
 
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await sleep(delay);
     } else if (!response.ok) {
       // If the response status is not ok (not 2xx), throw an error
       throw new Error(`HTTP error! status: ${response.status}`);
