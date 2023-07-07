@@ -23,17 +23,23 @@ export const ErrorHandler = ({
 
   useEffect(() => {
     if (!shouldAutoRetry) return;
-    setMsToWait(calculateDelay(numPreviousTries) / 1000);
-    const timeout = setTimeout((updatedMsToWait: number) => {
-      if (updatedMsToWait > 0) {
-        updatedMsToWait -= 1000;
-        setMsToWait((prev) => prev - 1000);
-      } else {
+    
+    let remainingTime = calculateDelay(numPreviousTries);
+    setMsToWait(remainingTime);
+    
+    const interval = setInterval(() => {
+      remainingTime -= 1000;
+      setMsToWait(remainingTime);
+      
+      if (remainingTime <= 0) {
         refetchOutput();
+        clearInterval(interval);
       }
     }, 1000);
-    return () => clearTimeout(timeout);
-  }, [shouldAutoRetry]);
+  
+    return () => clearInterval(interval);
+  }, [shouldAutoRetry, setMsToWait, refetchOutput, numPreviousTries]);
+  
 
   return (
     <VStack w="full">
