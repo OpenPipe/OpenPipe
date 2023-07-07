@@ -46,7 +46,7 @@ const IconLink = ({ icon, label, href, target, ...props }: IconLinkProps) => {
 const NavSidebar = () => {
   return (
     <VStack align="stretch" bgColor="gray.100" py={2} pb={0} height="100%">
-      <HStack spacing={0}>
+      <HStack spacing={0} pl="4">
         <Image src="/logo.svg" alt="" w={6} h={6} />
         <Heading size="md" p={2}>
           QueryKey
