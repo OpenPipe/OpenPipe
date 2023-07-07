@@ -10,6 +10,7 @@ export const experimentsRouter = createTRPCRouter({
       },
     });
 
+    // TODO: look for cleaner way to do this. Maybe aggregate?
     const experimentsWithCounts = await Promise.all(
       experiments.map(async (experiment) => {
         const visibleTestScenarioCount = await prisma.testScenario.count({
