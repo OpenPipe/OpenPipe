@@ -1,4 +1,4 @@
-import { Icon, Button, Spinner, type ButtonProps } from "@chakra-ui/react";
+import { Icon, Button, Spinner, Text, type ButtonProps } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import { useRouter } from "next/router";
 import { BsPlusSquare } from "react-icons/bs";
@@ -19,11 +19,13 @@ export const NewExperimentButton = (props: ButtonProps) => {
       onClick={createExperiment}
       display="flex"
       alignItems="center"
-      variant="ghost"
+      variant={{ base: "solid", md: "ghost" }}
       {...props}
     >
-      <Icon as={isLoading ? Spinner : BsPlusSquare} boxSize={4} mr={2} />
-      New Experiment
+      <Icon as={isLoading ? Spinner : BsPlusSquare} boxSize={4} />
+      <Text display={{ base: "none", md: "block" }} ml={2}>
+        New Experiment
+      </Text>
     </Button>
   );
 };
