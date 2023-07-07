@@ -3,6 +3,7 @@ import { HStack, VStack, Text, Button, Icon } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { BsArrowClockwise } from "react-icons/bs";
 import { rateLimitErrorMessage } from "~/sharedStrings";
+import pluralize from 'pluralize'
 
 const MAX_AUTO_RETRIES = 3;
 
@@ -73,7 +74,7 @@ export const ErrorHandler = ({
       <Text color="red.600">{errorMessage}</Text>
       {msToWait > 0 && (
         <Text color="red.600" fontSize="sm">
-          Retrying in {Math.ceil(msToWait / 1000)} seconds...
+          Retrying in {pluralize('second', Math.ceil(msToWait / 1000), true)}...
         </Text>
       )}
     </VStack>
