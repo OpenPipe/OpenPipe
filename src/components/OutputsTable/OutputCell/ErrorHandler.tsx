@@ -66,7 +66,7 @@ export const ErrorHandler = ({
       <Text color="red.600">{errorMessage}</Text>
       {msToWait > 0 && (
         <Text color="red.600" fontSize="sm">
-          Retrying in {msToWait / 1000} seconds...
+          Retrying in {Math.ceil(msToWait / 1000)} seconds...
         </Text>
       )}
     </VStack>
