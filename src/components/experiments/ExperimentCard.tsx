@@ -42,7 +42,7 @@ export const ExperimentCard = ({ exp }: { exp: ExperimentData }) => {
     >
       <CardHeader>
         <HStack w="full" color="gray.700">
-          <Icon as={RiFlaskLine} boxSize={4} mr={2} />
+          <Icon as={RiFlaskLine} boxSize={4} />
           <Text fontWeight="bold">{exp.label}</Text>
         </HStack>
       </CardHeader>
