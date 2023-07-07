@@ -8,6 +8,7 @@ import { type JSONSerializable, OpenAIChatModel } from "../types";
 import { env } from "~/env.mjs";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { getModelName } from "./getModelName";
+import { requestWithRetries } from "./requestWithRetries";
 
 env;
 
@@ -57,7 +58,7 @@ export async function getOpenAIChatCompletion(
   // If functions are enabled, disable streaming so that we get the full response with token counts
   if (payload.functions?.length) payload.stream = false;
   const start = Date.now();
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const responseCallback = () => fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -65,6 +66,8 @@ export async function getOpenAIChatCompletion(
     },
     body: JSON.stringify(payload),
   });
+
+  const response = await requestWithRetries(responseCallback);
 
   const resp: CompletionResponse = {
     output: Prisma.JsonNull,
