@@ -12,7 +12,7 @@ export const evaluateOutput = (
 
   if (!message) return false;
 
-  const stringifiedMessage = JSON.stringify(message);
+  const stringifiedMessage = message.content ?? JSON.stringify(message.function_call);
 
   const matchRegex = fillTemplate(evaluation.matchString, scenario.variableValues as VariableMap);
 

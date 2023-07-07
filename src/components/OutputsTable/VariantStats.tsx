@@ -6,9 +6,12 @@ import chroma from "chroma-js";
 import { BsCurrencyDollar } from "react-icons/bs";
 
 export default function VariantStats(props: { variant: PromptVariant }) {
-  const { evalResults, overallCost } = api.promptVariants.stats.useQuery({
-    variantId: props.variant.id,
-  }).data ?? { evalResults: [] };
+  const { data } = api.promptVariants.stats.useQuery(
+    {
+      variantId: props.variant.id,
+    },
+    { initialData: { evalResults: [], overallCost: 0, scenarioCount: 0, outputCount: 0 } }
+  );
 
   const [passColor, neutralColor, failColor] = useToken("colors", [
     "green.500",
@@ -18,12 +21,19 @@ export default function VariantStats(props: { variant: PromptVariant }) {
 
   const scale = chroma.scale([failColor, neutralColor, passColor]).domain([0, 0.5, 1]);
 
-  if (!(evalResults.length > 0) && !overallCost) return null;
+  const showNumFinished = data.scenarioCount > 0 && data.scenarioCount !== data.outputCount;
+
+  if (!(data.evalResults.length > 0) && !data.overallCost) return null;
 
   return (
-    <HStack justifyContent="space-between" alignItems="center" mx="2">
-      <HStack px={cellPadding.x} py={cellPadding.y} fontSize="sm">
-        {evalResults.map((result) => {
+    <HStack justifyContent="space-between" alignItems="center" mx="2" fontSize="xs">
+      {showNumFinished && (
+        <Text>
+          {data.outputCount} / {data.scenarioCount}
+        </Text>
+      )}
+      <HStack px={cellPadding.x} py={cellPadding.y}>
+        {data.evalResults.map((result) => {
           const passedFrac = result.passCount / (result.passCount + result.failCount);
           return (
             <HStack key={result.id}>
@@ -35,10 +45,10 @@ export default function VariantStats(props: { variant: PromptVariant }) {
           );
         })}
       </HStack>
-      {overallCost && (
-        <HStack spacing={0} align="center" color="gray.500" fontSize="xs" my="2">
+      {data.overallCost && (
+        <HStack spacing={0} align="center" color="gray.500" my="2">
           <Icon as={BsCurrencyDollar} />
-          <Text mr={1}>{overallCost.toFixed(3)}</Text>
+          <Text mr={1}>{data.overallCost.toFixed(3)}</Text>
         </HStack>
       )}
     </HStack>

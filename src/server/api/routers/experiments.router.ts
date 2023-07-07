@@ -69,12 +69,11 @@ export const experimentsRouter = createTRPCRouter({
           label: "Prompt Variant 1",
           sortIndex: 0,
           config: {
-            model: "gpt-3.5-turbo",
-            stream: true,
+            model: "gpt-3.5-turbo-0613",
             messages: [
               {
                 role: "system",
-                content: "count to three in {{input}}...",
+                content: "Return 'Ready to go!'",
               },
             ],
           },
@@ -83,13 +82,7 @@ export const experimentsRouter = createTRPCRouter({
       prisma.testScenario.create({
         data: {
           experimentId: exp.id,
-          variableValues: { input: "Spanish" },
-        },
-      }),
-      prisma.templateVariable.create({
-        data: {
-          experimentId: exp.id,
-          label: "input",
+          variableValues: {},
         },
       }),
     ]);

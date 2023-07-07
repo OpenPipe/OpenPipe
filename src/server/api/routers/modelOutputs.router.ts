@@ -71,7 +71,12 @@ export const modelOutputsRouter = createTRPCRouter({
           completionTokens: existingResponse.completionTokens ?? undefined,
         };
       } else {
-        modelResponse = await getCompletion(filledTemplate, input.channel);
+        try {
+          modelResponse = await getCompletion(filledTemplate, input.channel);
+        } catch (e) {
+          console.error(e);
+          throw e;
+        }
       }
 
       const modelOutput = await prisma.modelOutput.upsert({
@@ -79,7 +84,7 @@ export const modelOutputsRouter = createTRPCRouter({
           promptVariantId_testScenarioId: {
             promptVariantId: input.variantId,
             testScenarioId: input.scenarioId,
-          }
+          },
         },
         create: {
           promptVariantId: input.variantId,

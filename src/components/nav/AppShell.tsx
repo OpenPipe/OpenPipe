@@ -51,20 +51,19 @@ const NavSidebar = () => {
       <HStack spacing={0} pl="4">
         <Image src="/logo.svg" alt="" w={6} h={6} />
         <Heading size="md" p={2}>
-          QueryKey
+          OpenPipe
         </Heading>
       </HStack>
       <Divider />
       <VStack spacing={0} align="flex-start" overflowY="auto" flex={1}>
         <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
       </VStack>
-
       <Divider />
       <VStack align="center" spacing={4} p={2}>
         <IconLink
           icon={BsGithub}
           label="GitHub"
-          href="https://github.com/corbt/querykey"
+          href="https://github.com/corbt/openpipe"
           target="_blank"
           color="gray.500"
           _hover={{ color: "gray.800" }}
@@ -92,7 +91,7 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
       templateAreas={'"warning warning"\n"sidebar main"'}
     >
       <Head>
-        <title>{props.title ? `${props.title} | QueryKey` : "QueryKey"}</title>
+        <title>{props.title ? `${props.title} | OpenPipe` : "OpenPipe"}</title>
       </Head>
       <GridItem area="warning">
         <PublicPlaygroundWarning />
