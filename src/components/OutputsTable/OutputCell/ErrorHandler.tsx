@@ -1,9 +1,9 @@
 import { type ModelOutput } from "@prisma/client";
 import { HStack, VStack, Text, Button, Icon } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { BsArrowClockwise } from "react-icons/bs";
 import { rateLimitErrorMessage } from "~/sharedStrings";
-import pluralize from 'pluralize'
+import pluralize from "pluralize";
 
 const MAX_AUTO_RETRIES = 3;
 
@@ -19,8 +19,6 @@ export const ErrorHandler = ({
   const [msToWait, setMsToWait] = useState(0);
   const shouldAutoRetry =
     output.errorMessage === rateLimitErrorMessage && numPreviousTries < MAX_AUTO_RETRIES;
-
-  const errorMessage = useMemo(() => breakLongWords(output.errorMessage), [output.errorMessage]);
 
   useEffect(() => {
     if (!shouldAutoRetry) return;
@@ -71,26 +69,17 @@ export const ErrorHandler = ({
           <Icon as={BsArrowClockwise} boxSize={6} />
         </Button>
       </HStack>
-      <Text color="red.600">{errorMessage}</Text>
+      <Text color="red.600" wordBreak="break-word">
+        {output.errorMessage}
+      </Text>
       {msToWait > 0 && (
         <Text color="red.600" fontSize="sm">
-          Retrying in {pluralize('second', Math.ceil(msToWait / 1000), true)}...
+          Retrying in {pluralize("second", Math.ceil(msToWait / 1000), true)}...
         </Text>
       )}
     </VStack>
   );
 };
-
-function breakLongWords(str: string | null): string {
-  if (!str) return "";
-  const words = str.split(" ");
-
-  const newWords = words.map((word) => {
-    return word.length > 20 ? word.slice(0, 20) + "\u200B" + word.slice(20) : word;
-  });
-
-  return newWords.join(" ");
-}
 
 const MIN_DELAY = 500; // milliseconds
 const MAX_DELAY = 5000; // milliseconds
