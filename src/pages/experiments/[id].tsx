@@ -5,7 +5,6 @@ import {
   Button,
   Center,
   Flex,
-  HStack,
   Icon,
   Input,
   AlertDialog,
@@ -16,6 +15,8 @@ import {
   AlertDialogOverlay,
   useDisclosure,
   BreadcrumbLink,
+  Text,
+  HStack,
 } from "@chakra-ui/react";
 
 import { useRouter } from "next/router";
@@ -51,9 +52,17 @@ const DeleteButton = () => {
 
   return (
     <>
-      <Button size="sm" variant="ghost" colorScheme="gray" fontWeight="normal" onClick={onOpen}>
-        <Icon as={BsTrash} boxSize={4} mr={2} />
-        Delete Experiment
+      <Button
+        size="sm"
+        variant={{ base: "outline", lg: "ghost" }}
+        colorScheme="gray"
+        fontWeight="normal"
+        onClick={onOpen}
+      >
+        <Icon as={BsTrash} boxSize={4} color="gray.600" />
+        <Text display={{ base: "none", lg: "block" }} ml={2}>
+          Delete Experiment
+        </Text>
       </Button>
 
       <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>
@@ -118,7 +127,12 @@ export default function Experiment() {
   return (
     <AppShell title={experiment.data?.label}>
       <Box minH="100%" pb={50}>
-        <HStack px={4} py={2}>
+        <Flex
+          px={4}
+          py={2}
+          direction={{ base: "column", md: "row" }}
+          alignItems={{ base: "flex-start", md: "center" }}
+        >
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
               <BreadcrumbLink href="/experiments">
@@ -137,25 +151,29 @@ export default function Experiment() {
                 borderColor="transparent"
                 fontSize={16}
                 px={0}
-                minW={300}
+                minW={{ base: 100, lg: 300 }}
                 flex={1}
                 _hover={{ borderColor: "gray.300" }}
                 _focus={{ borderColor: "blue.500", outline: "none" }}
               />
             </BreadcrumbItem>
           </Breadcrumb>
-          <Button
-            size="sm"
-            variant="ghost"
-            colorScheme="gray"
-            fontWeight="normal"
-            onClick={openDrawer}
-            leftIcon={<Icon as={BsGearFill} boxSize={4} color="gray.600" />}
-          >
-            Edit Vars & Evals
-          </Button>
-          <DeleteButton />
-        </HStack>
+          <HStack>
+            <Button
+              size="sm"
+              variant={{ base: "outline", lg: "ghost" }}
+              colorScheme="gray"
+              fontWeight="normal"
+              onClick={openDrawer}
+            >
+              <Icon as={BsGearFill} boxSize={4} color="gray.600" />
+              <Text display={{ base: "none", lg: "block" }} ml={2}>
+                Edit Vars & Evals
+              </Text>
+            </Button>
+            <DeleteButton />
+          </HStack>
+        </Flex>
         <SettingsDrawer />
         <Box w="100%" overflowX="auto">
           <OutputsTable experimentId={router.query.id as string | undefined} />
