@@ -1,7 +1,7 @@
 import { Box, GridItem } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { cellPadding } from "../constants";
-import OutputCell from "./OutputCell";
+import OutputCell from "./OutputCell/OutputCell";
 import ScenarioEditor from "./ScenarioEditor";
 import type { PromptVariant, Scenario } from "./types";
 

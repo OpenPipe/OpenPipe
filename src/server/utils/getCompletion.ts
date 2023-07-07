@@ -8,6 +8,7 @@ import { type JSONSerializable, OpenAIChatModel } from "../types";
 import { env } from "~/env.mjs";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { getModelName } from "./getModelName";
+import { rateLimitErrorMessage } from "~/sharedStrings";
 
 env;
 
@@ -32,9 +33,7 @@ export async function getCompletion(
       errorMessage: "Invalid payload provided",
       timeToComplete: 0,
     };
-  if (
-    modelName in OpenAIChatModel
-  ) {
+  if (modelName in OpenAIChatModel) {
     return getOpenAIChatCompletion(
       payload as unknown as CompletionCreateParams,
       env.OPENAI_API_KEY,
@@ -93,13 +92,15 @@ export async function getOpenAIChatCompletion(
     }
 
     if (!response.ok) {
-      // If it's an object, try to get the error message
-      if (
+      if (response.status === 429) {
+        resp.errorMessage = rateLimitErrorMessage;
+      } else if (
         isObject(resp.output) &&
         "error" in resp.output &&
         isObject(resp.output.error) &&
         "message" in resp.output.error
       ) {
+        // If it's an object, try to get the error message
         resp.errorMessage = resp.output.error.message?.toString() ?? "Unknown error";
       }
     }
@@ -108,16 +109,13 @@ export async function getOpenAIChatCompletion(
       const usage = resp.output.usage as unknown as ChatCompletion.Usage;
       resp.promptTokens = usage.prompt_tokens;
       resp.completionTokens = usage.completion_tokens;
-    } else if (isObject(resp.output) && 'choices' in resp.output) {
-      const model = payload.model as unknown as OpenAIChatModel
-      resp.promptTokens = countOpenAIChatTokens(
-        model,
-        payload.messages
-      );
+    } else if (isObject(resp.output) && "choices" in resp.output) {
+      const model = payload.model as unknown as OpenAIChatModel;
+      resp.promptTokens = countOpenAIChatTokens(model, payload.messages);
       const choices = resp.output.choices as unknown as ChatCompletion.Choice[];
-      const message = choices[0]?.message
+      const message = choices[0]?.message;
       if (message) {
-        const messages = [message]
+        const messages = [message];
         resp.completionTokens = countOpenAIChatTokens(model, messages);
       }
     }
