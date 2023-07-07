@@ -11,7 +11,12 @@ import { getCompletion } from "~/server/utils/getCompletion";
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
     .input(
-      z.object({ scenarioId: z.string(), variantId: z.string(), channel: z.string().optional() })
+      z.object({
+        scenarioId: z.string(),
+        variantId: z.string(),
+        channel: z.string().optional(),
+        forceRefetch: z.boolean().optional(),
+      })
     )
     .mutation(async ({ input }) => {
       const existing = await prisma.modelOutput.findUnique({
@@ -23,7 +28,7 @@ export const modelOutputsRouter = createTRPCRouter({
         },
       });
 
-      if (existing) return existing;
+      if (existing && !input.forceRefetch) return existing;
 
       const variant = await prisma.promptVariant.findUnique({
         where: {
@@ -69,11 +74,20 @@ export const modelOutputsRouter = createTRPCRouter({
         modelResponse = await getCompletion(filledTemplate, input.channel);
       }
 
-      const modelOutput = await prisma.modelOutput.create({
-        data: {
+      const modelOutput = await prisma.modelOutput.upsert({
+        where: {
+          promptVariantId_testScenarioId: {
+            promptVariantId: input.variantId,
+            testScenarioId: input.scenarioId,
+          }
+        },
+        create: {
           promptVariantId: input.variantId,
           testScenarioId: input.scenarioId,
           inputHash,
+          ...modelResponse,
+        },
+        update: {
           ...modelResponse,
         },
       });

@@ -1,21 +1,25 @@
 import { type RouterOutputs, api } from "~/utils/api";
-import { type PromptVariant, type Scenario } from "./types";
-import { Spinner, Text, Box, Center, Flex, Icon, HStack } from "@chakra-ui/react";
+import { type PromptVariant, type Scenario } from "../types";
+import {
+  Spinner,
+  Text,
+  Box,
+  Center,
+  Flex,
+} from "@chakra-ui/react";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
-import { type ReactElement, useState, useEffect, useRef } from "react";
-import { BsCheck, BsClock, BsX, BsCurrencyDollar } from "react-icons/bs";
-import { type ModelOutput } from "@prisma/client";
+import { type ReactElement, useState, useEffect, useRef, useCallback } from "react";
 import { type ChatCompletion } from "openai/resources/chat";
 import { generateChannel } from "~/utils/generateChannel";
 import { isObject } from "lodash";
 import useSocket from "~/utils/useSocket";
-import { evaluateOutput } from "~/server/utils/evaluateOutput";
-import { calculateTokenCost } from "~/utils/calculateTokenCost";
-import { type JSONSerializable, type SupportedModel } from "~/server/types";
+import { type JSONSerializable } from "~/server/types";
 import { getModelName } from "~/server/utils/getModelName";
+import { OutputStats } from "./OutputStats";
+import { ErrorHandler } from "./ErrorHandler";
 
 export default function OutputCell({
   scenario,
@@ -47,31 +51,40 @@ export default function OutputCell({
 
   const [output, setOutput] = useState<RouterOutputs["outputs"]["get"]>(null);
   const [channel, setChannel] = useState<string | undefined>(undefined);
+  const [numPreviousTries, setNumPreviousTries] = useState(0);
+
   const fetchMutex = useRef(false);
-  const [fetchOutput, fetchingOutput] = useHandledAsyncCallback(async () => {
-    if (fetchMutex.current) return;
-    fetchMutex.current = true;
-    setOutput(null);
+  const [fetchOutput, fetchingOutput] = useHandledAsyncCallback(
+    async (forceRefetch?: boolean) => {
+      if (fetchMutex.current) return;
+      setNumPreviousTries((prev) => prev + 1);
 
-    const shouldStream =
-      isObject(variant) &&
-      "config" in variant &&
-      isObject(variant.config) &&
-      "stream" in variant.config &&
-      variant.config.stream === true;
+      fetchMutex.current = true;
+      setOutput(null);
 
-    const channel = shouldStream ? generateChannel() : undefined;
-    setChannel(channel);
+      const shouldStream =
+        isObject(variant) &&
+        "config" in variant &&
+        isObject(variant.config) &&
+        "stream" in variant.config &&
+        variant.config.stream === true;
 
-    const output = await outputMutation.mutateAsync({
-      scenarioId: scenario.id,
-      variantId: variant.id,
-      channel,
-    });
-    setOutput(output);
-    await utils.promptVariants.stats.invalidate();
-    fetchMutex.current = false;
-  }, [outputMutation, scenario.id, variant.id]);
+      const channel = shouldStream ? generateChannel() : undefined;
+      setChannel(channel);
+
+      const output = await outputMutation.mutateAsync({
+        scenarioId: scenario.id,
+        variantId: variant.id,
+        channel,
+        forceRefetch,
+      });
+      setOutput(output);
+      await utils.promptVariants.stats.invalidate();
+      fetchMutex.current = false;
+    },
+    [outputMutation, scenario.id, variant.id]
+  );
+  const hardRefetch = useCallback(() => fetchOutput(true), [fetchOutput]);
 
   useEffect(fetchOutput, [scenario.id, variant.id]);
 
@@ -93,7 +106,13 @@ export default function OutputCell({
   if (!output && !fetchingOutput) return <Text color="gray.500">Error retrieving output</Text>;
 
   if (output && output.errorMessage) {
-    return <Text color="red.600">Error: {output.errorMessage}</Text>;
+    return (
+      <ErrorHandler
+        output={output}
+        refetchOutput={hardRefetch}
+        numPreviousTries={numPreviousTries}
+      />
+    );
   }
 
   const response = output?.output as unknown as ChatCompletion;
@@ -142,54 +161,4 @@ export default function OutputCell({
   );
 }
 
-const OutputStats = ({
-  model,
-  modelOutput,
-  scenario,
-}: {
-  model: SupportedModel | null;
-  modelOutput: ModelOutput;
-  scenario: Scenario;
-}) => {
-  const timeToComplete = modelOutput.timeToComplete;
-  const experiment = useExperiment();
-  const evals =
-    api.evaluations.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data ?? [];
 
-  const promptTokens = modelOutput.promptTokens;
-  const completionTokens = modelOutput.completionTokens;
-
-  const promptCost = promptTokens && model ? calculateTokenCost(model, promptTokens) : 0;
-  const completionCost =
-    completionTokens && model ? calculateTokenCost(model, completionTokens, true) : 0;
-
-  const cost = promptCost + completionCost;
-
-  return (
-    <HStack align="center" color="gray.500" fontSize="xs" mt={2}>
-      <HStack flex={1}>
-        {evals.map((evaluation) => {
-          const passed = evaluateOutput(modelOutput, scenario, evaluation);
-          return (
-            <HStack spacing={0} key={evaluation.id}>
-              <Text>{evaluation.name}</Text>
-              <Icon
-                as={passed ? BsCheck : BsX}
-                color={passed ? "green.500" : "red.500"}
-                boxSize={6}
-              />
-            </HStack>
-          );
-        })}
-      </HStack>
-      <HStack spacing={0}>
-        <Icon as={BsCurrencyDollar} />
-        <Text mr={1}>{cost.toFixed(3)}</Text>
-      </HStack>
-      <HStack spacing={0.5}>
-        <Icon as={BsClock} />
-        <Text>{(timeToComplete / 1000).toFixed(2)}s</Text>
-      </HStack>
-    </HStack>
-  );
-};
