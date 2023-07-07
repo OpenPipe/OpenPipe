@@ -55,8 +55,8 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         py={cellPadding.y}
       >
         <HStack w="100%">
-          <Heading size="sm" fontWeight="bold" flex={1}>
-            Scenario
+          <Heading size="xs" fontWeight="bold" flex={1}>
+            Scenarios ({scenarios.data.length})
           </Heading>
           <Button
             size="xs"
