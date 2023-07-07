@@ -10,19 +10,20 @@ export default function useSocket(channel?: string) {
   const [message, setMessage] = useState<ChatCompletion | null>(null);
 
   useEffect(() => {
+    if (!channel) return;
+
+    console.log("connecting to channel", channel);
     // Create websocket connection
     socketRef.current = io(url);
 
     socketRef.current.on("connect", () => {
       // Join the specific room
-      if (channel) {
-        socketRef.current?.emit("join", channel);
+      socketRef.current?.emit("join", channel);
 
-        // Listen for 'message' events
-        socketRef.current?.on("message", (message: ChatCompletion) => {
-          setMessage(message);
-        });
-      }
+      // Listen for 'message' events
+      socketRef.current?.on("message", (message: ChatCompletion) => {
+        setMessage(message);
+      });
     });
 
     // Unsubscribe and disconnect on cleanup
@@ -32,6 +33,7 @@ export default function useSocket(channel?: string) {
           socketRef.current.off("message");
         }
         socketRef.current.disconnect();
+        socketRef.current = undefined;
       }
       setMessage(null);
     };

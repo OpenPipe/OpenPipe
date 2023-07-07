@@ -34,6 +34,19 @@ export const promptVariantsRouter = createTRPCRouter({
       include: { evaluation: true },
     });
 
+    const scenarioCount = await prisma.testScenario.count({
+      where: {
+        experimentId: variant.experimentId,
+        visible: true,
+      },
+    });
+    const outputCount = await prisma.modelOutput.count({
+      where: {
+        promptVariantId: input.variantId,
+        testScenario: { visible: true },
+      },
+    });
+
     const overallTokens = await prisma.modelOutput.aggregate({
       where: {
         promptVariantId: input.variantId,
@@ -53,7 +66,7 @@ export const promptVariantsRouter = createTRPCRouter({
 
     const overallCost = overallPromptCost + overallCompletionCost;
 
-    return { evalResults, overallCost };
+    return { evalResults, overallCost, scenarioCount, outputCount };
   }),
 
   create: publicProcedure

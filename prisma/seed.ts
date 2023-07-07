@@ -37,7 +37,7 @@ await prisma.promptVariant.createMany({
       label: "Prompt Variant 1",
       sortIndex: 0,
       config: {
-        model: "gpt-3.5-turbo",
+        model: "gpt-3.5-turbo-0613",
         messages: [{ role: "user", content: "What is the capital of {{country}}?" }],
         temperature: 0,
       },
@@ -47,7 +47,7 @@ await prisma.promptVariant.createMany({
       label: "Prompt Variant 2",
       sortIndex: 1,
       config: {
-        model: "gpt-3.5-turbo",
+        model: "gpt-3.5-turbo-0613",
         messages: [
           {
             role: "user",
