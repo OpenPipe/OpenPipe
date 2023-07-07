@@ -12,7 +12,7 @@ services:
     dockerContext: .
     plan: standard
     domains:
-      - querykey.dev
+      - openpipe.ai
     envVars:
       - key: NODE_ENV
         value: production

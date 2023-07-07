@@ -1,10 +1,10 @@
-# 🔑 QueryKey 
+# 🔑 OpenPipe 
 
-QueryKey is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
+OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
-<img src="https://github.com/corbt/querykey/assets/176426/fc7624c6-5b65-4d4d-82b7-4a816f3e5678" alt="demo" height="400px">
+<img src="https://github.com/corbt/openpipe/assets/176426/fc7624c6-5b65-4d4d-82b7-4a816f3e5678" alt="demo" height="400px">
 
-Currently there's a public playground available at [https://querykey.dev/](https://querykey.dev/), but the recommended approach is to [run locally](#running-locally).
+Currently there's a public playground available at [https://openpipe.ai/](https://openpipe.ai/), but the recommended approach is to [run locally](#running-locally).
 
 ## High-Level Features
 
@@ -15,23 +15,23 @@ Set up multiple prompt configurations and compare their output side-by-side. Eac
 Inspect prompt completions side-by-side.
 
 **Test Many Inputs**  
-QueryKey lets you *template* a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broader coverage of your problem space than you'd get with manual testing.
+OpenPipe lets you *template* a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broader coverage of your problem space than you'd get with manual testing.
 
 **🪄 Auto-generate Test Scenarios**  
-QueryKey includes a tool to generate new test scenarios based on your existing prompts and scenarios. Just click "Autogenerate Scenario" to try it out!
+OpenPipe includes a tool to generate new test scenarios based on your existing prompts and scenarios. Just click "Autogenerate Scenario" to try it out!
 
 **Prompt Validation and Typeahead**  
 We use OpenAI's OpenAPI spec to automatically provide typeahead and validate prompts.
 
-<img alt="typeahead" src="https://github.com/corbt/querykey/assets/176426/acc638f8-d851-4742-8d01-fe6f98890840" height="300px">
+<img alt="typeahead" src="https://github.com/corbt/openpipe/assets/176426/acc638f8-d851-4742-8d01-fe6f98890840" height="300px">
 
 **Function Call Support**  
 Natively supports [OpenAI function calls](https://openai.com/blog/function-calling-and-other-api-updates) on supported models.
 
-<img height="300px" alt="function calls" src="https://github.com/corbt/querykey/assets/176426/48ad13fe-af2f-4294-bf32-62015597fd9b">
+<img height="300px" alt="function calls" src="https://github.com/corbt/openpipe/assets/176426/48ad13fe-af2f-4294-bf32-62015597fd9b">
 
 ## Supported Models
-QueryKey currently supports GPT-3.5 and GPT-4. Wider model support is planned.
+OpenPipe currently supports GPT-3.5 and GPT-4. Wider model support is planned.
 
 ## Running Locally
 
