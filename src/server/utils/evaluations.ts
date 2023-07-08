@@ -17,16 +17,12 @@ export const reevaluateVariant = async (variantId: string) => {
     include: { testScenario: true },
   });
 
-  const scenarios = await prisma.testScenario.findMany({
-    where: { experimentId: variant.experimentId, visible: true },
-  });
-
   await Promise.all(
     evaluations.map(async (evaluation) => {
       const passCount = modelOutputs.filter((output) =>
         evaluateOutput(output, output.testScenario, evaluation)
       ).length;
-      const failCount = scenarios.length - passCount;
+      const failCount = modelOutputs.length - passCount;
 
       await prisma.evaluationResult.upsert({
         where: {
