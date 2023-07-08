@@ -1,4 +1,6 @@
-# 🔑 OpenPipe 
+![logo](https://github.com/open-pipe/openpipe/assets/41524992/4165db50-1c57-4367-945a-d96ff2f6891b)
+
+# OpenPipe 
 
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
