@@ -32,15 +32,15 @@ export const CostTooltip = ({
               <Text>{cost.toFixed(6)}</Text>
             </HStack>
           </VStack>
-          <VStack spacing={0}>
-            <Text fontWeight="bold">Tokens</Text>
+          <VStack spacing={1}>
+            <Text fontWeight="bold">Token Usage</Text>
             <HStack>
-              <VStack w="28">
+              <VStack w="28" spacing={1}>
                 <Text>Prompt</Text>
                 <Text>{promptTokens ?? 0}</Text>
               </VStack>
               <Divider borderColor="gray.200" h={8} orientation="vertical" />
-              <VStack w="28">
+              <VStack w="28" spacing={1}>
                 <Text whiteSpace="nowrap">Completion</Text>
                 <Text>{completionTokens ?? 0}</Text>
               </VStack>
