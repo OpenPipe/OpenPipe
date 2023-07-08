@@ -110,14 +110,5 @@ export const experimentsRouter = createTRPCRouter({
         id: input.id,
       },
     });
-
-    // Return the ID of the newest existing experiment so the client can redirect to it
-    const newestExperiment = await prisma.experiment.findFirst({
-      orderBy: {
-        sortIndex: "desc",
-      },
-    });
-
-    return newestExperiment?.id;
   }),
 });
