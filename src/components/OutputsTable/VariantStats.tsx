@@ -4,13 +4,23 @@ import { cellPadding } from "../constants";
 import { api } from "~/utils/api";
 import chroma from "chroma-js";
 import { BsCurrencyDollar } from "react-icons/bs";
+import { CostTooltip } from "../tooltip/CostTooltip";
 
 export default function VariantStats(props: { variant: PromptVariant }) {
   const { data } = api.promptVariants.stats.useQuery(
     {
       variantId: props.variant.id,
     },
-    { initialData: { evalResults: [], overallCost: 0, scenarioCount: 0, outputCount: 0 } }
+    {
+      initialData: {
+        evalResults: [],
+        overallCost: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        scenarioCount: 0,
+        outputCount: 0,
+      },
+    }
   );
 
   const [passColor, neutralColor, failColor] = useToken("colors", [
@@ -46,10 +56,16 @@ export default function VariantStats(props: { variant: PromptVariant }) {
         })}
       </HStack>
       {data.overallCost && (
-        <HStack spacing={0} align="center" color="gray.500" my="2">
-          <Icon as={BsCurrencyDollar} />
-          <Text mr={1}>{data.overallCost.toFixed(3)}</Text>
-        </HStack>
+        <CostTooltip
+          promptTokens={data.promptTokens}
+          completionTokens={data.completionTokens}
+          cost={data.overallCost}
+        >
+          <HStack spacing={0} align="center" color="gray.500" my="2">
+            <Icon as={BsCurrencyDollar} />
+            <Text mr={1}>{data.overallCost.toFixed(3)}</Text>
+          </HStack>
+        </CostTooltip>
       )}
     </HStack>
   );

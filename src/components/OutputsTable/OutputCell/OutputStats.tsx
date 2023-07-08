@@ -7,6 +7,7 @@ import { calculateTokenCost } from "~/utils/calculateTokenCost";
 import { evaluateOutput } from "~/server/utils/evaluateOutput";
 import { HStack, Icon, Text } from "@chakra-ui/react";
 import { BsCheck, BsClock, BsCurrencyDollar, BsX } from "react-icons/bs";
+import { CostTooltip } from "~/components/tooltip/CostTooltip";
 
 export const OutputStats = ({
   model,
@@ -48,10 +49,12 @@ export const OutputStats = ({
           );
         })}
       </HStack>
-      <HStack spacing={0}>
-        <Icon as={BsCurrencyDollar} />
-        <Text mr={1}>{cost.toFixed(3)}</Text>
-      </HStack>
+      <CostTooltip promptTokens={promptTokens} completionTokens={completionTokens} cost={cost}>
+        <HStack spacing={0}>
+          <Icon as={BsCurrencyDollar} />
+          <Text mr={1}>{cost.toFixed(3)}</Text>
+        </HStack>
+      </CostTooltip>
       <HStack spacing={0.5}>
         <Icon as={BsClock} />
         <Text>{(timeToComplete / 1000).toFixed(2)}s</Text>
