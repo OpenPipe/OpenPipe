@@ -1,4 +1,4 @@
-![logo](https://github.com/open-pipe/openpipe/assets/41524992/4165db50-1c57-4367-945a-d96ff2f6891b)
+<img src="https://github.com/open-pipe/openpipe/assets/41524992/4165db50-1c57-4367-945a-d96ff2f6891b" width="48" height="48">
 
 # OpenPipe 
 
