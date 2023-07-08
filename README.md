@@ -2,7 +2,7 @@
 
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
-<img src="https://github.com/corbt/openpipe/assets/176426/fc7624c6-5b65-4d4d-82b7-4a816f3e5678" alt="demo" height="400px">
+<img src="https://github.com/open-pipe/openpipe/assets/176426/fc7624c6-5b65-4d4d-82b7-4a816f3e5678" alt="demo" height="400px">
 
 Currently there's a public playground available at [https://openpipe.ai/](https://openpipe.ai/), but the recommended approach is to [run locally](#running-locally).
 
@@ -23,12 +23,12 @@ OpenPipe includes a tool to generate new test scenarios based on your existing p
 **Prompt Validation and Typeahead**  
 We use OpenAI's OpenAPI spec to automatically provide typeahead and validate prompts.
 
-<img alt="typeahead" src="https://github.com/corbt/openpipe/assets/176426/acc638f8-d851-4742-8d01-fe6f98890840" height="300px">
+<img alt="typeahead" src="https://github.com/open-pipe/openpipe/assets/176426/acc638f8-d851-4742-8d01-fe6f98890840" height="300px">
 
 **Function Call Support**  
 Natively supports [OpenAI function calls](https://openai.com/blog/function-calling-and-other-api-updates) on supported models.
 
-<img height="300px" alt="function calls" src="https://github.com/corbt/openpipe/assets/176426/48ad13fe-af2f-4294-bf32-62015597fd9b">
+<img height="300px" alt="function calls" src="https://github.com/open-pipe/openpipe/assets/176426/48ad13fe-af2f-4294-bf32-62015597fd9b">
 
 ## Supported Models
 OpenPipe currently supports GPT-3.5 and GPT-4. Wider model support is planned.
@@ -38,8 +38,8 @@ OpenPipe currently supports GPT-3.5 and GPT-4. Wider model support is planned.
 1. Install [Postgresql](https://www.postgresql.org/download/).
 2. Install [NodeJS 20](https://nodejs.org/en/download/current) (earlier versions will very likely work but aren't tested).
 3. Install `pnpm`: `npm i -g pnpm`
-4. Clone this repository: `git clone https://github.com/querykey/querykey`
-5. Install the dependencies: `cd querykey && pnpm install`
+4. Clone this repository: `git clone https://github.com/open-pipe/openpipe`
+5. Install the dependencies: `cd openpipe && pnpm install`
 6. Create a `.env` file (`cp .env.example .env`) and enter your `OPENAI_API_KEY`.
 7. Update `DATABASE_URL` if necessary to point to your Postgres instance and run `pnpm prisma db push` to create the database.
 8. Start the app: `pnpm dev`.
