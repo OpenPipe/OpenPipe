@@ -3,6 +3,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { type OpenAIChatConfig } from "~/server/types";
 import { getModelName } from "~/server/utils/getModelName";
+import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { calculateTokenCost } from "~/utils/calculateTokenCost";
 
 export const promptVariantsRouter = createTRPCRouter({
@@ -107,14 +108,7 @@ export const promptVariantsRouter = createTRPCRouter({
         },
       });
 
-      await prisma.experiment.update({
-        where: {
-          id: input.experimentId,
-        },
-        data: {
-          updatedAt: new Date(),
-        },
-      });
+      await recordExperimentUpdated(input.experimentId);
 
       return newVariant;
     }),
@@ -139,6 +133,8 @@ export const promptVariantsRouter = createTRPCRouter({
         throw new Error(`Prompt Variant with id ${input.id} does not exist`);
       }
 
+      await recordExperimentUpdated(existing.experimentId);
+
       return await prisma.promptVariant.update({
         where: {
           id: input.id,
@@ -154,10 +150,14 @@ export const promptVariantsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      return await prisma.promptVariant.update({
+      const variant = await prisma.promptVariant.update({
         where: { id: input.id },
         data: { visible: false },
       });
+
+      await recordExperimentUpdated(variant.experimentId);
+
+      return variant;
     }),
 
   replaceWithConfig: publicProcedure
@@ -208,6 +208,8 @@ export const promptVariantsRouter = createTRPCRouter({
           visible: false,
         },
       });
+
+      await recordExperimentUpdated(existing.experimentId);
 
       return newVariant;
     }),
