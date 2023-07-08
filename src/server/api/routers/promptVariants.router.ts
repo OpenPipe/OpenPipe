@@ -66,7 +66,7 @@ export const promptVariantsRouter = createTRPCRouter({
 
     const overallCost = overallPromptCost + overallCompletionCost;
 
-    return { evalResults, overallCost, scenarioCount, outputCount };
+    return { evalResults, promptTokens, completionTokens, overallCost, scenarioCount, outputCount };
   }),
 
   create: publicProcedure
