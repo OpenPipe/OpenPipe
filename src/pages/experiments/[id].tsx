@@ -14,10 +14,10 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   useDisclosure,
-  BreadcrumbLink,
   Text,
   HStack,
 } from "@chakra-ui/react";
+import Link from "next/link";
 
 import { useRouter } from "next/router";
 import { useState, useEffect, useRef } from "react";
@@ -132,11 +132,11 @@ export default function Experiment() {
         >
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/experiments">
-                <Flex alignItems="center">
+              <Link href="/experiments">
+                <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
                   <Icon as={RiFlaskLine} boxSize={4} mr={2} /> Experiments
                 </Flex>
-              </BreadcrumbLink>
+              </Link>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
               <Input
