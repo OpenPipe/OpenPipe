@@ -41,12 +41,9 @@ const DeleteButton = () => {
 
   const [onDeleteConfirm] = useHandledAsyncCallback(async () => {
     if (!experiment.data?.id) return;
-    const nextExperiment = await mutation.mutateAsync({ id: experiment.data.id });
+    await mutation.mutateAsync({ id: experiment.data.id });
     await utils.experiments.list.invalidate();
-
-    if (nextExperiment) {
-      await router.push({ pathname: "/experiments/[id]", query: { id: nextExperiment } });
-    }
+    await router.push({ pathname: "/experiments" });
     onClose();
   }, [mutation, experiment.data?.id, router]);
 
