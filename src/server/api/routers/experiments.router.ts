@@ -32,7 +32,7 @@ export const experimentsRouter = createTRPCRouter({
           testScenarioCount: visibleTestScenarioCount,
           promptVariantCount: visiblePromptVariantCount,
         };
-      }),
+      })
     );
 
     return experimentsWithCounts;
@@ -71,6 +71,7 @@ export const experimentsRouter = createTRPCRouter({
           sortIndex: 0,
           config: {
             model: "gpt-3.5-turbo-0613",
+            stream: true,
             messages: [
               {
                 role: "system",
