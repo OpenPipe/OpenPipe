@@ -189,7 +189,7 @@ export default function EditEvaluations() {
                   <Icon as={BsX} boxSize={6} />
                 </Button>
               </HStack>
-            )
+            ),
           )}
           {editingId == null && (
             <Button

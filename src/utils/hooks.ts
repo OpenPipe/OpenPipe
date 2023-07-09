@@ -6,7 +6,7 @@ export const useExperiment = () => {
   const router = useRouter();
   const experiment = api.experiments.get.useQuery(
     { id: router.query.id as string },
-    { enabled: !!router.query.id }
+    { enabled: !!router.query.id },
   );
 
   return experiment;
@@ -16,7 +16,7 @@ type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
 export function useHandledAsyncCallback<T extends unknown[], U>(
   callback: AsyncFunction<T, U>,
-  deps: React.DependencyList
+  deps: React.DependencyList,
 ) {
   const [loading, setLoading] = useState(0);
   const [error, setError] = useState<Error | null>(null);

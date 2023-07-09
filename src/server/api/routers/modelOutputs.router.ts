@@ -16,7 +16,7 @@ export const modelOutputsRouter = createTRPCRouter({
         variantId: z.string(),
         channel: z.string().optional(),
         forceRefetch: z.boolean().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const existing = await prisma.modelOutput.findUnique({
@@ -46,7 +46,7 @@ export const modelOutputsRouter = createTRPCRouter({
 
       const filledTemplate = fillTemplateJson(
         variant.config as JSONSerializable,
-        scenario.variableValues as VariableMap
+        scenario.variableValues as VariableMap,
       );
 
       const inputHash = crypto

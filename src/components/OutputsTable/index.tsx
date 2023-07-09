@@ -20,13 +20,13 @@ const stickyHeaderStyle: SystemStyleObject = {
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
   const variants = api.promptVariants.list.useQuery(
     { experimentId: experimentId as string },
-    { enabled: !!experimentId }
+    { enabled: !!experimentId },
   );
   const openDrawer = useStore((s) => s.openDrawer);
 
   const scenarios = api.scenarios.list.useQuery(
     { experimentId: experimentId as string },
-    { enabled: !!experimentId }
+    { enabled: !!experimentId },
   );
 
   if (!variants.data || !scenarios.data) return null;

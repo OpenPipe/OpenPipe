@@ -20,7 +20,7 @@ export const reevaluateVariant = async (variantId: string) => {
   await Promise.all(
     evaluations.map(async (evaluation) => {
       const passCount = modelOutputs.filter((output) =>
-        evaluateOutput(output, output.testScenario, evaluation)
+        evaluateOutput(output, output.testScenario, evaluation),
       ).length;
       const failCount = modelOutputs.length - passCount;
 
@@ -42,7 +42,7 @@ export const reevaluateVariant = async (variantId: string) => {
           failCount,
         },
       });
-    })
+    }),
   );
 };
 
@@ -64,7 +64,7 @@ export const reevaluateEvaluation = async (evaluation: Evaluation) => {
     variants.map(async (variant) => {
       const outputs = modelOutputs.filter((output) => output.promptVariantId === variant.id);
       const passCount = outputs.filter((output) =>
-        evaluateOutput(output, output.testScenario, evaluation)
+        evaluateOutput(output, output.testScenario, evaluation),
       ).length;
       const failCount = outputs.length - passCount;
 
@@ -86,6 +86,6 @@ export const reevaluateEvaluation = async (evaluation: Evaluation) => {
           failCount,
         },
       });
-    })
+    }),
   );
 };

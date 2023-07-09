@@ -39,7 +39,7 @@ const convertOpenApiToJsonSchema = async (url: string) => {
   // Write the JSON schema to a file in the current directory
   fs.writeFileSync(
     path.join(currentDirectory, "openai.schema.json"),
-    JSON.stringify(jsonSchema, null, 2)
+    JSON.stringify(jsonSchema, null, 2),
   );
 };
 

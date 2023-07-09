@@ -20,9 +20,7 @@
     "/chat/completions": {
       "post": {
         "operationId": "createChatCompletion",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Creates a model response for the given chat conversation.",
         "requestBody": {
           "required": true,
@@ -64,9 +62,7 @@
     "/completions": {
       "post": {
         "operationId": "createCompletion",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Creates a completion for the provided prompt and parameters.",
         "requestBody": {
           "required": true,
@@ -107,9 +103,7 @@
     "/edits": {
       "post": {
         "operationId": "createEdit",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Creates a new edit for the provided input, instruction, and parameters.",
         "requestBody": {
           "required": true,
@@ -150,9 +144,7 @@
     "/images/generations": {
       "post": {
         "operationId": "createImage",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Creates an image given a prompt.",
         "requestBody": {
           "required": true,
@@ -194,9 +186,7 @@
     "/images/edits": {
       "post": {
         "operationId": "createImageEdit",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Creates an edited or extended image given an original image and a prompt.",
         "requestBody": {
           "required": true,
@@ -237,9 +227,7 @@
     "/images/variations": {
       "post": {
         "operationId": "createImageVariation",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Creates a variation of a given image.",
         "requestBody": {
           "required": true,
@@ -280,9 +268,7 @@
     "/embeddings": {
       "post": {
         "operationId": "createEmbedding",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Creates an embedding vector representing the input text.",
         "requestBody": {
           "required": true,
@@ -323,9 +309,7 @@
     "/audio/transcriptions": {
       "post": {
         "operationId": "createTranscription",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Transcribes audio into the input language.",
         "requestBody": {
           "required": true,
@@ -367,9 +351,7 @@
     "/audio/translations": {
       "post": {
         "operationId": "createTranslation",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Translates audio into English.",
         "requestBody": {
           "required": true,
@@ -411,9 +393,7 @@
     "/files": {
       "get": {
         "operationId": "listFiles",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Returns a list of files that belong to the user's organization.",
         "responses": {
           "200": {
@@ -441,9 +421,7 @@
       },
       "post": {
         "operationId": "createFile",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by one organization can be up to 1 GB. Please contact us if you need to increase the storage limit.\n",
         "requestBody": {
           "required": true,
@@ -483,9 +461,7 @@
     "/files/{file_id}": {
       "delete": {
         "operationId": "deleteFile",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Delete a file.",
         "parameters": [
           {
@@ -524,9 +500,7 @@
       },
       "get": {
         "operationId": "retrieveFile",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Returns information about a specific file.",
         "parameters": [
           {
@@ -567,9 +541,7 @@
     "/files/{file_id}/content": {
       "get": {
         "operationId": "downloadFile",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Returns the contents of the specified file",
         "parameters": [
           {
@@ -609,9 +581,7 @@
     "/fine-tunes": {
       "post": {
         "operationId": "createFineTune",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Creates a job that fine-tunes a specified model from a given dataset.\n\nResponse includes details of the enqueued job including job status and the name of the fine-tuned models once complete.\n\n[Learn more about Fine-tuning](/docs/guides/fine-tuning)\n",
         "requestBody": {
           "required": true,
@@ -649,9 +619,7 @@
       },
       "get": {
         "operationId": "listFineTunes",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "List your organization's fine-tuning jobs\n",
         "responses": {
           "200": {
@@ -681,9 +649,7 @@
     "/fine-tunes/{fine_tune_id}": {
       "get": {
         "operationId": "retrieveFineTune",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Gets info about the fine-tune job.\n\n[Learn more about Fine-tuning](/docs/guides/fine-tuning)\n",
         "parameters": [
           {
@@ -725,9 +691,7 @@
     "/fine-tunes/{fine_tune_id}/cancel": {
       "post": {
         "operationId": "cancelFineTune",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Immediately cancel a fine-tune job.\n",
         "parameters": [
           {
@@ -769,9 +733,7 @@
     "/fine-tunes/{fine_tune_id}/events": {
       "get": {
         "operationId": "listFineTuneEvents",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Get fine-grained status updates for a fine-tune job.\n",
         "parameters": [
           {
@@ -823,9 +785,7 @@
     "/models": {
       "get": {
         "operationId": "listModels",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Lists the currently available models, and provides basic information about each one such as the owner and availability.",
         "responses": {
           "200": {
@@ -855,9 +815,7 @@
     "/models/{model}": {
       "get": {
         "operationId": "retrieveModel",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Retrieves a model instance, providing basic information about the model such as the owner and permissioning.",
         "parameters": [
           {
@@ -897,9 +855,7 @@
       },
       "delete": {
         "operationId": "deleteModel",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Delete a fine-tuned model. You must have the Owner role in your organization.",
         "parameters": [
           {
@@ -941,9 +897,7 @@
     "/moderations": {
       "post": {
         "operationId": "createModeration",
-        "tags": [
-          "OpenAI"
-        ],
+        "tags": ["OpenAI"],
         "summary": "Classifies if text violates OpenAI's Content Policy",
         "requestBody": {
           "required": true,
@@ -1004,12 +958,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "type",
-          "message",
-          "param",
-          "code"
-        ]
+        "required": ["type", "message", "param", "code"]
       },
       "ErrorResponse": {
         "type": "object",
@@ -1018,9 +967,7 @@
             "$ref": "#/components/schemas/Error"
           }
         },
-        "required": [
-          "error"
-        ]
+        "required": ["error"]
       },
       "ListModelsResponse": {
         "type": "object",
@@ -1035,10 +982,7 @@
             }
           }
         },
-        "required": [
-          "object",
-          "data"
-        ]
+        "required": ["object", "data"]
       },
       "DeleteModelResponse": {
         "type": "object",
@@ -1053,11 +997,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "id",
-          "object",
-          "deleted"
-        ]
+        "required": ["id", "object", "deleted"]
       },
       "CreateCompletionRequest": {
         "type": "object",
@@ -1243,10 +1183,7 @@
             "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n"
           }
         },
-        "required": [
-          "model",
-          "prompt"
-        ]
+        "required": ["model", "prompt"]
       },
       "CreateCompletionResponse": {
         "type": "object",
@@ -1267,12 +1204,7 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": [
-                "text",
-                "index",
-                "logprobs",
-                "finish_reason"
-              ],
+              "required": ["text", "index", "logprobs", "finish_reason"],
               "properties": {
                 "text": {
                   "type": "string"
@@ -1312,10 +1244,7 @@
                 },
                 "finish_reason": {
                   "type": "string",
-                  "enum": [
-                    "stop",
-                    "length"
-                  ]
+                  "enum": ["stop", "length"]
                 }
               }
             }
@@ -1333,32 +1262,17 @@
                 "type": "integer"
               }
             },
-            "required": [
-              "prompt_tokens",
-              "completion_tokens",
-              "total_tokens"
-            ]
+            "required": ["prompt_tokens", "completion_tokens", "total_tokens"]
           }
         },
-        "required": [
-          "id",
-          "object",
-          "created",
-          "model",
-          "choices"
-        ]
+        "required": ["id", "object", "created", "model", "choices"]
       },
       "ChatCompletionRequestMessage": {
         "type": "object",
         "properties": {
           "role": {
             "type": "string",
-            "enum": [
-              "system",
-              "user",
-              "assistant",
-              "function"
-            ],
+            "enum": ["system", "user", "assistant", "function"],
             "description": "The role of the messages author. One of `system`, `user`, `assistant`, or `function`."
           },
           "content": {
@@ -1384,9 +1298,7 @@
             }
           }
         },
-        "required": [
-          "role"
-        ]
+        "required": ["role"]
       },
       "ChatCompletionFunctionParameters": {
         "type": "object",
@@ -1408,21 +1320,14 @@
             "$ref": "#/components/schemas/ChatCompletionFunctionParameters"
           }
         },
-        "required": [
-          "name"
-        ]
+        "required": ["name"]
       },
       "ChatCompletionResponseMessage": {
         "type": "object",
         "properties": {
           "role": {
             "type": "string",
-            "enum": [
-              "system",
-              "user",
-              "assistant",
-              "function"
-            ],
+            "enum": ["system", "user", "assistant", "function"],
             "description": "The role of the author of this message."
           },
           "content": {
@@ -1445,21 +1350,14 @@
             }
           }
         },
-        "required": [
-          "role"
-        ]
+        "required": ["role"]
       },
       "ChatCompletionStreamResponseDelta": {
         "type": "object",
         "properties": {
           "role": {
             "type": "string",
-            "enum": [
-              "system",
-              "user",
-              "assistant",
-              "function"
-            ],
+            "enum": ["system", "user", "assistant", "function"],
             "description": "The role of the author of this message."
           },
           "content": {
@@ -1522,10 +1420,7 @@
             "oneOf": [
               {
                 "type": "string",
-                "enum": [
-                  "none",
-                  "auto"
-                ]
+                "enum": ["none", "auto"]
               },
               {
                 "type": "object",
@@ -1535,9 +1430,7 @@
                     "description": "The name of the function to call."
                   }
                 },
-                "required": [
-                  "name"
-                ]
+                "required": ["name"]
               }
             ]
           },
@@ -1626,10 +1519,7 @@
             "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n"
           }
         },
-        "required": [
-          "model",
-          "messages"
-        ]
+        "required": ["model", "messages"]
       },
       "CreateChatCompletionResponse": {
         "type": "object",
@@ -1659,11 +1549,7 @@
                 },
                 "finish_reason": {
                   "type": "string",
-                  "enum": [
-                    "stop",
-                    "length",
-                    "function_call"
-                  ]
+                  "enum": ["stop", "length", "function_call"]
                 }
               }
             }
@@ -1681,20 +1567,10 @@
                 "type": "integer"
               }
             },
-            "required": [
-              "prompt_tokens",
-              "completion_tokens",
-              "total_tokens"
-            ]
+            "required": ["prompt_tokens", "completion_tokens", "total_tokens"]
           }
         },
-        "required": [
-          "id",
-          "object",
-          "created",
-          "model",
-          "choices"
-        ]
+        "required": ["id", "object", "created", "model", "choices"]
       },
       "CreateChatCompletionStreamResponse": {
         "type": "object",
@@ -1724,23 +1600,13 @@
                 },
                 "finish_reason": {
                   "type": "string",
-                  "enum": [
-                    "stop",
-                    "length",
-                    "function_call"
-                  ]
+                  "enum": ["stop", "length", "function_call"]
                 }
               }
             }
           }
         },
-        "required": [
-          "id",
-          "object",
-          "created",
-          "model",
-          "choices"
-        ]
+        "required": ["id", "object", "created", "model", "choices"]
       },
       "CreateEditRequest": {
         "type": "object",
@@ -1755,10 +1621,7 @@
               },
               {
                 "type": "string",
-                "enum": [
-                  "text-davinci-edit-001",
-                  "code-davinci-edit-001"
-                ]
+                "enum": ["text-davinci-edit-001", "code-davinci-edit-001"]
               }
             ]
           },
@@ -1802,10 +1665,7 @@
             "description": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n\nWe generally recommend altering this or `temperature` but not both.\n"
           }
         },
-        "required": [
-          "model",
-          "instruction"
-        ]
+        "required": ["model", "instruction"]
       },
       "CreateEditResponse": {
         "type": "object",
@@ -1859,10 +1719,7 @@
                 },
                 "finish_reason": {
                   "type": "string",
-                  "enum": [
-                    "stop",
-                    "length"
-                  ]
+                  "enum": ["stop", "length"]
                 }
               }
             }
@@ -1880,19 +1737,10 @@
                 "type": "integer"
               }
             },
-            "required": [
-              "prompt_tokens",
-              "completion_tokens",
-              "total_tokens"
-            ]
+            "required": ["prompt_tokens", "completion_tokens", "total_tokens"]
           }
         },
-        "required": [
-          "object",
-          "created",
-          "choices",
-          "usage"
-        ]
+        "required": ["object", "created", "choices", "usage"]
       },
       "CreateImageRequest": {
         "type": "object",
@@ -1913,11 +1761,7 @@
           },
           "size": {
             "type": "string",
-            "enum": [
-              "256x256",
-              "512x512",
-              "1024x1024"
-            ],
+            "enum": ["256x256", "512x512", "1024x1024"],
             "default": "1024x1024",
             "example": "1024x1024",
             "nullable": true,
@@ -1925,10 +1769,7 @@
           },
           "response_format": {
             "type": "string",
-            "enum": [
-              "url",
-              "b64_json"
-            ],
+            "enum": ["url", "b64_json"],
             "default": "url",
             "example": "url",
             "nullable": true,
@@ -1940,9 +1781,7 @@
             "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n"
           }
         },
-        "required": [
-          "prompt"
-        ]
+        "required": ["prompt"]
       },
       "ImagesResponse": {
         "properties": {
@@ -1964,10 +1803,7 @@
             }
           }
         },
-        "required": [
-          "created",
-          "data"
-        ]
+        "required": ["created", "data"]
       },
       "CreateImageEditRequest": {
         "type": "object",
@@ -1998,11 +1834,7 @@
           },
           "size": {
             "type": "string",
-            "enum": [
-              "256x256",
-              "512x512",
-              "1024x1024"
-            ],
+            "enum": ["256x256", "512x512", "1024x1024"],
             "default": "1024x1024",
             "example": "1024x1024",
             "nullable": true,
@@ -2010,10 +1842,7 @@
           },
           "response_format": {
             "type": "string",
-            "enum": [
-              "url",
-              "b64_json"
-            ],
+            "enum": ["url", "b64_json"],
             "default": "url",
             "example": "url",
             "nullable": true,
@@ -2025,10 +1854,7 @@
             "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n"
           }
         },
-        "required": [
-          "prompt",
-          "image"
-        ]
+        "required": ["prompt", "image"]
       },
       "CreateImageVariationRequest": {
         "type": "object",
@@ -2049,11 +1875,7 @@
           },
           "size": {
             "type": "string",
-            "enum": [
-              "256x256",
-              "512x512",
-              "1024x1024"
-            ],
+            "enum": ["256x256", "512x512", "1024x1024"],
             "default": "1024x1024",
             "example": "1024x1024",
             "nullable": true,
@@ -2061,10 +1883,7 @@
           },
           "response_format": {
             "type": "string",
-            "enum": [
-              "url",
-              "b64_json"
-            ],
+            "enum": ["url", "b64_json"],
             "default": "url",
             "example": "url",
             "nullable": true,
@@ -2076,9 +1895,7 @@
             "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n"
           }
         },
-        "required": [
-          "image"
-        ]
+        "required": ["image"]
       },
       "CreateModerationRequest": {
         "type": "object",
@@ -2112,17 +1929,12 @@
               },
               {
                 "type": "string",
-                "enum": [
-                  "text-moderation-latest",
-                  "text-moderation-stable"
-                ]
+                "enum": ["text-moderation-latest", "text-moderation-stable"]
               }
             ]
           }
         },
-        "required": [
-          "input"
-        ]
+        "required": ["input"]
       },
       "CreateModerationResponse": {
         "type": "object",
@@ -2212,19 +2024,11 @@
                   ]
                 }
               },
-              "required": [
-                "flagged",
-                "categories",
-                "category_scores"
-              ]
+              "required": ["flagged", "categories", "category_scores"]
             }
           }
         },
-        "required": [
-          "id",
-          "model",
-          "results"
-        ]
+        "required": ["id", "model", "results"]
       },
       "ListFilesResponse": {
         "type": "object",
@@ -2239,10 +2043,7 @@
             }
           }
         },
-        "required": [
-          "object",
-          "data"
-        ]
+        "required": ["object", "data"]
       },
       "CreateFileRequest": {
         "type": "object",
@@ -2258,10 +2059,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "file",
-          "purpose"
-        ]
+        "required": ["file", "purpose"]
       },
       "DeleteFileResponse": {
         "type": "object",
@@ -2276,11 +2074,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "id",
-          "object",
-          "deleted"
-        ]
+        "required": ["id", "object", "deleted"]
       },
       "CreateFineTuneRequest": {
         "type": "object",
@@ -2307,12 +2101,7 @@
               },
               {
                 "type": "string",
-                "enum": [
-                  "ada",
-                  "babbage",
-                  "curie",
-                  "davinci"
-                ]
+                "enum": ["ada", "babbage", "curie", "davinci"]
               }
             ]
           },
@@ -2364,12 +2153,7 @@
             "items": {
               "type": "number"
             },
-            "example": [
-              0.6,
-              1,
-              1.5,
-              2
-            ],
+            "example": [0.6, 1, 1.5, 2],
             "default": null,
             "nullable": true
           },
@@ -2382,9 +2166,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "training_file"
-        ]
+        "required": ["training_file"]
       },
       "ListFineTunesResponse": {
         "type": "object",
@@ -2399,10 +2181,7 @@
             }
           }
         },
-        "required": [
-          "object",
-          "data"
-        ]
+        "required": ["object", "data"]
       },
       "ListFineTuneEventsResponse": {
         "type": "object",
@@ -2417,10 +2196,7 @@
             }
           }
         },
-        "required": [
-          "object",
-          "data"
-        ]
+        "required": ["object", "data"]
       },
       "CreateEmbeddingRequest": {
         "type": "object",
@@ -2435,9 +2211,7 @@
               },
               {
                 "type": "string",
-                "enum": [
-                  "text-embedding-ada-002"
-                ]
+                "enum": ["text-embedding-ada-002"]
               }
             ]
           },
@@ -2486,10 +2260,7 @@
             "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n"
           }
         },
-        "required": [
-          "model",
-          "input"
-        ]
+        "required": ["model", "input"]
       },
       "CreateEmbeddingResponse": {
         "type": "object",
@@ -2518,11 +2289,7 @@
                   }
                 }
               },
-              "required": [
-                "index",
-                "object",
-                "embedding"
-              ]
+              "required": ["index", "object", "embedding"]
             }
           },
           "usage": {
@@ -2535,18 +2302,10 @@
                 "type": "integer"
               }
             },
-            "required": [
-              "prompt_tokens",
-              "total_tokens"
-            ]
+            "required": ["prompt_tokens", "total_tokens"]
           }
         },
-        "required": [
-          "object",
-          "model",
-          "data",
-          "usage"
-        ]
+        "required": ["object", "model", "data", "usage"]
       },
       "CreateTranscriptionRequest": {
         "type": "object",
@@ -2567,9 +2326,7 @@
               },
               {
                 "type": "string",
-                "enum": [
-                  "whisper-1"
-                ]
+                "enum": ["whisper-1"]
               }
             ]
           },
@@ -2592,10 +2349,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "file",
-          "model"
-        ]
+        "required": ["file", "model"]
       },
       "CreateTranscriptionResponse": {
         "type": "object",
@@ -2604,9 +2358,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "text"
-        ]
+        "required": ["text"]
       },
       "CreateTranslationRequest": {
         "type": "object",
@@ -2627,9 +2379,7 @@
               },
               {
                 "type": "string",
-                "enum": [
-                  "whisper-1"
-                ]
+                "enum": ["whisper-1"]
               }
             ]
           },
@@ -2648,10 +2398,7 @@
             "default": 0
           }
         },
-        "required": [
-          "file",
-          "model"
-        ]
+        "required": ["file", "model"]
       },
       "CreateTranslationResponse": {
         "type": "object",
@@ -2660,9 +2407,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "text"
-        ]
+        "required": ["text"]
       },
       "Model": {
         "title": "Model",
@@ -2680,12 +2425,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "object",
-          "created",
-          "owned_by"
-        ]
+        "required": ["id", "object", "created", "owned_by"]
       },
       "OpenAIFile": {
         "title": "OpenAIFile",
@@ -2716,14 +2456,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "id",
-          "object",
-          "bytes",
-          "created_at",
-          "filename",
-          "purpose"
-        ]
+        "required": ["id", "object", "bytes", "created_at", "filename", "purpose"]
       },
       "FineTune": {
         "title": "FineTune",
@@ -2812,12 +2545,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "object",
-          "created_at",
-          "level",
-          "message"
-        ]
+        "required": ["object", "created_at", "level", "message"]
       }
     }
   },

@@ -46,7 +46,7 @@ export default function VariantHeader(props: { variant: PromptVariant }) {
       });
       await utils.promptVariants.list.invalidate();
     },
-    [reorderMutation, props.variant.id]
+    [reorderMutation, props.variant.id],
   );
 
   return (

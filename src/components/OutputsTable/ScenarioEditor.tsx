@@ -64,7 +64,7 @@ export default function ScenarioEditor({
       });
       await utils.scenarios.list.invalidate();
     },
-    [reorderMutation, scenario.id]
+    [reorderMutation, scenario.id],
   );
 
   return (

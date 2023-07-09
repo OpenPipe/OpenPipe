@@ -1,5 +1,4 @@
-
-# <img src="https://github.com/openpipe/openpipe/assets/41524992/3fec1f7f-f55d-43e9-bfb9-fa709a618b49" width="36" height="36"> OpenPipe 
+# <img src="https://github.com/openpipe/openpipe/assets/41524992/3fec1f7f-f55d-43e9-bfb9-fa709a618b49" width="36" height="36"> OpenPipe
 
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
@@ -16,7 +15,7 @@ Set up multiple prompt configurations and compare their output side-by-side. Eac
 Inspect prompt completions side-by-side.
 
 **Test Many Inputs**  
-OpenPipe lets you *template* a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broader coverage of your problem space than you'd get with manual testing.
+OpenPipe lets you _template_ a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broader coverage of your problem space than you'd get with manual testing.
 
 **🪄 Auto-generate Test Scenarios**  
 OpenPipe includes a tool to generate new test scenarios based on your existing prompts and scenarios. Just click "Autogenerate Scenario" to try it out!
@@ -32,6 +31,7 @@ Natively supports [OpenAI function calls](https://openai.com/blog/function-calli
 <img height="300px" alt="function calls" src="https://github.com/openpipe/openpipe/assets/176426/48ad13fe-af2f-4294-bf32-62015597fd9b">
 
 ## Supported Models
+
 OpenPipe currently supports GPT-3.5 and GPT-4. Wider model support is planned.
 
 ## Running Locally

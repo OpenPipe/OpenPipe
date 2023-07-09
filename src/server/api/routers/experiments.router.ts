@@ -32,7 +32,7 @@ export const experimentsRouter = createTRPCRouter({
           testScenarioCount: visibleTestScenarioCount,
           promptVariantCount: visiblePromptVariantCount,
         };
-      })
+      }),
     );
 
     return experimentsWithCounts;

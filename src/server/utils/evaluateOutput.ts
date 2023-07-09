@@ -5,7 +5,7 @@ import { type VariableMap, fillTemplate } from "./fillTemplate";
 export const evaluateOutput = (
   modelOutput: ModelOutput,
   scenario: TestScenario,
-  evaluation: Evaluation
+  evaluation: Evaluation,
 ): boolean => {
   const output = modelOutput.output as unknown as ChatCompletion;
   const message = output?.choices?.[0]?.message;
