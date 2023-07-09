@@ -11,7 +11,7 @@ export default function PublicPlaygroundWarning() {
       <Text>
         Warning: this is a public playground. Anyone can see, edit or delete your experiments. For
         private use,{" "}
-        <Link textDecor="underline" href="https://github.com/open-pipe/openpipe" target="_blank">
+        <Link textDecor="underline" href="https://github.com/openpipe/openpipe" target="_blank">
           run a local copy
         </Link>
         .
