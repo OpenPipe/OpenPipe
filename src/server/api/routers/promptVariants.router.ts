@@ -74,7 +74,7 @@ export const promptVariantsRouter = createTRPCRouter({
     .input(
       z.object({
         experimentId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const lastVariant = await prisma.promptVariant.findFirst({
@@ -120,7 +120,7 @@ export const promptVariantsRouter = createTRPCRouter({
         updates: z.object({
           label: z.string().optional(),
         }),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const existing = await prisma.promptVariant.findUnique({
@@ -147,7 +147,7 @@ export const promptVariantsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const variant = await prisma.promptVariant.update({
@@ -165,7 +165,7 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         config: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const existing = await prisma.promptVariant.findUnique({
@@ -219,7 +219,7 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         draggedId: z.string(),
         droppedId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const dragged = await prisma.promptVariant.findUnique({
@@ -236,7 +236,7 @@ export const promptVariantsRouter = createTRPCRouter({
 
       if (!dragged || !dropped || dragged.experimentId !== dropped.experimentId) {
         throw new Error(
-          `Prompt Variant with id ${input.draggedId} or ${input.droppedId} does not exist`
+          `Prompt Variant with id ${input.draggedId} or ${input.droppedId} does not exist`,
         );
       }
 
@@ -279,7 +279,7 @@ export const promptVariantsRouter = createTRPCRouter({
               sortIndex: index,
             },
           });
-        })
+        }),
       );
     }),
 });

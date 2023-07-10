@@ -30,9 +30,7 @@ export default function ExperimentsPage() {
           <NewExperimentButton mr={4} borderRadius={8} />
         </HStack>
         <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} p="4">
-          {experiments?.data?.map((exp) => (
-            <ExperimentCard key={exp.id} exp={exp} />
-          ))}
+          {experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} />)}
         </SimpleGrid>
       </VStack>
     </AppShell>

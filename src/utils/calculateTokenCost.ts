@@ -25,7 +25,7 @@ const openAICompletionTokensToDollars: { [key in OpenAIChatModel]: number } = {
 export const calculateTokenCost = (
   model: SupportedModel | null,
   numTokens: number,
-  isCompletion = false
+  isCompletion = false,
 ) => {
   if (!model) return 0;
   if (model in OpenAIChatModel) {
@@ -37,7 +37,7 @@ export const calculateTokenCost = (
 const calculateOpenAIChatTokenCost = (
   model: OpenAIChatModel,
   numTokens: number,
-  isCompletion: boolean
+  isCompletion: boolean,
 ) => {
   const tokensToDollars = isCompletion
     ? openAICompletionTokensToDollars[model]

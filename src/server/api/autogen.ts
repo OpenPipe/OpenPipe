@@ -1,4 +1,3 @@
-
 import { type CompletionCreateParams } from "openai/resources/chat";
 import { prisma } from "../db";
 import { openai } from "../utils/openai";
@@ -27,7 +26,7 @@ function isAxiosError(error: unknown): error is AxiosError {
   return false;
 }
 export const autogenerateScenarioValues = async (
-  experimentId: string
+  experimentId: string,
 ): Promise<Record<string, string>> => {
   const [experiment, variables, existingScenarios, prompt] = await Promise.all([
     prisma.experiment.findUnique({
@@ -84,8 +83,8 @@ export const autogenerateScenarioValues = async (
       (scenario) =>
         pick(
           scenario.variableValues,
-          variables.map((variable) => variable.label)
-        ) as Record<string, string>
+          variables.map((variable) => variable.label),
+        ) as Record<string, string>,
     )
     .filter((vals) => Object.keys(vals ?? {}).length > 0)
     .forEach((vals) => {
@@ -99,10 +98,13 @@ export const autogenerateScenarioValues = async (
       });
     });
 
-  const variableProperties = variables.reduce((acc, variable) => {
-    acc[variable.label] = { type: "string" };
-    return acc;
-  }, {} as Record<string, { type: "string" }>);
+  const variableProperties = variables.reduce(
+    (acc, variable) => {
+      acc[variable.label] = { type: "string" };
+      return acc;
+    },
+    {} as Record<string, { type: "string" }>,
+  );
 
   try {
     const completion = await openai.chat.completions.create({
@@ -123,7 +125,7 @@ export const autogenerateScenarioValues = async (
     });
 
     const parsed = JSON.parse(
-      completion.choices[0]?.message?.function_call?.arguments ?? "{}"
+      completion.choices[0]?.message?.function_call?.arguments ?? "{}",
     ) as Record<string, string>;
     return parsed;
   } catch (e) {

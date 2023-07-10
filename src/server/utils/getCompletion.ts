@@ -23,7 +23,7 @@ type CompletionResponse = {
 
 export async function getCompletion(
   payload: JSONSerializable,
-  channel?: string
+  channel?: string,
 ): Promise<CompletionResponse> {
   const modelName = getModelName(payload);
   if (!modelName)
@@ -37,7 +37,7 @@ export async function getCompletion(
     return getOpenAIChatCompletion(
       payload as unknown as CompletionCreateParams,
       env.OPENAI_API_KEY,
-      channel
+      channel,
     );
   }
   return {
@@ -51,7 +51,7 @@ export async function getCompletion(
 export async function getOpenAIChatCompletion(
   payload: CompletionCreateParams,
   apiKey: string,
-  channel?: string
+  channel?: string,
 ): Promise<CompletionResponse> {
   // If functions are enabled, disable streaming so that we get the full response with token counts
   if (payload.functions?.length) payload.stream = false;

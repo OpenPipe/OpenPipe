@@ -17,7 +17,7 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
 
   const savedConfig = useMemo(
     () => JSON.stringify(props.variant.config, null, 2),
-    [props.variant.config]
+    [props.variant.config],
   );
   const savedConfigRef = useRef(savedConfig);
 

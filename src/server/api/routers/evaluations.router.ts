@@ -21,7 +21,7 @@ export const evaluationsRouter = createTRPCRouter({
         name: z.string(),
         matchString: z.string(),
         matchType: z.nativeEnum(EvaluationMatchType),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const evaluation = await prisma.evaluation.create({
@@ -44,7 +44,7 @@ export const evaluationsRouter = createTRPCRouter({
           matchString: z.string().optional(),
           matchType: z.nativeEnum(EvaluationMatchType).optional(),
         }),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       await prisma.evaluation.update({
@@ -56,7 +56,7 @@ export const evaluationsRouter = createTRPCRouter({
         },
       });
       await reevaluateEvaluation(
-        await prisma.evaluation.findUniqueOrThrow({ where: { id: input.id } })
+        await prisma.evaluation.findUniqueOrThrow({ where: { id: input.id } }),
       );
     }),
 

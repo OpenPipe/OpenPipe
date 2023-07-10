@@ -8,17 +8,20 @@ export function fillTemplate(template: string, variables: VariableMap): string {
 
 export function fillTemplateJson<T extends JSONSerializable>(
   template: T,
-  variables: VariableMap
+  variables: VariableMap,
 ): T {
   if (typeof template === "string") {
     return fillTemplate(template, variables) as T;
   } else if (Array.isArray(template)) {
     return template.map((item) => fillTemplateJson(item, variables)) as T;
   } else if (typeof template === "object" && template !== null) {
-    return Object.keys(template).reduce((acc, key) => {
-      acc[key] = fillTemplateJson(template[key] as JSONSerializable, variables);
-      return acc;
-    }, {} as { [key: string]: JSONSerializable } & T);
+    return Object.keys(template).reduce(
+      (acc, key) => {
+        acc[key] = fillTemplateJson(template[key] as JSONSerializable, variables);
+        return acc;
+      },
+      {} as { [key: string]: JSONSerializable } & T,
+    );
   } else {
     return template;
   }

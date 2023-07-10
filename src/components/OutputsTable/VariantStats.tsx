@@ -20,7 +20,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
         scenarioCount: 0,
         outputCount: 0,
       },
-    }
+    },
   );
 
   const [passColor, neutralColor, failColor] = useToken("colors", [

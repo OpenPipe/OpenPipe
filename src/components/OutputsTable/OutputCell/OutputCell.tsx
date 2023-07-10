@@ -1,12 +1,6 @@
 import { type RouterOutputs, api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "../types";
-import {
-  Spinner,
-  Text,
-  Box,
-  Center,
-  Flex,
-} from "@chakra-ui/react";
+import { Spinner, Text, Box, Center, Flex } from "@chakra-ui/react";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
@@ -82,7 +76,7 @@ export default function OutputCell({
       await utils.promptVariants.stats.invalidate();
       fetchMutex.current = false;
     },
-    [outputMutation, scenario.id, variant.id]
+    [outputMutation, scenario.id, variant.id],
   );
   const hardRefetch = useCallback(() => fetchOutput(true), [fetchOutput]);
 
@@ -143,7 +137,7 @@ export default function OutputCell({
               function: message.function_call.name,
               args: parsedArgs,
             },
-            { maxLength: 40 }
+            { maxLength: 40 },
           )}
         </SyntaxHighlighter>
         <OutputStats model={model} modelOutput={output} scenario={scenario} />
@@ -160,5 +154,3 @@ export default function OutputCell({
     </Flex>
   );
 }
-
-

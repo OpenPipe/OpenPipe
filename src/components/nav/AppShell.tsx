@@ -65,7 +65,7 @@ const NavSidebar = () => {
         <IconLink
           icon={BsGithub}
           label="GitHub"
-          href="https://github.com/open-pipe/openpipe"
+          href="https://github.com/openpipe/openpipe"
           target="_blank"
           color="gray.500"
           _hover={{ color: "gray.800" }}
