@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { autogenerateScenarioValues } from "../autogen";
+import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 
 export const scenariosRouter = createTRPCRouter({
   list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
@@ -36,7 +37,7 @@ export const scenariosRouter = createTRPCRouter({
           })
         )._max.sortIndex ?? 0;
 
-      await prisma.testScenario.create({
+      const createNewScenarioAction = prisma.testScenario.create({
         data: {
           experimentId: input.experimentId,
           sortIndex: maxSortIndex + 1,
@@ -46,20 +47,16 @@ export const scenariosRouter = createTRPCRouter({
         },
       });
 
-      await prisma.experiment.update({
-        where: {
-          id: input.experimentId,
-        },
-        data: {
-          updatedAt: new Date(),
-        },
-      });
+      await prisma.$transaction([
+        createNewScenarioAction,
+        recordExperimentUpdated(input.experimentId)
+      ]);
     }),
 
   hide: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
     return await prisma.testScenario.update({
       where: { id: input.id },
-      data: { visible: false },
+      data: { visible: false, experiment: { update: { updatedAt: new Date() } } },
     });
   }),
 
