@@ -55,7 +55,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         py={cellPadding.y}
         // TODO: This is a hack to get the sticky header to work. It's not ideal because it's not responsive to the height of the header,
         // so if the header height changes, this will need to be updated.
-        sx={{...stickyHeaderStyle, top: "-336px"}}
+        sx={{...stickyHeaderStyle, top: "-337px"}}
       >
         <HStack w="100%">
           <Heading size="xs" fontWeight="bold" flex={1}>
