@@ -128,8 +128,9 @@ export default function Experiment() {
         <Flex
           px={4}
           py={2}
-          direction={{ base: "column", md: "row" }}
-          alignItems={{ base: "flex-start", md: "center" }}
+          w="full"
+          direction={{ base: "column", sm: "row" }}
+          alignItems="flex-start"
         >
           <Breadcrumb flex={1}>
             <BreadcrumbItem>

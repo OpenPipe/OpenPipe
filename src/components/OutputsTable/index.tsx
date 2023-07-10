@@ -85,6 +85,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         padding={0}
         // Have to use `style` instead of emotion style props to work around css specificity issues conflicting with the "> *" selector on Grid
         style={{ borderRightWidth: 0, borderBottomWidth: 0 }}
+        h={8}
         sx={stickyHeaderStyle}
       >
         <NewVariantButton />
