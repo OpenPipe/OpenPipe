@@ -37,7 +37,7 @@ export const scenariosRouter = createTRPCRouter({
           })
         )._max.sortIndex ?? 0;
 
-      await prisma.testScenario.create({
+      const createNewScenarioAction = prisma.testScenario.create({
         data: {
           experimentId: input.experimentId,
           sortIndex: maxSortIndex + 1,
@@ -47,18 +47,17 @@ export const scenariosRouter = createTRPCRouter({
         },
       });
 
-      await recordExperimentUpdated(input.experimentId);
+      await prisma.$transaction([
+        createNewScenarioAction,
+        recordExperimentUpdated(input.experimentId)
+      ]);
     }),
 
   hide: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-    const scenario = await prisma.testScenario.update({
+    return await prisma.testScenario.update({
       where: { id: input.id },
-      data: { visible: false },
+      data: { visible: false, experiment: { update: { updatedAt: new Date() } } },
     });
-
-    await recordExperimentUpdated(scenario.experimentId);
-
-    return scenario;
   }),
 
   reorder: publicProcedure

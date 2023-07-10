@@ -99,7 +99,7 @@ export const promptVariantsRouter = createTRPCRouter({
           })
         )._max?.sortIndex ?? 0;
 
-      const newVariant = await prisma.promptVariant.create({
+      const createNewVariantAction = prisma.promptVariant.create({
         data: {
           experimentId: input.experimentId,
           label: `Prompt Variant ${largestSortIndex + 2}`,
@@ -108,7 +108,10 @@ export const promptVariantsRouter = createTRPCRouter({
         },
       });
 
-      await recordExperimentUpdated(input.experimentId);
+      const [newVariant] = await prisma.$transaction([
+        createNewVariantAction,
+        recordExperimentUpdated(input.experimentId)
+      ]);
 
       return newVariant;
     }),
@@ -133,14 +136,20 @@ export const promptVariantsRouter = createTRPCRouter({
         throw new Error(`Prompt Variant with id ${input.id} does not exist`);
       }
 
-      await recordExperimentUpdated(existing.experimentId);
-
-      return await prisma.promptVariant.update({
+      const updatePromptVariantAction = prisma.promptVariant.update({
         where: {
           id: input.id,
         },
         data: input.updates,
       });
+    
+      const [updatedPromptVariant] = await prisma.$transaction([
+        updatePromptVariantAction,
+        recordExperimentUpdated(existing.experimentId)
+      ]);
+  
+      return updatedPromptVariant;
+
     }),
 
   hide: publicProcedure
@@ -150,14 +159,12 @@ export const promptVariantsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      const variant = await prisma.promptVariant.update({
+      const updatedPromptVariant =  await prisma.promptVariant.update({
         where: { id: input.id },
-        data: { visible: false },
+        data: { visible: false, experiment: { update: { updatedAt: new Date() } } },
       });
 
-      await recordExperimentUpdated(variant.experimentId);
-
-      return variant;
+      return updatedPromptVariant;
     }),
 
   replaceWithConfig: publicProcedure
@@ -197,7 +204,7 @@ export const promptVariantsRouter = createTRPCRouter({
       });
 
       // Hide anything with the same uiId besides the new one
-      await prisma.promptVariant.updateMany({
+      const hideOldVariantsAction = prisma.promptVariant.updateMany({
         where: {
           uiId: existing.uiId,
           id: {
@@ -209,7 +216,10 @@ export const promptVariantsRouter = createTRPCRouter({
         },
       });
 
-      await recordExperimentUpdated(existing.experimentId);
+      await prisma.$transaction([
+        hideOldVariantsAction,
+        recordExperimentUpdated(existing.experimentId)
+      ]);
 
       return newVariant;
     }),
