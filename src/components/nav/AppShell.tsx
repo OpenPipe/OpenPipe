@@ -19,6 +19,7 @@ import { useRouter } from "next/router";
 import PublicPlaygroundWarning from "../PublicPlaygroundWarning";
 import { type IconType } from "react-icons";
 import { RiFlaskLine } from "react-icons/ri";
+import { useState, useEffect } from "react";
 
 type IconLinkProps = BoxProps & LinkProps & { label: string; icon: IconType; href: string };
 
@@ -84,9 +85,28 @@ const NavSidebar = () => {
 };
 
 export default function AppShell(props: { children: React.ReactNode; title?: string }) {
+  const [vh, setVh] = useState("100vh"); // Default height to prevent flicker on initial render
+
+  useEffect(() => {
+    const setHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+      setVh(`calc(var(--vh, 1vh) * 100)`);
+    };
+    setHeight(); // Set the height at the start
+
+    // Listen to resize events
+    window.addEventListener("resize", setHeight);
+
+    // Remove event listener on cleanup
+    return () => {
+      window.removeEventListener("resize", setHeight);
+    };
+  }, []);
+
   return (
     <Grid
-      h="100vh"
+      h={vh}
       w="100vw"
       templateColumns={{ base: "56px minmax(0, 1fr)", md: "200px minmax(0, 1fr)" }}
       templateRows="max-content 1fr"
