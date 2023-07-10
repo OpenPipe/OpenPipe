@@ -89,3 +89,11 @@ export const reevaluateEvaluation = async (evaluation: Evaluation) => {
     }),
   );
 };
+
+export const reevaluateAll = async (experimentId: string) => {
+  const evaluations = await prisma.evaluation.findMany({
+    where: { experimentId },
+  });
+
+  await Promise.all(evaluations.map(reevaluateEvaluation));
+}

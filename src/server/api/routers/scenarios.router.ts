@@ -3,6 +3,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { autogenerateScenarioValues } from "../autogen";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
+import { reevaluateAll } from "~/server/utils/evaluations";
 
 export const scenariosRouter = createTRPCRouter({
   list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
@@ -54,10 +55,15 @@ export const scenariosRouter = createTRPCRouter({
     }),
 
   hide: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-    return await prisma.testScenario.update({
+    const hiddenScenario =  await prisma.testScenario.update({
       where: { id: input.id },
       data: { visible: false, experiment: { update: { updatedAt: new Date() } } },
     });
+
+    // Reevaluate all evaluations now that this scenario is hidden
+    await reevaluateAll(hiddenScenario.experimentId);
+
+    return hiddenScenario;
   }),
 
   reorder: publicProcedure
