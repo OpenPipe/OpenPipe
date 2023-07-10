@@ -5,7 +5,7 @@ import { type Scenario } from "./types";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useState } from "react";
 
-import { Box, Button, Flex, HStack, Icon, Stack, Tooltip } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Icon, Spinner, Stack, Tooltip } from "@chakra-ui/react";
 import { cellPadding } from "../constants";
 import { BsX } from "react-icons/bs";
 import { RiDraggable } from "react-icons/ri";
@@ -43,11 +43,12 @@ export default function ScenarioEditor({
   }, [mutation, values]);
 
   const hideMutation = api.scenarios.hide.useMutation();
-  const [onHide] = useHandledAsyncCallback(async () => {
+  const [onHide, hidingInProgress] = useHandledAsyncCallback(async () => {
     await hideMutation.mutateAsync({
       id: scenario.id,
     });
     await utils.scenarios.list.invalidate();
+    await utils.promptVariants.stats.invalidate();
   }, [hideMutation, scenario.id]);
 
   const reorderMutation = api.scenarios.reorder.useMutation();
@@ -106,7 +107,7 @@ export default function ScenarioEditor({
               cursor: "pointer",
             }}
           >
-            <Icon as={BsX} boxSize={6} />
+            <Icon as={hidingInProgress ? Spinner :BsX} boxSize={6} />
           </Button>
         </Tooltip>
         <Icon
