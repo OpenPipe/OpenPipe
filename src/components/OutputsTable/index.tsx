@@ -37,6 +37,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
   return (
     <Grid
       p={4}
+      pb={24}
       display="grid"
       gridTemplateColumns={`250px repeat(${variants.data.length}, minmax(300px, 1fr)) auto`}
       sx={{
