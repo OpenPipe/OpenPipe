@@ -95,12 +95,12 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
     };
     setHeight(); // Set the height at the start
 
-    // Listen to resize events
     window.addEventListener("resize", setHeight);
+    window.addEventListener("orientationchange", setHeight);
 
-    // Remove event listener on cleanup
     return () => {
       window.removeEventListener("resize", setHeight);
+      window.removeEventListener("orientationchange", setHeight);
     };
   }, []);
 
