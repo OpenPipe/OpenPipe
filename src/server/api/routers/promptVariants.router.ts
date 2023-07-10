@@ -149,7 +149,6 @@ export const promptVariantsRouter = createTRPCRouter({
       ]);
   
       return updatedPromptVariant;
-
     }),
 
   hide: publicProcedure
