@@ -16,6 +16,7 @@ import {
   useDisclosure,
   Text,
   HStack,
+  VStack,
 } from "@chakra-ui/react";
 import Link from "next/link";
 
@@ -123,7 +124,7 @@ export default function Experiment() {
 
   return (
     <AppShell title={experiment.data?.label}>
-      <Box minH="100%" pb={50}>
+      <VStack h="full">
         <Flex
           px={4}
           py={2}
@@ -172,10 +173,10 @@ export default function Experiment() {
           </HStack>
         </Flex>
         <SettingsDrawer />
-        <Box w="100%" overflowX="auto">
+        <Box w="100%" overflowX="auto" flex={1}>
           <OutputsTable experimentId={router.query.id as string | undefined} />
         </Box>
-      </Box>
+      </VStack>
     </AppShell>
   );
 }
