@@ -51,7 +51,7 @@ const NavSidebar = () => {
     <VStack align="stretch" bgColor="gray.100" py={2} pb={0} height="100%">
       <Link href="/" w="full" _hover={{ textDecoration: "none" }}>
         <HStack spacing={0} pl="4">
-          <Image src="/logo.svg" alt="" w={6} h={6} />
+          <Image src="/logo.svg" alt="" w={8} h={8} />
           <Heading size="md" p={2} pl={{ base: 16, md: 2 }}>
             OpenPipe
           </Heading>
