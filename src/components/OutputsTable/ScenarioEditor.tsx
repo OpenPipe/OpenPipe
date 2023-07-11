@@ -5,7 +5,7 @@ import { type Scenario } from "./types";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useState } from "react";
 
-import { Box, Button, Flex, HStack, Icon, Spinner, Stack, Tooltip } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Icon, Spinner, Stack, Tooltip, VStack } from "@chakra-ui/react";
 import { cellPadding } from "../constants";
 import { BsX } from "react-icons/bs";
 import { RiDraggable } from "react-icons/ri";
@@ -120,7 +120,7 @@ export default function ScenarioEditor({
       {variableLabels.length === 0 ? (
         <Box color="gray.500">{vars.data ? "No scenario variables configured" : "Loading..."}</Box>
       ) : (
-        <Stack>
+        <VStack spacing={1}>
           {variableLabels.map((key) => {
             const value = values[key] ?? "";
             const layoutDirection = value.length > 20 ? "column" : "row";
@@ -130,11 +130,12 @@ export default function ScenarioEditor({
                 direction={layoutDirection}
                 alignItems={layoutDirection === "column" ? "flex-start" : "center"}
                 flexWrap="wrap"
+                width="full"
               >
                 <Box
                   bgColor="blue.100"
                   color="blue.600"
-                  px={2}
+                  px={1}
                   my="3px"
                   fontSize="xs"
                   fontWeight="bold"
@@ -146,6 +147,8 @@ export default function ScenarioEditor({
                   py={1}
                   placeholder="empty"
                   borderRadius="sm"
+                  fontSize="sm"
+                  lineHeight={1.2}
                   value={value}
                   onChange={(e) => {
                     setValues((prev) => ({ ...prev, [key]: e.target.value }));
@@ -187,7 +190,7 @@ export default function ScenarioEditor({
               </Button>
             </HStack>
           )}
-        </Stack>
+        </VStack>
       )}
     </HStack>
   );
