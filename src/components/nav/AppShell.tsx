@@ -23,7 +23,7 @@ import { useState, useEffect } from "react";
 
 type IconLinkProps = BoxProps & LinkProps & { label: string; icon: IconType; href: string };
 
-const IconLink = ({ icon, label, href, target, ...props }: IconLinkProps) => {
+const IconLink = ({ icon, label, href, target, color, ...props }: IconLinkProps) => {
   const isActive = useRouter().pathname.startsWith(href);
   return (
     <Box
@@ -38,7 +38,7 @@ const IconLink = ({ icon, label, href, target, ...props }: IconLinkProps) => {
       cursor="pointer"
       {...props}
     >
-      <HStack w="full" px={4} color="gray.700">
+      <HStack w="full" px={4} color={color}>
         <Icon as={icon} boxSize={6} mr={2} />
         <Text fontWeight="bold">{label}</Text>
       </HStack>
