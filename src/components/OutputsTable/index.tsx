@@ -47,6 +47,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           borderRightWidth: 1,
         },
       }}
+      fontSize="sm"
     >
       <GridItem
         display="flex"
