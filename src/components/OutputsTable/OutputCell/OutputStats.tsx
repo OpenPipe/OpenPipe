@@ -9,6 +9,9 @@ import { HStack, Icon, Text } from "@chakra-ui/react";
 import { BsCheck, BsClock, BsCurrencyDollar, BsX } from "react-icons/bs";
 import { CostTooltip } from "~/components/tooltip/CostTooltip";
 
+const SHOW_COST = false;
+const SHOW_TIME = false;
+
 export const OutputStats = ({
   model,
   modelOutput,
@@ -32,8 +35,10 @@ export const OutputStats = ({
 
   const cost = promptCost + completionCost;
 
+  if (!evals.length) return null;
+
   return (
-    <HStack align="center" color="gray.500" fontSize="xs" mt={2}>
+    <HStack align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
       <HStack flex={1}>
         {evals.map((evaluation) => {
           const passed = evaluateOutput(modelOutput, scenario, evaluation);
@@ -49,16 +54,20 @@ export const OutputStats = ({
           );
         })}
       </HStack>
-      <CostTooltip promptTokens={promptTokens} completionTokens={completionTokens} cost={cost}>
-        <HStack spacing={0}>
-          <Icon as={BsCurrencyDollar} />
-          <Text mr={1}>{cost.toFixed(3)}</Text>
+      {SHOW_COST && (
+        <CostTooltip promptTokens={promptTokens} completionTokens={completionTokens} cost={cost}>
+          <HStack spacing={0}>
+            <Icon as={BsCurrencyDollar} />
+            <Text mr={1}>{cost.toFixed(3)}</Text>
+          </HStack>
+        </CostTooltip>
+      )}
+      {SHOW_TIME && (
+        <HStack spacing={0.5}>
+          <Icon as={BsClock} />
+          <Text>{(timeToComplete / 1000).toFixed(2)}s</Text>
         </HStack>
-      </CostTooltip>
-      <HStack spacing={0.5}>
-        <Icon as={BsClock} />
-        <Text>{(timeToComplete / 1000).toFixed(2)}s</Text>
-      </HStack>
+      )}
     </HStack>
   );
 };
