@@ -1,9 +1,10 @@
-import { Box, Button, HStack, Tooltip, useToast } from "@chakra-ui/react";
+import { Box, Button, HStack, Tooltip, VStack, useToast } from "@chakra-ui/react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
 import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
+import { editorBackground } from "~/state/sharedVariantEditor.slice";
 // import openAITypes from "~/codegen/openai.types.ts.txt";
 
 export default function VariantConfigEditor(props: { variant: PromptVariant }) {
@@ -129,21 +130,21 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [monaco, editorId]);
 
-  // useEffect(() => {
-  //   const savedConfigChanged = lastSavedFn !== savedConfig;
-
-  //   lastSavedFn = savedConfig;
-
-  //   if (savedConfigChanged && editorRef.current?.getValue() !== savedConfig) {
-  //     editorRef.current?.setValue(savedConfig);
-  //   }
-
-  //   checkForChanges();
-  // }, [savedConfig, checkForChanges]);
-
   return (
     <Box w="100%" pos="relative">
-      <div id={editorId} style={{ height: "300px", width: "100%" }}></div>
+      <VStack
+        spacing={0}
+        align="stretch"
+        fontSize="xs"
+        fontWeight="bold"
+        color="gray.600"
+        py={2}
+        bgColor={editorBackground}
+      >
+        <code>{`function constructPrompt(scenario: Scenario): Prompt {`}</code>
+        <div id={editorId} style={{ height: "300px", width: "100%" }}></div>
+        <code>{`return prompt; }`}</code>
+      </VStack>
       {isChanged && (
         <HStack pos="absolute" bottom={2} right={2}>
           <Button

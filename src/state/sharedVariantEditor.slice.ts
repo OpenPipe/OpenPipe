@@ -9,6 +9,8 @@ import parserTypescript from "prettier/plugins/typescript";
 import parserEstree from "prettier/plugins/estree";
 import { type languages } from "monaco-editor/esm/vs/editor/editor.api";
 
+export const editorBackground = "#fafafa";
+
 export type SharedVariantEditorSlice = {
   monaco: null | ReturnType<typeof loader.__getMonacoInstance>;
   loadMonaco: () => Promise<void>;
@@ -50,7 +52,7 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
       inherit: true,
       rules: [],
       colors: {
-        "editor.background": "#fafafa",
+        "editor.background": editorBackground,
       },
     });
 
