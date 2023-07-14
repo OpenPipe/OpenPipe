@@ -71,8 +71,6 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
         timeToComplete: matchingModelOutput.timeToComplete,
         promptTokens: matchingModelOutput.promptTokens,
         completionTokens: matchingModelOutput.completionTokens,
-        promptVariantId: cell.promptVariantId,
-        testScenarioId: cell.testScenarioId,
         createdAt: matchingModelOutput.createdAt,
         updatedAt: matchingModelOutput.updatedAt,
       },

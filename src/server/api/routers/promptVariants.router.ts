@@ -52,8 +52,8 @@ export const promptVariantsRouter = createTRPCRouter({
 
     const overallTokens = await prisma.modelOutput.aggregate({
       where: {
-        promptVariantId: input.variantId,
         scenarioVariantCell: {
+          promptVariantId: input.variantId,
           testScenario: {
             visible: true,
           },

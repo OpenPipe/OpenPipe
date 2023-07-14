@@ -20,8 +20,6 @@ async function migrateScenarioVariantOutputData() {
           timeToComplete: cell.timeToComplete ?? undefined,
           promptTokens: cell.promptTokens,
           completionTokens: cell.completionTokens,
-          promptVariantId: cell.promptVariantId,
-          testScenarioId: cell.testScenarioId,
           createdAt: cell.createdAt,
           updatedAt: cell.updatedAt,
         },

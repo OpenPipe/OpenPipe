@@ -113,8 +113,6 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
         timeToComplete: modelResponse.timeToComplete,
         promptTokens: modelResponse.promptTokens,
         completionTokens: modelResponse.completionTokens,
-        promptVariantId: cell.promptVariantId,
-        testScenarioId: cell.testScenarioId,
       },
     });
   }
