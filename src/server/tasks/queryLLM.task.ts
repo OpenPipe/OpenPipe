@@ -53,7 +53,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     include: { modelOutput: true },
   });
   if (!cell) {
-    throw new Error("Cell not found");
+    return;
   }
 
   // If cell is not pending, then some other job is already processing it
@@ -71,14 +71,14 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     where: { id: cell.promptVariantId },
   });
   if (!variant) {
-    throw new Error("Variant not found");
+    return;
   }
 
   const scenario = await prisma.testScenario.findUnique({
     where: { id: cell.testScenarioId },
   });
   if (!scenario) {
-    throw new Error("Scenario not found");
+    return;
   }
 
   const prompt = await constructPrompt(variant, scenario);
