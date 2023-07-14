@@ -5,7 +5,7 @@ import { env } from "~/env.mjs";
 // Define the defineTask function
 function defineTask<TPayload>(
   taskIdentifier: string,
-  taskHandler: (payload: TPayload, helpers: Helpers) => Promise<void>
+  taskHandler: (payload: TPayload, helpers: Helpers) => Promise<void>,
 ) {
   const enqueue = async (payload: TPayload) => {
     console.log("Enqueuing task", taskIdentifier, payload);

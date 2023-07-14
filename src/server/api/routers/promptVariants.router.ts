@@ -61,7 +61,7 @@ export const promptVariantsRouter = createTRPCRouter({
           testScenario: {
             visible: true,
           },
-        }
+        },
       },
       _sum: {
         promptTokens: true,

@@ -1,4 +1,4 @@
-import { type Evaluation } from "@prisma/client";
+import { type ModelOutput, type Evaluation } from "@prisma/client";
 import { prisma } from "../db";
 import { evaluateOutput } from "./evaluateOutput";
 
@@ -25,7 +25,7 @@ export const reevaluateVariant = async (variantId: string) => {
   await Promise.all(
     evaluations.map(async (evaluation) => {
       const passCount = cells.filter((cell) =>
-        evaluateOutput(cell.modelOutput!, cell.testScenario, evaluation),
+        evaluateOutput(cell.modelOutput as ModelOutput, cell.testScenario, evaluation),
       ).length;
       const failCount = cells.length - passCount;
 
@@ -70,7 +70,7 @@ export const reevaluateEvaluation = async (evaluation: Evaluation) => {
     variants.map(async (variant) => {
       const variantCells = cells.filter((cell) => cell.promptVariantId === variant.id);
       const passCount = variantCells.filter((cell) =>
-        evaluateOutput(cell.modelOutput!, cell.testScenario, evaluation),
+        evaluateOutput(cell.modelOutput as ModelOutput, cell.testScenario, evaluation),
       ).length;
       const failCount = variantCells.length - passCount;
 

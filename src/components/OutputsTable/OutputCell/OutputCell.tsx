@@ -89,6 +89,7 @@ export default function OutputCell({
     let parsedArgs: string;
     try {
       parsedArgs = JSON.parse(rawArgs);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       parsedArgs = `Failed to parse arguments as JSON: '${rawArgs}' ERROR: ${e.message as string}`;
     }

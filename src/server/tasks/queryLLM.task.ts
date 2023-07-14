@@ -10,7 +10,6 @@ import { reevaluateVariant } from "../utils/evaluations";
 import { constructPrompt } from "../utils/constructPrompt";
 import { type CompletionCreateParams } from "openai/resources/chat";
 
-
 const MAX_AUTO_RETRIES = 10;
 const MIN_DELAY = 500; // milliseconds
 const MAX_DELAY = 15000; // milliseconds
@@ -27,7 +26,10 @@ const getCompletionWithRetries = async (
   channel?: string,
 ): Promise<CompletionResponse> => {
   for (let i = 0; i < MAX_AUTO_RETRIES; i++) {
-    const modelResponse = await getCompletion(payload as unknown as CompletionCreateParams, channel);
+    const modelResponse = await getCompletion(
+      payload as unknown as CompletionCreateParams,
+      channel,
+    );
     if (modelResponse.statusCode !== 429 || i === MAX_AUTO_RETRIES - 1) {
       return modelResponse;
     }

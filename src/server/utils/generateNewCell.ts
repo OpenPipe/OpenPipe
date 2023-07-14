@@ -23,7 +23,6 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
 
   const inputHash = crypto.createHash("sha256").update(JSON.stringify(prompt)).digest("hex");
 
-
   let cell = await prisma.scenarioVariantCell.findUnique({
     where: {
       promptVariantId_testScenarioId: {
@@ -45,7 +44,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
     },
     include: {
       modelOutput: true,
-    }
+    },
   });
 
   const matchingModelOutput = await prisma.modelOutput.findFirst({
@@ -54,7 +53,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
     },
   });
 
-  let newModelOutput
+  let newModelOutput;
 
   if (matchingModelOutput) {
     newModelOutput = await prisma.modelOutput.create({

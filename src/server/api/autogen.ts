@@ -3,10 +3,6 @@ import { prisma } from "../db";
 import { openai } from "../utils/openai";
 import { pick } from "lodash";
 
-function promptHasVariable(prompt: string, variableName: string) {
-  return prompt.includes(`{{${variableName}}}`);
-}
-
 type AxiosError = {
   response?: {
     data?: {
