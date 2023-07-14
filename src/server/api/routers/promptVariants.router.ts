@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { generateNewCell } from "~/server/utils/generateNewCell";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { calculateTokenCost } from "~/utils/calculateTokenCost";
 
@@ -121,6 +122,17 @@ export const promptVariantsRouter = createTRPCRouter({
         recordExperimentUpdated(input.experimentId),
       ]);
 
+      const scenarios = await prisma.testScenario.findMany({
+        where: {
+          experimentId: input.experimentId,
+          visible: true,
+        },
+      });
+
+      for (const scenario of scenarios) {
+        await generateNewCell(newVariant.id, scenario.id);
+      }
+
       return newVariant;
     }),
 
@@ -220,6 +232,17 @@ export const promptVariantsRouter = createTRPCRouter({
         hideOldVariantsAction,
         recordExperimentUpdated(existing.experimentId),
       ]);
+
+      const scenarios = await prisma.testScenario.findMany({
+        where: {
+          experimentId: newVariant.experimentId,
+          visible: true,
+        },
+      });
+
+      for (const scenario of scenarios) {
+        await generateNewCell(newVariant.id, scenario.id);
+      }
 
       return newVariant;
     }),

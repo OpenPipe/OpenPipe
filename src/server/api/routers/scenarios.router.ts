@@ -4,6 +4,7 @@ import { prisma } from "~/server/db";
 import { autogenerateScenarioValues } from "../autogen";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { reevaluateAll } from "~/server/utils/evaluations";
+import { generateNewCell } from "~/server/utils/generateNewCell";
 
 export const scenariosRouter = createTRPCRouter({
   list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
@@ -48,10 +49,21 @@ export const scenariosRouter = createTRPCRouter({
         },
       });
 
-      await prisma.$transaction([
+      const [scenario] = await prisma.$transaction([
         createNewScenarioAction,
         recordExperimentUpdated(input.experimentId),
       ]);
+
+      const promptVariants = await prisma.promptVariant.findMany({
+        where: {
+          experimentId: input.experimentId,
+          visible: true,
+        },
+      });
+
+      for (const variant of promptVariants) {
+        await generateNewCell(variant.id, scenario.id);
+      }
     }),
 
   hide: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
