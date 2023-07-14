@@ -187,6 +187,17 @@ export const scenariosRouter = createTRPCRouter({
         },
       });
 
+      const promptVariants = await prisma.promptVariant.findMany({
+        where: {
+          experimentId: newScenario.experimentId,
+          visible: true,
+        },
+      });
+
+      for (const variant of promptVariants) {
+        await generateNewCell(variant.id, newScenario.id);
+      }
+
       return newScenario;
     }),
 });
