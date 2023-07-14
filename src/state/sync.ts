@@ -11,7 +11,7 @@ export function useSyncVariantEditor() {
   );
   useEffect(() => {
     if (scenarios.data) {
-      useAppStore.getState().variantEditor.setScenarios(scenarios.data);
+      useAppStore.getState().sharedVariantEditor.setScenarios(scenarios.data);
     }
   }, [scenarios.data]);
 }

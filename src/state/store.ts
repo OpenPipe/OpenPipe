@@ -1,13 +1,16 @@
 import { type StateCreator, create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { createSelectors } from "./createSelectors";
-import { type VariantEditorSlice, createVariantEditorSlice } from "./variantEditor.slice";
+import {
+  type SharedVariantEditorSlice,
+  createVariantEditorSlice,
+} from "./sharedVariantEditor.slice";
 
 export type State = {
   drawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
-  variantEditor: VariantEditorSlice;
+  sharedVariantEditor: SharedVariantEditorSlice;
 };
 
 export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], [], T>;
@@ -26,10 +29,10 @@ const useBaseStore = create<State, [["zustand/immer", never]]>(
       set((state) => {
         state.drawerOpen = false;
       }),
-    variantEditor: createVariantEditorSlice(set, get, ...rest),
+    sharedVariantEditor: createVariantEditorSlice(set, get, ...rest),
   })),
 );
 
 export const useAppStore = createSelectors(useBaseStore);
 
-useAppStore.getState().variantEditor.loadMonaco().catch(console.error);
+useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);

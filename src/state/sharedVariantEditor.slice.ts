@@ -3,7 +3,7 @@ import { type SliceCreator } from "./store";
 import loader from "@monaco-editor/loader";
 import openAITypes from "~/codegen/openai.types.ts.txt";
 
-export type VariantEditorSlice = {
+export type SharedVariantEditorSlice = {
   monaco: null | ReturnType<typeof loader.__getMonacoInstance>;
   loadMonaco: () => Promise<void>;
   scenarios: RouterOutputs["scenarios"]["list"];
@@ -11,7 +11,7 @@ export type VariantEditorSlice = {
   setScenarios: (scenarios: RouterOutputs["scenarios"]["list"]) => void;
 };
 
-export const createVariantEditorSlice: SliceCreator<VariantEditorSlice> = (set, get) => ({
+export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = (set, get) => ({
   monaco: loader.__getMonacoInstance(),
   loadMonaco: async () => {
     const monaco = await loader.init();
@@ -41,27 +41,27 @@ export const createVariantEditorSlice: SliceCreator<VariantEditorSlice> = (set, 
     );
 
     set((state) => {
-      state.variantEditor.monaco = monaco;
+      state.sharedVariantEditor.monaco = monaco;
     });
-    get().variantEditor.updateScenariosModel();
+    get().sharedVariantEditor.updateScenariosModel();
   },
   scenarios: [],
   // scenariosModel: null,
   setScenarios: (scenarios) => {
     set((state) => {
-      state.variantEditor.scenarios = scenarios;
+      state.sharedVariantEditor.scenarios = scenarios;
     });
 
-    get().variantEditor.updateScenariosModel();
+    get().sharedVariantEditor.updateScenariosModel();
   },
 
   updateScenariosModel: () => {
-    const monaco = get().variantEditor.monaco;
+    const monaco = get().sharedVariantEditor.monaco;
     if (!monaco) return;
 
     const modelContents = `
     const scenarios = ${JSON.stringify(
-      get().variantEditor.scenarios.map((s) => s.variableValues),
+      get().sharedVariantEditor.scenarios.map((s) => s.variableValues),
       null,
       2,
     )} as const;
@@ -69,8 +69,6 @@ export const createVariantEditorSlice: SliceCreator<VariantEditorSlice> = (set, 
     type Scenario = typeof scenarios[number];
     declare var scenario: Scenario | null;
     `;
-
-    console.log(modelContents);
 
     const scenariosModel = monaco.editor.getModel(monaco.Uri.parse("file:///scenarios.ts"));
 

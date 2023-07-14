@@ -7,7 +7,7 @@ import { useAppStore } from "~/state/store";
 // import openAITypes from "~/codegen/openai.types.ts.txt";
 
 export default function VariantConfigEditor(props: { variant: PromptVariant }) {
-  const monaco = useAppStore.use.variantEditor.monaco();
+  const monaco = useAppStore.use.sharedVariantEditor.monaco();
   const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
   const [isChanged, setIsChanged] = useState(false);
