@@ -64,7 +64,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
   // If cell is not pending, then some other job is already processing it
   if (cell.retrievalStatus !== "PENDING") {
-    throw new Error("Cell is not pending");
+    return;
   }
   await prisma.scenarioVariantCell.update({
     where: { id: scenarioVariantCellId },
