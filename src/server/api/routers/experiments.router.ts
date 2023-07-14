@@ -65,7 +65,7 @@ export const experimentsRouter = createTRPCRouter({
       },
     });
 
-    const [variant, scenario] = await prisma.$transaction([
+    const [variant, _, scenario] = await prisma.$transaction([
       prisma.promptVariant.create({
         data: {
           experimentId: exp.id,
