@@ -14,6 +14,8 @@
     "codegen": "tsx src/codegen/export-openai-types.ts"
   },
   "dependencies": {
+    "@babel/preset-typescript": "^7.22.5",
+    "@babel/standalone": "^7.22.9",
     "@chakra-ui/next-js": "^2.1.4",
     "@chakra-ui/react": "^2.7.1",
     "@emotion/react": "^11.11.1",
@@ -63,6 +65,8 @@
   },
   "devDependencies": {
     "@openapi-contrib/openapi-schema-to-json-schema": "^4.0.5",
+    "@types/babel__core": "^7.20.1",
+    "@types/babel__standalone": "^7.1.4",
     "@types/chroma-js": "^2.4.0",
     "@types/cors": "^2.8.13",
     "@types/eslint": "^8.37.0",

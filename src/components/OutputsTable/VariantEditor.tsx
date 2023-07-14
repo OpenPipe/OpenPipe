@@ -5,8 +5,6 @@ import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { editorBackground } from "~/state/sharedVariantEditor.slice";
-// import openAITypes from "~/codegen/openai.types.ts.txt";
-
 export default function VariantConfigEditor(props: { variant: PromptVariant }) {
   const monaco = useAppStore.use.sharedVariantEditor.monaco();
   const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
