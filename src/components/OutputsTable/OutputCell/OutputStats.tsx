@@ -35,8 +35,6 @@ export const OutputStats = ({
 
   const cost = promptCost + completionCost;
 
-  if (!evals.length && !cost) return null;
-
   return (
     <HStack align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
       <HStack flex={1}>
