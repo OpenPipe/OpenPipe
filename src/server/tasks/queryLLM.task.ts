@@ -38,6 +38,7 @@ const getCompletionWithRetries = async (
         retryTime: new Date(Date.now() + delay),
       },
     });
+    // TODO: Maybe requeue the job so other jobs can run in the future?
     await sleep(delay);
   }
   throw new Error("Max retries limit reached");
