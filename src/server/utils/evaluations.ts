@@ -13,7 +13,11 @@ export const reevaluateVariant = async (variantId: string) => {
   });
 
   const modelOutputs = await prisma.modelOutput.findMany({
-    where: { promptVariantId: variantId, statusCode: { notIn: [429] }, testScenario: { visible: true } },
+    where: {
+      promptVariantId: variantId,
+      statusCode: { notIn: [429] },
+      testScenario: { visible: true },
+    },
     include: { testScenario: true },
   });
 
@@ -96,4 +100,4 @@ export const reevaluateAll = async (experimentId: string) => {
   });
 
   await Promise.all(evaluations.map(reevaluateEvaluation));
-}
+};

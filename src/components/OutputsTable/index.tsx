@@ -3,12 +3,12 @@ import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
 import ScenarioRow from "./ScenarioRow";
-import VariantConfigEditor from "./VariantConfigEditor";
+import VariantConfigEditor from "./VariantEditor";
 import VariantHeader from "./VariantHeader";
 import { cellPadding } from "../constants";
 import { BsPencil } from "react-icons/bs";
-import { useStore } from "~/utils/store";
 import VariantStats from "./VariantStats";
+import { useAppStore } from "~/state/store";
 
 const stickyHeaderStyle: SystemStyleObject = {
   position: "sticky",
@@ -22,7 +22,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
     { experimentId: experimentId as string },
     { enabled: !!experimentId },
   );
-  const openDrawer = useStore((s) => s.openDrawer);
+  const openDrawer = useAppStore((s) => s.openDrawer);
 
   const scenarios = api.scenarios.list.useQuery(
     { experimentId: experimentId as string },
@@ -57,7 +57,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         py={cellPadding.y}
         // TODO: This is a hack to get the sticky header to work. It's not ideal because it's not responsive to the height of the header,
         // so if the header height changes, this will need to be updated.
-        sx={{...stickyHeaderStyle, top: "-337px"}}
+        sx={{ ...stickyHeaderStyle, top: "-337px" }}
       >
         <HStack w="100%">
           <Heading size="xs" fontWeight="bold" flex={1}>

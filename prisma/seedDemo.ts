@@ -12,7 +12,7 @@ await prisma.promptVariant.createMany({
     {
       experimentId: functionCallsExperiment.id,
       label: "No Fn Calls",
-      config: {
+      constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
           {
@@ -25,12 +25,12 @@ await prisma.promptVariant.createMany({
             content: "Text:\n---\n{{text}}",
           },
         ],
-      },
+      }`,
     },
     {
       experimentId: functionCallsExperiment.id,
       label: "Fn Calls",
-      config: {
+      constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
           {
@@ -60,7 +60,7 @@ await prisma.promptVariant.createMany({
         function_call: {
           name: "analyze_sentiment",
         },
-      },
+      }`,
     },
   ],
 });
@@ -92,7 +92,7 @@ await prisma.promptVariant.createMany({
       experimentId: redditExperiment.id,
       label: "3.5 Base",
       sortIndex: 0,
-      config: {
+      constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
           {
@@ -101,13 +101,13 @@ await prisma.promptVariant.createMany({
               'Reddit post:\n\n        title: {{title}}\n        body: {{body}}\n        \n        How likely is it that the poster has the following need? Answer with just "high", "medium" or "low" in quotes.\n        \n        Need: {{need}}.',
           },
         ],
-      },
+      }`,
     },
     {
       experimentId: redditExperiment.id,
       label: "4 Base",
       sortIndex: 1,
-      config: {
+      constructFn: `prompt = {
         model: "gpt-4-0613",
         messages: [
           {
@@ -116,13 +116,13 @@ await prisma.promptVariant.createMany({
               'Reddit post:\n\n        title: {{title}}\n        body: {{body}}\n        \n        How likely is it that the poster has the following need? Answer with just "high", "medium" or "low" in quotes.\n        \n        Need: {{need}}.',
           },
         ],
-      },
+      }`,
     },
     {
       experimentId: redditExperiment.id,
       label: "3.5 CoT + Functions",
       sortIndex: 2,
-      config: {
+      constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
           {
@@ -161,7 +161,7 @@ await prisma.promptVariant.createMany({
         function_call: {
           name: "extract_relevance",
         },
-      },
+      }`,
     },
   ],
 });
