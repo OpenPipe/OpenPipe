@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import dedent from "dedent";
 
 export const experimentsRouter = createTRPCRouter({
   list: publicProcedure.query(async () => {
@@ -69,16 +70,11 @@ export const experimentsRouter = createTRPCRouter({
           experimentId: exp.id,
           label: "Prompt Variant 1",
           sortIndex: 0,
-          config: {
+          constructFn: dedent`prompt = {
             model: "gpt-3.5-turbo-0613",
             stream: true,
-            messages: [
-              {
-                role: "system",
-                content: "Return 'Ready to go!'",
-              },
-            ],
-          },
+            messages: [{ role: "system", content: "Return 'Ready to go!'" }],
+          }`,
         },
       }),
       prisma.testScenario.create({

@@ -1,12 +1,11 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { fillTemplateJson, type VariableMap } from "~/server/utils/fillTemplate";
-import { type JSONSerializable } from "~/server/types";
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
 import { reevaluateVariant } from "~/server/utils/evaluations";
 import { getCompletion } from "~/server/utils/getCompletion";
+import { constructPrompt } from "~/server/utils/constructPrompt";
 
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
@@ -44,15 +43,9 @@ export const modelOutputsRouter = createTRPCRouter({
 
       if (!variant || !scenario) return null;
 
-      const filledTemplate = fillTemplateJson(
-        variant.config as JSONSerializable,
-        scenario.variableValues as VariableMap,
-      );
+      const prompt = await constructPrompt(variant, scenario);
 
-      const inputHash = crypto
-        .createHash("sha256")
-        .update(JSON.stringify(filledTemplate))
-        .digest("hex");
+      const inputHash = crypto.createHash("sha256").update(JSON.stringify(prompt)).digest("hex");
 
       // TODO: we should probably only use this if temperature=0
       const existingResponse = await prisma.modelOutput.findFirst({
@@ -72,7 +65,7 @@ export const modelOutputsRouter = createTRPCRouter({
         };
       } else {
         try {
-          modelResponse = await getCompletion(filledTemplate, input.channel);
+          modelResponse = await getCompletion(prompt, input.channel);
         } catch (e) {
           console.error(e);
           throw e;

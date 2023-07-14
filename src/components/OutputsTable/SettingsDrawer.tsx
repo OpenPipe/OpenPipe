@@ -8,13 +8,13 @@ import {
   Heading,
   Stack,
 } from "@chakra-ui/react";
-import { useStore } from "~/utils/store";
 import EditScenarioVars from "./EditScenarioVars";
 import EditEvaluations from "./EditEvaluations";
+import { useAppStore } from "~/state/store";
 
 export default function SettingsDrawer() {
-  const isOpen = useStore((state) => state.drawerOpen);
-  const closeDrawer = useStore((state) => state.closeDrawer);
+  const isOpen = useAppStore((state) => state.drawerOpen);
+  const closeDrawer = useAppStore((state) => state.closeDrawer);
 
   return (
     <Drawer isOpen={isOpen} placement="right" onClose={closeDrawer} size="md">

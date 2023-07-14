@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { type OpenAIChatConfig } from "~/server/types";
-import { getModelName } from "~/server/utils/getModelName";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { calculateTokenCost } from "~/utils/calculateTokenCost";
 
@@ -59,7 +57,9 @@ export const promptVariantsRouter = createTRPCRouter({
       },
     });
 
-    const model = getModelName(variant.config);
+    // TODO: fix this
+    const model = "gpt-3.5-turbo-0613";
+    // const model = getModelName(variant.config);
 
     const promptTokens = overallTokens._sum?.promptTokens ?? 0;
     const overallPromptCost = calculateTokenCost(model, promptTokens);
@@ -105,13 +105,13 @@ export const promptVariantsRouter = createTRPCRouter({
           experimentId: input.experimentId,
           label: `Prompt Variant ${largestSortIndex + 2}`,
           sortIndex: (lastVariant?.sortIndex ?? 0) + 1,
-          config: lastVariant?.config ?? {},
+          constructFn: lastVariant?.constructFn ?? "",
         },
       });
 
       const [newVariant] = await prisma.$transaction([
         createNewVariantAction,
-        recordExperimentUpdated(input.experimentId)
+        recordExperimentUpdated(input.experimentId),
       ]);
 
       return newVariant;
@@ -143,12 +143,12 @@ export const promptVariantsRouter = createTRPCRouter({
         },
         data: input.updates,
       });
-    
+
       const [updatedPromptVariant] = await prisma.$transaction([
         updatePromptVariantAction,
-        recordExperimentUpdated(existing.experimentId)
+        recordExperimentUpdated(existing.experimentId),
       ]);
-  
+
       return updatedPromptVariant;
     }),
 
@@ -159,7 +159,7 @@ export const promptVariantsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      const updatedPromptVariant =  await prisma.promptVariant.update({
+      const updatedPromptVariant = await prisma.promptVariant.update({
         where: { id: input.id },
         data: { visible: false, experiment: { update: { updatedAt: new Date() } } },
       });
@@ -167,11 +167,11 @@ export const promptVariantsRouter = createTRPCRouter({
       return updatedPromptVariant;
     }),
 
-  replaceWithConfig: publicProcedure
+  replaceVariant: publicProcedure
     .input(
       z.object({
         id: z.string(),
-        config: z.string(),
+        constructFn: z.string(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -180,13 +180,6 @@ export const promptVariantsRouter = createTRPCRouter({
           id: input.id,
         },
       });
-
-      let parsedConfig;
-      try {
-        parsedConfig = JSON.parse(input.config) as OpenAIChatConfig;
-      } catch (e) {
-        throw new Error(`Invalid JSON: ${(e as Error).message}`);
-      }
 
       if (!existing) {
         throw new Error(`Prompt Variant with id ${input.id} does not exist`);
@@ -199,7 +192,7 @@ export const promptVariantsRouter = createTRPCRouter({
           label: existing.label,
           sortIndex: existing.sortIndex,
           uiId: existing.uiId,
-          config: parsedConfig,
+          constructFn: input.constructFn,
         },
       });
 
@@ -218,7 +211,7 @@ export const promptVariantsRouter = createTRPCRouter({
 
       await prisma.$transaction([
         hideOldVariantsAction,
-        recordExperimentUpdated(existing.experimentId)
+        recordExperimentUpdated(existing.experimentId),
       ]);
 
       return newVariant;

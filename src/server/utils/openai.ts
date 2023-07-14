@@ -8,8 +8,6 @@ import {
   type CompletionCreateParams,
 } from "openai/resources/chat";
 
-// console.log("creating openai client");
-
 export const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 export const mergeStreamedChunks = (
