@@ -107,7 +107,7 @@ export default function ScenarioEditor({
               cursor: "pointer",
             }}
           >
-            <Icon as={hidingInProgress ? Spinner :BsX} boxSize={6} />
+            <Icon as={hidingInProgress ? Spinner : BsX} boxSize={6} />
           </Button>
         </Tooltip>
         <Icon

@@ -29,7 +29,8 @@ import SettingsDrawer from "~/components/OutputsTable/SettingsDrawer";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
-import { useStore } from "~/utils/store";
+import { useAppStore } from "~/state/store";
+import { useSyncVariantEditor } from "~/state/sync";
 
 const DeleteButton = () => {
   const experiment = useExperiment();
@@ -94,7 +95,8 @@ export default function Experiment() {
   const router = useRouter();
   const experiment = useExperiment();
   const utils = api.useContext();
-  const openDrawer = useStore((s) => s.openDrawer);
+  const openDrawer = useAppStore((s) => s.openDrawer);
+  useSyncVariantEditor();
 
   const [label, setLabel] = useState(experiment.data?.label || "");
   useEffect(() => {

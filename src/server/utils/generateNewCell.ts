@@ -1,9 +1,8 @@
-import { fillTemplateJson, type VariableMap } from "~/server/utils/fillTemplate";
-import { type JSONSerializable } from "~/server/types";
 import crypto from "crypto";
 import { type Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import { queueLLMRetrievalTask } from "./queueLLMRetrievalTask";
+import { constructPrompt } from "./constructPrompt";
 
 export const generateNewCell = async (variantId: string, scenarioId: string) => {
   const variant = await prisma.promptVariant.findUnique({
@@ -20,15 +19,10 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
 
   if (!variant || !scenario) return null;
 
-  const filledTemplate = fillTemplateJson(
-    variant.config as JSONSerializable,
-    scenario.variableValues as VariableMap,
-  );
+  const prompt = await constructPrompt(variant, scenario);
 
-  const inputHash = crypto
-    .createHash("sha256")
-    .update(JSON.stringify(filledTemplate))
-    .digest("hex");
+  const inputHash = crypto.createHash("sha256").update(JSON.stringify(prompt)).digest("hex");
+
 
   let cell = await prisma.scenarioVariantCell.findUnique({
     where: {

@@ -8,8 +8,6 @@ import stringify from "json-stringify-pretty-compact";
 import { type ReactElement, useState, useEffect } from "react";
 import { type ChatCompletion } from "openai/resources/chat";
 import useSocket from "~/utils/useSocket";
-import { type JSONSerializable } from "~/server/types";
-import { getModelName } from "~/server/utils/getModelName";
 import { OutputStats } from "./OutputStats";
 import { ErrorHandler } from "./ErrorHandler";
 import { CellOptions } from "./CellOptions";
@@ -35,10 +33,12 @@ export default function OutputCell({
 
   if (!templateHasVariables) disabledReason = "Add a value to the scenario variables to see output";
 
-  if (variant.config === null || Object.keys(variant.config).length === 0)
-    disabledReason = "Save your prompt variant to see output";
+  // if (variant.config === null || Object.keys(variant.config).length === 0)
+  //   disabledReason = "Save your prompt variant to see output";
 
-  const model = getModelName(variant.config as JSONSerializable);
+  // const model = getModelName(variant.config as JSONSerializable);
+  // TODO: Temporarily hardcoding this while we get other stuff working
+  const model = "gpt-3.5-turbo";
 
   const [refetchInterval, setRefetchInterval] = useState(0);
   const { data: cell, isLoading: queryLoading } = api.scenarioVariantCells.get.useQuery(

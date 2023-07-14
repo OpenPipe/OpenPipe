@@ -70,13 +70,10 @@ export const autogenerateScenarioValues = async (
     },
   ];
 
-  const promptText = JSON.stringify(prompt.config);
-  if (variables.some((variable) => promptHasVariable(promptText, variable.label))) {
-    messages.push({
-      role: "user",
-      content: `Prompt template:\n---\n${promptText}`,
-    });
-  }
+  messages.push({
+    role: "user",
+    content: `Prompt constructor function:\n---\n${prompt.constructFn}`,
+  });
 
   existingScenarios
     .map(

@@ -50,12 +50,12 @@ export const scenariosRouter = createTRPCRouter({
 
       await prisma.$transaction([
         createNewScenarioAction,
-        recordExperimentUpdated(input.experimentId)
+        recordExperimentUpdated(input.experimentId),
       ]);
     }),
 
   hide: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-    const hiddenScenario =  await prisma.testScenario.update({
+    const hiddenScenario = await prisma.testScenario.update({
       where: { id: input.id },
       data: { visible: false, experiment: { update: { updatedAt: new Date() } } },
     });

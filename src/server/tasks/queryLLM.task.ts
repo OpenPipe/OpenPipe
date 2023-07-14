@@ -1,12 +1,12 @@
 import { prisma } from "~/server/db";
 import defineTask from "./defineTask";
 import { type CompletionResponse, getCompletion } from "../utils/getCompletion";
-import { type VariableMap, fillTemplateJson } from "../utils/fillTemplate";
 import { type JSONSerializable } from "../types";
 import { sleep } from "../utils/sleep";
 import { shouldStream } from "../utils/shouldStream";
 import { generateChannel } from "~/utils/generateChannel";
 import { reevaluateVariant } from "../utils/evaluations";
+import { constructPrompt } from "../utils/constructPrompt";
 
 const MAX_AUTO_RETRIES = 10;
 const MIN_DELAY = 500; // milliseconds
@@ -81,14 +81,10 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     throw new Error("Scenario not found");
   }
 
-  const filledTemplate = fillTemplateJson(
-    variant.config as JSONSerializable,
-    scenario.variableValues as VariableMap,
-  );
+  const prompt = await constructPrompt(variant, scenario);
 
-  const streamingEnabled = shouldStream(filledTemplate);
-  console.log('filled template', filledTemplate)
-  console.log('streaming enabled', streamingEnabled)
+
+  const streamingEnabled = shouldStream(prompt);
   let streamingChannel;
 
   if (streamingEnabled) {
@@ -104,7 +100,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
   const modelResponse = await getCompletionWithRetries(
     scenarioVariantCellId,
-    filledTemplate,
+    prompt,
     streamingChannel,
   );
 

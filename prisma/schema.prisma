@@ -29,7 +29,7 @@ model PromptVariant {
     id    String @id @default(uuid()) @db.Uuid
     label String
 
-    config Json
+    constructFn String
 
     uiId      String  @default(uuid()) @db.Uuid
     visible   Boolean @default(true)

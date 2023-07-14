@@ -1,66 +1,67 @@
 import { Box, Button, HStack, Tooltip, useToast } from "@chakra-ui/react";
-import { useMonaco } from "@monaco-editor/react";
-import { useRef, useEffect, useState, useCallback, useMemo } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
 import { type PromptVariant } from "./types";
-import { type JSONSerializable } from "~/server/types";
 import { api } from "~/utils/api";
-import openaiSchema from "~/codegen/openai.schema.json";
-
-let isEditorConfigured = false;
+import { useAppStore } from "~/state/store";
+// import openAITypes from "~/codegen/openai.types.ts.txt";
 
 export default function VariantConfigEditor(props: { variant: PromptVariant }) {
-  const monaco = useMonaco();
+  const monaco = useAppStore.use.sharedVariantEditor.monaco();
   const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
   const [isChanged, setIsChanged] = useState(false);
 
-  const savedConfig = useMemo(
-    () => JSON.stringify(props.variant.config, null, 2),
-    [props.variant.config],
-  );
-  const savedConfigRef = useRef(savedConfig);
+  const lastSavedFn = props.variant.constructFn;
 
   const modifierKey = useModifierKeyLabel();
 
   const checkForChanges = useCallback(() => {
     if (!editorRef.current) return;
     const currentConfig = editorRef.current.getValue();
-    setIsChanged(currentConfig !== savedConfigRef.current);
-  }, []);
+    setIsChanged(currentConfig !== lastSavedFn);
+  }, [lastSavedFn]);
 
-  const replaceWithConfig = api.promptVariants.replaceWithConfig.useMutation();
+  const replaceVariant = api.promptVariants.replaceVariant.useMutation();
   const utils = api.useContext();
   const toast = useToast();
 
   const [onSave] = useHandledAsyncCallback(async () => {
-    const currentConfig = editorRef.current?.getValue();
-    if (!currentConfig) return;
+    const currentFn = editorRef.current?.getValue();
+    if (!currentFn) return;
 
-    let parsedConfig: JSONSerializable;
-    try {
-      parsedConfig = JSON.parse(currentConfig) as JSONSerializable;
-    } catch (e) {
+    // Check if the editor has any typescript errors
+    const model = editorRef.current?.getModel();
+    if (!model) return;
+
+    const markers = monaco?.editor.getModelMarkers({ resource: model.uri });
+    const hasErrors = markers?.some((m) => m.severity === monaco?.MarkerSeverity.Error);
+
+    if (hasErrors) {
       toast({
-        title: "Invalid JSON",
-        description: "Please fix the JSON before saving.",
+        title: "Invalid TypeScript",
+        description: "Please fix the TypeScript errors before saving.",
         status: "error",
       });
       return;
     }
 
-    if (parsedConfig === null) {
+    // Make sure the user defined the prompt with the string "prompt\w*=" somewhere
+    const promptRegex = /prompt\s*=/;
+    if (!promptRegex.test(currentFn)) {
+      console.log("no prompt");
+      console.log(currentFn);
       toast({
-        title: "Invalid JSON",
-        description: "Please fix the JSON before saving.",
+        title: "Missing prompt",
+        description: "Please define the prompt (eg. `prompt = { ...`).",
         status: "error",
       });
       return;
     }
 
-    await replaceWithConfig.mutateAsync({
+    await replaceVariant.mutateAsync({
       id: props.variant.id,
-      config: currentConfig,
+      constructFn: currentFn,
     });
 
     await utils.promptVariants.list.invalidate();
@@ -70,37 +71,11 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
 
   useEffect(() => {
     if (monaco) {
-      if (!isEditorConfigured) {
-        monaco.editor.defineTheme("customTheme", {
-          base: "vs",
-          inherit: true,
-          rules: [],
-          colors: {
-            "editor.background": "#fafafa",
-          },
-        });
-        monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-          validate: true,
-          schemas: [
-            {
-              uri: "https://api.openai.com/v1",
-              fileMatch: ["*"],
-              schema: {
-                $schema: "http://json-schema.org/draft-07/schema#",
-                $ref: "#/components/schemas/CreateChatCompletionRequest",
-                components: openaiSchema.components,
-              },
-            },
-          ],
-        });
-        isEditorConfigured = true;
-      }
-
       const container = document.getElementById(editorId) as HTMLElement;
 
       editorRef.current = monaco.editor.create(container, {
-        value: savedConfig,
-        language: "json",
+        value: lastSavedFn,
+        language: "typescript",
         theme: "customTheme",
         lineNumbers: "off",
         minimap: { enabled: false },
@@ -114,6 +89,7 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
         },
         wordWrapBreakAfterCharacters: "",
         wordWrapBreakBeforeCharacters: "",
+        quickSuggestions: true,
       });
 
       editorRef.current.onDidFocusEditorText(() => {
@@ -141,17 +117,17 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [monaco, editorId]);
 
-  useEffect(() => {
-    const savedConfigChanged = savedConfigRef.current !== savedConfig;
+  // useEffect(() => {
+  //   const savedConfigChanged = lastSavedFn !== savedConfig;
 
-    savedConfigRef.current = savedConfig;
+  //   lastSavedFn = savedConfig;
 
-    if (savedConfigChanged && editorRef.current?.getValue() !== savedConfig) {
-      editorRef.current?.setValue(savedConfig);
-    }
+  //   if (savedConfigChanged && editorRef.current?.getValue() !== savedConfig) {
+  //     editorRef.current?.setValue(savedConfig);
+  //   }
 
-    checkForChanges();
-  }, [savedConfig, checkForChanges]);
+  //   checkForChanges();
+  // }, [savedConfig, checkForChanges]);
 
   return (
     <Box w="100%" pos="relative">
@@ -162,7 +138,7 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
             colorScheme="gray"
             size="sm"
             onClick={() => {
-              editorRef.current?.setValue(savedConfig);
+              editorRef.current?.setValue(lastSavedFn);
               checkForChanges();
             }}
           >
