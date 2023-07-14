@@ -4,13 +4,10 @@ import { Prisma } from "@prisma/client";
 import { streamChatCompletion } from "./openai";
 import { wsConnection } from "~/utils/wsConnection";
 import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
-import { type JSONSerializable, OpenAIChatModel } from "../types";
+import { type OpenAIChatModel } from "../types";
 import { env } from "~/env.mjs";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
-import { getModelName } from "./getModelName";
 import { rateLimitErrorMessage } from "~/sharedStrings";
-
-env;
 
 type CompletionResponse = {
   output: Prisma.InputJsonValue | typeof Prisma.JsonNull;
@@ -22,35 +19,7 @@ type CompletionResponse = {
 };
 
 export async function getCompletion(
-  payload: JSONSerializable,
-  channel?: string,
-): Promise<CompletionResponse> {
-  const modelName = getModelName(payload);
-  if (!modelName)
-    return {
-      output: Prisma.JsonNull,
-      statusCode: 400,
-      errorMessage: "Invalid payload provided",
-      timeToComplete: 0,
-    };
-  if (modelName in OpenAIChatModel) {
-    return getOpenAIChatCompletion(
-      payload as unknown as CompletionCreateParams,
-      env.OPENAI_API_KEY,
-      channel,
-    );
-  }
-  return {
-    output: Prisma.JsonNull,
-    statusCode: 400,
-    errorMessage: "Invalid model provided",
-    timeToComplete: 0,
-  };
-}
-
-export async function getOpenAIChatCompletion(
   payload: CompletionCreateParams,
-  apiKey: string,
   channel?: string,
 ): Promise<CompletionResponse> {
   // If functions are enabled, disable streaming so that we get the full response with token counts
@@ -60,7 +29,7 @@ export async function getOpenAIChatCompletion(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify(payload),
   });
