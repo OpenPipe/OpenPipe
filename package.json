@@ -8,7 +8,7 @@
     "dev:next": "next dev",
     "dev:wss": "pnpm tsx --watch src/wss-server.ts",
     "dev:worker": "NODE_ENV='development' pnpm tsx --watch src/server/tasks/worker.ts",
-    "dev": "concurrently --kill-others 'pnpm dev:next' 'pnpm dev:wss' 'pnpm dev:worker'",
+    "dev": "concurrently --kill-others 'pnpm dev:next' 'pnpm dev:wss'",
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start",
