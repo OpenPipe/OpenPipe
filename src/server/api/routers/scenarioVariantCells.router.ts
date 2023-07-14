@@ -13,7 +13,7 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input }) => {
-      const existingCell = await prisma.scenarioVariantCell.findUnique({
+      return await prisma.scenarioVariantCell.findUnique({
         where: {
           promptVariantId_testScenarioId: {
             promptVariantId: input.variantId,
@@ -24,10 +24,6 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
           modelOutput: true,
         },
       });
-
-      if (existingCell) return existingCell;
-
-      return await generateNewCell(input.variantId, input.scenarioId);
     }),
   forceRefetch: publicProcedure
     .input(
