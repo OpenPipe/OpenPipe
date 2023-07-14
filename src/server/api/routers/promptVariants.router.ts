@@ -1,7 +1,11 @@
+import { isObject } from "lodash";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { generateNewCell } from "~/server/utils/generateNewCell";
+import { OpenAIChatModel } from "~/server/types";
+import { constructPrompt } from "~/server/utils/constructPrompt";
+import userError from "~/server/utils/error";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { calculateTokenCost } from "~/utils/calculateTokenCost";
 
@@ -65,14 +69,10 @@ export const promptVariantsRouter = createTRPCRouter({
       },
     });
 
-    // TODO: fix this
-    const model = "gpt-3.5-turbo-0613";
-    // const model = getModelName(variant.config);
-
     const promptTokens = overallTokens._sum?.promptTokens ?? 0;
-    const overallPromptCost = calculateTokenCost(model, promptTokens);
+    const overallPromptCost = calculateTokenCost(variant.model, promptTokens);
     const completionTokens = overallTokens._sum?.completionTokens ?? 0;
-    const overallCompletionCost = calculateTokenCost(model, completionTokens, true);
+    const overallCompletionCost = calculateTokenCost(variant.model, completionTokens, true);
 
     const overallCost = overallPromptCost + overallCompletionCost;
 
@@ -114,6 +114,7 @@ export const promptVariantsRouter = createTRPCRouter({
           label: `Prompt Variant ${largestSortIndex + 2}`,
           sortIndex: (lastVariant?.sortIndex ?? 0) + 1,
           constructFn: lastVariant?.constructFn ?? "",
+          model: lastVariant?.model ?? "gpt-3.5-turbo",
         },
       });
 
@@ -204,6 +205,27 @@ export const promptVariantsRouter = createTRPCRouter({
         throw new Error(`Prompt Variant with id ${input.id} does not exist`);
       }
 
+      let model = existing.model;
+      try {
+        const contructedPrompt = await constructPrompt({ constructFn: input.constructFn }, null);
+
+        if (!isObject(contructedPrompt)) {
+          return userError("Prompt is not an object");
+        }
+        if (!("model" in contructedPrompt)) {
+          return userError("Prompt does not define a model");
+        }
+        if (
+          typeof contructedPrompt.model !== "string" ||
+          !(contructedPrompt.model in OpenAIChatModel)
+        ) {
+          return userError("Prompt defines an invalid model");
+        }
+        model = contructedPrompt.model;
+      } catch (e) {
+        return userError((e as Error).message);
+      }
+
       // Create a duplicate with only the config changed
       const newVariant = await prisma.promptVariant.create({
         data: {
@@ -212,11 +234,12 @@ export const promptVariantsRouter = createTRPCRouter({
           sortIndex: existing.sortIndex,
           uiId: existing.uiId,
           constructFn: input.constructFn,
+          model,
         },
       });
 
       // Hide anything with the same uiId besides the new one
-      const hideOldVariantsAction = prisma.promptVariant.updateMany({
+      const hideOldVariants = prisma.promptVariant.updateMany({
         where: {
           uiId: existing.uiId,
           id: {
@@ -228,10 +251,7 @@ export const promptVariantsRouter = createTRPCRouter({
         },
       });
 
-      await prisma.$transaction([
-        hideOldVariantsAction,
-        recordExperimentUpdated(existing.experimentId),
-      ]);
+      await prisma.$transaction([hideOldVariants, recordExperimentUpdated(existing.experimentId)]);
 
       const scenarios = await prisma.testScenario.findMany({
         where: {
@@ -244,7 +264,7 @@ export const promptVariantsRouter = createTRPCRouter({
         await generateNewCell(newVariant.id, scenario.id);
       }
 
-      return newVariant;
+      return { status: "ok" } as const;
     }),
 
   reorder: publicProcedure

@@ -8,6 +8,8 @@ import { shouldStream } from "../utils/shouldStream";
 import { generateChannel } from "~/utils/generateChannel";
 import { reevaluateVariant } from "../utils/evaluations";
 import { constructPrompt } from "../utils/constructPrompt";
+import { type CompletionCreateParams } from "openai/resources/chat";
+
 
 const MAX_AUTO_RETRIES = 10;
 const MIN_DELAY = 500; // milliseconds
@@ -25,7 +27,7 @@ const getCompletionWithRetries = async (
   channel?: string,
 ): Promise<CompletionResponse> => {
   for (let i = 0; i < MAX_AUTO_RETRIES; i++) {
-    const modelResponse = await getCompletion(payload, channel);
+    const modelResponse = await getCompletion(payload as unknown as CompletionCreateParams, channel);
     if (modelResponse.statusCode !== 429 || i === MAX_AUTO_RETRIES - 1) {
       return modelResponse;
     }
@@ -83,7 +85,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     return;
   }
 
-  const prompt = await constructPrompt(variant, scenario);
+  const prompt = await constructPrompt(variant, scenario.variableValues);
 
   const streamingEnabled = shouldStream(prompt);
   let streamingChannel;

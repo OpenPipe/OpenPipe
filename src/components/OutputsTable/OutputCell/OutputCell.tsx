@@ -36,10 +36,6 @@ export default function OutputCell({
   // if (variant.config === null || Object.keys(variant.config).length === 0)
   //   disabledReason = "Save your prompt variant to see output";
 
-  // const model = getModelName(variant.config as JSONSerializable);
-  // TODO: Temporarily hardcoding this while we get other stuff working
-  const model = "gpt-3.5-turbo";
-
   const [refetchInterval, setRefetchInterval] = useState(0);
   const { data: cell, isLoading: queryLoading } = api.scenarioVariantCells.get.useQuery(
     { scenarioId: scenario.id, variantId: variant.id },
@@ -119,7 +115,7 @@ export default function OutputCell({
             )}
           </SyntaxHighlighter>
         </VStack>
-        <OutputStats model={model} modelOutput={modelOutput} scenario={scenario} />
+        <OutputStats model={variant.model} modelOutput={modelOutput} scenario={scenario} />
       </Box>
     );
   }
@@ -133,7 +129,9 @@ export default function OutputCell({
         <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
         <Text>{contentToDisplay}</Text>
       </VStack>
-      {modelOutput && <OutputStats model={model} modelOutput={modelOutput} scenario={scenario} />}
+      {modelOutput && (
+        <OutputStats model={variant.model} modelOutput={modelOutput} scenario={scenario} />
+      )}
     </Flex>
   );
 }

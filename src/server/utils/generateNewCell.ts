@@ -19,7 +19,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
 
   if (!variant || !scenario) return null;
 
-  const prompt = await constructPrompt(variant, scenario);
+  const prompt = await constructPrompt(variant, scenario.variableValues);
 
   const inputHash = crypto.createHash("sha256").update(JSON.stringify(prompt)).digest("hex");
 

@@ -23,7 +23,7 @@ const openAICompletionTokensToDollars: { [key in OpenAIChatModel]: number } = {
 };
 
 export const calculateTokenCost = (
-  model: SupportedModel | null,
+  model: SupportedModel | string | null,
   numTokens: number,
   isCompletion = false,
 ) => {

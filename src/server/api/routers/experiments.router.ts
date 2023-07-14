@@ -76,6 +76,7 @@ export const experimentsRouter = createTRPCRouter({
             stream: true,
             messages: [{ role: "system", content: "Return 'Ready to go!'" }],
           }`,
+          model: "gpt-3.5-turbo-0613",
         },
       }),
       prisma.testScenario.create({

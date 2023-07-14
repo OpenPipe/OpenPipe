@@ -14,6 +14,9 @@ export type SharedVariantEditorSlice = {
 export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = (set, get) => ({
   monaco: loader.__getMonacoInstance(),
   loadMonaco: async () => {
+    // We only want to run this client-side
+    if (typeof window === "undefined") return;
+
     const monaco = await loader.init();
 
     monaco.editor.defineTheme("customTheme", {
