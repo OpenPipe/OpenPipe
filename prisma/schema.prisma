@@ -124,7 +124,7 @@ model ModelOutput {
     updatedAt DateTime @updatedAt
 
     scenarioVariantCellId String        @db.Uuid
-    scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id])
+    scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
 
     @@unique([scenarioVariantCellId])
     @@index([inputHash])

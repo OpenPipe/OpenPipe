@@ -34,7 +34,7 @@ DROP INDEX "ScenarioVariantCell_inputHash_idx";
 CREATE INDEX "ModelOutput_inputHash_idx" ON "ModelOutput"("inputHash");
 
 CREATE UNIQUE INDEX "ModelOutput_scenarioVariantCellId_key" ON "ModelOutput"("scenarioVariantCellId");
-ALTER TABLE "ModelOutput" ADD CONSTRAINT "ModelOutput_scenarioVariantCellId_fkey" FOREIGN KEY ("scenarioVariantCellId") REFERENCES "ScenarioVariantCell"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ModelOutput" ADD CONSTRAINT "ModelOutput_scenarioVariantCellId_fkey" FOREIGN KEY ("scenarioVariantCellId") REFERENCES "ScenarioVariantCell"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "ModelOutput" ALTER COLUMN "scenarioVariantCellId" SET NOT NULL,
 ADD CONSTRAINT "ModelOutput_pkey" PRIMARY KEY ("id");
