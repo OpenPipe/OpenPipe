@@ -40,7 +40,7 @@ model PromptVariant {
 
     createdAt        DateTime           @default(now())
     updatedAt        DateTime           @updatedAt
-    ModelOutput      ModelOutput[]
+    scenarioVariantCells      ScenarioVariantCell[]
     EvaluationResult EvaluationResult[]
 
     @@index([uiId])
@@ -60,7 +60,7 @@ model TestScenario {
 
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @updatedAt
-    ModelOutput ModelOutput[]
+    scenarioVariantCells ScenarioVariantCell[]
 }
 
 model TemplateVariable {
@@ -75,17 +75,28 @@ model TemplateVariable {
     updatedAt DateTime @updatedAt
 }
 
-model ModelOutput {
+enum CellRetrievalStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETE
+    ERROR
+}
+
+model ScenarioVariantCell {
     id String @id @default(uuid()) @db.Uuid
 
-    inputHash      String
-    output         Json
-    statusCode     Int
-    errorMessage   String?
-    timeToComplete Int     @default(0)
+    inputHash        String
+    output           Json?
+    statusCode       Int?
+    errorMessage     String?
+    timeToComplete   Int?     @default(0)
+    retryTime        DateTime?
+    streamingChannel String?
+    retrievalStatus  CellRetrievalStatus @default(COMPLETE)
 
-    promptTokens     Int? // Added promptTokens field
-    completionTokens Int? // Added completionTokens field
+    promptTokens     Int?
+    completionTokens Int?
+    modelOutput      ModelOutput?
 
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
@@ -98,6 +109,26 @@ model ModelOutput {
 
     @@unique([promptVariantId, testScenarioId])
     @@index([inputHash])
+}
+
+model ModelOutput {
+    id String @id @default(uuid()) @db.Uuid
+
+    output           Json
+    timeToComplete   Int     @default(0)
+    promptTokens     Int?
+    completionTokens Int?
+    promptVariantId  String        @db.Uuid
+    testScenarioId   String       @db.Uuid
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    scenarioVariantCellId String        @db.Uuid
+    scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id])
+
+    @@unique([scenarioVariantCellId])
+    @@index([scenarioVariantCellId])
 }
 
 enum EvaluationMatchType {

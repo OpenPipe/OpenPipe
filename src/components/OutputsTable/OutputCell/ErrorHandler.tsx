@@ -1,29 +1,21 @@
-import { type ModelOutput } from "@prisma/client";
-import { HStack, VStack, Text, Button, Icon } from "@chakra-ui/react";
+import { type ScenarioVariantCell } from "@prisma/client";
+import { VStack, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { BsArrowClockwise } from "react-icons/bs";
-import { rateLimitErrorMessage } from "~/sharedStrings";
 import pluralize from "pluralize";
 
-const MAX_AUTO_RETRIES = 3;
-
 export const ErrorHandler = ({
-  output,
+  cell,
   refetchOutput,
-  numPreviousTries,
 }: {
-  output: ModelOutput;
+  cell: ScenarioVariantCell;
   refetchOutput: () => void;
-  numPreviousTries: number;
 }) => {
   const [msToWait, setMsToWait] = useState(0);
-  const shouldAutoRetry =
-    output.errorMessage === rateLimitErrorMessage && numPreviousTries < MAX_AUTO_RETRIES;
 
   useEffect(() => {
-    if (!shouldAutoRetry) return;
+    if (!cell.retryTime) return;
 
-    const initialWaitTime = calculateDelay(numPreviousTries);
+    const initialWaitTime = cell.retryTime.getTime() - Date.now();
     const msModuloOneSecond = initialWaitTime % 1000;
     let remainingTime = initialWaitTime - msModuloOneSecond;
     setMsToWait(remainingTime);
@@ -35,7 +27,6 @@ export const ErrorHandler = ({
         setMsToWait(remainingTime);
 
         if (remainingTime <= 0) {
-          refetchOutput();
           clearInterval(interval);
         }
       }, 1000);
@@ -45,32 +36,12 @@ export const ErrorHandler = ({
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [shouldAutoRetry, setMsToWait, refetchOutput, numPreviousTries]);
+  }, [cell.retryTime, cell.statusCode, setMsToWait, refetchOutput]);
 
   return (
     <VStack w="full">
-      <HStack w="full" alignItems="flex-start" justifyContent="space-between">
-        <Text color="red.600" fontWeight="bold">
-          Error
-        </Text>
-        <Button
-          size="xs"
-          w={4}
-          h={4}
-          px={4}
-          py={4}
-          minW={0}
-          borderRadius={8}
-          variant="ghost"
-          cursor="pointer"
-          onClick={refetchOutput}
-          aria-label="refetch output"
-        >
-          <Icon as={BsArrowClockwise} boxSize={6} />
-        </Button>
-      </HStack>
       <Text color="red.600" wordBreak="break-word">
-        {output.errorMessage}
+        {cell.errorMessage}
       </Text>
       {msToWait > 0 && (
         <Text color="red.600" fontSize="sm">
@@ -80,12 +51,3 @@ export const ErrorHandler = ({
     </VStack>
   );
 };
-
-const MIN_DELAY = 500; // milliseconds
-const MAX_DELAY = 5000; // milliseconds
-
-function calculateDelay(numPreviousTries: number): number {
-  const baseDelay = Math.min(MAX_DELAY, MIN_DELAY * Math.pow(2, numPreviousTries));
-  const jitter = Math.random() * baseDelay;
-  return baseDelay + jitter;
-}

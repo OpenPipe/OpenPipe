@@ -12,7 +12,7 @@ import { rateLimitErrorMessage } from "~/sharedStrings";
 
 env;
 
-type CompletionResponse = {
+export type CompletionResponse = {
   output: Prisma.InputJsonValue | typeof Prisma.JsonNull;
   statusCode: number;
   errorMessage: string | null;

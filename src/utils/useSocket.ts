@@ -5,7 +5,7 @@ import { env } from "~/env.mjs";
 
 const url = env.NEXT_PUBLIC_SOCKET_URL;
 
-export default function useSocket(channel?: string) {
+export default function useSocket(channel?: string | null) {
   const socketRef = useRef<Socket>();
   const [message, setMessage] = useState<ChatCompletion | null>(null);
 

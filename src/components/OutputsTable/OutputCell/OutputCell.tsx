@@ -1,19 +1,18 @@
-import { type RouterOutputs, api } from "~/utils/api";
+import { api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "../types";
-import { Spinner, Text, Box, Center, Flex } from "@chakra-ui/react";
+import { Spinner, Text, Box, Center, Flex, VStack } from "@chakra-ui/react";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
-import { type ReactElement, useState, useEffect, useRef, useCallback } from "react";
+import { type ReactElement, useState, useEffect } from "react";
 import { type ChatCompletion } from "openai/resources/chat";
-import { generateChannel } from "~/utils/generateChannel";
-import { isObject } from "lodash";
 import useSocket from "~/utils/useSocket";
 import { type JSONSerializable } from "~/server/types";
 import { getModelName } from "~/server/utils/getModelName";
 import { OutputStats } from "./OutputStats";
 import { ErrorHandler } from "./ErrorHandler";
+import { CellOptions } from "./CellOptions";
 
 export default function OutputCell({
   scenario,
@@ -41,78 +40,55 @@ export default function OutputCell({
 
   const model = getModelName(variant.config as JSONSerializable);
 
-  const outputMutation = api.outputs.get.useMutation();
-
-  const [output, setOutput] = useState<RouterOutputs["outputs"]["get"]>(null);
-  const [channel, setChannel] = useState<string | undefined>(undefined);
-  const [numPreviousTries, setNumPreviousTries] = useState(0);
-
-  const fetchMutex = useRef(false);
-  const [fetchOutput, fetchingOutput] = useHandledAsyncCallback(
-    async (forceRefetch?: boolean) => {
-      if (fetchMutex.current) return;
-      setNumPreviousTries((prev) => prev + 1);
-
-      fetchMutex.current = true;
-      setOutput(null);
-
-      const shouldStream =
-        isObject(variant) &&
-        "config" in variant &&
-        isObject(variant.config) &&
-        "stream" in variant.config &&
-        variant.config.stream === true;
-
-      const channel = shouldStream ? generateChannel() : undefined;
-      setChannel(channel);
-
-      const output = await outputMutation.mutateAsync({
-        scenarioId: scenario.id,
-        variantId: variant.id,
-        channel,
-        forceRefetch,
-      });
-      setOutput(output);
-      await utils.promptVariants.stats.invalidate();
-      fetchMutex.current = false;
-    },
-    [outputMutation, scenario.id, variant.id],
+  const [refetchInterval, setRefetchInterval] = useState(0);
+  const { data: cell, isLoading: queryLoading } = api.scenarioVariantCells.get.useQuery(
+    { scenarioId: scenario.id, variantId: variant.id },
+    { refetchInterval },
   );
-  const hardRefetch = useCallback(() => fetchOutput(true), [fetchOutput]);
 
-  useEffect(fetchOutput, [scenario.id, variant.id]);
+  const { mutateAsync: hardRefetchMutate, isLoading: refetchingOutput } =
+    api.scenarioVariantCells.forceRefetch.useMutation();
+  const [hardRefetch] = useHandledAsyncCallback(async () => {
+    await hardRefetchMutate({ scenarioId: scenario.id, variantId: variant.id });
+    await utils.scenarioVariantCells.get.invalidate({
+      scenarioId: scenario.id,
+      variantId: variant.id,
+    });
+  }, [hardRefetchMutate, scenario.id, variant.id]);
+
+  const fetchingOutput = queryLoading || refetchingOutput;
+
+  const awaitingOutput =
+    !cell || cell.retrievalStatus === "PENDING" || cell.retrievalStatus === "IN_PROGRESS";
+  useEffect(() => setRefetchInterval(awaitingOutput ? 1000 : 0), [awaitingOutput]);
+
+  const modelOutput = cell?.modelOutput;
 
   // Disconnect from socket if we're not streaming anymore
-  const streamedMessage = useSocket(fetchingOutput ? channel : undefined);
+  const streamedMessage = useSocket(cell?.streamingChannel);
   const streamedContent = streamedMessage?.choices?.[0]?.message?.content;
 
   if (!vars) return null;
 
   if (disabledReason) return <Text color="gray.500">{disabledReason}</Text>;
 
-  if (fetchingOutput && !streamedMessage)
+  if (awaitingOutput && !streamedMessage)
     return (
       <Center h="100%" w="100%">
         <Spinner />
       </Center>
     );
 
-  if (!output && !fetchingOutput) return <Text color="gray.500">Error retrieving output</Text>;
+  if (!cell && !fetchingOutput) return <Text color="gray.500">Error retrieving output</Text>;
 
-  if (output && output.errorMessage) {
-    return (
-      <ErrorHandler
-        output={output}
-        refetchOutput={hardRefetch}
-        numPreviousTries={numPreviousTries}
-      />
-    );
+  if (cell && cell.errorMessage) {
+    return <ErrorHandler cell={cell} refetchOutput={hardRefetch} />;
   }
 
-  const response = output?.output as unknown as ChatCompletion;
+  const response = modelOutput?.output as unknown as ChatCompletion;
   const message = response?.choices?.[0]?.message;
 
-  if (output && message?.function_call) {
+  if (modelOutput && message?.function_call) {
     const rawArgs = message.function_call.arguments ?? "null";
     let parsedArgs: string;
     try {
@@ -123,34 +99,41 @@ export default function OutputCell({
 
     return (
       <Box fontSize="xs" width="100%" flexWrap="wrap" overflowX="auto">
-        <SyntaxHighlighter
-          customStyle={{ overflowX: "unset" }}
-          language="json"
-          style={docco}
-          lineProps={{
-            style: { wordBreak: "break-all", whiteSpace: "pre-wrap" },
-          }}
-          wrapLines
-        >
-          {stringify(
-            {
-              function: message.function_call.name,
-              args: parsedArgs,
-            },
-            { maxLength: 40 },
-          )}
-        </SyntaxHighlighter>
-        <OutputStats model={model} modelOutput={output} scenario={scenario} />
+        <VStack w="full" spacing={0}>
+          <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
+          <SyntaxHighlighter
+            customStyle={{ overflowX: "unset" }}
+            language="json"
+            style={docco}
+            lineProps={{
+              style: { wordBreak: "break-all", whiteSpace: "pre-wrap" },
+            }}
+            wrapLines
+          >
+            {stringify(
+              {
+                function: message.function_call.name,
+                args: parsedArgs,
+              },
+              { maxLength: 40 },
+            )}
+          </SyntaxHighlighter>
+        </VStack>
+        <OutputStats model={model} modelOutput={modelOutput} scenario={scenario} />
       </Box>
     );
   }
 
-  const contentToDisplay = message?.content ?? streamedContent ?? JSON.stringify(output?.output);
+  const contentToDisplay =
+    message?.content ?? streamedContent ?? JSON.stringify(modelOutput?.output);
 
   return (
     <Flex w="100%" h="100%" direction="column" justifyContent="space-between" whiteSpace="pre-wrap">
-      {contentToDisplay}
-      {output && <OutputStats model={model} modelOutput={output} scenario={scenario} />}
+      <VStack w="full" alignItems="flex-start" spacing={0}>
+        <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
+        <Text>{contentToDisplay}</Text>
+      </VStack>
+      {modelOutput && <OutputStats model={model} modelOutput={modelOutput} scenario={scenario} />}
     </Flex>
   );
 }
