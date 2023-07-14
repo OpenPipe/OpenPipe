@@ -37,10 +37,6 @@ export default function OutputCell({
   // if (variant.config === null || Object.keys(variant.config).length === 0)
   //   disabledReason = "Save your prompt variant to see output";
 
-  // const model = getModelName(variant.config as JSONSerializable);
-  // TODO: Temporarily hardcoding this while we get other stuff working
-  const model = "gpt-3.5-turbo";
-
   const outputMutation = api.outputs.get.useMutation();
 
   const [output, setOutput] = useState<RouterOutputs["outputs"]["get"]>(null);
@@ -140,7 +136,7 @@ export default function OutputCell({
             { maxLength: 40 },
           )}
         </SyntaxHighlighter>
-        <OutputStats model={model} modelOutput={output} scenario={scenario} />
+        <OutputStats model={variant.model} modelOutput={output} scenario={scenario} />
       </Box>
     );
   }
@@ -150,7 +146,7 @@ export default function OutputCell({
   return (
     <Flex w="100%" h="100%" direction="column" justifyContent="space-between" whiteSpace="pre-wrap">
       {contentToDisplay}
-      {output && <OutputStats model={model} modelOutput={output} scenario={scenario} />}
+      {output && <OutputStats model={variant.model} modelOutput={output} scenario={scenario} />}
     </Flex>
   );
 }

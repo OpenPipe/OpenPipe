@@ -59,10 +59,17 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
       return;
     }
 
-    await replaceVariant.mutateAsync({
+    const resp = await replaceVariant.mutateAsync({
       id: props.variant.id,
       constructFn: currentFn,
     });
+    if (resp.status === "error") {
+      return toast({
+        title: "Error saving variant",
+        description: resp.message,
+        status: "error",
+      });
+    }
 
     await utils.promptVariants.list.invalidate();
 

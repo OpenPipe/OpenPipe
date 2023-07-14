@@ -26,10 +26,11 @@ model Experiment {
 }
 
 model PromptVariant {
-    id    String @id @default(uuid()) @db.Uuid
-    label String
+    id String @id @default(uuid()) @db.Uuid
 
+    label       String
     constructFn String
+    model       String @default("gpt-3.5-turbo")
 
     uiId      String  @default(uuid()) @db.Uuid
     visible   Boolean @default(true)

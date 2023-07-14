@@ -17,7 +17,7 @@ export const OutputStats = ({
   modelOutput,
   scenario,
 }: {
-  model: SupportedModel | null;
+  model: SupportedModel | string | null;
   modelOutput: ModelOutput;
   scenario: Scenario;
 }) => {

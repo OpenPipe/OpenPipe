@@ -7,9 +7,7 @@ test.skip("constructPrompt", async () => {
       constructFn: `prompt = { "fooz": "bar" }`,
     },
     {
-      variableValues: {
-        foo: "bar",
-      },
+      foo: "bar",
     },
   );
 

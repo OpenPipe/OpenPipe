@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client";
 import { reevaluateVariant } from "~/server/utils/evaluations";
 import { getCompletion } from "~/server/utils/getCompletion";
 import { constructPrompt } from "~/server/utils/constructPrompt";
+import { type CompletionCreateParams } from "openai/resources/chat";
 
 export const modelOutputsRouter = createTRPCRouter({
   get: publicProcedure
@@ -43,7 +44,7 @@ export const modelOutputsRouter = createTRPCRouter({
 
       if (!variant || !scenario) return null;
 
-      const prompt = await constructPrompt(variant, scenario);
+      const prompt = await constructPrompt(variant, scenario.variableValues);
 
       const inputHash = crypto.createHash("sha256").update(JSON.stringify(prompt)).digest("hex");
 
@@ -65,7 +66,10 @@ export const modelOutputsRouter = createTRPCRouter({
         };
       } else {
         try {
-          modelResponse = await getCompletion(prompt, input.channel);
+          modelResponse = await getCompletion(
+            prompt as unknown as CompletionCreateParams,
+            input.channel,
+          );
         } catch (e) {
           console.error(e);
           throw e;

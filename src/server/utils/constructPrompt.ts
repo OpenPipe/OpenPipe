@@ -6,10 +6,8 @@ const isolate = new ivm.Isolate({ memoryLimit: 128 });
 
 export async function constructPrompt(
   variant: Pick<PromptVariant, "constructFn">,
-  testScenario: Pick<TestScenario, "variableValues">,
+  scenario: TestScenario["variableValues"],
 ): Promise<JSONSerializable> {
-  const scenario = testScenario.variableValues as JSONSerializable;
-
   const code = `
       const scenario = ${JSON.stringify(scenario, null, 2)};
       let prompt
