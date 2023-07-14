@@ -13,10 +13,11 @@ import AutoResizeTextArea from "../AutoResizeTextArea";
 
 export default function ScenarioEditor({
   scenario,
-  hovered,
+  ...props
 }: {
   scenario: Scenario;
   hovered: boolean;
+  canHide: boolean;
 }) {
   const savedValues = scenario.variableValues as Record<string, string>;
   const utils = api.useContext();
@@ -92,30 +93,34 @@ export default function ScenarioEditor({
       onDrop={onReorder}
       backgroundColor={isDragTarget ? "gray.100" : "transparent"}
     >
-      <Stack alignSelf="flex-start" opacity={hovered ? 1 : 0} spacing={0}>
-        <Tooltip label="Hide scenario" hasArrow>
-          {/* for some reason the tooltip can't position itself properly relative to the icon without the wrapping box */}
-          <Button
-            variant="unstyled"
-            color="gray.400"
-            height="unset"
-            width="unset"
-            minW="unset"
-            onClick={onHide}
-            _hover={{
-              color: "gray.800",
-              cursor: "pointer",
-            }}
-          >
-            <Icon as={hidingInProgress ? Spinner : BsX} boxSize={6} />
-          </Button>
-        </Tooltip>
-        <Icon
-          as={RiDraggable}
-          boxSize={6}
-          color="gray.400"
-          _hover={{ color: "gray.800", cursor: "pointer" }}
-        />
+      <Stack alignSelf="flex-start" opacity={props.hovered ? 1 : 0} spacing={0}>
+        {props.canHide && (
+          <>
+            <Tooltip label="Hide scenario" hasArrow>
+              {/* for some reason the tooltip can't position itself properly relative to the icon without the wrapping box */}
+              <Button
+                variant="unstyled"
+                color="gray.400"
+                height="unset"
+                width="unset"
+                minW="unset"
+                onClick={onHide}
+                _hover={{
+                  color: "gray.800",
+                  cursor: "pointer",
+                }}
+              >
+                <Icon as={hidingInProgress ? Spinner : BsX} boxSize={6} />
+              </Button>
+            </Tooltip>
+            <Icon
+              as={RiDraggable}
+              boxSize={6}
+              color="gray.400"
+              _hover={{ color: "gray.800", cursor: "pointer" }}
+            />
+          </>
+        )}
       </Stack>
       {variableLabels.length === 0 ? (
         <Box color="gray.500">{vars.data ? "No scenario variables configured" : "Loading..."}</Box>

@@ -33,6 +33,7 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
 
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       allowNonTsExtensions: true,
+      strictNullChecks: true,
       lib: ["esnext"],
     });
 
@@ -84,7 +85,7 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
     )} as const;
     
     type Scenario = typeof scenarios[number];
-    declare var scenario: Scenario | null;
+    declare var scenario: Scenario | { [key: string]: string };
     `;
 
     const scenariosModel = monaco.editor.getModel(monaco.Uri.parse("file:///scenarios.ts"));

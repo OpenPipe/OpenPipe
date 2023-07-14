@@ -8,7 +8,7 @@ import { RiDraggable } from "react-icons/ri";
 import { cellPadding, headerMinHeight } from "../constants";
 import AutoResizeTextArea from "../AutoResizeTextArea";
 
-export default function VariantHeader(props: { variant: PromptVariant }) {
+export default function VariantHeader(props: { variant: PromptVariant; canHide: boolean }) {
   const utils = api.useContext();
   const [isDragTarget, setIsDragTarget] = useState(false);
   const [isInputHovered, setIsInputHovered] = useState(false);
@@ -95,11 +95,13 @@ export default function VariantHeader(props: { variant: PromptVariant }) {
         onMouseEnter={() => setIsInputHovered(true)}
         onMouseLeave={() => setIsInputHovered(false)}
       />
-      <Tooltip label="Hide Variant" hasArrow>
-        <Button variant="ghost" colorScheme="gray" size="sm" onClick={onHide}>
-          <Icon as={BsX} boxSize={6} />
-        </Button>
-      </Tooltip>
+      {props.canHide && (
+        <Tooltip label="Remove Variant" hasArrow>
+          <Button variant="ghost" colorScheme="gray" size="sm" onClick={onHide}>
+            <Icon as={BsX} boxSize={6} />
+          </Button>
+        </Tooltip>
+      )}
     </HStack>
   );
 }

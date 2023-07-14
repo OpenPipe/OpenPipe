@@ -5,7 +5,11 @@ import OutputCell from "./OutputCell/OutputCell";
 import ScenarioEditor from "./ScenarioEditor";
 import type { PromptVariant, Scenario } from "./types";
 
-const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) => {
+const ScenarioRow = (props: {
+  scenario: Scenario;
+  variants: PromptVariant[];
+  canHide: boolean;
+}) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const highlightStyle = { backgroundColor: "gray.50" };
@@ -18,7 +22,7 @@ const ScenarioRow = (props: { scenario: Scenario; variants: PromptVariant[] }) =
         sx={isHovered ? highlightStyle : undefined}
         borderLeftWidth={1}
       >
-        <ScenarioEditor scenario={props.scenario} hovered={isHovered} />
+        <ScenarioEditor scenario={props.scenario} hovered={isHovered} canHide={props.canHide} />
       </GridItem>
       {props.variants.map((variant) => (
         <GridItem

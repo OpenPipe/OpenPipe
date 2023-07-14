@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import { isObject } from "lodash";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -113,7 +114,18 @@ export const promptVariantsRouter = createTRPCRouter({
           experimentId: input.experimentId,
           label: `Prompt Variant ${largestSortIndex + 2}`,
           sortIndex: (lastVariant?.sortIndex ?? 0) + 1,
-          constructFn: lastVariant?.constructFn ?? "",
+          constructFn:
+            lastVariant?.constructFn ??
+            dedent`
+          prompt = {
+            model: "gpt-3.5-turbo",
+            messages: [
+              {
+                role: "system",
+                content: "Return 'Hello, world!'",
+              }
+            ]
+          }`,
           model: lastVariant?.model ?? "gpt-3.5-turbo",
         },
       });

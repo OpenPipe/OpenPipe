@@ -74,15 +74,23 @@ export const experimentsRouter = createTRPCRouter({
           constructFn: dedent`prompt = {
             model: "gpt-3.5-turbo-0613",
             stream: true,
-            messages: [{ role: "system", content: "Return 'Ready to go!'" }],
+            messages: [{ role: "system", content: ${"`Return '${scenario.text}'`"} }],
           }`,
           model: "gpt-3.5-turbo-0613",
+        },
+      }),
+      prisma.templateVariable.create({
+        data: {
+          experimentId: exp.id,
+          label: "text",
         },
       }),
       prisma.testScenario.create({
         data: {
           experimentId: exp.id,
-          variableValues: {},
+          variableValues: {
+            text: "This is a test scenario.",
+          },
         },
       }),
     ]);

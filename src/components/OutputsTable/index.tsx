@@ -78,7 +78,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
 
       {variants.data.map((variant) => (
         <GridItem key={variant.uiId} padding={0} sx={stickyHeaderStyle} borderTopWidth={1}>
-          <VariantHeader variant={variant} />
+          <VariantHeader variant={variant} canHide={variants.data.length > 1} />
         </GridItem>
       ))}
       <GridItem
@@ -103,7 +103,12 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         </GridItem>
       ))}
       {scenarios.data.map((scenario) => (
-        <ScenarioRow key={scenario.uiId} scenario={scenario} variants={variants.data} />
+        <ScenarioRow
+          key={scenario.uiId}
+          scenario={scenario}
+          variants={variants.data}
+          canHide={scenarios.data.length > 1}
+        />
       ))}
       <GridItem borderBottomWidth={0} borderRightWidth={0} w="100%" colSpan={allCols} padding={0}>
         <NewScenarioButton />
