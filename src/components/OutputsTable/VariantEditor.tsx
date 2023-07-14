@@ -27,11 +27,16 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
   const toast = useToast();
 
   const [onSave] = useHandledAsyncCallback(async () => {
-    const currentFn = editorRef.current?.getValue();
+    if (!editorRef.current) return;
+
+    await editorRef.current.getAction("editor.action.formatDocument")?.run();
+
+    const currentFn = editorRef.current.getValue();
+
     if (!currentFn) return;
 
     // Check if the editor has any typescript errors
-    const model = editorRef.current?.getModel();
+    const model = editorRef.current.getModel();
     if (!model) return;
 
     const markers = monaco?.editor.getModelMarkers({ resource: model.uri });
