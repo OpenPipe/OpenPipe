@@ -1,7 +1,7 @@
 import { type GetServerSideProps } from "next";
 
 // eslint-disable-next-line @typescript-eslint/require-await
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async () => {
   return {
     redirect: {
       destination: "/experiments",

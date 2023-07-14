@@ -41,7 +41,7 @@ model PromptVariant {
 
     createdAt        DateTime           @default(now())
     updatedAt        DateTime           @updatedAt
-    ModelOutput      ModelOutput[]
+    scenarioVariantCells      ScenarioVariantCell[]
     EvaluationResult EvaluationResult[]
 
     @@index([uiId])
@@ -61,7 +61,7 @@ model TestScenario {
 
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @updatedAt
-    ModelOutput ModelOutput[]
+    scenarioVariantCells ScenarioVariantCell[]
 }
 
 model TemplateVariable {
@@ -76,17 +76,28 @@ model TemplateVariable {
     updatedAt DateTime @updatedAt
 }
 
-model ModelOutput {
+enum CellRetrievalStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETE
+    ERROR
+}
+
+model ScenarioVariantCell {
     id String @id @default(uuid()) @db.Uuid
 
-    inputHash      String
-    output         Json
-    statusCode     Int
-    errorMessage   String?
-    timeToComplete Int     @default(0)
+    inputHash        String? // TODO: Remove once migration is complete
+    output           Json? // TODO: Remove once migration is complete
+    statusCode       Int?
+    errorMessage     String?
+    timeToComplete   Int?     @default(0) // TODO: Remove once migration is complete
+    retryTime        DateTime?
+    streamingChannel String?
+    retrievalStatus  CellRetrievalStatus @default(COMPLETE)
 
-    promptTokens     Int? // Added promptTokens field
-    completionTokens Int? // Added completionTokens field
+    promptTokens     Int? // TODO: Remove once migration is complete
+    completionTokens Int? // TODO: Remove once migration is complete
+    modelOutput      ModelOutput?
 
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
@@ -98,6 +109,24 @@ model ModelOutput {
     updatedAt DateTime @updatedAt
 
     @@unique([promptVariantId, testScenarioId])
+}
+
+model ModelOutput {
+    id String @id @default(uuid()) @db.Uuid
+
+    inputHash        String
+    output           Json
+    timeToComplete   Int     @default(0)
+    promptTokens     Int?
+    completionTokens Int?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    scenarioVariantCellId String        @db.Uuid
+    scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
+
+    @@unique([scenarioVariantCellId])
     @@index([inputHash])
 }
 

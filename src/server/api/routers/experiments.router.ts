@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import dedent from "dedent";
+import { generateNewCell } from "~/server/utils/generateNewCell";
 
 export const experimentsRouter = createTRPCRouter({
   list: publicProcedure.query(async () => {
@@ -64,7 +65,7 @@ export const experimentsRouter = createTRPCRouter({
       },
     });
 
-    await prisma.$transaction([
+    const [variant, scenario] = await prisma.$transaction([
       prisma.promptVariant.create({
         data: {
           experimentId: exp.id,
@@ -85,6 +86,8 @@ export const experimentsRouter = createTRPCRouter({
         },
       }),
     ]);
+
+    await generateNewCell(variant.id, scenario.id);
 
     return exp;
   }),

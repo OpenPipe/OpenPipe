@@ -16,7 +16,7 @@ const experiment = await prisma.experiment.create({
   },
 });
 
-await prisma.modelOutput.deleteMany({
+await prisma.scenarioVariantCell.deleteMany({
   where: {
     promptVariant: {
       experimentId,

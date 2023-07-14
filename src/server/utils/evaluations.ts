@@ -1,4 +1,4 @@
-import { type Evaluation } from "@prisma/client";
+import { type ModelOutput, type Evaluation } from "@prisma/client";
 import { prisma } from "../db";
 import { evaluateOutput } from "./evaluateOutput";
 
@@ -12,21 +12,22 @@ export const reevaluateVariant = async (variantId: string) => {
     where: { experimentId: variant.experimentId },
   });
 
-  const modelOutputs = await prisma.modelOutput.findMany({
+  const cells = await prisma.scenarioVariantCell.findMany({
     where: {
       promptVariantId: variantId,
-      statusCode: { notIn: [429] },
+      retrievalStatus: "COMPLETE",
       testScenario: { visible: true },
+      modelOutput: { isNot: null },
     },
-    include: { testScenario: true },
+    include: { testScenario: true, modelOutput: true },
   });
 
   await Promise.all(
     evaluations.map(async (evaluation) => {
-      const passCount = modelOutputs.filter((output) =>
-        evaluateOutput(output, output.testScenario, evaluation),
+      const passCount = cells.filter((cell) =>
+        evaluateOutput(cell.modelOutput as ModelOutput, cell.testScenario, evaluation),
       ).length;
-      const failCount = modelOutputs.length - passCount;
+      const failCount = cells.length - passCount;
 
       await prisma.evaluationResult.upsert({
         where: {
@@ -55,22 +56,23 @@ export const reevaluateEvaluation = async (evaluation: Evaluation) => {
     where: { experimentId: evaluation.experimentId, visible: true },
   });
 
-  const modelOutputs = await prisma.modelOutput.findMany({
+  const cells = await prisma.scenarioVariantCell.findMany({
     where: {
       promptVariantId: { in: variants.map((v) => v.id) },
       testScenario: { visible: true },
       statusCode: { notIn: [429] },
+      modelOutput: { isNot: null },
     },
-    include: { testScenario: true },
+    include: { testScenario: true, modelOutput: true },
   });
 
   await Promise.all(
     variants.map(async (variant) => {
-      const outputs = modelOutputs.filter((output) => output.promptVariantId === variant.id);
-      const passCount = outputs.filter((output) =>
-        evaluateOutput(output, output.testScenario, evaluation),
+      const variantCells = cells.filter((cell) => cell.promptVariantId === variant.id);
+      const passCount = variantCells.filter((cell) =>
+        evaluateOutput(cell.modelOutput as ModelOutput, cell.testScenario, evaluation),
       ).length;
-      const failCount = outputs.length - passCount;
+      const failCount = variantCells.length - passCount;
 
       await prisma.evaluationResult.upsert({
         where: {

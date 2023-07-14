@@ -2,6 +2,7 @@ import { isObject } from "lodash";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { generateNewCell } from "~/server/utils/generateNewCell";
 import { OpenAIChatModel } from "~/server/types";
 import { constructPrompt } from "~/server/utils/constructPrompt";
 import userError from "~/server/utils/error";
@@ -43,17 +44,24 @@ export const promptVariantsRouter = createTRPCRouter({
         visible: true,
       },
     });
-    const outputCount = await prisma.modelOutput.count({
+    const outputCount = await prisma.scenarioVariantCell.count({
       where: {
         promptVariantId: input.variantId,
         testScenario: { visible: true },
+        modelOutput: {
+          isNot: null,
+        },
       },
     });
 
     const overallTokens = await prisma.modelOutput.aggregate({
       where: {
-        promptVariantId: input.variantId,
-        testScenario: { visible: true },
+        scenarioVariantCell: {
+          promptVariantId: input.variantId,
+          testScenario: {
+            visible: true,
+          },
+        },
       },
       _sum: {
         promptTokens: true,
@@ -114,6 +122,17 @@ export const promptVariantsRouter = createTRPCRouter({
         createNewVariantAction,
         recordExperimentUpdated(input.experimentId),
       ]);
+
+      const scenarios = await prisma.testScenario.findMany({
+        where: {
+          experimentId: input.experimentId,
+          visible: true,
+        },
+      });
+
+      for (const scenario of scenarios) {
+        await generateNewCell(newVariant.id, scenario.id);
+      }
 
       return newVariant;
     }),
@@ -233,6 +252,17 @@ export const promptVariantsRouter = createTRPCRouter({
       });
 
       await prisma.$transaction([hideOldVariants, recordExperimentUpdated(existing.experimentId)]);
+
+      const scenarios = await prisma.testScenario.findMany({
+        where: {
+          experimentId: newVariant.experimentId,
+          visible: true,
+        },
+      });
+
+      for (const scenario of scenarios) {
+        await generateNewCell(newVariant.id, scenario.id);
+      }
 
       return { status: "ok" } as const;
     }),

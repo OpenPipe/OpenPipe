@@ -2,7 +2,7 @@ import { promptVariantsRouter } from "~/server/api/routers/promptVariants.router
 import { createTRPCRouter } from "~/server/api/trpc";
 import { experimentsRouter } from "./routers/experiments.router";
 import { scenariosRouter } from "./routers/scenarios.router";
-import { modelOutputsRouter } from "./routers/modelOutputs.router";
+import { scenarioVariantCellsRouter } from "./routers/scenarioVariantCells.router";
 import { templateVarsRouter } from "./routers/templateVariables.router";
 import { evaluationsRouter } from "./routers/evaluations.router";
 
@@ -15,7 +15,7 @@ export const appRouter = createTRPCRouter({
   promptVariants: promptVariantsRouter,
   experiments: experimentsRouter,
   scenarios: scenariosRouter,
-  outputs: modelOutputsRouter,
+  scenarioVariantCells: scenarioVariantCellsRouter,
   templateVars: templateVarsRouter,
   evaluations: evaluationsRouter,
 });

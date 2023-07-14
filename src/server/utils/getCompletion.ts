@@ -9,7 +9,7 @@ import { env } from "~/env.mjs";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { rateLimitErrorMessage } from "~/sharedStrings";
 
-type CompletionResponse = {
+export type CompletionResponse = {
   output: Prisma.InputJsonValue | typeof Prisma.JsonNull;
   statusCode: number;
   errorMessage: string | null;
