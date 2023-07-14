@@ -126,7 +126,6 @@ model ModelOutput {
     scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id])
 
     @@unique([scenarioVariantCellId])
-    @@index([scenarioVariantCellId])
 }
 
 enum EvaluationMatchType {
