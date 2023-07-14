@@ -9,8 +9,8 @@ import { HStack, Icon, Text } from "@chakra-ui/react";
 import { BsCheck, BsClock, BsCurrencyDollar, BsX } from "react-icons/bs";
 import { CostTooltip } from "~/components/tooltip/CostTooltip";
 
-const SHOW_COST = false;
-const SHOW_TIME = false;
+const SHOW_COST = true;
+const SHOW_TIME = true;
 
 export const OutputStats = ({
   model,
@@ -35,7 +35,7 @@ export const OutputStats = ({
 
   const cost = promptCost + completionCost;
 
-  if (!evals.length) return null;
+  if (!evals.length && !cost) return null;
 
   return (
     <HStack align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
