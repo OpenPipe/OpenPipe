@@ -51,6 +51,7 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
       }
 
       if (cell.modelOutput) {
+        // TODO: Maybe keep these around to show previous generations?
         await prisma.modelOutput.delete({
           where: { id: cell.modelOutput.id },
         });
