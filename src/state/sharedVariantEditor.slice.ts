@@ -2,12 +2,9 @@ import { type RouterOutputs } from "~/utils/api";
 import { type SliceCreator } from "./store";
 import loader from "@monaco-editor/loader";
 import openAITypes from "~/codegen/openai.types.ts.txt";
-import prettier from "prettier/standalone";
-import parserTypescript from "prettier/plugins/typescript";
+import formatPromptConstructor from "~/utils/formatPromptConstructor";
 
-// @ts-expect-error for some reason missing from types
-import parserEstree from "prettier/plugins/estree";
-import { type languages } from "monaco-editor/esm/vs/editor/editor.api";
+export const editorBackground = "#fafafa";
 
 export type SharedVariantEditorSlice = {
   monaco: null | ReturnType<typeof loader.__getMonacoInstance>;
@@ -15,26 +12,6 @@ export type SharedVariantEditorSlice = {
   scenarios: RouterOutputs["scenarios"]["list"];
   updateScenariosModel: () => void;
   setScenarios: (scenarios: RouterOutputs["scenarios"]["list"]) => void;
-};
-
-const customFormatter: languages.DocumentFormattingEditProvider = {
-  provideDocumentFormattingEdits: async (model) => {
-    const val = model.getValue();
-    console.log("going to format!", val);
-    const text = await prettier.format(val, {
-      parser: "typescript",
-      plugins: [parserTypescript, parserEstree],
-      // We're showing these in pretty narrow panes so let's keep the print width low
-      printWidth: 60,
-    });
-
-    return [
-      {
-        range: model.getFullModelRange(),
-        text,
-      },
-    ];
-  },
 };
 
 export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = (set, get) => ({
@@ -50,7 +27,7 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
       inherit: true,
       rules: [],
       colors: {
-        "editor.background": "#fafafa",
+        "editor.background": editorBackground,
       },
     });
 
@@ -69,7 +46,16 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
       monaco.Uri.parse("file:///openai.types.ts"),
     );
 
-    monaco.languages.registerDocumentFormattingEditProvider("typescript", customFormatter);
+    monaco.languages.registerDocumentFormattingEditProvider("typescript", {
+      provideDocumentFormattingEdits: async (model) => {
+        return [
+          {
+            range: model.getFullModelRange(),
+            text: await formatPromptConstructor(model.getValue()),
+          },
+        ];
+      },
+    });
 
     set((state) => {
       state.sharedVariantEditor.monaco = monaco;
