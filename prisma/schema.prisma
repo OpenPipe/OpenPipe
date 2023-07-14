@@ -85,7 +85,7 @@ enum CellRetrievalStatus {
 model ScenarioVariantCell {
     id String @id @default(uuid()) @db.Uuid
 
-    inputHash        String
+    inputHash        String? // TODO: Remove once migration is complete
     output           Json? // TODO: Remove once migration is complete
     statusCode       Int?
     errorMessage     String?
@@ -108,12 +108,12 @@ model ScenarioVariantCell {
     updatedAt DateTime @updatedAt
 
     @@unique([promptVariantId, testScenarioId])
-    @@index([inputHash])
 }
 
 model ModelOutput {
     id String @id @default(uuid()) @db.Uuid
 
+    inputHash        String
     output           Json
     timeToComplete   Int     @default(0)
     promptTokens     Int?
@@ -126,6 +126,7 @@ model ModelOutput {
     scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id])
 
     @@unique([scenarioVariantCellId])
+    @@index([inputHash])
 }
 
 enum EvaluationMatchType {

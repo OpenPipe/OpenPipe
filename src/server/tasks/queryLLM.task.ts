@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { prisma } from "~/server/db";
 import defineTask from "./defineTask";
 import { type CompletionResponse, getCompletion } from "../utils/getCompletion";
@@ -83,7 +84,6 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
   const prompt = await constructPrompt(variant, scenario);
 
-
   const streamingEnabled = shouldStream(prompt);
   let streamingChannel;
 
@@ -106,9 +106,12 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
   let modelOutput = null;
   if (modelResponse.statusCode === 200) {
+    const inputHash = crypto.createHash("sha256").update(JSON.stringify(prompt)).digest("hex");
+
     modelOutput = await prisma.modelOutput.create({
       data: {
         scenarioVariantCellId,
+        inputHash,
         output: modelResponse.output,
         timeToComplete: modelResponse.timeToComplete,
         promptTokens: modelResponse.promptTokens,

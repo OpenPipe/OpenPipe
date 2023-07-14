@@ -11,6 +11,7 @@ ALTER INDEX "ModelOutput_promptVariantId_testScenarioId_key" RENAME TO "Scenario
 -- Add the new fields to the renamed table
 ALTER TABLE "ScenarioVariantCell" ADD COLUMN "retryTime" TIMESTAMP(3);
 ALTER TABLE "ScenarioVariantCell" ADD COLUMN "streamingChannel" TEXT;
+ALTER TABLE "ScenarioVariantCell" ALTER COLUMN "inputHash" DROP NOT NULL;
 ALTER TABLE "ScenarioVariantCell" ALTER COLUMN "output" DROP NOT NULL,
 ALTER COLUMN "statusCode" DROP NOT NULL,
 ALTER COLUMN "timeToComplete" DROP NOT NULL;
@@ -18,6 +19,7 @@ ALTER COLUMN "timeToComplete" DROP NOT NULL;
 -- Create the new table
 CREATE TABLE "ModelOutput" (
     "id" UUID NOT NULL,
+    "inputHash" TEXT NOT NULL,
     "output" JSONB NOT NULL,
     "timeToComplete" INTEGER NOT NULL DEFAULT 0,
     "promptTokens" INTEGER,
@@ -26,6 +28,10 @@ CREATE TABLE "ModelOutput" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "scenarioVariantCellId" UUID
 );
+
+-- Move inputHash index
+DROP INDEX "ScenarioVariantCell_inputHash_idx";
+CREATE INDEX "ModelOutput_inputHash_idx" ON "ModelOutput"("inputHash");
 
 CREATE UNIQUE INDEX "ModelOutput_scenarioVariantCellId_key" ON "ModelOutput"("scenarioVariantCellId");
 ALTER TABLE "ModelOutput" ADD CONSTRAINT "ModelOutput_scenarioVariantCellId_fkey" FOREIGN KEY ("scenarioVariantCellId") REFERENCES "ScenarioVariantCell"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

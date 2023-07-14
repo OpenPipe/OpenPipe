@@ -42,31 +42,25 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
     data: {
       promptVariantId: variantId,
       testScenarioId: scenarioId,
-      inputHash,
     },
     include: {
       modelOutput: true,
     }
   });
 
-  const matchingCell = await prisma.scenarioVariantCell.findFirst({
+  const matchingModelOutput = await prisma.modelOutput.findFirst({
     where: {
       inputHash,
-      errorMessage: null,
-      modelOutput: {
-        isNot: null,
-      },
     },
-    include: { modelOutput: true },
   });
 
-  const matchingModelOutput = matchingCell?.modelOutput;
   let newModelOutput
 
   if (matchingModelOutput) {
     newModelOutput = await prisma.modelOutput.create({
       data: {
         scenarioVariantCellId: cell.id,
+        inputHash,
         output: matchingModelOutput.output as Prisma.InputJsonValue,
         timeToComplete: matchingModelOutput.timeToComplete,
         promptTokens: matchingModelOutput.promptTokens,

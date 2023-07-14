@@ -16,6 +16,7 @@ async function migrateScenarioVariantOutputData() {
       await prisma.modelOutput.create({
         data: {
           scenarioVariantCellId: cell.id,
+          inputHash: cell.inputHash || '',
           output: cell.output as Prisma.InputJsonValue,
           timeToComplete: cell.timeToComplete ?? undefined,
           promptTokens: cell.promptTokens,
