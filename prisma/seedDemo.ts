@@ -12,6 +12,7 @@ await prisma.promptVariant.createMany({
     {
       experimentId: functionCallsExperiment.id,
       label: "No Fn Calls",
+      model: "gpt-3.5-turbo-0613",
       constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
@@ -30,6 +31,7 @@ await prisma.promptVariant.createMany({
     {
       experimentId: functionCallsExperiment.id,
       label: "Fn Calls",
+      model: "gpt-3.5-turbo-0613",
       constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
@@ -92,6 +94,7 @@ await prisma.promptVariant.createMany({
       experimentId: redditExperiment.id,
       label: "3.5 Base",
       sortIndex: 0,
+      model: "gpt-3.5-turbo-0613",
       constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
@@ -107,6 +110,7 @@ await prisma.promptVariant.createMany({
       experimentId: redditExperiment.id,
       label: "4 Base",
       sortIndex: 1,
+      model: "gpt-3.5-turbo-0613",
       constructFn: `prompt = {
         model: "gpt-4-0613",
         messages: [
@@ -122,6 +126,7 @@ await prisma.promptVariant.createMany({
       experimentId: redditExperiment.id,
       label: "3.5 CoT + Functions",
       sortIndex: 2,
+      model: "gpt-3.5-turbo-0613",
       constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
