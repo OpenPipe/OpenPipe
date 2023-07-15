@@ -30,7 +30,7 @@ model PromptVariant {
 
     label       String
     constructFn String
-    model       String @default("gpt-3.5-turbo")
+    model       String
 
     uiId      String  @default(uuid()) @db.Uuid
     visible   Boolean @default(true)
@@ -39,10 +39,10 @@ model PromptVariant {
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
-    scenarioVariantCells      ScenarioVariantCell[]
-    EvaluationResult EvaluationResult[]
+    createdAt            DateTime              @default(now())
+    updatedAt            DateTime              @updatedAt
+    scenarioVariantCells ScenarioVariantCell[]
+    EvaluationResult     EvaluationResult[]
 
     @@index([uiId])
 }
@@ -59,8 +59,8 @@ model TestScenario {
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
+    createdAt            DateTime              @default(now())
+    updatedAt            DateTime              @updatedAt
     scenarioVariantCells ScenarioVariantCell[]
 }
 
@@ -90,7 +90,7 @@ model ScenarioVariantCell {
     output           Json? // TODO: Remove once migration is complete
     statusCode       Int?
     errorMessage     String?
-    timeToComplete   Int?     @default(0) // TODO: Remove once migration is complete
+    timeToComplete   Int?                @default(0) // TODO: Remove once migration is complete
     retryTime        DateTime?
     streamingChannel String?
     retrievalStatus  CellRetrievalStatus @default(COMPLETE)
@@ -116,14 +116,14 @@ model ModelOutput {
 
     inputHash        String
     output           Json
-    timeToComplete   Int     @default(0)
+    timeToComplete   Int    @default(0)
     promptTokens     Int?
     completionTokens Int?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    scenarioVariantCellId String        @db.Uuid
+    scenarioVariantCellId String              @db.Uuid
     scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
 
     @@unique([scenarioVariantCellId])

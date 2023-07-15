@@ -36,6 +36,7 @@ await prisma.promptVariant.createMany({
       experimentId,
       label: "Prompt Variant 1",
       sortIndex: 0,
+      model: "gpt-3.5-turbo-0613",
       constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [{ role: "user", content: "What is the capital of {{country}}?" }],
@@ -46,6 +47,7 @@ await prisma.promptVariant.createMany({
       experimentId,
       label: "Prompt Variant 2",
       sortIndex: 1,
+      model: "gpt-3.5-turbo-0613",
       constructFn: `prompt = {
         model: "gpt-3.5-turbo-0613",
         messages: [
