@@ -5,7 +5,8 @@ import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { editorBackground } from "~/state/sharedVariantEditor.slice";
-export default function VariantConfigEditor(props: { variant: PromptVariant }) {
+
+export default function VariantEditor(props: { variant: PromptVariant }) {
   const monaco = useAppStore.use.sharedVariantEditor.monaco();
   const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
@@ -17,9 +18,11 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
 
   const checkForChanges = useCallback(() => {
     if (!editorRef.current) return;
-    const currentConfig = editorRef.current.getValue();
-    setIsChanged(currentConfig !== lastSavedFn);
+    const currentFn = editorRef.current.getValue();
+    setIsChanged(currentFn.length > 0 && currentFn !== lastSavedFn);
   }, [lastSavedFn]);
+
+  useEffect(checkForChanges, [checkForChanges, lastSavedFn]);
 
   const replaceVariant = api.promptVariants.replaceVariant.useMutation();
   const utils = api.useContext();
@@ -75,9 +78,9 @@ export default function VariantConfigEditor(props: { variant: PromptVariant }) {
       });
     }
 
-    await utils.promptVariants.list.invalidate();
+    setIsChanged(false);
 
-    checkForChanges();
+    await utils.promptVariants.list.invalidate();
   }, [checkForChanges]);
 
   useEffect(() => {

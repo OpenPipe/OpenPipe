@@ -3,7 +3,7 @@ import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
 import ScenarioRow from "./ScenarioRow";
-import VariantConfigEditor from "./VariantEditor";
+import VariantEditor from "./VariantEditor";
 import VariantHeader from "./VariantHeader";
 import { cellPadding } from "../constants";
 import { BsPencil } from "react-icons/bs";
@@ -94,7 +94,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
 
       {variants.data.map((variant) => (
         <GridItem key={variant.uiId}>
-          <VariantConfigEditor variant={variant} />
+          <VariantEditor variant={variant} />
         </GridItem>
       ))}
       {variants.data.map((variant) => (
