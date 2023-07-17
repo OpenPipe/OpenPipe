@@ -95,7 +95,7 @@ dependencies:
   json-stringify-pretty-compact:
     specifier: ^4.0.0
     version: 4.0.0
-  lodash:
+  lodash-es:
     specifier: ^4.17.21
     version: 4.17.21
   next:
@@ -175,9 +175,9 @@ devDependencies:
   '@types/express':
     specifier: ^4.17.17
     version: 4.17.17
-  '@types/lodash':
-    specifier: ^4.14.195
-    version: 4.14.195
+  '@types/lodash-es':
+    specifier: ^4.17.8
+    version: 4.17.8
   '@types/node':
     specifier: ^18.16.0
     version: 18.16.0
@@ -2751,6 +2751,12 @@ packages:
 
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+    dev: true
+
+  /@types/lodash-es@4.17.8:
+    resolution: {integrity: sha512-euY3XQcZmIzSy7YH5+Unb3b2X12Wtk54YWINBvvGQ5SmMvwb11JQskGsfkH/5HXK77Kr8GF0wkVDIxzAisWtog==}
+    dependencies:
+      '@types/lodash': 4.14.195
     dev: true
 
   /@types/lodash.mergewith@4.6.7:
@@ -5378,6 +5384,10 @@ packages:
     dependencies:
       p-locate: 5.0.0
     dev: true
+
+  /lodash-es@4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
+    dev: false
 
   /lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}

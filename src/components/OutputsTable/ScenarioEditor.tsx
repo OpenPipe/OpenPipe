@@ -1,6 +1,6 @@
 import { type DragEvent } from "react";
 import { api } from "~/utils/api";
-import { isEqual } from "lodash";
+import { isEqual } from "lodash-es";
 import { type Scenario } from "./types";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useState } from "react";

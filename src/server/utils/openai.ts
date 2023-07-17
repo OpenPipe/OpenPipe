@@ -1,4 +1,4 @@
-import { omit } from "lodash";
+import { omit } from "lodash-es";
 import { env } from "~/env.mjs";
 
 import OpenAI from "openai";

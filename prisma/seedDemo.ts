@@ -183,9 +183,9 @@ await prisma.templateVariable.createMany({
 await prisma.evaluation.create({
   data: {
     experimentId: redditExperiment.id,
-    name: "Relevance Accuracy",
-    matchType: "CONTAINS",
-    matchString: '"{{relevance}}"',
+    label: "Relevance Accuracy",
+    evalType: "CONTAINS",
+    value: '"{{relevance}}"',
   },
 });
 
@@ -1124,12 +1124,3 @@ await prisma.testScenario.createMany({
     variableValues: vars,
   })),
 });
-
-// await prisma.evaluation.create({
-//   data: {
-//     experimentId: redditExperiment.id,
-//     name: "Scores Match",
-//     matchType: "CONTAINS",
-//     matchString: "{{score}}",
-//   },
-// });

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { isObject } from "lodash";
+import { isObject } from "lodash-es";
 import { Prisma } from "@prisma/client";
 import { streamChatCompletion } from "./openai";
 import { wsConnection } from "~/utils/wsConnection";
