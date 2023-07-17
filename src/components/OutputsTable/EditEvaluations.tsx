@@ -40,7 +40,7 @@ export function EvaluationEditor(props: {
           <Input
             size="sm"
             value={values.label}
-            onChange={(e) => setValues((values) => ({ ...values, name: e.target.value }))}
+            onChange={(e) => setValues((values) => ({ ...values, label: e.target.value }))}
           />
         </FormControl>
         <FormControl flex={1}>
@@ -125,6 +125,7 @@ export default function EditEvaluations() {
     }
     await utils.evaluations.list.invalidate();
     await utils.promptVariants.stats.invalidate();
+    await utils.scenarioVariantCells.get.invalidate();
   }, []);
 
   const onCancel = useCallback(() => {

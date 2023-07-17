@@ -1,10 +1,7 @@
-import { type ModelOutput } from "@prisma/client";
 import { type SupportedModel } from "~/server/types";
 import { type Scenario } from "../types";
-import { useExperiment } from "~/utils/hooks";
-import { api } from "~/utils/api";
+import { type RouterOutputs } from "~/utils/api";
 import { calculateTokenCost } from "~/utils/calculateTokenCost";
-import { evaluateOutput } from "~/server/utils/evaluateOutput";
 import { HStack, Icon, Text } from "@chakra-ui/react";
 import { BsCheck, BsClock, BsCurrencyDollar, BsX } from "react-icons/bs";
 import { CostTooltip } from "~/components/tooltip/CostTooltip";
@@ -15,16 +12,14 @@ const SHOW_TIME = true;
 export const OutputStats = ({
   model,
   modelOutput,
-  scenario,
 }: {
   model: SupportedModel | string | null;
-  modelOutput: ModelOutput;
+  modelOutput: NonNullable<
+    NonNullable<RouterOutputs["scenarioVariantCells"]["get"]>["modelOutput"]
+  >;
   scenario: Scenario;
 }) => {
   const timeToComplete = modelOutput.timeToComplete;
-  const experiment = useExperiment();
-  const evals =
-    api.evaluations.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data ?? [];
 
   const promptTokens = modelOutput.promptTokens;
   const completionTokens = modelOutput.completionTokens;
@@ -38,11 +33,11 @@ export const OutputStats = ({
   return (
     <HStack align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
       <HStack flex={1}>
-        {evals.map((evaluation) => {
-          const passed = evaluateOutput(modelOutput, scenario, evaluation);
+        {modelOutput.outputEvaluation.map((evaluation) => {
+          const passed = evaluation.result > 0.5;
           return (
             <HStack spacing={0} key={evaluation.id}>
-              <Text>{evaluation.label}</Text>
+              <Text>{evaluation.evaluation.label}</Text>
               <Icon
                 as={passed ? BsCheck : BsX}
                 color={passed ? "green.500" : "red.500"}

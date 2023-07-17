@@ -32,11 +32,43 @@ export const promptVariantsRouter = createTRPCRouter({
       throw new Error(`Prompt Variant with id ${input.variantId} does not exist`);
     }
 
-    const evalResults = await prisma.evaluationResult.findMany({
-      where: {
-        promptVariantId: input.variantId,
+    const outputEvals = await prisma.outputEvaluation.groupBy({
+      by: ["evaluationId"],
+      _sum: {
+        result: true,
       },
-      include: { evaluation: true },
+      _count: {
+        id: true,
+      },
+      where: {
+        modelOutput: {
+          scenarioVariantCell: {
+            promptVariant: {
+              id: input.variantId,
+              visible: true,
+            },
+            testScenario: {
+              visible: true,
+            },
+          },
+        },
+      },
+    });
+
+    const evals = await prisma.evaluation.findMany({
+      where: {
+        experimentId: variant.experimentId,
+      },
+    });
+
+    const evalResults = evals.map((evalItem) => {
+      const evalResult = outputEvals.find((outputEval) => outputEval.evaluationId === evalItem.id);
+      return {
+        id: evalItem.id,
+        label: evalItem.label,
+        passCount: evalResult?._sum?.result ?? 0,
+        totalCount: evalResult?._count?.id ?? 1,
+      };
     });
 
     const scenarioCount = await prisma.testScenario.count({
@@ -50,7 +82,7 @@ export const promptVariantsRouter = createTRPCRouter({
         promptVariantId: input.variantId,
         testScenario: { visible: true },
         modelOutput: {
-          isNot: null,
+          is: {},
         },
       },
     });
