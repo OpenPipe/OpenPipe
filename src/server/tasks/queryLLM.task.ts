@@ -9,6 +9,7 @@ import { generateChannel } from "~/utils/generateChannel";
 import { reevaluateVariant } from "../utils/evaluations";
 import { constructPrompt } from "../utils/constructPrompt";
 import { type CompletionCreateParams } from "openai/resources/chat";
+import { type Prisma } from "@prisma/client";
 
 const MAX_AUTO_RETRIES = 10;
 const MIN_DELAY = 500; // milliseconds
@@ -25,27 +26,34 @@ const getCompletionWithRetries = async (
   payload: JSONSerializable,
   channel?: string,
 ): Promise<CompletionResponse> => {
-  for (let i = 0; i < MAX_AUTO_RETRIES; i++) {
-    const modelResponse = await getCompletion(
-      payload as unknown as CompletionCreateParams,
-      channel,
-    );
-    if (modelResponse.statusCode !== 429 || i === MAX_AUTO_RETRIES - 1) {
-      return modelResponse;
+  let modelResponse: CompletionResponse | null = null;
+  try {
+    for (let i = 0; i < MAX_AUTO_RETRIES; i++) {
+      modelResponse = await getCompletion(payload as unknown as CompletionCreateParams, channel);
+      if (modelResponse.statusCode !== 429 || i === MAX_AUTO_RETRIES - 1) {
+        return modelResponse;
+      }
+      const delay = calculateDelay(i);
+      await prisma.scenarioVariantCell.update({
+        where: { id: cellId },
+        data: {
+          errorMessage: "Rate limit exceeded",
+          statusCode: 429,
+          retryTime: new Date(Date.now() + delay),
+        },
+      });
+      // TODO: Maybe requeue the job so other jobs can run in the future?
+      await sleep(delay);
     }
-    const delay = calculateDelay(i);
-    await prisma.scenarioVariantCell.update({
-      where: { id: cellId },
-      data: {
-        errorMessage: "Rate limit exceeded",
-        statusCode: 429,
-        retryTime: new Date(Date.now() + delay),
-      },
-    });
-    // TODO: Maybe requeue the job so other jobs can run in the future?
-    await sleep(delay);
+    throw new Error("Max retries limit reached");
+  } catch (error: unknown) {
+    return {
+      statusCode: modelResponse?.statusCode ?? 500,
+      errorMessage: modelResponse?.errorMessage ?? (error as Error).message,
+      output: null as unknown as Prisma.InputJsonValue,
+      timeToComplete: 0,
+    };
   }
-  throw new Error("Max retries limit reached");
 };
 
 export type queryLLMJob = {
