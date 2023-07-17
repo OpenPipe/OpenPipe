@@ -1,10 +1,9 @@
-import { Box, Button, HStack, Tooltip, VStack, useToast } from "@chakra-ui/react";
+import { Box, Button, HStack, Tooltip, useToast } from "@chakra-ui/react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
 import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import { editorBackground } from "~/state/sharedVariantEditor.slice";
 
 export default function VariantEditor(props: { variant: PromptVariant }) {
   const monaco = useAppStore.use.sharedVariantEditor.monaco();
@@ -133,19 +132,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
 
   return (
     <Box w="100%" pos="relative">
-      <VStack
-        spacing={0}
-        align="stretch"
-        fontSize="xs"
-        fontWeight="bold"
-        color="gray.600"
-        py={2}
-        bgColor={editorBackground}
-      >
-        <code>{`function constructPrompt(scenario: Scenario): Prompt {`}</code>
-        <div id={editorId} style={{ height: "300px", width: "100%" }}></div>
-        <code>{`return prompt; }`}</code>
-      </VStack>
+      <div id={editorId} style={{ height: "400px", width: "100%" }}></div>
       {isChanged && (
         <HStack pos="absolute" bottom={2} right={2}>
           <Button

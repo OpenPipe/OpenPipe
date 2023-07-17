@@ -71,11 +71,28 @@ export const experimentsRouter = createTRPCRouter({
           experimentId: exp.id,
           label: "Prompt Variant 1",
           sortIndex: 0,
-          constructFn: dedent`prompt = {
+          // The interpolated $ is necessary until dedent incorporates
+          // https://github.com/dmnd/dedent/pull/46
+          constructFn: dedent`
+          /**
+           * Use Javascript to define an OpenAI chat completion
+           * (https://platform.openai.com/docs/api-reference/chat/create) and
+           * assign it to the \`prompt\` variable.
+           *
+           * You have access to the current scenario in the \`scenario\`
+           * variable.
+           */
+          
+          prompt = {
             model: "gpt-3.5-turbo-0613",
             stream: true,
-            messages: [{ role: "system", content: ${"`Return '${scenario.text}'`"} }],
-          }`,
+            messages: [
+              {
+                role: "system",
+                content: \`"Return 'this is output for the scenario "${"$"}{scenario.text}"'\`,
+              },
+            ],
+          };`,
           model: "gpt-3.5-turbo-0613",
         },
       }),
