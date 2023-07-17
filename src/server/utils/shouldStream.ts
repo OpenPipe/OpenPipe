@@ -1,4 +1,4 @@
-import { isObject } from "lodash";
+import { isObject } from "lodash-es";
 import { type JSONSerializable } from "../types";
 
 export const shouldStream = (config: JSONSerializable): boolean => {

@@ -42,7 +42,7 @@ export const OutputStats = ({
           const passed = evaluateOutput(modelOutput, scenario, evaluation);
           return (
             <HStack spacing={0} key={evaluation.id}>
-              <Text>{evaluation.name}</Text>
+              <Text>{evaluation.label}</Text>
               <Icon
                 as={passed ? BsCheck : BsX}
                 color={passed ? "green.500" : "red.500"}

@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import openapiTS, { type OpenAPI3 } from "openapi-typescript";
 import YAML from "yaml";
-import _ from "lodash";
+import { pick } from "lodash-es";
 import assert from "assert";
 
 const OPENAPI_URL =
@@ -31,7 +31,7 @@ modelProperty.oneOf = undefined;
 
 delete schema["paths"];
 assert(schema.components?.schemas);
-schema.components.schemas = _.pick(schema.components?.schemas, [
+schema.components.schemas = pick(schema.components?.schemas, [
   "CreateChatCompletionRequest",
   "ChatCompletionRequestMessage",
   "ChatCompletionFunctions",

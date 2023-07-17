@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["jsonProtocol"]
+    provider = "prisma-client-js"
 }
 
 datasource db {
@@ -130,7 +129,7 @@ model ModelOutput {
     @@index([inputHash])
 }
 
-enum EvaluationMatchType {
+enum EvalType {
     CONTAINS
     DOES_NOT_CONTAIN
 }
@@ -138,9 +137,9 @@ enum EvaluationMatchType {
 model Evaluation {
     id String @id @default(uuid()) @db.Uuid
 
-    name        String
-    matchString String
-    matchType   EvaluationMatchType
+    label    String
+    evalType EvalType
+    value    String
 
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)

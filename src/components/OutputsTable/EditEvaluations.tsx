@@ -12,13 +12,13 @@ import {
   Select,
   FormHelperText,
 } from "@chakra-ui/react";
-import { type Evaluation, EvaluationMatchType } from "@prisma/client";
+import { type Evaluation, EvalType } from "@prisma/client";
 import { useCallback, useState } from "react";
 import { BsPencil, BsX } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 
-type EvalValues = Pick<Evaluation, "name" | "matchString" | "matchType">;
+type EvalValues = Pick<Evaluation, "label" | "value" | "evalType">;
 
 export function EvaluationEditor(props: {
   evaluation: Evaluation | null;
@@ -27,9 +27,9 @@ export function EvaluationEditor(props: {
   onCancel: () => void;
 }) {
   const [values, setValues] = useState<EvalValues>({
-    name: props.evaluation?.name ?? props.defaultName ?? "",
-    matchString: props.evaluation?.matchString ?? "",
-    matchType: props.evaluation?.matchType ?? "CONTAINS",
+    label: props.evaluation?.label ?? props.defaultName ?? "",
+    value: props.evaluation?.value ?? "",
+    evalType: props.evaluation?.evalType ?? "CONTAINS",
   });
 
   return (
@@ -39,7 +39,7 @@ export function EvaluationEditor(props: {
           <FormLabel fontSize="sm">Evaluation Name</FormLabel>
           <Input
             size="sm"
-            value={values.name}
+            value={values.label}
             onChange={(e) => setValues((values) => ({ ...values, name: e.target.value }))}
           />
         </FormControl>
@@ -47,15 +47,15 @@ export function EvaluationEditor(props: {
           <FormLabel fontSize="sm">Match Type</FormLabel>
           <Select
             size="sm"
-            value={values.matchType}
+            value={values.evalType}
             onChange={(e) =>
               setValues((values) => ({
                 ...values,
-                matchType: e.target.value as EvaluationMatchType,
+                evalType: e.target.value as EvalType,
               }))
             }
           >
-            {Object.values(EvaluationMatchType).map((type) => (
+            {Object.values(EvalType).map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
@@ -67,8 +67,8 @@ export function EvaluationEditor(props: {
         <FormLabel fontSize="sm">Match String</FormLabel>
         <Input
           size="sm"
-          value={values.matchString}
-          onChange={(e) => setValues((values) => ({ ...values, matchString: e.target.value }))}
+          value={values.value}
+          onChange={(e) => setValues((values) => ({ ...values, value: e.target.value }))}
         />
         <FormHelperText>
           This string will be interpreted as a regex and checked against each model output.
@@ -156,9 +156,9 @@ export default function EditEvaluations() {
                 align="center"
                 key={evaluation.id}
               >
-                <Text fontWeight="bold">{evaluation.name}</Text>
+                <Text fontWeight="bold">{evaluation.label}</Text>
                 <Text flex={1}>
-                  {evaluation.matchType}: &quot;{evaluation.matchString}&quot;
+                  {evaluation.evalType}: &quot;{evaluation.value}&quot;
                 </Text>
                 <Button
                   variant="unstyled"

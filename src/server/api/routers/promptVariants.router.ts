@@ -1,5 +1,5 @@
 import dedent from "dedent";
-import { isObject } from "lodash";
+import { isObject } from "lodash-es";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";

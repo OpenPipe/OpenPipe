@@ -1,7 +1,7 @@
 import { type CompletionCreateParams } from "openai/resources/chat";
 import { prisma } from "../db";
 import { openai } from "../utils/openai";
-import { pick } from "lodash";
+import { pick } from "lodash-es";
 
 type AxiosError = {
   response?: {

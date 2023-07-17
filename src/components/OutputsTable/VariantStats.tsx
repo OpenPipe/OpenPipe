@@ -47,7 +47,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
           const passedFrac = result.passCount / (result.passCount + result.failCount);
           return (
             <HStack key={result.id}>
-              <Text>{result.evaluation.name}</Text>
+              <Text>{result.evaluation.label}</Text>
               <Text color={scale(passedFrac).hex()} fontWeight="bold">
                 {(passedFrac * 100).toFixed(1)}%
               </Text>

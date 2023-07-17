@@ -1,4 +1,4 @@
-import { EvaluationMatchType } from "@prisma/client";
+import { EvalType } from "@prisma/client";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -18,18 +18,18 @@ export const evaluationsRouter = createTRPCRouter({
     .input(
       z.object({
         experimentId: z.string(),
-        name: z.string(),
-        matchString: z.string(),
-        matchType: z.nativeEnum(EvaluationMatchType),
+        label: z.string(),
+        value: z.string(),
+        evalType: z.nativeEnum(EvalType),
       }),
     )
     .mutation(async ({ input }) => {
       const evaluation = await prisma.evaluation.create({
         data: {
           experimentId: input.experimentId,
-          name: input.name,
-          matchString: input.matchString,
-          matchType: input.matchType,
+          label: input.label,
+          value: input.value,
+          evalType: input.evalType,
         },
       });
       await reevaluateEvaluation(evaluation);
@@ -41,8 +41,8 @@ export const evaluationsRouter = createTRPCRouter({
         id: z.string(),
         updates: z.object({
           name: z.string().optional(),
-          matchString: z.string().optional(),
-          matchType: z.nativeEnum(EvaluationMatchType).optional(),
+          value: z.string().optional(),
+          evalType: z.nativeEnum(EvalType).optional(),
         }),
       }),
     )
@@ -50,9 +50,9 @@ export const evaluationsRouter = createTRPCRouter({
       await prisma.evaluation.update({
         where: { id: input.id },
         data: {
-          name: input.updates.name,
-          matchString: input.updates.matchString,
-          matchType: input.updates.matchType,
+          label: input.updates.name,
+          value: input.updates.value,
+          evalType: input.updates.evalType,
         },
       });
       await reevaluateEvaluation(

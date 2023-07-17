@@ -14,11 +14,11 @@ export const evaluateOutput = (
 
   const stringifiedMessage = message.content ?? JSON.stringify(message.function_call);
 
-  const matchRegex = fillTemplate(evaluation.matchString, scenario.variableValues as VariableMap);
+  const matchRegex = fillTemplate(evaluation.value, scenario.variableValues as VariableMap);
 
   let match;
 
-  switch (evaluation.matchType) {
+  switch (evaluation.evalType) {
     case "CONTAINS":
       match = stringifiedMessage.match(matchRegex) !== null;
       break;
