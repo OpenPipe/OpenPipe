@@ -1,6 +1,6 @@
 import { type Evaluation, type ModelOutput, type TestScenario } from "@prisma/client";
 import { type ChatCompletion } from "openai/resources/chat";
-import { type VariableMap, fillTemplate } from "./fillTemplate";
+import { type VariableMap, fillTemplate, escapeRegExp, escapeQuotes } from "./fillTemplate";
 import { openai } from "./openai";
 import dedent from "dedent";
 
@@ -80,7 +80,7 @@ export const runOneEval = async (
 
   const stringifiedMessage = message.content ?? JSON.stringify(message.function_call);
 
-  const matchRegex = fillTemplate(evaluation.value, scenario.variableValues as VariableMap);
+  const matchRegex = escapeRegExp(fillTemplate(escapeQuotes(evaluation.value), scenario.variableValues as VariableMap));
 
   switch (evaluation.evalType) {
     case "CONTAINS":
