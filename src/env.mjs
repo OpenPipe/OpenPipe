@@ -10,6 +10,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     OPENAI_API_KEY: z.string().min(1),
+    RESTRICT_PRISMA_LOGS: z.boolean().optional().default(false),
   },
 
   /**
@@ -35,6 +36,7 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    RESTRICT_PRISMA_LOGS: process.env.RESTRICT_PRISMA_LOGS,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND: process.env.NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND,
     NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
