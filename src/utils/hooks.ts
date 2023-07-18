@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
 
 export const useExperiment = () => {
@@ -48,4 +48,42 @@ export const useModifierKeyLabel = () => {
     setLabel(navigator?.platform?.startsWith("Mac") ? "⌘" : "Ctrl");
   }, []);
   return label;
+};
+
+interface Dimensions {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}
+
+// get dimensions of an element
+export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | undefined] => {
+  const ref = useRef<HTMLElement>(null);
+  const [dimensions, setDimensions] = useState<Dimensions | undefined>();
+
+  useEffect(() => {
+    if (ref.current) {
+      const observer = new ResizeObserver(entries => {
+        entries.forEach(entry => {
+          setDimensions(entry.contentRect);
+        });
+      });
+
+      observer.observe(ref.current);
+
+      // Cleanup the observer on component unmount
+      return () => {
+        if (ref.current) {
+          observer.unobserve(ref.current);
+        }
+      }
+    }
+  }, []);
+
+  return [ref, dimensions];
 };

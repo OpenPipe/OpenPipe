@@ -1,28 +1,19 @@
-import { Button, Grid, GridItem, HStack, Heading, type SystemStyleObject } from "@chakra-ui/react";
+import { Grid, GridItem } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
 import ScenarioRow from "./ScenarioRow";
 import VariantEditor from "./VariantEditor";
 import VariantHeader from "./VariantHeader";
-import { cellPadding } from "../constants";
-import { BsPencil } from "react-icons/bs";
 import VariantStats from "./VariantStats";
-import { useAppStore } from "~/state/store";
-
-const stickyHeaderStyle: SystemStyleObject = {
-  position: "sticky",
-  top: "-1px",
-  backgroundColor: "#fff",
-  zIndex: 1,
-};
+import { ScenariosHeader } from "./ScenariosHeader";
+import { stickyHeaderStyle } from "./styles";
 
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
   const variants = api.promptVariants.list.useQuery(
     { experimentId: experimentId as string },
     { enabled: !!experimentId },
   );
-  const openDrawer = useAppStore((s) => s.openDrawer);
 
   const scenarios = api.scenarios.list.useQuery(
     { experimentId: experimentId as string },
@@ -49,32 +40,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       }}
       fontSize="sm"
     >
-      <GridItem
-        display="flex"
-        alignItems="flex-end"
-        rowSpan={headerRows}
-        px={cellPadding.x}
-        py={cellPadding.y}
-        // TODO: This is a hack to get the sticky header to work. It's not ideal because it's not responsive to the height of the header,
-        // so if the header height changes, this will need to be updated.
-        sx={{ ...stickyHeaderStyle, top: "-337px" }}
-      >
-        <HStack w="100%">
-          <Heading size="xs" fontWeight="bold" flex={1}>
-            Scenarios ({scenarios.data.length})
-          </Heading>
-          <Button
-            size="xs"
-            variant="ghost"
-            color="gray.500"
-            aria-label="Edit"
-            leftIcon={<BsPencil />}
-            onClick={openDrawer}
-          >
-            Edit Vars
-          </Button>
-        </HStack>
-      </GridItem>
+      <ScenariosHeader headerRows={headerRows} numScenarios={scenarios.data.length} />
 
       {variants.data.map((variant) => (
         <GridItem key={variant.uiId} padding={0} sx={stickyHeaderStyle} borderTopWidth={1}>
