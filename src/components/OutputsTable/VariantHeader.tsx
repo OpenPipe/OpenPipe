@@ -13,6 +13,7 @@ import {
   MenuDivider,
   Text,
   GridItem,
+  Spinner,
 } from "@chakra-ui/react"; // Changed here
 import { BsFillTrashFill, BsGear } from "react-icons/bs";
 import { FaRegClone } from "react-icons/fa";
@@ -63,6 +64,16 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
   );
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const duplicateMutation = api.promptVariants.create.useMutation();
+
+  const [duplicateVariant, duplicationInProgress] = useHandledAsyncCallback(async () => {
+    console.log("duplicating variant");
+    await duplicateMutation.mutateAsync({
+      experimentId: props.variant.experimentId,
+      variantId: props.variant.id,
+    });
+    await utils.promptVariants.list.invalidate();
+  }, [duplicateMutation, props.variant.experimentId, props.variant.id]);
 
   return (
     <GridItem
@@ -75,7 +86,7 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
     >
       <HStack
         spacing={4}
-        alignItems="center"
+        alignItems="flex-start"
         minH={headerMinHeight}
         draggable={!isInputHovered}
         onDragStart={(e) => {
@@ -98,10 +109,11 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
         <Icon
           as={RiDraggable}
           boxSize={6}
+          mt={2}
           color="gray.400"
           _hover={{ color: "gray.800", cursor: "pointer" }}
         />
-        <AutoResizeTextArea // Changed to Input
+        <AutoResizeTextArea
           size="sm"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
@@ -118,18 +130,26 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
           onMouseEnter={() => setIsInputHovered(true)}
           onMouseLeave={() => setIsInputHovered(false)}
         />
+
         <Menu
           z-index="dropdown"
           onOpen={() => setMenuOpen(true)}
           onClose={() => setMenuOpen(false)}
         >
-          <MenuButton>
-            <Button variant="ghost">
-              <Icon as={BsGear} />
-            </Button>
-          </MenuButton>
+          {duplicationInProgress ? (
+            <Spinner boxSize={4} mx={3} my={3} />
+          ) : (
+            <MenuButton>
+              <Button variant="ghost">
+                <Icon as={BsGear} />
+              </Button>
+            </MenuButton>
+          )}
+
           <MenuList mt={-3} fontSize="md">
-            <MenuItem icon={<Icon as={FaRegClone} boxSize={4} w={5} />}>Duplicate</MenuItem>
+            <MenuItem icon={<Icon as={FaRegClone} boxSize={4} w={5} />} onClick={duplicateVariant}>
+              Duplicate
+            </MenuItem>
             <MenuItem icon={<Icon as={RiExchangeFundsFill} boxSize={5} />}>Change Model</MenuItem>
             {props.canHide && (
               <>
