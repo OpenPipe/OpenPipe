@@ -31,7 +31,7 @@ export const OutputStats = ({
   const cost = promptCost + completionCost;
 
   return (
-    <HStack align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
+    <HStack w="full" align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
       <HStack flex={1}>
         {modelOutput.outputEvaluation.map((evaluation) => {
           const passed = evaluation.result > 0.5;

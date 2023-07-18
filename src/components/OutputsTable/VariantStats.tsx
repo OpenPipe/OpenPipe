@@ -1,12 +1,14 @@
-import { HStack, Icon, Text, useToken } from "@chakra-ui/react";
+import { HStack, Icon, Skeleton, Text, useToken } from "@chakra-ui/react";
 import { type PromptVariant } from "./types";
 import { cellPadding } from "../constants";
 import { api } from "~/utils/api";
 import chroma from "chroma-js";
 import { BsCurrencyDollar } from "react-icons/bs";
 import { CostTooltip } from "../tooltip/CostTooltip";
+import { useEffect, useState } from "react";
 
 export default function VariantStats(props: { variant: PromptVariant }) {
+  const [refetchInterval, setRefetchInterval] = useState(0);
   const { data } = api.promptVariants.stats.useQuery(
     {
       variantId: props.variant.id,
@@ -19,8 +21,16 @@ export default function VariantStats(props: { variant: PromptVariant }) {
         completionTokens: 0,
         scenarioCount: 0,
         outputCount: 0,
+        awaitingRetrievals: false,
       },
+      refetchInterval,
     },
+  );
+
+  // Poll every two seconds while we are waiting for LLM retrievals to finish
+  useEffect(
+    () => setRefetchInterval(data.awaitingRetrievals ? 2000 : 0),
+    [data.awaitingRetrievals],
   );
 
   const [passColor, neutralColor, failColor] = useToken("colors", [
@@ -33,16 +43,20 @@ export default function VariantStats(props: { variant: PromptVariant }) {
 
   const showNumFinished = data.scenarioCount > 0 && data.scenarioCount !== data.outputCount;
 
-  if (!(data.evalResults.length > 0) && !data.overallCost) return null;
-
   return (
-    <HStack justifyContent="space-between" alignItems="center" mx="2" fontSize="xs">
+    <HStack
+      justifyContent="space-between"
+      alignItems="center"
+      mx="2"
+      fontSize="xs"
+      py={cellPadding.y}
+    >
       {showNumFinished && (
         <Text>
           {data.outputCount} / {data.scenarioCount}
         </Text>
       )}
-      <HStack px={cellPadding.x} py={cellPadding.y}>
+      <HStack px={cellPadding.x}>
         {data.evalResults.map((result) => {
           const passedFrac = result.passCount / result.totalCount;
           return (
@@ -55,17 +69,19 @@ export default function VariantStats(props: { variant: PromptVariant }) {
           );
         })}
       </HStack>
-      {data.overallCost && (
+      {data.overallCost && !data.awaitingRetrievals ? (
         <CostTooltip
           promptTokens={data.promptTokens}
           completionTokens={data.completionTokens}
           cost={data.overallCost}
         >
-          <HStack spacing={0} align="center" color="gray.500" my="2">
+          <HStack spacing={0} align="center" color="gray.500">
             <Icon as={BsCurrencyDollar} />
             <Text mr={1}>{data.overallCost.toFixed(3)}</Text>
           </HStack>
         </CostTooltip>
+      ) : (
+        <Skeleton height={4} width={12} mr={1} />
       )}
     </HStack>
   );

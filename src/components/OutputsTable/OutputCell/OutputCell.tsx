@@ -1,6 +1,6 @@
 import { api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "../types";
-import { Spinner, Text, Box, Center, Flex, VStack } from "@chakra-ui/react";
+import { Spinner, Text, Center, VStack } from "@chakra-ui/react";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
@@ -55,7 +55,10 @@ export default function OutputCell({
   const fetchingOutput = queryLoading || refetchingOutput;
 
   const awaitingOutput =
-    !cell || cell.retrievalStatus === "PENDING" || cell.retrievalStatus === "IN_PROGRESS";
+    !cell ||
+    cell.retrievalStatus === "PENDING" ||
+    cell.retrievalStatus === "IN_PROGRESS" ||
+    refetchingOutput;
   useEffect(() => setRefetchInterval(awaitingOutput ? 1000 : 0), [awaitingOutput]);
 
   const modelOutput = cell?.modelOutput;
@@ -95,11 +98,18 @@ export default function OutputCell({
     }
 
     return (
-      <Box fontSize="xs" width="100%" flexWrap="wrap" overflowX="auto">
-        <VStack w="full" spacing={0}>
+      <VStack
+        w="100%"
+        h="100%"
+        fontSize="xs"
+        flexWrap="wrap"
+        overflowX="auto"
+        justifyContent="space-between"
+      >
+        <VStack w="full" flex={1} spacing={0}>
           <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
           <SyntaxHighlighter
-            customStyle={{ overflowX: "unset" }}
+            customStyle={{ overflowX: "unset", width: "100%", flex: 1 }}
             language="json"
             style={docco}
             lineProps={{
@@ -117,7 +127,7 @@ export default function OutputCell({
           </SyntaxHighlighter>
         </VStack>
         <OutputStats model={variant.model} modelOutput={modelOutput} scenario={scenario} />
-      </Box>
+      </VStack>
     );
   }
 
@@ -125,7 +135,7 @@ export default function OutputCell({
     message?.content ?? streamedContent ?? JSON.stringify(modelOutput?.output);
 
   return (
-    <Flex w="100%" h="100%" direction="column" justifyContent="space-between" whiteSpace="pre-wrap">
+    <VStack w="100%" h="100%" justifyContent="space-between" whiteSpace="pre-wrap">
       <VStack w="full" alignItems="flex-start" spacing={0}>
         <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
         <Text>{contentToDisplay}</Text>
@@ -133,6 +143,6 @@ export default function OutputCell({
       {modelOutput && (
         <OutputStats model={variant.model} modelOutput={modelOutput} scenario={scenario} />
       )}
-    </Flex>
+    </VStack>
   );
 }
