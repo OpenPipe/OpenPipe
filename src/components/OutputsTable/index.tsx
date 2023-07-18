@@ -43,9 +43,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       <ScenariosHeader headerRows={headerRows} numScenarios={scenarios.data.length} />
 
       {variants.data.map((variant) => (
-        <GridItem key={variant.uiId} padding={0} sx={stickyHeaderStyle} borderTopWidth={1}>
-          <VariantHeader variant={variant} canHide={variants.data.length > 1} />
-        </GridItem>
+        <VariantHeader key={variant.uiId} variant={variant} canHide={variants.data.length > 1} />
       ))}
       <GridItem
         rowSpan={scenarios.data.length + headerRows}
