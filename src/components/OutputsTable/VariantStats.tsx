@@ -44,10 +44,10 @@ export default function VariantStats(props: { variant: PromptVariant }) {
       )}
       <HStack px={cellPadding.x} py={cellPadding.y}>
         {data.evalResults.map((result) => {
-          const passedFrac = result.passCount / (result.passCount + result.failCount);
+          const passedFrac = result.passCount / result.totalCount;
           return (
             <HStack key={result.id}>
-              <Text>{result.evaluation.label}</Text>
+              <Text>{result.label}</Text>
               <Text color={scale(passedFrac).hex()} fontWeight="bold">
                 {(passedFrac * 100).toFixed(1)}%
               </Text>

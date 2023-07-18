@@ -41,7 +41,6 @@ model PromptVariant {
     createdAt            DateTime              @default(now())
     updatedAt            DateTime              @updatedAt
     scenarioVariantCells ScenarioVariantCell[]
-    EvaluationResult     EvaluationResult[]
 
     @@index([uiId])
 }
@@ -124,6 +123,7 @@ model ModelOutput {
 
     scenarioVariantCellId String              @db.Uuid
     scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
+    outputEvaluation      OutputEvaluation[]
 
     @@unique([scenarioVariantCellId])
     @@index([inputHash])
@@ -132,6 +132,7 @@ model ModelOutput {
 enum EvalType {
     CONTAINS
     DOES_NOT_CONTAIN
+    GPT4_EVAL
 }
 
 model Evaluation {
@@ -146,25 +147,26 @@ model Evaluation {
 
     createdAt        DateTime           @default(now())
     updatedAt        DateTime           @updatedAt
-    EvaluationResult EvaluationResult[]
+    OutputEvaluation OutputEvaluation[]
 }
 
-model EvaluationResult {
+model OutputEvaluation {
     id String @id @default(uuid()) @db.Uuid
 
-    passCount Int
-    failCount Int
+    // Number between 0 (fail) and 1 (pass)
+    result  Float
+    details String?
+
+    modelOutputId String      @db.Uuid
+    modelOutput   ModelOutput @relation(fields: [modelOutputId], references: [id], onDelete: Cascade)
 
     evaluationId String     @db.Uuid
     evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
 
-    promptVariantId String        @db.Uuid
-    promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
-
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([evaluationId, promptVariantId])
+    @@unique([modelOutputId, evaluationId])
 }
 
 // Necessary for Next auth

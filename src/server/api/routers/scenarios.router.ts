@@ -3,7 +3,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { autogenerateScenarioValues } from "../autogen";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
-import { reevaluateAll } from "~/server/utils/evaluations";
+import { runAllEvals } from "~/server/utils/evaluations";
 import { generateNewCell } from "~/server/utils/generateNewCell";
 
 export const scenariosRouter = createTRPCRouter({
@@ -73,7 +73,7 @@ export const scenariosRouter = createTRPCRouter({
     });
 
     // Reevaluate all evaluations now that this scenario is hidden
-    await reevaluateAll(hiddenScenario.experimentId);
+    await runAllEvals(hiddenScenario.experimentId);
 
     return hiddenScenario;
   }),

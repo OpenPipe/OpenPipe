@@ -6,7 +6,7 @@ import { type JSONSerializable } from "../types";
 import { sleep } from "../utils/sleep";
 import { shouldStream } from "../utils/shouldStream";
 import { generateChannel } from "~/utils/generateChannel";
-import { reevaluateVariant } from "../utils/evaluations";
+import { runEvalsForOutput } from "../utils/evaluations";
 import { constructPrompt } from "../utils/constructPrompt";
 import { type CompletionCreateParams } from "openai/resources/chat";
 import { type Prisma } from "@prisma/client";
@@ -148,5 +148,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     },
   });
 
-  await reevaluateVariant(cell.promptVariantId);
+  if (modelOutput) {
+    await runEvalsForOutput(variant.experimentId, scenario, modelOutput);
+  }
 });

@@ -11,12 +11,14 @@ import {
   FormLabel,
   Select,
   FormHelperText,
+  Code,
 } from "@chakra-ui/react";
 import { type Evaluation, EvalType } from "@prisma/client";
 import { useCallback, useState } from "react";
 import { BsPencil, BsX } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import AutoResizeTextArea from "../AutoResizeTextArea";
 
 type EvalValues = Pick<Evaluation, "label" | "value" | "evalType">;
 
@@ -36,15 +38,15 @@ export function EvaluationEditor(props: {
     <VStack borderTopWidth={1} borderColor="gray.200" py={4}>
       <HStack w="100%">
         <FormControl flex={1}>
-          <FormLabel fontSize="sm">Evaluation Name</FormLabel>
+          <FormLabel fontSize="sm">Eval Name</FormLabel>
           <Input
             size="sm"
             value={values.label}
-            onChange={(e) => setValues((values) => ({ ...values, name: e.target.value }))}
+            onChange={(e) => setValues((values) => ({ ...values, label: e.target.value }))}
           />
         </FormControl>
         <FormControl flex={1}>
-          <FormLabel fontSize="sm">Match Type</FormLabel>
+          <FormLabel fontSize="sm">Eval Type</FormLabel>
           <Select
             size="sm"
             value={values.evalType}
@@ -63,17 +65,37 @@ export function EvaluationEditor(props: {
           </Select>
         </FormControl>
       </HStack>
-      <FormControl>
-        <FormLabel fontSize="sm">Match String</FormLabel>
-        <Input
-          size="sm"
-          value={values.value}
-          onChange={(e) => setValues((values) => ({ ...values, value: e.target.value }))}
-        />
-        <FormHelperText>
-          This string will be interpreted as a regex and checked against each model output.
-        </FormHelperText>
-      </FormControl>
+      {["CONTAINS", "DOES_NOT_CONTAIN"].includes(values.evalType) && (
+        <FormControl>
+          <FormLabel fontSize="sm">Match String</FormLabel>
+          <Input
+            size="sm"
+            value={values.value}
+            onChange={(e) => setValues((values) => ({ ...values, value: e.target.value }))}
+          />
+          <FormHelperText>
+            This string will be interpreted as a regex and checked against each model output. You
+            can include scenario variables using <Code>{"{{curly_braces}}"}</Code>
+          </FormHelperText>
+        </FormControl>
+      )}
+      {values.evalType === "GPT4_EVAL" && (
+        <FormControl pt={2}>
+          <FormLabel fontSize="sm">GPT4 Instructions</FormLabel>
+          <AutoResizeTextArea
+            size="sm"
+            value={values.value}
+            onChange={(e) => setValues((values) => ({ ...values, value: e.target.value }))}
+            minRows={3}
+          />
+          <FormHelperText>
+            Give instructions to GPT-4 for how to evaluate your prompt. It will have access to the
+            full scenario as well as the output it is evaluating. It will <strong>not</strong> have
+            access to the specific prompt variant, so be sure to be clear about the task you want it
+            to perform.
+          </FormHelperText>
+        </FormControl>
+      )}
       <HStack alignSelf="flex-end">
         <Button size="sm" onClick={props.onCancel} colorScheme="gray">
           Cancel
@@ -125,6 +147,7 @@ export default function EditEvaluations() {
     }
     await utils.evaluations.list.invalidate();
     await utils.promptVariants.stats.invalidate();
+    await utils.scenarioVariantCells.get.invalidate();
   }, []);
 
   const onCancel = useCallback(() => {

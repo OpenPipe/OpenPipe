@@ -21,7 +21,17 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
           },
         },
         include: {
-          modelOutput: true,
+          modelOutput: {
+            include: {
+              outputEvaluation: {
+                include: {
+                  evaluation: {
+                    select: { label: true },
+                  },
+                },
+              },
+            },
+          },
         },
       });
     }),
