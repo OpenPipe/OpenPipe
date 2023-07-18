@@ -1,4 +1,4 @@
-import { Text, Button, HStack, Heading, Icon, Input, Stack, Code } from "@chakra-ui/react";
+import { Text, Button, HStack, Heading, Icon, Input, Stack } from "@chakra-ui/react";
 import { useState } from "react";
 import { BsCheck, BsX } from "react-icons/bs";
 import { api } from "~/utils/api";
@@ -36,8 +36,7 @@ export default function EditScenarioVars() {
       <Heading size="sm">Scenario Variables</Heading>
       <Stack spacing={2}>
         <Text fontSize="sm">
-          Scenario variables can be used in your prompt variants as well as evaluations. Reference
-          them using <Code>{"{{curly_braces}}"}</Code>.
+          Scenario variables can be used in your prompt variants as well as evaluations.
         </Text>
         <HStack spacing={0}>
           <Input

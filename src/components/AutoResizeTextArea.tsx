@@ -4,7 +4,7 @@ import React from "react";
 
 export const AutoResizeTextarea: React.ForwardRefRenderFunction<
   HTMLTextAreaElement,
-  TextareaProps
+  TextareaProps & { minRows?: number }
 > = (props, ref) => {
   return (
     <Textarea

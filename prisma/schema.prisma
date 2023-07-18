@@ -132,6 +132,7 @@ model ModelOutput {
 enum EvalType {
     CONTAINS
     DOES_NOT_CONTAIN
+    GPT4_EVAL
 }
 
 model Evaluation {

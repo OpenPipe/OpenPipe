@@ -2,7 +2,7 @@ import { type SupportedModel } from "~/server/types";
 import { type Scenario } from "../types";
 import { type RouterOutputs } from "~/utils/api";
 import { calculateTokenCost } from "~/utils/calculateTokenCost";
-import { HStack, Icon, Text } from "@chakra-ui/react";
+import { HStack, Icon, Text, Tooltip } from "@chakra-ui/react";
 import { BsCheck, BsClock, BsCurrencyDollar, BsX } from "react-icons/bs";
 import { CostTooltip } from "~/components/tooltip/CostTooltip";
 
@@ -36,14 +36,20 @@ export const OutputStats = ({
         {modelOutput.outputEvaluation.map((evaluation) => {
           const passed = evaluation.result > 0.5;
           return (
-            <HStack spacing={0} key={evaluation.id}>
-              <Text>{evaluation.evaluation.label}</Text>
-              <Icon
-                as={passed ? BsCheck : BsX}
-                color={passed ? "green.500" : "red.500"}
-                boxSize={6}
-              />
-            </HStack>
+            <Tooltip
+              isDisabled={!evaluation.details}
+              label={evaluation.details}
+              key={evaluation.id}
+            >
+              <HStack spacing={0}>
+                <Text>{evaluation.evaluation.label}</Text>
+                <Icon
+                  as={passed ? BsCheck : BsX}
+                  color={passed ? "green.500" : "red.500"}
+                  boxSize={6}
+                />
+              </HStack>
+            </Tooltip>
           );
         })}
       </HStack>
