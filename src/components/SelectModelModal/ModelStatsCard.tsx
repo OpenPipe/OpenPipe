@@ -13,13 +13,13 @@ import { BsChevronRight } from "react-icons/bs";
 import { modelStats } from "~/server/modelStats";
 import { type SupportedModel } from "~/server/types";
 
-export const SelectedModelInfo = ({ model }: { model: SupportedModel }) => {
+export const ModelStatsCard = ({ label, model }: { label: string, model: SupportedModel }) => {
   const stats = modelStats[model];
   return (
     <VStack w="full" spacing={6} bgColor="gray.100" p={4} borderRadius={8}>
       <HStack w="full" justifyContent="space-between">
         <Text fontWeight="bold" fontSize="xs">
-          SELECTED MODEL
+          {label}
         </Text>
         <Button variant="link" onClick={() => window.open(stats.learnMoreUrl, "_blank")}>
           <HStack alignItems="center" spacing={0} color="blue.500" fontWeight="bold">
@@ -69,7 +69,7 @@ const SelectedModelLabeledInfo = ({
   info: string | number | React.ReactElement;
 } & StackProps) => (
   <GridItem>
-    <VStack alignItems="flex-start" flex={1} {...props}>
+    <VStack alignItems="flex-start" {...props}>
       <Text fontWeight="bold">{label}</Text>
       <Text>{info}</Text>
     </VStack>

@@ -7,10 +7,12 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { type SupportedModel } from "~/server/types";
-import { SelectedModelInfo } from "./SelectedModelInfo";
+import { ModelStatsCard } from "./ModelStatsCard";
+import { SelectModelSearch } from "./SelectModelSearch";
 
 export const SelectModelModal = ({
   originalModel,
@@ -24,13 +26,17 @@ export const SelectModelModal = ({
   const [selectedModel, setSelectedModel] = useState<SupportedModel>(originalModel);
 
   return (
-    <Modal isOpen onClose={onClose} size="xl">
+    <Modal isOpen onClose={onClose} size={{base: "xl", sm: '2xl', md: "3xl"}}>
       <ModalOverlay />
       <ModalContent w={1200}>
-        <ModalHeader>Browse Models</ModalHeader>
+        <ModalHeader>Select a New Model</ModalHeader>
         <ModalCloseButton />
         <ModalBody maxW="unset">
-          <SelectedModelInfo model={selectedModel} />
+          <VStack spacing={4}>
+            {originalModel !== selectedModel && <ModelStatsCard label="ORIGINAL MODEL" model={originalModel} />}
+            <ModelStatsCard label="SELECTED MODEL" model={selectedModel} />
+            <SelectModelSearch selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
+          </VStack>
         </ModalBody>
 
         <ModalFooter>
