@@ -1,6 +1,10 @@
 import { prisma } from "~/server/db";
 
-export const reorderPromptVariants = async (movedId: string, stationaryTargetId: string, alwaysInsertRight?: boolean) => {
+export const reorderPromptVariants = async (
+  movedId: string,
+  stationaryTargetId: string,
+  alwaysInsertRight?: boolean,
+) => {
   const moved = await prisma.promptVariant.findUnique({
     where: {
       id: movedId,

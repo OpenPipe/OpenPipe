@@ -67,7 +67,6 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
   const duplicateMutation = api.promptVariants.create.useMutation();
 
   const [duplicateVariant, duplicationInProgress] = useHandledAsyncCallback(async () => {
-    console.log("duplicating variant");
     await duplicateMutation.mutateAsync({
       experimentId: props.variant.experimentId,
       variantId: props.variant.id,

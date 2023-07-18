@@ -141,7 +141,6 @@ export const promptVariantsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      console.log('duplicating variant')
       let originalVariant: PromptVariant | null = null;
       if (input.variantId) {
         originalVariant = await prisma.promptVariant.findUnique({
