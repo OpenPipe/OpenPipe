@@ -68,20 +68,22 @@ export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | un
 
   useEffect(() => {
     if (ref.current) {
-      const observer = new ResizeObserver(entries => {
-        entries.forEach(entry => {
+      const observer = new ResizeObserver((entries) => {
+        entries.forEach((entry) => {
           setDimensions(entry.contentRect);
         });
       });
 
-      observer.observe(ref.current);
+      const observedRef = ref.current;
+
+      observer.observe(observedRef);
 
       // Cleanup the observer on component unmount
       return () => {
-        if (ref.current) {
-          observer.unobserve(ref.current);
+        if (observedRef) {
+          observer.unobserve(observedRef);
         }
-      }
+      };
     }
   }, []);
 

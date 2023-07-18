@@ -19,6 +19,7 @@ export const ScenariosHeader = ({
 
   return (
     <GridItem
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       display="flex"
       alignItems="flex-end"

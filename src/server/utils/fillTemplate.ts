@@ -9,7 +9,7 @@ export function escapeQuotes(str: string) {
 
 // Escape regex special characters
 export function escapeRegExp(str: string) {
-  return str.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  return str.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
 
 export function fillTemplate(template: string, variables: VariableMap): string {

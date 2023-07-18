@@ -80,7 +80,9 @@ export const runOneEval = async (
 
   const stringifiedMessage = message.content ?? JSON.stringify(message.function_call);
 
-  const matchRegex = escapeRegExp(fillTemplate(escapeQuotes(evaluation.value), scenario.variableValues as VariableMap));
+  const matchRegex = escapeRegExp(
+    fillTemplate(escapeQuotes(evaluation.value), scenario.variableValues as VariableMap),
+  );
 
   switch (evaluation.evalType) {
     case "CONTAINS":
