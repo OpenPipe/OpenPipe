@@ -4,7 +4,7 @@ import NewScenarioButton from "./NewScenarioButton";
 import NewVariantButton from "./NewVariantButton";
 import ScenarioRow from "./ScenarioRow";
 import VariantEditor from "./VariantEditor";
-import VariantHeader from "./VariantHeader";
+import VariantHeader from "../VariantHeader/VariantHeader";
 import VariantStats from "./VariantStats";
 import { ScenariosHeader } from "./ScenariosHeader";
 import { stickyHeaderStyle } from "./styles";
