@@ -20,7 +20,6 @@ export const CostTooltip = ({
       color="gray.800"
       bgColor="gray.50"
       borderWidth={1}
-      py={2}
       hasArrow
       shouldWrapChildren
       label={
