@@ -1,4 +1,4 @@
-import { Box, Button, HStack, Tooltip, useToast } from "@chakra-ui/react";
+import { Box, Button, HStack, Spinner, Tooltip, useToast, Text } from "@chakra-ui/react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
 import { type PromptVariant } from "./types";
@@ -27,7 +27,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
   const utils = api.useContext();
   const toast = useToast();
 
-  const [onSave] = useHandledAsyncCallback(async () => {
+  const [onSave, saveInProgress] = useHandledAsyncCallback(async () => {
     if (!editorRef.current) return;
 
     await editorRef.current.getAction("editor.action.formatDocument")?.run();
@@ -146,8 +146,8 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
             Reset
           </Button>
           <Tooltip label={`${modifierKey} + Enter`}>
-            <Button size="sm" onClick={onSave} colorScheme="blue">
-              Save
+            <Button size="sm" onClick={onSave} colorScheme="blue" w={16} disabled={saveInProgress}>
+              {saveInProgress ? <Spinner boxSize={4} /> : <Text>Save</Text>}
             </Button>
           </Tooltip>
         </HStack>
