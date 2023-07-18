@@ -77,7 +77,7 @@ export const promptVariantsRouter = createTRPCRouter({
 
     const overallCost = overallPromptCost + overallCompletionCost;
 
-    const awaitingRetrievals = !!await prisma.scenarioVariantCell.findFirst({
+    const awaitingRetrievals = !!(await prisma.scenarioVariantCell.findFirst({
       where: {
         promptVariantId: input.variantId,
         testScenario: { visible: true },
@@ -86,9 +86,17 @@ export const promptVariantsRouter = createTRPCRouter({
           in: ["PENDING", "IN_PROGRESS"],
         },
       },
-    });
+    }));
 
-    return { evalResults, promptTokens, completionTokens, overallCost, scenarioCount, outputCount, awaitingRetrievals };
+    return {
+      evalResults,
+      promptTokens,
+      completionTokens,
+      overallCost,
+      scenarioCount,
+      outputCount,
+      awaitingRetrievals,
+    };
   }),
 
   create: publicProcedure

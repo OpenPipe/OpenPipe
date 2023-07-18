@@ -55,7 +55,10 @@ export default function OutputCell({
   const fetchingOutput = queryLoading || refetchingOutput;
 
   const awaitingOutput =
-    !cell || cell.retrievalStatus === "PENDING" || cell.retrievalStatus === "IN_PROGRESS" || refetchingOutput;
+    !cell ||
+    cell.retrievalStatus === "PENDING" ||
+    cell.retrievalStatus === "IN_PROGRESS" ||
+    refetchingOutput;
   useEffect(() => setRefetchInterval(awaitingOutput ? 1000 : 0), [awaitingOutput]);
 
   const modelOutput = cell?.modelOutput;
@@ -95,7 +98,14 @@ export default function OutputCell({
     }
 
     return (
-      <VStack w="100%" h="100%" fontSize="xs" flexWrap="wrap" overflowX="auto" justifyContent="space-between">
+      <VStack
+        w="100%"
+        h="100%"
+        fontSize="xs"
+        flexWrap="wrap"
+        overflowX="auto"
+        justifyContent="space-between"
+      >
         <VStack w="full" flex={1} spacing={0}>
           <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
           <SyntaxHighlighter
