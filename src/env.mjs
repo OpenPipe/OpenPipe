@@ -10,7 +10,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     OPENAI_API_KEY: z.string().min(1),
-    RESTRICT_PRISMA_LOGS: z.boolean().optional().default(false),
+    RESTRICT_PRISMA_LOGS: z.string().optional().default("false").transform((val) => val.toLowerCase() === "true"),
   },
 
   /**
