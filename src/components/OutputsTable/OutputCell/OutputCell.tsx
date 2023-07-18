@@ -50,6 +50,9 @@ export default function OutputCell({
       scenarioId: scenario.id,
       variantId: variant.id,
     });
+    await utils.promptVariants.stats.invalidate({
+      variantId: variant.id,
+    });
   }, [hardRefetchMutate, scenario.id, variant.id]);
 
   const fetchingOutput = queryLoading || refetchingOutput;
