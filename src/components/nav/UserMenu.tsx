@@ -15,9 +15,15 @@ import { BsBoxArrowRight, BsChevronRight, BsPersonCircle } from "react-icons/bs"
 
 export default function UserMenu({ user }: { user: Session }) {
   const profileImage = user.user.image ? (
-    <Image src={user.user.image} alt="profile picture" w={8} h={8} borderRadius="50%" />
+    <Image
+      src={user.user.image}
+      alt="profile picture"
+      boxSize={8}
+      borderRadius="50%"
+      // mr={{ base: 2, md: 0 }}
+    />
   ) : (
-    <Icon as={BsPersonCircle} boxSize="md" />
+    <Icon as={BsPersonCircle} boxSize={6} />
   );
 
   return (
@@ -25,7 +31,9 @@ export default function UserMenu({ user }: { user: Session }) {
       <Popover placement="right">
         <PopoverTrigger>
           <HStack
-            px={2}
+            // Weird values to make mobile look right; can clean up when we make the sidebar disappear on mobile
+            px={3}
+            spacing={3}
             py={2}
             borderColor={"gray.200"}
             borderTopWidth={1}
@@ -36,7 +44,7 @@ export default function UserMenu({ user }: { user: Session }) {
             }}
           >
             {profileImage}
-            <VStack spacing={0} align="start" flex={1}>
+            <VStack spacing={0} align="start" flex={1} flexShrink={1}>
               <Text fontWeight="bold" fontSize="sm">
                 {user.user.name}
               </Text>
