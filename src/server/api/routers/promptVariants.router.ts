@@ -1,16 +1,16 @@
-import dedent from "dedent";
 import { isObject } from "lodash-es";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { generateNewCell } from "~/server/utils/generateNewCell";
-import { OpenAIChatModel } from "~/server/types";
+import { OpenAIChatModel, type SupportedModel } from "~/server/types";
 import { constructPrompt } from "~/server/utils/constructPrompt";
 import userError from "~/server/utils/error";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { calculateTokenCost } from "~/utils/calculateTokenCost";
 import { reorderPromptVariants } from "~/server/utils/reorderPromptVariants";
 import { type PromptVariant } from "@prisma/client";
+import { deriveNewConstructFn } from "~/server/utils/deriveNewContructFn";
 
 export const promptVariantsRouter = createTRPCRouter({
   list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
@@ -138,6 +138,7 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         experimentId: z.string(),
         variantId: z.string().optional(),
+        newModel: z.string().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -177,23 +178,17 @@ export const promptVariantsRouter = createTRPCRouter({
           ? `${originalVariant?.label} Copy`
           : `Prompt Variant ${largestSortIndex + 2}`;
 
+      const newConstructFn = await deriveNewConstructFn(
+        originalVariant,
+        input.newModel as SupportedModel,
+      );
+
       const createNewVariantAction = prisma.promptVariant.create({
         data: {
           experimentId: input.experimentId,
           label: newVariantLabel,
           sortIndex: (originalVariant?.sortIndex ?? 0) + 1,
-          constructFn:
-            originalVariant?.constructFn ??
-            dedent`
-          prompt = {
-            model: "gpt-3.5-turbo",
-            messages: [
-              {
-                role: "system",
-                content: "Return 'Hello, world!'",
-              }
-            ]
-          }`,
+          constructFn: newConstructFn,
           model: originalVariant?.model ?? "gpt-3.5-turbo",
         },
       });

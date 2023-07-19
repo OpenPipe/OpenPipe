@@ -67,6 +67,14 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     include: { modelOutput: true },
   });
   if (!cell) {
+    await prisma.scenarioVariantCell.update({
+      where: { id: scenarioVariantCellId },
+      data: {
+        statusCode: 404,
+        errorMessage: "Cell not found",
+        retrievalStatus: "ERROR",
+      },
+    });
     return;
   }
 
@@ -85,6 +93,14 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     where: { id: cell.promptVariantId },
   });
   if (!variant) {
+    await prisma.scenarioVariantCell.update({
+      where: { id: scenarioVariantCellId },
+      data: {
+        statusCode: 404,
+        errorMessage: "Prompt Variant not found",
+        retrievalStatus: "ERROR",
+      },
+    });
     return;
   }
 
@@ -92,6 +108,14 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     where: { id: cell.testScenarioId },
   });
   if (!scenario) {
+    await prisma.scenarioVariantCell.update({
+      where: { id: scenarioVariantCellId },
+      data: {
+        statusCode: 404,
+        errorMessage: "Scenario not found",
+        retrievalStatus: "ERROR",
+      },
+    });
     return;
   }
 

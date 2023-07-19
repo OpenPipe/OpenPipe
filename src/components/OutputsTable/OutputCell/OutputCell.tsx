@@ -106,7 +106,7 @@ export default function OutputCell({
         h="100%"
         fontSize="xs"
         flexWrap="wrap"
-        overflowX="auto"
+        overflowX="hidden"
         justifyContent="space-between"
       >
         <VStack w="full" flex={1} spacing={0}>

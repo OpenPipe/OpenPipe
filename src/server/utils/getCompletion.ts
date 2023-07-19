@@ -22,6 +22,13 @@ export async function getCompletion(
   payload: CompletionCreateParams,
   channel?: string,
 ): Promise<CompletionResponse> {
+  return getOpenAIChatCompletion(payload, channel);
+}
+
+export async function getOpenAIChatCompletion(
+  payload: CompletionCreateParams,
+  channel?: string,
+): Promise<CompletionResponse> {
   // If functions are enabled, disable streaming so that we get the full response with token counts
   if (payload.functions?.length) payload.stream = false;
   const start = Date.now();

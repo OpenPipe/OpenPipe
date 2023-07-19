@@ -1,26 +1,13 @@
 import { useState, type DragEvent } from "react";
-import { type PromptVariant } from "./types";
+import { type PromptVariant } from "../OutputsTable/types";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
-import {
-  Button,
-  HStack,
-  Icon,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  MenuDivider,
-  Text,
-  GridItem,
-  Spinner,
-} from "@chakra-ui/react"; // Changed here
-import { BsFillTrashFill, BsGear } from "react-icons/bs";
-import { FaRegClone } from "react-icons/fa";
-import { RiDraggable, RiExchangeFundsFill } from "react-icons/ri";
+import { HStack, Icon, GridItem } from "@chakra-ui/react"; // Changed here
+import { RiDraggable } from "react-icons/ri";
 import { cellPadding, headerMinHeight } from "../constants";
 import AutoResizeTextArea from "../AutoResizeTextArea";
-import { stickyHeaderStyle } from "./styles";
+import { stickyHeaderStyle } from "../OutputsTable/styles";
+import VariantHeaderMenuButton from "./VariantHeaderMenuButton";
 
 export default function VariantHeader(props: { variant: PromptVariant; canHide: boolean }) {
   const utils = api.useContext();
@@ -37,14 +24,6 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
       });
     }
   }, [updateMutation, props.variant.id, props.variant.label, label]);
-
-  const hideMutation = api.promptVariants.hide.useMutation();
-  const [onHide] = useHandledAsyncCallback(async () => {
-    await hideMutation.mutateAsync({
-      id: props.variant.id,
-    });
-    await utils.promptVariants.list.invalidate();
-  }, [hideMutation, props.variant.id]);
 
   const reorderMutation = api.promptVariants.reorder.useMutation();
   const [onReorder] = useHandledAsyncCallback(
@@ -64,21 +43,13 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
   );
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const duplicateMutation = api.promptVariants.create.useMutation();
-
-  const [duplicateVariant, duplicationInProgress] = useHandledAsyncCallback(async () => {
-    await duplicateMutation.mutateAsync({
-      experimentId: props.variant.experimentId,
-      variantId: props.variant.id,
-    });
-    await utils.promptVariants.list.invalidate();
-  }, [duplicateMutation, props.variant.experimentId, props.variant.id]);
 
   return (
     <GridItem
       padding={0}
       sx={{
         ...stickyHeaderStyle,
+        // Ensure that the menu always appears above the sticky header of other variants
         zIndex: menuOpen ? "dropdown" : stickyHeaderStyle.zIndex,
       }}
       borderTopWidth={1}
@@ -129,42 +100,12 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
           onMouseEnter={() => setIsInputHovered(true)}
           onMouseLeave={() => setIsInputHovered(false)}
         />
-
-        <Menu
-          z-index="dropdown"
-          onOpen={() => setMenuOpen(true)}
-          onClose={() => setMenuOpen(false)}
-        >
-          {duplicationInProgress ? (
-            <Spinner boxSize={4} mx={3} my={3} />
-          ) : (
-            <MenuButton>
-              <Button variant="ghost">
-                <Icon as={BsGear} />
-              </Button>
-            </MenuButton>
-          )}
-
-          <MenuList mt={-3} fontSize="md">
-            <MenuItem icon={<Icon as={FaRegClone} boxSize={4} w={5} />} onClick={duplicateVariant}>
-              Duplicate
-            </MenuItem>
-            <MenuItem icon={<Icon as={RiExchangeFundsFill} boxSize={5} />}>Change Model</MenuItem>
-            {props.canHide && (
-              <>
-                <MenuDivider />
-                <MenuItem
-                  onClick={onHide}
-                  icon={<Icon as={BsFillTrashFill} boxSize={5} />}
-                  color="red.600"
-                  _hover={{ backgroundColor: "red.50" }}
-                >
-                  <Text>Hide</Text>
-                </MenuItem>
-              </>
-            )}
-          </MenuList>
-        </Menu>
+        <VariantHeaderMenuButton
+          variant={props.variant}
+          canHide={props.canHide}
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+        />
       </HStack>
     </GridItem>
   );
