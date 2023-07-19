@@ -32,18 +32,18 @@ export const SelectModelModal = ({
 
   const experiment = useExperiment();
 
-  const duplicateMutation = api.promptVariants.create.useMutation();
+  const createMutation = api.promptVariants.create.useMutation();
 
   const [createNewVariant, creationInProgress] = useHandledAsyncCallback(async () => {
     if (!experiment?.data?.id) return;
-    await duplicateMutation.mutateAsync({
+    await createMutation.mutateAsync({
       experimentId: experiment?.data?.id,
       variantId,
       newModel: selectedModel,
     });
     await utils.promptVariants.list.invalidate();
     onClose();
-  }, [duplicateMutation, experiment?.data?.id, variantId, onClose]);
+  }, [createMutation, experiment?.data?.id, variantId, onClose]);
 
   return (
     <Modal isOpen onClose={onClose} size={{ base: "xl", sm: "2xl", md: "3xl" }}>
