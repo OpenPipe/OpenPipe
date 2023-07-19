@@ -12,6 +12,10 @@ export const useExperiment = () => {
   return experiment;
 };
 
+export const useExperimentAccess = () => {
+  return useExperiment().data?.access ?? { canView: false, canModify: false };
+};
+
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
 export function useHandledAsyncCallback<T extends unknown[], U>(

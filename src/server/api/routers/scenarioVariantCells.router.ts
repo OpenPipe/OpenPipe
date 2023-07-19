@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { generateNewCell } from "~/server/utils/generateNewCell";
 import { queueLLMRetrievalTask } from "~/server/utils/queueLLMRetrievalTask";
+import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 
 export const scenarioVariantCellsRouter = createTRPCRouter({
   get: publicProcedure
@@ -12,7 +13,12 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
         variantId: z.string(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const { experimentId } = await prisma.testScenario.findUniqueOrThrow({
+        where: { id: input.scenarioId },
+      });
+      await requireCanViewExperiment(experimentId, ctx);
+
       return await prisma.scenarioVariantCell.findUnique({
         where: {
           promptVariantId_testScenarioId: {
@@ -35,14 +41,20 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
         },
       });
     }),
-  forceRefetch: publicProcedure
+  forceRefetch: protectedProcedure
     .input(
       z.object({
         scenarioId: z.string(),
         variantId: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const { experimentId } = await prisma.testScenario.findUniqueOrThrow({
+        where: { id: input.scenarioId },
+      });
+
+      await requireCanModifyExperiment(experimentId, ctx);
+
       const cell = await prisma.scenarioVariantCell.findUnique({
         where: {
           promptVariantId_testScenarioId: {

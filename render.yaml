@@ -12,7 +12,7 @@ services:
     dockerContext: .
     plan: standard
     domains:
-      - openpipe.ai
+      - app.openpipe.ai
     envVars:
       - key: NODE_ENV
         value: production

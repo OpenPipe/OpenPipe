@@ -1,6 +1,6 @@
 import { Button, GridItem, HStack, Heading } from "@chakra-ui/react";
 import { cellPadding } from "../constants";
-import { useElementDimensions } from "~/utils/hooks";
+import { useElementDimensions, useExperimentAccess } from "~/utils/hooks";
 import { stickyHeaderStyle } from "./styles";
 import { BsPencil } from "react-icons/bs";
 import { useAppStore } from "~/state/store";
@@ -13,6 +13,7 @@ export const ScenariosHeader = ({
   numScenarios: number;
 }) => {
   const openDrawer = useAppStore((s) => s.openDrawer);
+  const { canModify } = useExperimentAccess();
 
   const [ref, dimensions] = useElementDimensions();
   const topValue = dimensions ? `-${dimensions.height - 24}px` : "-455px";
@@ -33,16 +34,18 @@ export const ScenariosHeader = ({
         <Heading size="xs" fontWeight="bold" flex={1}>
           Scenarios ({numScenarios})
         </Heading>
-        <Button
-          size="xs"
-          variant="ghost"
-          color="gray.500"
-          aria-label="Edit"
-          leftIcon={<BsPencil />}
-          onClick={openDrawer}
-        >
-          Edit Vars
-        </Button>
+        {canModify && (
+          <Button
+            size="xs"
+            variant="ghost"
+            color="gray.500"
+            aria-label="Edit"
+            leftIcon={<BsPencil />}
+            onClick={openDrawer}
+          >
+            Edit Vars
+          </Button>
+        )}
       </HStack>
     </GridItem>
   );

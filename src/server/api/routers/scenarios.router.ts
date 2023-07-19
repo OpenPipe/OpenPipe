@@ -1,32 +1,39 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { autogenerateScenarioValues } from "../autogen";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { runAllEvals } from "~/server/utils/evaluations";
 import { generateNewCell } from "~/server/utils/generateNewCell";
+import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 
 export const scenariosRouter = createTRPCRouter({
-  list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
-    return await prisma.testScenario.findMany({
-      where: {
-        experimentId: input.experimentId,
-        visible: true,
-      },
-      orderBy: {
-        sortIndex: "asc",
-      },
-    });
-  }),
+  list: publicProcedure
+    .input(z.object({ experimentId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewExperiment(input.experimentId, ctx);
 
-  create: publicProcedure
+      return await prisma.testScenario.findMany({
+        where: {
+          experimentId: input.experimentId,
+          visible: true,
+        },
+        orderBy: {
+          sortIndex: "asc",
+        },
+      });
+    }),
+
+  create: protectedProcedure
     .input(
       z.object({
         experimentId: z.string(),
         autogenerate: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await requireCanModifyExperiment(input.experimentId, ctx);
+
       const maxSortIndex =
         (
           await prisma.testScenario.aggregate({
@@ -66,7 +73,14 @@ export const scenariosRouter = createTRPCRouter({
       }
     }),
 
-  hide: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
+  hide: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ input, ctx }) => {
+    const experimentId = (
+      await prisma.testScenario.findUniqueOrThrow({
+        where: { id: input.id },
+      })
+    ).experimentId;
+
+    await requireCanModifyExperiment(experimentId, ctx);
     const hiddenScenario = await prisma.testScenario.update({
       where: { id: input.id },
       data: { visible: false, experiment: { update: { updatedAt: new Date() } } },
@@ -78,14 +92,14 @@ export const scenariosRouter = createTRPCRouter({
     return hiddenScenario;
   }),
 
-  reorder: publicProcedure
+  reorder: protectedProcedure
     .input(
       z.object({
         draggedId: z.string(),
         droppedId: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const dragged = await prisma.testScenario.findUnique({
         where: {
           id: input.draggedId,
@@ -103,6 +117,8 @@ export const scenariosRouter = createTRPCRouter({
           `Prompt Variant with id ${input.draggedId} or ${input.droppedId} does not exist`,
         );
       }
+
+      await requireCanModifyExperiment(dragged.experimentId, ctx);
 
       const visibleItems = await prisma.testScenario.findMany({
         where: {
@@ -147,14 +163,14 @@ export const scenariosRouter = createTRPCRouter({
       );
     }),
 
-  replaceWithValues: publicProcedure
+  replaceWithValues: protectedProcedure
     .input(
       z.object({
         id: z.string(),
         values: z.record(z.string()),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const existing = await prisma.testScenario.findUnique({
         where: {
           id: input.id,
@@ -164,6 +180,8 @@ export const scenariosRouter = createTRPCRouter({
       if (!existing) {
         throw new Error(`Scenario with id ${input.id} does not exist`);
       }
+
+      await requireCanModifyExperiment(existing.experimentId, ctx);
 
       const newScenario = await prisma.testScenario.create({
         data: {

@@ -2,7 +2,7 @@ import { type SystemStyleObject } from "@chakra-ui/react";
 
 export const stickyHeaderStyle: SystemStyleObject = {
   position: "sticky",
-  top: "-1px",
+  top: "0",
   backgroundColor: "#fff",
   zIndex: 1,
 };

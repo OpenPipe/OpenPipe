@@ -2,7 +2,7 @@ import { type DragEvent } from "react";
 import { api } from "~/utils/api";
 import { isEqual } from "lodash-es";
 import { type Scenario } from "./types";
-import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
 import { useState } from "react";
 
 import { Box, Button, Flex, HStack, Icon, Spinner, Stack, Tooltip, VStack } from "@chakra-ui/react";
@@ -19,6 +19,8 @@ export default function ScenarioEditor({
   hovered: boolean;
   canHide: boolean;
 }) {
+  const { canModify } = useExperimentAccess();
+
   const savedValues = scenario.variableValues as Record<string, string>;
   const utils = api.useContext();
   const [isDragTarget, setIsDragTarget] = useState(false);
@@ -74,6 +76,7 @@ export default function ScenarioEditor({
       alignItems="flex-start"
       pr={cellPadding.x}
       py={cellPadding.y}
+      pl={canModify ? 0 : cellPadding.x}
       height="100%"
       draggable={!variableInputHovered}
       onDragStart={(e) => {
@@ -93,35 +96,38 @@ export default function ScenarioEditor({
       onDrop={onReorder}
       backgroundColor={isDragTarget ? "gray.100" : "transparent"}
     >
-      <Stack alignSelf="flex-start" opacity={props.hovered ? 1 : 0} spacing={0}>
-        {props.canHide && (
-          <>
-            <Tooltip label="Hide scenario" hasArrow>
-              {/* for some reason the tooltip can't position itself properly relative to the icon without the wrapping box */}
-              <Button
-                variant="unstyled"
+      {canModify && (
+        <Stack alignSelf="flex-start" opacity={props.hovered ? 1 : 0} spacing={0}>
+          {props.canHide && (
+            <>
+              <Tooltip label="Hide scenario" hasArrow>
+                {/* for some reason the tooltip can't position itself properly relative to the icon without the wrapping box */}
+                <Button
+                  variant="unstyled"
+                  color="gray.400"
+                  height="unset"
+                  width="unset"
+                  minW="unset"
+                  onClick={onHide}
+                  _hover={{
+                    color: "gray.800",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Icon as={hidingInProgress ? Spinner : BsX} boxSize={6} />
+                </Button>
+              </Tooltip>
+              <Icon
+                as={RiDraggable}
+                boxSize={6}
                 color="gray.400"
-                height="unset"
-                width="unset"
-                minW="unset"
-                onClick={onHide}
-                _hover={{
-                  color: "gray.800",
-                  cursor: "pointer",
-                }}
-              >
-                <Icon as={hidingInProgress ? Spinner : BsX} boxSize={6} />
-              </Button>
-            </Tooltip>
-            <Icon
-              as={RiDraggable}
-              boxSize={6}
-              color="gray.400"
-              _hover={{ color: "gray.800", cursor: "pointer" }}
-            />
-          </>
-        )}
-      </Stack>
+                _hover={{ color: "gray.800", cursor: "pointer" }}
+              />
+            </>
+          )}
+        </Stack>
+      )}
+
       {variableLabels.length === 0 ? (
         <Box color="gray.500">{vars.data ? "No scenario variables configured" : "Loading..."}</Box>
       ) : (
@@ -155,6 +161,8 @@ export default function ScenarioEditor({
                   fontSize="sm"
                   lineHeight={1.2}
                   value={value}
+                  isDisabled={!canModify}
+                  _disabled={{ opacity: 1, cursor: "default" }}
                   onChange={(e) => {
                     setValues((prev) => ({ ...prev, [key]: e.target.value }));
                   }}

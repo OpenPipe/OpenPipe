@@ -16,8 +16,12 @@ model Experiment {
 
     sortIndex Int @default(0)
 
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
+    organizationId String        @db.Uuid
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
     TemplateVariable TemplateVariable[]
     PromptVariant    PromptVariant[]
     TestScenario     TestScenario[]
@@ -169,41 +173,77 @@ model OutputEvaluation {
     @@unique([modelOutputId, evaluationId])
 }
 
-// Necessary for Next auth
+model Organization {
+    id                String  @id @default(uuid()) @db.Uuid
+    personalOrgUserId String? @unique @db.Uuid
+    PersonalOrgUser   User?   @relation(fields: [personalOrgUserId], references: [id], onDelete: Cascade)
+
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
+    OrganizationUser OrganizationUser[]
+    Experiment       Experiment[]
+}
+
+enum OrganizationUserRole {
+    ADMIN
+    MEMBER
+    VIEWER
+}
+
+model OrganizationUser {
+    id String @id @default(uuid()) @db.Uuid
+
+    role OrganizationUserRole
+
+    organizationId String        @db.Uuid
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+    userId String @db.Uuid
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([organizationId, userId])
+}
+
 model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? // @db.Text
-    access_token      String? // @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? // @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id                       String  @id @default(uuid()) @db.Uuid
+    userId                   String  @db.Uuid
+    type                     String
+    provider                 String
+    providerAccountId        String
+    refresh_token            String? @db.Text
+    refresh_token_expires_in Int?
+    access_token             String? @db.Text
+    expires_at               Int?
+    token_type               String?
+    scope                    String?
+    id_token                 String? @db.Text
+    session_state            String?
+    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
+    id           String   @id @default(uuid()) @db.Uuid
     sessionToken String   @unique
-    userId       String
+    userId       String   @db.Uuid
     expires      DateTime
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
+    id               String             @id @default(uuid()) @db.Uuid
+    name             String?
+    email            String?            @unique
+    emailVerified    DateTime?
+    image            String?
+    accounts         Account[]
+    sessions         Session[]
+    OrganizationUser OrganizationUser[]
+    Organization     Organization[]
 }
 
 model VerificationToken {

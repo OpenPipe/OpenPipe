@@ -2,40 +2,47 @@ import { prisma } from "~/server/db";
 import dedent from "dedent";
 import { generateNewCell } from "~/server/utils/generateNewCell";
 
-const experimentId = "11111111-1111-1111-1111-111111111111";
+const defaultId = "11111111-1111-1111-1111-111111111111";
 
-// Delete the existing experiment
+await prisma.organization.deleteMany({
+  where: { id: defaultId },
+});
+await prisma.organization.create({
+  data: { id: defaultId },
+});
+
 await prisma.experiment.deleteMany({
   where: {
-    id: experimentId,
+    id: defaultId,
   },
 });
 
 await prisma.experiment.create({
   data: {
-    id: experimentId,
+    id: defaultId,
     label: "Country Capitals Example",
+    organizationId: defaultId,
   },
 });
 
 await prisma.scenarioVariantCell.deleteMany({
   where: {
     promptVariant: {
-      experimentId,
+      experimentId: defaultId,
     },
   },
 });
 
 await prisma.promptVariant.deleteMany({
   where: {
-    experimentId,
+    experimentId: defaultId,
   },
 });
 
 await prisma.promptVariant.createMany({
   data: [
     {
-      experimentId,
+      experimentId: defaultId,
       label: "Prompt Variant 1",
       sortIndex: 0,
       model: "gpt-3.5-turbo-0613",
@@ -52,7 +59,7 @@ await prisma.promptVariant.createMany({
         }`,
     },
     {
-      experimentId,
+      experimentId: defaultId,
       label: "Prompt Variant 2",
       sortIndex: 1,
       model: "gpt-3.5-turbo-0613",
@@ -73,14 +80,14 @@ await prisma.promptVariant.createMany({
 
 await prisma.templateVariable.deleteMany({
   where: {
-    experimentId,
+    experimentId: defaultId,
   },
 });
 
 await prisma.templateVariable.createMany({
   data: [
     {
-      experimentId,
+      experimentId: defaultId,
       label: "country",
     },
   ],
@@ -88,28 +95,28 @@ await prisma.templateVariable.createMany({
 
 await prisma.testScenario.deleteMany({
   where: {
-    experimentId,
+    experimentId: defaultId,
   },
 });
 
 await prisma.testScenario.createMany({
   data: [
     {
-      experimentId,
+      experimentId: defaultId,
       sortIndex: 0,
       variableValues: {
         country: "Spain",
       },
     },
     {
-      experimentId,
+      experimentId: defaultId,
       sortIndex: 1,
       variableValues: {
         country: "USA",
       },
     },
     {
-      experimentId,
+      experimentId: defaultId,
       sortIndex: 2,
       variableValues: {
         country: "Chile",
@@ -120,13 +127,13 @@ await prisma.testScenario.createMany({
 
 const variants = await prisma.promptVariant.findMany({
   where: {
-    experimentId,
+    experimentId: defaultId,
   },
 });
 
 const scenarios = await prisma.testScenario.findMany({
   where: {
-    experimentId,
+    experimentId: defaultId,
   },
 });
 

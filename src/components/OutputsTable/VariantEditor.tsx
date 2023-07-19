@@ -1,11 +1,12 @@
 import { Box, Button, HStack, Spinner, Tooltip, useToast, Text } from "@chakra-ui/react";
 import { useRef, useEffect, useState, useCallback } from "react";
-import { useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
+import { useExperimentAccess, useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
 import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 
 export default function VariantEditor(props: { variant: PromptVariant }) {
+  const { canModify } = useExperimentAccess();
   const monaco = useAppStore.use.sharedVariantEditor.monaco();
   const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
@@ -39,18 +40,6 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
     // Check if the editor has any typescript errors
     const model = editorRef.current.getModel();
     if (!model) return;
-
-    const markers = monaco?.editor.getModelMarkers({ resource: model.uri });
-    const hasErrors = markers?.some((m) => m.severity === monaco?.MarkerSeverity.Error);
-
-    if (hasErrors) {
-      toast({
-        title: "Invalid TypeScript",
-        description: "Please fix the TypeScript errors before saving.",
-        status: "error",
-      });
-      return;
-    }
 
     // Make sure the user defined the prompt with the string "prompt\w*=" somewhere
     const promptRegex = /prompt\s*=/;
@@ -103,6 +92,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
         wordWrapBreakAfterCharacters: "",
         wordWrapBreakBeforeCharacters: "",
         quickSuggestions: true,
+        readOnly: !canModify,
       });
 
       editorRef.current.onDidFocusEditorText(() => {
@@ -129,6 +119,13 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
     // we don't want to re-render the editor from scratch
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [monaco, editorId]);
+
+  useEffect(() => {
+    if (!editorRef.current) return;
+    editorRef.current.updateOptions({
+      readOnly: !canModify,
+    });
+  }, [canModify]);
 
   return (
     <Box w="100%" pos="relative">

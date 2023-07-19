@@ -1,7 +1,7 @@
-import { Button, Icon, Spinner } from "@chakra-ui/react";
+import { Box, Button, Icon, Spinner } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { api } from "~/utils/api";
-import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
 import { cellPadding, headerMinHeight } from "../constants";
 
 export default function NewVariantButton() {
@@ -16,6 +16,9 @@ export default function NewVariantButton() {
     });
     await utils.promptVariants.list.invalidate();
   }, [mutation]);
+
+  const { canModify } = useExperimentAccess();
+  if (!canModify) return <Box w={cellPadding.x} />;
 
   return (
     <Button
