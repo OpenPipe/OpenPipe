@@ -13,8 +13,7 @@ import {
 import { RiFlaskLine } from "react-icons/ri";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
-import { NewExperimentButton } from "~/components/experiments/NewExperimentButton";
-import { ExperimentCard } from "~/components/experiments/ExperimentCard";
+import { ExperimentCard, NewExperimentCard } from "~/components/experiments/ExperimentCard";
 import { signIn, useSession } from "next-auth/react";
 
 export default function ExperimentsPage() {
@@ -45,7 +44,7 @@ export default function ExperimentsPage() {
   return (
     <AppShell title="Experiments">
       <VStack alignItems={"flex-start"} m={4} mt={1}>
-        <HStack w="full" justifyContent="space-between" mb={4}>
+        <HStack w="full" mb={4}>
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
               <Flex alignItems="center">
@@ -53,9 +52,9 @@ export default function ExperimentsPage() {
               </Flex>
             </BreadcrumbItem>
           </Breadcrumb>
-          <NewExperimentButton mr={4} borderRadius={8} />
         </HStack>
         <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} p="4">
+          <NewExperimentCard />
           {experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} />)}
         </SimpleGrid>
       </VStack>
