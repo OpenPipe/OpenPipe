@@ -2,11 +2,7 @@ import { useState, type DragEvent } from "react";
 import { type PromptVariant } from "../OutputsTable/types";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
-import {
-  HStack,
-  Icon,
-  GridItem,
-} from "@chakra-ui/react"; // Changed here
+import { HStack, Icon, GridItem } from "@chakra-ui/react"; // Changed here
 import { RiDraggable } from "react-icons/ri";
 import { cellPadding, headerMinHeight } from "../constants";
 import AutoResizeTextArea from "../AutoResizeTextArea";

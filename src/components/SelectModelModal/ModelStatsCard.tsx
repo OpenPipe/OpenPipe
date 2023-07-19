@@ -13,7 +13,7 @@ import { BsChevronRight } from "react-icons/bs";
 import { modelStats } from "~/server/modelStats";
 import { type SupportedModel } from "~/server/types";
 
-export const ModelStatsCard = ({ label, model }: { label: string, model: SupportedModel }) => {
+export const ModelStatsCard = ({ label, model }: { label: string; model: SupportedModel }) => {
   const stats = modelStats[model];
   return (
     <VStack w="full" spacing={6} bgColor="gray.100" p={4} borderRadius={8}>
@@ -34,7 +34,13 @@ export const ModelStatsCard = ({ label, model }: { label: string, model: Support
         </Heading>
         <Text fontWeight="bold">{stats.provider}</Text>
       </HStack>
-      <SimpleGrid w="full" justifyContent="space-between" alignItems="flex-start" fontSize="sm" columns={{base: 2, md: 4}}>
+      <SimpleGrid
+        w="full"
+        justifyContent="space-between"
+        alignItems="flex-start"
+        fontSize="sm"
+        columns={{ base: 2, md: 4 }}
+      >
         <SelectedModelLabeledInfo label="Context" info={stats.contextLength} />
         <SelectedModelLabeledInfo
           label="Input"
