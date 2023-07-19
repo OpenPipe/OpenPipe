@@ -1,24 +1,22 @@
+import { useState, useEffect } from "react";
 import {
   Heading,
   VStack,
   Icon,
   HStack,
   Image,
-  Grid,
-  GridItem,
-  Divider,
   Text,
   Box,
   type BoxProps,
   type LinkProps,
   Link,
+  Flex,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { BsGithub, BsPersonCircle } from "react-icons/bs";
 import { useRouter } from "next/router";
 import { type IconType } from "react-icons";
 import { RiFlaskLine } from "react-icons/ri";
-import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import UserMenu from "./UserMenu";
 
@@ -28,40 +26,48 @@ const IconLink = ({ icon, label, href, target, color, ...props }: IconLinkProps)
   const router = useRouter();
   const isActive = href && router.pathname.startsWith(href);
   return (
-    <Box
+    <HStack
+      w="full"
+      p={4}
+      color={color}
       as={Link}
       href={href}
       target={target}
-      w="full"
-      bgColor={isActive ? "gray.300" : "transparent"}
+      bgColor={isActive ? "gray.200" : "transparent"}
       _hover={{ bgColor: "gray.200", textDecoration: "none" }}
-      py={4}
       justifyContent="start"
       cursor="pointer"
       {...props}
     >
-      <HStack w="full" px={4} color={color}>
-        <Icon as={icon} boxSize={6} mr={2} />
-        <Text fontWeight="bold">{label}</Text>
-      </HStack>
-    </Box>
+      <Icon as={icon} boxSize={6} mr={2} />
+      <Text fontWeight="bold" fontSize="sm">
+        {label}
+      </Text>
+    </HStack>
   );
 };
+
+const Divider = () => <Box h="1px" bgColor="gray.200" />;
 
 const NavSidebar = () => {
   const user = useSession().data;
 
   return (
-    <VStack align="stretch" bgColor="gray.100" py={2} pb={0} height="100%">
-      <Link href="/" w="full" _hover={{ textDecoration: "none" }}>
-        <HStack spacing={0} pl="3">
-          <Image src="/logo.svg" alt="" w={8} h={8} />
-          <Heading size="md" p={2} pl={{ base: 16, md: 2 }}>
-            OpenPipe
-          </Heading>
-        </HStack>
-      </Link>
-      <Divider />
+    <VStack
+      align="stretch"
+      bgColor="gray.100"
+      py={2}
+      pb={0}
+      height="100%"
+      w={{ base: "56px", md: "200px" }}
+      overflow="hidden"
+    >
+      <HStack as={Link} href="/" _hover={{ textDecoration: "none" }} spacing={0} px={4} py={2}>
+        <Image src="/logo.svg" alt="" boxSize={6} mr={4} />
+        <Heading size="md" fontFamily="inconsolata, monospace">
+          OpenPipe
+        </Heading>
+      </HStack>
       <VStack spacing={0} align="flex-start" overflowY="auto" overflowX="hidden" flex={1}>
         {user != null && (
           <>
@@ -115,22 +121,14 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
   }, []);
 
   return (
-    <Grid
-      h={vh}
-      w="100vw"
-      templateColumns={{ base: "56px minmax(0, 1fr)", md: "220px minmax(0, 1fr)" }}
-      templateRows="1fr"
-      templateAreas={'"sidebar main"'}
-    >
+    <Flex h={vh} w="100vw">
       <Head>
         <title>{props.title ? `${props.title} | OpenPipe` : "OpenPipe"}</title>
       </Head>
-      <GridItem area="sidebar" overflow="hidden">
-        <NavSidebar />
-      </GridItem>
-      <GridItem area="main" overflowY="auto">
+      <NavSidebar />
+      <Box h="100%" flex={1} overflowY="auto">
         {props.children}
-      </GridItem>
-    </Grid>
+      </Box>
+    </Flex>
   );
 }

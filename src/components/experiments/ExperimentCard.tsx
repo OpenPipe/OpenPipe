@@ -1,15 +1,4 @@
-import {
-  Card,
-  CardBody,
-  HStack,
-  Icon,
-  VStack,
-  Text,
-  CardHeader,
-  Divider,
-  Spinner,
-  AspectRatio,
-} from "@chakra-ui/react";
+import { HStack, Icon, VStack, Text, Divider, Spinner, AspectRatio } from "@chakra-ui/react";
 import { RiFlaskLine } from "react-icons/ri";
 import { formatTimePast } from "~/utils/dayjs";
 import Link from "next/link";
@@ -30,22 +19,24 @@ type ExperimentData = {
 
 export const ExperimentCard = ({ exp }: { exp: ExperimentData }) => {
   return (
-    <Card
-      as={Link}
-      bg="gray.50"
-      _hover={{ bg: "gray.100" }}
-      transition="background 0.2s"
-      cursor="pointer"
-      href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}
-    >
-      <CardHeader>
+    <AspectRatio ratio={1.2} w="full">
+      <VStack
+        as={Link}
+        href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}
+        bg="gray.50"
+        _hover={{ bg: "gray.100" }}
+        transition="background 0.2s"
+        cursor="pointer"
+        borderColor="gray.200"
+        borderWidth={1}
+        p={4}
+        justify="space-between"
+      >
         <HStack w="full" color="gray.700" justify="center">
           <Icon as={RiFlaskLine} boxSize={4} />
           <Text fontWeight="bold">{exp.label}</Text>
         </HStack>
-      </CardHeader>
-      <CardBody>
-        <HStack w="full" mb={8} spacing={4}>
+        <HStack h="full" spacing={4} flex={1} align="center">
           <CountLabel label="Variants" count={exp.promptVariantCount} />
           <Divider h={12} orientation="vertical" />
           <CountLabel label="Scenarios" count={exp.testScenarioCount} />
@@ -55,8 +46,8 @@ export const ExperimentCard = ({ exp }: { exp: ExperimentData }) => {
           <Divider h={4} orientation="vertical" />
           <Text flex={1}>Updated {formatTimePast(exp.updatedAt)}</Text>
         </HStack>
-      </CardBody>
-    </Card>
+      </VStack>
+    </AspectRatio>
   );
 };
 
@@ -75,7 +66,6 @@ const CountLabel = ({ label, count }: { label: string; count: number }) => {
 
 export const NewExperimentCard = () => {
   const router = useRouter();
-  const utils = api.useContext();
   const createMutation = api.experiments.create.useMutation();
   const [createExperiment, isLoading] = useHandledAsyncCallback(async () => {
     const newExperiment = await createMutation.mutateAsync({ label: "New Experiment" });
@@ -83,15 +73,23 @@ export const NewExperimentCard = () => {
   }, [createMutation, router]);
 
   return (
-    <Card _hover={{ cursor: "pointer", bgColor: "gray.50" }} onClick={createExperiment}>
-      <AspectRatio ratio={1} w="full">
-        <VStack align="center" justify="center" h="100%" spacing={6}>
-          <Icon as={isLoading ? Spinner : BsPlusSquare} boxSize={8} />
-          <Text display={{ base: "none", md: "block" }} ml={2}>
-            New Experiment
-          </Text>
-        </VStack>
-      </AspectRatio>
-    </Card>
+    <AspectRatio ratio={1.2} w="full">
+      <VStack
+        align="center"
+        justify="center"
+        _hover={{ cursor: "pointer", bg: "gray.50" }}
+        transition="background 0.2s"
+        cursor="pointer"
+        borderColor="gray.200"
+        borderWidth={1}
+        p={4}
+        onClick={createExperiment}
+      >
+        <Icon as={isLoading ? Spinner : BsPlusSquare} boxSize={8} />
+        <Text display={{ base: "none", md: "block" }} ml={2}>
+          New Experiment
+        </Text>
+      </VStack>
+    </AspectRatio>
   );
 };

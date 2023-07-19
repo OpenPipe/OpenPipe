@@ -1,6 +1,5 @@
 import {
   SimpleGrid,
-  HStack,
   Icon,
   VStack,
   Breadcrumb,
@@ -9,6 +8,7 @@ import {
   Center,
   Text,
   Link,
+  HStack,
 } from "@chakra-ui/react";
 import { RiFlaskLine } from "react-icons/ri";
 import AppShell from "~/components/nav/AppShell";
@@ -43,8 +43,8 @@ export default function ExperimentsPage() {
 
   return (
     <AppShell title="Experiments">
-      <VStack alignItems={"flex-start"} m={4} mt={1}>
-        <HStack w="full" mb={4}>
+      <VStack alignItems={"flex-start"} px={4} py={2}>
+        <HStack minH={8} align="center">
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
               <Flex alignItems="center">
