@@ -88,17 +88,12 @@ enum CellRetrievalStatus {
 model ScenarioVariantCell {
     id String @id @default(uuid()) @db.Uuid
 
-    inputHash        String? // TODO: Remove once migration is complete
-    output           Json? // TODO: Remove once migration is complete
     statusCode       Int?
     errorMessage     String?
-    timeToComplete   Int?                @default(0) // TODO: Remove once migration is complete
     retryTime        DateTime?
     streamingChannel String?
     retrievalStatus  CellRetrievalStatus @default(COMPLETE)
 
-    promptTokens     Int? // TODO: Remove once migration is complete
-    completionTokens Int? // TODO: Remove once migration is complete
     modelOutput      ModelOutput?
 
     promptVariantId String        @db.Uuid
