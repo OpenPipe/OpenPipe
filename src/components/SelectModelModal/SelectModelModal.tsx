@@ -52,10 +52,10 @@ export const SelectModelModal = ({
         <ModalHeader>Select a New Model</ModalHeader>
         <ModalCloseButton />
         <ModalBody maxW="unset">
-          <VStack spacing={4}>
-            <ModelStatsCard label="ORIGINAL MODEL" model={originalModel} />
+          <VStack spacing={8}>
+            <ModelStatsCard label="Original Model" model={originalModel} />
             {originalModel !== selectedModel && (
-              <ModelStatsCard label="SELECTED MODEL" model={selectedModel} />
+              <ModelStatsCard label="New Model" model={selectedModel} />
             )}
             <SelectModelSearch selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
           </VStack>
@@ -65,7 +65,7 @@ export const SelectModelModal = ({
           <Button
             colorScheme="blue"
             onClick={createNewVariant}
-            w={20}
+            minW={24}
             disabled={originalModel === selectedModel}
           >
             {creationInProgress ? <Spinner boxSize={4} /> : <Text>Continue</Text>}

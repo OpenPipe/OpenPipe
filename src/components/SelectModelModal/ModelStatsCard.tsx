@@ -1,67 +1,73 @@
 import {
-  Heading,
   VStack,
   Text,
   HStack,
   type StackProps,
-  Icon,
-  Button,
   GridItem,
   SimpleGrid,
+  Link,
 } from "@chakra-ui/react";
-import { BsChevronRight } from "react-icons/bs";
 import { modelStats } from "~/server/modelStats";
 import { type SupportedModel } from "~/server/types";
 
 export const ModelStatsCard = ({ label, model }: { label: string; model: SupportedModel }) => {
   const stats = modelStats[model];
   return (
-    <VStack w="full" spacing={6} bgColor="gray.100" p={4} borderRadius={8}>
-      <HStack w="full" justifyContent="space-between">
-        <Text fontWeight="bold" fontSize="xs">
-          {label}
-        </Text>
-        <Button variant="link" onClick={() => window.open(stats.learnMoreUrl, "_blank")}>
-          <HStack alignItems="center" spacing={0} color="blue.500" fontWeight="bold">
-            <Text fontSize="xs">Learn More</Text>
-            <Icon as={BsChevronRight} boxSize={3} strokeWidth={1} />
-          </HStack>
-        </Button>
-      </HStack>
-      <HStack w="full" justifyContent="space-between">
-        <Heading as="h3" size="md">
-          {model}
-        </Heading>
-        <Text fontWeight="bold">{stats.provider}</Text>
-      </HStack>
-      <SimpleGrid
-        w="full"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        fontSize="sm"
-        columns={{ base: 2, md: 4 }}
-      >
-        <SelectedModelLabeledInfo label="Context" info={stats.contextLength} />
-        <SelectedModelLabeledInfo
-          label="Input"
-          info={
-            <Text>
-              ${(stats.promptTokenPrice * 1000).toFixed(3)}
-              <Text color="gray.500"> / 1K tokens</Text>
+    <VStack w="full" align="start">
+      <Text fontWeight="bold" fontSize="sm" textTransform="uppercase">
+        {label}
+      </Text>
+
+      <VStack w="full" spacing={6} bgColor="gray.100" p={4} borderRadius={4}>
+        <HStack w="full" align="flex-start">
+          <Text flex={1} fontSize="lg">
+            <Text as="span" color="gray.600">
+              {stats.provider} /{" "}
             </Text>
-          }
-        />
-        <SelectedModelLabeledInfo
-          label="Output"
-          info={
-            <Text>
-              ${(stats.promptTokenPrice * 1000).toFixed(3)}
-              <Text color="gray.500"> / 1K tokens</Text>
+            <Text as="span" fontWeight="bold" color="gray.900">
+              {model}
             </Text>
-          }
-        />
-        <SelectedModelLabeledInfo label="Speed" info={<Text>{stats.speed}</Text>} />
-      </SimpleGrid>
+          </Text>
+          <Link
+            href={stats.learnMoreUrl}
+            isExternal
+            color="blue.500"
+            fontWeight="bold"
+            fontSize="sm"
+            ml={2}
+          >
+            Learn More
+          </Link>
+        </HStack>
+        <SimpleGrid
+          w="full"
+          justifyContent="space-between"
+          alignItems="flex-start"
+          fontSize="sm"
+          columns={{ base: 2, md: 4 }}
+        >
+          <SelectedModelLabeledInfo label="Context" info={stats.contextLength} />
+          <SelectedModelLabeledInfo
+            label="Input"
+            info={
+              <Text>
+                ${(stats.promptTokenPrice * 1000).toFixed(3)}
+                <Text color="gray.500"> / 1K tokens</Text>
+              </Text>
+            }
+          />
+          <SelectedModelLabeledInfo
+            label="Output"
+            info={
+              <Text>
+                ${(stats.promptTokenPrice * 1000).toFixed(3)}
+                <Text color="gray.500"> / 1K tokens</Text>
+              </Text>
+            }
+          />
+          <SelectedModelLabeledInfo label="Speed" info={<Text>{stats.speed}</Text>} />
+        </SimpleGrid>
+      </VStack>
     </VStack>
   );
 };
