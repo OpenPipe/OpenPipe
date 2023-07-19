@@ -62,6 +62,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
         inputHash,
         output: matchingModelOutput.output as Prisma.InputJsonValue,
         timeToComplete: matchingModelOutput.timeToComplete,
+        cost: matchingModelOutput.cost,
         promptTokens: matchingModelOutput.promptTokens,
         completionTokens: matchingModelOutput.completionTokens,
         createdAt: matchingModelOutput.createdAt,

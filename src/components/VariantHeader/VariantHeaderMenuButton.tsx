@@ -14,12 +14,12 @@ import {
 } from "@chakra-ui/react";
 import { BsFillTrashFill, BsGear } from "react-icons/bs";
 import { FaRegClone } from "react-icons/fa";
-import { RiExchangeFundsFill } from "react-icons/ri";
 import { AiOutlineDiff } from "react-icons/ai";
 import { useState } from "react";
+import { RefinePromptModal } from "../RefinePromptModal/RefinePromptModal";
+import { RiExchangeFundsFill } from "react-icons/ri";
 import { SelectModelModal } from "../SelectModelModal/SelectModelModal";
 import { type SupportedModel } from "~/server/types";
-import { RefinePromptModal } from "../RefinePromptModal/RefinePromptModal";
 
 export default function VariantHeaderMenuButton({
   variant,

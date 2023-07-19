@@ -1,4 +1,4 @@
-import { HStack, Icon, Skeleton, Text, useToken } from "@chakra-ui/react";
+import { HStack, Icon, Text, useToken } from "@chakra-ui/react";
 import { type PromptVariant } from "./types";
 import { cellPadding } from "../constants";
 import { api } from "~/utils/api";
@@ -69,7 +69,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
           );
         })}
       </HStack>
-      {data.overallCost && !data.awaitingRetrievals ? (
+      {data.overallCost && !data.awaitingRetrievals && (
         <CostTooltip
           promptTokens={data.promptTokens}
           completionTokens={data.completionTokens}
@@ -80,8 +80,6 @@ export default function VariantStats(props: { variant: PromptVariant }) {
             <Text mr={1}>{data.overallCost.toFixed(3)}</Text>
           </HStack>
         </CostTooltip>
-      ) : (
-        <Skeleton height={4} width={12} mr={1} />
       )}
     </HStack>
   );
