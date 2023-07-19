@@ -15,13 +15,7 @@ import { BsBoxArrowRight, BsChevronRight, BsPersonCircle } from "react-icons/bs"
 
 export default function UserMenu({ user }: { user: Session }) {
   const profileImage = user.user.image ? (
-    <Image
-      src={user.user.image}
-      alt="profile picture"
-      boxSize={8}
-      borderRadius="50%"
-      // mr={{ base: 2, md: 0 }}
-    />
+    <Image src={user.user.image} alt="profile picture" boxSize={8} borderRadius="50%" />
   ) : (
     <Icon as={BsPersonCircle} boxSize={6} />
   );
