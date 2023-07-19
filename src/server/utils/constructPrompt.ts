@@ -1,8 +1,6 @@
 import { type PromptVariant, type TestScenario } from "@prisma/client";
 import ivm from "isolated-vm";
-import dedent from "dedent";
-import { type SupportedModel, type JSONSerializable } from "../types";
-import { openai } from "./openai";
+import { type JSONSerializable } from "../types";
 
 const isolate = new ivm.Isolate({ memoryLimit: 128 });
 
@@ -35,57 +33,3 @@ export async function constructPrompt(
 
   return prompt as JSONSerializable;
 }
-
-export async function calculateNewConstructFn(
-  originalVariant: PromptVariant | null,
-  newModel?: SupportedModel,
-) {
-  if (originalVariant && !newModel) {
-    return originalVariant.constructFn;
-  }
-  if (originalVariant && newModel) {
-    return await getPromptFunctionForNewModel(originalVariant, newModel);
-  }
-  return dedent`
-  prompt = {
-    model: "gpt-3.5-turbo",
-    messages: [
-      {
-        role: "system",
-        content: "Return 'Hello, world!'",
-      }
-    ]
-  }`;
-}
-
-const NUM_RETRIES = 5;
-const getPromptFunctionForNewModel = async (
-  originalVariant: PromptVariant,
-  newModel: SupportedModel,
-) => {
-  const originalModel = originalVariant.model;
-  let newContructionFn = "";
-  for (let i = 0; i < NUM_RETRIES; i++) {
-    try {
-      // TODO: Add api shape info to prompt
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-0613",
-        messages: [
-          {
-            role: "system",
-            content: `Return the prompt constructor function for ${newModel} given the following prompt constructor function for ${originalModel}:\n---\n${originalVariant.constructFn}`,
-          },
-        ],
-      });
-      const fn = completion.choices[0]?.message?.content;
-      if (fn) {
-        newContructionFn = fn;
-        break;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  return newContructionFn;
-};
