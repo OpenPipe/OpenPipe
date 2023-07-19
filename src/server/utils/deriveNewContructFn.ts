@@ -49,12 +49,16 @@ const getPromptFunctionForNewModel = async (
               getApiShapeForModel(originalModel),
               null,
               2,
-            )}\n\nThe prompt variable has already been declared.}`,
+            )}`,
           },
           {
             role: "user",
             content: `Return the prompt constructor function for ${newModel} given the following prompt constructor function for ${originalModel}:\n---\n${originalVariant.constructFn}`,
           },
+          {
+            "role": "user",
+            content: "The prompt variable has already been declared, so do not declare it again."
+          }
         ],
         functions: [
           {
