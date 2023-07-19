@@ -22,7 +22,13 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
     setIsChanged(currentFn.length > 0 && currentFn !== lastSavedFn);
   }, [lastSavedFn]);
 
-  useEffect(checkForChanges, [checkForChanges, lastSavedFn]);
+  const matchUpdatedSavedFn = useCallback(() => {
+    if (!editorRef.current) return;
+    editorRef.current.setValue(lastSavedFn);
+    setIsChanged(false);
+  }, [lastSavedFn]);
+
+  useEffect(matchUpdatedSavedFn, [matchUpdatedSavedFn, lastSavedFn]);
 
   const replaceVariant = api.promptVariants.replaceVariant.useMutation();
   const utils = api.useContext();

@@ -287,6 +287,33 @@ export const promptVariantsRouter = createTRPCRouter({
       return updatedPromptVariant;
     }),
 
+  getRefinedPromptFn: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        instructions: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const existing = await prisma.promptVariant.findUniqueOrThrow({
+        where: {
+          id: input.id,
+        },
+      });
+      await requireCanModifyExperiment(existing.experimentId, ctx);
+
+      const promptConstructionFn = await deriveNewConstructFn(
+        existing,
+        existing.model as SupportedModel,
+        input.instructions,
+      );
+
+      // TODO: Validate promptConstructionFn
+      // TODO: Record in some sort of history
+
+      return promptConstructionFn;
+    }),
+
   replaceVariant: protectedProcedure
     .input(
       z.object({

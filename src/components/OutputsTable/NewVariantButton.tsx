@@ -1,4 +1,4 @@
-import { Box, Button, Icon, Spinner } from "@chakra-ui/react";
+import { Box, Button, Icon, Spinner, Text } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
@@ -34,7 +34,7 @@ export default function NewVariantButton() {
       minH={headerMinHeight}
     >
       <Icon as={loading ? Spinner : BsPlus} boxSize={6} mr={loading ? 1 : 0} />
-      Add Variant
+      <Text display={{ base: "none", md: "flex" }}>Add Variant</Text>
     </Button>
   );
 }
