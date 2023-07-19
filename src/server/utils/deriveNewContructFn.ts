@@ -56,9 +56,9 @@ const getPromptFunctionForNewModel = async (
             content: `Return the prompt constructor function for ${newModel} given the following prompt constructor function for ${originalModel}:\n---\n${originalVariant.constructFn}`,
           },
           {
-            "role": "user",
-            content: "The prompt variable has already been declared, so do not declare it again."
-          }
+            role: "user",
+            content: "The prompt variable has already been declared, so do not declare it again.",
+          },
         ],
         functions: [
           {
