@@ -39,6 +39,7 @@ export const SelectModelModal = ({
     await duplicateMutation.mutateAsync({
       experimentId: experiment?.data?.id,
       variantId,
+      newModel: selectedModel,
     });
     await utils.promptVariants.list.invalidate();
     onClose();
