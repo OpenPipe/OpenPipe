@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { prisma } from "~/server/db";
 import defineTask from "./defineTask";
-import { type CompletionResponse, getCompletion } from "../utils/getCompletion";
+import { type CompletionResponse, getOpenAIChatCompletion } from "../utils/getCompletion";
 import { type JSONSerializable } from "../types";
 import { sleep } from "../utils/sleep";
 import { shouldStream } from "../utils/shouldStream";
@@ -29,7 +29,10 @@ const getCompletionWithRetries = async (
   let modelResponse: CompletionResponse | null = null;
   try {
     for (let i = 0; i < MAX_AUTO_RETRIES; i++) {
-      modelResponse = await getCompletion(payload as unknown as CompletionCreateParams, channel);
+      modelResponse = await getOpenAIChatCompletion(
+        payload as unknown as CompletionCreateParams,
+        channel,
+      );
       if (modelResponse.statusCode !== 429 || i === MAX_AUTO_RETRIES - 1) {
         return modelResponse;
       }
@@ -50,7 +53,7 @@ const getCompletionWithRetries = async (
     return {
       statusCode: modelResponse?.statusCode ?? 500,
       errorMessage: modelResponse?.errorMessage ?? (error as Error).message,
-      output: null as unknown as Prisma.InputJsonValue,
+      output: null,
       timeToComplete: 0,
     };
   }
@@ -149,10 +152,11 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
       data: {
         scenarioVariantCellId,
         inputHash,
-        output: modelResponse.output,
+        output: modelResponse.output as unknown as Prisma.InputJsonObject,
         timeToComplete: modelResponse.timeToComplete,
         promptTokens: modelResponse.promptTokens,
         completionTokens: modelResponse.completionTokens,
+        cost: modelResponse.cost,
       },
     });
   }

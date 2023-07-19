@@ -1,19 +1,14 @@
-import { type SupportedModel } from "~/server/types";
 import { type Scenario } from "../types";
 import { type RouterOutputs } from "~/utils/api";
-import { calculateTokenCost } from "~/utils/calculateTokenCost";
 import { HStack, Icon, Text, Tooltip } from "@chakra-ui/react";
 import { BsCheck, BsClock, BsCurrencyDollar, BsX } from "react-icons/bs";
 import { CostTooltip } from "~/components/tooltip/CostTooltip";
 
-const SHOW_COST = true;
 const SHOW_TIME = true;
 
 export const OutputStats = ({
-  model,
   modelOutput,
 }: {
-  model: SupportedModel | string | null;
   modelOutput: NonNullable<
     NonNullable<RouterOutputs["scenarioVariantCells"]["get"]>["modelOutput"]
   >;
@@ -23,12 +18,6 @@ export const OutputStats = ({
 
   const promptTokens = modelOutput.promptTokens;
   const completionTokens = modelOutput.completionTokens;
-
-  const promptCost = promptTokens && model ? calculateTokenCost(model, promptTokens) : 0;
-  const completionCost =
-    completionTokens && model ? calculateTokenCost(model, completionTokens, true) : 0;
-
-  const cost = promptCost + completionCost;
 
   return (
     <HStack w="full" align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
@@ -53,11 +42,15 @@ export const OutputStats = ({
           );
         })}
       </HStack>
-      {SHOW_COST && (
-        <CostTooltip promptTokens={promptTokens} completionTokens={completionTokens} cost={cost}>
+      {modelOutput.cost && (
+        <CostTooltip
+          promptTokens={promptTokens}
+          completionTokens={completionTokens}
+          cost={modelOutput.cost}
+        >
           <HStack spacing={0}>
             <Icon as={BsCurrencyDollar} />
-            <Text mr={1}>{cost.toFixed(3)}</Text>
+            <Text mr={1}>{modelOutput.cost.toFixed(3)}</Text>
           </HStack>
         </CostTooltip>
       )}

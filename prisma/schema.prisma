@@ -94,7 +94,7 @@ model ScenarioVariantCell {
     streamingChannel String?
     retrievalStatus  CellRetrievalStatus @default(COMPLETE)
 
-    modelOutput      ModelOutput?
+    modelOutput ModelOutput?
 
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
@@ -114,6 +114,7 @@ model ModelOutput {
     inputHash        String
     output           Json
     timeToComplete   Int    @default(0)
+    cost             Float?
     promptTokens     Int?
     completionTokens Int?
 

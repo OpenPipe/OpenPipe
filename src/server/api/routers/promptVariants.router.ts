@@ -7,7 +7,6 @@ import { OpenAIChatModel, type SupportedModel } from "~/server/types";
 import { constructPrompt } from "~/server/utils/constructPrompt";
 import userError from "~/server/utils/error";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
-import { calculateTokenCost } from "~/utils/calculateTokenCost";
 import { reorderPromptVariants } from "~/server/utils/reorderPromptVariants";
 import { type PromptVariant } from "@prisma/client";
 import { deriveNewConstructFn } from "~/server/utils/deriveNewContructFn";
@@ -110,17 +109,14 @@ export const promptVariantsRouter = createTRPCRouter({
           },
         },
         _sum: {
+          cost: true,
           promptTokens: true,
           completionTokens: true,
         },
       });
 
       const promptTokens = overallTokens._sum?.promptTokens ?? 0;
-      const overallPromptCost = calculateTokenCost(variant.model, promptTokens);
       const completionTokens = overallTokens._sum?.completionTokens ?? 0;
-      const overallCompletionCost = calculateTokenCost(variant.model, completionTokens, true);
-
-      const overallCost = overallPromptCost + overallCompletionCost;
 
       const awaitingRetrievals = !!(await prisma.scenarioVariantCell.findFirst({
         where: {
@@ -137,7 +133,7 @@ export const promptVariantsRouter = createTRPCRouter({
         evalResults,
         promptTokens,
         completionTokens,
-        overallCost,
+        overallCost: overallTokens._sum?.cost ?? 0,
         scenarioCount,
         outputCount,
         awaitingRetrievals,
@@ -302,9 +298,12 @@ export const promptVariantsRouter = createTRPCRouter({
       });
       await requireCanModifyExperiment(existing.experimentId, ctx);
 
+      const constructedPrompt = await constructPrompt({ constructFn: existing.constructFn }, null);
+
       const promptConstructionFn = await deriveNewConstructFn(
         existing,
-        existing.model as SupportedModel,
+        // @ts-expect-error TODO clean this up
+        constructedPrompt?.model as SupportedModel,
         input.instructions,
       );
 

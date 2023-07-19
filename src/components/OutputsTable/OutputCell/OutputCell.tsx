@@ -129,7 +129,7 @@ export default function OutputCell({
             )}
           </SyntaxHighlighter>
         </VStack>
-        <OutputStats model={variant.model} modelOutput={modelOutput} scenario={scenario} />
+        <OutputStats modelOutput={modelOutput} scenario={scenario} />
       </VStack>
     );
   }
@@ -143,9 +143,7 @@ export default function OutputCell({
         <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
         <Text>{contentToDisplay}</Text>
       </VStack>
-      {modelOutput && (
-        <OutputStats model={variant.model} modelOutput={modelOutput} scenario={scenario} />
-      )}
+      {modelOutput && <OutputStats modelOutput={modelOutput} scenario={scenario} />}
     </VStack>
   );
 }

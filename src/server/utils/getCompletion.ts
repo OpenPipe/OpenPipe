@@ -1,29 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { isObject } from "lodash-es";
-import { Prisma } from "@prisma/client";
 import { streamChatCompletion } from "./openai";
 import { wsConnection } from "~/utils/wsConnection";
 import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
-import { type OpenAIChatModel } from "../types";
+import { type SupportedModel, type OpenAIChatModel } from "../types";
 import { env } from "~/env.mjs";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { rateLimitErrorMessage } from "~/sharedStrings";
+import { modelStats } from "../modelStats";
 
 export type CompletionResponse = {
-  output: Prisma.InputJsonValue | typeof Prisma.JsonNull;
+  output: ChatCompletion | null;
   statusCode: number;
   errorMessage: string | null;
   timeToComplete: number;
   promptTokens?: number;
   completionTokens?: number;
+  cost?: number;
 };
-
-export async function getCompletion(
-  payload: CompletionCreateParams,
-  channel?: string,
-): Promise<CompletionResponse> {
-  return getOpenAIChatCompletion(payload, channel);
-}
 
 export async function getOpenAIChatCompletion(
   payload: CompletionCreateParams,
@@ -42,7 +36,7 @@ export async function getOpenAIChatCompletion(
   });
 
   const resp: CompletionResponse = {
-    output: Prisma.JsonNull,
+    output: null,
     errorMessage: null,
     statusCode: response.status,
     timeToComplete: 0,
@@ -59,7 +53,7 @@ export async function getOpenAIChatCompletion(
         }
       })().catch((err) => console.error(err));
       if (finalOutput) {
-        resp.output = finalOutput as unknown as Prisma.InputJsonValue;
+        resp.output = finalOutput;
         resp.timeToComplete = Date.now() - start;
       }
     } else {
@@ -94,6 +88,13 @@ export async function getOpenAIChatCompletion(
         const messages = [message];
         resp.completionTokens = countOpenAIChatTokens(model, messages);
       }
+    }
+
+    const stats = modelStats[resp.output?.model as SupportedModel];
+    if (stats && resp.promptTokens && resp.completionTokens) {
+      resp.cost =
+        resp.promptTokens * stats.promptTokenPrice +
+        resp.completionTokens * stats.completionTokenPrice;
     }
   } catch (e) {
     console.error(e);
