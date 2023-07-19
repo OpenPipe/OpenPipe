@@ -1,20 +1,25 @@
 import { EvalType } from "@prisma/client";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { runAllEvals } from "~/server/utils/evaluations";
+import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 
 export const evaluationsRouter = createTRPCRouter({
-  list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
-    return await prisma.evaluation.findMany({
-      where: {
-        experimentId: input.experimentId,
-      },
-      orderBy: { createdAt: "asc" },
-    });
-  }),
+  list: publicProcedure
+    .input(z.object({ experimentId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewExperiment(input.experimentId, ctx);
 
-  create: publicProcedure
+      return await prisma.evaluation.findMany({
+        where: {
+          experimentId: input.experimentId,
+        },
+        orderBy: { createdAt: "asc" },
+      });
+    }),
+
+  create: protectedProcedure
     .input(
       z.object({
         experimentId: z.string(),
@@ -23,7 +28,9 @@ export const evaluationsRouter = createTRPCRouter({
         evalType: z.nativeEnum(EvalType),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await requireCanModifyExperiment(input.experimentId, ctx);
+
       await prisma.evaluation.create({
         data: {
           experimentId: input.experimentId,
@@ -38,7 +45,7 @@ export const evaluationsRouter = createTRPCRouter({
       await runAllEvals(input.experimentId);
     }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -49,7 +56,12 @@ export const evaluationsRouter = createTRPCRouter({
         }),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const { experimentId } = await prisma.evaluation.findUniqueOrThrow({
+        where: { id: input.id },
+      });
+      await requireCanModifyExperiment(experimentId, ctx);
+
       const evaluation = await prisma.evaluation.update({
         where: { id: input.id },
         data: {
@@ -69,9 +81,16 @@ export const evaluationsRouter = createTRPCRouter({
       await runAllEvals(evaluation.experimentId);
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-    await prisma.evaluation.delete({
-      where: { id: input.id },
-    });
-  }),
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const { experimentId } = await prisma.evaluation.findUniqueOrThrow({
+        where: { id: input.id },
+      });
+      await requireCanModifyExperiment(experimentId, ctx);
+
+      await prisma.evaluation.delete({
+        where: { id: input.id },
+      });
+    }),
 });

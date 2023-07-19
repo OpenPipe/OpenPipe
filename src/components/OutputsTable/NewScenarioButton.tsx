@@ -1,7 +1,7 @@
 import { Button, type ButtonProps, HStack, Spinner, Icon } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { api } from "~/utils/api";
-import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
 
 // Extracted Button styling into reusable component
 const StyledButton = ({ children, onClick }: ButtonProps) => (
@@ -17,6 +17,8 @@ const StyledButton = ({ children, onClick }: ButtonProps) => (
 );
 
 export default function NewScenarioButton() {
+  const { canModify } = useExperimentAccess();
+
   const experiment = useExperiment();
   const mutation = api.scenarios.create.useMutation();
   const utils = api.useContext();
@@ -37,6 +39,8 @@ export default function NewScenarioButton() {
     });
     await utils.scenarios.list.invalidate();
   }, [mutation]);
+
+  if (!canModify) return null;
 
   return (
     <HStack spacing={2}>

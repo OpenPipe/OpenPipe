@@ -1,11 +1,14 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 
 export const templateVarsRouter = createTRPCRouter({
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.object({ experimentId: z.string(), label: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await requireCanModifyExperiment(input.experimentId, ctx);
+
       await prisma.templateVariable.create({
         data: {
           experimentId: input.experimentId,
@@ -14,22 +17,33 @@ export const templateVarsRouter = createTRPCRouter({
       });
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-    await prisma.templateVariable.delete({ where: { id: input.id } });
-  }),
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const { experimentId } = await prisma.templateVariable.findUniqueOrThrow({
+        where: { id: input.id },
+      });
 
-  list: publicProcedure.input(z.object({ experimentId: z.string() })).query(async ({ input }) => {
-    return await prisma.templateVariable.findMany({
-      where: {
-        experimentId: input.experimentId,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-      select: {
-        id: true,
-        label: true,
-      },
-    });
-  }),
+      await requireCanModifyExperiment(experimentId, ctx);
+
+      await prisma.templateVariable.delete({ where: { id: input.id } });
+    }),
+
+  list: publicProcedure
+    .input(z.object({ experimentId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewExperiment(input.experimentId, ctx);
+      return await prisma.templateVariable.findMany({
+        where: {
+          experimentId: input.experimentId,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          id: true,
+          label: true,
+        },
+      });
+    }),
 });

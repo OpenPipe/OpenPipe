@@ -4,11 +4,18 @@
 
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
-**Live Demo:** https://openpipe.ai
+## Sample Experiments
+
+These are simple experiments users have created that show how OpenPipe works.
+
+- [Country Capitals](https://openpipe.ai/experiments/11111111-1111-1111-1111-111111111111)
+- [Reddit User Needs](https://openpipe.ai/experiments/22222222-2222-2222-2222-222222222222)
+- [OpenAI Function Calls](https://openpipe.ai/experiments/2ebbdcb3-ed51-456e-87dc-91f72eaf3e2b)
+- [Activity Classification](https://openpipe.ai/experiments/3950940f-ab6b-4b74-841d-7e9dbc4e4ff8)
 
 <img src="https://github.com/openpipe/openpipe/assets/176426/fc7624c6-5b65-4d4d-82b7-4a816f3e5678" alt="demo" height="400px">
 
-Currently there's a public playground available at [https://openpipe.ai/](https://openpipe.ai/), but the recommended approach is to [run locally](#running-locally).
+You can use our hosted version of OpenPipe at [https://openpipe.ai]. You can also clone this repository and [run it locally](#running-locally).
 
 ## High-Level Features
 
@@ -47,5 +54,6 @@ OpenPipe currently supports GPT-3.5 and GPT-4. Wider model support is planned.
 5. Install the dependencies: `cd openpipe && pnpm install`
 6. Create a `.env` file (`cp .env.example .env`) and enter your `OPENAI_API_KEY`.
 7. Update `DATABASE_URL` if necessary to point to your Postgres instance and run `pnpm prisma db push` to create the database.
-8. Start the app: `pnpm dev`.
-9. Navigate to [http://localhost:3000](http://localhost:3000)
+8. Create a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app) and update the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` values. (Note: a PR to make auth optional when running locally would be a great contribution!)
+9. Start the app: `pnpm dev`.
+10. Navigate to [http://localhost:3000](http://localhost:3000)

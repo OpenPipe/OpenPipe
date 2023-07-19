@@ -1,15 +1,16 @@
 import { useState, type DragEvent } from "react";
 import { type PromptVariant } from "../OutputsTable/types";
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback } from "~/utils/hooks";
-import { HStack, Icon, GridItem } from "@chakra-ui/react"; // Changed here
 import { RiDraggable } from "react-icons/ri";
+import { useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
+import { HStack, Icon, Text, GridItem } from "@chakra-ui/react"; // Changed here
 import { cellPadding, headerMinHeight } from "../constants";
 import AutoResizeTextArea from "../AutoResizeTextArea";
 import { stickyHeaderStyle } from "../OutputsTable/styles";
 import VariantHeaderMenuButton from "./VariantHeaderMenuButton";
 
 export default function VariantHeader(props: { variant: PromptVariant; canHide: boolean }) {
+  const { canModify } = useExperimentAccess();
   const utils = api.useContext();
   const [isDragTarget, setIsDragTarget] = useState(false);
   const [isInputHovered, setIsInputHovered] = useState(false);
@@ -43,6 +44,16 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
   );
 
   const [menuOpen, setMenuOpen] = useState(false);
+
+  if (!canModify) {
+    return (
+      <GridItem padding={0} sx={stickyHeaderStyle} borderTopWidth={1}>
+        <Text fontSize={16} fontWeight="bold" px={cellPadding.x} py={cellPadding.y}>
+          {props.variant.label}
+        </Text>
+      </GridItem>
+    );
+  }
 
   return (
     <GridItem

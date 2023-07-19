@@ -124,6 +124,8 @@ export default function Experiment() {
     );
   }
 
+  const canModify = experiment.data?.access.canModify ?? false;
+
   return (
     <AppShell title={experiment.data?.label}>
       <VStack h="full">
@@ -143,37 +145,45 @@ export default function Experiment() {
               </Link>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
-              <Input
-                size="sm"
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                onBlur={onSaveLabel}
-                borderWidth={1}
-                borderColor="transparent"
-                fontSize={16}
-                px={0}
-                minW={{ base: 100, lg: 300 }}
-                flex={1}
-                _hover={{ borderColor: "gray.300" }}
-                _focus={{ borderColor: "blue.500", outline: "none" }}
-              />
+              {canModify ? (
+                <Input
+                  size="sm"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                  onBlur={onSaveLabel}
+                  borderWidth={1}
+                  borderColor="transparent"
+                  fontSize={16}
+                  px={0}
+                  minW={{ base: 100, lg: 300 }}
+                  flex={1}
+                  _hover={{ borderColor: "gray.300" }}
+                  _focus={{ borderColor: "blue.500", outline: "none" }}
+                />
+              ) : (
+                <Text fontSize={16} px={0} minW={{ base: 100, lg: 300 }} flex={1}>
+                  {experiment.data?.label}
+                </Text>
+              )}
             </BreadcrumbItem>
           </Breadcrumb>
-          <HStack>
-            <Button
-              size="sm"
-              variant={{ base: "outline", lg: "ghost" }}
-              colorScheme="gray"
-              fontWeight="normal"
-              onClick={openDrawer}
-            >
-              <Icon as={BsGearFill} boxSize={4} color="gray.600" />
-              <Text display={{ base: "none", lg: "block" }} ml={2}>
-                Edit Vars & Evals
-              </Text>
-            </Button>
-            <DeleteButton />
-          </HStack>
+          {canModify && (
+            <HStack>
+              <Button
+                size="sm"
+                variant={{ base: "outline", lg: "ghost" }}
+                colorScheme="gray"
+                fontWeight="normal"
+                onClick={openDrawer}
+              >
+                <Icon as={BsGearFill} boxSize={4} color="gray.600" />
+                <Text display={{ base: "none", lg: "block" }} ml={2}>
+                  Edit Vars & Evals
+                </Text>
+              </Button>
+              <DeleteButton />
+            </HStack>
+          )}
         </Flex>
         <SettingsDrawer />
         <Box w="100%" overflowX="auto" flex={1}>

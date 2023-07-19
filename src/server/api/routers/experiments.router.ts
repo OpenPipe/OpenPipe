@@ -1,12 +1,29 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import dedent from "dedent";
 import { generateNewCell } from "~/server/utils/generateNewCell";
+import {
+  canModifyExperiment,
+  requireCanModifyExperiment,
+  requireCanViewExperiment,
+  requireNothing,
+} from "~/utils/accessControl";
+import userOrg from "~/server/utils/userOrg";
 
 export const experimentsRouter = createTRPCRouter({
-  list: publicProcedure.query(async () => {
+  list: protectedProcedure.query(async ({ ctx }) => {
+    // Anyone can list experiments
+    requireNothing(ctx);
+
     const experiments = await prisma.experiment.findMany({
+      where: {
+        organization: {
+          OrganizationUser: {
+            some: { userId: ctx.session.user.id },
+          },
+        },
+      },
       orderBy: {
         sortIndex: "asc",
       },
@@ -40,15 +57,29 @@ export const experimentsRouter = createTRPCRouter({
     return experimentsWithCounts;
   }),
 
-  get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-    return await prisma.experiment.findFirst({
-      where: {
-        id: input.id,
-      },
+  get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
+    await requireCanViewExperiment(input.id, ctx);
+    const experiment = await prisma.experiment.findFirstOrThrow({
+      where: { id: input.id },
     });
+
+    const canModify = ctx.session?.user.id
+      ? await canModifyExperiment(experiment.id, ctx.session?.user.id)
+      : false;
+
+    return {
+      ...experiment,
+      access: {
+        canView: true,
+        canModify,
+      },
+    };
   }),
 
-  create: publicProcedure.input(z.object({})).mutation(async () => {
+  create: protectedProcedure.input(z.object({})).mutation(async ({ ctx }) => {
+    // Anyone can create an experiment
+    requireNothing(ctx);
+
     const maxSortIndex =
       (
         await prisma.experiment.aggregate({
@@ -62,6 +93,7 @@ export const experimentsRouter = createTRPCRouter({
       data: {
         sortIndex: maxSortIndex + 1,
         label: `Experiment ${maxSortIndex + 1}`,
+        organizationId: (await userOrg(ctx.session.user.id)).id,
       },
     });
 
@@ -117,9 +149,10 @@ export const experimentsRouter = createTRPCRouter({
     return exp;
   }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ label: z.string() }) }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await requireCanModifyExperiment(input.id, ctx);
       return await prisma.experiment.update({
         where: {
           id: input.id,
@@ -130,11 +163,15 @@ export const experimentsRouter = createTRPCRouter({
       });
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-    await prisma.experiment.delete({
-      where: {
-        id: input.id,
-      },
-    });
-  }),
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await requireCanModifyExperiment(input.id, ctx);
+
+      await prisma.experiment.delete({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
 });

@@ -15,6 +15,8 @@ export const env = createEnv({
       .optional()
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
+    GITHUB_CLIENT_ID: z.string().min(1),
+    GITHUB_CLIENT_SECRET: z.string().min(1),
   },
 
   /**
@@ -24,11 +26,6 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
-    NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND: z
-      .string()
-      .optional()
-      .default("false")
-      .transform((val) => val.toLowerCase() === "true"),
     NEXT_PUBLIC_SOCKET_URL: z.string().url().default("http://localhost:3318"),
   },
 
@@ -42,8 +39,9 @@ export const env = createEnv({
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     RESTRICT_PRISMA_LOGS: process.env.RESTRICT_PRISMA_LOGS,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-    NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND: process.env.NEXT_PUBLIC_IS_PUBLIC_PLAYGROUND,
     NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
+    GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
