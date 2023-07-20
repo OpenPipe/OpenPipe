@@ -2,7 +2,11 @@ import { FormLabel, FormControl, type TextareaProps } from "@chakra-ui/react";
 import { useState } from "react";
 import AutoResizeTextArea from "../AutoResizeTextArea";
 
-export const FloatingLabelInput = ({ label, value, ...props }: { label: string, value: string } & TextareaProps) => {
+export const FloatingLabelInput = ({
+  label,
+  value,
+  ...props
+}: { label: string; value: string } & TextareaProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleFocus = () => setIsFocused(true);
