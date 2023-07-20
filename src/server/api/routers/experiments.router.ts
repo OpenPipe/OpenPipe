@@ -97,7 +97,7 @@ export const experimentsRouter = createTRPCRouter({
       },
     });
 
-    const [variant, _, scenario] = await prisma.$transaction([
+    const [variant, _, scenario1, scenario2, scenario3] = await prisma.$transaction([
       prisma.promptVariant.create({
         data: {
           experimentId: exp.id,
@@ -121,7 +121,7 @@ export const experimentsRouter = createTRPCRouter({
             messages: [
               {
                 role: "system",
-                content: \`"Return 'this is output for the scenario "${"$"}{scenario.text}"'\`,
+                content: \`Write 'Start experimenting!' in ${"$"}{scenario.language}\`,
               },
             ],
           };`,
@@ -131,20 +131,38 @@ export const experimentsRouter = createTRPCRouter({
       prisma.templateVariable.create({
         data: {
           experimentId: exp.id,
-          label: "text",
+          label: "language",
         },
       }),
       prisma.testScenario.create({
         data: {
           experimentId: exp.id,
           variableValues: {
-            text: "This is a test scenario.",
+            language: "English",
+          },
+        },
+      }),
+      prisma.testScenario.create({
+        data: {
+          experimentId: exp.id,
+          variableValues: {
+            language: "Spanish",
+          },
+        },
+      }),
+      prisma.testScenario.create({
+        data: {
+          experimentId: exp.id,
+          variableValues: {
+            language: "German",
           },
         },
       }),
     ]);
 
-    await generateNewCell(variant.id, scenario.id);
+    await generateNewCell(variant.id, scenario1.id);
+    await generateNewCell(variant.id, scenario2.id);
+    await generateNewCell(variant.id, scenario3.id);
 
     return exp;
   }),
