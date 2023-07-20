@@ -14,7 +14,6 @@ export const AutoResizeTextarea: React.ForwardRefRenderFunction<
       minH="unset"
       minRows={minRows}
       overflowY={isRerendered ? overflowY : "hidden"}
-      overflow="hidden"
       w="100%"
       resize="none"
       ref={ref}
