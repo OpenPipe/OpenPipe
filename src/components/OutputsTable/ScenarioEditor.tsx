@@ -9,7 +9,7 @@ import { Box, Button, Flex, HStack, Icon, Spinner, Stack, Tooltip, VStack } from
 import { cellPadding } from "../constants";
 import { BsX } from "react-icons/bs";
 import { RiDraggable } from "react-icons/ri";
-import AutoResizeTextArea from "../AutoResizeTextArea";
+import { FloatingLabelInput } from "./FloatingLabelInput";
 
 export default function ScenarioEditor({
   scenario,
@@ -77,6 +77,7 @@ export default function ScenarioEditor({
       pr={cellPadding.x}
       py={cellPadding.y}
       pl={canModify ? 0 : cellPadding.x}
+      spacing={0}
       height="100%"
       draggable={!variableInputHovered}
       onDragStart={(e) => {
@@ -131,7 +132,7 @@ export default function ScenarioEditor({
       {variableLabels.length === 0 ? (
         <Box color="gray.500">{vars.data ? "No scenario variables configured" : "Loading..."}</Box>
       ) : (
-        <VStack spacing={1}>
+        <VStack spacing={4} flex={1} py={2}>
           {variableLabels.map((key) => {
             const value = values[key] ?? "";
             const layoutDirection = value.length > 20 ? "column" : "row";
@@ -143,31 +144,14 @@ export default function ScenarioEditor({
                 flexWrap="wrap"
                 width="full"
               >
-                <Box
-                  bgColor="blue.100"
-                  color="blue.600"
-                  px={1}
-                  my="3px"
-                  fontSize="xs"
-                  fontWeight="bold"
-                >
-                  {key}
-                </Box>
-                <AutoResizeTextArea
-                  px={2}
-                  py={1}
-                  placeholder="empty"
-                  borderRadius="sm"
-                  fontSize="sm"
-                  lineHeight={1.2}
-                  value={value}
+                <FloatingLabelInput
+                  label={key}
                   isDisabled={!canModify}
-                  _disabled={{ opacity: 1, cursor: "default" }}
+                  style={{ width: "100%" }}
+                  value={value}
                   onChange={(e) => {
                     setValues((prev) => ({ ...prev, [key]: e.target.value }));
                   }}
-                  maxH="32"
-                  overflowY="auto"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                       e.preventDefault();
@@ -175,12 +159,6 @@ export default function ScenarioEditor({
                       onSave();
                     }
                   }}
-                  resize="none"
-                  overflow="hidden"
-                  flex={layoutDirection === "row" ? 1 : undefined}
-                  borderColor={hasChanged ? "blue.300" : "transparent"}
-                  _hover={{ borderColor: "gray.300" }}
-                  _focus={{ borderColor: "blue.500", outline: "none", bg: "white" }}
                   onMouseEnter={() => setVariableInputHovered(true)}
                   onMouseLeave={() => setVariableInputHovered(false)}
                 />
