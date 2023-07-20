@@ -1,9 +1,20 @@
-import { HStack, VStack } from "@chakra-ui/react";
+import { HStack, VStack, useBreakpointValue } from "@chakra-ui/react";
 import React from "react";
 import DiffViewer, { DiffMethod } from "react-diff-viewer";
 import Prism from "prismjs";
 import "prismjs/components/prism-javascript";
 import "prismjs/themes/prism.css"; // choose a theme you like
+
+const highlightSyntax = (str: string) => {
+  let highlighted;
+  try {
+    highlighted = Prism.highlight(str, Prism.languages.javascript as Prism.Grammar, "javascript");
+  } catch (e) {
+    console.error("Error highlighting:", e);
+    highlighted = str;
+  }
+  return <pre style={{ display: "inline" }} dangerouslySetInnerHTML={{ __html: highlighted }} />;
+};
 
 const CompareFunctions = ({
   originalFunction,
@@ -12,23 +23,24 @@ const CompareFunctions = ({
   originalFunction: string;
   newFunction?: string;
 }) => {
-  const highlightSyntax = (str: string) => {
-    let highlighted;
-    try {
-      highlighted = Prism.highlight(str, Prism.languages.javascript as Prism.Grammar, "javascript");
-    } catch (e) {
-      console.error("Error highlighting:", e);
-      highlighted = str;
-    }
-    return <pre style={{ display: "inline" }} dangerouslySetInnerHTML={{ __html: highlighted }} />;
-  };
+  const showSplitView = useBreakpointValue(
+    {
+      base: false,
+      md: true,
+    },
+    {
+      fallback: "base",
+    },
+  );
+
   return (
     <HStack w="full" spacing={5}>
       <VStack w="full" spacing={4} maxH="50vh" fontSize={12} lineHeight={1} overflowY="auto">
         <DiffViewer
           oldValue={originalFunction}
           newValue={newFunction || originalFunction}
-          splitView={true}
+          splitView={showSplitView}
+          hideLineNumbers={!showSplitView}
           leftTitle="Original"
           rightTitle={newFunction ? "Modified" : "Unmodified"}
           disableWordDiff={true}
