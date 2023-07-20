@@ -1,16 +1,15 @@
-import { isObject } from "lodash-es";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { generateNewCell } from "~/server/utils/generateNewCell";
-import { OpenAIChatModel, type SupportedModel } from "~/server/types";
-import { constructPrompt } from "~/server/utils/constructPrompt";
+import { type SupportedModel } from "~/server/types";
 import userError from "~/server/utils/error";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { reorderPromptVariants } from "~/server/utils/reorderPromptVariants";
 import { type PromptVariant } from "@prisma/client";
 import { deriveNewConstructFn } from "~/server/utils/deriveNewContructFn";
 import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
+import parseConstructFn from "~/server/utils/parseConstructFn";
 
 export const promptVariantsRouter = createTRPCRouter({
   list: publicProcedure
@@ -198,7 +197,9 @@ export const promptVariantsRouter = createTRPCRouter({
           label: newVariantLabel,
           sortIndex: (originalVariant?.sortIndex ?? 0) + 1,
           constructFn: newConstructFn,
+          constructFnVersion: 2,
           model: originalVariant?.model ?? "gpt-3.5-turbo",
+          modelProvider: originalVariant?.modelProvider ?? "openai/ChatCompletion",
         },
       });
 
@@ -298,12 +299,15 @@ export const promptVariantsRouter = createTRPCRouter({
       });
       await requireCanModifyExperiment(existing.experimentId, ctx);
 
-      const constructedPrompt = await constructPrompt({ constructFn: existing.constructFn }, null);
+      const constructedPrompt = await parseConstructFn(existing.constructFn);
+
+      if ("error" in constructedPrompt) {
+        return userError(constructedPrompt.error);
+      }
 
       const promptConstructionFn = await deriveNewConstructFn(
         existing,
-        // @ts-expect-error TODO clean this up
-        constructedPrompt?.model as SupportedModel,
+        constructedPrompt.model as SupportedModel,
         input.instructions,
       );
 
@@ -332,25 +336,10 @@ export const promptVariantsRouter = createTRPCRouter({
         throw new Error(`Prompt Variant with id ${input.id} does not exist`);
       }
 
-      let model = existing.model;
-      try {
-        const contructedPrompt = await constructPrompt({ constructFn: input.constructFn }, null);
+      const parsedPrompt = await parseConstructFn(input.constructFn);
 
-        if (!isObject(contructedPrompt)) {
-          return userError("Prompt is not an object");
-        }
-        if (!("model" in contructedPrompt)) {
-          return userError("Prompt does not define a model");
-        }
-        if (
-          typeof contructedPrompt.model !== "string" ||
-          !(contructedPrompt.model in OpenAIChatModel)
-        ) {
-          return userError("Prompt defines an invalid model");
-        }
-        model = contructedPrompt.model;
-      } catch (e) {
-        return userError((e as Error).message);
+      if ("error" in parsedPrompt) {
+        return userError(parsedPrompt.error);
       }
 
       // Create a duplicate with only the config changed
@@ -361,7 +350,9 @@ export const promptVariantsRouter = createTRPCRouter({
           sortIndex: existing.sortIndex,
           uiId: existing.uiId,
           constructFn: input.constructFn,
-          model,
+          constructFnVersion: 2,
+          modelProvider: parsedPrompt.modelProvider,
+          model: parsedPrompt.model,
         },
       });
 

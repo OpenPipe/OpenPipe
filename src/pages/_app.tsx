@@ -6,6 +6,7 @@ import Favicon from "~/components/Favicon";
 import "~/utils/analytics";
 import Head from "next/head";
 import { ChakraThemeProvider } from "~/theme/ChakraThemeProvider";
+import { SyncAppStore } from "~/state/sync";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -20,6 +21,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         />
       </Head>
       <SessionProvider session={session}>
+        <SyncAppStore />
         <Favicon />
         <ChakraThemeProvider>
           <Component {...pageProps} />

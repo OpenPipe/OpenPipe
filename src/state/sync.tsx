@@ -15,3 +15,16 @@ export function useSyncVariantEditor() {
     }
   }, [scenarios.data]);
 }
+
+export function SyncAppStore() {
+  const utils = api.useContext();
+
+  const setApi = useAppStore((state) => state.setApi);
+
+  useEffect(() => {
+    console.log("setting api", utils);
+    setApi(utils);
+  }, [utils, setApi]);
+
+  return null;
+}

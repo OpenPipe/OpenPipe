@@ -1,7 +1,6 @@
-import { OpenAIChatModel, type SupportedModel } from "../types";
-import openAIChatApiShape from "~/codegen/openai.types.ts.txt";
+import { type SupportedModel } from "../types";
 
 export const getApiShapeForModel = (model: SupportedModel) => {
-  if (model in OpenAIChatModel) return openAIChatApiShape;
+  // if (model in OpenAIChatModel) return openAIChatApiShape;
   return "";
 };

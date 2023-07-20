@@ -1,7 +1,6 @@
 import { type RouterOutputs } from "~/utils/api";
 import { type SliceCreator } from "./store";
 import loader from "@monaco-editor/loader";
-import openAITypes from "~/codegen/openai.types.ts.txt";
 import formatPromptConstructor from "~/utils/formatPromptConstructor";
 
 export const editorBackground = "#fafafa";
@@ -20,7 +19,10 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
     // We only want to run this client-side
     if (typeof window === "undefined") return;
 
-    const monaco = await loader.init();
+    const [monaco, promptTypes] = await Promise.all([
+      loader.init(),
+      get().api?.client.experiments.promptTypes.query(),
+    ]);
 
     monaco.editor.defineTheme("customTheme", {
       base: "vs",
@@ -37,14 +39,9 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
       lib: ["esnext"],
     });
 
-    monaco.editor.createModel(
-      `
-      ${openAITypes}
-
-      declare var prompt: components["schemas"]["CreateChatCompletionRequest"];
-      `,
-      "typescript",
-      monaco.Uri.parse("file:///openai.types.ts"),
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      promptTypes ?? "",
+      "file:///PromptTypes.d.ts",
     );
 
     monaco.languages.registerDocumentFormattingEditProvider("typescript", {
@@ -64,7 +61,6 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
     get().sharedVariantEditor.updateScenariosModel();
   },
   scenarios: [],
-  // scenariosModel: null,
   setScenarios: (scenarios) => {
     set((state) => {
       state.sharedVariantEditor.scenarios = scenarios;

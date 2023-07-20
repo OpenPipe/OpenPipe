@@ -49,6 +49,10 @@ const DeleteButton = () => {
     onClose();
   }, [mutation, experiment.data?.id, router]);
 
+  useEffect(() => {
+    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
+  });
+
   return (
     <>
       <Button

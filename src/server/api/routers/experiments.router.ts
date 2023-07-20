@@ -10,6 +10,7 @@ import {
   requireNothing,
 } from "~/utils/accessControl";
 import userOrg from "~/server/utils/userOrg";
+import generateTypes from "~/modelProviders/generateTypes";
 
 export const experimentsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -115,7 +116,7 @@ export const experimentsRouter = createTRPCRouter({
            * variable.
            */
           
-          prompt = {
+          definePrompt("openai/ChatCompletion", {
             model: "gpt-3.5-turbo-0613",
             stream: true,
             messages: [
@@ -124,8 +125,10 @@ export const experimentsRouter = createTRPCRouter({
                 content: \`Write 'Start experimenting!' in ${"$"}{scenario.language}\`,
               },
             ],
-          };`,
+          });`,
           model: "gpt-3.5-turbo-0613",
+          modelProvider: "openai/ChatCompletion",
+          constructFnVersion: 2,
         },
       }),
       prisma.templateVariable.create({
@@ -192,4 +195,10 @@ export const experimentsRouter = createTRPCRouter({
         },
       });
     }),
+
+  // Keeping these on `experiment` for now because we might want to limit the
+  // providers based on your account/experiment
+  promptTypes: publicProcedure.query(async () => {
+    return await generateTypes();
+  }),
 });

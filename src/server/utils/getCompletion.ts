@@ -7,7 +7,7 @@ import { type SupportedModel, type OpenAIChatModel } from "../types";
 import { env } from "~/env.mjs";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { rateLimitErrorMessage } from "~/sharedStrings";
-import { modelStats } from "../modelStats";
+import { modelStats } from "../../modelProviders/modelStats";
 
 export type CompletionResponse = {
   output: ChatCompletion | null;
