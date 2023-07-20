@@ -40,6 +40,59 @@ const requestUpdatedPromptFunction = async (
 ) => {
   const originalModel = originalVariant.model as SupportedModel;
   let newContructionFn = "";
+  const usefulTips = `Chain of thought means asking the model to think about its answer before it gives it to you. This is useful for getting more accurate answers.
+  
+  This is what a prompt looks like without using function calls:
+  
+  prompt = {
+    model: "gpt-4",
+    stream: true,
+    messages: [
+      {
+        role: "system",
+        content: \`Evaluate sentiment.\`,
+      },
+      {
+        role: "user",
+        content: \`This is the user's message: \${scenario.user_message}. Return "positive" or "negative" or "neutral"\`,
+      },
+    ],
+  };
+
+  This is what one looks like using function calls:
+
+  prompt = {
+    model: "gpt-3.5-turbo-0613",
+    stream: true,
+    messages: [
+      {
+        role: "system",
+        content: "Evaluate sentiment.",
+      },
+      {
+        role: "user",
+        content: scenario.user_message,
+      },
+    ],
+    functions: [
+      {
+        name: "extract_sentiment",
+        parameters: {
+          type: "object",
+          properties: {
+            sentiment: {
+              type: "string",
+              description: "one of positive/negative/neutral",
+            },
+          },
+        },
+      },
+    ],
+    function_call: {
+      name: "extract_sentiment",
+    },
+  };  
+  `;
   for (let i = 0; i < NUM_RETRIES; i++) {
     try {
       const messages: CompletionCreateParams.CreateChatCompletionRequestNonStreaming.Message[] = [
@@ -49,7 +102,7 @@ const requestUpdatedPromptFunction = async (
             getApiShapeForModel(originalModel),
             null,
             2,
-          )}`,
+          )}\n\nDo not add any assistant messages.`,
         },
       ];
       if (newModel) {
@@ -59,6 +112,10 @@ const requestUpdatedPromptFunction = async (
         });
       }
       if (instructions) {
+        messages.push({
+          role: "system",
+          content: `Here is some useful information about prompt engineering: ${usefulTips}`,
+        });
         messages.push({
           role: "user",
           content: `Follow these instructions: ${instructions}`,

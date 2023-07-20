@@ -11,12 +11,16 @@ import {
   Text,
   Spinner,
   HStack,
+  InputGroup,
+  Input,
+  InputRightElement,
+  Icon,
 } from "@chakra-ui/react";
+import { IoMdSend } from "react-icons/io";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { type PromptVariant } from "@prisma/client";
 import { useState } from "react";
-import AutoResizeTextArea from "../AutoResizeTextArea";
 import CompareFunctions from "./CompareFunctions";
 
 export const RefinePromptModal = ({
@@ -56,12 +60,20 @@ export const RefinePromptModal = ({
     <Modal isOpen onClose={onClose} size={{ base: "xl", sm: "2xl", md: "7xl" }}>
       <ModalOverlay />
       <ModalContent w={1200}>
-        <ModalHeader>Refine Your Prompt</ModalHeader>
+        <ModalHeader>Refine with GPT-4</ModalHeader>
         <ModalCloseButton />
         <ModalBody maxW="unset">
-          <VStack spacing={8}>
-            <HStack w="full">
-              <AutoResizeTextArea
+          <VStack spacing={16} pt={8}>
+            <InputGroup
+              size="md"
+              w="full"
+              maxW="600"
+              boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);"
+              borderRadius={8}
+              alignItems="center"
+              colorScheme="orange"
+            >
+              <Input
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
                 onKeyDown={(e) => {
@@ -71,12 +83,41 @@ export const RefinePromptModal = ({
                     getRefinedPromptFn();
                   }
                 }}
-                placeholder="Use chain of thought"
+                placeholder="Send instructions"
+                py={7}
+                px={4}
+                colorScheme="orange"
+                borderColor="gray.300"
+                borderWidth={1}
+                _hover={{
+                  borderColor: "gray.300",
+                }}
+                _focus={{
+                  borderColor: "gray.300",
+                }}
               />
-              <Button onClick={getRefinedPromptFn}>
-                {refiningInProgress ? <Spinner boxSize={4} /> : <Text>Submit</Text>}
-              </Button>
-            </HStack>
+              <InputRightElement width="8" height="full">
+                <Button
+                  h="8"
+                  w="8"
+                  minW="unset"
+                  size="sm"
+                  onClick={getRefinedPromptFn}
+                  disabled={!instructions}
+                  variant={instructions ? "solid" : "ghost"}
+                  mr={4}
+                  borderRadius="8"
+                  bgColor={instructions ? "orange.400" : "transparent"}
+                  colorScheme="orange"
+                >
+                  {refiningInProgress ? (
+                    <Spinner boxSize={4} />
+                  ) : (
+                    <Icon as={IoMdSend} color={instructions ? "white" : "gray.500"} boxSize={5} />
+                  )}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
             <CompareFunctions
               originalFunction={variant.constructFn}
               newFunction={refinedPromptFn}
@@ -85,13 +126,14 @@ export const RefinePromptModal = ({
         </ModalBody>
 
         <ModalFooter>
-          <HStack spacing={4}>
-            <Button onClick={onClose}>Cancel</Button>
+          <HStack spacing={4} pt={8}>
             <Button
-              colorScheme="blue"
               onClick={replaceVariant}
               minW={24}
-              disabled={!refinedPromptFn}
+              disabled={true}
+              _disabled={{
+                bgColor: "blue.500",
+              }}
             >
               {replacementInProgress ? <Spinner boxSize={4} /> : <Text>Accept</Text>}
             </Button>
