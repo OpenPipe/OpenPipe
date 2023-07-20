@@ -74,9 +74,8 @@ export default function ScenarioEditor({
   return (
     <HStack
       alignItems="flex-start"
-      pr={cellPadding.x}
+      px={cellPadding.x}
       py={cellPadding.y}
-      pl={canModify ? 0 : cellPadding.x}
       spacing={0}
       height="100%"
       draggable={!variableInputHovered}
@@ -97,35 +96,36 @@ export default function ScenarioEditor({
       onDrop={onReorder}
       backgroundColor={isDragTarget ? "gray.100" : "transparent"}
     >
-      {canModify && (
-        <Stack alignSelf="flex-start" opacity={props.hovered ? 1 : 0} spacing={0}>
-          {props.canHide && (
-            <>
-              <Tooltip label="Hide scenario" hasArrow>
-                {/* for some reason the tooltip can't position itself properly relative to the icon without the wrapping box */}
-                <Button
-                  variant="unstyled"
-                  color="gray.400"
-                  height="unset"
-                  width="unset"
-                  minW="unset"
-                  onClick={onHide}
-                  _hover={{
-                    color: "gray.800",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Icon as={hidingInProgress ? Spinner : BsX} boxSize={6} />
-                </Button>
-              </Tooltip>
-              <Icon
-                as={RiDraggable}
-                boxSize={6}
-                color="gray.400"
-                _hover={{ color: "gray.800", cursor: "pointer" }}
-              />
-            </>
-          )}
+      {canModify && props.canHide && (
+        <Stack
+          alignSelf="flex-start"
+          opacity={props.hovered ? 1 : 0}
+          spacing={0}
+          ml={-cellPadding.x}
+        >
+          <Tooltip label="Hide scenario" hasArrow>
+            {/* for some reason the tooltip can't position itself properly relative to the icon without the wrapping box */}
+            <Button
+              variant="unstyled"
+              color="gray.400"
+              height="unset"
+              width="unset"
+              minW="unset"
+              onClick={onHide}
+              _hover={{
+                color: "gray.800",
+                cursor: "pointer",
+              }}
+            >
+              <Icon as={hidingInProgress ? Spinner : BsX} boxSize={hidingInProgress ? 4 : 6} />
+            </Button>
+          </Tooltip>
+          <Icon
+            as={RiDraggable}
+            boxSize={6}
+            color="gray.400"
+            _hover={{ color: "gray.800", cursor: "pointer" }}
+          />
         </Stack>
       )}
 
