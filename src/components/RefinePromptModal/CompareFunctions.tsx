@@ -35,7 +35,7 @@ const CompareFunctions = ({
 
   return (
     <HStack w="full" spacing={5}>
-      <VStack w="full" spacing={4} maxH="50vh" fontSize={12} lineHeight={1} overflowY="auto">
+      <VStack w="full" spacing={4} maxH="40vh" fontSize={12} lineHeight={1} overflowY="auto">
         <DiffViewer
           oldValue={originalFunction}
           newValue={newFunction || originalFunction}

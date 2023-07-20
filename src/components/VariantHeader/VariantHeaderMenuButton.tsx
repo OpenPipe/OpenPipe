@@ -12,9 +12,8 @@ import {
   Text,
   Spinner,
 } from "@chakra-ui/react";
-import { BsFillTrashFill, BsGear } from "react-icons/bs";
+import { BsFillTrashFill, BsGear, BsStars } from "react-icons/bs";
 import { FaRegClone } from "react-icons/fa";
-import { AiOutlineDiff } from "react-icons/ai";
 import { useState } from "react";
 import { RefinePromptModal } from "../RefinePromptModal/RefinePromptModal";
 import { RiExchangeFundsFill } from "react-icons/ri";
@@ -79,7 +78,7 @@ export default function VariantHeaderMenuButton({
             Change Model
           </MenuItem>
           <MenuItem
-            icon={<Icon as={AiOutlineDiff} boxSize={5} />}
+            icon={<Icon as={BsStars} boxSize={5} />}
             onClick={() => setRefinePromptModalOpen(true)}
           >
             Refine
