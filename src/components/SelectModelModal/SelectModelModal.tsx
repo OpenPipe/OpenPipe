@@ -10,7 +10,10 @@ import {
   VStack,
   Text,
   Spinner,
+  HStack,
+  Icon,
 } from "@chakra-ui/react";
+import { RiExchangeFundsFill } from "react-icons/ri";
 import { useState } from "react";
 import { type SupportedModel } from "~/server/types";
 import { ModelStatsCard } from "./ModelStatsCard";
@@ -49,7 +52,12 @@ export const SelectModelModal = ({
     <Modal isOpen onClose={onClose} size={{ base: "xl", sm: "2xl", md: "3xl" }}>
       <ModalOverlay />
       <ModalContent w={1200}>
-        <ModalHeader>Select a New Model</ModalHeader>
+        <ModalHeader>
+          <HStack>
+            <Icon as={RiExchangeFundsFill} />
+            <Text>Change Model</Text>
+          </HStack>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody maxW="unset">
           <VStack spacing={8}>
