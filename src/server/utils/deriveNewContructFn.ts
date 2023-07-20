@@ -67,8 +67,7 @@ const requestUpdatedPromptFunction = async (
       }
       messages.push({
         role: "system",
-        content:
-          "The prompt variable has already been declared, so do not declare it again.",
+        content: "The prompt variable has already been declared, so do not declare it again.",
       });
       const completion = await openai.chat.completions.create({
         model: "gpt-4",

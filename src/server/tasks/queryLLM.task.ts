@@ -33,7 +33,10 @@ const getCompletionWithRetries = async (
         payload as unknown as CompletionCreateParams,
         channel,
       );
-      if ((modelResponse.statusCode !== 429 && modelResponse.statusCode !== 503) || i === MAX_AUTO_RETRIES - 1) {
+      if (
+        (modelResponse.statusCode !== 429 && modelResponse.statusCode !== 503) ||
+        i === MAX_AUTO_RETRIES - 1
+      ) {
         return modelResponse;
       }
       const delay = calculateDelay(i);
