@@ -16,7 +16,7 @@ export function stripTypes(tsCode: string): string {
     const result = babel.transform(tsCode, options);
     return result.code ?? tsCode;
   } catch (error) {
-    console.error("Error stripping types", error);
+    // console.error("Error stripping types", error);
     return tsCode;
   }
 }

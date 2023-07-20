@@ -7,7 +7,7 @@ import {
   SimpleGrid,
   Link,
 } from "@chakra-ui/react";
-import { modelStats } from "~/server/modelStats";
+import { modelStats } from "~/modelProviders/modelStats";
 import { type SupportedModel } from "~/server/types";
 
 export const ModelStatsCard = ({ label, model }: { label: string; model: SupportedModel }) => {

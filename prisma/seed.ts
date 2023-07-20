@@ -46,8 +46,10 @@ await prisma.promptVariant.createMany({
       label: "Prompt Variant 1",
       sortIndex: 0,
       model: "gpt-3.5-turbo-0613",
+      modelProvider: "openai/ChatCompletion",
+      constructFnVersion: 1,
       constructFn: dedent`
-        prompt = {
+        definePrompt("openai/ChatCompletion", {
           model: "gpt-3.5-turbo-0613",
           messages: [
             {
@@ -56,15 +58,17 @@ await prisma.promptVariant.createMany({
             }
           ],
           temperature: 0,
-        }`,
+        })`,
     },
     {
       experimentId: defaultId,
       label: "Prompt Variant 2",
       sortIndex: 1,
       model: "gpt-3.5-turbo-0613",
+      modelProvider: "openai/ChatCompletion",
+      constructFnVersion: 1,
       constructFn: dedent`
-        prompt = {
+        definePrompt("openai/ChatCompletion", {
           model: "gpt-3.5-turbo-0613",
           messages: [
             {
@@ -73,7 +77,7 @@ await prisma.promptVariant.createMany({
             }
           ],
           temperature: 0,
-        }`,
+        })`,
     },
   ],
 });

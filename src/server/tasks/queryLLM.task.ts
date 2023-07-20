@@ -1,15 +1,15 @@
-import crypto from "crypto";
 import { prisma } from "~/server/db";
 import defineTask from "./defineTask";
 import { type CompletionResponse, getOpenAIChatCompletion } from "../utils/getCompletion";
-import { type JSONSerializable } from "../types";
 import { sleep } from "../utils/sleep";
-import { shouldStream } from "../utils/shouldStream";
 import { generateChannel } from "~/utils/generateChannel";
 import { runEvalsForOutput } from "../utils/evaluations";
-import { constructPrompt } from "../utils/constructPrompt";
 import { type CompletionCreateParams } from "openai/resources/chat";
 import { type Prisma } from "@prisma/client";
+import parseConstructFn from "../utils/parseConstructFn";
+import hashPrompt from "../utils/hashPrompt";
+import { type JsonObject } from "type-fest";
+import modelProviders from "~/modelProviders";
 
 const MAX_AUTO_RETRIES = 10;
 const MIN_DELAY = 500; // milliseconds
@@ -23,7 +23,7 @@ function calculateDelay(numPreviousTries: number): number {
 
 const getCompletionWithRetries = async (
   cellId: string,
-  payload: JSONSerializable,
+  payload: JsonObject,
   channel?: string,
 ): Promise<CompletionResponse> => {
   let modelResponse: CompletionResponse | null = null;
@@ -125,9 +125,23 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     return;
   }
 
-  const prompt = await constructPrompt(variant, scenario.variableValues);
+  const prompt = await parseConstructFn(variant.constructFn, scenario.variableValues as JsonObject);
 
-  const streamingEnabled = shouldStream(prompt);
+  if ("error" in prompt) {
+    await prisma.scenarioVariantCell.update({
+      where: { id: scenarioVariantCellId },
+      data: {
+        statusCode: 400,
+        errorMessage: prompt.error,
+        retrievalStatus: "ERROR",
+      },
+    });
+    return;
+  }
+
+  const provider = modelProviders[prompt.modelProvider];
+
+  const streamingEnabled = provider.shouldStream(prompt.modelInput);
   let streamingChannel;
 
   if (streamingEnabled) {
@@ -135,21 +149,19 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     // Save streaming channel so that UI can connect to it
     await prisma.scenarioVariantCell.update({
       where: { id: scenarioVariantCellId },
-      data: {
-        streamingChannel,
-      },
+      data: { streamingChannel },
     });
   }
 
   const modelResponse = await getCompletionWithRetries(
     scenarioVariantCellId,
-    prompt,
+    prompt.modelInput as unknown as JsonObject,
     streamingChannel,
   );
 
   let modelOutput = null;
   if (modelResponse.statusCode === 200) {
-    const inputHash = crypto.createHash("sha256").update(JSON.stringify(prompt)).digest("hex");
+    const inputHash = hashPrompt(prompt);
 
     modelOutput = await prisma.modelOutput.create({
       data: {

@@ -5,11 +5,14 @@ import {
   type SharedVariantEditorSlice,
   createVariantEditorSlice,
 } from "./sharedVariantEditor.slice";
+import { type APIClient } from "~/utils/api";
 
 export type State = {
   drawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
+  api: APIClient | null;
+  setApi: (api: APIClient) => void;
   sharedVariantEditor: SharedVariantEditorSlice;
 };
 
@@ -20,6 +23,12 @@ export type GetFn = Parameters<SliceCreator<unknown>>[1];
 
 const useBaseStore = create<State, [["zustand/immer", never]]>(
   immer((set, get, ...rest) => ({
+    api: null,
+    setApi: (api) =>
+      set((state) => {
+        state.api = api;
+      }),
+
     drawerOpen: false,
     openDrawer: () =>
       set((state) => {
@@ -34,5 +43,3 @@ const useBaseStore = create<State, [["zustand/immer", never]]>(
 );
 
 export const useAppStore = createSelectors(useBaseStore);
-
-useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);

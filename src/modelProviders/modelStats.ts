@@ -1,4 +1,4 @@
-import { type SupportedModel } from "./types";
+import { type SupportedModel } from "../server/types";
 
 interface ModelStats {
   contextLength: number;

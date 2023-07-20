@@ -25,6 +25,7 @@ import CompareFunctions from "./CompareFunctions";
 import { CustomInstructionsInput } from "./CustomInstructionsInput";
 import { type RefineOptionLabel, refineOptions } from "./refineOptions";
 import { RefineOption } from "./RefineOption";
+import { isObject, isString } from "lodash-es";
 
 export const RefinePromptModal = ({
   variant,
@@ -59,7 +60,12 @@ export const RefinePromptModal = ({
   const replaceVariantMutation = api.promptVariants.replaceVariant.useMutation();
 
   const [replaceVariant, replacementInProgress] = useHandledAsyncCallback(async () => {
-    if (!variant.experimentId || !refinedPromptFn) return;
+    if (
+      !variant.experimentId ||
+      !refinedPromptFn ||
+      (isObject(refinedPromptFn) && "status" in refinedPromptFn)
+    )
+      return;
     await replaceVariantMutation.mutateAsync({
       id: variant.id,
       constructFn: refinedPromptFn,
@@ -110,7 +116,7 @@ export const RefinePromptModal = ({
             </VStack>
             <CompareFunctions
               originalFunction={variant.constructFn}
-              newFunction={refinedPromptFn}
+              newFunction={isString(refinedPromptFn) ? refinedPromptFn : undefined}
             />
           </VStack>
         </ModalBody>
