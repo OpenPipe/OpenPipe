@@ -9,10 +9,6 @@ export const FloatingLabelInput = ({
 }: { label: string; value: string } & TextareaProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
-  const handleFocus = () => setIsFocused(true);
-
-  const handleBlur = () => setIsFocused(false);
-
   return (
     <FormControl position="relative">
       <FormLabel
@@ -37,8 +33,8 @@ export const FloatingLabelInput = ({
         px={3}
         pt={3}
         pb={2}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         borderRadius="md"
         borderColor={isFocused ? "blue.500" : "gray.400"}
         autoComplete="off"
