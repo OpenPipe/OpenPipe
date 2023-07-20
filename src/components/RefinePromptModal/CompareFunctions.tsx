@@ -12,7 +12,6 @@ const CompareFunctions = ({
   originalFunction: string;
   newFunction?: string;
 }) => {
-  console.log("newFunction", newFunction);
   const highlightSyntax = (str: string) => {
     let highlighted;
     try {
@@ -25,7 +24,7 @@ const CompareFunctions = ({
   };
   return (
     <HStack w="full" spacing={5}>
-      <VStack w="full" spacing={4} maxH="60vh" fontSize={12} lineHeight={1} overflowY="auto">
+      <VStack w="full" spacing={4} maxH="50vh" fontSize={12} lineHeight={1} overflowY="auto">
         <DiffViewer
           oldValue={originalFunction}
           newValue={newFunction || originalFunction}
@@ -35,6 +34,7 @@ const CompareFunctions = ({
           disableWordDiff={true}
           compareMethod={DiffMethod.CHARS}
           renderContent={highlightSyntax}
+          showDiffOnly={false}
         />
       </VStack>
     </HStack>
