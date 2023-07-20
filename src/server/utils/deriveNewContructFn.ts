@@ -40,9 +40,9 @@ const requestUpdatedPromptFunction = async (
 ) => {
   const originalModel = originalVariant.model as SupportedModel;
   let newContructionFn = "";
-  const usefulTips = `Chain of thought means asking the model to think about its answer before it gives it to you. This is useful for getting more accurate answers.
+  const usefulTips = `Adding chain of thought means asking the model to think about its answer before it gives it to you. This is useful for getting more accurate answers. Do not add an assistant message.
   
-  This is what a prompt looks like without using function calls:
+  Function calls are a specific way for an LLM to return output. This is what a prompt looks like without using function calls:
   
   prompt = {
     model: "gpt-4",
@@ -78,8 +78,8 @@ const requestUpdatedPromptFunction = async (
       {
         name: "extract_sentiment",
         parameters: {
-          type: "object",
-          properties: {
+          type: "object", // parameters must always be an object with a properties key
+          properties: { // properties key is required
             sentiment: {
               type: "string",
               description: "one of positive/negative/neutral",
