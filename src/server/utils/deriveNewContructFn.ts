@@ -6,6 +6,7 @@ import { openai } from "./openai";
 import { getApiShapeForModel } from "./getTypesForModel";
 import { isObject } from "lodash-es";
 import { type CompletionCreateParams } from "openai/resources/chat/completions";
+import formatPromptConstructor from "~/utils/formatPromptConstructor";
 
 const isolate = new ivm.Isolate({ memoryLimit: 128 });
 
@@ -65,9 +66,9 @@ const requestUpdatedPromptFunction = async (
         });
       }
       messages.push({
-        role: "user",
+        role: "system",
         content:
-          "The prompt variable has already been declared, so do not declare it again. Rewrite the entire prompt constructor function.",
+          "The prompt variable has already been declared, so do not declare it again.",
       });
       const completion = await openai.chat.completions.create({
         model: "gpt-4",
@@ -111,7 +112,7 @@ const requestUpdatedPromptFunction = async (
       const args = await contructPromptFunctionArgs.copy(); // Get the actual value from the isolate
 
       if (args && isObject(args) && "new_prompt_function" in args) {
-        newContructionFn = args.new_prompt_function as string;
+        newContructionFn = await formatPromptConstructor(args.new_prompt_function as string);
         break;
       }
     } catch (e) {
