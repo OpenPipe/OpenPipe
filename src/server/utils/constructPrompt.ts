@@ -10,7 +10,7 @@ export async function constructPrompt(
 ): Promise<JSONSerializable> {
   const code = `
       const scenario = ${JSON.stringify(scenario ?? {}, null, 2)};
-      let prompt
+      let prompt = {};
 
       ${variant.constructFn}
 
