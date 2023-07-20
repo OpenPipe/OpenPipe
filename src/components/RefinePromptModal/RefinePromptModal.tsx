@@ -12,7 +12,6 @@ import {
   Spinner,
   HStack,
   InputGroup,
-  Input,
   InputRightElement,
   Icon,
 } from "@chakra-ui/react";
@@ -22,6 +21,7 @@ import { useHandledAsyncCallback } from "~/utils/hooks";
 import { type PromptVariant } from "@prisma/client";
 import { useState } from "react";
 import CompareFunctions from "./CompareFunctions";
+import AutoResizeTextArea from "../AutoResizeTextArea";
 
 export const RefinePromptModal = ({
   variant,
@@ -73,7 +73,7 @@ export const RefinePromptModal = ({
               alignItems="center"
               colorScheme="orange"
             >
-              <Input
+              <AutoResizeTextArea
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
                 onKeyDown={(e) => {
@@ -84,8 +84,9 @@ export const RefinePromptModal = ({
                   }
                 }}
                 placeholder="Send instructions"
-                py={7}
-                px={4}
+                py={4}
+                pl={4}
+                pr={12}
                 colorScheme="orange"
                 borderColor="gray.300"
                 borderWidth={1}
