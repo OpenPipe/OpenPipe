@@ -7,14 +7,123 @@ export const refineOptions: Record<
   { description: string; instructions: string }
 > = {
   "Add chain of thought": {
-    description: "Asks the model to think about its answer before it gives it to you.",
+    description: "Asking the model to plan its answer can increase accuracy.",
     instructions: `Adding chain of thought means asking the model to think about its answer before it gives it to you. This is useful for getting more accurate answers. Do not add an assistant message.
       
-      Add chain of thought to the original prompt.`,
+    This is what a prompt looks like before adding chain of thought:
+    
+    prompt = {
+        model: "gpt-4",
+        stream: true,
+        messages: [
+            {
+            role: "system",
+            content: \`Evaluate sentiment.\`,
+            },
+            {
+            role: "user",
+            content: \`This is the user's message: \${scenario.user_message}. Return "positive" or "negative" or "neutral"\`,
+            },
+        ],
+    };
+
+    This is what one looks like after adding chain of thought:
+
+    prompt = {
+        model: "gpt-4",
+        stream: true,
+        messages: [
+            {
+            role: "system",
+            content: \`Evaluate sentiment.\`,
+            },
+            {
+            role: "user",
+            content: \`This is the user's message: \${scenario.user_message}. Return "positive" or "negative" or "neutral". Explain your answer before you give a score, then return the score on a new line.\`,
+            },
+        ],
+    };
+
+    Here's another example:
+
+    Before:
+
+    prompt = {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "user",
+            content: \`Title: \${scenario.title}
+      Body: \${scenario.body}
+      
+      Need: \${scenario.need}
+      
+      Rate likelihood on 1-3 scale.\`,
+          },
+        ],
+        temperature: 0,
+        functions: [
+          {
+            name: "score_post",
+            parameters: {
+              type: "object",
+              properties: {
+                score: {
+                  type: "number",
+                },
+              },
+            },
+          },
+        ],
+        function_call: {
+          name: "score_post",
+        },
+      };
+
+    After:
+
+    prompt = {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "user",
+            content: \`Title: \${scenario.title}
+      Body: \${scenario.body}
+      
+      Need: \${scenario.need}
+      
+      Rate likelihood on 1-3 scale. Provide an explanation, but always provide a score afterward.\`,
+          },
+        ],
+        temperature: 0,
+        functions: [
+          {
+            name: "score_post",
+            parameters: {
+              type: "object",
+              properties: {
+                explanation: {
+                  type: "string",
+                }
+                score: {
+                  type: "number",
+                },
+              },
+            },
+          },
+        ],
+        function_call: {
+          name: "score_post",
+        },
+      };
+
+    Add chain of thought to the original prompt.`,
   },
   "Convert to function call": {
-    description: "Converts the prompt to a function call.",
-    instructions: `Function calls are a specific way for an LLM to return output. This is what a prompt looks like without using function calls:
+    description: "Use function calls to get output from the model in a more structured way.",
+    instructions: `OpenAI functions are a specialized way for an LLM to return output.
+    
+    This is what a prompt looks like before adding a function:
     
     prompt = {
       model: "gpt-4",
@@ -31,10 +140,10 @@ export const refineOptions: Record<
       ],
     };
   
-    This is what one looks like using function calls:
+    This is what one looks like after adding a function:
   
     prompt = {
-      model: "gpt-3.5-turbo-0613",
+      model: "gpt-4",
       stream: true,
       messages: [
         {
@@ -63,8 +172,66 @@ export const refineOptions: Record<
       function_call: {
         name: "extract_sentiment",
       },
-    };  
+    };
+
+    Here's another example of adding a function:
+
+    Before:
+
+    prompt = {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "user",
+            content: \`Here is the title and body of a reddit post I am interested in:
+
+            title: \${scenario.title}
+            body: \${scenario.body}
+            
+            On a scale from 1 to 3, how likely is it that the person writing this post has the following need? If you are not sure, make your best guess, or answer 1.
+            
+            Need: \${scenario.need}
+            
+            Answer one integer between 1 and 3.\`,
+          },
+        ],
+        temperature: 0,
+    };
+
+    After:
+
+    prompt = {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "user",
+            content: \`Title: \${scenario.title}
+      Body: \${scenario.body}
+      
+      Need: \${scenario.need}
+      
+      Rate likelihood on 1-3 scale.\`,
+          },
+        ],
+        temperature: 0,
+        functions: [
+          {
+            name: "score_post",
+            parameters: {
+              type: "object",
+              properties: {
+                score: {
+                  type: "number",
+                },
+              },
+            },
+          },
+        ],
+        function_call: {
+          name: "score_post",
+        },
+      };
     
-    Add a function call that takes one or more nested parameters.`,
+    Add an OpenAI function that takes one or more nested parameters that match the expected output from this prompt.`,
   },
 };
