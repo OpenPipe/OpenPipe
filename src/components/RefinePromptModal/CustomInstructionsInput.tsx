@@ -1,11 +1,4 @@
-import {
-  Button,
-  Spinner,
-  InputGroup,
-  InputRightElement,
-  Icon,
-  HStack,
-} from "@chakra-ui/react";
+import { Button, Spinner, InputGroup, InputRightElement, Icon, HStack } from "@chakra-ui/react";
 import { IoMdSend } from "react-icons/io";
 import AutoResizeTextArea from "../AutoResizeTextArea";
 
