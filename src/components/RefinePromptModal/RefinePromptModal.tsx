@@ -11,17 +11,20 @@ import {
   Text,
   Spinner,
   HStack,
-  InputGroup,
-  InputRightElement,
   Icon,
+  SimpleGrid,
 } from "@chakra-ui/react";
-import { IoMdSend } from "react-icons/io";
+import { BsStars } from "react-icons/bs";
+import { VscJson } from "react-icons/vsc";
+import { TfiThought } from "react-icons/tfi";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { type PromptVariant } from "@prisma/client";
 import { useState } from "react";
 import CompareFunctions from "./CompareFunctions";
-import AutoResizeTextArea from "../AutoResizeTextArea";
+import { CustomInstructionsInput } from "./CustomInstructionsInput";
+import { type RefineOptionLabel, refineOptions } from "./refineOptions";
+import { RefineOption } from "./RefineOption";
 
 export const RefinePromptModal = ({
   variant,
@@ -36,13 +39,22 @@ export const RefinePromptModal = ({
     api.promptVariants.getRefinedPromptFn.useMutation();
   const [instructions, setInstructions] = useState<string>("");
 
-  const [getRefinedPromptFn, refiningInProgress] = useHandledAsyncCallback(async () => {
-    if (!variant.experimentId) return;
-    await getRefinedPromptMutateAsync({
-      id: variant.id,
-      instructions,
-    });
-  }, [getRefinedPromptMutateAsync, onClose, variant, instructions]);
+  const [activeRefineOptionLabel, setActiveRefineOptionLabel] = useState<
+    RefineOptionLabel | undefined
+  >(undefined);
+
+  const [getRefinedPromptFn, refiningInProgress] = useHandledAsyncCallback(
+    async (label?: RefineOptionLabel) => {
+      if (!variant.experimentId) return;
+      const updatedInstructions = label ? refineOptions[label].instructions : instructions;
+      setActiveRefineOptionLabel(label);
+      await getRefinedPromptMutateAsync({
+        id: variant.id,
+        instructions: updatedInstructions,
+      });
+    },
+    [getRefinedPromptMutateAsync, onClose, variant, instructions, setActiveRefineOptionLabel],
+  );
 
   const replaceVariantMutation = api.promptVariants.replaceVariant.useMutation();
 
@@ -60,65 +72,42 @@ export const RefinePromptModal = ({
     <Modal isOpen onClose={onClose} size={{ base: "xl", sm: "2xl", md: "7xl" }}>
       <ModalOverlay />
       <ModalContent w={1200}>
-        <ModalHeader>Refine with GPT-4</ModalHeader>
+        <ModalHeader>
+          <HStack>
+            <Icon as={BsStars} />
+            <Text>Refine with GPT-4</Text>
+          </HStack>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody maxW="unset">
-          <VStack spacing={16} pt={8}>
-            <InputGroup
-              size="md"
-              w="full"
-              maxW="600"
-              boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);"
-              borderRadius={8}
-              alignItems="center"
-              colorScheme="orange"
-            >
-              <AutoResizeTextArea
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                    getRefinedPromptFn();
-                  }
-                }}
-                placeholder="Send instructions"
-                py={4}
-                pl={4}
-                pr={12}
-                colorScheme="orange"
-                borderColor="gray.300"
-                borderWidth={1}
-                _hover={{
-                  borderColor: "gray.300",
-                }}
-                _focus={{
-                  borderColor: "gray.300",
-                }}
-              />
-              <InputRightElement width="8" height="full">
-                <Button
-                  h="8"
-                  w="8"
-                  minW="unset"
-                  size="sm"
+          <VStack spacing={8}>
+            <VStack spacing={4}>
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
+                <RefineOption
+                  label="Convert to function call"
+                  activeLabel={activeRefineOptionLabel}
+                  icon={VscJson}
                   onClick={getRefinedPromptFn}
-                  disabled={!instructions}
-                  variant={instructions ? "solid" : "ghost"}
-                  mr={4}
-                  borderRadius="8"
-                  bgColor={instructions ? "orange.400" : "transparent"}
-                  colorScheme="orange"
-                >
-                  {refiningInProgress ? (
-                    <Spinner boxSize={4} />
-                  ) : (
-                    <Icon as={IoMdSend} color={instructions ? "white" : "gray.500"} boxSize={5} />
-                  )}
-                </Button>
-              </InputRightElement>
-            </InputGroup>
+                  loading={refiningInProgress}
+                />
+                <RefineOption
+                  label="Add chain of thought"
+                  activeLabel={activeRefineOptionLabel}
+                  icon={TfiThought}
+                  onClick={getRefinedPromptFn}
+                  loading={refiningInProgress}
+                />
+              </SimpleGrid>
+              <HStack>
+                <Text color="gray.500">or</Text>
+              </HStack>
+              <CustomInstructionsInput
+                instructions={instructions}
+                setInstructions={setInstructions}
+                loading={refiningInProgress}
+                onSubmit={getRefinedPromptFn}
+              />
+            </VStack>
             <CompareFunctions
               originalFunction={variant.constructFn}
               newFunction={refinedPromptFn}
@@ -127,11 +116,11 @@ export const RefinePromptModal = ({
         </ModalBody>
 
         <ModalFooter>
-          <HStack spacing={4} pt={8}>
+          <HStack spacing={4}>
             <Button
               onClick={replaceVariant}
               minW={24}
-              disabled={true}
+              disabled={replacementInProgress || !refinedPromptFn}
               _disabled={{
                 bgColor: "blue.500",
               }}

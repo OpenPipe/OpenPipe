@@ -42,8 +42,7 @@ export default function OutputCell({
     { refetchInterval },
   );
 
-  const { mutateAsync: hardRefetchMutate } =
-    api.scenarioVariantCells.forceRefetch.useMutation();
+  const { mutateAsync: hardRefetchMutate } = api.scenarioVariantCells.forceRefetch.useMutation();
   const [hardRefetch, hardRefetching] = useHandledAsyncCallback(async () => {
     await hardRefetchMutate({ scenarioId: scenario.id, variantId: variant.id });
     await utils.scenarioVariantCells.get.invalidate({
