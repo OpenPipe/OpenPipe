@@ -42,9 +42,9 @@ export default function OutputCell({
     { refetchInterval },
   );
 
-  const { mutateAsync: hardRefetchMutate, isLoading: refetchingOutput } =
+  const { mutateAsync: hardRefetchMutate } =
     api.scenarioVariantCells.forceRefetch.useMutation();
-  const [hardRefetch] = useHandledAsyncCallback(async () => {
+  const [hardRefetch, hardRefetching] = useHandledAsyncCallback(async () => {
     await hardRefetchMutate({ scenarioId: scenario.id, variantId: variant.id });
     await utils.scenarioVariantCells.get.invalidate({
       scenarioId: scenario.id,
@@ -55,13 +55,13 @@ export default function OutputCell({
     });
   }, [hardRefetchMutate, scenario.id, variant.id]);
 
-  const fetchingOutput = queryLoading || refetchingOutput;
+  const fetchingOutput = queryLoading || hardRefetching;
 
   const awaitingOutput =
     !cell ||
     cell.retrievalStatus === "PENDING" ||
     cell.retrievalStatus === "IN_PROGRESS" ||
-    refetchingOutput;
+    hardRefetching;
   useEffect(() => setRefetchInterval(awaitingOutput ? 1000 : 0), [awaitingOutput]);
 
   const modelOutput = cell?.modelOutput;
@@ -110,7 +110,7 @@ export default function OutputCell({
         justifyContent="space-between"
       >
         <VStack w="full" flex={1} spacing={0}>
-          <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
+          <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
           <SyntaxHighlighter
             customStyle={{ overflowX: "unset", width: "100%", flex: 1 }}
             language="json"
@@ -140,7 +140,7 @@ export default function OutputCell({
   return (
     <VStack w="100%" h="100%" justifyContent="space-between" whiteSpace="pre-wrap">
       <VStack w="full" alignItems="flex-start" spacing={0}>
-        <CellOptions refetchingOutput={refetchingOutput} refetchOutput={hardRefetch} />
+        <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
         <Text>{contentToDisplay}</Text>
       </VStack>
       {modelOutput && <OutputStats modelOutput={modelOutput} scenario={scenario} />}
