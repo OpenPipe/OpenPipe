@@ -88,11 +88,9 @@ export default function OutputCell({
   }
 
   const normalizedOutput = modelOutput
-    ? // @ts-expect-error TODO FIX ASAP
-      provider.normalizeOutput(modelOutput.output as unknown as OutputSchema)
+    ? provider.normalizeOutput(modelOutput.output)
     : streamedMessage
-    ? // @ts-expect-error TODO FIX ASAP
-      provider.normalizeOutput(streamedMessage)
+    ? provider.normalizeOutput(streamedMessage)
     : null;
 
   if (modelOutput && normalizedOutput?.type === "json") {

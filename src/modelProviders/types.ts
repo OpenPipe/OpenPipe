@@ -1,6 +1,8 @@
 import { type JSONSchema4 } from "json-schema";
 import { type JsonValue } from "type-fest";
 
+export type SupportedProvider = "openai/ChatCompletion" | "replicate/llama2";
+
 type ModelProviderModel = {
   name?: string;
   learnMore?: string;
