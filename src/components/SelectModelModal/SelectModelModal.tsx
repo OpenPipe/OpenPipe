@@ -107,7 +107,7 @@ export const SelectModelModal = ({
               colorScheme="gray"
               onClick={getModifiedPromptFn}
               minW={24}
-              disabled={originalModel === selectedModel || modificationInProgress}
+              isDisabled={originalModel === selectedModel || modificationInProgress}
             >
               {modificationInProgress ? <Spinner boxSize={4} /> : <Text>Convert</Text>}
             </Button>
@@ -115,8 +115,7 @@ export const SelectModelModal = ({
               colorScheme="blue"
               onClick={replaceVariant}
               minW={24}
-              disabled={!convertedModel || replacementInProgress}
-              _disabled={{ bg: "blue.100", cursor: "not-allowed" }}
+              isDisabled={!convertedModel || modificationInProgress || replacementInProgress}
             >
               {replacementInProgress ? <Spinner boxSize={4} /> : <Text>Accept</Text>}
             </Button>

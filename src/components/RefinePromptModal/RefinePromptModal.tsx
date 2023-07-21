@@ -129,12 +129,10 @@ export const RefinePromptModal = ({
         <ModalFooter>
           <HStack spacing={4}>
             <Button
+              colorScheme="blue"
               onClick={replaceVariant}
               minW={24}
-              disabled={replacementInProgress || !refinedPromptFn}
-              _disabled={{
-                bgColor: "blue.500",
-              }}
+              isDisabled={replacementInProgress || !refinedPromptFn}
             >
               {replacementInProgress ? <Spinner boxSize={4} /> : <Text>Accept</Text>}
             </Button>
