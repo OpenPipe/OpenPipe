@@ -20,22 +20,25 @@ export default function ExperimentsPage() {
   const experiments = api.experiments.list.useQuery();
 
   const user = useSession().data;
+  const authLoading = useSession().status === "loading";
 
-  if (user === null) {
+  if (user === null || authLoading) {
     return (
       <AppShell title="Experiments">
         <Center h="100%">
-          <Text>
-            <Link
-              onClick={() => {
-                signIn("github").catch(console.error);
-              }}
-              textDecor="underline"
-            >
-              Sign in
-            </Link>{" "}
-            to view or create new experiments!
-          </Text>
+          {!authLoading && (
+            <Text>
+              <Link
+                onClick={() => {
+                  signIn("github").catch(console.error);
+                }}
+                textDecor="underline"
+              >
+                Sign in
+              </Link>{" "}
+              to view or create new experiments!
+            </Text>
+          )}
         </Center>
       </AppShell>
     );
