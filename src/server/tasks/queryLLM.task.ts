@@ -99,7 +99,6 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
   const provider = modelProviders[prompt.modelProvider];
 
-  // @ts-expect-error TODO FIX ASAP
   const streamingChannel = provider.shouldStream(prompt.modelInput) ? generateChannel() : null;
 
   if (streamingChannel) {
@@ -116,8 +115,6 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     : null;
 
   for (let i = 0; true; i++) {
-    // @ts-expect-error TODO FIX ASAP
-
     const response = await provider.getCompletion(prompt.modelInput, onStream);
     if (response.type === "success") {
       const inputHash = hashPrompt(prompt);
@@ -126,7 +123,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
         data: {
           scenarioVariantCellId,
           inputHash,
-          output: response.value as unknown as Prisma.InputJsonObject,
+          output: response.value as Prisma.InputJsonObject,
           timeToComplete: response.timeToComplete,
           promptTokens: response.promptTokens,
           completionTokens: response.completionTokens,
@@ -154,7 +151,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
           errorMessage: response.message,
           statusCode: response.statusCode,
           retryTime: shouldRetry ? new Date(Date.now() + delay) : null,
-          retrievalStatus: shouldRetry ? "PENDING" : "ERROR",
+          retrievalStatus: "ERROR",
         },
       });
 

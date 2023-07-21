@@ -1,9 +1,18 @@
 import { type JSONSchema4 } from "json-schema";
 import { type JsonValue } from "type-fest";
 
-type ModelProviderModel = {
+export type SupportedProvider = "openai/ChatCompletion" | "replicate/llama2";
+
+type ModelInfo = {
   name?: string;
   learnMore?: string;
+};
+
+export type FrontendModelProvider<SupportedModels extends string, OutputSchema> = {
+  name: string;
+  models: Record<SupportedModels, ModelInfo>;
+
+  normalizeOutput: (output: OutputSchema) => NormalizedOutput;
 };
 
 export type CompletionResponse<T> =
@@ -19,8 +28,6 @@ export type CompletionResponse<T> =
     };
 
 export type ModelProvider<SupportedModels extends string, InputSchema, OutputSchema> = {
-  name: string;
-  models: Record<SupportedModels, ModelProviderModel>;
   getModel: (input: InputSchema) => SupportedModels | null;
   shouldStream: (input: InputSchema) => boolean;
   inputSchema: JSONSchema4;
@@ -31,7 +38,7 @@ export type ModelProvider<SupportedModels extends string, InputSchema, OutputSch
 
   // This is just a convenience for type inference, don't use it at runtime
   _outputSchema?: OutputSchema | null;
-};
+} & FrontendModelProvider<SupportedModels, OutputSchema>;
 
 export type NormalizedOutput =
   | {
@@ -42,7 +49,3 @@ export type NormalizedOutput =
       type: "json";
       value: JsonValue;
     };
-
-export type ModelProviderFrontend<ModelProviderT extends ModelProvider<any, any, any>> = {
-  normalizeOutput: (output: NonNullable<ModelProviderT["_outputSchema"]>) => NormalizedOutput;
-};

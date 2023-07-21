@@ -10,7 +10,7 @@ import useSocket from "~/utils/useSocket";
 import { OutputStats } from "./OutputStats";
 import { ErrorHandler } from "./ErrorHandler";
 import { CellOptions } from "./CellOptions";
-import modelProvidersFrontend from "~/modelProviders/modelProvidersFrontend";
+import frontendModelProviders from "~/modelProviders/frontendModelProviders";
 
 export default function OutputCell({
   scenario,
@@ -40,7 +40,7 @@ export default function OutputCell({
   );
 
   const provider =
-    modelProvidersFrontend[variant.modelProvider as keyof typeof modelProvidersFrontend];
+    frontendModelProviders[variant.modelProvider as keyof typeof frontendModelProviders];
 
   type OutputSchema = Parameters<typeof provider.normalizeOutput>[0];
 
@@ -88,11 +88,9 @@ export default function OutputCell({
   }
 
   const normalizedOutput = modelOutput
-    ? // @ts-expect-error TODO FIX ASAP
-      provider.normalizeOutput(modelOutput.output as unknown as OutputSchema)
+    ? provider.normalizeOutput(modelOutput.output)
     : streamedMessage
-    ? // @ts-expect-error TODO FIX ASAP
-      provider.normalizeOutput(streamedMessage)
+    ? provider.normalizeOutput(streamedMessage)
     : null;
 
   if (modelOutput && normalizedOutput?.type === "json") {

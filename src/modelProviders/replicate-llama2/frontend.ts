@@ -1,7 +1,15 @@
-import { type ReplicateLlama2Provider } from ".";
-import { type ModelProviderFrontend } from "../types";
+import { type SupportedModel, type ReplicateLlama2Output } from ".";
+import { type FrontendModelProvider } from "../types";
 
-const modelProviderFrontend: ModelProviderFrontend<ReplicateLlama2Provider> = {
+const frontendModelProvider: FrontendModelProvider<SupportedModel, ReplicateLlama2Output> = {
+  name: "Replicate Llama2",
+
+  models: {
+    "7b-chat": {},
+    "13b-chat": {},
+    "70b-chat": {},
+  },
+
   normalizeOutput: (output) => {
     return {
       type: "text",
@@ -10,4 +18,4 @@ const modelProviderFrontend: ModelProviderFrontend<ReplicateLlama2Provider> = {
   },
 };
 
-export default modelProviderFrontend;
+export default frontendModelProvider;

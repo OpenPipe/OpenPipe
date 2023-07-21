@@ -1,9 +1,10 @@
 import { type ModelProvider } from "../types";
+import frontendModelProvider from "./frontend";
 import { getCompletion } from "./getCompletion";
 
 const supportedModels = ["7b-chat", "13b-chat", "70b-chat"] as const;
 
-type SupportedModel = (typeof supportedModels)[number];
+export type SupportedModel = (typeof supportedModels)[number];
 
 export type ReplicateLlama2Input = {
   model: SupportedModel;
@@ -25,12 +26,6 @@ export type ReplicateLlama2Provider = ModelProvider<
 >;
 
 const modelProvider: ReplicateLlama2Provider = {
-  name: "OpenAI ChatCompletion",
-  models: {
-    "7b-chat": {},
-    "13b-chat": {},
-    "70b-chat": {},
-  },
   getModel: (input) => {
     if (supportedModels.includes(input.model)) return input.model;
 
@@ -69,6 +64,7 @@ const modelProvider: ReplicateLlama2Provider = {
   },
   shouldStream: (input) => input.stream ?? false,
   getCompletion,
+  ...frontendModelProvider,
 };
 
 export default modelProvider;
