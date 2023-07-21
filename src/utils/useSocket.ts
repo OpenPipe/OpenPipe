@@ -1,13 +1,12 @@
-import { type ChatCompletion } from "openai/resources/chat";
 import { useRef, useState, useEffect } from "react";
 import { io, type Socket } from "socket.io-client";
 import { env } from "~/env.mjs";
 
 const url = env.NEXT_PUBLIC_SOCKET_URL;
 
-export default function useSocket(channel?: string | null) {
+export default function useSocket<T>(channel?: string | null) {
   const socketRef = useRef<Socket>();
-  const [message, setMessage] = useState<ChatCompletion | null>(null);
+  const [message, setMessage] = useState<T | null>(null);
 
   useEffect(() => {
     if (!channel) return;
@@ -21,7 +20,7 @@ export default function useSocket(channel?: string | null) {
       socketRef.current?.emit("join", channel);
 
       // Listen for 'message' events
-      socketRef.current?.on("message", (message: ChatCompletion) => {
+      socketRef.current?.on("message", (message: T) => {
         setMessage(message);
       });
     });

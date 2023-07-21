@@ -1,5 +1,5 @@
 import { type JSONSchema4Object } from "json-schema";
-import modelProviders from ".";
+import modelProviders from "./modelProviders";
 import { compile } from "json-schema-to-typescript";
 import dedent from "dedent";
 

@@ -46,6 +46,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
         testScenarioId: scenarioId,
         statusCode: 400,
         errorMessage: parsedConstructFn.error,
+        retrievalStatus: "ERROR",
       },
     });
   }
@@ -57,6 +58,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
       promptVariantId: variantId,
       testScenarioId: scenarioId,
       prompt: parsedConstructFn.modelInput as unknown as Prisma.InputJsonValue,
+      retrievalStatus: "PENDING",
     },
     include: {
       modelOutput: true,
@@ -82,6 +84,10 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
         createdAt: matchingModelOutput.createdAt,
         updatedAt: matchingModelOutput.updatedAt,
       },
+    });
+    await prisma.scenarioVariantCell.update({
+      where: { id: cell.id },
+      data: { retrievalStatus: "COMPLETE" },
     });
   } else {
     cell = await queueLLMRetrievalTask(cell.id);

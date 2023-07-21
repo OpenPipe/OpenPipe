@@ -9,7 +9,7 @@ interface GPTTokensMessageItem {
 }
 
 export const countOpenAIChatTokens = (
-  model: OpenAIChatModel,
+  model: keyof typeof OpenAIChatModel,
   messages: ChatCompletion.Choice.Message[],
 ) => {
   return new GPTTokens({ model, messages: messages as unknown as GPTTokensMessageItem[] })

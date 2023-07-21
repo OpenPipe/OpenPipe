@@ -1,4 +1,4 @@
-import modelProviders from "~/modelProviders";
+import modelProviders from "~/modelProviders/modelProviders";
 import ivm from "isolated-vm";
 import { isObject, isString } from "lodash-es";
 import { type JsonObject } from "type-fest";
