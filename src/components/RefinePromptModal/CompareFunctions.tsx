@@ -1,4 +1,4 @@
-import { HStack, VStack, useBreakpointValue } from "@chakra-ui/react";
+import { type StackProps, VStack, useBreakpointValue } from "@chakra-ui/react";
 import React from "react";
 import DiffViewer, { DiffMethod } from "react-diff-viewer";
 import Prism from "prismjs";
@@ -19,10 +19,15 @@ const highlightSyntax = (str: string) => {
 const CompareFunctions = ({
   originalFunction,
   newFunction = "",
+  leftTitle = "Original",
+  rightTitle = "Modified",
+  ...props
 }: {
   originalFunction: string;
   newFunction?: string;
-}) => {
+  leftTitle?: string;
+  rightTitle?: string;
+} & StackProps) => {
   const showSplitView = useBreakpointValue(
     {
       base: false,
@@ -34,22 +39,20 @@ const CompareFunctions = ({
   );
 
   return (
-    <HStack w="full" spacing={5}>
-      <VStack w="full" spacing={4} maxH="40vh" fontSize={12} lineHeight={1} overflowY="auto">
-        <DiffViewer
-          oldValue={originalFunction}
-          newValue={newFunction || originalFunction}
-          splitView={showSplitView}
-          hideLineNumbers={!showSplitView}
-          leftTitle="Original"
-          rightTitle={newFunction ? "Modified" : "Unmodified"}
-          disableWordDiff={true}
-          compareMethod={DiffMethod.CHARS}
-          renderContent={highlightSyntax}
-          showDiffOnly={false}
-        />
-      </VStack>
-    </HStack>
+    <VStack w="full" spacing={4} fontSize={12} lineHeight={1} overflowY="auto" {...props}>
+      <DiffViewer
+        oldValue={originalFunction}
+        newValue={newFunction || originalFunction}
+        splitView={showSplitView}
+        hideLineNumbers={!showSplitView}
+        leftTitle={leftTitle}
+        rightTitle={rightTitle}
+        disableWordDiff={true}
+        compareMethod={DiffMethod.CHARS}
+        renderContent={highlightSyntax}
+        showDiffOnly={false}
+      />
+    </VStack>
   );
 };
 
