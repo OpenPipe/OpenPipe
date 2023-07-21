@@ -150,7 +150,6 @@
     },
     "max_tokens": {
       "description": "The maximum number of [tokens](/tokenizer) to generate in the chat completion.\n\nThe total length of input tokens and generated tokens is limited by the model's context length. [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb) for counting tokens.\n",
-      "default": "inf",
       "type": "integer"
     },
     "presence_penalty": {

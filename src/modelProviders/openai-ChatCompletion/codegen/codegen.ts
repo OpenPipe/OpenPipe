@@ -56,6 +56,14 @@ modelProperty.type = "string";
 modelProperty.enum = modelProperty.oneOf[1].enum;
 delete modelProperty["oneOf"];
 
+// The default of "inf" confuses the Typescript generator, so can just remove it
+assert(
+  "max_tokens" in completionRequestSchema.properties &&
+    isObject(completionRequestSchema.properties.max_tokens) &&
+    "default" in completionRequestSchema.properties.max_tokens,
+);
+delete completionRequestSchema.properties.max_tokens["default"];
+
 // Get the directory of the current script
 const currentDirectory = path.dirname(import.meta.url).replace("file://", "");
 
