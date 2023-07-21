@@ -284,11 +284,12 @@ export const promptVariantsRouter = createTRPCRouter({
       return updatedPromptVariant;
     }),
 
-  getRefinedPromptFn: protectedProcedure
+  getModifiedPromptFn: protectedProcedure
     .input(
       z.object({
         id: z.string(),
-        instructions: z.string(),
+        instructions: z.string().optional(),
+        newModel: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -307,7 +308,7 @@ export const promptVariantsRouter = createTRPCRouter({
 
       const promptConstructionFn = await deriveNewConstructFn(
         existing,
-        constructedPrompt.model as SupportedModel,
+        input.newModel as SupportedModel | undefined,
         input.instructions,
       );
 

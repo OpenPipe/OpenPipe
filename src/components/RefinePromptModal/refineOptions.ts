@@ -12,7 +12,7 @@ export const refineOptions: Record<
       
     This is what a prompt looks like before adding chain of thought:
     
-    prompt = {
+    definePrompt("openai/ChatCompletion", {
         model: "gpt-4",
         stream: true,
         messages: [
@@ -25,11 +25,11 @@ export const refineOptions: Record<
             content: \`This is the user's message: \${scenario.user_message}. Return "positive" or "negative" or "neutral"\`,
             },
         ],
-    };
+    });
 
     This is what one looks like after adding chain of thought:
 
-    prompt = {
+    definePrompt("openai/ChatCompletion", {
         model: "gpt-4",
         stream: true,
         messages: [
@@ -42,13 +42,13 @@ export const refineOptions: Record<
             content: \`This is the user's message: \${scenario.user_message}. Return "positive" or "negative" or "neutral". Explain your answer before you give a score, then return the score on a new line.\`,
             },
         ],
-    };
+    });
 
     Here's another example:
 
     Before:
 
-    prompt = {
+    definePrompt("openai/ChatCompletion", {
         model: "gpt-3.5-turbo",
         messages: [
           {
@@ -78,11 +78,11 @@ export const refineOptions: Record<
         function_call: {
           name: "score_post",
         },
-      };
+      });
 
     After:
 
-    prompt = {
+    definePrompt("openai/ChatCompletion", {
         model: "gpt-3.5-turbo",
         messages: [
           {
@@ -115,7 +115,7 @@ export const refineOptions: Record<
         function_call: {
           name: "score_post",
         },
-      };
+      });
 
     Add chain of thought to the original prompt.`,
   },
@@ -125,7 +125,7 @@ export const refineOptions: Record<
     
     This is what a prompt looks like before adding a function:
     
-    prompt = {
+    definePrompt("openai/ChatCompletion", {
       model: "gpt-4",
       stream: true,
       messages: [
@@ -138,11 +138,11 @@ export const refineOptions: Record<
           content: \`This is the user's message: \${scenario.user_message}. Return "positive" or "negative" or "neutral"\`,
         },
       ],
-    };
+    });
   
     This is what one looks like after adding a function:
   
-    prompt = {
+    definePrompt("openai/ChatCompletion", {
       model: "gpt-4",
       stream: true,
       messages: [
@@ -172,13 +172,13 @@ export const refineOptions: Record<
       function_call: {
         name: "extract_sentiment",
       },
-    };
+    });
 
     Here's another example of adding a function:
 
     Before:
 
-    prompt = {
+    definePrompt("openai/ChatCompletion", {
         model: "gpt-3.5-turbo",
         messages: [
           {
@@ -196,11 +196,11 @@ export const refineOptions: Record<
           },
         ],
         temperature: 0,
-    };
+    });
 
     After:
 
-    prompt = {
+    definePrompt("openai/ChatCompletion", {
         model: "gpt-3.5-turbo",
         messages: [
           {
@@ -230,7 +230,7 @@ export const refineOptions: Record<
         function_call: {
           name: "score_post",
         },
-      };
+      });
     
     Add an OpenAI function that takes one or more nested parameters that match the expected output from this prompt.`,
   },

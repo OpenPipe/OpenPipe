@@ -56,7 +56,6 @@ export const CustomInstructionsInput = ({
           minW="unset"
           size="sm"
           onClick={() => onSubmit()}
-          disabled={!instructions}
           variant={instructions ? "solid" : "ghost"}
           mr={4}
           borderRadius="8"

@@ -36,25 +36,25 @@ export const RefinePromptModal = ({
 }) => {
   const utils = api.useContext();
 
-  const { mutateAsync: getRefinedPromptMutateAsync, data: refinedPromptFn } =
-    api.promptVariants.getRefinedPromptFn.useMutation();
+  const { mutateAsync: getModifiedPromptMutateAsync, data: refinedPromptFn } =
+    api.promptVariants.getModifiedPromptFn.useMutation();
   const [instructions, setInstructions] = useState<string>("");
 
   const [activeRefineOptionLabel, setActiveRefineOptionLabel] = useState<
     RefineOptionLabel | undefined
   >(undefined);
 
-  const [getRefinedPromptFn, refiningInProgress] = useHandledAsyncCallback(
+  const [getModifiedPromptFn, modificationInProgress] = useHandledAsyncCallback(
     async (label?: RefineOptionLabel) => {
       if (!variant.experimentId) return;
       const updatedInstructions = label ? refineOptions[label].instructions : instructions;
       setActiveRefineOptionLabel(label);
-      await getRefinedPromptMutateAsync({
+      await getModifiedPromptMutateAsync({
         id: variant.id,
         instructions: updatedInstructions,
       });
     },
-    [getRefinedPromptMutateAsync, onClose, variant, instructions, setActiveRefineOptionLabel],
+    [getModifiedPromptMutateAsync, onClose, variant, instructions, setActiveRefineOptionLabel],
   );
 
   const replaceVariantMutation = api.promptVariants.replaceVariant.useMutation();
@@ -75,7 +75,11 @@ export const RefinePromptModal = ({
   }, [replaceVariantMutation, variant, onClose, refinedPromptFn]);
 
   return (
-    <Modal isOpen onClose={onClose} size={{ base: "xl", sm: "2xl", md: "7xl" }}>
+    <Modal
+      isOpen
+      onClose={onClose}
+      size={{ base: "xl", sm: "2xl", md: "3xl", lg: "5xl", xl: "7xl" }}
+    >
       <ModalOverlay />
       <ModalContent w={1200}>
         <ModalHeader>
@@ -93,15 +97,15 @@ export const RefinePromptModal = ({
                   label="Convert to function call"
                   activeLabel={activeRefineOptionLabel}
                   icon={VscJson}
-                  onClick={getRefinedPromptFn}
-                  loading={refiningInProgress}
+                  onClick={getModifiedPromptFn}
+                  loading={modificationInProgress}
                 />
                 <RefineOption
                   label="Add chain of thought"
                   activeLabel={activeRefineOptionLabel}
                   icon={TfiThought}
-                  onClick={getRefinedPromptFn}
-                  loading={refiningInProgress}
+                  onClick={getModifiedPromptFn}
+                  loading={modificationInProgress}
                 />
               </SimpleGrid>
               <HStack>
@@ -110,13 +114,14 @@ export const RefinePromptModal = ({
               <CustomInstructionsInput
                 instructions={instructions}
                 setInstructions={setInstructions}
-                loading={refiningInProgress}
-                onSubmit={getRefinedPromptFn}
+                loading={modificationInProgress}
+                onSubmit={getModifiedPromptFn}
               />
             </VStack>
             <CompareFunctions
               originalFunction={variant.constructFn}
               newFunction={isString(refinedPromptFn) ? refinedPromptFn : undefined}
+              maxH="40vh"
             />
           </VStack>
         </ModalBody>
@@ -124,12 +129,10 @@ export const RefinePromptModal = ({
         <ModalFooter>
           <HStack spacing={4}>
             <Button
+              colorScheme="blue"
               onClick={replaceVariant}
               minW={24}
-              disabled={replacementInProgress || !refinedPromptFn}
-              _disabled={{
-                bgColor: "blue.500",
-              }}
+              isDisabled={replacementInProgress || !refinedPromptFn}
             >
               {replacementInProgress ? <Spinner boxSize={4} /> : <Text>Accept</Text>}
             </Button>
