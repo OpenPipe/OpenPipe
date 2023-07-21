@@ -49,7 +49,11 @@ export default function NewScenarioButton() {
         Add Scenario
       </StyledButton>
       <StyledButton onClick={onAutogenerate}>
-        <Icon as={autogenerating ? Spinner : BsPlus} boxSize={autogenerating ? 4 : 6} mr={autogenerating ? 2 : 0} />
+        <Icon
+          as={autogenerating ? Spinner : BsPlus}
+          boxSize={autogenerating ? 4 : 6}
+          mr={autogenerating ? 2 : 0}
+        />
         Autogenerate Scenario
       </StyledButton>
     </HStack>
