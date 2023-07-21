@@ -2,8 +2,8 @@ import { type JSONSchema4 } from "json-schema";
 import { type JsonValue } from "type-fest";
 
 type ModelProviderModel = {
-  name: string;
-  learnMore: string;
+  name?: string;
+  learnMore?: string;
 };
 
 export type CompletionResponse<T> =

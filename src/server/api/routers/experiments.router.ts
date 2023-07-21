@@ -109,8 +109,7 @@ export const experimentsRouter = createTRPCRouter({
           constructFn: dedent`
           /**
            * Use Javascript to define an OpenAI chat completion
-           * (https://platform.openai.com/docs/api-reference/chat/create) and
-           * assign it to the \`prompt\` variable.
+           * (https://platform.openai.com/docs/api-reference/chat/create).
            *
            * You have access to the current scenario in the \`scenario\`
            * variable.
