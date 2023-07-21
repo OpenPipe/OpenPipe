@@ -18,7 +18,6 @@ import { useState } from "react";
 import { RefinePromptModal } from "../RefinePromptModal/RefinePromptModal";
 import { RiExchangeFundsFill } from "react-icons/ri";
 import { SelectModelModal } from "../SelectModelModal/SelectModelModal";
-import { type SupportedModel } from "~/server/types";
 
 export default function VariantHeaderMenuButton({
   variant,
@@ -99,11 +98,7 @@ export default function VariantHeaderMenuButton({
         </MenuList>
       </Menu>
       {selectModelModalOpen && (
-        <SelectModelModal
-          originalModel={variant.model as SupportedModel}
-          variantId={variant.id}
-          onClose={() => setSelectModelModalOpen(false)}
-        />
+        <SelectModelModal variant={variant} onClose={() => setSelectModelModalOpen(false)} />
       )}
       {refinePromptModalOpen && (
         <RefinePromptModal variant={variant} onClose={() => setRefinePromptModalOpen(false)} />
