@@ -22,7 +22,6 @@ export function SyncAppStore() {
   const setApi = useAppStore((state) => state.setApi);
 
   useEffect(() => {
-    console.log("setting api", utils);
     setApi(utils);
   }, [utils, setApi]);
 

@@ -1,7 +1,8 @@
 import { type JSONSchema4 } from "json-schema";
 import { type ModelProvider } from "../types";
 import inputSchema from "./codegen/input.schema.json";
-import { type CompletionCreateParams } from "openai/resources/chat";
+import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
+import { getCompletion } from "./getCompletion";
 
 const supportedModels = [
   "gpt-4-0613",
@@ -12,7 +13,13 @@ const supportedModels = [
 
 type SupportedModel = (typeof supportedModels)[number];
 
-const modelProvider: ModelProvider<SupportedModel, CompletionCreateParams> = {
+export type OpenaiChatModelProvider = ModelProvider<
+  SupportedModel,
+  CompletionCreateParams,
+  ChatCompletion
+>;
+
+const modelProvider: OpenaiChatModelProvider = {
   name: "OpenAI ChatCompletion",
   models: {
     "gpt-4-0613": {
@@ -49,6 +56,7 @@ const modelProvider: ModelProvider<SupportedModel, CompletionCreateParams> = {
   },
   inputSchema: inputSchema as JSONSchema4,
   shouldStream: (input) => input.stream ?? false,
+  getCompletion,
 };
 
 export default modelProvider;

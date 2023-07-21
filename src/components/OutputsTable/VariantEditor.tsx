@@ -50,8 +50,6 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
     // Make sure the user defined the prompt with the string "prompt\w*=" somewhere
     const promptRegex = /definePrompt\(/;
     if (!promptRegex.test(currentFn)) {
-      console.log("no prompt");
-      console.log(currentFn);
       toast({
         title: "Missing prompt",
         description: "Please define the prompt (eg. `definePrompt(...`",

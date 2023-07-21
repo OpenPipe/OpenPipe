@@ -1,15 +1,18 @@
 import { prisma } from "~/server/db";
 import defineTask from "./defineTask";
-import { type CompletionResponse, getOpenAIChatCompletion } from "../utils/getCompletion";
 import { sleep } from "../utils/sleep";
 import { generateChannel } from "~/utils/generateChannel";
 import { runEvalsForOutput } from "../utils/evaluations";
-import { type CompletionCreateParams } from "openai/resources/chat";
 import { type Prisma } from "@prisma/client";
 import parseConstructFn from "../utils/parseConstructFn";
 import hashPrompt from "../utils/hashPrompt";
 import { type JsonObject } from "type-fest";
-import modelProviders from "~/modelProviders";
+import modelProviders from "~/modelProviders/modelProviders";
+import { wsConnection } from "~/utils/wsConnection";
+
+export type queryLLMJob = {
+  scenarioVariantCellId: string;
+};
 
 const MAX_AUTO_RETRIES = 10;
 const MIN_DELAY = 500; // milliseconds
@@ -20,51 +23,6 @@ function calculateDelay(numPreviousTries: number): number {
   const jitter = Math.random() * baseDelay;
   return baseDelay + jitter;
 }
-
-const getCompletionWithRetries = async (
-  cellId: string,
-  payload: JsonObject,
-  channel?: string,
-): Promise<CompletionResponse> => {
-  let modelResponse: CompletionResponse | null = null;
-  try {
-    for (let i = 0; i < MAX_AUTO_RETRIES; i++) {
-      modelResponse = await getOpenAIChatCompletion(
-        payload as unknown as CompletionCreateParams,
-        channel,
-      );
-      if (
-        (modelResponse.statusCode !== 429 && modelResponse.statusCode !== 503) ||
-        i === MAX_AUTO_RETRIES - 1
-      ) {
-        return modelResponse;
-      }
-      const delay = calculateDelay(i);
-      await prisma.scenarioVariantCell.update({
-        where: { id: cellId },
-        data: {
-          errorMessage: "Rate limit exceeded",
-          statusCode: 429,
-          retryTime: new Date(Date.now() + delay),
-        },
-      });
-      // TODO: Maybe requeue the job so other jobs can run in the future?
-      await sleep(delay);
-    }
-    throw new Error("Max retries limit reached");
-  } catch (error: unknown) {
-    return {
-      statusCode: modelResponse?.statusCode ?? 500,
-      errorMessage: modelResponse?.errorMessage ?? (error as Error).message,
-      output: null,
-      timeToComplete: 0,
-    };
-  }
-};
-
-export type queryLLMJob = {
-  scenarioVariantCellId: string;
-};
 
 export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
   const { scenarioVariantCellId } = task;
@@ -141,57 +99,67 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
   const provider = modelProviders[prompt.modelProvider];
 
-  const streamingEnabled = provider.shouldStream(prompt.modelInput);
-  let streamingChannel;
+  const streamingChannel = provider.shouldStream(prompt.modelInput) ? generateChannel() : null;
 
-  if (streamingEnabled) {
-    streamingChannel = generateChannel();
+  if (streamingChannel) {
     // Save streaming channel so that UI can connect to it
     await prisma.scenarioVariantCell.update({
       where: { id: scenarioVariantCellId },
       data: { streamingChannel },
     });
   }
+  const onStream = streamingChannel
+    ? (partialOutput: (typeof provider)["_outputSchema"]) => {
+        wsConnection.emit("message", { channel: streamingChannel, payload: partialOutput });
+      }
+    : null;
 
-  const modelResponse = await getCompletionWithRetries(
-    scenarioVariantCellId,
-    prompt.modelInput as unknown as JsonObject,
-    streamingChannel,
-  );
+  for (let i = 0; true; i++) {
+    const response = await provider.getCompletion(prompt.modelInput, onStream);
+    if (response.type === "success") {
+      const inputHash = hashPrompt(prompt);
 
-  let modelOutput = null;
-  if (modelResponse.statusCode === 200) {
-    const inputHash = hashPrompt(prompt);
-
-    modelOutput = await prisma.modelOutput.create({
-      data: {
-        scenarioVariantCellId,
-        inputHash,
-        output: modelResponse.output as unknown as Prisma.InputJsonObject,
-        timeToComplete: modelResponse.timeToComplete,
-        promptTokens: modelResponse.promptTokens,
-        completionTokens: modelResponse.completionTokens,
-        cost: modelResponse.cost,
-      },
-    });
-  }
-
-  await prisma.scenarioVariantCell.update({
-    where: { id: scenarioVariantCellId },
-    data: {
-      statusCode: modelResponse.statusCode,
-      errorMessage: modelResponse.errorMessage,
-      streamingChannel: null,
-      retrievalStatus: modelOutput ? "COMPLETE" : "ERROR",
-      modelOutput: {
-        connect: {
-          id: modelOutput?.id,
+      const modelOutput = await prisma.modelOutput.create({
+        data: {
+          scenarioVariantCellId,
+          inputHash,
+          output: response.value as unknown as Prisma.InputJsonObject,
+          timeToComplete: response.timeToComplete,
+          promptTokens: response.promptTokens,
+          completionTokens: response.completionTokens,
+          cost: response.cost,
         },
-      },
-    },
-  });
+      });
 
-  if (modelOutput) {
-    await runEvalsForOutput(variant.experimentId, scenario, modelOutput);
+      await prisma.scenarioVariantCell.update({
+        where: { id: scenarioVariantCellId },
+        data: {
+          statusCode: response.statusCode,
+          retrievalStatus: "COMPLETE",
+        },
+      });
+
+      await runEvalsForOutput(variant.experimentId, scenario, modelOutput);
+      break;
+    } else {
+      const shouldRetry = response.autoRetry && i < MAX_AUTO_RETRIES;
+      const delay = calculateDelay(i);
+
+      await prisma.scenarioVariantCell.update({
+        where: { id: scenarioVariantCellId },
+        data: {
+          errorMessage: response.message,
+          statusCode: response.statusCode,
+          retryTime: shouldRetry ? new Date(Date.now() + delay) : null,
+          retrievalStatus: shouldRetry ? "PENDING" : "ERROR",
+        },
+      });
+
+      if (shouldRetry) {
+        await sleep(delay);
+      } else {
+        break;
+      }
+    }
   }
 });
