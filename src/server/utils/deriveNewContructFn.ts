@@ -52,11 +52,15 @@ const requestUpdatedPromptFunction = async (
             2,
           )}\n\nDo not add any assistant messages.`,
         },
+        {
+          role: "user",
+          content: `This is the current prompt constructor function:\n---\n${originalVariant.constructFn}`,
+        },
       ];
       if (newModel) {
         messages.push({
           role: "user",
-          content: `Return the prompt constructor function for ${newModel} given the following prompt constructor function for ${originalModel}:\n---\n${originalVariant.constructFn}`,
+          content: `Return the prompt constructor function for ${newModel} given the existing prompt constructor function for ${originalModel}`,
         });
       }
       if (instructions) {
@@ -65,10 +69,6 @@ const requestUpdatedPromptFunction = async (
           content: instructions,
         });
       }
-      messages.push({
-        role: "system",
-        content: "The prompt variable has already been declared, so do not declare it again.",
-      });
       const completion = await openai.chat.completions.create({
         model: "gpt-4",
         messages,
