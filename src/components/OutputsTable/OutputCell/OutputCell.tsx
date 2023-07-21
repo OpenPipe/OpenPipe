@@ -10,7 +10,7 @@ import useSocket from "~/utils/useSocket";
 import { OutputStats } from "./OutputStats";
 import { ErrorHandler } from "./ErrorHandler";
 import { CellOptions } from "./CellOptions";
-import modelProvidersFrontend from "~/modelProviders/modelProvidersFrontend";
+import frontendModelProviders from "~/modelProviders/frontendModelProviders";
 
 export default function OutputCell({
   scenario,
@@ -40,7 +40,7 @@ export default function OutputCell({
   );
 
   const provider =
-    modelProvidersFrontend[variant.modelProvider as keyof typeof modelProvidersFrontend];
+    frontendModelProviders[variant.modelProvider as keyof typeof frontendModelProviders];
 
   type OutputSchema = Parameters<typeof provider.normalizeOutput>[0];
 

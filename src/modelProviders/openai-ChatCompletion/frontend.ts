@@ -1,8 +1,30 @@
 import { type JsonValue } from "type-fest";
-import { type OpenaiChatModelProvider } from ".";
-import { type ModelProviderFrontend } from "../types";
+import { type SupportedModel } from ".";
+import { type FrontendModelProvider } from "../types";
+import { type ChatCompletion } from "openai/resources/chat";
 
-const modelProviderFrontend: ModelProviderFrontend<OpenaiChatModelProvider> = {
+const frontendModelProvider: FrontendModelProvider<SupportedModel, ChatCompletion> = {
+  name: "OpenAI ChatCompletion",
+
+  models: {
+    "gpt-4-0613": {
+      name: "GPT-4",
+      learnMore: "https://openai.com/gpt-4",
+    },
+    "gpt-4-32k-0613": {
+      name: "GPT-4 32k",
+      learnMore: "https://openai.com/gpt-4",
+    },
+    "gpt-3.5-turbo-0613": {
+      name: "GPT-3.5 Turbo",
+      learnMore: "https://platform.openai.com/docs/guides/gpt/chat-completions-api",
+    },
+    "gpt-3.5-turbo-16k-0613": {
+      name: "GPT-3.5 Turbo 16k",
+      learnMore: "https://platform.openai.com/docs/guides/gpt/chat-completions-api",
+    },
+  },
+
   normalizeOutput: (output) => {
     const message = output.choices[0]?.message;
     if (!message)
@@ -39,4 +61,4 @@ const modelProviderFrontend: ModelProviderFrontend<OpenaiChatModelProvider> = {
   },
 };
 
-export default modelProviderFrontend;
+export default frontendModelProvider;
