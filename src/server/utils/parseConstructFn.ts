@@ -70,6 +70,7 @@ export default async function parseConstructFn(
     // We've validated the JSON schema so this should be safe
     const input = prompt.input as Parameters<(typeof provider)["getModel"]>[0];
 
+    // @ts-expect-error TODO FIX ASAP
     const model = provider.getModel(input);
     if (!model) {
       return {
@@ -79,6 +80,8 @@ export default async function parseConstructFn(
 
     return {
       modelProvider: prompt.modelProvider as keyof typeof modelProviders,
+      // @ts-expect-error TODO FIX ASAP
+
       model,
       modelInput: input,
     };

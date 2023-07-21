@@ -73,6 +73,7 @@
     "react-syntax-highlighter": "^15.5.0",
     "react-textarea-autosize": "^8.5.0",
     "recast": "^0.23.3",
+    "replicate": "^0.12.3",
     "socket.io": "^4.7.1",
     "socket.io-client": "^4.7.1",
     "superjson": "1.12.2",
