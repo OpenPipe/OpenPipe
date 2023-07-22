@@ -59,6 +59,7 @@
     "lodash-es": "^4.17.21",
     "next": "^13.4.2",
     "next-auth": "^4.22.1",
+    "next-query-params": "^4.2.3",
     "nextjs-routes": "^2.0.1",
     "openai": "4.0.0-beta.2",
     "pluralize": "^8.0.0",
@@ -79,6 +80,7 @@
     "superjson": "1.12.2",
     "tsx": "^3.12.7",
     "type-fest": "^4.0.0",
+    "use-query-params": "^2.2.1",
     "vite-tsconfig-paths": "^4.2.0",
     "zod": "^3.21.4",
     "zustand": "^4.3.9"

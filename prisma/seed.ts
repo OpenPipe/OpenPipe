@@ -7,9 +7,13 @@ const defaultId = "11111111-1111-1111-1111-111111111111";
 await prisma.organization.deleteMany({
   where: { id: defaultId },
 });
-await prisma.organization.create({
-  data: { id: defaultId },
-});
+
+// If there's an existing org, just seed into it
+const org =
+  (await prisma.organization.findFirst({})) ??
+  (await prisma.organization.create({
+    data: { id: defaultId },
+  }));
 
 await prisma.experiment.deleteMany({
   where: {
@@ -21,7 +25,7 @@ await prisma.experiment.create({
   data: {
     id: defaultId,
     label: "Country Capitals Example",
-    organizationId: defaultId,
+    organizationId: org.id,
   },
 });
 
@@ -103,30 +107,41 @@ await prisma.testScenario.deleteMany({
   },
 });
 
+const countries = [
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Andorra",
+  "Angola",
+  "Antigua and Barbuda",
+  "Argentina",
+  "Armenia",
+  "Australia",
+  "Austria",
+  "Austrian Empire",
+  "Azerbaijan",
+  "Baden",
+  "Bahamas, The",
+  "Bahrain",
+  "Bangladesh",
+  "Barbados",
+  "Bavaria",
+  "Belarus",
+  "Belgium",
+  "Belize",
+  "Benin (Dahomey)",
+  "Bolivia",
+  "Bosnia and Herzegovina",
+  "Botswana",
+];
 await prisma.testScenario.createMany({
-  data: [
-    {
-      experimentId: defaultId,
-      sortIndex: 0,
-      variableValues: {
-        country: "Spain",
-      },
+  data: countries.map((country, i) => ({
+    experimentId: defaultId,
+    sortIndex: i,
+    variableValues: {
+      country: country,
     },
-    {
-      experimentId: defaultId,
-      sortIndex: 1,
-      variableValues: {
-        country: "USA",
-      },
-    },
-    {
-      experimentId: defaultId,
-      sortIndex: 2,
-      variableValues: {
-        country: "Chile",
-      },
-    },
-  ],
+  })),
 });
 
 const variants = await prisma.promptVariant.findMany({

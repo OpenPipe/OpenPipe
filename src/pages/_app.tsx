@@ -7,6 +7,8 @@ import "~/utils/analytics";
 import Head from "next/head";
 import { ChakraThemeProvider } from "~/theme/ChakraThemeProvider";
 import { SyncAppStore } from "~/state/sync";
+import NextAdapterApp from "next-query-params/app";
+import { QueryParamProvider } from "use-query-params";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -24,7 +26,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <SyncAppStore />
         <Favicon />
         <ChakraThemeProvider>
-          <Component {...pageProps} />
+          <QueryParamProvider adapter={NextAdapterApp}>
+            <Component {...pageProps} />
+          </QueryParamProvider>
         </ChakraThemeProvider>
       </SessionProvider>
     </>

@@ -27,8 +27,6 @@ export async function getCompletion(
       input: rest,
     });
 
-    console.log("stream?", onStream);
-
     const interval = onStream
       ? // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setInterval(async () => {

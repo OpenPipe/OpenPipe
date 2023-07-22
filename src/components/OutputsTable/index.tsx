@@ -7,6 +7,8 @@ import VariantHeader from "../VariantHeader/VariantHeader";
 import VariantStats from "./VariantStats";
 import { ScenariosHeader } from "./ScenariosHeader";
 import { borders } from "./styles";
+import { useScenarios } from "~/utils/hooks";
+import ScenarioPaginator from "./ScenarioPaginator";
 
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
   const variants = api.promptVariants.list.useQuery(
@@ -14,17 +16,17 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
     { enabled: !!experimentId },
   );
 
-  const scenarios = api.scenarios.list.useQuery(
-    { experimentId: experimentId as string },
-    { enabled: !!experimentId },
-  );
+  const scenarios = useScenarios();
 
   if (!variants.data || !scenarios.data) return null;
 
   const allCols = variants.data.length + 2;
   const variantHeaderRows = 3;
   const scenarioHeaderRows = 1;
-  const allRows = variantHeaderRows + scenarioHeaderRows + scenarios.data.length;
+  const scenarioFooterRows = 1;
+  const visibleScenariosCount = scenarios.data.scenarios.length;
+  const allRows =
+    variantHeaderRows + scenarioHeaderRows + visibleScenariosCount + scenarioFooterRows;
 
   return (
     <Grid
@@ -76,18 +78,25 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         {...borders}
         borderRightWidth={0}
       >
-        <ScenariosHeader numScenarios={scenarios.data.length} />
+        <ScenariosHeader />
       </GridItem>
 
-      {scenarios.data.map((scenario, i) => (
+      {scenarios.data.scenarios.map((scenario, i) => (
         <ScenarioRow
           rowStart={i + variantHeaderRows + scenarioHeaderRows + 2}
           key={scenario.uiId}
           scenario={scenario}
           variants={variants.data}
-          canHide={scenarios.data.length > 1}
+          canHide={visibleScenariosCount > 1}
         />
       ))}
+      <GridItem
+        rowStart={variantHeaderRows + scenarioHeaderRows + visibleScenariosCount + 2}
+        colStart={1}
+        colSpan={allCols}
+      >
+        <ScenarioPaginator />
+      </GridItem>
 
       {/* Add some extra padding on the right, because when the table is too wide to fit in the viewport `pr` on the Grid isn't respected. */}
       <GridItem rowStart={1} colStart={allCols} rowSpan={allRows} w={4} borderBottomWidth={0} />
