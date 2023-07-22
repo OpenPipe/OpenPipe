@@ -237,6 +237,49 @@ export const refineOptions: Record<SupportedProvider, { [key: string]: RefineOpt
         },
       });
 
+    Another example
+
+    Before:
+
+    definePrompt("openai/ChatCompletion", {
+      model: "gpt-3.5-turbo",
+      stream: true,
+      messages: [
+        {
+          role: "system",
+          content: \`Write 'Start experimenting!' in \${scenario.language}\`,
+        },
+      ],
+    });
+
+    After:
+
+    definePrompt("openai/ChatCompletion", {
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: \`Write 'Start experimenting!' in \${scenario.language}\`,
+        },
+      ],
+      functions: [
+        {
+          name: "write_in_language",
+          parameters: {
+            type: "object",
+            properties: {
+              text: {
+                type: "string",
+              },
+            },
+          },
+        },
+      ],
+      function_call: {
+        name: "write_in_language",
+      },
+    });
+
     Add an OpenAI function that takes one or more nested parameters that match the expected output from this prompt.`,
     },
   },
