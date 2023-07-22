@@ -56,7 +56,10 @@ export const ScenariosHeader = (props: { numScenarios: number }) => {
             />
           </MenuButton>
           <MenuList fontSize="md" zIndex="dropdown" mt={-3}>
-            <MenuItem icon={<Icon as={BsPlus} boxSize={6} mx={-1}/>} onClick={() => onAddScenario(false)}>
+            <MenuItem
+              icon={<Icon as={BsPlus} boxSize={6} mx={-1} />}
+              onClick={() => onAddScenario(false)}
+            >
               Add Scenario
             </MenuItem>
             <MenuItem icon={<BsStars />} onClick={() => onAddScenario(true)}>
