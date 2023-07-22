@@ -66,7 +66,9 @@ const requestUpdatedPromptFunction = async (
         if (newModel.provider !== originalModel.provider) {
           messages.push({
             role: "user",
-            content: `The old provider was ${originalModel.provider}. The new provider is ${newModel.provider}. Here is the schema for the new model:\n---\n${JSON.stringify(
+            content: `The old provider was ${originalModel.provider}. The new provider is ${
+              newModel.provider
+            }. Here is the schema for the new model:\n---\n${JSON.stringify(
               modelProviders[newModel.provider].inputSchema,
               null,
               2,

@@ -5,7 +5,7 @@ import { VscJson } from "react-icons/vsc";
 import { TfiThought } from "react-icons/tfi";
 import { type IconType } from "react-icons";
 
-export type RefineOptionInfo = { icon: IconType, description: string; instructions: string };
+export type RefineOptionInfo = { icon: IconType; description: string; instructions: string };
 
 export const refineOptions: Record<SupportedProvider, { [key: string]: RefineOptionInfo }> = {
   "openai/ChatCompletion": {

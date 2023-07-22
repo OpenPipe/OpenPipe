@@ -186,10 +186,7 @@ export const promptVariantsRouter = createTRPCRouter({
           ? `${originalVariant?.label} Copy`
           : `Prompt Variant ${largestSortIndex + 2}`;
 
-      const newConstructFn = await deriveNewConstructFn(
-        originalVariant,
-        input.newModel,
-      );
+      const newConstructFn = await deriveNewConstructFn(originalVariant, input.newModel);
 
       const createNewVariantAction = prisma.promptVariant.create({
         data: {

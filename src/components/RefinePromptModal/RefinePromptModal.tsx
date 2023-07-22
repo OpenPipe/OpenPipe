@@ -102,7 +102,9 @@ export const RefinePromptModal = ({
                       <RefineOption
                         key={label}
                         label={label}
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         icon={providerRefineOptions[label]!.icon}
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         desciption={providerRefineOptions[label]!.description}
                         activeLabel={activeRefineOptionLabel}
                         onClick={getModifiedPromptFn}

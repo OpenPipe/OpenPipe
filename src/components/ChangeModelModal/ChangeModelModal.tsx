@@ -58,7 +58,6 @@ export const ChangeModelModal = ({
   const replaceVariantMutation = api.promptVariants.replaceVariant.useMutation();
 
   const [replaceVariant, replacementInProgress] = useHandledAsyncCallback(async () => {
-
     if (
       !variant.experimentId ||
       !modifiedPromptFn ||
