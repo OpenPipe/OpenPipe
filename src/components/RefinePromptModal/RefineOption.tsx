@@ -1,22 +1,22 @@
 import { HStack, Icon, Heading, Text, VStack, GridItem } from "@chakra-ui/react";
 import { type IconType } from "react-icons";
-import { refineOptions, type RefineOptionLabel } from "./refineOptions";
 
 export const RefineOption = ({
   label,
-  activeLabel,
   icon,
+  desciption,
+  activeLabel,
   onClick,
   loading,
 }: {
-  label: RefineOptionLabel;
-  activeLabel: RefineOptionLabel | undefined;
+  label: string;
   icon: IconType;
-  onClick: (label: RefineOptionLabel) => void;
+  desciption: string;
+  activeLabel: string | undefined;
+  onClick: (label: string) => void;
   loading: boolean;
 }) => {
   const isActive = activeLabel === label;
-  const desciption = refineOptions[label].description;
 
   return (
     <GridItem w="80" h="44">

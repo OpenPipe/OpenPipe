@@ -8,10 +8,10 @@ import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { type CompletionResponse } from "../types";
 import { omit } from "lodash-es";
 import { openai } from "~/server/utils/openai";
-import { type OpenAIChatModel } from "~/server/types";
 import { truthyFilter } from "~/utils/utils";
 import { APIError } from "openai";
-import { modelStats } from "../modelStats";
+import frontendModelProvider from "./frontend";
+import modelProvider, { type SupportedModel } from ".";
 
 const mergeStreamedChunks = (
   base: ChatCompletion | null,
@@ -60,6 +60,7 @@ export async function getCompletion(
   let finalCompletion: ChatCompletion | null = null;
   let promptTokens: number | undefined = undefined;
   let completionTokens: number | undefined = undefined;
+  const modelName = modelProvider.getModel(input) as SupportedModel;
 
   try {
     if (onStream) {
@@ -81,12 +82,9 @@ export async function getCompletion(
         };
       }
       try {
-        promptTokens = countOpenAIChatTokens(
-          input.model as keyof typeof OpenAIChatModel,
-          input.messages,
-        );
+        promptTokens = countOpenAIChatTokens(modelName, input.messages);
         completionTokens = countOpenAIChatTokens(
-          input.model as keyof typeof OpenAIChatModel,
+          modelName,
           finalCompletion.choices.map((c) => c.message).filter(truthyFilter),
         );
       } catch (err) {
@@ -106,10 +104,10 @@ export async function getCompletion(
     }
     const timeToComplete = Date.now() - start;
 
-    const stats = modelStats[input.model as keyof typeof OpenAIChatModel];
+    const { promptTokenPrice, completionTokenPrice } = frontendModelProvider.models[modelName];
     let cost = undefined;
-    if (stats && promptTokens && completionTokens) {
-      cost = promptTokens * stats.promptTokenPrice + completionTokens * stats.completionTokenPrice;
+    if (promptTokenPrice && completionTokenPrice && promptTokens && completionTokens) {
+      cost = promptTokens * promptTokenPrice + completionTokens * completionTokenPrice;
     }
 
     return {

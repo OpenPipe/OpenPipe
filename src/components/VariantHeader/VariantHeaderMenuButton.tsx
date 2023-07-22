@@ -17,7 +17,7 @@ import { FaRegClone } from "react-icons/fa";
 import { useState } from "react";
 import { RefinePromptModal } from "../RefinePromptModal/RefinePromptModal";
 import { RiExchangeFundsFill } from "react-icons/ri";
-import { SelectModelModal } from "../SelectModelModal/SelectModelModal";
+import { ChangeModelModal } from "../ChangeModelModal/ChangeModelModal";
 
 export default function VariantHeaderMenuButton({
   variant,
@@ -50,7 +50,7 @@ export default function VariantHeaderMenuButton({
     await utils.promptVariants.list.invalidate();
   }, [hideMutation, variant.id]);
 
-  const [selectModelModalOpen, setSelectModelModalOpen] = useState(false);
+  const [changeModelModalOpen, setChangeModelModalOpen] = useState(false);
   const [refinePromptModalOpen, setRefinePromptModalOpen] = useState(false);
 
   return (
@@ -72,7 +72,7 @@ export default function VariantHeaderMenuButton({
           </MenuItem>
           <MenuItem
             icon={<Icon as={RiExchangeFundsFill} boxSize={5} />}
-            onClick={() => setSelectModelModalOpen(true)}
+            onClick={() => setChangeModelModalOpen(true)}
           >
             Change Model
           </MenuItem>
@@ -97,8 +97,8 @@ export default function VariantHeaderMenuButton({
           )}
         </MenuList>
       </Menu>
-      {selectModelModalOpen && (
-        <SelectModelModal variant={variant} onClose={() => setSelectModelModalOpen(false)} />
+      {changeModelModalOpen && (
+        <ChangeModelModal variant={variant} onClose={() => setChangeModelModalOpen(false)} />
       )}
       {refinePromptModalOpen && (
         <RefinePromptModal variant={variant} onClose={() => setRefinePromptModalOpen(false)} />
