@@ -34,22 +34,21 @@ export const scenariosRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireCanModifyExperiment(input.experimentId, ctx);
 
-      const maxSortIndex =
-        (
-          await prisma.testScenario.aggregate({
-            where: {
-              experimentId: input.experimentId,
-            },
-            _max: {
-              sortIndex: true,
-            },
-          })
-        )._max.sortIndex ?? 0;
+      await prisma.testScenario.updateMany({
+        where: {
+          experimentId: input.experimentId,
+        },
+        data: {
+          sortIndex: {
+            increment: 1,
+          },
+        },
+      });
 
       const createNewScenarioAction = prisma.testScenario.create({
         data: {
           experimentId: input.experimentId,
-          sortIndex: maxSortIndex + 1,
+          sortIndex: 0,
           variableValues: input.autogenerate
             ? await autogenerateScenarioValues(input.experimentId)
             : {},
