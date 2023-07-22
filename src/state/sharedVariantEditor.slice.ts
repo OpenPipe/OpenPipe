@@ -8,9 +8,9 @@ export const editorBackground = "#fafafa";
 export type SharedVariantEditorSlice = {
   monaco: null | ReturnType<typeof loader.__getMonacoInstance>;
   loadMonaco: () => Promise<void>;
-  scenarios: RouterOutputs["scenarios"]["list"];
+  scenarios: RouterOutputs["scenarios"]["list"]["scenarios"];
   updateScenariosModel: () => void;
-  setScenarios: (scenarios: RouterOutputs["scenarios"]["list"]) => void;
+  setScenarios: (scenarios: RouterOutputs["scenarios"]["list"]["scenarios"]) => void;
 };
 
 export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = (set, get) => ({

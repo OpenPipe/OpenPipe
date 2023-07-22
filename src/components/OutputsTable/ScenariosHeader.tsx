@@ -12,7 +12,12 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { cellPadding } from "../constants";
-import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
+import {
+  useExperiment,
+  useExperimentAccess,
+  useHandledAsyncCallback,
+  useScenarios,
+} from "~/utils/hooks";
 import { BsGear, BsPencil, BsPlus, BsStars } from "react-icons/bs";
 import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
@@ -21,9 +26,10 @@ export const ActionButton = (props: ButtonProps) => (
   <Button size="sm" variant="ghost" color="gray.600" {...props} />
 );
 
-export const ScenariosHeader = (props: { numScenarios: number }) => {
+export const ScenariosHeader = () => {
   const openDrawer = useAppStore((s) => s.openDrawer);
   const { canModify } = useExperimentAccess();
+  const scenarios = useScenarios();
 
   const experiment = useExperiment();
   const createScenarioMutation = api.scenarios.create.useMutation();
@@ -44,7 +50,7 @@ export const ScenariosHeader = (props: { numScenarios: number }) => {
   return (
     <HStack w="100%" pb={cellPadding.y} pt={0} align="center" spacing={0}>
       <Text fontSize={16} fontWeight="bold">
-        Scenarios ({props.numScenarios})
+        Scenarios ({scenarios.data?.count})
       </Text>
       {canModify && (
         <Menu>

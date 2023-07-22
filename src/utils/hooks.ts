@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
+import { NumberParam, useQueryParam, withDefault } from "use-query-params";
 
 export const useExperiment = () => {
   const router = useRouter();
@@ -92,4 +93,16 @@ export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | un
   }, []);
 
   return [ref, dimensions];
+};
+
+export const usePage = () => useQueryParam("page", withDefault(NumberParam, 1));
+
+export const useScenarios = () => {
+  const experiment = useExperiment();
+  const [page] = usePage();
+
+  return api.scenarios.list.useQuery(
+    { experimentId: experiment.data?.id ?? "", page },
+    { enabled: experiment.data?.id != null },
+  );
 };
