@@ -9,7 +9,6 @@ export const env = createEnv({
   server: {
     DATABASE_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-    OPENAI_API_KEY: z.string().min(1),
     RESTRICT_PRISMA_LOGS: z
       .string()
       .optional()
@@ -17,7 +16,8 @@ export const env = createEnv({
       .transform((val) => val.toLowerCase() === "true"),
     GITHUB_CLIENT_ID: z.string().min(1),
     GITHUB_CLIENT_SECRET: z.string().min(1),
-    REPLICATE_API_TOKEN: z.string().min(1),
+    OPENAI_API_KEY: z.string().min(1),
+    REPLICATE_API_TOKEN: z.string().default("placeholder"),
   },
 
   /**
