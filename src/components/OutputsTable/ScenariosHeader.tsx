@@ -61,8 +61,11 @@ export const ScenariosHeader = () => {
               icon={<Icon as={loading ? Spinner : BsGear} />}
             />
           </MenuButton>
-          <MenuList fontSize="md">
-            <MenuItem icon={<Icon as={BsPlus} boxSize={6} />} onClick={() => onAddScenario(false)}>
+          <MenuList fontSize="md" zIndex="dropdown" mt={-3}>
+            <MenuItem
+              icon={<Icon as={BsPlus} boxSize={6} mx={-1} />}
+              onClick={() => onAddScenario(false)}
+            >
               Add Scenario
             </MenuItem>
             <MenuItem icon={<BsStars />} onClick={() => onAddScenario(true)}>
