@@ -1,5 +1,6 @@
 import { Box, Flex, Icon, Spinner } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
+import { Text } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
 import { cellPadding } from "../constants";
@@ -25,9 +26,10 @@ export default function AddVariantButton() {
     <Flex w="100%" justifyContent="flex-end">
       <ActionButton
         onClick={onClick}
+        py={5}
         leftIcon={<Icon as={loading ? Spinner : BsPlus} boxSize={6} mr={loading ? 1 : 0} />}
       >
-        Add Variant
+        <Text display={{ base: "none", md: "flex" }}>Add Variant</Text>
       </ActionButton>
       {/* <Button
         alignItems="center"
