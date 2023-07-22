@@ -3,28 +3,34 @@ import { type PromptVariant } from "../OutputsTable/types";
 import { api } from "~/utils/api";
 import { RiDraggable } from "react-icons/ri";
 import { useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
-import { HStack, Icon, Text, GridItem } from "@chakra-ui/react"; // Changed here
+import { HStack, Icon, Text, GridItem, type GridItemProps } from "@chakra-ui/react"; // Changed here
 import { cellPadding, headerMinHeight } from "../constants";
 import AutoResizeTextArea from "../AutoResizeTextArea";
 import { stickyHeaderStyle } from "../OutputsTable/styles";
 import VariantHeaderMenuButton from "./VariantHeaderMenuButton";
 
-export default function VariantHeader(props: { variant: PromptVariant; canHide: boolean }) {
+export default function VariantHeader(
+  allProps: {
+    variant: PromptVariant;
+    canHide: boolean;
+  } & GridItemProps,
+) {
+  const { variant, canHide, ...gridItemProps } = allProps;
   const { canModify } = useExperimentAccess();
   const utils = api.useContext();
   const [isDragTarget, setIsDragTarget] = useState(false);
   const [isInputHovered, setIsInputHovered] = useState(false);
-  const [label, setLabel] = useState(props.variant.label);
+  const [label, setLabel] = useState(variant.label);
 
   const updateMutation = api.promptVariants.update.useMutation();
   const [onSaveLabel] = useHandledAsyncCallback(async () => {
-    if (label && label !== props.variant.label) {
+    if (label && label !== variant.label) {
       await updateMutation.mutateAsync({
-        id: props.variant.id,
+        id: variant.id,
         updates: { label: label },
       });
     }
-  }, [updateMutation, props.variant.id, props.variant.label, label]);
+  }, [updateMutation, variant.id, variant.label, label]);
 
   const reorderMutation = api.promptVariants.reorder.useMutation();
   const [onReorder] = useHandledAsyncCallback(
@@ -32,7 +38,7 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
       e.preventDefault();
       setIsDragTarget(false);
       const draggedId = e.dataTransfer.getData("text/plain");
-      const droppedId = props.variant.id;
+      const droppedId = variant.id;
       if (!draggedId || !droppedId || draggedId === droppedId) return;
       await reorderMutation.mutateAsync({
         draggedId,
@@ -40,16 +46,16 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
       });
       await utils.promptVariants.list.invalidate();
     },
-    [reorderMutation, props.variant.id],
+    [reorderMutation, variant.id],
   );
 
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (!canModify) {
     return (
-      <GridItem padding={0} sx={stickyHeaderStyle} borderTopWidth={1}>
+      <GridItem padding={0} sx={stickyHeaderStyle} borderTopWidth={1} {...gridItemProps}>
         <Text fontSize={16} fontWeight="bold" px={cellPadding.x} py={cellPadding.y}>
-          {props.variant.label}
+          {variant.label}
         </Text>
       </GridItem>
     );
@@ -64,6 +70,7 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
         zIndex: menuOpen ? "dropdown" : stickyHeaderStyle.zIndex,
       }}
       borderTopWidth={1}
+      {...gridItemProps}
     >
       <HStack
         spacing={4}
@@ -71,7 +78,7 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
         minH={headerMinHeight}
         draggable={!isInputHovered}
         onDragStart={(e) => {
-          e.dataTransfer.setData("text/plain", props.variant.id);
+          e.dataTransfer.setData("text/plain", variant.id);
           e.currentTarget.style.opacity = "0.4";
         }}
         onDragEnd={(e) => {
@@ -112,8 +119,8 @@ export default function VariantHeader(props: { variant: PromptVariant; canHide: 
           onMouseLeave={() => setIsInputHovered(false)}
         />
         <VariantHeaderMenuButton
-          variant={props.variant}
-          canHide={props.canHide}
+          variant={variant}
+          canHide={canHide}
           menuOpen={menuOpen}
           setMenuOpen={setMenuOpen}
         />
