@@ -4,8 +4,9 @@ import { queueLLMRetrievalTask } from "./queueLLMRetrievalTask";
 import parseConstructFn from "./parseConstructFn";
 import { type JsonObject } from "type-fest";
 import hashPrompt from "./hashPrompt";
+import { omit } from "lodash-es";
 
-export const generateNewCell = async (variantId: string, scenarioId: string) => {
+export const generateNewCell = async (variantId: string, scenarioId: string): Promise<void> => {
   const variant = await prisma.promptVariant.findUnique({
     where: {
       id: variantId,
@@ -18,7 +19,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
     },
   });
 
-  if (!variant || !scenario) return null;
+  if (!variant || !scenario) return;
 
   let cell = await prisma.scenarioVariantCell.findUnique({
     where: {
@@ -32,7 +33,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
     },
   });
 
-  if (cell) return cell;
+  if (cell) return;
 
   const parsedConstructFn = await parseConstructFn(
     variant.constructFn,
@@ -40,7 +41,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
   );
 
   if ("error" in parsedConstructFn) {
-    return await prisma.scenarioVariantCell.create({
+    await prisma.scenarioVariantCell.create({
       data: {
         promptVariantId: variantId,
         testScenarioId: scenarioId,
@@ -49,6 +50,7 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
         retrievalStatus: "ERROR",
       },
     });
+    return;
   }
 
   const inputHash = hashPrompt(parsedConstructFn);
@@ -69,29 +71,33 @@ export const generateNewCell = async (variantId: string, scenarioId: string) => 
     where: { inputHash },
   });
 
-  let newModelOutput;
-
   if (matchingModelOutput) {
-    newModelOutput = await prisma.modelOutput.create({
+    const newModelOutput = await prisma.modelOutput.create({
       data: {
+        ...omit(matchingModelOutput, ["id"]),
         scenarioVariantCellId: cell.id,
-        inputHash,
         output: matchingModelOutput.output as Prisma.InputJsonValue,
-        timeToComplete: matchingModelOutput.timeToComplete,
-        cost: matchingModelOutput.cost,
-        promptTokens: matchingModelOutput.promptTokens,
-        completionTokens: matchingModelOutput.completionTokens,
-        createdAt: matchingModelOutput.createdAt,
-        updatedAt: matchingModelOutput.updatedAt,
       },
     });
     await prisma.scenarioVariantCell.update({
       where: { id: cell.id },
       data: { retrievalStatus: "COMPLETE" },
     });
+
+    // Copy over all eval results as well
+    await Promise.all(
+      (
+        await prisma.outputEvaluation.findMany({ where: { modelOutputId: matchingModelOutput.id } })
+      ).map(async (evaluation) => {
+        await prisma.outputEvaluation.create({
+          data: {
+            ...omit(evaluation, ["id"]),
+            modelOutputId: newModelOutput.id,
+          },
+        });
+      }),
+    );
   } else {
     cell = await queueLLMRetrievalTask(cell.id);
   }
-
-  return { ...cell, modelOutput: newModelOutput };
 };
