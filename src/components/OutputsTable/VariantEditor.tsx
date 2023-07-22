@@ -1,16 +1,46 @@
-import { Box, Button, HStack, Spinner, Tooltip, useToast, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  HStack,
+  Spinner,
+  Tooltip,
+  useToast,
+  Text,
+  IconButton,
+} from "@chakra-ui/react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useExperimentAccess, useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
 import { type PromptVariant } from "./types";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
+import { FiMaximize, FiMinimize } from "react-icons/fi";
+import { editorBackground } from "~/state/sharedVariantEditor.slice";
 
 export default function VariantEditor(props: { variant: PromptVariant }) {
   const { canModify } = useExperimentAccess();
   const monaco = useAppStore.use.sharedVariantEditor.monaco();
   const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
   const [isChanged, setIsChanged] = useState(false);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen((prev) => !prev);
+    editorRef.current?.focus();
+  }, [setIsFullscreen]);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isFullscreen) {
+        toggleFullscreen();
+      }
+    };
+
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isFullscreen, toggleFullscreen]);
 
   const lastSavedFn = props.variant.constructFn;
 
@@ -99,11 +129,23 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
         readOnly: !canModify,
       });
 
+      // Workaround because otherwise the commands only work on whatever
+      // editor was loaded on the page last.
+      // https://github.com/microsoft/monaco-editor/issues/2947#issuecomment-1422265201
       editorRef.current.onDidFocusEditorText(() => {
-        // Workaround because otherwise the command only works on whatever
-        // editor was loaded on the page last.
-        // https://github.com/microsoft/monaco-editor/issues/2947#issuecomment-1422265201
-        editorRef.current?.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, onSave);
+        editorRef.current?.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, onSave);
+
+        editorRef.current?.addCommand(
+          monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
+          toggleFullscreen,
+        );
+
+        // Exit fullscreen with escape
+        editorRef.current?.addCommand(monaco.KeyCode.Escape, () => {
+          if (isFullscreen) {
+            toggleFullscreen();
+          }
+        });
       });
 
       editorRef.current.onDidChangeModelContent(checkForChanges);
@@ -132,8 +174,40 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
   }, [canModify]);
 
   return (
-    <Box w="100%" pos="relative">
-      <div id={editorId} style={{ height: "400px", width: "100%" }}></div>
+    <Box
+      w="100%"
+      ref={containerRef}
+      sx={
+        isFullscreen
+          ? {
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }
+          : { h: "400px", w: "100%" }
+      }
+      bgColor={editorBackground}
+      zIndex={isFullscreen ? 1000 : "unset"}
+      pos="relative"
+      _hover={{ ".fullscreen-toggle": { opacity: 1 } }}
+    >
+      <Box id={editorId} w="100%" h="100%" />
+      <Tooltip label={`${modifierKey} + ⇧ + F`}>
+        <IconButton
+          className="fullscreen-toggle"
+          aria-label="Minimize"
+          icon={isFullscreen ? <FiMinimize /> : <FiMaximize />}
+          position="absolute"
+          top={2}
+          right={2}
+          onClick={toggleFullscreen}
+          opacity={0}
+          transition="opacity 0.2s"
+        />
+      </Tooltip>
+
       {isChanged && (
         <HStack pos="absolute" bottom={2} right={2}>
           <Button
@@ -146,7 +220,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
           >
             Reset
           </Button>
-          <Tooltip label={`${modifierKey} + Enter`}>
+          <Tooltip label={`${modifierKey} + S`}>
             <Button size="sm" onClick={onSave} colorScheme="blue" w={16} disabled={saveInProgress}>
               {saveInProgress ? <Spinner boxSize={4} /> : <Text>Save</Text>}
             </Button>
