@@ -1,16 +1,31 @@
 import { type JSONSchema4 } from "json-schema";
 import { type JsonValue } from "type-fest";
+import { z } from "zod";
 
-export type SupportedProvider = "openai/ChatCompletion" | "replicate/llama2";
+const ZodSupportedProvider = z.union([
+  z.literal("openai/ChatCompletion"),
+  z.literal("replicate/llama2"),
+]);
 
-type ModelInfo = {
-  name?: string;
-  learnMore?: string;
-};
+export type SupportedProvider = z.infer<typeof ZodSupportedProvider>;
+
+export const ZodModel = z.object({
+  name: z.string(),
+  contextWindow: z.number(),
+  promptTokenPrice: z.number().optional(),
+  completionTokenPrice: z.number().optional(),
+  pricePerSecond: z.number().optional(),
+  speed: z.union([z.literal("fast"), z.literal("medium"), z.literal("slow")]),
+  provider: ZodSupportedProvider,
+  description: z.string().optional(),
+  learnMoreUrl: z.string().optional(),
+});
+
+export type Model = z.infer<typeof ZodModel>;
 
 export type FrontendModelProvider<SupportedModels extends string, OutputSchema> = {
   name: string;
-  models: Record<SupportedModels, ModelInfo>;
+  models: Record<SupportedModels, Model>;
 
   normalizeOutput: (output: OutputSchema) => NormalizedOutput;
 };

@@ -5,9 +5,30 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, ReplicateLlam
   name: "Replicate Llama2",
 
   models: {
-    "7b-chat": {},
-    "13b-chat": {},
-    "70b-chat": {},
+    "7b-chat": {
+      name: "LLama 2 7B Chat",
+      contextWindow: 4096,
+      pricePerSecond: 0.0023,
+      speed: "fast",
+      provider: "replicate/llama2",
+      learnMoreUrl: "https://replicate.com/a16z-infra/llama7b-v2-chat",
+    },
+    "13b-chat": {
+      name: "LLama 2 13B Chat",
+      contextWindow: 4096,
+      pricePerSecond: 0.0023,
+      speed: "medium",
+      provider: "replicate/llama2",
+      learnMoreUrl: "https://replicate.com/a16z-infra/llama13b-v2-chat",
+    },
+    "70b-chat": {
+      name: "LLama 2 70B Chat",
+      contextWindow: 4096,
+      pricePerSecond: 0.0032,
+      speed: "slow",
+      provider: "replicate/llama2",
+      learnMoreUrl: "https://replicate.com/replicate/llama70b-v2-chat",
+    },
   },
 
   normalizeOutput: (output) => {

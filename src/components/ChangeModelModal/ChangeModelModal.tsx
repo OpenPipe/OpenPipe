@@ -15,25 +15,29 @@ import {
 } from "@chakra-ui/react";
 import { RiExchangeFundsFill } from "react-icons/ri";
 import { useState } from "react";
-import { type SupportedModel } from "~/server/types";
 import { ModelStatsCard } from "./ModelStatsCard";
-import { SelectModelSearch } from "./SelectModelSearch";
+import { ModelSearch } from "./ModelSearch";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import CompareFunctions from "../RefinePromptModal/CompareFunctions";
 import { type PromptVariant } from "@prisma/client";
 import { isObject, isString } from "lodash-es";
+import { type Model, type SupportedProvider } from "~/modelProviders/types";
+import frontendModelProviders from "~/modelProviders/frontendModelProviders";
+import { keyForModel } from "~/utils/utils";
 
-export const SelectModelModal = ({
+export const ChangeModelModal = ({
   variant,
   onClose,
 }: {
   variant: PromptVariant;
   onClose: () => void;
 }) => {
-  const originalModel = variant.model as SupportedModel;
-  const [selectedModel, setSelectedModel] = useState<SupportedModel>(originalModel);
-  const [convertedModel, setConvertedModel] = useState<SupportedModel | undefined>(undefined);
+  const originalModelProviderName = variant.modelProvider as SupportedProvider;
+  const originalModelProvider = frontendModelProviders[originalModelProviderName];
+  const originalModel = originalModelProvider.models[variant.model] as Model;
+  const [selectedModel, setSelectedModel] = useState<Model>(originalModel);
+  const [convertedModel, setConvertedModel] = useState<Model | undefined>(undefined);
   const utils = api.useContext();
 
   const experiment = useExperiment();
@@ -68,6 +72,10 @@ export const SelectModelModal = ({
     onClose();
   }, [replaceVariantMutation, variant, onClose, modifiedPromptFn]);
 
+  const originalModelLabel = keyForModel(originalModel);
+  const selectedModelLabel = keyForModel(selectedModel);
+  const convertedModelLabel = convertedModel ? keyForModel(convertedModel) : undefined;
+
   return (
     <Modal
       isOpen
@@ -86,16 +94,16 @@ export const SelectModelModal = ({
         <ModalBody maxW="unset">
           <VStack spacing={8}>
             <ModelStatsCard label="Original Model" model={originalModel} />
-            {originalModel !== selectedModel && (
+            {originalModelLabel !== selectedModelLabel && (
               <ModelStatsCard label="New Model" model={selectedModel} />
             )}
-            <SelectModelSearch selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
+            <ModelSearch selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
             {isString(modifiedPromptFn) && (
               <CompareFunctions
                 originalFunction={variant.constructFn}
                 newFunction={modifiedPromptFn}
-                leftTitle={originalModel}
-                rightTitle={convertedModel}
+                leftTitle={originalModelLabel}
+                rightTitle={convertedModelLabel}
               />
             )}
           </VStack>

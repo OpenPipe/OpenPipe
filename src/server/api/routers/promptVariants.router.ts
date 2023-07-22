@@ -2,7 +2,6 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { generateNewCell } from "~/server/utils/generateNewCell";
-import { type SupportedModel } from "~/server/types";
 import userError from "~/server/utils/error";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { reorderPromptVariants } from "~/server/utils/reorderPromptVariants";
@@ -10,6 +9,7 @@ import { type PromptVariant } from "@prisma/client";
 import { deriveNewConstructFn } from "~/server/utils/deriveNewContructFn";
 import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 import parseConstructFn from "~/server/utils/parseConstructFn";
+import { ZodModel } from "~/modelProviders/types";
 
 export const promptVariantsRouter = createTRPCRouter({
   list: publicProcedure
@@ -144,7 +144,7 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         experimentId: z.string(),
         variantId: z.string().optional(),
-        newModel: z.string().optional(),
+        newModel: ZodModel.optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -186,10 +186,7 @@ export const promptVariantsRouter = createTRPCRouter({
           ? `${originalVariant?.label} Copy`
           : `Prompt Variant ${largestSortIndex + 2}`;
 
-      const newConstructFn = await deriveNewConstructFn(
-        originalVariant,
-        input.newModel as SupportedModel,
-      );
+      const newConstructFn = await deriveNewConstructFn(originalVariant, input.newModel);
 
       const createNewVariantAction = prisma.promptVariant.create({
         data: {
@@ -289,7 +286,7 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         instructions: z.string().optional(),
-        newModel: z.string().optional(),
+        newModel: ZodModel.optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -308,7 +305,7 @@ export const promptVariantsRouter = createTRPCRouter({
 
       const promptConstructionFn = await deriveNewConstructFn(
         existing,
-        input.newModel as SupportedModel | undefined,
+        input.newModel,
         input.instructions,
       );
 

@@ -15,17 +15,16 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { BsStars } from "react-icons/bs";
-import { VscJson } from "react-icons/vsc";
-import { TfiThought } from "react-icons/tfi";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { type PromptVariant } from "@prisma/client";
 import { useState } from "react";
 import CompareFunctions from "./CompareFunctions";
 import { CustomInstructionsInput } from "./CustomInstructionsInput";
-import { type RefineOptionLabel, refineOptions } from "./refineOptions";
+import { type RefineOptionInfo, refineOptions } from "./refineOptions";
 import { RefineOption } from "./RefineOption";
 import { isObject, isString } from "lodash-es";
+import { type SupportedProvider } from "~/modelProviders/types";
 
 export const RefinePromptModal = ({
   variant,
@@ -36,18 +35,22 @@ export const RefinePromptModal = ({
 }) => {
   const utils = api.useContext();
 
+  const providerRefineOptions = refineOptions[variant.modelProvider as SupportedProvider];
+
   const { mutateAsync: getModifiedPromptMutateAsync, data: refinedPromptFn } =
     api.promptVariants.getModifiedPromptFn.useMutation();
   const [instructions, setInstructions] = useState<string>("");
 
-  const [activeRefineOptionLabel, setActiveRefineOptionLabel] = useState<
-    RefineOptionLabel | undefined
-  >(undefined);
+  const [activeRefineOptionLabel, setActiveRefineOptionLabel] = useState<string | undefined>(
+    undefined,
+  );
 
   const [getModifiedPromptFn, modificationInProgress] = useHandledAsyncCallback(
-    async (label?: RefineOptionLabel) => {
+    async (label?: string) => {
       if (!variant.experimentId) return;
-      const updatedInstructions = label ? refineOptions[label].instructions : instructions;
+      const updatedInstructions = label
+        ? (providerRefineOptions[label] as RefineOptionInfo).instructions
+        : instructions;
       setActiveRefineOptionLabel(label);
       await getModifiedPromptMutateAsync({
         id: variant.id,
@@ -92,25 +95,26 @@ export const RefinePromptModal = ({
         <ModalBody maxW="unset">
           <VStack spacing={8}>
             <VStack spacing={4}>
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-                <RefineOption
-                  label="Convert to function call"
-                  activeLabel={activeRefineOptionLabel}
-                  icon={VscJson}
-                  onClick={getModifiedPromptFn}
-                  loading={modificationInProgress}
-                />
-                <RefineOption
-                  label="Add chain of thought"
-                  activeLabel={activeRefineOptionLabel}
-                  icon={TfiThought}
-                  onClick={getModifiedPromptFn}
-                  loading={modificationInProgress}
-                />
-              </SimpleGrid>
-              <HStack>
-                <Text color="gray.500">or</Text>
-              </HStack>
+              {Object.keys(providerRefineOptions).length && (
+                <>
+                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
+                    {Object.keys(providerRefineOptions).map((label) => (
+                      <RefineOption
+                        key={label}
+                        label={label}
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        icon={providerRefineOptions[label]!.icon}
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        desciption={providerRefineOptions[label]!.description}
+                        activeLabel={activeRefineOptionLabel}
+                        onClick={getModifiedPromptFn}
+                        loading={modificationInProgress}
+                      />
+                    ))}
+                  </SimpleGrid>
+                  <Text color="gray.500">or</Text>
+                </>
+              )}
               <CustomInstructionsInput
                 instructions={instructions}
                 setInstructions={setInstructions}
