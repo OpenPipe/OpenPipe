@@ -51,6 +51,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           ...borders,
           colStart: i + 2,
           borderLeftWidth: i === 0 ? 1 : 0,
+          marginLeft: i === 0 ? "-1px" : 0,
         };
         return (
           <>
