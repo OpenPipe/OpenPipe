@@ -21,10 +21,10 @@ import { type PromptVariant } from "@prisma/client";
 import { useState } from "react";
 import CompareFunctions from "./CompareFunctions";
 import { CustomInstructionsInput } from "./CustomInstructionsInput";
-import { type RefineOptionInfo, refineOptions } from "./refineOptions";
-import { RefineOption } from "./RefineOption";
+import { RefineAction } from "./RefineAction";
 import { isObject, isString } from "lodash-es";
-import { type SupportedProvider } from "~/modelProviders/types";
+import { type RefinementAction, type SupportedProvider } from "~/modelProviders/types";
+import frontendModelProviders from "~/modelProviders/frontendModelProviders";
 
 export const RefinePromptModal = ({
   variant,
@@ -35,13 +35,13 @@ export const RefinePromptModal = ({
 }) => {
   const utils = api.useContext();
 
-  const providerRefineOptions = refineOptions[variant.modelProvider as SupportedProvider];
+  const refinementActions = frontendModelProviders[variant.modelProvider as SupportedProvider].refinementActions || {};
 
   const { mutateAsync: getModifiedPromptMutateAsync, data: refinedPromptFn } =
     api.promptVariants.getModifiedPromptFn.useMutation();
   const [instructions, setInstructions] = useState<string>("");
 
-  const [activeRefineOptionLabel, setActiveRefineOptionLabel] = useState<string | undefined>(
+  const [activeRefineActionLabel, setActiveRefineActionLabel] = useState<string | undefined>(
     undefined,
   );
 
@@ -49,15 +49,15 @@ export const RefinePromptModal = ({
     async (label?: string) => {
       if (!variant.experimentId) return;
       const updatedInstructions = label
-        ? (providerRefineOptions[label] as RefineOptionInfo).instructions
+        ? (refinementActions[label] as RefinementAction).instructions
         : instructions;
-      setActiveRefineOptionLabel(label);
+      setActiveRefineActionLabel(label);
       await getModifiedPromptMutateAsync({
         id: variant.id,
         instructions: updatedInstructions,
       });
     },
-    [getModifiedPromptMutateAsync, onClose, variant, instructions, setActiveRefineOptionLabel],
+    [getModifiedPromptMutateAsync, onClose, variant, instructions, setActiveRefineActionLabel],
   );
 
   const replaceVariantMutation = api.promptVariants.replaceVariant.useMutation();
@@ -95,18 +95,18 @@ export const RefinePromptModal = ({
         <ModalBody maxW="unset">
           <VStack spacing={8}>
             <VStack spacing={4}>
-              {Object.keys(providerRefineOptions).length && (
+              {Object.keys(refinementActions).length && (
                 <>
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-                    {Object.keys(providerRefineOptions).map((label) => (
-                      <RefineOption
+                    {Object.keys(refinementActions).map((label) => (
+                      <RefineAction
                         key={label}
                         label={label}
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        icon={providerRefineOptions[label]!.icon}
+                        icon={refinementActions[label]!.icon}
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        desciption={providerRefineOptions[label]!.description}
-                        activeLabel={activeRefineOptionLabel}
+                        desciption={refinementActions[label]!.description}
+                        activeLabel={activeRefineActionLabel}
                         onClick={getModifiedPromptFn}
                         loading={modificationInProgress}
                       />

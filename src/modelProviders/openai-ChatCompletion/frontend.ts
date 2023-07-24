@@ -2,6 +2,7 @@ import { type JsonValue } from "type-fest";
 import { type SupportedModel } from ".";
 import { type FrontendModelProvider } from "../types";
 import { type ChatCompletion } from "openai/resources/chat";
+import { refinementActions } from "./refinementActions";
 
 const frontendModelProvider: FrontendModelProvider<SupportedModel, ChatCompletion> = {
   name: "OpenAI ChatCompletion",
@@ -44,6 +45,8 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, ChatCompletio
       learnMoreUrl: "https://platform.openai.com/docs/guides/gpt/chat-completions-api",
     },
   },
+
+  refinementActions,
 
   normalizeOutput: (output) => {
     const message = output.choices[0]?.message;

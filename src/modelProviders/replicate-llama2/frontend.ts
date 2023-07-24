@@ -1,5 +1,6 @@
 import { type SupportedModel, type ReplicateLlama2Output } from ".";
 import { type FrontendModelProvider } from "../types";
+import { refinementActions } from "./refinementActions";
 
 const frontendModelProvider: FrontendModelProvider<SupportedModel, ReplicateLlama2Output> = {
   name: "Replicate Llama2",
@@ -30,6 +31,8 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, ReplicateLlam
       learnMoreUrl: "https://replicate.com/replicate/llama70b-v2-chat",
     },
   },
+
+  refinementActions,
 
   normalizeOutput: (output) => {
     return {
