@@ -35,7 +35,8 @@ export const RefinePromptModal = ({
 }) => {
   const utils = api.useContext();
 
-  const refinementActions = frontendModelProviders[variant.modelProvider as SupportedProvider].refinementActions || {};
+  const refinementActions =
+    frontendModelProviders[variant.modelProvider as SupportedProvider].refinementActions || {};
 
   const { mutateAsync: getModifiedPromptMutateAsync, data: refinedPromptFn } =
     api.promptVariants.getModifiedPromptFn.useMutation();
