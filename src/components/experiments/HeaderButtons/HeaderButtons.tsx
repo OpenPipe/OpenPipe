@@ -49,10 +49,7 @@ export const HeaderButtons = () => {
     <>
       <Menu>
         <MenuButton>
-          <Button
-            mt={{ base: 2, md: 0 }}
-            variant={{ base: "solid", md: "ghost" }}
-          >
+          <Button mt={{ base: 2, md: 0 }} variant={{ base: "solid", md: "ghost" }}>
             <HStack>
               <Icon as={BsGearFill} />
               <Text>Experiment Settings</Text>
