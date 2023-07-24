@@ -80,8 +80,7 @@ export const experimentsRouter = createTRPCRouter({
   }),
 
   fork: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ input, ctx }) => {
-    // Anyone can fork an experiment
-    requireNothing(ctx);
+    await requireCanViewExperiment(input.id, ctx);
 
     const [
       existingExp,
