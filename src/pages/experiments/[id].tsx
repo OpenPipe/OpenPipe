@@ -34,6 +34,10 @@ export default function Experiment() {
     setLabel(experiment.data?.label || "");
   }, [experiment.data?.label]);
 
+  useEffect(() => {
+    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
+  });
+
   const updateMutation = api.experiments.update.useMutation();
   const [onSaveLabel] = useHandledAsyncCallback(async () => {
     if (label && label !== experiment.data?.label && experiment.data?.id) {
@@ -44,10 +48,6 @@ export default function Experiment() {
       await Promise.all([utils.experiments.list.invalidate(), utils.experiments.get.invalidate()]);
     }
   }, [updateMutation, experiment.data?.id, experiment.data?.label, label]);
-
-  useEffect(() => {
-    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
-  });
 
   if (!experiment.isLoading && !experiment.data) {
     return (
