@@ -49,10 +49,6 @@ const DeleteButton = () => {
     onClose();
   }, [mutation, experiment.data?.id, router]);
 
-  useEffect(() => {
-    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
-  });
-
   return (
     <>
       <Button
@@ -101,6 +97,10 @@ export default function Experiment() {
   const utils = api.useContext();
   const openDrawer = useAppStore((s) => s.openDrawer);
   useSyncVariantEditor();
+
+  useEffect(() => {
+    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
+  });
 
   const [label, setLabel] = useState(experiment.data?.label || "");
   useEffect(() => {
