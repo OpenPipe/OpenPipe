@@ -22,7 +22,7 @@ export const OutputStats = ({
   return (
     <HStack w="full" align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
       <HStack flex={1}>
-        {modelOutput.outputEvaluation.map((evaluation) => {
+        {modelOutput.outputEvaluations.map((evaluation) => {
           const passed = evaluation.result > 0.5;
           return (
             <Tooltip

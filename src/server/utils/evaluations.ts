@@ -56,7 +56,7 @@ export const runAllEvals = async (experimentId: string) => {
           testScenario: true,
         },
       },
-      outputEvaluation: true,
+      outputEvaluations: true,
     },
   });
   const evals = await prisma.evaluation.findMany({
@@ -66,7 +66,7 @@ export const runAllEvals = async (experimentId: string) => {
   await Promise.all(
     outputs.map(async (output) => {
       const unrunEvals = evals.filter(
-        (evaluation) => !output.outputEvaluation.find((e) => e.evaluationId === evaluation.id),
+        (evaluation) => !output.outputEvaluations.find((e) => e.evaluationId === evaluation.id),
       );
 
       await Promise.all(

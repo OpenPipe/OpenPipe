@@ -8,7 +8,7 @@ export default async function userOrg(userId: string) {
     update: {},
     create: {
       personalOrgUserId: userId,
-      OrganizationUser: {
+      organizationUsers: {
         create: {
           userId: userId,
           role: "ADMIN",

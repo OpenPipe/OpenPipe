@@ -22,10 +22,10 @@ model Experiment {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    TemplateVariable TemplateVariable[]
-    PromptVariant    PromptVariant[]
-    TestScenario     TestScenario[]
-    Evaluation       Evaluation[]
+    templateVariables TemplateVariable[]
+    promptVariants    PromptVariant[]
+    testScenarios     TestScenario[]
+    evaluations       Evaluation[]
 }
 
 model PromptVariant {
@@ -126,7 +126,7 @@ model ModelOutput {
 
     scenarioVariantCellId String              @db.Uuid
     scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
-    outputEvaluation      OutputEvaluation[]
+    outputEvaluations      OutputEvaluation[]
 
     @@unique([scenarioVariantCellId])
     @@index([inputHash])
@@ -150,7 +150,7 @@ model Evaluation {
 
     createdAt        DateTime           @default(now())
     updatedAt        DateTime           @updatedAt
-    OutputEvaluation OutputEvaluation[]
+    outputEvaluations OutputEvaluation[]
 }
 
 model OutputEvaluation {
@@ -179,8 +179,8 @@ model Organization {
 
     createdAt        DateTime           @default(now())
     updatedAt        DateTime           @updatedAt
-    OrganizationUser OrganizationUser[]
-    Experiment       Experiment[]
+    organizationUsers OrganizationUser[]
+    experiments       Experiment[]
 }
 
 enum OrganizationUserRole {
@@ -234,15 +234,15 @@ model Session {
 }
 
 model User {
-    id               String             @id @default(uuid()) @db.Uuid
-    name             String?
-    email            String?            @unique
-    emailVerified    DateTime?
-    image            String?
-    accounts         Account[]
-    sessions         Session[]
-    OrganizationUser OrganizationUser[]
-    Organization     Organization[]
+    id                String             @id @default(uuid()) @db.Uuid
+    name              String?
+    email             String?            @unique
+    emailVerified     DateTime?
+    image             String?
+    accounts          Account[]
+    sessions          Session[]
+    organizationUsers OrganizationUser[]
+    organizations     Organization[]
 }
 
 model VerificationToken {

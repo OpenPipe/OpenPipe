@@ -29,7 +29,7 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
         include: {
           modelOutput: {
             include: {
-              outputEvaluation: {
+              outputEvaluations: {
                 include: {
                   evaluation: {
                     select: { label: true },
