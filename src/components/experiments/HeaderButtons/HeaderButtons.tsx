@@ -29,6 +29,8 @@ export const HeaderButtons = () => {
 
   const openDrawer = useAppStore((s) => s.openDrawer);
 
+  if (experiment.isLoading) return null;
+
   if (!canModify)
     return (
       <Button
@@ -48,7 +50,6 @@ export const HeaderButtons = () => {
       <Menu>
         <MenuButton>
           <Button
-            mr={4}
             mt={{ base: 2, md: 0 }}
             variant={{ base: "solid", md: "ghost" }}
           >
@@ -58,7 +59,7 @@ export const HeaderButtons = () => {
             </HStack>
           </Button>
         </MenuButton>
-        <MenuList fontSize="md" zIndex="dropdown">
+        <MenuList fontSize="md" zIndex="dropdown" mt={-1}>
           <MenuItem icon={<Icon as={BsPlus} boxSize={6} mx={-1} />} onClick={openDrawer}>
             Edit Vars & Evals
           </MenuItem>
