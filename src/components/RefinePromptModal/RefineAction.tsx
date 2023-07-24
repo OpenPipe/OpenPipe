@@ -1,7 +1,8 @@
 import { HStack, Icon, Heading, Text, VStack, GridItem } from "@chakra-ui/react";
 import { type IconType } from "react-icons";
+import { BsStars } from "react-icons/bs";
 
-export const RefineOption = ({
+export const RefineAction = ({
   label,
   icon,
   desciption,
@@ -10,7 +11,7 @@ export const RefineOption = ({
   loading,
 }: {
   label: string;
-  icon: IconType;
+  icon?: IconType;
   desciption: string;
   activeLabel: string | undefined;
   onClick: (label: string) => void;
@@ -44,7 +45,7 @@ export const RefineOption = ({
         opacity={loading ? 0.5 : 1}
       >
         <HStack cursor="pointer" spacing={6} fontSize="sm" fontWeight="medium" color="gray.500">
-          <Icon as={icon} boxSize={12} />
+          <Icon as={icon || BsStars} boxSize={12} />
           <Heading size="md" fontFamily="inconsolata, monospace">
             {label}
           </Heading>
