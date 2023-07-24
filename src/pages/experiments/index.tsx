@@ -13,7 +13,11 @@ import {
 import { RiFlaskLine } from "react-icons/ri";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
-import { ExperimentCard, NewExperimentCard } from "~/components/experiments/ExperimentCard";
+import {
+  ExperimentCard,
+  ExperimentCardSkeleton,
+  NewExperimentCard,
+} from "~/components/experiments/ExperimentCard";
 import { signIn, useSession } from "next-auth/react";
 
 export default function ExperimentsPage() {
@@ -58,7 +62,15 @@ export default function ExperimentsPage() {
         </HStack>
         <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} p="4">
           <NewExperimentCard />
-          {experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} />)}
+          {experiments.data && !experiments.isLoading ? (
+            experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} />)
+          ) : (
+            <>
+              <ExperimentCardSkeleton />
+              <ExperimentCardSkeleton />
+              <ExperimentCardSkeleton />
+            </>
+          )}
         </SimpleGrid>
       </VStack>
     </AppShell>

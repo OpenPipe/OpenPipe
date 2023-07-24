@@ -1,4 +1,13 @@
-import { HStack, Icon, VStack, Text, Divider, Spinner, AspectRatio } from "@chakra-ui/react";
+import {
+  HStack,
+  Icon,
+  VStack,
+  Text,
+  Divider,
+  Spinner,
+  AspectRatio,
+  SkeletonText,
+} from "@chakra-ui/react";
 import { RiFlaskLine } from "react-icons/ri";
 import { formatTimePast } from "~/utils/dayjs";
 import Link from "next/link";
@@ -93,3 +102,13 @@ export const NewExperimentCard = () => {
     </AspectRatio>
   );
 };
+
+export const ExperimentCardSkeleton = () => (
+  <AspectRatio ratio={1.2} w="full">
+    <VStack align="center" borderColor="gray.200" borderWidth={1} p={4} bg="gray.50">
+      <SkeletonText noOfLines={1} w="80%" />
+      <SkeletonText noOfLines={2} w="60%" />
+      <SkeletonText noOfLines={1} w="80%" />
+    </VStack>
+  </AspectRatio>
+);
