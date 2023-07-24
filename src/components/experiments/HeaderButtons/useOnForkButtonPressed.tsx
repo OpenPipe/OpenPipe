@@ -1,14 +1,11 @@
-import { Button, Icon, Spinner, Text } from "@chakra-ui/react";
-
 import { useCallback, useEffect } from "react";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
-import { TbGitFork } from "react-icons/tb";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import queryString from "query-string";
 
-export const ForkButton = () => {
+export const useOnForkButtonPressed = () => {
   const utils = api.useContext();
   const router = useRouter();
 
@@ -63,10 +60,5 @@ export const ForkButton = () => {
     }
   }, [router.query, user, onFork, router, experiment.data?.id]);
 
-  return (
-    <Button onClick={onForkButtonPressed} variant="ghost">
-      {isForking ? <Spinner boxSize={5} /> : <Icon as={TbGitFork} boxSize={5} color="gray.600" />}
-      <Text ml={2}>Fork Experiment</Text>
-    </Button>
-  );
+  return { onForkButtonPressed, isForking };
 };

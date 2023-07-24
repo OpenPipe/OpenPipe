@@ -2,20 +2,17 @@ import {
   Box,
   Breadcrumb,
   BreadcrumbItem,
-  Button,
   Center,
   Flex,
   Icon,
   Input,
   Text,
-  HStack,
   VStack,
 } from "@chakra-ui/react";
 import Link from "next/link";
 
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { BsGearFill } from "react-icons/bs";
 import { RiFlaskLine } from "react-icons/ri";
 import OutputsTable from "~/components/OutputsTable";
 import SettingsDrawer from "~/components/OutputsTable/SettingsDrawer";
@@ -24,14 +21,12 @@ import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { useSyncVariantEditor } from "~/state/sync";
-import { DeleteButton } from "../../components/experiments/DeleteButton";
-import { ForkButton } from "~/components/experiments/ForkButton";
+import { HeaderButtons } from "~/components/experiments/HeaderButtons/HeaderButtons";
 
 export default function Experiment() {
   const router = useRouter();
   const experiment = useExperiment();
   const utils = api.useContext();
-  const openDrawer = useAppStore((s) => s.openDrawer);
   useSyncVariantEditor();
 
   const [label, setLabel] = useState(experiment.data?.label || "");
@@ -71,10 +66,10 @@ export default function Experiment() {
       <VStack h="full">
         <Flex
           px={4}
-          py={2}
+          py={4}
           w="full"
           direction={{ base: "column", sm: "row" }}
-          alignItems="flex-start"
+          alignItems={{ base: "flex-start", sm: "center" }}
         >
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
@@ -108,26 +103,7 @@ export default function Experiment() {
             </BreadcrumbItem>
           </Breadcrumb>
 
-          <HStack>
-            <ForkButton />
-            {canModify && (
-              <>
-                <Button
-                  size="sm"
-                  variant={{ base: "outline", lg: "ghost" }}
-                  colorScheme="gray"
-                  fontWeight="normal"
-                  onClick={openDrawer}
-                >
-                  <Icon as={BsGearFill} boxSize={4} color="gray.600" />
-                  <Text display={{ base: "none", lg: "block" }} ml={2}>
-                    Edit Vars & Evals
-                  </Text>
-                </Button>
-                <DeleteButton />
-              </>
-            )}
-          </HStack>
+          <HeaderButtons />
         </Flex>
         <SettingsDrawer />
         <Box w="100%" overflowX="auto" flex={1}>
