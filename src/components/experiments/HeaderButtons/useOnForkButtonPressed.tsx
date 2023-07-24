@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import queryString from "query-string";
 
 export const useOnForkButtonPressed = () => {
-  const utils = api.useContext();
   const router = useRouter();
 
   const user = useSession().data;
@@ -17,7 +16,6 @@ export const useOnForkButtonPressed = () => {
   const [onFork, isForking] = useHandledAsyncCallback(async () => {
     if (!experiment.data?.id) return;
     const forkedExperiment = await forkMutation.mutateAsync({ id: experiment.data.id });
-    await utils.experiments.list.invalidate();
     await router.push({ pathname: "/experiments/[id]", query: { id: forkedExperiment.id } });
   }, [forkMutation, experiment.data?.id, router]);
 
