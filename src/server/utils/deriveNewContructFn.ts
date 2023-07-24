@@ -74,6 +74,11 @@ const requestUpdatedPromptFunction = async (
               2,
             )}`,
           });
+        } else {
+          messages.push({
+            role: "user",
+            content: `The provider is the same as the old provider: ${originalModel.provider}`,
+          })
         }
       }
       if (instructions) {
