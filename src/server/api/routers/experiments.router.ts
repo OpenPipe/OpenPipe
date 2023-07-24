@@ -203,7 +203,7 @@ export const experimentsRouter = createTRPCRouter({
         id: newCellId,
         promptVariantId: existingToNewVariantIds.get(cell.promptVariantId) ?? "",
         testScenarioId: existingToNewScenarioIds.get(cell.testScenarioId) ?? "",
-        prompt: cell.prompt as Prisma.InputJsonValue ?? undefined,
+        prompt: (cell.prompt as Prisma.InputJsonValue) ?? undefined,
       });
       if (modelOutput) {
         const newModelOutputId = uuidv4();
@@ -212,7 +212,7 @@ export const experimentsRouter = createTRPCRouter({
           ...modelOutputData,
           id: newModelOutputId,
           scenarioVariantCellId: newCellId,
-          output: modelOutput.output as Prisma.InputJsonValue ?? undefined,
+          output: (modelOutput.output as Prisma.InputJsonValue) ?? undefined,
         });
         for (const evaluation of outputEvaluations) {
           outputEvaluationsToCreate.push({
