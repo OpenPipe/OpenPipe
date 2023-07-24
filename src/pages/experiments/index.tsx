@@ -51,7 +51,7 @@ export default function ExperimentsPage() {
   return (
     <AppShell title="Experiments">
       <VStack alignItems={"flex-start"} px={4} py={2}>
-        <HStack minH={8} align="center">
+        <HStack minH={8} align="center" pt={2}>
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
               <Flex alignItems="center">

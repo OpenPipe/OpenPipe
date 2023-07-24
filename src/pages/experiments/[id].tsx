@@ -66,7 +66,7 @@ export default function Experiment() {
       <VStack h="full">
         <Flex
           px={4}
-          py={4}
+          py={2}
           w="full"
           direction={{ base: "column", sm: "row" }}
           alignItems={{ base: "flex-start", sm: "center" }}

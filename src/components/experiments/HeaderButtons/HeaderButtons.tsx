@@ -60,7 +60,7 @@ export const HeaderButtons = () => {
           <MenuItem icon={<Icon as={BsPlus} boxSize={6} mx={-1} />} onClick={openDrawer}>
             Edit Vars & Evals
           </MenuItem>
-          <MenuItem icon={<TbGitFork />} onClick={onForkButtonPressed}>
+          <MenuItem icon={<Icon as={TbGitFork} boxSize={4} />} onClick={onForkButtonPressed}>
             Fork
           </MenuItem>
           <MenuDivider />
