@@ -58,13 +58,13 @@ export const ForkButton = () => {
 
       onFork();
     };
-    if (router.query.fork === "true" && user) {
+    if (router.query.fork === "true" && user && experiment.data?.id) {
       void forkFromQuery();
     }
-  }, [router.query, user, onFork, router]);
+  }, [router.query, user, onFork, router, experiment.data?.id]);
 
   return (
-    <Button onClick={onForkButtonPressed}>
+    <Button onClick={onForkButtonPressed} variant="ghost">
       {isForking ? <Spinner boxSize={5} /> : <Icon as={TbGitFork} boxSize={5} color="gray.600" />}
       <Text ml={2}>Fork Experiment</Text>
     </Button>

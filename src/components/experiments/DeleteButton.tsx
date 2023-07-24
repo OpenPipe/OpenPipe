@@ -12,11 +12,10 @@ import {
 } from "@chakra-ui/react";
 
 import { useRouter } from "next/router";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { BsTrash } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
-import { useAppStore } from "~/state/store";
 
 export const DeleteButton = () => {
   const experiment = useExperiment();
@@ -34,10 +33,6 @@ export const DeleteButton = () => {
     await router.push({ pathname: "/experiments" });
     onClose();
   }, [deleteMutation, experiment.data?.id, router]);
-
-  useEffect(() => {
-    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
-  });
 
   return (
     <>

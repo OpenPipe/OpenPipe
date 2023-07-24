@@ -50,6 +50,10 @@ export default function Experiment() {
     }
   }, [updateMutation, experiment.data?.id, experiment.data?.label, label]);
 
+  useEffect(() => {
+    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
+  });
+
   if (!experiment.isLoading && !experiment.data) {
     return (
       <AppShell title="Experiment not found">
@@ -103,24 +107,27 @@ export default function Experiment() {
               )}
             </BreadcrumbItem>
           </Breadcrumb>
-          {canModify && (
-            <HStack>
-              <ForkButton />
-              <Button
-                size="sm"
-                variant={{ base: "outline", lg: "ghost" }}
-                colorScheme="gray"
-                fontWeight="normal"
-                onClick={openDrawer}
-              >
-                <Icon as={BsGearFill} boxSize={4} color="gray.600" />
-                <Text display={{ base: "none", lg: "block" }} ml={2}>
-                  Edit Vars & Evals
-                </Text>
-              </Button>
-              <DeleteButton />
-            </HStack>
-          )}
+
+          <HStack>
+            <ForkButton />
+            {canModify && (
+              <>
+                <Button
+                  size="sm"
+                  variant={{ base: "outline", lg: "ghost" }}
+                  colorScheme="gray"
+                  fontWeight="normal"
+                  onClick={openDrawer}
+                >
+                  <Icon as={BsGearFill} boxSize={4} color="gray.600" />
+                  <Text display={{ base: "none", lg: "block" }} ml={2}>
+                    Edit Vars & Evals
+                  </Text>
+                </Button>
+                <DeleteButton />
+              </>
+            )}
+          </HStack>
         </Flex>
         <SettingsDrawer />
         <Box w="100%" overflowX="auto" flex={1}>
