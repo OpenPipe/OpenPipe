@@ -9,6 +9,7 @@ import { ScenariosHeader } from "./ScenariosHeader";
 import { borders } from "./styles";
 import { useScenarios } from "~/utils/hooks";
 import ScenarioPaginator from "./ScenarioPaginator";
+import { Fragment } from "react";
 
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
   const variants = api.promptVariants.list.useQuery(
@@ -54,9 +55,8 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           marginLeft: i === 0 ? "-1px" : 0,
         };
         return (
-          <>
+          <Fragment key={variant.uiId}>
             <VariantHeader
-              key={variant.uiId}
               variant={variant}
               canHide={variants.data.length > 1}
               rowStart={1}
@@ -68,7 +68,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
             <GridItem rowStart={3} {...sharedProps}>
               <VariantStats variant={variant} />
             </GridItem>
-          </>
+          </Fragment>
         );
       })}
 
