@@ -81,10 +81,21 @@ export default function OutputCell({
       </Center>
     );
 
-  if (!cell && !fetchingOutput) return <Text color="gray.500">Error retrieving output</Text>;
+  if (!cell && !fetchingOutput)
+    return (
+      <VStack>
+        <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
+        <Text color="gray.500">Error retrieving output</Text>
+      </VStack>
+    );
 
   if (cell && cell.errorMessage) {
-    return <ErrorHandler cell={cell} refetchOutput={hardRefetch} />;
+    return (
+      <VStack>
+        <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
+        <ErrorHandler cell={cell} refetchOutput={hardRefetch} />
+      </VStack>
+    );
   }
 
   const normalizedOutput = modelOutput
