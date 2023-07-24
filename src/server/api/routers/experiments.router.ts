@@ -193,7 +193,6 @@ export const experimentsRouter = createTRPCRouter({
     }
 
     const cellsToCreate: Prisma.ScenarioVariantCellCreateManyInput[] = [];
-    const existingToNewModelOutputIds = new Map<string, string>();
     const modelOutputsToCreate: Prisma.ModelOutputCreateManyInput[] = [];
     const outputEvaluationsToCreate: Prisma.OutputEvaluationCreateManyInput[] = [];
     for (const cell of existingCells) {
@@ -209,7 +208,6 @@ export const experimentsRouter = createTRPCRouter({
       if (modelOutput) {
         const newModelOutputId = uuidv4();
         const { outputEvaluations, ...modelOutputData } = modelOutput;
-        existingToNewModelOutputIds.set(modelOutput.id, newModelOutputId);
         modelOutputsToCreate.push({
           ...modelOutputData,
           id: newModelOutputId,
