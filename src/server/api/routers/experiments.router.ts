@@ -137,22 +137,7 @@ export const experimentsRouter = createTRPCRouter({
       }),
     ]);
 
-    const maxSortIndex =
-      (
-        await prisma.experiment.aggregate({
-          _max: {
-            sortIndex: true,
-          },
-        })
-      )._max?.sortIndex ?? 0;
-
-    const newExperiment = await prisma.experiment.create({
-      data: {
-        sortIndex: maxSortIndex + 1,
-        label: `${existingExp.label} (forked)`,
-        organizationId: (await userOrg(ctx.session.user.id)).id,
-      },
-    });
+    const newExperimentId = uuidv4();
 
     const existingToNewVariantIds = new Map<string, string>();
     const variantsToCreate: Prisma.PromptVariantCreateManyInput[] = [];
@@ -162,7 +147,7 @@ export const experimentsRouter = createTRPCRouter({
       variantsToCreate.push({
         ...variant,
         id: newVariantId,
-        experimentId: newExperiment.id,
+        experimentId: newExperimentId,
       });
     }
 
@@ -174,7 +159,7 @@ export const experimentsRouter = createTRPCRouter({
       scenariosToCreate.push({
         ...scenario,
         id: newScenarioId,
-        experimentId: newExperiment.id,
+        experimentId: newExperimentId,
         variableValues: scenario.variableValues as Prisma.InputJsonValue,
       });
     }
@@ -187,7 +172,7 @@ export const experimentsRouter = createTRPCRouter({
       evaluationsToCreate.push({
         ...evaluation,
         id: newEvaluationId,
-        experimentId: newExperiment.id,
+        experimentId: newExperimentId,
       });
     }
 
@@ -229,11 +214,28 @@ export const experimentsRouter = createTRPCRouter({
       templateVariablesToCreate.push({
         ...templateVariable,
         id: uuidv4(),
-        experimentId: newExperiment.id,
+        experimentId: newExperimentId,
       });
     }
 
-    await prisma.$transaction([
+    const maxSortIndex =
+      (
+        await prisma.experiment.aggregate({
+          _max: {
+            sortIndex: true,
+          },
+        })
+      )._max?.sortIndex ?? 0;
+
+    const [newExperiment] = await prisma.$transaction([
+      prisma.experiment.create({
+        data: {
+          id: newExperimentId,
+          sortIndex: maxSortIndex + 1,
+          label: `${existingExp.label} (forked)`,
+          organizationId: (await userOrg(ctx.session.user.id)).id,
+        },
+      }),
       prisma.promptVariant.createMany({
         data: variantsToCreate,
       }),
