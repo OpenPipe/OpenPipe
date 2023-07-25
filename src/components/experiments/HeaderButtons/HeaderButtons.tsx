@@ -30,10 +30,7 @@ export const HeaderButtons = () => {
         <Text ml={2}>Fork</Text>
       </Button>
       {canModify && (
-        <Button
-          variant={{ base: "solid", md: "ghost" }}
-          onClick={openDrawer}
-        >
+        <Button variant={{ base: "solid", md: "ghost" }} onClick={openDrawer}>
           <HStack>
             <Icon as={BsGearFill} />
             <Text>Settings</Text>
