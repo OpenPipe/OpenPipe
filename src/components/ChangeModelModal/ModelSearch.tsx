@@ -1,49 +1,35 @@
-import { VStack, Text } from "@chakra-ui/react";
-import { type LegacyRef, useCallback } from "react";
-import Select, { type SingleValue } from "react-select";
+import { Text, VStack } from "@chakra-ui/react";
+import { type LegacyRef } from "react";
+import Select from "react-select";
 import { useElementDimensions } from "~/utils/hooks";
 
+import { flatMap } from "lodash-es";
 import frontendModelProviders from "~/modelProviders/frontendModelProviders";
-import { type Model } from "~/modelProviders/types";
-import { keyForModel } from "~/utils/utils";
+import { type ProviderModel } from "~/modelProviders/types";
+import { modelLabel } from "~/utils/utils";
 
-const modelOptions: { label: string; value: Model }[] = [];
+const modelOptions = flatMap(Object.entries(frontendModelProviders), ([providerId, provider]) =>
+  Object.entries(provider.models).map(([modelId]) => ({
+    provider: providerId,
+    model: modelId,
+  })),
+) as ProviderModel[];
 
-for (const [_, providerValue] of Object.entries(frontendModelProviders)) {
-  for (const [_, modelValue] of Object.entries(providerValue.models)) {
-    modelOptions.push({
-      label: keyForModel(modelValue),
-      value: modelValue,
-    });
-  }
-}
-
-export const ModelSearch = ({
-  selectedModel,
-  setSelectedModel,
-}: {
-  selectedModel: Model;
-  setSelectedModel: (model: Model) => void;
+export const ModelSearch = (props: {
+  selectedModel: ProviderModel;
+  setSelectedModel: (model: ProviderModel) => void;
 }) => {
-  const handleSelection = useCallback(
-    (option: SingleValue<{ label: string; value: Model }>) => {
-      if (!option) return;
-      setSelectedModel(option.value);
-    },
-    [setSelectedModel],
-  );
-  const selectedOption = modelOptions.find((option) => option.label === keyForModel(selectedModel));
-
   const [containerRef, containerDimensions] = useElementDimensions();
 
   return (
     <VStack ref={containerRef as LegacyRef<HTMLDivElement>} w="full">
       <Text>Browse Models</Text>
-      <Select
+      <Select<ProviderModel>
         styles={{ control: (provided) => ({ ...provided, width: containerDimensions?.width }) }}
-        value={selectedOption}
+        getOptionLabel={(data) => modelLabel(data.provider, data.model)}
+        getOptionValue={(data) => modelLabel(data.provider, data.model)}
         options={modelOptions}
-        onChange={handleSelection}
+        onChange={(option) => option && props.setSelectedModel(option)}
       />
     </VStack>
   );
