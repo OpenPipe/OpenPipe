@@ -29,14 +29,14 @@ export default function Experiment() {
   const utils = api.useContext();
   useSyncVariantEditor();
 
+  useEffect(() => {
+    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
+  });
+
   const [label, setLabel] = useState(experiment.data?.label || "");
   useEffect(() => {
     setLabel(experiment.data?.label || "");
   }, [experiment.data?.label]);
-
-  useEffect(() => {
-    useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
-  });
 
   const updateMutation = api.experiments.update.useMutation();
   const [onSaveLabel] = useHandledAsyncCallback(async () => {
