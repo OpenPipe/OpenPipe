@@ -17,7 +17,7 @@ export const HeaderButtons = () => {
   if (experiment.isLoading) return null;
 
   return (
-    <HStack spacing={0}>
+    <HStack spacing={0} mt={{ base: 2, md: 0 }}>
       <Button
         onClick={onForkButtonPressed}
         mr={4}
@@ -31,7 +31,6 @@ export const HeaderButtons = () => {
       </Button>
       {canModify && (
         <Button
-          mt={{ base: 2, md: 0 }}
           variant={{ base: "solid", md: "ghost" }}
           onClick={openDrawer}
         >
