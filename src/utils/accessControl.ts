@@ -22,7 +22,7 @@ export const canModifyExperiment = async (experimentId: string, userId: string) 
     where: {
       id: experimentId,
       organization: {
-        OrganizationUser: {
+        organizationUsers: {
           some: {
             role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
             userId,

@@ -2,100 +2,31 @@ import {
   Box,
   Breadcrumb,
   BreadcrumbItem,
-  Button,
   Center,
   Flex,
   Icon,
   Input,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  useDisclosure,
   Text,
-  HStack,
   VStack,
 } from "@chakra-ui/react";
 import Link from "next/link";
 
 import { useRouter } from "next/router";
-import { useState, useEffect, useRef } from "react";
-import { BsGearFill, BsTrash } from "react-icons/bs";
+import { useState, useEffect } from "react";
 import { RiFlaskLine } from "react-icons/ri";
 import OutputsTable from "~/components/OutputsTable";
-import SettingsDrawer from "~/components/OutputsTable/SettingsDrawer";
+import ExperimentSettingsDrawer from "~/components/ExperimentSettingsDrawer/ExperimentSettingsDrawer";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { useSyncVariantEditor } from "~/state/sync";
-
-const DeleteButton = () => {
-  const experiment = useExperiment();
-  const mutation = api.experiments.delete.useMutation();
-  const utils = api.useContext();
-  const router = useRouter();
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = useRef<HTMLButtonElement>(null);
-
-  const [onDeleteConfirm] = useHandledAsyncCallback(async () => {
-    if (!experiment.data?.id) return;
-    await mutation.mutateAsync({ id: experiment.data.id });
-    await utils.experiments.list.invalidate();
-    await router.push({ pathname: "/experiments" });
-    onClose();
-  }, [mutation, experiment.data?.id, router]);
-
-  return (
-    <>
-      <Button
-        size="sm"
-        variant={{ base: "outline", lg: "ghost" }}
-        colorScheme="gray"
-        fontWeight="normal"
-        onClick={onOpen}
-      >
-        <Icon as={BsTrash} boxSize={4} color="gray.600" />
-        <Text display={{ base: "none", lg: "block" }} ml={2}>
-          Delete Experiment
-        </Text>
-      </Button>
-
-      <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Experiment
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              If you delete this experiment all the associated prompts and scenarios will be deleted
-              as well. Are you sure?
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={onDeleteConfirm} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-    </>
-  );
-};
+import { HeaderButtons } from "~/components/experiments/HeaderButtons/HeaderButtons";
 
 export default function Experiment() {
   const router = useRouter();
   const experiment = useExperiment();
   const utils = api.useContext();
-  const openDrawer = useAppStore((s) => s.openDrawer);
   useSyncVariantEditor();
 
   useEffect(() => {
@@ -138,7 +69,7 @@ export default function Experiment() {
           py={2}
           w="full"
           direction={{ base: "column", sm: "row" }}
-          alignItems="flex-start"
+          alignItems={{ base: "flex-start", sm: "center" }}
         >
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
@@ -171,25 +102,9 @@ export default function Experiment() {
               )}
             </BreadcrumbItem>
           </Breadcrumb>
-          {canModify && (
-            <HStack>
-              <Button
-                size="sm"
-                variant={{ base: "outline", lg: "ghost" }}
-                colorScheme="gray"
-                fontWeight="normal"
-                onClick={openDrawer}
-              >
-                <Icon as={BsGearFill} boxSize={4} color="gray.600" />
-                <Text display={{ base: "none", lg: "block" }} ml={2}>
-                  Edit Vars & Evals
-                </Text>
-              </Button>
-              <DeleteButton />
-            </HStack>
-          )}
+          <HeaderButtons />
         </Flex>
-        <SettingsDrawer />
+        <ExperimentSettingsDrawer />
         <Box w="100%" overflowX="auto" flex={1}>
           <OutputsTable experimentId={router.query.id as string | undefined} />
         </Box>

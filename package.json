@@ -81,6 +81,7 @@
     "tsx": "^3.12.7",
     "type-fest": "^4.0.0",
     "use-query-params": "^2.2.1",
+    "uuid": "^9.0.0",
     "vite-tsconfig-paths": "^4.2.0",
     "zod": "^3.21.4",
     "zustand": "^4.3.9"
@@ -101,6 +102,7 @@
     "@types/react": "^18.2.6",
     "@types/react-dom": "^18.2.4",
     "@types/react-syntax-highlighter": "^15.5.7",
+    "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^5.59.6",
     "@typescript-eslint/parser": "^5.59.6",
     "eslint": "^8.40.0",
