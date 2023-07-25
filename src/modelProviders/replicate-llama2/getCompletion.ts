@@ -19,7 +19,7 @@ export async function getCompletion(
 ): Promise<CompletionResponse<ReplicateLlama2Output>> {
   const start = Date.now();
 
-  const { model, stream, ...rest } = input;
+  const { model, ...rest } = input;
 
   try {
     const prediction = await replicate.predictions.create({

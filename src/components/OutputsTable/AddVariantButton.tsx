@@ -2,7 +2,12 @@ import { Box, Flex, Icon, Spinner } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { Text } from "@chakra-ui/react";
 import { api } from "~/utils/api";
-import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
+import {
+  useExperiment,
+  useExperimentAccess,
+  useHandledAsyncCallback,
+  useVisibleScenarioIds,
+} from "~/utils/hooks";
 import { cellPadding } from "../constants";
 import { ActionButton } from "./ScenariosHeader";
 
@@ -10,11 +15,13 @@ export default function AddVariantButton() {
   const experiment = useExperiment();
   const mutation = api.promptVariants.create.useMutation();
   const utils = api.useContext();
+  const visibleScenarios = useVisibleScenarioIds();
 
   const [onClick, loading] = useHandledAsyncCallback(async () => {
     if (!experiment.data) return;
     await mutation.mutateAsync({
       experimentId: experiment.data.id,
+      streamScenarios: visibleScenarios,
     });
     await utils.promptVariants.list.invalidate();
   }, [mutation]);

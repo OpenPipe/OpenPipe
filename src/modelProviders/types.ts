@@ -48,7 +48,7 @@ export type CompletionResponse<T> =
 
 export type ModelProvider<SupportedModels extends string, InputSchema, OutputSchema> = {
   getModel: (input: InputSchema) => SupportedModels | null;
-  shouldStream: (input: InputSchema) => boolean;
+  canStream: boolean;
   inputSchema: JSONSchema4;
   getCompletion: (
     input: InputSchema,

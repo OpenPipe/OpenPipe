@@ -19,7 +19,7 @@ import { useState } from "react";
 import { RiExchangeFundsFill } from "react-icons/ri";
 import { type ProviderModel } from "~/modelProviders/types";
 import { api } from "~/utils/api";
-import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import { useExperiment, useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
 import { lookupModel, modelLabel } from "~/utils/utils";
 import CompareFunctions from "../RefinePromptModal/CompareFunctions";
 import { ModelSearch } from "./ModelSearch";
@@ -38,6 +38,7 @@ export const ChangeModelModal = ({
     model: variant.model,
   } as ProviderModel);
   const [convertedModel, setConvertedModel] = useState<ProviderModel | undefined>();
+  const visibleScenarios = useVisibleScenarioIds();
 
   const utils = api.useContext();
 
@@ -68,6 +69,7 @@ export const ChangeModelModal = ({
     await replaceVariantMutation.mutateAsync({
       id: variant.id,
       constructFn: modifiedPromptFn,
+      streamScenarios: visibleScenarios,
     });
     await utils.promptVariants.list.invalidate();
     onClose();

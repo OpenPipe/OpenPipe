@@ -9,7 +9,6 @@ export type SupportedModel = (typeof supportedModels)[number];
 export type ReplicateLlama2Input = {
   model: SupportedModel;
   prompt: string;
-  stream?: boolean;
   max_length?: number;
   temperature?: number;
   top_p?: number;
@@ -47,10 +46,6 @@ const modelProvider: ReplicateLlama2Provider = {
         type: "string",
         description: "Prompt to send to Llama v2.",
       },
-      stream: {
-        type: "boolean",
-        description: "Whether to stream output from Llama v2.",
-      },
       max_new_tokens: {
         type: "number",
         description:
@@ -78,7 +73,7 @@ const modelProvider: ReplicateLlama2Provider = {
     },
     required: ["model", "prompt"],
   },
-  shouldStream: (input) => input.stream ?? false,
+  canStream: true,
   getCompletion,
   ...frontendModelProvider,
 };

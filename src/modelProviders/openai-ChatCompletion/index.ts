@@ -37,7 +37,7 @@ const modelProvider: OpenaiChatModelProvider = {
     return null;
   },
   inputSchema: inputSchema as JSONSchema4,
-  shouldStream: (input) => input.stream ?? false,
+  canStream: true,
   getCompletion,
   ...frontendModelProvider,
 };

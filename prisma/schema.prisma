@@ -90,11 +90,10 @@ enum CellRetrievalStatus {
 model ScenarioVariantCell {
     id String @id @default(uuid()) @db.Uuid
 
-    statusCode       Int?
-    errorMessage     String?
-    retryTime        DateTime?
-    streamingChannel String?
-    retrievalStatus  CellRetrievalStatus @default(COMPLETE)
+    statusCode      Int?
+    errorMessage    String?
+    retryTime       DateTime?
+    retrievalStatus CellRetrievalStatus @default(COMPLETE)
 
     modelOutput ModelOutput?
 

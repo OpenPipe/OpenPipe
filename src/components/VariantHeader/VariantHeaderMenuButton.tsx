@@ -1,8 +1,7 @@
 import { type PromptVariant } from "../OutputsTable/types";
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback } from "~/utils/hooks";
+import { useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
 import {
-  Button,
   Icon,
   Menu,
   MenuButton,
@@ -11,6 +10,7 @@ import {
   MenuDivider,
   Text,
   Spinner,
+  IconButton,
 } from "@chakra-ui/react";
 import { BsFillTrashFill, BsGear, BsStars } from "react-icons/bs";
 import { FaRegClone } from "react-icons/fa";
@@ -33,11 +33,13 @@ export default function VariantHeaderMenuButton({
   const utils = api.useContext();
 
   const duplicateMutation = api.promptVariants.create.useMutation();
+  const visibleScenarios = useVisibleScenarioIds();
 
   const [duplicateVariant, duplicationInProgress] = useHandledAsyncCallback(async () => {
     await duplicateMutation.mutateAsync({
       experimentId: variant.experimentId,
       variantId: variant.id,
+      streamScenarios: visibleScenarios,
     });
     await utils.promptVariants.list.invalidate();
   }, [duplicateMutation, variant.experimentId, variant.id]);
@@ -56,15 +58,12 @@ export default function VariantHeaderMenuButton({
   return (
     <>
       <Menu isOpen={menuOpen} onOpen={() => setMenuOpen(true)} onClose={() => setMenuOpen(false)}>
-        {duplicationInProgress ? (
-          <Spinner boxSize={4} mx={3} my={3} />
-        ) : (
-          <MenuButton>
-            <Button variant="ghost">
-              <Icon as={BsGear} />
-            </Button>
-          </MenuButton>
-        )}
+        <MenuButton
+          as={IconButton}
+          variant="ghost"
+          aria-label="Edit Scenarios"
+          icon={<Icon as={duplicationInProgress ? Spinner : BsGear} />}
+        />
 
         <MenuList mt={-3} fontSize="md">
           <MenuItem icon={<Icon as={FaRegClone} boxSize={4} w={5} />} onClick={duplicateVariant}>

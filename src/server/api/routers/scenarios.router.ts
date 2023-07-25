@@ -86,7 +86,7 @@ export const scenariosRouter = createTRPCRouter({
       });
 
       for (const variant of promptVariants) {
-        await generateNewCell(variant.id, scenario.id);
+        await generateNewCell(variant.id, scenario.id, { stream: true });
       }
     }),
 
@@ -230,7 +230,7 @@ export const scenariosRouter = createTRPCRouter({
       });
 
       for (const variant of promptVariants) {
-        await generateNewCell(variant.id, newScenario.id);
+        await generateNewCell(variant.id, newScenario.id, { stream: true });
       }
 
       return newScenario;

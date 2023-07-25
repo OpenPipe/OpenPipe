@@ -54,13 +54,13 @@ export const ScenariosHeader = () => {
       </Text>
       {canModify && (
         <Menu>
-          <MenuButton mt={1}>
-            <IconButton
-              variant="ghost"
-              aria-label="Edit Scenarios"
-              icon={<Icon as={loading ? Spinner : BsGear} />}
-            />
-          </MenuButton>
+          <MenuButton
+            as={IconButton}
+            mt={1}
+            variant="ghost"
+            aria-label="Edit Scenarios"
+            icon={<Icon as={loading ? Spinner : BsGear} />}
+          />
           <MenuList fontSize="md" zIndex="dropdown" mt={-3}>
             <MenuItem
               icon={<Icon as={BsPlus} boxSize={6} mx="-5px" />}

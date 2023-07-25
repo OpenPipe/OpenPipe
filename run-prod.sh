@@ -6,4 +6,7 @@ echo "Migrating the database"
 pnpm prisma migrate deploy
 
 echo "Starting the server"
-pnpm start
+
+pnpm concurrently --kill-others \
+  "pnpm start" \
+  "pnpm tsx src/server/tasks/worker.ts"

@@ -2,19 +2,24 @@ import {
   Box,
   Button,
   HStack,
+  IconButton,
   Spinner,
+  Text,
   Tooltip,
   useToast,
-  Text,
-  IconButton,
 } from "@chakra-ui/react";
-import { useRef, useEffect, useState, useCallback } from "react";
-import { useExperimentAccess, useHandledAsyncCallback, useModifierKeyLabel } from "~/utils/hooks";
-import { type PromptVariant } from "./types";
-import { api } from "~/utils/api";
-import { useAppStore } from "~/state/store";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FiMaximize, FiMinimize } from "react-icons/fi";
 import { editorBackground } from "~/state/sharedVariantEditor.slice";
+import { useAppStore } from "~/state/store";
+import { api } from "~/utils/api";
+import {
+  useExperimentAccess,
+  useHandledAsyncCallback,
+  useModifierKeyLabel,
+  useVisibleScenarioIds,
+} from "~/utils/hooks";
+import { type PromptVariant } from "./types";
 
 export default function VariantEditor(props: { variant: PromptVariant }) {
   const { canModify } = useExperimentAccess();
@@ -63,6 +68,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
   const replaceVariant = api.promptVariants.replaceVariant.useMutation();
   const utils = api.useContext();
   const toast = useToast();
+  const visibleScenarios = useVisibleScenarioIds();
 
   const [onSave, saveInProgress] = useHandledAsyncCallback(async () => {
     if (!editorRef.current) return;
@@ -91,6 +97,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
     const resp = await replaceVariant.mutateAsync({
       id: props.variant.id,
       constructFn: currentFn,
+      streamScenarios: visibleScenarios,
     });
     if (resp.status === "error") {
       return toast({
