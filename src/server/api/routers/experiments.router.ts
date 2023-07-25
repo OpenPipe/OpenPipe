@@ -227,7 +227,7 @@ export const experimentsRouter = createTRPCRouter({
         })
       )._max?.sortIndex ?? 0;
 
-    const [newExperiment] = await prisma.$transaction([
+    await prisma.$transaction([
       prisma.experiment.create({
         data: {
           id: newExperimentId,
@@ -259,13 +259,7 @@ export const experimentsRouter = createTRPCRouter({
       }),
     ]);
 
-    return {
-      ...newExperiment,
-      access: {
-        canView: true,
-        canModify: true,
-      },
-    };
+    return newExperimentId;
   }),
 
   create: protectedProcedure.input(z.object({})).mutation(async ({ ctx }) => {
