@@ -36,17 +36,9 @@ export const DeleteButton = () => {
 
   return (
     <>
-      <Button
-        size="sm"
-        variant={{ base: "outline", lg: "ghost" }}
-        colorScheme="red"
-        fontWeight="normal"
-        onClick={onOpen}
-      >
+      <Button size="sm" variant="ghost" colorScheme="red" fontWeight="normal" onClick={onOpen}>
         <Icon as={BsTrash} boxSize={4} />
-        <Text display={{ base: "none", lg: "block" }} ml={2}>
-          Delete Experiment
-        </Text>
+        <Text ml={2}>Delete Experiment</Text>
       </Button>
 
       <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>

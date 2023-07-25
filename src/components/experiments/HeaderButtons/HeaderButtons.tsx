@@ -24,7 +24,7 @@ export const HeaderButtons = () => {
         colorScheme={canModify ? undefined : "orange"}
         bgColor={canModify ? undefined : "orange.400"}
         minW={0}
-        variant={canModify ? "ghost" : "solid"}
+        variant={{ base: "solid", md: canModify ? "ghost" : "solid" }}
       >
         {isForking ? <Spinner boxSize={5} /> : <Icon as={TbGitFork} boxSize={5} />}
         <Text ml={2}>Fork</Text>
