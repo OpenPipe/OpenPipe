@@ -145,6 +145,7 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         experimentId: z.string(),
         variantId: z.string().optional(),
+        streamScenarios: z.array(z.string()),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -218,7 +219,9 @@ export const promptVariantsRouter = createTRPCRouter({
       });
 
       for (const scenario of scenarios) {
-        await generateNewCell(newVariant.id, scenario.id);
+        await generateNewCell(newVariant.id, scenario.id, {
+          stream: input.streamScenarios.includes(scenario.id),
+        });
       }
 
       return newVariant;
@@ -325,6 +328,7 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         constructFn: z.string(),
+        streamScenarios: z.array(z.string()),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -382,7 +386,9 @@ export const promptVariantsRouter = createTRPCRouter({
       });
 
       for (const scenario of scenarios) {
-        await generateNewCell(newVariant.id, scenario.id);
+        await generateNewCell(newVariant.id, scenario.id, {
+          stream: input.streamScenarios.includes(scenario.id),
+        });
       }
 
       return { status: "ok" } as const;

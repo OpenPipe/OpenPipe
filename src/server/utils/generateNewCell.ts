@@ -1,12 +1,18 @@
 import { type Prisma } from "@prisma/client";
 import { prisma } from "../db";
-import { queueLLMRetrievalTask } from "./queueLLMRetrievalTask";
 import parseConstructFn from "./parseConstructFn";
 import { type JsonObject } from "type-fest";
 import hashPrompt from "./hashPrompt";
 import { omit } from "lodash-es";
+import { queueQueryModel } from "../tasks/queryModel.task";
 
-export const generateNewCell = async (variantId: string, scenarioId: string): Promise<void> => {
+export const generateNewCell = async (
+  variantId: string,
+  scenarioId: string,
+  options?: { stream?: boolean },
+): Promise<void> => {
+  const stream = options?.stream ?? false;
+
   const variant = await prisma.promptVariant.findUnique({
     where: {
       id: variantId,
@@ -98,6 +104,6 @@ export const generateNewCell = async (variantId: string, scenarioId: string): Pr
       }),
     );
   } else {
-    cell = await queueLLMRetrievalTask(cell.id);
+    await queueQueryModel(cell.id, stream);
   }
 };

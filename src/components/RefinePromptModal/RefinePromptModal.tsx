@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { BsStars } from "react-icons/bs";
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback } from "~/utils/hooks";
+import { useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
 import { type PromptVariant } from "@prisma/client";
 import { useState } from "react";
 import CompareFunctions from "./CompareFunctions";
@@ -34,6 +34,7 @@ export const RefinePromptModal = ({
   onClose: () => void;
 }) => {
   const utils = api.useContext();
+  const visibleScenarios = useVisibleScenarioIds();
 
   const refinementActions =
     frontendModelProviders[variant.modelProvider as SupportedProvider].refinementActions || {};
@@ -73,6 +74,7 @@ export const RefinePromptModal = ({
     await replaceVariantMutation.mutateAsync({
       id: variant.id,
       constructFn: refinedPromptFn,
+      streamScenarios: visibleScenarios,
     });
     await utils.promptVariants.list.invalidate();
     onClose();

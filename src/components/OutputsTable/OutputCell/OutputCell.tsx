@@ -67,8 +67,8 @@ export default function OutputCell({
 
   const modelOutput = cell?.modelOutput;
 
-  // Disconnect from socket if we're not streaming anymore
-  const streamedMessage = useSocket<OutputSchema>(cell?.streamingChannel);
+  // TODO: disconnect from socket if we're not streaming anymore
+  const streamedMessage = useSocket<OutputSchema>(cell?.id);
 
   if (!vars) return null;
 

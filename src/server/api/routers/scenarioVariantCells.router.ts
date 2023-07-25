@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { queueQueryModel } from "~/server/tasks/queryModel.task";
 import { generateNewCell } from "~/server/utils/generateNewCell";
-import { queueLLMRetrievalTask } from "~/server/utils/queueLLMRetrievalTask";
 import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 
 export const scenarioVariantCellsRouter = createTRPCRouter({
@@ -62,14 +62,12 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
             testScenarioId: input.scenarioId,
           },
         },
-        include: {
-          modelOutput: true,
-        },
+        include: { modelOutput: true },
       });
 
       if (!cell) {
-        await generateNewCell(input.variantId, input.scenarioId);
-        return true;
+        await generateNewCell(input.variantId, input.scenarioId, { stream: true });
+        return;
       }
 
       if (cell.modelOutput) {
@@ -79,12 +77,6 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
         });
       }
 
-      await prisma.scenarioVariantCell.update({
-        where: { id: cell.id },
-        data: { retrievalStatus: "PENDING" },
-      });
-
-      await queueLLMRetrievalTask(cell.id);
-      return true;
+      await queueQueryModel(cell.id, true);
     }),
 });

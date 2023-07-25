@@ -106,3 +106,5 @@ export const useScenarios = () => {
     { enabled: experiment.data?.id != null },
   );
 };
+
+export const useVisibleScenarioIds = () => useScenarios().data?.scenarios.map((s) => s.id) ?? [];

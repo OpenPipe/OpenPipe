@@ -164,5 +164,5 @@ await Promise.all(
         testScenarioId: scenario.id,
       })),
     )
-    .map((cell) => generateNewCell(cell.promptVariantId, cell.testScenarioId)),
+    .map((cell) => generateNewCell(cell.promptVariantId, cell.testScenarioId, { stream: false })),
 );

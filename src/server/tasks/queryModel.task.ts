@@ -1,17 +1,17 @@
-import { prisma } from "~/server/db";
-import defineTask from "./defineTask";
-import { sleep } from "../utils/sleep";
-import { generateChannel } from "~/utils/generateChannel";
-import { runEvalsForOutput } from "../utils/evaluations";
 import { type Prisma } from "@prisma/client";
-import parseConstructFn from "../utils/parseConstructFn";
-import hashPrompt from "../utils/hashPrompt";
 import { type JsonObject } from "type-fest";
 import modelProviders from "~/modelProviders/modelProviders";
+import { prisma } from "~/server/db";
 import { wsConnection } from "~/utils/wsConnection";
+import { runEvalsForOutput } from "../utils/evaluations";
+import hashPrompt from "../utils/hashPrompt";
+import parseConstructFn from "../utils/parseConstructFn";
+import { sleep } from "../utils/sleep";
+import defineTask from "./defineTask";
 
-export type queryLLMJob = {
-  scenarioVariantCellId: string;
+export type QueryModelJob = {
+  cellId: string;
+  stream: boolean;
 };
 
 const MAX_AUTO_RETRIES = 10;
@@ -24,15 +24,16 @@ function calculateDelay(numPreviousTries: number): number {
   return baseDelay + jitter;
 }
 
-export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
-  const { scenarioVariantCellId } = task;
+export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) => {
+  console.log("RUNNING TASK", task);
+  const { cellId, stream } = task;
   const cell = await prisma.scenarioVariantCell.findUnique({
-    where: { id: scenarioVariantCellId },
+    where: { id: cellId },
     include: { modelOutput: true },
   });
   if (!cell) {
     await prisma.scenarioVariantCell.update({
-      where: { id: scenarioVariantCellId },
+      where: { id: cellId },
       data: {
         statusCode: 404,
         errorMessage: "Cell not found",
@@ -47,7 +48,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     return;
   }
   await prisma.scenarioVariantCell.update({
-    where: { id: scenarioVariantCellId },
+    where: { id: cellId },
     data: {
       retrievalStatus: "IN_PROGRESS",
     },
@@ -58,7 +59,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
   });
   if (!variant) {
     await prisma.scenarioVariantCell.update({
-      where: { id: scenarioVariantCellId },
+      where: { id: cellId },
       data: {
         statusCode: 404,
         errorMessage: "Prompt Variant not found",
@@ -73,7 +74,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
   });
   if (!scenario) {
     await prisma.scenarioVariantCell.update({
-      where: { id: scenarioVariantCellId },
+      where: { id: cellId },
       data: {
         statusCode: 404,
         errorMessage: "Scenario not found",
@@ -87,7 +88,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
   if ("error" in prompt) {
     await prisma.scenarioVariantCell.update({
-      where: { id: scenarioVariantCellId },
+      where: { id: cellId },
       data: {
         statusCode: 400,
         errorMessage: prompt.error,
@@ -99,18 +100,9 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
   const provider = modelProviders[prompt.modelProvider];
 
-  const streamingChannel = provider.shouldStream(prompt.modelInput) ? generateChannel() : null;
-
-  if (streamingChannel) {
-    // Save streaming channel so that UI can connect to it
-    await prisma.scenarioVariantCell.update({
-      where: { id: scenarioVariantCellId },
-      data: { streamingChannel },
-    });
-  }
-  const onStream = streamingChannel
+  const onStream = stream
     ? (partialOutput: (typeof provider)["_outputSchema"]) => {
-        wsConnection.emit("message", { channel: streamingChannel, payload: partialOutput });
+        wsConnection.emit("message", { channel: cell.id, payload: partialOutput });
       }
     : null;
 
@@ -121,7 +113,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
 
       const modelOutput = await prisma.modelOutput.create({
         data: {
-          scenarioVariantCellId,
+          scenarioVariantCellId: cellId,
           inputHash,
           output: response.value as Prisma.InputJsonObject,
           timeToComplete: response.timeToComplete,
@@ -132,7 +124,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
       });
 
       await prisma.scenarioVariantCell.update({
-        where: { id: scenarioVariantCellId },
+        where: { id: cellId },
         data: {
           statusCode: response.statusCode,
           retrievalStatus: "COMPLETE",
@@ -146,7 +138,7 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
       const delay = calculateDelay(i);
 
       await prisma.scenarioVariantCell.update({
-        where: { id: scenarioVariantCellId },
+        where: { id: cellId },
         data: {
           errorMessage: response.message,
           statusCode: response.statusCode,
@@ -163,3 +155,21 @@ export const queryLLM = defineTask<queryLLMJob>("queryLLM", async (task) => {
     }
   }
 });
+
+export const queueQueryModel = async (cellId: string, stream: boolean) => {
+  console.log("queueQueryModel", cellId, stream);
+  await Promise.all([
+    prisma.scenarioVariantCell.update({
+      where: {
+        id: cellId,
+      },
+      data: {
+        retrievalStatus: "PENDING",
+        errorMessage: null,
+      },
+    }),
+
+    await queryModel.enqueue({ cellId, stream }),
+    console.log("queued"),
+  ]);
+};
