@@ -157,7 +157,6 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
 });
 
 export const queueQueryModel = async (cellId: string, stream: boolean) => {
-  console.log("queueQueryModel", cellId, stream);
   await Promise.all([
     prisma.scenarioVariantCell.update({
       where: {
@@ -168,8 +167,6 @@ export const queueQueryModel = async (cellId: string, stream: boolean) => {
         errorMessage: null,
       },
     }),
-
-    await queryModel.enqueue({ cellId, stream }),
-    console.log("queued"),
+    queryModel.enqueue({ cellId, stream }),
   ]);
 };

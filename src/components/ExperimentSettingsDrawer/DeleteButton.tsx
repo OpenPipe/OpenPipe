@@ -38,13 +38,13 @@ export const DeleteButton = () => {
     <>
       <Button
         size="sm"
-        variant={{ base: "outline", lg: "ghost" }}
+        variant="ghost"
         colorScheme="red"
         fontWeight="normal"
         onClick={onOpen}
       >
         <Icon as={BsTrash} boxSize={4} />
-        <Text display={{ base: "none", lg: "block" }} ml={2}>
+        <Text ml={2}>
           Delete Experiment
         </Text>
       </Button>
