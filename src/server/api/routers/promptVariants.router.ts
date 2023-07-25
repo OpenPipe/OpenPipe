@@ -9,7 +9,8 @@ import { type PromptVariant } from "@prisma/client";
 import { deriveNewConstructFn } from "~/server/utils/deriveNewContructFn";
 import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 import parseConstructFn from "~/server/utils/parseConstructFn";
-import { ZodModel } from "~/modelProviders/types";
+import modelProviders from "~/modelProviders/modelProviders";
+import { ZodSupportedProvider } from "~/modelProviders/types";
 
 export const promptVariantsRouter = createTRPCRouter({
   list: publicProcedure
@@ -144,7 +145,6 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         experimentId: z.string(),
         variantId: z.string().optional(),
-        newModel: ZodModel.optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -186,7 +186,7 @@ export const promptVariantsRouter = createTRPCRouter({
           ? `${originalVariant?.label} Copy`
           : `Prompt Variant ${largestSortIndex + 2}`;
 
-      const newConstructFn = await deriveNewConstructFn(originalVariant, input.newModel);
+      const newConstructFn = await deriveNewConstructFn(originalVariant);
 
       const createNewVariantAction = prisma.promptVariant.create({
         data: {
@@ -286,7 +286,12 @@ export const promptVariantsRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         instructions: z.string().optional(),
-        newModel: ZodModel.optional(),
+        newModel: z
+          .object({
+            provider: ZodSupportedProvider,
+            model: z.string(),
+          })
+          .optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -303,11 +308,11 @@ export const promptVariantsRouter = createTRPCRouter({
         return userError(constructedPrompt.error);
       }
 
-      const promptConstructionFn = await deriveNewConstructFn(
-        existing,
-        input.newModel,
-        input.instructions,
-      );
+      const model = input.newModel
+        ? modelProviders[input.newModel.provider].models[input.newModel.model]
+        : undefined;
+
+      const promptConstructionFn = await deriveNewConstructFn(existing, model, input.instructions);
 
       // TODO: Validate promptConstructionFn
       // TODO: Record in some sort of history

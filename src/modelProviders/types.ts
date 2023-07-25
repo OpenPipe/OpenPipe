@@ -3,26 +3,26 @@ import { type IconType } from "react-icons";
 import { type JsonValue } from "type-fest";
 import { z } from "zod";
 
-const ZodSupportedProvider = z.union([
+export const ZodSupportedProvider = z.union([
   z.literal("openai/ChatCompletion"),
   z.literal("replicate/llama2"),
 ]);
 
 export type SupportedProvider = z.infer<typeof ZodSupportedProvider>;
 
-export const ZodModel = z.object({
-  name: z.string(),
-  contextWindow: z.number(),
-  promptTokenPrice: z.number().optional(),
-  completionTokenPrice: z.number().optional(),
-  pricePerSecond: z.number().optional(),
-  speed: z.union([z.literal("fast"), z.literal("medium"), z.literal("slow")]),
-  provider: ZodSupportedProvider,
-  description: z.string().optional(),
-  learnMoreUrl: z.string().optional(),
-});
+export type Model = {
+  name: string;
+  contextWindow: number;
+  promptTokenPrice?: number;
+  completionTokenPrice?: number;
+  pricePerSecond?: number;
+  speed: "fast" | "medium" | "slow";
+  provider: SupportedProvider;
+  description?: string;
+  learnMoreUrl?: string;
+};
 
-export type Model = z.infer<typeof ZodModel>;
+export type ProviderModel = { provider: z.infer<typeof ZodSupportedProvider>; model: string };
 
 export type RefinementAction = { icon?: IconType; description: string; instructions: string };
 

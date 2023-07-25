@@ -1,15 +1,22 @@
 import {
-  VStack,
-  Text,
-  HStack,
-  type StackProps,
   GridItem,
-  SimpleGrid,
+  HStack,
   Link,
+  SimpleGrid,
+  Text,
+  VStack,
+  type StackProps,
 } from "@chakra-ui/react";
-import { type Model } from "~/modelProviders/types";
+import { type lookupModel } from "~/utils/utils";
 
-export const ModelStatsCard = ({ label, model }: { label: string; model: Model }) => {
+export const ModelStatsCard = ({
+  label,
+  model,
+}: {
+  label: string;
+  model: ReturnType<typeof lookupModel>;
+}) => {
+  if (!model) return null;
   return (
     <VStack w="full" align="start">
       <Text fontWeight="bold" fontSize="sm" textTransform="uppercase">
