@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { RiFlaskLine } from "react-icons/ri";
 import OutputsTable from "~/components/OutputsTable";
-import SettingsDrawer from "~/components/OutputsTable/SettingsDrawer";
+import ExperimentSettingsDrawer from "~/components/ExperimentSettingsDrawer/ExperimentSettingsDrawer";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
@@ -104,7 +104,7 @@ export default function Experiment() {
           </Breadcrumb>
           <HeaderButtons />
         </Flex>
-        <SettingsDrawer />
+        <ExperimentSettingsDrawer />
         <Box w="100%" overflowX="auto" flex={1}>
           <OutputsTable experimentId={router.query.id as string | undefined} />
         </Box>
