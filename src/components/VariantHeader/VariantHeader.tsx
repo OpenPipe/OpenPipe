@@ -6,7 +6,6 @@ import { useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
 import { HStack, Icon, Text, GridItem, type GridItemProps } from "@chakra-ui/react"; // Changed here
 import { cellPadding, headerMinHeight } from "../constants";
 import AutoResizeTextArea from "../AutoResizeTextArea";
-import { stickyHeaderStyle } from "../OutputsTable/styles";
 import VariantHeaderMenuButton from "./VariantHeaderMenuButton";
 
 export default function VariantHeader(
@@ -53,7 +52,17 @@ export default function VariantHeader(
 
   if (!canModify) {
     return (
-      <GridItem padding={0} sx={stickyHeaderStyle} borderTopWidth={1} {...gridItemProps}>
+      <GridItem
+        padding={0}
+        sx={{
+          position: "sticky",
+          top: "0",
+          // Ensure that the menu always appears above the sticky header of other variants
+          zIndex: menuOpen ? "dropdown" : 10,
+        }}
+        borderTopWidth={1}
+        {...gridItemProps}
+      >
         <Text fontSize={16} fontWeight="bold" px={cellPadding.x} py={cellPadding.y}>
           {variant.label}
         </Text>
@@ -65,15 +74,16 @@ export default function VariantHeader(
     <GridItem
       padding={0}
       sx={{
-        ...stickyHeaderStyle,
+        position: "sticky",
+        top: "0",
         // Ensure that the menu always appears above the sticky header of other variants
-        zIndex: menuOpen ? "dropdown" : stickyHeaderStyle.zIndex,
+        zIndex: menuOpen ? "dropdown" : 10,
       }}
       borderTopWidth={1}
       {...gridItemProps}
     >
       <HStack
-        spacing={4}
+        spacing={2}
         alignItems="flex-start"
         minH={headerMinHeight}
         draggable={!isInputHovered}
@@ -92,7 +102,8 @@ export default function VariantHeader(
           setIsDragTarget(false);
         }}
         onDrop={onReorder}
-        backgroundColor={isDragTarget ? "gray.100" : "transparent"}
+        backgroundColor={isDragTarget ? "gray.200" : "gray.100"}
+        h="full"
       >
         <Icon
           as={RiDraggable}

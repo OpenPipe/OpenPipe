@@ -33,7 +33,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
     <Grid
       pt={4}
       pb={24}
-      pl={4}
+      pl={8}
       display="grid"
       gridTemplateColumns={`250px repeat(${variants.data.length}, minmax(300px, 1fr)) auto`}
       sx={{
@@ -53,6 +53,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           colStart: i + 2,
           borderLeftWidth: i === 0 ? 1 : 0,
           marginLeft: i === 0 ? "-1px" : 0,
+          backgroundColor: "gray.100",
         };
         return (
           <Fragment key={variant.uiId}>
