@@ -120,7 +120,6 @@ export async function getCompletion(
       cost,
     };
   } catch (error: unknown) {
-    console.error("ERROR IS", error);
     if (error instanceof APIError) {
       return {
         type: "error",

@@ -1,2 +1,2 @@
-src/codegen/openai.schema.json
+*.schema.json
 pnpm-lock.yaml
