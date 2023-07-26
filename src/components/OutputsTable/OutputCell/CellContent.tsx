@@ -10,8 +10,10 @@ export const CellContent = ({
   hardRefetch: () => void;
   hardRefetching: boolean;
 } & StackProps) => (
-  <VStack maxH={500} w="full" overflowY="auto" alignItems="flex-start" {...props}>
+  <VStack w="full" alignItems="flex-start" {...props}>
     <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
-    {children}
+    <VStack w="full" alignItems="flex-start" maxH={500} overflowY="auto">
+      {children}
+    </VStack>
   </VStack>
 );
