@@ -51,7 +51,7 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
 
       if (!cell) return null;
 
-      const lastResponse = cell?.modelResponses?.[cell?.modelResponses?.length - 1];
+      const lastResponse = cell.modelResponses?.[cell.modelResponses?.length - 1];
       const evalsComplete = lastResponse?.outputEvaluations?.length === numTotalEvals;
 
       return {
