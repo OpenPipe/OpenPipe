@@ -63,6 +63,7 @@ export default function OutputCell({
 
   const awaitingOutput =
     !cell ||
+    !cell.evalsComplete ||
     cell.retrievalStatus === "PENDING" ||
     cell.retrievalStatus === "IN_PROGRESS" ||
     hardRefetching;

@@ -19,30 +19,45 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
       });
       await requireCanViewExperiment(experimentId, ctx);
 
-      return await prisma.scenarioVariantCell.findUnique({
-        where: {
-          promptVariantId_testScenarioId: {
-            promptVariantId: input.variantId,
-            testScenarioId: input.scenarioId,
-          },
-        },
-        include: {
-          modelResponses: {
-            where: {
-              outdated: false,
+      const [cell, numTotalEvals] = await prisma.$transaction([
+        prisma.scenarioVariantCell.findUnique({
+          where: {
+            promptVariantId_testScenarioId: {
+              promptVariantId: input.variantId,
+              testScenarioId: input.scenarioId,
             },
-            include: {
-              outputEvaluations: {
-                include: {
-                  evaluation: {
-                    select: { label: true },
+          },
+          include: {
+            modelResponses: {
+              where: {
+                outdated: false,
+              },
+              include: {
+                outputEvaluations: {
+                  include: {
+                    evaluation: {
+                      select: { label: true },
+                    },
                   },
                 },
               },
             },
           },
-        },
-      });
+        }),
+        prisma.evaluation.count({
+          where: { experimentId },
+        }),
+      ]);
+
+      if (!cell) return null;
+
+      const lastResponse = cell?.modelResponses?.[cell?.modelResponses?.length - 1];
+      const evalsComplete = lastResponse?.outputEvaluations?.length === numTotalEvals;
+
+      return {
+        ...cell,
+        evalsComplete,
+      };
     }),
   forceRefetch: protectedProcedure
     .input(
