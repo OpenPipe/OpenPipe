@@ -46,6 +46,7 @@ export const runEvalsForOutput = async (
   );
 };
 
+// Will not run eval-output pairs that already exist in the database
 export const runAllEvals = async (experimentId: string) => {
   const outputs = await prisma.modelResponse.findMany({
     where: {

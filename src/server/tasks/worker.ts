@@ -3,10 +3,11 @@ import "dotenv/config";
 
 import { env } from "~/env.mjs";
 import { queryModel } from "./queryModel.task";
+import { runNewEval } from "./runNewEval.task";
 
 console.log("Starting worker");
 
-const registeredTasks = [queryModel];
+const registeredTasks = [queryModel, runNewEval];
 
 const taskList = registeredTasks.reduce((acc, task) => {
   acc[task.task.identifier] = task.task.handler;
@@ -16,7 +17,7 @@ const taskList = registeredTasks.reduce((acc, task) => {
 // Run a worker to execute jobs:
 const runner = await run({
   connectionString: env.DATABASE_URL,
-  concurrency: 20,
+  concurrency: 50,
   // Install signal handlers for graceful shutdown on SIGINT, SIGTERM, etc
   noHandleSignals: false,
   pollInterval: 1000,

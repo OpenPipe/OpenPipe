@@ -130,16 +130,9 @@ export const promptVariantsRouter = createTRPCRouter({
       const promptTokens = overallTokens._sum?.promptTokens ?? 0;
       const completionTokens = overallTokens._sum?.completionTokens ?? 0;
 
-      const awaitingRetrievals = !!(await prisma.scenarioVariantCell.findFirst({
-        where: {
-          promptVariantId: input.variantId,
-          testScenario: { visible: true },
-          // Check if is PENDING or IN_PROGRESS
-          retrievalStatus: {
-            in: ["PENDING", "IN_PROGRESS"],
-          },
-        },
-      }));
+      const awaitingEvals = !!evalResults.find(
+        (result) => result.totalCount < scenarioCount * evals.length,
+      );
 
       return {
         evalResults,
@@ -148,7 +141,7 @@ export const promptVariantsRouter = createTRPCRouter({
         overallCost: overallTokens._sum?.cost ?? 0,
         scenarioCount,
         outputCount,
-        awaitingRetrievals,
+        awaitingEvals,
       };
     }),
 
