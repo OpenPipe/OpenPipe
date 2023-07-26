@@ -18,6 +18,7 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: z.string().min(1),
     OPENAI_API_KEY: z.string().min(1),
     REPLICATE_API_TOKEN: z.string().default("placeholder"),
+    ANTHROPIC_API_KEY: z.string().default("placeholder"),
   },
 
   /**
@@ -44,6 +45,7 @@ export const env = createEnv({
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     REPLICATE_API_TOKEN: process.env.REPLICATE_API_TOKEN,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

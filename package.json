@@ -21,6 +21,7 @@
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.5.8",
     "@apidevtools/json-schema-ref-parser": "^10.1.0",
     "@babel/preset-typescript": "^7.22.5",
     "@babel/standalone": "^7.22.9",

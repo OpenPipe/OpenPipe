@@ -6,6 +6,7 @@ import { z } from "zod";
 export const ZodSupportedProvider = z.union([
   z.literal("openai/ChatCompletion"),
   z.literal("replicate/llama2"),
+  z.literal("anthropic"),
 ]);
 
 export type SupportedProvider = z.infer<typeof ZodSupportedProvider>;
