@@ -1,4 +1,4 @@
-import { type Evaluation, type ModelOutput, type TestScenario } from "@prisma/client";
+import { type Evaluation, type ModelResponse, type TestScenario } from "@prisma/client";
 import { type ChatCompletion } from "openai/resources/chat";
 import { type VariableMap, fillTemplate, escapeRegExp, escapeQuotes } from "./fillTemplate";
 import { openai } from "./openai";
@@ -70,9 +70,9 @@ export const runGpt4Eval = async (
 export const runOneEval = async (
   evaluation: Evaluation,
   scenario: TestScenario,
-  modelOutput: ModelOutput,
+  modelResponse: ModelResponse,
 ): Promise<{ result: number; details?: string }> => {
-  const output = modelOutput.output as unknown as ChatCompletion;
+  const output = modelResponse.output as unknown as ChatCompletion;
 
   const message = output?.choices?.[0]?.message;
 

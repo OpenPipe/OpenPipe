@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { Prisma } from "@prisma/client";
 import { generateNewCell } from "~/server/utils/generateNewCell";
 import userError from "~/server/utils/error";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
@@ -51,7 +52,9 @@ export const promptVariantsRouter = createTRPCRouter({
           id: true,
         },
         where: {
-          modelOutput: {
+          modelResponse: {
+            outdated: false,
+            output: { not: Prisma.AnyNull },
             scenarioVariantCell: {
               promptVariant: {
                 id: input.variantId,
@@ -93,14 +96,23 @@ export const promptVariantsRouter = createTRPCRouter({
         where: {
           promptVariantId: input.variantId,
           testScenario: { visible: true },
-          modelOutput: {
-            is: {},
+          modelResponses: {
+            some: {
+              outdated: false,
+              output: {
+                not: Prisma.AnyNull,
+              },
+            },
           },
         },
       });
 
-      const overallTokens = await prisma.modelOutput.aggregate({
+      const overallTokens = await prisma.modelResponse.aggregate({
         where: {
+          outdated: false,
+          output: {
+            not: Prisma.AnyNull,
+          },
           scenarioVariantCell: {
             promptVariantId: input.variantId,
             testScenario: {

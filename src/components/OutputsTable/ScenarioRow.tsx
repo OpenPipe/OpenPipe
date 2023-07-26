@@ -39,7 +39,7 @@ const ScenarioRow = (props: {
           colStart={i + 2}
           {...borders}
         >
-          <Box h="100%" w="100%" px={cellPadding.x} py={cellPadding.y}>
+          <Box h="100%" w="100%" px={cellPadding.x} py={cellPadding.y} maxH={500} overflowY="auto">
             <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />
           </Box>
         </GridItem>

@@ -7,28 +7,32 @@ import { CostTooltip } from "~/components/tooltip/CostTooltip";
 const SHOW_TIME = true;
 
 export const OutputStats = ({
-  modelOutput,
+  modelResponse,
 }: {
-  modelOutput: NonNullable<
-    NonNullable<RouterOutputs["scenarioVariantCells"]["get"]>["modelOutput"]
+  modelResponse: NonNullable<
+    NonNullable<RouterOutputs["scenarioVariantCells"]["get"]>["modelResponses"][0]
   >;
   scenario: Scenario;
 }) => {
-  const timeToComplete = modelOutput.timeToComplete;
+  const timeToComplete =
+    modelResponse.receivedAt && modelResponse.requestedAt
+      ? modelResponse.receivedAt.getTime() - modelResponse.requestedAt.getTime()
+      : 0;
 
-  const promptTokens = modelOutput.promptTokens;
-  const completionTokens = modelOutput.completionTokens;
+  const promptTokens = modelResponse.promptTokens;
+  const completionTokens = modelResponse.completionTokens;
 
   return (
     <HStack w="full" align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }}>
       <HStack flex={1}>
-        {modelOutput.outputEvaluations.map((evaluation) => {
+        {modelResponse.outputEvaluations.map((evaluation) => {
           const passed = evaluation.result > 0.5;
           return (
             <Tooltip
               isDisabled={!evaluation.details}
               label={evaluation.details}
               key={evaluation.id}
+              shouldWrapChildren
             >
               <HStack spacing={0}>
                 <Text>{evaluation.evaluation.label}</Text>
@@ -42,15 +46,15 @@ export const OutputStats = ({
           );
         })}
       </HStack>
-      {modelOutput.cost && (
+      {modelResponse.cost && (
         <CostTooltip
           promptTokens={promptTokens}
           completionTokens={completionTokens}
-          cost={modelOutput.cost}
+          cost={modelResponse.cost}
         >
           <HStack spacing={0}>
             <Icon as={BsCurrencyDollar} />
-            <Text mr={1}>{modelOutput.cost.toFixed(3)}</Text>
+            <Text mr={1}>{modelResponse.cost.toFixed(3)}</Text>
           </HStack>
         </CostTooltip>
       )}

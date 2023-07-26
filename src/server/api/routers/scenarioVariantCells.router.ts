@@ -27,7 +27,10 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
           },
         },
         include: {
-          modelOutput: {
+          modelResponses: {
+            where: {
+              outdated: false,
+            },
             include: {
               outputEvaluations: {
                 include: {
@@ -62,7 +65,6 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
             testScenarioId: input.scenarioId,
           },
         },
-        include: { modelOutput: true },
       });
 
       if (!cell) {
@@ -70,12 +72,12 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
         return;
       }
 
-      if (cell.modelOutput) {
-        // TODO: Maybe keep these around to show previous generations?
-        await prisma.modelOutput.delete({
-          where: { id: cell.modelOutput.id },
-        });
-      }
+      await prisma.modelResponse.updateMany({
+        where: { scenarioVariantCellId: cell.id },
+        data: {
+          outdated: true,
+        },
+      });
 
       await queueQueryModel(cell.id, true);
     }),

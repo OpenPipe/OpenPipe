@@ -1,16 +1,19 @@
 import { api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "../types";
-import { Spinner, Text, Center, VStack } from "@chakra-ui/react";
+import { Text, VStack } from "@chakra-ui/react";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
-import { type ReactElement, useState, useEffect } from "react";
+import { type ReactElement, useState, useEffect, Fragment } from "react";
 import useSocket from "~/utils/useSocket";
 import { OutputStats } from "./OutputStats";
-import { ErrorHandler } from "./ErrorHandler";
+import { RetryCountdown } from "./RetryCountdown";
 import { CellOptions } from "./CellOptions";
 import frontendModelProviders from "~/modelProviders/frontendModelProviders";
+import { ResponseLog } from "./ResponseLog";
+
+const WAITING_MESSAGE_INTERVAL = 20000;
 
 export default function OutputCell({
   scenario,
@@ -65,21 +68,10 @@ export default function OutputCell({
     hardRefetching;
   useEffect(() => setRefetchInterval(awaitingOutput ? 1000 : 0), [awaitingOutput]);
 
-  const modelOutput = cell?.modelOutput;
-
   // TODO: disconnect from socket if we're not streaming anymore
   const streamedMessage = useSocket<OutputSchema>(cell?.id);
 
   if (!vars) return null;
-
-  if (disabledReason) return <Text color="gray.500">{disabledReason}</Text>;
-
-  if (awaitingOutput && !streamedMessage)
-    return (
-      <Center h="100%" w="100%">
-        <Spinner />
-      </Center>
-    );
 
   if (!cell && !fetchingOutput)
     return (
@@ -93,18 +85,71 @@ export default function OutputCell({
     return (
       <VStack>
         <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
-        <ErrorHandler cell={cell} refetchOutput={hardRefetch} />
+        <Text color="red.500">{cell.errorMessage}</Text>
       </VStack>
     );
   }
 
-  const normalizedOutput = modelOutput
-    ? provider.normalizeOutput(modelOutput.output)
+  if (disabledReason) return <Text color="gray.500">{disabledReason}</Text>;
+
+  const mostRecentResponse = cell?.modelResponses[cell.modelResponses.length - 1];
+  const showLogs = (!streamedMessage && !mostRecentResponse?.output);
+
+  if (showLogs)
+    return (
+      <VStack alignItems="flex-start" fontFamily="inconsolata, monospace" spacing={0}>
+        <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
+        {cell?.jobQueuedAt && <ResponseLog time={cell.jobQueuedAt} title="Job queued" />}
+        {cell?.jobStartedAt && <ResponseLog time={cell.jobStartedAt} title="Job started" />}
+        {cell?.modelResponses?.map((response) => {
+          let numWaitingMessages = 0;
+          const relativeWaitingTime = response.receivedAt
+            ? response.receivedAt.getTime()
+            : Date.now();
+          if (response.requestedAt) {
+            numWaitingMessages = Math.floor(
+              (relativeWaitingTime - response.requestedAt.getTime()) / WAITING_MESSAGE_INTERVAL,
+            );
+          }
+          return (
+            <Fragment key={response.id}>
+              {response.requestedAt && (
+                <ResponseLog time={response.requestedAt} title="Request sent to API" />
+              )}
+              {response.requestedAt &&
+                Array.from({ length: numWaitingMessages }, (_, i) => (
+                  <ResponseLog
+                    key={`waiting-${i}`}
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    time={new Date(response.requestedAt!.getTime() + i * WAITING_MESSAGE_INTERVAL)}
+                    title="Waiting for response"
+                  />
+                ))}
+              {response.receivedAt && (
+                <ResponseLog
+                  time={response.receivedAt}
+                  title="Response received from API"
+                  message={`statusCode: ${response.statusCode ?? ""}\n ${
+                    response.errorMessage ?? ""
+                  }`}
+                />
+              )}
+            </Fragment>
+          );
+        }) ?? null}
+        {mostRecentResponse?.retryTime && (
+          <RetryCountdown retryTime={mostRecentResponse.retryTime} />
+        )}
+      </VStack>
+    );
+
+  const normalizedOutput = mostRecentResponse?.output
+    ? provider.normalizeOutput(mostRecentResponse?.output)
     : streamedMessage
     ? provider.normalizeOutput(streamedMessage)
     : null;
 
-  if (modelOutput && normalizedOutput?.type === "json") {
+  if (mostRecentResponse?.output && normalizedOutput?.type === "json") {
     return (
       <VStack
         w="100%"
@@ -128,7 +173,7 @@ export default function OutputCell({
             {stringify(normalizedOutput.value, { maxLength: 40 })}
           </SyntaxHighlighter>
         </VStack>
-        <OutputStats modelOutput={modelOutput} scenario={scenario} />
+        <OutputStats modelResponse={mostRecentResponse} scenario={scenario} />
       </VStack>
     );
   }
@@ -141,7 +186,9 @@ export default function OutputCell({
         <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
         <Text>{contentToDisplay}</Text>
       </VStack>
-      {modelOutput && <OutputStats modelOutput={modelOutput} scenario={scenario} />}
+      {mostRecentResponse?.output && (
+        <OutputStats modelResponse={mostRecentResponse} scenario={scenario} />
+      )}
     </VStack>
   );
 }
