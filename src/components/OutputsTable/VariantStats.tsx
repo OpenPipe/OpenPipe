@@ -21,7 +21,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
         completionTokens: 0,
         scenarioCount: 0,
         outputCount: 0,
-        awaitingRetrievals: false,
+        awaitingEvals: false,
       },
       refetchInterval,
     },
@@ -29,8 +29,8 @@ export default function VariantStats(props: { variant: PromptVariant }) {
 
   // Poll every two seconds while we are waiting for LLM retrievals to finish
   useEffect(
-    () => setRefetchInterval(data.awaitingRetrievals ? 2000 : 0),
-    [data.awaitingRetrievals],
+    () => setRefetchInterval(data.awaitingEvals ? 5000 : 0),
+    [data.awaitingEvals],
   );
 
   const [passColor, neutralColor, failColor] = useToken("colors", [
@@ -69,7 +69,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
           );
         })}
       </HStack>
-      {data.overallCost && !data.awaitingRetrievals && (
+      {data.overallCost && (
         <CostTooltip
           promptTokens={data.promptTokens}
           completionTokens={data.completionTokens}
