@@ -7,9 +7,9 @@ function defineTask<TPayload>(
   taskIdentifier: string,
   taskHandler: (payload: TPayload, helpers: Helpers) => Promise<void>,
 ) {
-  const enqueue = async (payload: TPayload) => {
+  const enqueue = async (payload: TPayload, runAt?: Date) => {
     console.log("Enqueuing task", taskIdentifier, payload);
-    await quickAddJob({ connectionString: env.DATABASE_URL }, taskIdentifier, payload);
+    await quickAddJob({ connectionString: env.DATABASE_URL }, taskIdentifier, payload, { runAt });
   };
 
   const handler = (payload: TPayload, helpers: Helpers) => {
