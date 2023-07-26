@@ -99,7 +99,7 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
   const inputHash = hashPrompt(prompt);
 
   for (let i = 0; true; i++) {
-    const modelResponse = await prisma.modelResponse.create({
+    let modelResponse = await prisma.modelResponse.create({
       data: {
         inputHash,
         scenarioVariantCellId: cellId,
@@ -108,7 +108,7 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
     });
     const response = await provider.getCompletion(prompt.modelInput, onStream);
     if (response.type === "success") {
-      await prisma.modelResponse.update({
+      modelResponse = await prisma.modelResponse.update({
         where: { id: modelResponse.id },
         data: {
           output: response.value as Prisma.InputJsonObject,
@@ -127,7 +127,7 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
         },
       });
 
-      await runEvalsForOutput(variant.experimentId, scenario, modelResponse);
+      await runEvalsForOutput(variant.experimentId, scenario, modelResponse, prompt.modelProvider);
       break;
     } else {
       const shouldRetry = response.autoRetry && i < MAX_AUTO_RETRIES;

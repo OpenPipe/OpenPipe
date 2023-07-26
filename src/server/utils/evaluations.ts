@@ -2,13 +2,15 @@ import { type ModelResponse, type Evaluation, Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import { runOneEval } from "./runOneEval";
 import { type Scenario } from "~/components/OutputsTable/types";
+import { type SupportedProvider } from "~/modelProviders/types";
 
-const saveResult = async (
+const runAndSaveEval = async (
   evaluation: Evaluation,
   scenario: Scenario,
   modelResponse: ModelResponse,
+  provider: SupportedProvider,
 ) => {
-  const result = await runOneEval(evaluation, scenario, modelResponse);
+  const result = await runOneEval(evaluation, scenario, modelResponse, provider);
   return await prisma.outputEvaluation.upsert({
     where: {
       modelResponseId_evaluationId: {
@@ -31,13 +33,16 @@ export const runEvalsForOutput = async (
   experimentId: string,
   scenario: Scenario,
   modelResponse: ModelResponse,
+  provider: SupportedProvider,
 ) => {
   const evaluations = await prisma.evaluation.findMany({
     where: { experimentId },
   });
 
   await Promise.all(
-    evaluations.map(async (evaluation) => await saveResult(evaluation, scenario, modelResponse)),
+    evaluations.map(
+      async (evaluation) => await runAndSaveEval(evaluation, scenario, modelResponse, provider),
+    ),
   );
 };
 
@@ -62,6 +67,7 @@ export const runAllEvals = async (experimentId: string) => {
       scenarioVariantCell: {
         include: {
           testScenario: true,
+          promptVariant: true,
         },
       },
       outputEvaluations: true,
@@ -73,13 +79,18 @@ export const runAllEvals = async (experimentId: string) => {
 
   await Promise.all(
     outputs.map(async (output) => {
-      const unrunEvals = evals.filter(
+      const evalsToBeRun = evals.filter(
         (evaluation) => !output.outputEvaluations.find((e) => e.evaluationId === evaluation.id),
       );
 
       await Promise.all(
-        unrunEvals.map(async (evaluation) => {
-          await saveResult(evaluation, output.scenarioVariantCell.testScenario, output);
+        evalsToBeRun.map(async (evaluation) => {
+          await runAndSaveEval(
+            evaluation,
+            output.scenarioVariantCell.testScenario,
+            output,
+            output.scenarioVariantCell.promptVariant.modelProvider as SupportedProvider,
+          );
         }),
       );
     }),

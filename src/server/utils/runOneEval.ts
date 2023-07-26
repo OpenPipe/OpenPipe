@@ -1,13 +1,14 @@
 import { type Evaluation, type ModelResponse, type TestScenario } from "@prisma/client";
-import { type ChatCompletion } from "openai/resources/chat";
 import { type VariableMap, fillTemplate, escapeRegExp, escapeQuotes } from "./fillTemplate";
 import { openai } from "./openai";
 import dedent from "dedent";
+import modelProviders from "~/modelProviders/modelProviders";
+import { type SupportedProvider } from "~/modelProviders/types";
 
 export const runGpt4Eval = async (
   evaluation: Evaluation,
   scenario: TestScenario,
-  message: ChatCompletion.Choice.Message,
+  stringifiedOutput: string,
 ): Promise<{ result: number; details: string }> => {
   const output = await openai.chat.completions.create({
     model: "gpt-4-0613",
@@ -26,11 +27,7 @@ export const runGpt4Eval = async (
       },
       {
         role: "user",
-        content: `The full output of the simpler message:\n---\n${JSON.stringify(
-          message.content ?? message.function_call,
-          null,
-          2,
-        )}`,
+        content: `The full output of the simpler message:\n---\n${stringifiedOutput}`,
       },
     ],
     function_call: {
@@ -71,14 +68,15 @@ export const runOneEval = async (
   evaluation: Evaluation,
   scenario: TestScenario,
   modelResponse: ModelResponse,
+  provider: SupportedProvider,
 ): Promise<{ result: number; details?: string }> => {
-  const output = modelResponse.output as unknown as ChatCompletion;
-
-  const message = output?.choices?.[0]?.message;
+  const modelProvider = modelProviders[provider];
+  const message = modelProvider.normalizeOutput(modelResponse.output);
 
   if (!message) return { result: 0 };
 
-  const stringifiedMessage = message.content ?? JSON.stringify(message.function_call);
+  const stringifiedOutput =
+    message.type === "json" ? JSON.stringify(message.value, null, 2) : message.value;
 
   const matchRegex = escapeRegExp(
     fillTemplate(escapeQuotes(evaluation.value), scenario.variableValues as VariableMap),
@@ -86,10 +84,10 @@ export const runOneEval = async (
 
   switch (evaluation.evalType) {
     case "CONTAINS":
-      return { result: stringifiedMessage.match(matchRegex) !== null ? 1 : 0 };
+      return { result: stringifiedOutput.match(matchRegex) !== null ? 1 : 0 };
     case "DOES_NOT_CONTAIN":
-      return { result: stringifiedMessage.match(matchRegex) === null ? 1 : 0 };
+      return { result: stringifiedOutput.match(matchRegex) === null ? 1 : 0 };
     case "GPT4_EVAL":
-      return await runGpt4Eval(evaluation, scenario, message);
+      return await runGpt4Eval(evaluation, scenario, stringifiedOutput);
   }
 };
