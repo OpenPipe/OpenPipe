@@ -118,7 +118,7 @@ export const experimentsRouter = createTRPCRouter({
           },
         },
         include: {
-          modelOutput: {
+          modelResponses: {
             include: {
               outputEvaluations: true,
             },
@@ -177,11 +177,11 @@ export const experimentsRouter = createTRPCRouter({
     }
 
     const cellsToCreate: Prisma.ScenarioVariantCellCreateManyInput[] = [];
-    const modelOutputsToCreate: Prisma.ModelOutputCreateManyInput[] = [];
+    const modelResponsesToCreate: Prisma.ModelResponseCreateManyInput[] = [];
     const outputEvaluationsToCreate: Prisma.OutputEvaluationCreateManyInput[] = [];
     for (const cell of existingCells) {
       const newCellId = uuidv4();
-      const { modelOutput, ...cellData } = cell;
+      const { modelResponses, ...cellData } = cell;
       cellsToCreate.push({
         ...cellData,
         id: newCellId,
@@ -189,20 +189,20 @@ export const experimentsRouter = createTRPCRouter({
         testScenarioId: existingToNewScenarioIds.get(cell.testScenarioId) ?? "",
         prompt: (cell.prompt as Prisma.InputJsonValue) ?? undefined,
       });
-      if (modelOutput) {
-        const newModelOutputId = uuidv4();
-        const { outputEvaluations, ...modelOutputData } = modelOutput;
-        modelOutputsToCreate.push({
-          ...modelOutputData,
-          id: newModelOutputId,
+      for (const modelResponse of modelResponses) {
+        const newModelResponseId = uuidv4();
+        const { outputEvaluations, ...modelResponseData } = modelResponse;
+        modelResponsesToCreate.push({
+          ...modelResponseData,
+          id: newModelResponseId,
           scenarioVariantCellId: newCellId,
-          output: (modelOutput.output as Prisma.InputJsonValue) ?? undefined,
+          output: (modelResponse.output as Prisma.InputJsonValue) ?? undefined,
         });
         for (const evaluation of outputEvaluations) {
           outputEvaluationsToCreate.push({
             ...evaluation,
             id: uuidv4(),
-            modelOutputId: newModelOutputId,
+            modelResponseId: newModelResponseId,
             evaluationId: existingToNewEvaluationIds.get(evaluation.evaluationId) ?? "",
           });
         }
@@ -245,8 +245,8 @@ export const experimentsRouter = createTRPCRouter({
       prisma.scenarioVariantCell.createMany({
         data: cellsToCreate,
       }),
-      prisma.modelOutput.createMany({
-        data: modelOutputsToCreate,
+      prisma.modelResponse.createMany({
+        data: modelResponsesToCreate,
       }),
       prisma.evaluation.createMany({
         data: evaluationsToCreate,

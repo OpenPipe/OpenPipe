@@ -90,12 +90,11 @@ enum CellRetrievalStatus {
 model ScenarioVariantCell {
     id String @id @default(uuid()) @db.Uuid
 
-    statusCode      Int?
-    errorMessage    String?
-    retryTime       DateTime?
     retrievalStatus CellRetrievalStatus @default(COMPLETE)
-
-    modelOutput ModelOutput?
+    jobQueuedAt     DateTime?
+    jobStartedAt    DateTime?
+    modelResponses  ModelResponse[]
+    errorMessage    String? // Contains errors that occurred independently of model responses
 
     promptVariantId String        @db.Uuid
     promptVariant   PromptVariant @relation(fields: [promptVariantId], references: [id], onDelete: Cascade)
@@ -110,15 +109,20 @@ model ScenarioVariantCell {
     @@unique([promptVariantId, testScenarioId])
 }
 
-model ModelOutput {
+model ModelResponse {
     id String @id @default(uuid()) @db.Uuid
 
-    inputHash        String
-    output           Json
-    timeToComplete   Int    @default(0)
-    cost             Float?
-    promptTokens     Int?
-    completionTokens Int?
+    inputHash           String
+    requestedAt         DateTime?
+    receivedAt          DateTime?
+    output              Json?
+    cost                Float?
+    promptTokens        Int?
+    completionTokens    Int?
+    statusCode          Int?
+    errorMessage        String?
+    retryTime           DateTime?
+    outdated            Boolean @default(false)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -127,7 +131,6 @@ model ModelOutput {
     scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
     outputEvaluations      OutputEvaluation[]
 
-    @@unique([scenarioVariantCellId])
     @@index([inputHash])
 }
 
@@ -159,8 +162,8 @@ model OutputEvaluation {
     result  Float
     details String?
 
-    modelOutputId String      @db.Uuid
-    modelOutput   ModelOutput @relation(fields: [modelOutputId], references: [id], onDelete: Cascade)
+    modelResponseId String      @db.Uuid
+    modelResponse   ModelResponse @relation(fields: [modelResponseId], references: [id], onDelete: Cascade)
 
     evaluationId String     @db.Uuid
     evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
@@ -168,7 +171,7 @@ model OutputEvaluation {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([modelOutputId, evaluationId])
+    @@unique([modelResponseId, evaluationId])
 }
 
 model Organization {

@@ -1,4 +1,4 @@
-import { Button, HStack, Icon, Tooltip } from "@chakra-ui/react";
+import { Button, HStack, Icon, Spinner, Tooltip } from "@chakra-ui/react";
 import { BsArrowClockwise } from "react-icons/bs";
 import { useExperimentAccess } from "~/utils/hooks";
 
@@ -12,7 +12,7 @@ export const CellOptions = ({
   const { canModify } = useExperimentAccess();
   return (
     <HStack justifyContent="flex-end" w="full">
-      {!refetchingOutput && canModify && (
+      {canModify && (
         <Tooltip label="Refetch output" aria-label="refetch output">
           <Button
             size="xs"
@@ -28,7 +28,7 @@ export const CellOptions = ({
             onClick={refetchOutput}
             aria-label="refetch output"
           >
-            <Icon as={BsArrowClockwise} boxSize={4} />
+            <Icon as={refetchingOutput ? Spinner : BsArrowClockwise} boxSize={4} />
           </Button>
         </Tooltip>
       )}

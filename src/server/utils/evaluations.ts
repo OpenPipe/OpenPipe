@@ -1,19 +1,23 @@
-import { type ModelOutput, type Evaluation } from "@prisma/client";
+import { type ModelResponse, type Evaluation, Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import { runOneEval } from "./runOneEval";
 import { type Scenario } from "~/components/OutputsTable/types";
 
-const saveResult = async (evaluation: Evaluation, scenario: Scenario, modelOutput: ModelOutput) => {
-  const result = await runOneEval(evaluation, scenario, modelOutput);
+const saveResult = async (
+  evaluation: Evaluation,
+  scenario: Scenario,
+  modelResponse: ModelResponse,
+) => {
+  const result = await runOneEval(evaluation, scenario, modelResponse);
   return await prisma.outputEvaluation.upsert({
     where: {
-      modelOutputId_evaluationId: {
-        modelOutputId: modelOutput.id,
+      modelResponseId_evaluationId: {
+        modelResponseId: modelResponse.id,
         evaluationId: evaluation.id,
       },
     },
     create: {
-      modelOutputId: modelOutput.id,
+      modelResponseId: modelResponse.id,
       evaluationId: evaluation.id,
       ...result,
     },
@@ -26,20 +30,24 @@ const saveResult = async (evaluation: Evaluation, scenario: Scenario, modelOutpu
 export const runEvalsForOutput = async (
   experimentId: string,
   scenario: Scenario,
-  modelOutput: ModelOutput,
+  modelResponse: ModelResponse,
 ) => {
   const evaluations = await prisma.evaluation.findMany({
     where: { experimentId },
   });
 
   await Promise.all(
-    evaluations.map(async (evaluation) => await saveResult(evaluation, scenario, modelOutput)),
+    evaluations.map(async (evaluation) => await saveResult(evaluation, scenario, modelResponse)),
   );
 };
 
 export const runAllEvals = async (experimentId: string) => {
-  const outputs = await prisma.modelOutput.findMany({
+  const outputs = await prisma.modelResponse.findMany({
     where: {
+      outdated: false,
+      output: {
+        not: Prisma.AnyNull,
+      },
       scenarioVariantCell: {
         promptVariant: {
           experimentId,

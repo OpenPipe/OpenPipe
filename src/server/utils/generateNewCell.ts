@@ -1,4 +1,4 @@
-import { type Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import parseConstructFn from "./parseConstructFn";
 import { type JsonObject } from "type-fest";
@@ -35,7 +35,7 @@ export const generateNewCell = async (
       },
     },
     include: {
-      modelOutput: true,
+      modelResponses: true,
     },
   });
 
@@ -51,8 +51,6 @@ export const generateNewCell = async (
       data: {
         promptVariantId: variantId,
         testScenarioId: scenarioId,
-        statusCode: 400,
-        errorMessage: parsedConstructFn.error,
         retrievalStatus: "ERROR",
       },
     });
@@ -69,36 +67,55 @@ export const generateNewCell = async (
       retrievalStatus: "PENDING",
     },
     include: {
-      modelOutput: true,
+      modelResponses: true,
     },
   });
 
-  const matchingModelOutput = await prisma.modelOutput.findFirst({
-    where: { inputHash },
+  const matchingModelResponse = await prisma.modelResponse.findFirst({
+    where: {
+      inputHash,
+      output: {
+        not: Prisma.AnyNull,
+      },
+    },
+    orderBy: {
+      receivedAt: "desc",
+    },
+    include: {
+      scenarioVariantCell: true,
+    },
+    take: 1,
   });
 
-  if (matchingModelOutput) {
-    const newModelOutput = await prisma.modelOutput.create({
+  if (matchingModelResponse) {
+    const newModelResponse = await prisma.modelResponse.create({
       data: {
-        ...omit(matchingModelOutput, ["id"]),
+        ...omit(matchingModelResponse, ["id", "scenarioVariantCell"]),
         scenarioVariantCellId: cell.id,
-        output: matchingModelOutput.output as Prisma.InputJsonValue,
+        output: matchingModelResponse.output as Prisma.InputJsonValue,
       },
     });
+
     await prisma.scenarioVariantCell.update({
       where: { id: cell.id },
-      data: { retrievalStatus: "COMPLETE" },
+      data: {
+        retrievalStatus: "COMPLETE",
+        jobStartedAt: matchingModelResponse.scenarioVariantCell.jobStartedAt,
+        jobQueuedAt: matchingModelResponse.scenarioVariantCell.jobQueuedAt,
+      },
     });
 
     // Copy over all eval results as well
     await Promise.all(
       (
-        await prisma.outputEvaluation.findMany({ where: { modelOutputId: matchingModelOutput.id } })
+        await prisma.outputEvaluation.findMany({
+          where: { modelResponseId: matchingModelResponse.id },
+        })
       ).map(async (evaluation) => {
         await prisma.outputEvaluation.create({
           data: {
             ...omit(evaluation, ["id"]),
-            modelOutputId: newModelOutput.id,
+            modelResponseId: newModelResponse.id,
           },
         });
       }),
