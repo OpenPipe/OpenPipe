@@ -2,7 +2,7 @@ import { EvalType } from "@prisma/client";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { runAllEvals } from "~/server/utils/evaluations";
+import { queueRunNewEval } from "~/server/tasks/runNewEval.task";
 import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 
 export const evaluationsRouter = createTRPCRouter({
@@ -40,9 +40,7 @@ export const evaluationsRouter = createTRPCRouter({
         },
       });
 
-      // TODO: this may be a bad UX for slow evals (eg. GPT-4 evals) Maybe need
-      // to kick off a background job or something instead
-      await runAllEvals(input.experimentId);
+      await queueRunNewEval(input.experimentId);
     }),
 
   update: protectedProcedure
@@ -78,7 +76,7 @@ export const evaluationsRouter = createTRPCRouter({
       });
       // Re-run all evals. Other eval results will already be cached, so this
       // should only re-run the updated one.
-      await runAllEvals(evaluation.experimentId);
+      await queueRunNewEval(experimentId);
     }),
 
   delete: protectedProcedure
