@@ -93,7 +93,7 @@ export default function OutputCell({
   if (disabledReason) return <Text color="gray.500">{disabledReason}</Text>;
 
   const mostRecentResponse = cell?.modelResponses[cell.modelResponses.length - 1];
-  const showLogs = (!streamedMessage && !mostRecentResponse?.output);
+  const showLogs = !streamedMessage && !mostRecentResponse?.output;
 
   if (showLogs)
     return (

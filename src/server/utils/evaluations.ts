@@ -3,7 +3,11 @@ import { prisma } from "../db";
 import { runOneEval } from "./runOneEval";
 import { type Scenario } from "~/components/OutputsTable/types";
 
-const saveResult = async (evaluation: Evaluation, scenario: Scenario, modelResponse: ModelResponse) => {
+const saveResult = async (
+  evaluation: Evaluation,
+  scenario: Scenario,
+  modelResponse: ModelResponse,
+) => {
   const result = await runOneEval(evaluation, scenario, modelResponse);
   return await prisma.outputEvaluation.upsert({
     where: {
