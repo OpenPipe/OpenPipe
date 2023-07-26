@@ -9,9 +9,9 @@ import { type ReactElement, useState, useEffect, Fragment } from "react";
 import useSocket from "~/utils/useSocket";
 import { OutputStats } from "./OutputStats";
 import { RetryCountdown } from "./RetryCountdown";
-import { CellOptions } from "./CellOptions";
 import frontendModelProviders from "~/modelProviders/frontendModelProviders";
 import { ResponseLog } from "./ResponseLog";
+import { CellContent } from "./CellContent";
 
 const WAITING_MESSAGE_INTERVAL = 20000;
 
@@ -75,18 +75,16 @@ export default function OutputCell({
 
   if (!cell && !fetchingOutput)
     return (
-      <VStack>
-        <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
+      <CellContent hardRefetching={hardRefetching} hardRefetch={hardRefetch}>
         <Text color="gray.500">Error retrieving output</Text>
-      </VStack>
+      </CellContent>
     );
 
   if (cell && cell.errorMessage) {
     return (
-      <VStack>
-        <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
+      <CellContent hardRefetching={hardRefetching} hardRefetch={hardRefetch}>
         <Text color="red.500">{cell.errorMessage}</Text>
-      </VStack>
+      </CellContent>
     );
   }
 
@@ -97,8 +95,13 @@ export default function OutputCell({
 
   if (showLogs)
     return (
-      <VStack alignItems="flex-start" fontFamily="inconsolata, monospace" spacing={0}>
-        <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
+      <CellContent
+        hardRefetching={hardRefetching}
+        hardRefetch={hardRefetch}
+        alignItems="flex-start"
+        fontFamily="inconsolata, monospace"
+        spacing={0}
+      >
         {cell?.jobQueuedAt && <ResponseLog time={cell.jobQueuedAt} title="Job queued" />}
         {cell?.jobStartedAt && <ResponseLog time={cell.jobStartedAt} title="Job started" />}
         {cell?.modelResponses?.map((response) => {
@@ -140,7 +143,7 @@ export default function OutputCell({
         {mostRecentResponse?.retryTime && (
           <RetryCountdown retryTime={mostRecentResponse.retryTime} />
         )}
-      </VStack>
+      </CellContent>
     );
 
   const normalizedOutput = mostRecentResponse?.output
@@ -159,8 +162,13 @@ export default function OutputCell({
         overflowX="hidden"
         justifyContent="space-between"
       >
-        <VStack w="full" flex={1} spacing={0}>
-          <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
+        <CellContent
+          hardRefetching={hardRefetching}
+          hardRefetch={hardRefetch}
+          w="full"
+          flex={1}
+          spacing={0}
+        >
           <SyntaxHighlighter
             customStyle={{ overflowX: "unset", width: "100%", flex: 1 }}
             language="json"
@@ -172,7 +180,7 @@ export default function OutputCell({
           >
             {stringify(normalizedOutput.value, { maxLength: 40 })}
           </SyntaxHighlighter>
-        </VStack>
+        </CellContent>
         <OutputStats modelResponse={mostRecentResponse} scenario={scenario} />
       </VStack>
     );
@@ -183,8 +191,9 @@ export default function OutputCell({
   return (
     <VStack w="100%" h="100%" justifyContent="space-between" whiteSpace="pre-wrap">
       <VStack w="full" alignItems="flex-start" spacing={0}>
-        <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} />
-        <Text>{contentToDisplay}</Text>
+        <CellContent hardRefetching={hardRefetching} hardRefetch={hardRefetch}>
+          <Text>{contentToDisplay}</Text>
+        </CellContent>
       </VStack>
       {mostRecentResponse?.output && (
         <OutputStats modelResponse={mostRecentResponse} scenario={scenario} />
