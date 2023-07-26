@@ -130,7 +130,9 @@ export const promptVariantsRouter = createTRPCRouter({
       const promptTokens = overallTokens._sum?.promptTokens ?? 0;
       const completionTokens = overallTokens._sum?.completionTokens ?? 0;
 
-      const awaitingEvals = !!evalResults.find((result) => result.totalCount < scenarioCount * evals.length);
+      const awaitingEvals = !!evalResults.find(
+        (result) => result.totalCount < scenarioCount * evals.length,
+      );
 
       return {
         evalResults,

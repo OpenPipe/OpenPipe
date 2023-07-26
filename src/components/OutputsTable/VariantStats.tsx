@@ -28,10 +28,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
   );
 
   // Poll every two seconds while we are waiting for LLM retrievals to finish
-  useEffect(
-    () => setRefetchInterval(data.awaitingEvals ? 5000 : 0),
-    [data.awaitingEvals],
-  );
+  useEffect(() => setRefetchInterval(data.awaitingEvals ? 5000 : 0), [data.awaitingEvals]);
 
   const [passColor, neutralColor, failColor] = useToken("colors", [
     "green.500",
