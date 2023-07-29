@@ -9,15 +9,32 @@ import { ScenariosHeader } from "./ScenariosHeader";
 import { borders } from "./styles";
 import { useScenarios } from "~/utils/hooks";
 import ScenarioPaginator from "./ScenarioPaginator";
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 
-export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
+export default function OutputsTable({
+  experimentId,
+  func,
+}: {
+  experimentId: string | undefined;
+  func: () => void;
+}) {
   const variants = api.promptVariants.list.useQuery(
     { experimentId: experimentId as string },
     { enabled: !!experimentId },
   );
 
   const scenarios = useScenarios();
+  const [newFunc, setNewFunc] = useState<() => void | null>();
+
+  useEffect(() => {
+    console.log('func', func)
+    if (func) {
+      setNewFunc(prev => {
+        console.log('Setting newFunc from', prev, 'to', func);
+        return func;
+    });
+    }
+  }, [func]);
 
   if (!variants.data || !scenarios.data) return null;
 
@@ -46,7 +63,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       <GridItem rowSpan={variantHeaderRows}>
         <AddVariantButton />
       </GridItem>
-
+      {newFunc && newFunc.toString()}
       {variants.data.map((variant, i) => {
         const sharedProps: GridItemProps = {
           ...borders,

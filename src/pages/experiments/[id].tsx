@@ -61,6 +61,14 @@ export default function Experiment() {
 
   const canModify = experiment.data?.access.canModify ?? false;
 
+  const y = "5"
+  const z = {abc: "123"}
+
+  const func = () => {
+    const u = 12;
+    const m = `hello ${y} ${z.abc} ${u} world`;
+  }
+
   return (
     <AppShell title={experiment.data?.label}>
       <VStack h="full">
@@ -106,7 +114,7 @@ export default function Experiment() {
         </Flex>
         <ExperimentSettingsDrawer />
         <Box w="100%" overflowX="auto" flex={1}>
-          <OutputsTable experimentId={router.query.id as string | undefined} />
+          <OutputsTable experimentId={router.query.id as string | undefined} func={func} />
         </Box>
       </VStack>
     </AppShell>
