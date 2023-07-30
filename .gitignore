@@ -42,3 +42,7 @@
 
 # typescript
 /app/*.tsbuildinfo
+
+
+# Client Libs files
+/client-libs/js/node_modules

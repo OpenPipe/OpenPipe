@@ -8,6 +8,27 @@ export const requireNothing = (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 };
 
+export const requireCanAccessDataFlow = async (dataFlowId: string, ctx: TRPCContext) => {
+  if (!ctx.session?.user.id) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  const dataFlow = await prisma.dataFlow.findFirst({
+    where: {
+      id: dataFlowId,
+      organization: {
+        organizationUsers: {
+          some: {
+            role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
+            userId: ctx.session?.user.id,
+          },
+        },
+      },
+    },
+  });
+
+  return !!dataFlow;
+};
+
 export const requireCanViewExperiment = async (experimentId: string, ctx: TRPCContext) => {
   await prisma.experiment.findFirst({
     where: { id: experimentId },

@@ -11,6 +11,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
 import superjson from "superjson";
+import { OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
 import { getServerAuthSession } from "~/server/auth";
 import { prisma } from "~/server/db";
@@ -75,7 +76,7 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
 
 export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.meta<OpenApiMeta>().context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {

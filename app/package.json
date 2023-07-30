@@ -16,7 +16,7 @@
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start",
-    "codegen": "tsx src/codegen/export-openai-types.ts",
+    "codegen": "tsx src/codegen/export-client-types.ts",
     "seed": "tsx prisma/seed.ts",
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'"
   },
@@ -79,6 +79,7 @@
     "socket.io": "^4.7.1",
     "socket.io-client": "^4.7.1",
     "superjson": "1.12.2",
+    "trpc-openapi": "^1.2.0",
     "tsx": "^3.12.7",
     "type-fest": "^4.0.0",
     "use-query-params": "^2.2.1",

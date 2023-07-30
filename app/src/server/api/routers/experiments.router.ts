@@ -12,7 +12,7 @@ import {
   requireNothing,
 } from "~/utils/accessControl";
 import userOrg from "~/server/utils/userOrg";
-import generateTypes from "~/modelProviders/generateTypes";
+import { declarePromptTypes } from "~/modelProviders/generatePromptTypes";
 
 export const experimentsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -383,6 +383,6 @@ export const experimentsRouter = createTRPCRouter({
   // Keeping these on `experiment` for now because we might want to limit the
   // providers based on your account/experiment
   promptTypes: publicProcedure.query(async () => {
-    return await generateTypes();
+    return await declarePromptTypes();
   }),
 });

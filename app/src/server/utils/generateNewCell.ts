@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import parseConstructFn from "./parseConstructFn";
 import { type JsonObject } from "type-fest";
-import hashPrompt from "./hashPrompt";
+import hashPrompt from "./hashSortedObject";
 import { omit } from "lodash-es";
 import { queueQueryModel } from "../tasks/queryModel.task";
 
@@ -100,8 +100,8 @@ export const generateNewCell = async (
       where: { id: cell.id },
       data: {
         retrievalStatus: "COMPLETE",
-        jobStartedAt: matchingModelResponse.scenarioVariantCell.jobStartedAt,
-        jobQueuedAt: matchingModelResponse.scenarioVariantCell.jobQueuedAt,
+        jobStartedAt: matchingModelResponse.scenarioVariantCell?.jobStartedAt,
+        jobQueuedAt: matchingModelResponse.scenarioVariantCell?.jobQueuedAt,
       },
     });
 

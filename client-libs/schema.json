@@ -1,0 +1,179 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OpenPipe API",
+    "description": "The public API for reporting API calls to OpenPipe",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://app.openpipe.ai/api"
+    }
+  ],
+  "paths": {
+    "/v1/capture-prompt": {
+      "post": {
+        "operationId": "externalApi-capturePrompt",
+        "description": "Capture a prompt with its variables call",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API token for authentication"
+                  },
+                  "dataFlowId": {
+                    "type": "string",
+                    "description": "Data flow ID"
+                  },
+                  "promptFunction": {
+                    "type": "string",
+                    "description": "Prompt construction function"
+                  },
+                  "scenarioVariables": {
+                    "description": "Scenario variables as JSON"
+                  },
+                  "prompt": {
+                    "description": "Prompt object as JSON"
+                  },
+                  "model": {
+                    "type": "string",
+                    "description": "Model name"
+                  },
+                  "modelProvider": {
+                    "type": "string",
+                    "description": "Model provider"
+                  }
+                },
+                "required": [
+                  "apiKey",
+                  "dataFlowId",
+                  "promptFunction",
+                  "model",
+                  "modelProvider"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/v1/capture-response": {
+      "post": {
+        "operationId": "externalApi-captureResponse",
+        "description": "Capture a response to a prompt",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "API token for authentication"
+                  },
+                  "loggedCallId": {
+                    "type": "string",
+                    "description": "Logged call ID"
+                  },
+                  "responsePayload": {
+                    "description": "JSON-encoded response payload"
+                  }
+                },
+                "required": [
+                  "apiKey",
+                  "loggedCallId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "Authorization": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "responses": {
+      "error": {
+        "description": "Error response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "issues": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "message",
+                "code"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

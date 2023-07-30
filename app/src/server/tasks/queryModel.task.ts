@@ -4,7 +4,7 @@ import modelProviders from "~/modelProviders/modelProviders";
 import { prisma } from "~/server/db";
 import { wsConnection } from "~/utils/wsConnection";
 import { runEvalsForOutput } from "../utils/evaluations";
-import hashPrompt from "../utils/hashPrompt";
+import hashPrompt from "../utils/hashSortedObject";
 import parseConstructFn from "../utils/parseConstructFn";
 import defineTask from "./defineTask";
 

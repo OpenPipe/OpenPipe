@@ -19,6 +19,9 @@ model Experiment {
     organizationId String        @db.Uuid
     organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+    dataFlowId String?     @db.Uuid
+    dataFlow   DataFlow?   @relation(fields: [dataFlowId], references: [id], onDelete: Cascade)
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
@@ -127,9 +130,12 @@ model ModelResponse {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    scenarioVariantCellId String              @db.Uuid
-    scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
+    scenarioVariantCellId String?              @db.Uuid
+    scenarioVariantCell   ScenarioVariantCell? @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
     outputEvaluations      OutputEvaluation[]
+
+    loggedCallId String? @db.Uuid
+    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
     @@index([inputHash])
 }
@@ -174,10 +180,57 @@ model OutputEvaluation {
     @@unique([modelResponseId, evaluationId])
 }
 
+model LoggedCall {
+    id String @id @default(uuid()) @db.Uuid
+
+    promptFunctionHash String
+    promptFunction     String
+    prompt     Json
+    responsePayload    Json?
+    scenarioVariables Json
+    model              String
+    modelProvider      String
+
+    dataFlowId String     @db.Uuid
+    dataFlow   DataFlow   @relation(fields: [dataFlowId], references: [id], onDelete: Cascade)
+
+    modelResponse      ModelResponse[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model DataFlow {
+    id String @id @default(uuid()) @db.Uuid
+
+    label String
+    experiments   Experiment[]
+    loggedCalls      LoggedCall[]
+    organizationId String        @db.Uuid
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ApiKey {
+    id        String  @id @default(uuid()) @db.Uuid
+
+    name      String
+    key     String  @unique
+    organizationId String        @db.Uuid
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
 model Organization {
     id                String  @id @default(uuid()) @db.Uuid
     personalOrgUserId String? @unique @db.Uuid
-    PersonalOrgUser   User?   @relation(fields: [personalOrgUserId], references: [id], onDelete: Cascade)
+    personalOrgUser   User?   @relation(fields: [personalOrgUserId], references: [id], onDelete: Cascade)
+    apiKeys         ApiKey[]
+    dataFlows         DataFlow[]
 
     createdAt        DateTime           @default(now())
     updatedAt        DateTime           @updatedAt
