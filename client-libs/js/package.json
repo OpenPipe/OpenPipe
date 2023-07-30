@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "smoketest": "tsx ./tests/smoketest.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +14,7 @@
     "openai": "^3.3.0"
   },
   "devDependencies": {
+    "@types/node": "^20.4.5",
     "dotenv": "^16.3.1",
     "tsx": "^3.12.7",
     "typescript": "^5.1.6"

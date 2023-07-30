@@ -36,10 +36,7 @@ export class OpenPipeApi {
     modelProvider: T,
     promptFunction: () => PromptTypes[T],
     scenarioVariables: Record<string, unknown>
-  ): Promise<{
-    id?: string;
-    prompt: PromptTypes[T];
-  }> {
+  ) {
     const prompt = promptFunction() as PromptTypes[T];
     if (!prompt) {
       console.error("Prompt function returned null", promptFunction.toString());
@@ -65,11 +62,14 @@ export class OpenPipeApi {
 
     return {
       id: resp?.data?.loggedCallId,
-      prompt,
-    }
+      prompt: prompt!,
+    };
   }
 
-  public async captureResponse(loggedCallId: string | undefined, responsePayload: any): Promise<void> {
+  public async captureResponse(
+    loggedCallId: string | undefined,
+    responsePayload: any
+  ): Promise<void> {
     if (!loggedCallId) {
       console.error("No call log ID provided to captureResponse");
       return;
@@ -84,6 +84,5 @@ export class OpenPipeApi {
     } catch (err) {
       console.error("Error reporting to OpenPipe", err);
     }
-    
   }
 }

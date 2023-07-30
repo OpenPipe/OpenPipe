@@ -61,6 +61,7 @@
     "next": "^13.4.2",
     "next-auth": "^4.22.1",
     "next-query-params": "^4.2.3",
+    "nextjs-cors": "^2.1.2",
     "nextjs-routes": "^2.0.1",
     "openai": "4.0.0-beta.2",
     "pluralize": "^8.0.0",

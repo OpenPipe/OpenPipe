@@ -13,6 +13,9 @@ dependencies:
     version: 3.3.0
 
 devDependencies:
+  '@types/node':
+    specifier: ^20.4.5
+    version: 20.4.5
   dotenv:
     specifier: ^16.3.1
     version: 16.3.1
@@ -243,6 +246,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@types/node@20.4.5:
+    resolution: {integrity: sha512-rt40Nk13II9JwQBdeYqmbn2Q6IVTA5uPhvSO+JVqdXw/6/4glI6oR9ezty/A9Hg5u7JH4OmYmuQ+XvjKm0Datg==}
+    dev: true
 
   /asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
