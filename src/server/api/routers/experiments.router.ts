@@ -15,6 +15,33 @@ import userOrg from "~/server/utils/userOrg";
 import generateTypes from "~/modelProviders/generateTypes";
 
 export const experimentsRouter = createTRPCRouter({
+  stats: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
+    await requireCanViewExperiment(input.id, ctx);
+
+    const [experiment, promptVariantCount, testScenarioCount] = await prisma.$transaction([
+      prisma.experiment.findFirstOrThrow({
+        where: { id: input.id },
+      }),
+      prisma.promptVariant.count({
+        where: {
+          experimentId: input.id,
+          visible: true,
+        },
+      }),
+      prisma.testScenario.count({
+        where: {
+          experimentId: input.id,
+          visible: true,
+        },
+      })
+    ]);
+
+    return {
+      experimentLabel: experiment.label,
+      promptVariantCount,
+      testScenarioCount,
+    }
+  }),
   list: protectedProcedure.query(async ({ ctx }) => {
     // Anyone can list experiments
     requireNothing(ctx);
