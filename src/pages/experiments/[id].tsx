@@ -98,13 +98,12 @@ export default function Experiment() {
     <>
       {stats && (
         <Head>
-          <meta property="og:title" content={stats.experimentLabel} />
+          <meta property="og:title" content={stats.experimentLabel} key="title" />
           <meta
             property="og:image"
-            content={`/api/experiments/og-image?experimentLabel=${stats.experimentLabel}&variantsCount=${stats.promptVariantCount}&scenariosCount=${stats.testScenarioCount}`}
+            content={`https://ed13-192-184-181-6.ngrok-free.app/api/experiments/og-image?experimentLabel=${stats.experimentLabel}&variantsCount=${stats.promptVariantCount}&scenariosCount=${stats.testScenarioCount}`}
+            key="og-image"
           />
-          <meta property="og:image:height" content="630" />
-          <meta property="og:image:width" content="1200" />
         </Head>
       )}
       <AppShell title={experiment.data?.label}>
