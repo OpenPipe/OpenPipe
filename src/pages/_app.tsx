@@ -21,6 +21,14 @@ const MyApp: AppType<{ session: Session | null }> = ({
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
         />
+        <meta name="og:title" content="OpenPipe: Open-Source Lab for LLMs" key="title" />
+        <meta
+          name="og:description"
+          content="OpenPipe is a powerful playground for quickly optimizing performance, cost, and speed across models."
+        />
+        <meta name="og:image" content="/og.png" key="og-image" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content="1200" />
       </Head>
       <SessionProvider session={session}>
         <SyncAppStore />
