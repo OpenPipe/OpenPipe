@@ -101,7 +101,7 @@ export default function Experiment() {
           <meta property="og:title" content={stats.experimentLabel} key="title" />
           <meta
             property="og:image"
-            content={`https://ed13-192-184-181-6.ngrok-free.app/api/experiments/og-image?experimentLabel=${stats.experimentLabel}&variantsCount=${stats.promptVariantCount}&scenariosCount=${stats.testScenarioCount}`}
+            content={`/api/experiments/og-image?experimentLabel=${stats.experimentLabel}&variantsCount=${stats.promptVariantCount}&scenariosCount=${stats.testScenarioCount}`}
             key="og-image"
           />
         </Head>
