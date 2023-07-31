@@ -33,14 +33,14 @@ export const experimentsRouter = createTRPCRouter({
           experimentId: input.id,
           visible: true,
         },
-      })
+      }),
     ]);
 
     return {
       experimentLabel: experiment.label,
       promptVariantCount,
       testScenarioCount,
-    }
+    };
   }),
   list: protectedProcedure.query(async ({ ctx }) => {
     // Anyone can list experiments
