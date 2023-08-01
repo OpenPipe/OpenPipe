@@ -41,7 +41,7 @@ export default function ScenarioEditor({
   const [values, setValues] = useState<Record<string, string>>(savedValues);
 
   useEffect(() => {
-    if(savedValues) setValues(savedValues);
+    if (savedValues) setValues(savedValues);
   }, [savedValues]);
 
   const experiment = useExperiment();

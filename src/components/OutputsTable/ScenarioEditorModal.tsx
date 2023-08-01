@@ -48,7 +48,6 @@ export const ScenarioEditorModal = ({
     if (savedValues) setValues(savedValues);
   }, [savedValues]);
 
-
   const hasChanged = !isEqual(savedValues, values);
 
   const mutation = api.scenarios.replaceWithValues.useMutation();
