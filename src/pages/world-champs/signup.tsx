@@ -17,16 +17,30 @@ import {
   Tr,
   VStack,
   useInterval,
+  Image,
 } from "@chakra-ui/react";
 import { signIn, useSession } from "next-auth/react";
 import Head from "next/head";
 import { useCallback, useState } from "react";
 import { BsGithub } from "react-icons/bs";
-import { TopNavbar } from "~/components/nav/AppShell";
 import UserMenu from "~/components/nav/UserMenu";
 import { api } from "~/utils/api";
 import dayjs from "~/utils/dayjs";
 import { useHandledAsyncCallback } from "~/utils/hooks";
+
+const TopNavbar = () => (
+  <DarkMode>
+    <GlobalStyle />
+    <HStack px={4} py={2}>
+      <HStack as={Link} href="/" _hover={{ textDecoration: "none" }} spacing={0} py={2} pr={16}>
+        <Image src="/logo.svg" alt="" boxSize={6} mr={4} />
+        <Heading size="md" fontFamily="inconsolata, monospace">
+          OpenPipe
+        </Heading>
+      </HStack>
+    </HStack>
+  </DarkMode>
+);
 
 // Shows how long until the competition starts. Refreshes every second
 function CountdownTimer(props: { date: Date } & TextProps) {
