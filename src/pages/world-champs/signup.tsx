@@ -22,6 +22,7 @@ import { signIn, useSession } from "next-auth/react";
 import Head from "next/head";
 import { useCallback, useState } from "react";
 import { BsGithub } from "react-icons/bs";
+import { TopNavbar } from "~/components/nav/AppShell";
 import UserMenu from "~/components/nav/UserMenu";
 import { api } from "~/utils/api";
 import dayjs from "~/utils/dayjs";
@@ -129,6 +130,7 @@ export default function Signup() {
       </Head>
 
       <Box bgColor="gray.900" color="gray.200" minH="100vh" w="full">
+        <TopNavbar />
         <VStack mx="auto" py={24} maxW="2xl" align="start" fontSize="lg">
           <Heading size="lg">🏆 Prompt Engineering World Championships</Heading>
           <CountdownTimer

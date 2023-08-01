@@ -11,6 +11,8 @@ import {
   type LinkProps,
   Link,
   Flex,
+  DarkMode,
+  GlobalStyle,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { BsGithub, BsPersonCircle } from "react-icons/bs";
@@ -103,6 +105,20 @@ const NavSidebar = () => {
     </VStack>
   );
 };
+
+export const TopNavbar = () => (
+  <DarkMode>
+    <GlobalStyle />
+    <HStack px={4} py={2}>
+      <HStack as={Link} href="/" _hover={{ textDecoration: "none" }} spacing={0} py={2} pr={16}>
+        <Image src="/logo.svg" alt="" boxSize={6} mr={4} />
+        <Heading size="md" fontFamily="inconsolata, monospace">
+          OpenPipe
+        </Heading>
+      </HStack>
+    </HStack>
+  </DarkMode>
+);
 
 export default function AppShell(props: { children: React.ReactNode; title?: string }) {
   const [vh, setVh] = useState("100vh"); // Default height to prevent flicker on initial render
