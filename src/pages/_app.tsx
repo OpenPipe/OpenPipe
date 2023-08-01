@@ -29,6 +29,8 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <meta name="og:image" content="/og.png" key="og-image" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:width" content="1200" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="/og.png" />
       </Head>
       <SessionProvider session={session}>
         <SyncAppStore />
