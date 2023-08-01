@@ -18,14 +18,21 @@ import { BsFileTextFill } from "react-icons/bs";
 import { isEqual } from "lodash-es";
 
 import { api } from "~/utils/api";
-import { useScenario, useHandledAsyncCallback, useExperiment, useExperimentAccess } from "~/utils/hooks";
+import {
+  useScenario,
+  useHandledAsyncCallback,
+  useExperiment,
+  useExperimentAccess,
+} from "~/utils/hooks";
 import { FloatingLabelInput } from "./FloatingLabelInput";
 
 export const ScenarioEditorModal = ({
   scenarioId,
+  initialValues,
   onClose,
 }: {
   scenarioId: string;
+  initialValues: Record<string, string>;
   onClose: () => void;
 }) => {
   const utils = api.useContext();
@@ -35,14 +42,12 @@ export const ScenarioEditorModal = ({
 
   const savedValues = scenario.data?.variableValues as Record<string, string>;
 
-  const [values, setValues] = useState<Record<string, string>>(savedValues);
+  const [values, setValues] = useState<Record<string, string>>(initialValues);
 
   useEffect(() => {
     if (savedValues) setValues(savedValues);
-  }, [savedValues])
+  }, [savedValues]);
 
-  console.log('values', values)
-  console.log('savedValues', savedValues)
 
   const hasChanged = !isEqual(savedValues, values);
 
@@ -78,29 +83,30 @@ export const ScenarioEditorModal = ({
         <ModalCloseButton />
         <ModalBody maxW="unset">
           <VStack spacing={8}>
-            {values && variableLabels.map((key) => {
-              const value = values[key] ?? "";
-              return (
-                <FloatingLabelInput
-                  key={key}
-                  label={key}
-                  isDisabled={!canModify}
-                  _disabled={{ opacity: 1 }}
-                  style={{ width: "100%" }}
-                  value={value}
-                  onChange={(e) => {
-                    setValues((prev) => ({ ...prev, [key]: e.target.value }));
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                      e.preventDefault();
-                      e.currentTarget.blur();
-                      onSave();
-                    }
-                  }}
-                />
-              );
-            })}
+            {values &&
+              variableLabels.map((key) => {
+                const value = values[key] ?? "";
+                return (
+                  <FloatingLabelInput
+                    key={key}
+                    label={key}
+                    isDisabled={!canModify}
+                    _disabled={{ opacity: 1 }}
+                    style={{ width: "100%" }}
+                    value={value}
+                    onChange={(e) => {
+                      setValues((prev) => ({ ...prev, [key]: e.target.value }));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                        onSave();
+                      }
+                    }}
+                  />
+                );
+              })}
           </VStack>
         </ModalBody>
 
@@ -115,12 +121,7 @@ export const ScenarioEditorModal = ({
               >
                 <Text>Reset</Text>
               </Button>
-              <Button
-                colorScheme="blue"
-                onClick={onSave}
-                minW={24}
-                isDisabled={!hasChanged}
-              >
+              <Button colorScheme="blue" onClick={onSave} minW={24} isDisabled={!hasChanged}>
                 {saving ? <Spinner boxSize={4} /> : <Text>Save</Text>}
               </Button>
             </HStack>

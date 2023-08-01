@@ -217,6 +217,7 @@ export default function ScenarioEditor({
       {scenarioEditorModalOpen && (
         <ScenarioEditorModal
           scenarioId={scenario.id}
+          initialValues={savedValues}
           onClose={() => setScenarioEditorModalOpen(false)}
         />
       )}
