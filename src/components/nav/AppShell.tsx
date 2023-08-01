@@ -84,7 +84,11 @@ const NavSidebar = () => {
           />
         )}
       </VStack>
-      {user ? <UserMenu user={user} /> : <Divider />}
+      {user ? (
+        <UserMenu user={user} borderColor={"gray.200"} borderTopWidth={1} borderBottomWidth={1} />
+      ) : (
+        <Divider />
+      )}
       <VStack spacing={0} align="center">
         <Link
           href="https://github.com/openpipe/openpipe"

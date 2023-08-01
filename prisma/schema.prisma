@@ -112,24 +112,24 @@ model ScenarioVariantCell {
 model ModelResponse {
     id String @id @default(uuid()) @db.Uuid
 
-    inputHash           String
-    requestedAt         DateTime?
-    receivedAt          DateTime?
-    output              Json?
-    cost                Float?
-    promptTokens        Int?
-    completionTokens    Int?
-    statusCode          Int?
-    errorMessage        String?
-    retryTime           DateTime?
-    outdated            Boolean @default(false)
+    inputHash        String
+    requestedAt      DateTime?
+    receivedAt       DateTime?
+    output           Json?
+    cost             Float?
+    promptTokens     Int?
+    completionTokens Int?
+    statusCode       Int?
+    errorMessage     String?
+    retryTime        DateTime?
+    outdated         Boolean   @default(false)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     scenarioVariantCellId String              @db.Uuid
     scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
-    outputEvaluations      OutputEvaluation[]
+    outputEvaluations     OutputEvaluation[]
 
     @@index([inputHash])
 }
@@ -150,8 +150,8 @@ model Evaluation {
     experimentId String     @db.Uuid
     experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
+    createdAt         DateTime           @default(now())
+    updatedAt         DateTime           @updatedAt
     outputEvaluations OutputEvaluation[]
 }
 
@@ -162,7 +162,7 @@ model OutputEvaluation {
     result  Float
     details String?
 
-    modelResponseId String      @db.Uuid
+    modelResponseId String        @db.Uuid
     modelResponse   ModelResponse @relation(fields: [modelResponseId], references: [id], onDelete: Cascade)
 
     evaluationId String     @db.Uuid
@@ -179,8 +179,8 @@ model Organization {
     personalOrgUserId String? @unique @db.Uuid
     PersonalOrgUser   User?   @relation(fields: [personalOrgUserId], references: [id], onDelete: Cascade)
 
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
+    createdAt         DateTime           @default(now())
+    updatedAt         DateTime           @updatedAt
     organizationUsers OrganizationUser[]
     experiments       Experiment[]
 }
@@ -206,6 +206,20 @@ model OrganizationUser {
     updatedAt DateTime @updatedAt
 
     @@unique([organizationId, userId])
+}
+
+model WorldChampEntrant {
+    id String @id @default(uuid()) @db.Uuid
+
+    userId String @db.Uuid
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    approved Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([userId])
 }
 
 model Account {
@@ -245,6 +259,7 @@ model User {
     sessions          Session[]
     organizationUsers OrganizationUser[]
     organizations     Organization[]
+    worldChampEntrant WorldChampEntrant?
 }
 
 model VerificationToken {
