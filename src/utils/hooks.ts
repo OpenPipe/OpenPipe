@@ -107,4 +107,8 @@ export const useScenarios = () => {
   );
 };
 
+export const useScenario = (scenarioId: string) => {
+  return api.scenarios.get.useQuery({ id: scenarioId });
+};
+
 export const useVisibleScenarioIds = () => useScenarios().data?.scenarios.map((s) => s.id) ?? [];
