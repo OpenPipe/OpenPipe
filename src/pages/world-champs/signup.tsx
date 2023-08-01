@@ -17,6 +17,7 @@ import {
   Tr,
   VStack,
   useInterval,
+  Image,
 } from "@chakra-ui/react";
 import { signIn, useSession } from "next-auth/react";
 import Head from "next/head";
@@ -26,6 +27,20 @@ import UserMenu from "~/components/nav/UserMenu";
 import { api } from "~/utils/api";
 import dayjs from "~/utils/dayjs";
 import { useHandledAsyncCallback } from "~/utils/hooks";
+
+const TopNavbar = () => (
+  <DarkMode>
+    <GlobalStyle />
+    <HStack px={4} py={2}>
+      <HStack as={Link} href="/" _hover={{ textDecoration: "none" }} spacing={0} py={2} pr={16}>
+        <Image src="/logo.svg" alt="" boxSize={6} mr={4} />
+        <Heading size="md" fontFamily="inconsolata, monospace">
+          OpenPipe
+        </Heading>
+      </HStack>
+    </HStack>
+  </DarkMode>
+);
 
 // Shows how long until the competition starts. Refreshes every second
 function CountdownTimer(props: { date: Date } & TextProps) {
@@ -129,6 +144,7 @@ export default function Signup() {
       </Head>
 
       <Box bgColor="gray.900" color="gray.200" minH="100vh" w="full">
+        <TopNavbar />
         <VStack mx="auto" py={24} maxW="2xl" align="start" fontSize="lg">
           <Heading size="lg">🏆 Prompt Engineering World Championships</Heading>
           <CountdownTimer
