@@ -37,7 +37,6 @@ export const FloatingLabelInput = ({
         borderColor={isFocused ? "blue.500" : "gray.400"}
         autoComplete="off"
         value={value}
-        maxHeight={32}
         overflowY="auto"
         overflowX="hidden"
         {...props}

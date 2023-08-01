@@ -41,7 +41,21 @@ export const scenariosRouter = createTRPCRouter({
         count,
       };
     }),
+  get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
+    const scenario = await prisma.testScenario.findUnique({
+      where: {
+        id: input.id,
+      },
+    });
 
+    if (!scenario) {
+      throw new Error(`Scenario with id ${input.id} does not exist`);
+    }
+
+    await requireCanViewExperiment(scenario.experimentId, ctx);
+
+    return scenario;
+  }),
   create: protectedProcedure
     .input(
       z.object({

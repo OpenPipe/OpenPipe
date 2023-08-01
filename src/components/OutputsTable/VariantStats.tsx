@@ -48,12 +48,12 @@ export default function VariantStats(props: { variant: PromptVariant }) {
       fontSize="xs"
       py={cellPadding.y}
     >
-      {showNumFinished && (
-        <Text>
-          {data.outputCount} / {data.scenarioCount}
-        </Text>
-      )}
       <HStack px={cellPadding.x}>
+        {showNumFinished && (
+          <Text>
+            {data.outputCount} / {data.scenarioCount}
+          </Text>
+        )}
         {data.evalResults.map((result) => {
           const passedFrac = result.passCount / result.totalCount;
           return (
