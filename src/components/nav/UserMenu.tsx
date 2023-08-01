@@ -8,12 +8,16 @@ import {
   PopoverTrigger,
   PopoverContent,
   Link,
+  useColorMode,
+  type StackProps,
 } from "@chakra-ui/react";
 import { type Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { BsBoxArrowRight, BsChevronRight, BsPersonCircle } from "react-icons/bs";
 
-export default function UserMenu({ user }: { user: Session }) {
+export default function UserMenu({ user, ...rest }: { user: Session } & StackProps) {
+  const { colorMode } = useColorMode();
+
   const profileImage = user.user.image ? (
     <Image src={user.user.image} alt="profile picture" boxSize={8} borderRadius="50%" />
   ) : (
@@ -29,12 +33,10 @@ export default function UserMenu({ user }: { user: Session }) {
             px={3}
             spacing={3}
             py={2}
-            borderColor={"gray.200"}
-            borderTopWidth={1}
-            borderBottomWidth={1}
+            {...rest}
             cursor="pointer"
             _hover={{
-              bgColor: "gray.200",
+              bgColor: colorMode === "light" ? "gray.200" : "gray.700",
             }}
           >
             {profileImage}

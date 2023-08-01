@@ -7,3 +7,5 @@ dayjs.extend(relativeTime);
 
 export const formatTimePast = (date: Date) =>
   dayjs.duration(dayjs(date).diff(dayjs())).humanize(true);
+
+export default dayjs;

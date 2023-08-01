@@ -25,6 +25,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <meta
           name="og:description"
           content="OpenPipe is a powerful playground for quickly optimizing performance, cost, and speed across models."
+          key="description"
         />
         <meta name="og:image" content="/og.png" key="og-image" />
         <meta property="og:image:height" content="630" />
