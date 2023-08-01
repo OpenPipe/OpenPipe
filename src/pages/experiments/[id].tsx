@@ -10,9 +10,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import Link from "next/link";
-import { type GetServerSidePropsContext } from "next";
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import superjson from "superjson";
 
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
@@ -26,27 +23,26 @@ import { useAppStore } from "~/state/store";
 import { useSyncVariantEditor } from "~/state/sync";
 import { HeaderButtons } from "~/components/experiments/HeaderButtons/HeaderButtons";
 import Head from "next/head";
-import { appRouter } from "~/server/api/root.router";
-import { createInnerTRPCContext } from "~/server/api/trpc";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext<{ id: string }>) => {
-  const experimentId = context.params?.id as string;
+// TODO: import less to fix deployment with server side props
+// export const getServerSideProps = async (context: GetServerSidePropsContext<{ id: string }>) => {
+//   const experimentId = context.params?.id as string;
 
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: createInnerTRPCContext({ session: null }),
-    transformer: superjson, // optional - adds superjson serialization
-  });
+//   const helpers = createServerSideHelpers({
+//     router: appRouter,
+//     ctx: createInnerTRPCContext({ session: null }),
+//     transformer: superjson, // optional - adds superjson serialization
+//   });
 
-  // prefetch query
-  await helpers.experiments.stats.prefetch({ id: experimentId });
+//   // prefetch query
+//   await helpers.experiments.stats.prefetch({ id: experimentId });
 
-  return {
-    props: {
-      trpcState: helpers.dehydrate(),
-    },
-  };
-};
+//   return {
+//     props: {
+//       trpcState: helpers.dehydrate(),
+//     },
+//   };
+// };
 
 export default function Experiment() {
   const router = useRouter();
