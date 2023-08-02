@@ -22,8 +22,8 @@ export const ModelSearch = (props: {
   const [containerRef, containerDimensions] = useElementDimensions();
 
   return (
-    <VStack ref={containerRef as LegacyRef<HTMLDivElement>} w="full">
-      <Text>Browse Models</Text>
+    <VStack ref={containerRef as LegacyRef<HTMLDivElement>} w="full" fontFamily="inconsolata">
+      <Text fontWeight="bold">Browse Models</Text>
       <Select<ProviderModel>
         styles={{ control: (provided) => ({ ...provided, width: containerDimensions?.width }) }}
         getOptionLabel={(data) => modelLabel(data.provider, data.model)}

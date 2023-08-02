@@ -23,16 +23,16 @@ export const ModelStatsCard = ({
         {label}
       </Text>
 
-      <VStack w="full" spacing={6} bgColor="gray.100" p={4} borderRadius={4}>
+      <VStack w="full" spacing={6} borderWidth={1} borderColor="gray.300" p={4} borderRadius={8} fontFamily="inconsolata">
         <HStack w="full" align="flex-start">
-          <Text flex={1} fontSize="lg">
-            <Text as="span" color="gray.600">
-              {model.provider} /{" "}
-            </Text>
+          <VStack flex={1} fontSize="lg" alignItems="flex-start">
             <Text as="span" fontWeight="bold" color="gray.900">
               {model.name}
             </Text>
-          </Text>
+            <Text as="span" color="gray.600" fontSize="sm">
+              Provider: {model.provider}
+            </Text>
+          </VStack>
           <Link
             href={model.learnMoreUrl}
             isExternal

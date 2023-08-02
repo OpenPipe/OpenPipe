@@ -51,7 +51,7 @@ const requestUpdatedPromptFunction = async (
             originalModelProvider.inputSchema,
             null,
             2,
-          )}\n\nDo not add any assistant messages.`,
+          )}\n\nDo not add any assistant messages. Do not add any extra fields to the schema. Try to keep temperature consistent.`,
         },
         {
           role: "user",
