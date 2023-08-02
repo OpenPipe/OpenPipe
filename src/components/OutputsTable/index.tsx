@@ -35,7 +35,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
       pb={24}
       pl={8}
       display="grid"
-      gridTemplateColumns={`250px repeat(${variants.data.length}, minmax(300px, 1fr)) auto`}
+      gridTemplateColumns={`250px repeat(${variants.data.length}, minmax(360px, 1fr)) auto`}
       sx={{
         "> *": {
           borderColor: "gray.300",
