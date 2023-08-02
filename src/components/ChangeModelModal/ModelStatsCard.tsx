@@ -23,7 +23,15 @@ export const ModelStatsCard = ({
         {label}
       </Text>
 
-      <VStack w="full" spacing={6} borderWidth={1} borderColor="gray.300" p={4} borderRadius={8} fontFamily="inconsolata">
+      <VStack
+        w="full"
+        spacing={6}
+        borderWidth={1}
+        borderColor="gray.300"
+        p={4}
+        borderRadius={8}
+        fontFamily="inconsolata"
+      >
         <HStack w="full" align="flex-start">
           <VStack flex={1} fontSize="lg" alignItems="flex-start">
             <Text as="span" fontWeight="bold" color="gray.900">
