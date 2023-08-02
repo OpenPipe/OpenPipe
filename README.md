@@ -38,7 +38,7 @@ Write your prompt in one format and automatically convert it to work with any ot
 
 <br><br>
 **Refine your prompts automatically**  
-Use a growing database of existing best-practice refinements or provide custom instructions to improve your prompts automatically.
+Use a growing database of best-practice refinements to improve your prompts automatically.
 
 <img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/87a27fe7-daef-445c-a5e2-1c82b23f9f99" alt="add function call">
 
