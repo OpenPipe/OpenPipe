@@ -21,6 +21,7 @@ export type Model = {
   provider: SupportedProvider;
   description?: string;
   learnMoreUrl?: string;
+  apiDocsUrl?: string;
 };
 
 export type ProviderModel = { provider: z.infer<typeof ZodSupportedProvider>; model: string };

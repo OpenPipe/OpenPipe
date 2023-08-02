@@ -15,6 +15,7 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, Completion> =
       speed: "medium",
       provider: "anthropic",
       learnMoreUrl: "https://www.anthropic.com/product",
+      apiDocsUrl: "https://docs.anthropic.com/claude/reference/complete_post",
     },
     "claude-instant-1.1": {
       name: "Claude Instant 1.1",
@@ -24,6 +25,7 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, Completion> =
       speed: "fast",
       provider: "anthropic",
       learnMoreUrl: "https://www.anthropic.com/product",
+      apiDocsUrl: "https://docs.anthropic.com/claude/reference/complete_post",
     },
   },
 
