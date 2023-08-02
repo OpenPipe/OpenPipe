@@ -29,7 +29,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
     NEXT_PUBLIC_SOCKET_URL: z.string().url().default("http://localhost:3318"),
-    NEXT_PUBLIC_HOST: z.string().url().default("https://localhost:3000"),
+    NEXT_PUBLIC_HOST: z.string().url().default("http://localhost:3000"),
   },
 
   /**
