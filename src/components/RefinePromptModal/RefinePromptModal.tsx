@@ -97,7 +97,7 @@ export const RefinePromptModal = ({
         <ModalCloseButton />
         <ModalBody maxW="unset">
           <VStack spacing={8}>
-            <VStack spacing={4}>
+            <VStack spacing={4} w="full">
               {Object.keys(refinementActions).length && (
                 <>
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
