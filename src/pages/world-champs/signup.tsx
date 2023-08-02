@@ -27,19 +27,40 @@ import UserMenu from "~/components/nav/UserMenu";
 import { api } from "~/utils/api";
 import dayjs from "~/utils/dayjs";
 import { useHandledAsyncCallback } from "~/utils/hooks";
+import GitHubButton from "react-github-btn";
 
 const TopNavbar = () => (
-  <DarkMode>
-    <GlobalStyle />
-    <HStack px={4} py={2}>
-      <HStack as={Link} href="/" _hover={{ textDecoration: "none" }} spacing={0} py={2} pr={16}>
-        <Image src="/logo.svg" alt="" boxSize={6} mr={4} />
-        <Heading size="md" fontFamily="inconsolata, monospace">
-          OpenPipe
-        </Heading>
-      </HStack>
+  <HStack px={4} py={2} align="center" justify="center">
+    <HStack
+      as={Link}
+      href="/"
+      _hover={{ textDecoration: "none" }}
+      spacing={0}
+      py={2}
+      pr={16}
+      flex={1}
+      sx={{
+        ".widget": {
+          display: "block",
+        },
+      }}
+    >
+      <Image src="/logo.svg" alt="" boxSize={6} mr={4} />
+      <Heading size="md" fontFamily="inconsolata, monospace">
+        OpenPipe
+      </Heading>
     </HStack>
-  </DarkMode>
+    <Box pt="6px">
+      <GitHubButton
+        href="https://github.com/openpipe/openpipe"
+        data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+        data-size="large"
+        aria-label="Follow @openpipe on GitHub"
+      >
+        Github
+      </GitHubButton>
+    </Box>
+  </HStack>
 );
 
 // Shows how long until the competition starts. Refreshes every second
@@ -112,7 +133,11 @@ function ApplicationStatus(props: BoxProps) {
               </Text>
             ) : entrant ? (
               <Text fontSize="sm">
-                Application submitted successfully! We'll notify you by email before August 14th.
+                ✅ Application submitted successfully. We'll notify you by email before August 14th.{" "}
+                <Link href="https://github.com/openpipe/openpipe" isExternal textDecor="underline">
+                  Star our Github
+                </Link>{" "}
+                for updates while you wait!
               </Text>
             ) : (
               <Button onClick={onApply} colorScheme="orange">

@@ -15,8 +15,6 @@ These are simple experiments users have created that show how OpenPipe works. Fe
 
 <img src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="demo">
 
-
-
 You can use our hosted version of OpenPipe at https://openpipe.ai. You can also clone this repository and [run it locally](#running-locally).
 
 ## High-Level Features
@@ -49,6 +47,7 @@ OpenPipe includes a tool to generate new test scenarios based on your existing p
 <img width="600" src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="auto-generate">
 
 <br><br>
+
 ## Supported Models
 
 - All models available through the OpenAI [chat completion API](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
