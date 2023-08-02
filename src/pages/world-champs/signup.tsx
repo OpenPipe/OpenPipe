@@ -145,8 +145,10 @@ export default function Signup() {
 
       <Box color="gray.200" minH="100vh" w="full">
         <TopNavbar />
-        <VStack mx="auto" py={24} maxW="2xl" align="start" fontSize="lg">
-          <Heading size="lg">🏆 Prompt Engineering World Championships</Heading>
+        <VStack mx="auto" py={24} maxW="2xl" px={4} align="center" fontSize="lg">
+          <Heading size="lg" textAlign="center">
+            🏆 Prompt Engineering World Championships
+          </Heading>
           <CountdownTimer
             date={new Date("2023-08-14T00:00:00Z")}
             fontSize="2xl"
@@ -156,7 +158,7 @@ export default function Signup() {
 
           <ApplicationStatus py={8} alignSelf="center" />
 
-          <Text fontSize="lg">
+          <Text fontSize="lg" textAlign="left">
             Think you have what it takes to be the best? Compete with the world's top prompt
             engineers and see where you rank!
           </Text>
