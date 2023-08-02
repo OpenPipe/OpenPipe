@@ -6,41 +6,50 @@ OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It l
 
 ## Sample Experiments
 
-These are simple experiments users have created that show how OpenPipe works.
+These are simple experiments users have created that show how OpenPipe works. Feel free to fork them and start experimenting yourself.
 
 - [Country Capitals](https://app.openpipe.ai/experiments/11111111-1111-1111-1111-111111111111)
+- [Twitter Sentiment Analysis](https://app.openpipe.ai/experiments/62c20a73-2012-4a64-973c-4b665ad46a57)
 - [Reddit User Needs](https://app.openpipe.ai/experiments/22222222-2222-2222-2222-222222222222)
 - [OpenAI Function Calls](https://app.openpipe.ai/experiments/2ebbdcb3-ed51-456e-87dc-91f72eaf3e2b)
 - [Activity Classification](https://app.openpipe.ai/experiments/3950940f-ab6b-4b74-841d-7e9dbc4e4ff8)
 
-<img src="https://github.com/openpipe/openpipe/assets/176426/fc7624c6-5b65-4d4d-82b7-4a816f3e5678" alt="demo" height="400px">
+<img src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="demo">
 
-You can use our hosted version of OpenPipe at [https://openpipe.ai]. You can also clone this repository and [run it locally](#running-locally).
+
+
+You can use our hosted version of OpenPipe at https://openpipe.ai. You can also clone this repository and [run it locally](#running-locally).
 
 ## High-Level Features
-
-**Configure Multiple Prompts**  
-Set up multiple prompt configurations and compare their output side-by-side. Each configuration can be configured independently.
 
 **Visualize Responses**  
 Inspect prompt completions side-by-side.
 
+<br>
+
 **Test Many Inputs**  
 OpenPipe lets you _template_ a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broader coverage of your problem space than you'd get with manual testing.
 
+<br>
+
+**Translate between Model APIs**  
+Write your prompt in one format and automatically convert it to work with any other model.
+
+<img width="700" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/1e19ccf2-96b6-4e93-a3a5-1449710d1b5b" alt="translate between models">
+
+<br><br>
+**Refine your prompts automatically**  
+Use a growing database of existing best-practice refinements or provide custom instructions to improve your prompts automatically.
+
+<img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/87a27fe7-daef-445c-a5e2-1c82b23f9f99" alt="add function call">
+
+<br><br>
 **🪄 Auto-generate Test Scenarios**  
 OpenPipe includes a tool to generate new test scenarios based on your existing prompts and scenarios. Just click "Autogenerate Scenario" to try it out!
 
-**Prompt Validation and Typeahead**  
-We use OpenAI's OpenAPI spec to automatically provide typeahead and validate prompts.
+<img width="600" src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="auto-generate">
 
-<img alt="typeahead" src="https://github.com/openpipe/openpipe/assets/176426/acc638f8-d851-4742-8d01-fe6f98890840" height="300px">
-
-**Function Call Support**  
-Natively supports [OpenAI function calls](https://openai.com/blog/function-calling-and-other-api-updates) on supported models.
-
-<img height="300px" alt="function calls" src="https://github.com/openpipe/openpipe/assets/176426/48ad13fe-af2f-4294-bf32-62015597fd9b">
-
+<br><br>
 ## Supported Models
 
 - All models available through the OpenAI [chat completion API](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
