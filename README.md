@@ -8,7 +8,6 @@ OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It l
 
 These are simple experiments users have created that show how OpenPipe works. Feel free to fork them and start experimenting yourself.
 
-- [Country Capitals](https://app.openpipe.ai/experiments/11111111-1111-1111-1111-111111111111)
 - [Twitter Sentiment Analysis](https://app.openpipe.ai/experiments/62c20a73-2012-4a64-973c-4b665ad46a57)
 - [Reddit User Needs](https://app.openpipe.ai/experiments/22222222-2222-2222-2222-222222222222)
 - [OpenAI Function Calls](https://app.openpipe.ai/experiments/2ebbdcb3-ed51-456e-87dc-91f72eaf3e2b)
