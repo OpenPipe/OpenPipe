@@ -6,7 +6,7 @@ import {
 } from "openai/resources/chat";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { type CompletionResponse } from "../types";
-import { omit } from "lodash-es";
+import { isArray, isString, omit } from "lodash-es";
 import { openai } from "~/server/utils/openai";
 import { truthyFilter } from "~/utils/utils";
 import { APIError } from "openai";
@@ -40,6 +40,8 @@ const mergeStreamedChunks = (
           ((choice.delta.function_call.arguments as string) ?? "");
       }
     } else {
+      // @ts-expect-error the types are correctly telling us that finish_reason
+      // could be null, but don't want to fix it right now.
       choices.push({ ...omit(choice, "delta"), message: { role: "assistant", ...choice.delta } });
     }
   }
@@ -64,6 +66,7 @@ export async function getCompletion(
 
   try {
     if (onStream) {
+      console.log("got started");
       const resp = await openai.chat.completions.create(
         { ...input, stream: true },
         {
@@ -71,9 +74,11 @@ export async function getCompletion(
         },
       );
       for await (const part of resp) {
+        console.log("got part", part);
         finalCompletion = mergeStreamedChunks(finalCompletion, part);
         onStream(finalCompletion);
       }
+      console.log("got final", finalCompletion);
       if (!finalCompletion) {
         return {
           type: "error",
@@ -121,9 +126,17 @@ export async function getCompletion(
     };
   } catch (error: unknown) {
     if (error instanceof APIError) {
+      // The types from the sdk are wrong
+      const rawMessage = error.message as string | string[];
+      // If the message is not a string, stringify it
+      const message = isString(rawMessage)
+        ? rawMessage
+        : isArray(rawMessage)
+        ? rawMessage.map((m) => m.toString()).join("\n")
+        : (rawMessage as any).toString();
       return {
         type: "error",
-        message: error.message,
+        message,
         autoRetry: error.status === 429 || error.status === 503,
         statusCode: error.status,
       };

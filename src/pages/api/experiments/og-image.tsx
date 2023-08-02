@@ -9,7 +9,7 @@ const inconsolataRegularFontP = fetch(
   new URL("../../../../public/fonts/Inconsolata_SemiExpanded-Medium.ttf", import.meta.url),
 ).then((res) => res.arrayBuffer());
 
-const OgImage = async (req: NextApiRequest, res: NextApiResponse) => {
+const OgImage = async (req: NextApiRequest, _res: NextApiResponse) => {
   // @ts-expect-error - nextUrl is not defined on NextApiRequest for some reason
   const searchParams = req.nextUrl?.searchParams as URLSearchParams;
   const experimentLabel = searchParams.get("experimentLabel");

@@ -44,7 +44,7 @@ const TopNavbar = () => (
 
 // Shows how long until the competition starts. Refreshes every second
 function CountdownTimer(props: { date: Date } & TextProps) {
-  const [now, setNow] = useState(dayjs(0));
+  const [now, setNow] = useState(dayjs());
 
   useInterval(() => {
     setNow(dayjs());
@@ -52,7 +52,7 @@ function CountdownTimer(props: { date: Date } & TextProps) {
 
   const { date, ...rest } = props;
 
-  const kickoff = dayjs(props.date);
+  const kickoff = dayjs(date);
   const diff = kickoff.diff(now, "second");
   const days = Math.floor(diff / 86400);
   const hours = Math.floor((diff % 86400) / 3600);
@@ -60,7 +60,7 @@ function CountdownTimer(props: { date: Date } & TextProps) {
   const seconds = Math.floor(diff % 60);
 
   return (
-    <Text {...rest}>
+    <Text {...rest} suppressHydrationWarning>
       <Text as="span" fontWeight="bold">
         Kickoff in
       </Text>{" "}

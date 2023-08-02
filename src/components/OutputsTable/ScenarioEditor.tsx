@@ -1,9 +1,8 @@
-import { useEffect, type DragEvent } from "react";
-import { api } from "~/utils/api";
 import { isEqual } from "lodash-es";
-import { type Scenario } from "./types";
+import { useEffect, useState, type DragEvent } from "react";
+import { api } from "~/utils/api";
 import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
-import { useState } from "react";
+import { type Scenario } from "./types";
 
 import {
   Box,
@@ -12,14 +11,12 @@ import {
   Icon,
   IconButton,
   Spinner,
-  Stack,
+  Text,
   Tooltip,
   VStack,
-  Text,
 } from "@chakra-ui/react";
-import { cellPadding } from "../constants";
 import { BsArrowsAngleExpand, BsX } from "react-icons/bs";
-import { RiDraggable } from "react-icons/ri";
+import { cellPadding } from "../constants";
 import { FloatingLabelInput } from "./FloatingLabelInput";
 import { ScenarioEditorModal } from "./ScenarioEditorModal";
 
@@ -115,60 +112,44 @@ export default function ScenarioEditor({
         onDrop={onReorder}
         backgroundColor={isDragTarget ? "gray.100" : "transparent"}
       >
-        {canModify && props.canHide && (
-          <Stack
-            alignSelf="flex-start"
-            opacity={props.hovered ? 1 : 0}
-            spacing={0}
-            ml={-cellPadding.x}
-          >
-            <Tooltip label="Hide scenario" hasArrow>
-              {/* for some reason the tooltip can't position itself properly relative to the icon without the wrapping box */}
-              <Button
-                variant="unstyled"
-                color="gray.400"
-                height="unset"
-                width="unset"
-                minW="unset"
-                onClick={onHide}
-                _hover={{
-                  color: "gray.800",
-                  cursor: "pointer",
-                }}
-              >
-                <Icon as={hidingInProgress ? Spinner : BsX} boxSize={hidingInProgress ? 4 : 6} />
-              </Button>
-            </Tooltip>
-            <Icon
-              as={RiDraggable}
-              boxSize={6}
-              color="gray.400"
-              _hover={{ color: "gray.800", cursor: "pointer" }}
-            />
-          </Stack>
-        )}
-
         {variableLabels.length === 0 ? (
           <Box color="gray.500">
             {vars.data ? "No scenario variables configured" : "Loading..."}
           </Box>
         ) : (
           <VStack spacing={4} flex={1} py={2}>
-            <HStack justifyContent="space-between" w="100%">
-              <Text color="gray.500">Scenario</Text>
-              <IconButton
-                className="fullscreen-toggle"
-                aria-label="Maximize"
-                icon={<BsArrowsAngleExpand />}
-                onClick={() => setScenarioEditorModalOpen(true)}
-                boxSize={6}
-                borderRadius={4}
-                p={1.5}
-                minW={0}
-                colorScheme="gray"
-                color="gray.500"
-                variant="ghost"
-              />
+            <HStack justifyContent="space-between" w="100%" align="center" spacing={0}>
+              <Text flex={1}>Scenario</Text>
+              <Tooltip label="Expand" hasArrow>
+                <IconButton
+                  aria-label="Expand"
+                  icon={<Icon as={BsArrowsAngleExpand} boxSize={3} />}
+                  onClick={() => setScenarioEditorModalOpen(true)}
+                  size="xs"
+                  colorScheme="gray"
+                  color="gray.500"
+                  variant="ghost"
+                />
+              </Tooltip>
+              {canModify && props.canHide && (
+                <Tooltip label="Delete" hasArrow>
+                  <IconButton
+                    aria-label="Delete"
+                    icon={
+                      <Icon
+                        as={hidingInProgress ? Spinner : BsX}
+                        boxSize={hidingInProgress ? 4 : 6}
+                      />
+                    }
+                    onClick={onHide}
+                    size="xs"
+                    display="flex"
+                    colorScheme="gray"
+                    color="gray.500"
+                    variant="ghost"
+                  />
+                </Tooltip>
+              )}
             </HStack>
             {variableLabels.map((key) => {
               const value = values[key] ?? "";

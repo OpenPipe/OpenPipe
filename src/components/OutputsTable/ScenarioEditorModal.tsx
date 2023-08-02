@@ -1,7 +1,6 @@
 import {
   Button,
   HStack,
-  Icon,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -14,7 +13,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { BsFileTextFill } from "react-icons/bs";
 import { isEqual } from "lodash-es";
 
 import { api } from "~/utils/api";
@@ -60,8 +58,6 @@ export const ScenarioEditorModal = ({
     await utils.scenarios.list.invalidate();
   }, [mutation, values]);
 
-  console.log("scenario", scenario);
-
   const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" });
   const variableLabels = vars.data?.map((v) => v.label) ?? [];
 
@@ -73,12 +69,7 @@ export const ScenarioEditorModal = ({
     >
       <ModalOverlay />
       <ModalContent w={1200}>
-        <ModalHeader>
-          <HStack>
-            <Icon as={BsFileTextFill} />
-            <Text>Scenario</Text>
-          </HStack>
-        </ModalHeader>
+        <ModalHeader />
         <ModalCloseButton />
         <ModalBody maxW="unset">
           <VStack spacing={8}>

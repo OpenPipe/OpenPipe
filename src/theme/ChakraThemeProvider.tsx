@@ -1,9 +1,22 @@
 import { extendTheme } from "@chakra-ui/react";
 import "@fontsource/inconsolata";
 import { ChakraProvider } from "@chakra-ui/react";
+import { modalAnatomy } from "@chakra-ui/anatomy";
+import { createMultiStyleConfigHelpers } from "@chakra-ui/styled-system";
 
 const systemFont =
   'ui-sans-serif, -apple-system, "system-ui", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"';
+
+/* eslint-disable @typescript-eslint/unbound-method */
+const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpers(
+  modalAnatomy.keys,
+);
+
+const modalTheme = defineMultiStyleConfig({
+  baseStyle: definePartsStyle({
+    dialog: { borderRadius: "sm" },
+  }),
+});
 
 const theme = extendTheme({
   styles: {
@@ -39,6 +52,7 @@ const theme = extendTheme({
         },
       },
     },
+    Modal: modalTheme,
   },
 });
 
