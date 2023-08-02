@@ -27,7 +27,7 @@ Inspect prompt completions side-by-side.
 <br>
 
 **Test Many Inputs**  
-OpenPipe lets you _template_ a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broader coverage of your problem space than you'd get with manual testing.
+OpenPipe lets you _template_ a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broad coverage of your problem space.
 
 <br>
 
