@@ -9,7 +9,7 @@ import { ChakraThemeProvider } from "~/theme/ChakraThemeProvider";
 import { SyncAppStore } from "~/state/sync";
 import NextAdapterApp from "next-query-params/app";
 import { QueryParamProvider } from "use-query-params";
-import SessionIdentifier from "~/components/SessionIdentifier";
+import { SessionIdentifier } from "~/utils/analytics";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
