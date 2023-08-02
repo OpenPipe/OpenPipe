@@ -35,7 +35,7 @@ OpenPipe lets you _template_ a prompt. Use the templating feature to run the pro
 **Translate between Model APIs**  
 Write your prompt in one format and automatically convert it to work with any other model.
 
-<img width="700" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/1e19ccf2-96b6-4e93-a3a5-1449710d1b5b" alt="translate between models">
+<img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/1e19ccf2-96b6-4e93-a3a5-1449710d1b5b" alt="translate between models">
 
 <br><br>
 **Refine your prompts automatically**  
