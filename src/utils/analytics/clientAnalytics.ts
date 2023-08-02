@@ -7,12 +7,11 @@ import { env } from "~/env.mjs";
 
 // Make sure we're in the browser
 const enableBrowserAnalytics = typeof window !== "undefined";
-if (enableBrowserAnalytics) {
-  if (env.NEXT_PUBLIC_POSTHOG_KEY) {
-    posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
-      api_host: `${env.NEXT_PUBLIC_HOST}/ingest`,
-    });
-  }
+
+if (env.NEXT_PUBLIC_POSTHOG_KEY && enableBrowserAnalytics) {
+  posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
+    api_host: `${env.NEXT_PUBLIC_HOST}/ingest`,
+  });
 }
 
 export const identifySession = (session: Session) => {

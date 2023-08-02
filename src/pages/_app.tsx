@@ -3,13 +3,12 @@ import { SessionProvider } from "next-auth/react";
 import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 import Favicon from "~/components/Favicon";
-import "~/utils/analytics";
 import Head from "next/head";
 import { ChakraThemeProvider } from "~/theme/ChakraThemeProvider";
 import { SyncAppStore } from "~/state/sync";
 import NextAdapterApp from "next-query-params/app";
 import { QueryParamProvider } from "use-query-params";
-import { SessionIdentifier } from "~/utils/analytics";
+import { SessionIdentifier } from "~/utils/analytics/clientAnalytics";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
