@@ -143,7 +143,7 @@ export default function Signup() {
         />
       </Head>
 
-      <Box bgColor="gray.900" color="gray.200" minH="100vh" w="full">
+      <Box color="gray.200" minH="100vh" w="full">
         <TopNavbar />
         <VStack mx="auto" py={24} maxW="2xl" align="start" fontSize="lg">
           <Heading size="lg">🏆 Prompt Engineering World Championships</Heading>
