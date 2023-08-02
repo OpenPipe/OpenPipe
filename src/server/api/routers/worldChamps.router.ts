@@ -3,7 +3,7 @@ import { prisma } from "~/server/db";
 import { requireNothing } from "~/utils/accessControl";
 
 export const worldChampsRouter = createTRPCRouter({
-  userStatus: publicProcedure.query(async ({ input, ctx }) => {
+  userStatus: publicProcedure.query(async ({ ctx }) => {
     const userId = ctx.session?.user.id;
 
     if (!userId) {

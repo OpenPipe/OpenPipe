@@ -3,7 +3,7 @@ import ivm from "isolated-vm";
 import dedent from "dedent";
 import { openai } from "./openai";
 import { isObject } from "lodash-es";
-import { type CompletionCreateParams } from "openai/resources/chat/completions";
+import type { CreateChatCompletionRequestMessage } from "openai/resources/chat/completions";
 import formatPromptConstructor from "~/utils/formatPromptConstructor";
 import { type SupportedProvider, type Model } from "~/modelProviders/types";
 import modelProviders from "~/modelProviders/modelProviders";
@@ -44,7 +44,7 @@ const requestUpdatedPromptFunction = async (
   let newContructionFn = "";
   for (let i = 0; i < NUM_RETRIES; i++) {
     try {
-      const messages: CompletionCreateParams.CreateChatCompletionRequestNonStreaming.Message[] = [
+      const messages: CreateChatCompletionRequestMessage[] = [
         {
           role: "system",
           content: `Your job is to update prompt constructor functions. Here is the api shape for the current model:\n---\n${JSON.stringify(

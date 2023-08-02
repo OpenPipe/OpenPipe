@@ -1,6 +1,5 @@
-import { Box, GridItem } from "@chakra-ui/react";
+import { GridItem } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { cellPadding } from "../constants";
 import OutputCell from "./OutputCell/OutputCell";
 import ScenarioEditor from "./ScenarioEditor";
 import type { PromptVariant, Scenario } from "./types";
@@ -39,9 +38,7 @@ const ScenarioRow = (props: {
           colStart={i + 2}
           {...borders}
         >
-          <Box h="100%" w="100%" px={cellPadding.x} py={cellPadding.y}>
-            <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />
-          </Box>
+          <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />
         </GridItem>
       ))}
     </>

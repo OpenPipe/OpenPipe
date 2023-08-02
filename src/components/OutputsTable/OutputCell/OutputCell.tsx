@@ -1,17 +1,17 @@
 import { api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "../types";
-import { Text, VStack } from "@chakra-ui/react";
+import { type StackProps, Text, VStack } from "@chakra-ui/react";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
-import { type ReactElement, useState, useEffect, Fragment } from "react";
+import { type ReactElement, useState, useEffect, Fragment, useCallback } from "react";
 import useSocket from "~/utils/useSocket";
 import { OutputStats } from "./OutputStats";
 import { RetryCountdown } from "./RetryCountdown";
 import frontendModelProviders from "~/modelProviders/frontendModelProviders";
 import { ResponseLog } from "./ResponseLog";
-import { CellContent } from "./CellContent";
+import { CellOptions } from "./TopActions";
 
 const WAITING_MESSAGE_INTERVAL = 20000;
 
@@ -72,37 +72,49 @@ export default function OutputCell({
   // TODO: disconnect from socket if we're not streaming anymore
   const streamedMessage = useSocket<OutputSchema>(cell?.id);
 
+  const mostRecentResponse = cell?.modelResponses[cell.modelResponses.length - 1];
+
+  const CellWrapper = useCallback(
+    ({ children, ...props }: StackProps) => (
+      <VStack w="full" alignItems="flex-start" {...props} px={2} py={2} h="100%">
+        {cell && (
+          <CellOptions refetchingOutput={hardRefetching} refetchOutput={hardRefetch} cell={cell} />
+        )}
+        <VStack w="full" alignItems="flex-start" maxH={500} overflowY="auto" flex={1}>
+          {children}
+        </VStack>
+        {mostRecentResponse && (
+          <OutputStats modelResponse={mostRecentResponse} scenario={scenario} />
+        )}
+      </VStack>
+    ),
+    [hardRefetching, hardRefetch, mostRecentResponse, scenario],
+  );
+
   if (!vars) return null;
 
   if (!cell && !fetchingOutput)
     return (
-      <CellContent hardRefetching={hardRefetching} hardRefetch={hardRefetch}>
+      <CellWrapper>
         <Text color="gray.500">Error retrieving output</Text>
-      </CellContent>
+      </CellWrapper>
     );
 
   if (cell && cell.errorMessage) {
     return (
-      <CellContent hardRefetching={hardRefetching} hardRefetch={hardRefetch}>
+      <CellWrapper>
         <Text color="red.500">{cell.errorMessage}</Text>
-      </CellContent>
+      </CellWrapper>
     );
   }
 
   if (disabledReason) return <Text color="gray.500">{disabledReason}</Text>;
 
-  const mostRecentResponse = cell?.modelResponses[cell.modelResponses.length - 1];
   const showLogs = !streamedMessage && !mostRecentResponse?.output;
 
   if (showLogs)
     return (
-      <CellContent
-        hardRefetching={hardRefetching}
-        hardRefetch={hardRefetch}
-        alignItems="flex-start"
-        fontFamily="inconsolata, monospace"
-        spacing={0}
-      >
+      <CellWrapper alignItems="flex-start" fontFamily="inconsolata, monospace" spacing={0}>
         {cell?.jobQueuedAt && <ResponseLog time={cell.jobQueuedAt} title="Job queued" />}
         {cell?.jobStartedAt && <ResponseLog time={cell.jobStartedAt} title="Job started" />}
         {cell?.modelResponses?.map((response) => {
@@ -124,9 +136,11 @@ export default function OutputCell({
                 Array.from({ length: numWaitingMessages }, (_, i) => (
                   <ResponseLog
                     key={`waiting-${i}`}
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     time={
-                      new Date(response.requestedAt!.getTime() + (i + 1) * WAITING_MESSAGE_INTERVAL)
+                      new Date(
+                        (response.requestedAt?.getTime?.() ?? 0) +
+                          (i + 1) * WAITING_MESSAGE_INTERVAL,
+                      )
                     }
                     title="Waiting for response..."
                   />
@@ -146,7 +160,7 @@ export default function OutputCell({
         {mostRecentResponse?.retryTime && (
           <RetryCountdown retryTime={mostRecentResponse.retryTime} />
         )}
-      </CellContent>
+      </CellWrapper>
     );
 
   const normalizedOutput = mostRecentResponse?.output
@@ -157,50 +171,27 @@ export default function OutputCell({
 
   if (mostRecentResponse?.output && normalizedOutput?.type === "json") {
     return (
-      <VStack
-        w="100%"
-        h="100%"
-        fontSize="xs"
-        flexWrap="wrap"
-        overflowX="hidden"
-        justifyContent="space-between"
-      >
-        <CellContent
-          hardRefetching={hardRefetching}
-          hardRefetch={hardRefetch}
-          w="full"
-          flex={1}
-          spacing={0}
+      <CellWrapper>
+        <SyntaxHighlighter
+          customStyle={{ overflowX: "unset", width: "100%", flex: 1 }}
+          language="json"
+          style={docco}
+          lineProps={{
+            style: { wordBreak: "break-all", whiteSpace: "pre-wrap" },
+          }}
+          wrapLines
         >
-          <SyntaxHighlighter
-            customStyle={{ overflowX: "unset", width: "100%", flex: 1 }}
-            language="json"
-            style={docco}
-            lineProps={{
-              style: { wordBreak: "break-all", whiteSpace: "pre-wrap" },
-            }}
-            wrapLines
-          >
-            {stringify(normalizedOutput.value, { maxLength: 40 })}
-          </SyntaxHighlighter>
-        </CellContent>
-        <OutputStats modelResponse={mostRecentResponse} scenario={scenario} />
-      </VStack>
+          {stringify(normalizedOutput.value, { maxLength: 40 })}
+        </SyntaxHighlighter>
+      </CellWrapper>
     );
   }
 
   const contentToDisplay = (normalizedOutput?.type === "text" && normalizedOutput.value) || "";
 
   return (
-    <VStack w="100%" h="100%" justifyContent="space-between" whiteSpace="pre-wrap">
-      <VStack w="full" alignItems="flex-start" spacing={0}>
-        <CellContent hardRefetching={hardRefetching} hardRefetch={hardRefetch}>
-          <Text>{contentToDisplay}</Text>
-        </CellContent>
-      </VStack>
-      {mostRecentResponse?.output && (
-        <OutputStats modelResponse={mostRecentResponse} scenario={scenario} />
-      )}
-    </VStack>
+    <CellWrapper>
+      <Text>{contentToDisplay}</Text>
+    </CellWrapper>
   );
 }
