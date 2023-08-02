@@ -29,6 +29,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
     NEXT_PUBLIC_SOCKET_URL: z.string().url().default("http://localhost:3318"),
+    NEXT_PUBLIC_HOST: z.string().url().default("https://localhost:3000"),
   },
 
   /**
@@ -42,6 +43,7 @@ export const env = createEnv({
     RESTRICT_PRISMA_LOGS: process.env.RESTRICT_PRISMA_LOGS,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
+    NEXT_PUBLIC_HOST: process.env.NEXT_PUBLIC_HOST,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     REPLICATE_API_TOKEN: process.env.REPLICATE_API_TOKEN,

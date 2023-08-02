@@ -21,6 +21,13 @@ const config = {
     defaultLocale: "en",
   },
 
+  rewrites: async () => [
+    {
+      source: "/ingest/:path*",
+      destination: "https://app.posthog.com/:path*",
+    },
+  ],
+
   webpack: (config) => {
     config.module.rules.push({
       test: /\.txt$/,
