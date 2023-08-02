@@ -7,9 +7,9 @@ const systemFont =
 
 const theme = extendTheme({
   styles: {
-    global: (props) => ({
+    global: (props: { colorMode: "dark" | "light" }) => ({
       "html, body": {
-        backgroundColor: props.colorMode === "dark" ? "gray.900" : "blue",
+        backgroundColor: props.colorMode === "dark" ? "gray.900" : "white",
       },
     }),
   },
