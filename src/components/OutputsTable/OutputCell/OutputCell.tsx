@@ -125,8 +125,10 @@ export default function OutputCell({
                   <ResponseLog
                     key={`waiting-${i}`}
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    time={new Date(response.requestedAt!.getTime() + i * WAITING_MESSAGE_INTERVAL)}
-                    title="Waiting for response"
+                    time={
+                      new Date(response.requestedAt!.getTime() + (i + 1) * WAITING_MESSAGE_INTERVAL)
+                    }
+                    title="Waiting for response..."
                   />
                 ))}
               {response.receivedAt && (
