@@ -14,7 +14,7 @@ if (enableAnalytics) {
 
 export const identifySession = (session: Session) => {
   if (!enableAnalytics) return;
-  posthog.identify(session.user?.email || session.user?.id, {
+  posthog.identify(session.user?.id, {
     name: session.user.name,
     email: session.user.email,
   });
