@@ -54,7 +54,7 @@ const modelProvider: ReplicateLlama2Provider = {
       temperature: {
         type: "number",
         description:
-          "Adjusts randomness of outputs, greater than 1 is random and 0 is deterministic, 0.75 is a good starting value. (minimum: 0.01; maximum: 5)",
+          "Adjusts randomness of outputs, 0.1 is a good starting value. (minimum: 0.01; maximum: 5)",
       },
       top_p: {
         type: "number",
