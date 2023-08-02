@@ -2,7 +2,7 @@
   "type": "object",
   "properties": {
     "model": {
-      "description": "The model that will complete your prompt.\nAs we improve Claude, we develop new versions of it that you can query.\nThis parameter controls which version of Claude answers your request.\nRight now we are offering two model families: Claude, and Claude Instant.\nYou can use them by setting model to \"claude-2\" or \"claude-instant-1\", respectively.\nSee models for additional details.\n",
+      "description": "The model that will complete your prompt.",
       "x-oaiTypeLabel": "string",
       "type": "string",
       "enum": [
@@ -13,116 +13,50 @@
       ]
     },
     "prompt": {
-      "description": "The prompt that you want Claude to complete.\n\nFor proper response generation you will need to format your prompt as follows:\n\\n\\nHuman: ${userQuestion}\\n\\nAssistant:\nSee our comments on prompts for more context.\n",
+      "description": "The prompt that you want Claude to complete.\n\nFor proper response generation you will need to format your prompt as follows:\n\"\\n\\nHuman: all instructions for the assistant\\n\\nAssistant:\". The prompt string should begin with the characters \"Human:\" and end with \"Assistant:\".",
       "default": "<|endoftext|>",
-      "nullable": true,
-      "oneOf": [
-        {
-          "type": "string",
-          "default": "",
-          "example": "This is a test."
-        },
-        {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "default": "",
-            "example": "This is a test."
-          }
-        },
-        {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "integer"
-          },
-          "example": "[1212, 318, 257, 1332, 13]"
-        },
-        {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "integer"
-            }
-          },
-          "example": "[[1212, 318, 257, 1332, 13]]"
-        }
-      ]
+      "example": "\\n\\nHuman: What is the correct translation of ${scenario.input}? I would like a long analysis followed by a short answer.\\n\\nAssistant:",
+      "type": "string"
     },
     "max_tokens_to_sample": {
       "type": "integer",
       "minimum": 1,
       "default": 256,
-      "example": 256,
       "nullable": true,
-      "description": "The maximum number of tokens to generate before stopping.\n\nNote that our models may stop before reaching this maximum. This parameter only specifies the absolute maximum number of tokens to generate.\n"
+      "description": "The maximum number of tokens to generate before stopping."
     },
     "temperature": {
       "type": "number",
       "minimum": 0,
       "maximum": 1,
-      "default": 1,
-      "example": 1,
       "nullable": true,
-      "description": "Amount of randomness injected into the response.\n\nDefaults to 1. Ranges from 0 to 1. Use temp closer to 0 for analytical / multiple choice, and closer to 1 for creative and generative tasks.\n"
+      "description": "Amount of randomness injected into the response.\n\nDefaults to 1."
     },
     "top_p": {
       "type": "number",
       "minimum": 0,
       "maximum": 1,
-      "default": 1,
-      "example": 1,
       "nullable": true,
-      "description": "Use nucleus sampling.\n\nIn nucleus sampling, we compute the cumulative distribution over all the options \nfor each subsequent token in decreasing probability order and cut it off once \nit reaches a particular probability specified by top_p. You should either alter temperature or top_p, but not both.\n"
+      "description": "Use nucleus sampling.\n\nYou should either alter temperature or top_p, but not both.\n"
     },
     "top_k": {
       "type": "number",
       "minimum": 0,
       "default": 5,
-      "example": 5,
       "nullable": true,
-      "description": "Only sample from the top K options for each subsequent token.\n\nUsed to remove \"long tail\" low probability responses. Learn more technical details here.\n"
+      "description": "Only sample from the top K options for each subsequent token."
     },
     "stream": {
-      "description": "Whether to incrementally stream the response using server-sent events.\nSee this guide to SSE events for details.type: boolean\n",
+      "description": "Whether to incrementally stream the response using server-sent events.",
+      "type": "boolean",
       "nullable": true,
       "default": false
     },
     "stop_sequences": {
-      "description": "Sequences that will cause the model to stop generating completion text.\nOur models stop on \"\\n\\nHuman:\", and may include additional built-in stop sequences in the future. By providing the stop_sequences parameter, you may include additional strings that will cause the model to stop generating.\n",
+      "description": "Sequences that will cause the model to stop generating completion text.\nBy default, our models stop on \"\\n\\nHuman:\".",
       "default": null,
       "nullable": true,
-      "oneOf": [
-        {
-          "type": "string",
-          "default": "<|endoftext|>",
-          "example": "\n",
-          "nullable": true
-        },
-        {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 4,
-          "items": {
-            "type": "string",
-            "example": "[\"\\n\"]"
-          }
-        }
-      ]
-    },
-    "metadata": {
-      "type": "object",
-      "properties": {
-        "user_id": {
-          "type": "string",
-          "example": "13803d75-b4b5-4c3e-b2a2-6f21399b021b",
-          "description": "An external identifier for the user who is associated with the request.\n\nThis should be a uuid, hash value, or other opaque identifier. Anthropic may use this id to help detect abuse. \nDo not include any identifying information such as name, email address, or phone number.\n"
-        }
-      },
-      "description": "An object describing metadata about the request.\n"
+      "type": "array"
     }
   },
   "required": ["model", "prompt", "max_tokens_to_sample"]

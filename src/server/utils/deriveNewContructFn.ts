@@ -51,7 +51,7 @@ const requestUpdatedPromptFunction = async (
             originalModelProvider.inputSchema,
             null,
             2,
-          )}\n\nDo not add any assistant messages. Do not add any extra fields to the schema. Try to keep temperature consistent.`,
+          )}\n\nDo not add any assistant messages.`,
         },
         {
           role: "user",
@@ -66,9 +66,9 @@ const requestUpdatedPromptFunction = async (
         if (newModel.provider !== originalModel.provider) {
           messages.push({
             role: "user",
-            content: `The old provider was ${originalModel.provider}. The new provider is ${
+            content: `As seen in the first argument to definePrompt, the old provider endpoint was "${originalModel.provider}". The new provider endpoint is "${
               newModel.provider
-            }. Here is the schema for the new model:\n---\n${JSON.stringify(
+            }". Here is the schema for the new model:\n---\n${JSON.stringify(
               modelProviders[newModel.provider].inputSchema,
               null,
               2,
