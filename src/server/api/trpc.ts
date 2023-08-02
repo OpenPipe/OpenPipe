@@ -14,6 +14,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { getServerAuthSession } from "~/server/auth";
 import { prisma } from "~/server/db";
+import { capturePath } from "~/utils/analytics/serverAnalytics";
 
 /**
  * 1. CONTEXT
@@ -112,7 +113,7 @@ export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 /** Reusable middleware that enforces users are logged in before running the procedure. */
-const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
+const enforceUserIsAuthed = t.middleware(async ({ ctx, next, path }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
@@ -133,6 +134,8 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
       message:
         "Protected routes must perform access control checks then explicitly invoke the `ctx.markAccessControlRun()` function to ensure we don't forget access control on a route.",
     });
+
+  capturePath(ctx.session, path);
 
   return resp;
 });
