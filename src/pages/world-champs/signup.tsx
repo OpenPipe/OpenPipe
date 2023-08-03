@@ -18,6 +18,7 @@ import {
   VStack,
   useInterval,
   Image,
+  Flex,
 } from "@chakra-ui/react";
 import { signIn, useSession } from "next-auth/react";
 import Head from "next/head";
@@ -124,8 +125,16 @@ function ApplicationStatus(props: BoxProps) {
   } else if (user) {
     return (
       <Wrapper>
-        <HStack spacing={8}>
-          <UserMenu user={user} borderRadius={2} borderColor={"gray.700"} borderWidth={1} pr={6} />
+        <Flex flexDirection={{ base: "column", md: "row" }} alignItems="center">
+          <UserMenu
+            user={user}
+            borderRadius={2}
+            borderColor={"gray.700"}
+            borderWidth={1}
+            pr={6}
+            mr={{ base: 0, md: 8 }}
+            mb={{ base: 8, md: 0 }}
+          />
           <Box flex={1}>
             {entrant?.approved ? (
               <Text fontSize="sm">
@@ -145,7 +154,7 @@ function ApplicationStatus(props: BoxProps) {
               </Button>
             )}
           </Box>
-        </HStack>
+        </Flex>
       </Wrapper>
     );
   }
@@ -186,6 +195,10 @@ export default function Signup() {
           <Text fontSize="lg" textAlign="left">
             Think you have what it takes to be the best? Compete with the world's top prompt
             engineers and see where you rank!
+          </Text>
+
+          <Text fontSize="lg" textAlign="left" w="full" pt={4}>
+            In the meantime, hone your skills on a <Link color="orange.400" href="https://app.openpipe.ai/experiments/62c20a73-2012-4a64-973c-4b665ad46a57">demo experiment</Link>.
           </Text>
 
           <Heading size="lg" pt={12} alignSelf="left">
