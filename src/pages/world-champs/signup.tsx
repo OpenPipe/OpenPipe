@@ -197,10 +197,6 @@ export default function Signup() {
             engineers and see where you rank!
           </Text>
 
-          <Text fontSize="lg" textAlign="left" w="full" pt={4}>
-            In the meantime, hone your skills on a <Link color="orange.400" href="https://app.openpipe.ai/experiments/62c20a73-2012-4a64-973c-4b665ad46a57">demo experiment</Link>.
-          </Text>
-
           <Heading size="lg" pt={12} alignSelf="left">
             Event Details
           </Heading>
