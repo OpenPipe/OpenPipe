@@ -23,7 +23,14 @@ export const OutputStats = ({
   const completionTokens = modelResponse.completionTokens;
 
   return (
-    <HStack w="full" align="center" color="gray.500" fontSize="2xs" mt={{ base: 0, md: 1 }} alignItems="flex-end">
+    <HStack
+      w="full"
+      align="center"
+      color="gray.500"
+      fontSize="2xs"
+      mt={{ base: 0, md: 1 }}
+      alignItems="flex-end"
+    >
       <HStack flex={1} flexWrap="wrap">
         {modelResponse.outputEvaluations.map((evaluation) => {
           const passed = evaluation.result > 0.5;
