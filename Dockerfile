@@ -21,6 +21,7 @@ FROM base as builder
 ARG NEXT_PUBLIC_POSTHOG_KEY
 ARG NEXT_PUBLIC_SOCKET_URL
 ARG NEXT_PUBLIC_HOST
+ARG NEXT_PUBLIC_SENTRY_DSN
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

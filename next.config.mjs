@@ -1,13 +1,14 @@
 import nextRoutes from "nextjs-routes/config";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-await import("./src/env.mjs");
+const env = await import("./src/env.mjs");
 
 /** @type {import("next").NextConfig} */
-const config = {
+let config = {
   reactStrictMode: true,
 
   /**
@@ -37,4 +38,24 @@ const config = {
   },
 };
 
-export default nextRoutes()(config);
+config = nextRoutes()(config);
+
+if (env.env.NEXT_PUBLIC_SENTRY_DSN) {
+  // @ts-expect-error - `withSentryConfig` is not typed correctly
+  config = withSentryConfig(
+    config,
+    {
+      silent: true,
+      org: "openpipe",
+      project: "openpipe",
+    },
+    {
+      widenClientFileUpload: true,
+      tunnelRoute: "/monitoring",
+      hideSourceMaps: true,
+      disableLogger: true,
+    },
+  );
+}
+
+export default config;
