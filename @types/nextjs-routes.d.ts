@@ -14,10 +14,12 @@ declare module "nextjs-routes" {
     | StaticRoute<"/account/signin">
     | DynamicRoute<"/api/auth/[...nextauth]", { "nextauth": string[] }>
     | StaticRoute<"/api/experiments/og-image">
+    | StaticRoute<"/api/sentry-example-api">
     | DynamicRoute<"/api/trpc/[trpc]", { "trpc": string }>
     | DynamicRoute<"/experiments/[id]", { "id": string }>
     | StaticRoute<"/experiments">
     | StaticRoute<"/">
+    | StaticRoute<"/sentry-example-page">
     | StaticRoute<"/world-champs">
     | StaticRoute<"/world-champs/signup">;
 
