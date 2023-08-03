@@ -4,6 +4,10 @@
 
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
+<img src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="demo">
+
+You can use our hosted version of OpenPipe at https://openpipe.ai. You can also clone this repository and [run it locally](#running-locally).
+
 # Table of contents <!-- omit in toc -->
 
 - [Sample Experiments](#sample-experiments)
@@ -24,10 +28,6 @@ These are simple experiments users have created that show how OpenPipe works. Fe
 - [Reddit User Needs](https://app.openpipe.ai/experiments/22222222-2222-2222-2222-222222222222)
 - [OpenAI Function Calls](https://app.openpipe.ai/experiments/2ebbdcb3-ed51-456e-87dc-91f72eaf3e2b)
 - [Activity Classification](https://app.openpipe.ai/experiments/3950940f-ab6b-4b74-841d-7e9dbc4e4ff8)
-
-<img src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="demo">
-
-You can use our hosted version of OpenPipe at https://openpipe.ai. You can also clone this repository and [run it locally](#running-locally).
 
 # High-Level Features
 
