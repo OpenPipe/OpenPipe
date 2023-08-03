@@ -205,7 +205,14 @@ export default function Signup() {
             Event Details
           </Heading>
           <Table variant="simple">
-            <Tbody>
+            <Tbody
+              sx={{
+                th: {
+                  base: { px: 0 },
+                  md: { px: 6 },
+                },
+              }}
+            >
               <Tr>
                 <Th>Kickoff</Th>
                 <Td>August 14</Td>
