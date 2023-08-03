@@ -5,13 +5,14 @@
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
 # Table of contents <!-- omit in toc -->
+
 - [Sample Experiments](#sample-experiments)
 - [High-Level Features](#high-level-features)
-    - [🔍 Visualize Responses](#-visualize-responses)
-    - [🧪 Test Many Inputs](#-test-many-inputs)
-    - [📟 Translate between Model APIs](#-translate-between-model-apis)
-    - [🛠️ Refine your prompts automatically](#️-refine-your-prompts-automatically)
-    - [🪄 Auto-generate Test Scenarios](#-auto-generate-test-scenarios)
+  - [🔍 Visualize Responses](#-visualize-responses)
+  - [🧪 Test Many Inputs](#-test-many-inputs)
+  - [📟 Translate between Model APIs](#-translate-between-model-apis)
+  - [🛠️ Refine your prompts automatically](#️-refine-your-prompts-automatically)
+  - [🪄 Auto-generate Test Scenarios](#-auto-generate-test-scenarios)
 - [Supported Models](#supported-models)
 - [Running Locally](#running-locally)
 
@@ -31,14 +32,15 @@ You can use our hosted version of OpenPipe at https://openpipe.ai. You can also 
 # High-Level Features
 
 ### 🔍 Visualize Responses
+
 Inspect prompt completions side-by-side.
 
-
 ### 🧪 Test Many Inputs
+
 OpenPipe lets you _template_ a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broad coverage of your problem space.
 
-
 ### 📟 Translate between Model APIs
+
 Write your prompt in one format and automatically convert it to work with any other model.
 
 <img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/1e19ccf2-96b6-4e93-a3a5-1449710d1b5b" alt="translate between models">
@@ -46,6 +48,7 @@ Write your prompt in one format and automatically convert it to work with any ot
 <br><br>
 
 ### 🛠️ Refine your prompts automatically
+
 Use a growing database of best-practice refinements to improve your prompts automatically.
 
 <img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/87a27fe7-daef-445c-a5e2-1c82b23f9f99" alt="add function call">
@@ -53,6 +56,7 @@ Use a growing database of best-practice refinements to improve your prompts auto
 <br><br>
 
 ### 🪄 Auto-generate Test Scenarios
+
 OpenPipe includes a tool to generate new test scenarios based on your existing prompts and scenarios. Just click "Autogenerate Scenario" to try it out!
 
 <img width="600" src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="auto-generate">
