@@ -43,12 +43,12 @@ export default function VariantStats(props: { variant: PromptVariant }) {
   return (
     <HStack
       justifyContent="space-between"
-      alignItems="center"
+      alignItems="flex-end"
       mx="2"
       fontSize="xs"
       py={cellPadding.y}
     >
-      <HStack px={cellPadding.x}>
+      <HStack px={cellPadding.x} flexWrap="wrap">
         {showNumFinished && (
           <Text>
             {data.outputCount} / {data.scenarioCount}
