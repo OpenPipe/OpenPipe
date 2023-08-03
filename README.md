@@ -1,10 +1,21 @@
 <img src="https://github.com/openpipe/openpipe/assets/41524992/ca59596e-eb80-40f9-921f-6d67f6e6d8fa" width="72px" />
 
-# OpenPipe
+# OpenPipe <!-- omit in toc -->
 
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts with realistic sample data.
 
-## Sample Experiments
+# Table of contents <!-- omit in toc -->
+- [Sample Experiments](#sample-experiments)
+- [High-Level Features](#high-level-features)
+    - [🔍 Visualize Responses](#-visualize-responses)
+    - [🧪 Test Many Inputs](#-test-many-inputs)
+    - [📟 Translate between Model APIs](#-translate-between-model-apis)
+    - [🛠️ Refine your prompts automatically](#️-refine-your-prompts-automatically)
+    - [🪄 Auto-generate Test Scenarios](#-auto-generate-test-scenarios)
+- [Supported Models](#supported-models)
+- [Running Locally](#running-locally)
+
+# Sample Experiments
 
 These are simple experiments users have created that show how OpenPipe works. Feel free to fork them and start experimenting yourself.
 
@@ -17,44 +28,44 @@ These are simple experiments users have created that show how OpenPipe works. Fe
 
 You can use our hosted version of OpenPipe at https://openpipe.ai. You can also clone this repository and [run it locally](#running-locally).
 
-## High-Level Features
+# High-Level Features
 
-**Visualize Responses**  
+### 🔍 Visualize Responses
 Inspect prompt completions side-by-side.
 
-<br>
 
-**Test Many Inputs**  
+### 🧪 Test Many Inputs
 OpenPipe lets you _template_ a prompt. Use the templating feature to run the prompts you're testing against many potential inputs for broad coverage of your problem space.
 
-<br>
 
-**Translate between Model APIs**  
+### 📟 Translate between Model APIs
 Write your prompt in one format and automatically convert it to work with any other model.
 
 <img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/1e19ccf2-96b6-4e93-a3a5-1449710d1b5b" alt="translate between models">
 
 <br><br>
-**Refine your prompts automatically**  
+
+### 🛠️ Refine your prompts automatically
 Use a growing database of best-practice refinements to improve your prompts automatically.
 
 <img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/87a27fe7-daef-445c-a5e2-1c82b23f9f99" alt="add function call">
 
 <br><br>
-**🪄 Auto-generate Test Scenarios**  
+
+### 🪄 Auto-generate Test Scenarios
 OpenPipe includes a tool to generate new test scenarios based on your existing prompts and scenarios. Just click "Autogenerate Scenario" to try it out!
 
 <img width="600" src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="auto-generate">
 
 <br><br>
 
-## Supported Models
+# Supported Models
 
 - All models available through the OpenAI [chat completion API](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
 - Llama2 [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat), [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat), [70b chat](https://replicate.com/replicate/llama70b-v2-chat).
 - Anthropic's [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude) and [Claude 2](https://www.anthropic.com/index/claude-2)
 
-## Running Locally
+# Running Locally
 
 1. Install [Postgresql](https://www.postgresql.org/download/).
 2. Install [NodeJS 20](https://nodejs.org/en/download/current) (earlier versions will very likely work but aren't tested).
