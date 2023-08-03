@@ -3,6 +3,14 @@ import { TRPCError } from "@trpc/server";
 import { type TRPCContext } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 
+const isAdmin = async (userId: string) => {
+  const user = await prisma.user.findFirst({
+    where: { id: userId, role: "ADMIN" },
+  });
+
+  return !!user;
+};
+
 // No-op method for protected routes that really should be accessible to anyone.
 export const requireNothing = (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
@@ -18,21 +26,24 @@ export const requireCanViewExperiment = async (experimentId: string, ctx: TRPCCo
 };
 
 export const canModifyExperiment = async (experimentId: string, userId: string) => {
-  const experiment = await prisma.experiment.findFirst({
-    where: {
-      id: experimentId,
-      organization: {
-        organizationUsers: {
-          some: {
-            role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
-            userId,
+  const [adminUser, experiment] = await Promise.all([
+    isAdmin(userId),
+    prisma.experiment.findFirst({
+      where: {
+        id: experimentId,
+        organization: {
+          organizationUsers: {
+            some: {
+              role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
+              userId,
+            },
           },
         },
       },
-    },
-  });
+    }),
+  ]);
 
-  return !!experiment;
+  return adminUser || !!experiment;
 };
 
 export const requireCanModifyExperiment = async (experimentId: string, ctx: TRPCContext) => {

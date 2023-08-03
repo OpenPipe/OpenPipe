@@ -88,7 +88,7 @@ export default function OutputCell({
         )}
       </VStack>
     ),
-    [hardRefetching, hardRefetch, mostRecentResponse, scenario],
+    [hardRefetching, hardRefetch, mostRecentResponse, scenario, cell],
   );
 
   if (!vars) return null;
