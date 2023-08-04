@@ -90,7 +90,7 @@ export default function Dataset() {
           </Breadcrumb>
           <DatasetHeaderButtons />
         </Flex>
-        <Box w="full" overflowX="auto" flex={1} pl={4} pr={8} pt={8}>
+        <Box w="full" overflowX="auto" flex={1} pl={4} pr={8} pt={8} pb={16}>
           {datasetId && <DatasetEntriesTable />}
         </Box>
       </VStack>
