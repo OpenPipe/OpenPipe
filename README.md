@@ -1,4 +1,4 @@
-<img src="https://github.com/openpipe/openpipe/assets/41524992/ca59596e-eb80-40f9-921f-6d67f6e6d8fa" width="72px" />
+<!-- <img src="https://github.com/openpipe/openpipe/assets/41524992/ca59596e-eb80-40f9-921f-6d67f6e6d8fa" width="72px" /> -->
 
 # OpenPipe <!-- omit in toc -->
 
