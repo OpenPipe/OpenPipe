@@ -4,6 +4,7 @@ import { api } from "~/utils/api";
 import { NumberParam, useQueryParam, withDefault } from "use-query-params";
 
 export const useExperiment = () => {
+  console.log('being called here')
   const router = useRouter();
   const experiment = api.experiments.get.useQuery(
     { id: router.query.id as string },
@@ -20,8 +21,8 @@ export const useExperimentAccess = () => {
 export const useDataset = () => {
   const router = useRouter();
   const dataset = api.datasets.get.useQuery(
-    { id: router.query.datasetId as string },
-    { enabled: !!router.query.datasetId },
+    { id: router.query.id as string },
+    { enabled: !!router.query.id },
   );
 
   return dataset;

@@ -31,7 +31,16 @@ export const requireCanViewDataset = async (datasetId: string, ctx: TRPCContext)
     },
   });
 
-  return !!dataset;
+  if (!dataset) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  ctx.markAccessControlRun();
+};
+
+export const requireCanModifyDataset = async (datasetId: string, ctx: TRPCContext) => {
+  // Right now all users who can view a dataset can also modify it
+  await requireCanViewDataset(datasetId, ctx);
 };
 
 export const requireCanViewExperiment = async (experimentId: string, ctx: TRPCContext) => {

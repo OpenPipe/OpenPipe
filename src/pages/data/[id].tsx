@@ -16,13 +16,11 @@ import { RiDatabase2Line } from "react-icons/ri";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import { useSyncVariantEditor } from "~/state/sync";
 import DatasetEntriesTable from "~/components/datasets/DatasetEntriesTable";
 
 export default function Dataset() {
   const router = useRouter();
   const utils = api.useContext();
-  useSyncVariantEditor();
 
   const dataset = useDataset();
   const datasetId = router.query.id as string;

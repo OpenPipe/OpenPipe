@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { requireCanViewDataset, requireNothing } from "~/utils/accessControl";
+import {
+  requireCanModifyDataset,
+  requireCanViewDataset,
+  requireNothing,
+} from "~/utils/accessControl";
 import userOrg from "~/server/utils/userOrg";
 
 export const datasetsRouter = createTRPCRouter({
@@ -23,7 +27,7 @@ export const datasetsRouter = createTRPCRouter({
       include: {
         _count: {
           // rename the field to numEntries
-          select: { datasetEntries: true}
+          select: { datasetEntries: true },
         },
       },
     });
@@ -63,7 +67,7 @@ export const datasetsRouter = createTRPCRouter({
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ name: z.string() }) }))
     .mutation(async ({ input, ctx }) => {
-      await requireCanViewDataset(input.id, ctx);
+      await requireCanModifyDataset(input.id, ctx);
       return await prisma.dataset.update({
         where: {
           id: input.id,
@@ -77,7 +81,7 @@ export const datasetsRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await requireCanViewDataset(input.id, ctx);
+      await requireCanModifyDataset(input.id, ctx);
 
       await prisma.dataset.delete({
         where: {
