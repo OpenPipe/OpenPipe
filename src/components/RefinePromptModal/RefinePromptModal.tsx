@@ -122,7 +122,7 @@ export const RefinePromptModal = ({
                 instructions={instructions}
                 setInstructions={setInstructions}
                 loading={modificationInProgress}
-                onSubmit={getModifiedPromptFn}
+                onSubmit={() => getModifiedPromptFn()}
               />
             </VStack>
             <CompareFunctions
