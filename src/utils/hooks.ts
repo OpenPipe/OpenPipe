@@ -17,6 +17,16 @@ export const useExperimentAccess = () => {
   return useExperiment().data?.access ?? { canView: false, canModify: false };
 };
 
+export const useDataset = () => {
+  const router = useRouter();
+  const dataset = api.datasets.get.useQuery(
+    { id: router.query.datasetId as string },
+    { enabled: !!router.query.datasetId },
+  );
+
+  return dataset;
+}
+
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
 export function useHandledAsyncCallback<T extends unknown[], U>(

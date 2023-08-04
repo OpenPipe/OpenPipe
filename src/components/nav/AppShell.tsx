@@ -16,7 +16,7 @@ import Head from "next/head";
 import { BsGithub, BsPersonCircle } from "react-icons/bs";
 import { useRouter } from "next/router";
 import { type IconType } from "react-icons";
-import { RiFlaskLine } from "react-icons/ri";
+import { RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
 import UserMenu from "./UserMenu";
 
@@ -72,6 +72,7 @@ const NavSidebar = () => {
         {user != null && (
           <>
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
+            <IconLink icon={RiDatabase2Line} label="Data" href="/data" />
           </>
         )}
         {user === null && (

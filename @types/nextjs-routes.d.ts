@@ -16,6 +16,8 @@ declare module "nextjs-routes" {
     | StaticRoute<"/api/experiments/og-image">
     | StaticRoute<"/api/sentry-example-api">
     | DynamicRoute<"/api/trpc/[trpc]", { "trpc": string }>
+    | DynamicRoute<"/data/[id]", { "id": string }>
+    | StaticRoute<"/data">
     | DynamicRoute<"/experiments/[id]", { "id": string }>
     | StaticRoute<"/experiments">
     | StaticRoute<"/">

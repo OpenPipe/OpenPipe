@@ -16,6 +16,24 @@ export const requireNothing = (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 };
 
+export const requireCanViewDataset = async (datasetId: string, ctx: TRPCContext) => {
+  const dataset = await prisma.dataset.findFirst({
+    where: {
+      id: datasetId,
+      organization: {
+        organizationUsers: {
+          some: {
+            role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
+            userId: ctx.session?.user.id,
+          },
+        },
+      },
+    },
+  });
+
+  return !!dataset;
+};
+
 export const requireCanViewExperiment = async (experimentId: string, ctx: TRPCContext) => {
   await prisma.experiment.findFirst({
     where: { id: experimentId },

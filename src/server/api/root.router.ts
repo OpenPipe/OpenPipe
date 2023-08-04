@@ -6,6 +6,7 @@ import { scenarioVariantCellsRouter } from "./routers/scenarioVariantCells.route
 import { templateVarsRouter } from "./routers/templateVariables.router";
 import { evaluationsRouter } from "./routers/evaluations.router";
 import { worldChampsRouter } from "./routers/worldChamps.router";
+import { datasetsRouter } from "./routers/datasets.router";
 
 /**
  * This is the primary router for your server.
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   templateVars: templateVarsRouter,
   evaluations: evaluationsRouter,
   worldChamps: worldChampsRouter,
+  datasets: datasetsRouter,
 });
 
 // export type definition of API
