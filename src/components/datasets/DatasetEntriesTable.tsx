@@ -7,7 +7,7 @@ const DatasetEntriesTable = (props: StackProps) => {
 
   return (
     <VStack {...props}>
-      <Table variant="simple" sx={{'table-layout': 'fixed', width: 'full'}}>
+      <Table variant="simple" sx={{ "table-layout": "fixed", width: "full" }}>
         <Thead>
           <Tr>
             <Th>Input</Th>

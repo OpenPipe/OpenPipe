@@ -25,7 +25,7 @@ export const useDataset = () => {
   );
 
   return dataset;
-}
+};
 
 export const useDatasetEntries = () => {
   const dataset = useDataset();

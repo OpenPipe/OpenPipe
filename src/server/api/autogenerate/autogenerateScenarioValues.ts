@@ -4,7 +4,6 @@ import { openai } from "../../utils/openai";
 import { pick } from "lodash-es";
 import { isAxiosError } from "./utils";
 
-
 export const autogenerateScenarioValues = async (
   experimentId: string,
 ): Promise<Record<string, string>> => {
