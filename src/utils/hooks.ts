@@ -4,7 +4,6 @@ import { api } from "~/utils/api";
 import { NumberParam, useQueryParam, withDefault } from "use-query-params";
 
 export const useExperiment = () => {
-  console.log('being called here')
   const router = useRouter();
   const experiment = api.experiments.get.useQuery(
     { id: router.query.id as string },
@@ -27,6 +26,16 @@ export const useDataset = () => {
 
   return dataset;
 }
+
+export const useDatasetEntries = () => {
+  const dataset = useDataset();
+  const [page] = usePage();
+
+  return api.datasetEntries.list.useQuery(
+    { datasetId: dataset.data?.id ?? "", page },
+    { enabled: dataset.data?.id != null },
+  );
+};
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 

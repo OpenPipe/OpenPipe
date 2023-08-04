@@ -44,7 +44,7 @@ export const DatasetCard = ({ dataset }: { dataset: DatasetData }) => {
           <Text fontWeight="bold">{dataset.name}</Text>
         </HStack>
         <HStack h="full" spacing={4} flex={1} align="center">
-          <CountLabel label="Variants" count={dataset.numEntries} />
+          <CountLabel label="Rows" count={dataset.numEntries} />
         </HStack>
         <HStack w="full" color="gray.500" fontSize="xs" textAlign="center">
           <Text flex={1}>Created {formatTimePast(dataset.createdAt)}</Text>

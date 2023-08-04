@@ -62,7 +62,7 @@ export default function Dataset() {
             direction={{ base: "column", sm: "row" }}
             alignItems={{ base: "flex-start", sm: "center" }}
           >
-            <Breadcrumb flex={1}>
+            <Breadcrumb flex={1} mt={1}>
               <BreadcrumbItem>
                 <Link href="/data">
                   <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
@@ -88,8 +88,8 @@ export default function Dataset() {
               </BreadcrumbItem>
             </Breadcrumb>
           </Flex>
-          <Box w="full" overflowX="auto" flex={1} px={4}>
-            {datasetId && <DatasetEntriesTable datasetId={datasetId} />}
+          <Box w="full" overflowX="auto" flex={1} px={4} pt={8}>
+            {datasetId && <DatasetEntriesTable />}
           </Box>
         </VStack>
       </AppShell>
