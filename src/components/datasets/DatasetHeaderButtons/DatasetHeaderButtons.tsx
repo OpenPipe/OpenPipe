@@ -17,9 +17,10 @@ export const DatasetHeaderButtons = () => {
           Generate Data
         </Button>
       </HStack>
-      {generateModalDisclosure.isOpen && (
-        <GenerateDataModal onClose={generateModalDisclosure.onClose} />
-      )}
+      <GenerateDataModal
+        isOpen={generateModalDisclosure.isOpen}
+        onClose={generateModalDisclosure.onClose}
+      />
     </>
   );
 };

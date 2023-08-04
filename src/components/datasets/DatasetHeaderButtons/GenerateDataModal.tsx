@@ -22,7 +22,13 @@ import { CustomInstructionsInput } from "~/components/CustomInstructionsInput";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 
-export const GenerateDataModal = ({ onClose }: { onClose: () => void }) => {
+export const GenerateDataModal = ({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
   const utils = api.useContext();
 
   const datasetId = useDataset().data?.id;
@@ -45,7 +51,7 @@ export const GenerateDataModal = ({ onClose }: { onClose: () => void }) => {
   }, [generateInputsMutation, onClose, instructions, numToGenerate, datasetId]);
 
   return (
-    <Modal isOpen onClose={onClose} size={{ base: "xl", sm: "2xl", md: "3xl" }}>
+    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xl", sm: "2xl", md: "3xl" }}>
       <ModalOverlay />
       <ModalContent w={1200}>
         <ModalHeader>
