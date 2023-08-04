@@ -1,6 +1,6 @@
 <!-- <img src="https://github.com/openpipe/openpipe/assets/41524992/ca59596e-eb80-40f9-921f-6d67f6e6d8fa" width="72px" /> -->
 
-# OpenPipe <!-- omit in toc -->
+# OpenPipe
 
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts, and can automatically [translate](#-translate-between-model-apis) those prompts between models.
 
@@ -16,6 +16,12 @@ These are simple experiments users have created that show how OpenPipe works. Fe
 - [Reddit User Needs](https://app.openpipe.ai/experiments/22222222-2222-2222-2222-222222222222)
 - [OpenAI Function Calls](https://app.openpipe.ai/experiments/2ebbdcb3-ed51-456e-87dc-91f72eaf3e2b)
 - [Activity Classification](https://app.openpipe.ai/experiments/3950940f-ab6b-4b74-841d-7e9dbc4e4ff8)
+
+## Supported Models
+
+- All models available through the OpenAI [chat completion API](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
+- Llama2 [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat), [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat), [70b chat](https://replicate.com/replicate/llama70b-v2-chat).
+- Anthropic's [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude) and [Claude 2](https://www.anthropic.com/index/claude-2)
 
 ## Features
 
@@ -50,12 +56,6 @@ OpenPipe includes a tool to generate new test scenarios based on your existing p
 <img width="600" src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="auto-generate">
 
 <br><br>
-
-## Supported Models
-
-- All models available through the OpenAI [chat completion API](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
-- Llama2 [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat), [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat), [70b chat](https://replicate.com/replicate/llama70b-v2-chat).
-- Anthropic's [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude) and [Claude 2](https://www.anthropic.com/index/claude-2)
 
 ## Running Locally
 
