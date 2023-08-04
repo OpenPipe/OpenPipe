@@ -1,24 +1,12 @@
 <!-- <img src="https://github.com/openpipe/openpipe/assets/41524992/ca59596e-eb80-40f9-921f-6d67f6e6d8fa" width="72px" /> -->
 
-# OpenPipe <!-- omit in toc -->
+# OpenPipe
 
 OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts, and can automatically [translate](#-translate-between-model-apis) those prompts between models.
 
 <img src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="demo">
 
 You can use our hosted version of OpenPipe at https://openpipe.ai. You can also clone this repository and [run it locally](#running-locally).
-
-## Table of contents <!-- omit in toc -->
-
-- [Sample Experiments](#sample-experiments)
-- [High-Level Features](#high-level-features)
-  - [🔍 Visualize Responses](#-visualize-responses)
-  - [🧪 Bulk-Test](#-bulk-test)
-  - [📟 Translate between Model APIs](#-translate-between-model-apis)
-  - [🛠️ Refine your prompts automatically](#️-refine-your-prompts-automatically)
-  - [🪄 Auto-generate Test Scenarios](#-auto-generate-test-scenarios)
-- [Supported Models](#supported-models)
-- [Running Locally](#running-locally)
 
 ## Sample Experiments
 
@@ -29,7 +17,13 @@ These are simple experiments users have created that show how OpenPipe works. Fe
 - [OpenAI Function Calls](https://app.openpipe.ai/experiments/2ebbdcb3-ed51-456e-87dc-91f72eaf3e2b)
 - [Activity Classification](https://app.openpipe.ai/experiments/3950940f-ab6b-4b74-841d-7e9dbc4e4ff8)
 
-## High-Level Features
+## Supported Models
+
+- All models available through the OpenAI [chat completion API](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
+- Llama2 [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat), [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat), [70b chat](https://replicate.com/replicate/llama70b-v2-chat).
+- Anthropic's [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude) and [Claude 2](https://www.anthropic.com/index/claude-2)
+
+## Features
 
 ### 🔍 Visualize Responses
 
@@ -62,12 +56,6 @@ OpenPipe includes a tool to generate new test scenarios based on your existing p
 <img width="600" src="https://github.com/openpipe/openpipe/assets/41524992/219a844e-3f4e-4f6b-8066-41348b42977b" alt="auto-generate">
 
 <br><br>
-
-## Supported Models
-
-- All models available through the OpenAI [chat completion API](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
-- Llama2 [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat), [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat), [70b chat](https://replicate.com/replicate/llama70b-v2-chat).
-- Anthropic's [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude) and [Claude 2](https://www.anthropic.com/index/claude-2)
 
 ## Running Locally
 
