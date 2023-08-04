@@ -8,11 +8,11 @@ import {
   Text,
   Box,
   type BoxProps,
-  type LinkProps,
-  Link,
+  Link as ChakraLink,
   Flex,
 } from "@chakra-ui/react";
 import Head from "next/head";
+import Link, { type LinkProps } from "next/link";
 import { BsGithub, BsPersonCircle } from "react-icons/bs";
 import { useRouter } from "next/router";
 import { type IconType } from "react-icons";
@@ -20,30 +20,32 @@ import { RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
 import UserMenu from "./UserMenu";
 
-type IconLinkProps = BoxProps & LinkProps & { label?: string; icon: IconType };
+const SHOW_DATA = false;
 
-const IconLink = ({ icon, label, href, target, color, ...props }: IconLinkProps) => {
+type IconLinkProps = BoxProps & LinkProps & { label?: string; icon: IconType; href: string };
+
+const IconLink = ({ icon, label, href, color, ...props }: IconLinkProps) => {
   const router = useRouter();
   const isActive = href && router.pathname.startsWith(href);
   return (
-    <HStack
-      w="full"
-      p={4}
-      color={color}
-      as={Link}
-      href={href}
-      target={target}
-      bgColor={isActive ? "gray.200" : "transparent"}
-      _hover={{ bgColor: "gray.300", textDecoration: "none" }}
-      justifyContent="start"
-      cursor="pointer"
-      {...props}
-    >
-      <Icon as={icon} boxSize={6} mr={2} />
-      <Text fontWeight="bold" fontSize="sm">
-        {label}
-      </Text>
-    </HStack>
+    <Link href={href} style={{ width: "100%" }}>
+      <HStack
+        w="full"
+        p={4}
+        color={color}
+        as={ChakraLink}
+        bgColor={isActive ? "gray.200" : "transparent"}
+        _hover={{ bgColor: "gray.300", textDecoration: "none" }}
+        justifyContent="start"
+        cursor="pointer"
+        {...props}
+      >
+        <Icon as={icon} boxSize={6} mr={2} />
+        <Text fontWeight="bold" fontSize="sm">
+          {label}
+        </Text>
+      </HStack>
+    </Link>
   );
 };
 
@@ -72,17 +74,26 @@ const NavSidebar = () => {
         {user != null && (
           <>
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
-            <IconLink icon={RiDatabase2Line} label="Data" href="/data" />
+            {SHOW_DATA && <IconLink icon={RiDatabase2Line} label="Data" href="/data" />}
           </>
         )}
         {user === null && (
-          <IconLink
-            icon={BsPersonCircle}
-            label="Sign In"
+          <HStack
+            w="full"
+            p={4}
+            as={ChakraLink}
+            _hover={{ bgColor: "gray.300", textDecoration: "none" }}
+            justifyContent="start"
+            cursor="pointer"
             onClick={() => {
               signIn("github").catch(console.error);
             }}
-          />
+          >
+            <Icon as={BsPersonCircle} boxSize={6} mr={2} />
+            <Text fontWeight="bold" fontSize="sm">
+              Sign In
+            </Text>
+          </HStack>
         )}
       </VStack>
       {user ? (
@@ -91,7 +102,7 @@ const NavSidebar = () => {
         <Divider />
       )}
       <VStack spacing={0} align="center">
-        <Link
+        <ChakraLink
           href="https://github.com/openpipe/openpipe"
           target="_blank"
           color="gray.500"
@@ -99,7 +110,7 @@ const NavSidebar = () => {
           p={2}
         >
           <Icon as={BsGithub} boxSize={6} />
-        </Link>
+        </ChakraLink>
       </VStack>
     </VStack>
   );

@@ -29,18 +29,18 @@ export const GenerateDataModal = ({ onClose }: { onClose: () => void }) => {
   const [instructions, setInstructions] = useState<string>("");
   const [numToGenerate, setNumToGenerate] = useState<number>(20);
 
-  const generateEntriesMutation = api.datasetEntries.autogenerate.useMutation();
+  const generateInputsMutation = api.datasetEntries.autogenerateInputs.useMutation();
 
   const [generateEntries, generateEntriesInProgress] = useHandledAsyncCallback(async () => {
     if (!instructions || !numToGenerate || !datasetId) return;
-    await generateEntriesMutation.mutateAsync({
+    await generateInputsMutation.mutateAsync({
       datasetId,
       instructions,
       numToGenerate,
     });
     await utils.datasetEntries.list.invalidate();
     onClose();
-  }, [generateEntriesMutation, onClose, instructions, numToGenerate, datasetId]);
+  }, [generateInputsMutation, onClose, instructions, numToGenerate, datasetId]);
 
   return (
     <Modal isOpen onClose={onClose} size={{ base: "xl", sm: "2xl", md: "3xl" }}>
@@ -65,7 +65,6 @@ export const GenerateDataModal = ({ onClose }: { onClose: () => void }) => {
                 onChange={(valueString) => setNumToGenerate(parseInt(valueString) || 0)}
                 value={numToGenerate}
                 w="24"
-                h="full"
               >
                 <NumberInputField />
                 <NumberInputStepper>
@@ -75,7 +74,7 @@ export const GenerateDataModal = ({ onClose }: { onClose: () => void }) => {
               </NumberInput>
             </VStack>
             <VStack alignItems="flex-start" w="full" spacing={2}>
-              <Text fontWeight="bold">Description of Row:</Text>
+              <Text fontWeight="bold">Row Description:</Text>
               <CustomInstructionsInput
                 instructions={instructions}
                 setInstructions={setInstructions}
