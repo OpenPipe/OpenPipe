@@ -26,7 +26,9 @@ export const GenerateDataModal = ({ onClose }: { onClose: () => void }) => {
   const utils = api.useContext();
 
   const datasetId = useDataset().data?.id;
-  const [instructions, setInstructions] = useState<string>("Each row should contain an email body. Half of the emails should contain event details, and the other half should not.");
+  const [instructions, setInstructions] = useState<string>(
+    "Each row should contain an email body. Half of the emails should contain event details, and the other half should not.",
+  );
   const [numToGenerate, setNumToGenerate] = useState<number>(20);
 
   const generateInputsMutation = api.datasetEntries.autogenerateInputs.useMutation();
