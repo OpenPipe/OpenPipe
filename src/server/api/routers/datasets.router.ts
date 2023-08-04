@@ -26,7 +26,6 @@ export const datasetsRouter = createTRPCRouter({
       },
       include: {
         _count: {
-          // rename the field to numEntries
           select: { datasetEntries: true },
         },
       },
