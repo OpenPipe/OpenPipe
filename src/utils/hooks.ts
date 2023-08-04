@@ -17,6 +17,26 @@ export const useExperimentAccess = () => {
   return useExperiment().data?.access ?? { canView: false, canModify: false };
 };
 
+export const useDataset = () => {
+  const router = useRouter();
+  const dataset = api.datasets.get.useQuery(
+    { id: router.query.id as string },
+    { enabled: !!router.query.id },
+  );
+
+  return dataset;
+};
+
+export const useDatasetEntries = () => {
+  const dataset = useDataset();
+  const [page] = usePage();
+
+  return api.datasetEntries.list.useQuery(
+    { datasetId: dataset.data?.id ?? "", page },
+    { enabled: dataset.data?.id != null },
+  );
+};
+
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
 export function useHandledAsyncCallback<T extends unknown[], U>(

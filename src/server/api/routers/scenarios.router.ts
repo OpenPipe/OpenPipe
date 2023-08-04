@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { autogenerateScenarioValues } from "../autogen";
+import { autogenerateScenarioValues } from "../autogenerate/autogenerateScenarioValues";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { runAllEvals } from "~/server/utils/evaluations";
 import { generateNewCell } from "~/server/utils/generateNewCell";

@@ -1,26 +1,9 @@
 import { type CompletionCreateParams } from "openai/resources/chat";
-import { prisma } from "../db";
-import { openai } from "../utils/openai";
+import { prisma } from "../../db";
+import { openai } from "../../utils/openai";
 import { pick } from "lodash-es";
+import { isAxiosError } from "./utils";
 
-type AxiosError = {
-  response?: {
-    data?: {
-      error?: {
-        message?: string;
-      };
-    };
-  };
-};
-
-function isAxiosError(error: unknown): error is AxiosError {
-  if (typeof error === "object" && error !== null) {
-    // Initial check
-    const err = error as AxiosError;
-    return err.response?.data?.error?.message !== undefined; // Check structure
-  }
-  return false;
-}
 export const autogenerateScenarioValues = async (
   experimentId: string,
 ): Promise<Record<string, string>> => {

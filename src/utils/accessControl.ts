@@ -16,6 +16,33 @@ export const requireNothing = (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 };
 
+export const requireCanViewDataset = async (datasetId: string, ctx: TRPCContext) => {
+  const dataset = await prisma.dataset.findFirst({
+    where: {
+      id: datasetId,
+      organization: {
+        organizationUsers: {
+          some: {
+            role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
+            userId: ctx.session?.user.id,
+          },
+        },
+      },
+    },
+  });
+
+  if (!dataset) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  ctx.markAccessControlRun();
+};
+
+export const requireCanModifyDataset = async (datasetId: string, ctx: TRPCContext) => {
+  // Right now all users who can view a dataset can also modify it
+  await requireCanViewDataset(datasetId, ctx);
+};
+
 export const requireCanViewExperiment = async (experimentId: string, ctx: TRPCContext) => {
   await prisma.experiment.findFirst({
     where: { id: experimentId },

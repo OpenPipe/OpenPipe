@@ -21,7 +21,7 @@ import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { useSyncVariantEditor } from "~/state/sync";
-import { HeaderButtons } from "~/components/experiments/HeaderButtons/HeaderButtons";
+import { ExperimentHeaderButtons } from "~/components/experiments/ExperimentHeaderButtons/ExperimentHeaderButtons";
 import Head from "next/head";
 
 // TODO: import less to fix deployment with server side props
@@ -142,7 +142,7 @@ export default function Experiment() {
                 )}
               </BreadcrumbItem>
             </Breadcrumb>
-            <HeaderButtons />
+            <ExperimentHeaderButtons />
           </Flex>
           <ExperimentSettingsDrawer />
           <Box w="100%" overflowX="auto" flex={1}>
