@@ -143,8 +143,13 @@ function ApplicationStatus(props: BoxProps) {
             ) : entrant ? (
               <Text fontSize="sm">
                 ✅ Application submitted successfully. We'll notify you by email before August 14th.{" "}
-                <Link href="https://github.com/openpipe/openpipe" isExternal textDecor="underline">
-                  Star our Github
+                <Link
+                  href="https://github.com/openpipe/openpipe"
+                  isExternal
+                  textDecor="underline"
+                  fontWeight="bold"
+                >
+                  Star our Github ⭐
                 </Link>{" "}
                 for updates while you wait!
               </Text>
