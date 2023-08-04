@@ -53,49 +53,47 @@ export default function Dataset() {
   }
 
   return (
-    <>
-      <AppShell title={dataset.data?.name}>
-        <VStack h="full">
-          <Flex
-            pl={4}
-            pr={8}
-            py={2}
-            w="full"
-            direction={{ base: "column", sm: "row" }}
-            alignItems={{ base: "flex-start", sm: "center" }}
-          >
-            <Breadcrumb flex={1} mt={1}>
-              <BreadcrumbItem>
-                <Link href="/data">
-                  <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
-                    <Icon as={RiDatabase2Line} boxSize={4} mr={2} /> Datasets
-                  </Flex>
-                </Link>
-              </BreadcrumbItem>
-              <BreadcrumbItem isCurrentPage>
-                <Input
-                  size="sm"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onBlur={onSaveName}
-                  borderWidth={1}
-                  borderColor="transparent"
-                  fontSize={16}
-                  px={0}
-                  minW={{ base: 100, lg: 300 }}
-                  flex={1}
-                  _hover={{ borderColor: "gray.300" }}
-                  _focus={{ borderColor: "blue.500", outline: "none" }}
-                />
-              </BreadcrumbItem>
-            </Breadcrumb>
-            <DatasetHeaderButtons />
-          </Flex>
-          <Box w="full" overflowX="auto" flex={1} pl={4} pr={8} pt={8}>
-            {datasetId && <DatasetEntriesTable />}
-          </Box>
-        </VStack>
-      </AppShell>
-    </>
+    <AppShell title={dataset.data?.name}>
+      <VStack h="full">
+        <Flex
+          pl={4}
+          pr={8}
+          py={2}
+          w="full"
+          direction={{ base: "column", sm: "row" }}
+          alignItems={{ base: "flex-start", sm: "center" }}
+        >
+          <Breadcrumb flex={1} mt={1}>
+            <BreadcrumbItem>
+              <Link href="/data">
+                <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
+                  <Icon as={RiDatabase2Line} boxSize={4} mr={2} /> Datasets
+                </Flex>
+              </Link>
+            </BreadcrumbItem>
+            <BreadcrumbItem isCurrentPage>
+              <Input
+                size="sm"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onBlur={onSaveName}
+                borderWidth={1}
+                borderColor="transparent"
+                fontSize={16}
+                px={0}
+                minW={{ base: 100, lg: 300 }}
+                flex={1}
+                _hover={{ borderColor: "gray.300" }}
+                _focus={{ borderColor: "blue.500", outline: "none" }}
+              />
+            </BreadcrumbItem>
+          </Breadcrumb>
+          <DatasetHeaderButtons />
+        </Flex>
+        <Box w="full" overflowX="auto" flex={1} pl={4} pr={8} pt={8}>
+          {datasetId && <DatasetEntriesTable />}
+        </Box>
+      </VStack>
+    </AppShell>
   );
 }

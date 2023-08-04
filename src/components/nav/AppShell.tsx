@@ -19,8 +19,8 @@ import { type IconType } from "react-icons";
 import { RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
 import UserMenu from "./UserMenu";
+import { env } from "~/env.mjs";
 
-const SHOW_DATA = false;
 
 type IconLinkProps = BoxProps & LinkProps & { label?: string; icon: IconType; href: string };
 
@@ -74,7 +74,7 @@ const NavSidebar = () => {
         {user != null && (
           <>
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
-            {SHOW_DATA && <IconLink icon={RiDatabase2Line} label="Data" href="/data" />}
+            {env.NEXT_PUBLIC_SHOW_DATA && <IconLink icon={RiDatabase2Line} label="Data" href="/data" />}
           </>
         )}
         {user === null && (
