@@ -15,12 +15,13 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  Button,
 } from "@chakra-ui/react";
 import { BsStars } from "react-icons/bs";
 import { useState } from "react";
-import { CustomInstructionsInput } from "~/components/CustomInstructionsInput";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
+import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 
 export const GenerateDataModal = ({
   isOpen,
@@ -32,23 +33,35 @@ export const GenerateDataModal = ({
   const utils = api.useContext();
 
   const datasetId = useDataset().data?.id;
-  const [instructions, setInstructions] = useState<string>(
-    "Each row should contain an email body. Half of the emails should contain event details, and the other half should not.",
-  );
-  const [numToGenerate, setNumToGenerate] = useState<number>(20);
 
-  const generateInputsMutation = api.datasetEntries.autogenerateInputs.useMutation();
+  const [numToGenerate, setNumToGenerate] = useState<number>(20);
+  const [inputDescription, setInputDescription] = useState<string>(
+    "Each input should contain an email body. Half of the emails should contain event details, and the other half should not.",
+  );
+  const [outputDescription, setOutputDescription] = useState<string>(
+    `Each output should contain "true" or "false", where "true" indicates that the email contains event details.`,
+  );
+
+  const generateEntriesMutation = api.datasetEntries.autogenerateEntries.useMutation();
 
   const [generateEntries, generateEntriesInProgress] = useHandledAsyncCallback(async () => {
-    if (!instructions || !numToGenerate || !datasetId) return;
-    await generateInputsMutation.mutateAsync({
+    if (!inputDescription || !outputDescription || !numToGenerate || !datasetId) return;
+    await generateEntriesMutation.mutateAsync({
       datasetId,
-      instructions,
+      inputDescription,
+      outputDescription,
       numToGenerate,
     });
     await utils.datasetEntries.list.invalidate();
     onClose();
-  }, [generateInputsMutation, onClose, instructions, numToGenerate, datasetId]);
+  }, [
+    generateEntriesMutation,
+    onClose,
+    inputDescription,
+    outputDescription,
+    numToGenerate,
+    datasetId,
+  ]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xl", sm: "2xl", md: "3xl" }}>
@@ -82,18 +95,33 @@ export const GenerateDataModal = ({
               </NumberInput>
             </VStack>
             <VStack alignItems="flex-start" w="full" spacing={2}>
-              <Text fontWeight="bold">Row Description:</Text>
-              <CustomInstructionsInput
-                instructions={instructions}
-                setInstructions={setInstructions}
-                onSubmit={generateEntries}
-                loading={generateEntriesInProgress}
-                placeholder="Each row should contain..."
+              <Text fontWeight="bold">Input Description:</Text>
+              <AutoResizeTextArea
+                value={inputDescription}
+                onChange={(e) => setInputDescription(e.target.value)}
+                placeholder="Each input should contain..."
+              />
+            </VStack>
+            <VStack alignItems="flex-start" w="full" spacing={2}>
+              <Text fontWeight="bold">Output Description (optional):</Text>
+              <AutoResizeTextArea
+                value={outputDescription}
+                onChange={(e) => setOutputDescription(e.target.value)}
+                placeholder="The output should contain..."
               />
             </VStack>
           </VStack>
         </ModalBody>
-        <ModalFooter />
+        <ModalFooter>
+          <Button
+            colorScheme="blue"
+            isLoading={generateEntriesInProgress}
+            isDisabled={!numToGenerate || !inputDescription || !outputDescription}
+            onClick={generateEntries}
+          >
+            Generate
+          </Button>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );
