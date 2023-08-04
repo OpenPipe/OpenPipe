@@ -1,18 +1,29 @@
-import { Button, Spinner, InputGroup, InputRightElement, Icon, HStack } from "@chakra-ui/react";
+import {
+  Button,
+  Spinner,
+  InputGroup,
+  InputRightElement,
+  Icon,
+  HStack,
+  type InputGroupProps,
+} from "@chakra-ui/react";
 import { IoMdSend } from "react-icons/io";
-import AutoResizeTextArea from "../AutoResizeTextArea";
+import AutoResizeTextArea from "./AutoResizeTextArea";
 
 export const CustomInstructionsInput = ({
   instructions,
   setInstructions,
   loading,
   onSubmit,
+  placeholder = "Send custom instructions",
+  ...props
 }: {
   instructions: string;
   setInstructions: (instructions: string) => void;
   loading: boolean;
   onSubmit: () => void;
-}) => {
+  placeholder?: string;
+} & InputGroupProps) => {
   return (
     <InputGroup
       size="md"
@@ -22,6 +33,7 @@ export const CustomInstructionsInput = ({
       borderRadius={8}
       alignItems="center"
       colorScheme="orange"
+      {...props}
     >
       <AutoResizeTextArea
         value={instructions}
@@ -33,7 +45,7 @@ export const CustomInstructionsInput = ({
             onSubmit();
           }
         }}
-        placeholder="Send custom instructions"
+        placeholder={placeholder}
         py={4}
         pl={4}
         pr={12}

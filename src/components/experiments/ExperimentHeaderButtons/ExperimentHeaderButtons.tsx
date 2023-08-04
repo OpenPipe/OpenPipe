@@ -5,7 +5,7 @@ import { BsGearFill } from "react-icons/bs";
 import { TbGitFork } from "react-icons/tb";
 import { useAppStore } from "~/state/store";
 
-export const HeaderButtons = () => {
+export const ExperimentHeaderButtons = () => {
   const experiment = useExperiment();
 
   const canModify = experiment.data?.access.canModify ?? false;

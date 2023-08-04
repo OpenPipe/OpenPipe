@@ -20,7 +20,7 @@ import { useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
 import { type PromptVariant } from "@prisma/client";
 import { useState } from "react";
 import CompareFunctions from "./CompareFunctions";
-import { CustomInstructionsInput } from "./CustomInstructionsInput";
+import { CustomInstructionsInput } from "../CustomInstructionsInput";
 import { RefineAction } from "./RefineAction";
 import { isObject, isString } from "lodash-es";
 import { type RefinementAction, type SupportedProvider } from "~/modelProviders/types";
