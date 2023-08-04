@@ -4,19 +4,23 @@ import {
   BreadcrumbItem,
   Center,
   Flex,
+  HStack,
   Icon,
   Input,
   VStack,
+  Button,
 } from "@chakra-ui/react";
 import Link from "next/link";
 
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { RiDatabase2Line } from "react-icons/ri";
+import { BiImport } from "react-icons/bi";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import DatasetEntriesTable from "~/components/datasets/DatasetEntriesTable";
+import { BsStars } from "react-icons/bs";
 
 export default function Dataset() {
   const router = useRouter();
@@ -56,7 +60,8 @@ export default function Dataset() {
       <AppShell title={dataset.data?.name}>
         <VStack h="full">
           <Flex
-            px={4}
+            pl={4}
+            pr={8}
             py={2}
             w="full"
             direction={{ base: "column", sm: "row" }}
@@ -87,8 +92,16 @@ export default function Dataset() {
                 />
               </BreadcrumbItem>
             </Breadcrumb>
+            <HStack>
+              <Button leftIcon={<BiImport />} colorScheme="blue" variant="ghost">
+                Import Data
+              </Button>
+              <Button leftIcon={<BsStars />} colorScheme="blue">
+                Generate Data
+              </Button>
+            </HStack>
           </Flex>
-          <Box w="full" overflowX="auto" flex={1} px={4} pt={8}>
+          <Box w="full" overflowX="auto" flex={1} pl={4} pr={8} pt={8}>
             {datasetId && <DatasetEntriesTable />}
           </Box>
         </VStack>

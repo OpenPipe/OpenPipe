@@ -1,4 +1,13 @@
-import { type StackProps, VStack, Table, Th, Tr, Thead, Tbody, Text } from "@chakra-ui/react";
+import {
+  type StackProps,
+  VStack,
+  Table,
+  Th,
+  Tr,
+  Thead,
+  Tbody,
+  Text,
+} from "@chakra-ui/react";
 import { useDatasetEntries } from "~/utils/hooks";
 import TableRow from "./TableRow";
 

@@ -34,7 +34,7 @@ const IconLink = ({ icon, label, href, target, color, ...props }: IconLinkProps)
       href={href}
       target={target}
       bgColor={isActive ? "gray.200" : "transparent"}
-      _hover={{ bgColor: "gray.200", textDecoration: "none" }}
+      _hover={{ bgColor: "gray.300", textDecoration: "none" }}
       justifyContent="start"
       cursor="pointer"
       {...props}
