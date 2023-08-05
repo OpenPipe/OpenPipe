@@ -18,13 +18,13 @@ export const CellOptions = ({
   const modalDisclosure = useDisclosure();
 
   return (
-    <HStack justifyContent="flex-end" w="full">
+    <HStack justifyContent="flex-end" w="full" spacing={1}>
       {cell && (
         <>
           <Tooltip label="See Prompt">
             <IconButton
               aria-label="See Prompt"
-              icon={<Icon as={BsInfoCircle} boxSize={4} />}
+              icon={<Icon as={BsInfoCircle} boxSize={3.5} />}
               onClick={modalDisclosure.onOpen}
               size="xs"
               colorScheme="gray"
