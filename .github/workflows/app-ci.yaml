@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: app
+
 jobs:
   run-checks:
     runs-on: ubuntu-latest
