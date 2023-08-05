@@ -210,6 +210,8 @@ model Organization {
     organizationUsers OrganizationUser[]
     experiments       Experiment[]
     datasets          Dataset[]
+    loggedCalls       LoggedCall[]
+    apiKeys           ApiKey[]
 }
 
 enum OrganizationUserRole {
@@ -247,6 +249,64 @@ model WorldChampEntrant {
     updatedAt DateTime @updatedAt
 
     @@unique([userId])
+}
+
+model LoggedCall {
+    id String @id @default(uuid()) @db.Uuid
+
+    startTime DateTime
+    endTime   DateTime
+
+    reqPayload  Json
+    respPayload Json?
+    respStatus  Int?
+    error       String?
+
+    durationMs   Int?
+    inputTokens  Int?
+    outputTokens Int?
+    finishReason String?
+    completionId String?
+    totalCost    Decimal? @db.Decimal(18, 12)
+
+    cacheParentId String?     @db.Uuid
+    cacheParent   LoggedCall? @relation(name: "CacheParentChild", fields: [cacheParentId], references: [id], onDelete: Cascade)
+
+    organizationId String        @db.Uuid
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+    tags          LoggedCallTag[]
+    cacheChildren LoggedCall[]    @relation(name: "CacheParentChild")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([startTime])
+}
+
+model LoggedCallTag {
+    id    String  @id @default(cuid())
+    name  String
+    value String?
+
+    loggedCallId String
+    loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
+
+    @@index([name])
+    @@index([name, value])
+}
+
+model ApiKey {
+    id String @id @default(uuid()) @db.Uuid
+
+    name   String
+    apiKey String @unique
+
+    organizationId String        @db.Uuid
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model Account {
