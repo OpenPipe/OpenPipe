@@ -53,7 +53,6 @@ if (env.NEXT_PUBLIC_SENTRY_DSN && env.SENTRY_AUTH_TOKEN) {
     {
       widenClientFileUpload: true,
       tunnelRoute: "/monitoring",
-      hideSourceMaps: true,
       disableLogger: true,
     },
   );
