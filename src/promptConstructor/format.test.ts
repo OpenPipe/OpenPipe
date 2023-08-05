@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { stripTypes } from "./formatPromptConstructor";
+import { stripTypes } from "./format";
 
 test("stripTypes", () => {
   expect(stripTypes(`const foo: string = "bar";`)).toBe(`const foo = "bar";`);

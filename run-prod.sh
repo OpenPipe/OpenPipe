@@ -5,8 +5,8 @@ set -e
 echo "Migrating the database"
 pnpm prisma migrate deploy
 
-echo "Migrating constructFns"
-pnpm tsx src/server/migratePrompts/index.ts
+echo "Migrating promptConstructors"
+pnpm tsx src/promptConstructor/migrate.ts
 
 echo "Starting the server"
 

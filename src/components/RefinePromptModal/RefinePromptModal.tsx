@@ -73,7 +73,7 @@ export const RefinePromptModal = ({
       return;
     await replaceVariantMutation.mutateAsync({
       id: variant.id,
-      constructFn: refinedPromptFn,
+      promptConstructor: refinedPromptFn,
       streamScenarios: visibleScenarios,
     });
     await utils.promptVariants.list.invalidate();
@@ -126,7 +126,7 @@ export const RefinePromptModal = ({
               />
             </VStack>
             <CompareFunctions
-              originalFunction={variant.constructFn}
+              originalFunction={variant.promptConstructor}
               newFunction={isString(refinedPromptFn) ? refinedPromptFn : undefined}
               maxH="40vh"
             />

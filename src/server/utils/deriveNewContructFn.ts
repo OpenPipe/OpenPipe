@@ -4,7 +4,7 @@ import dedent from "dedent";
 import { openai } from "./openai";
 import { isObject } from "lodash-es";
 import type { CreateChatCompletionRequestMessage } from "openai/resources/chat/completions";
-import formatPromptConstructor from "~/utils/formatPromptConstructor";
+import formatPromptConstructor from "~/promptConstructor/format";
 import { type SupportedProvider, type Model } from "~/modelProviders/types";
 import modelProviders from "~/modelProviders/modelProviders";
 
@@ -16,7 +16,7 @@ export async function deriveNewConstructFn(
   instructions?: string,
 ) {
   if (originalVariant && !newModel && !instructions) {
-    return originalVariant.constructFn;
+    return originalVariant.promptConstructor;
   }
   if (originalVariant && (newModel || instructions)) {
     return await requestUpdatedPromptFunction(originalVariant, newModel, instructions);
@@ -55,7 +55,7 @@ const requestUpdatedPromptFunction = async (
         },
         {
           role: "user",
-          content: `This is the current prompt constructor function:\n---\n${originalVariant.constructFn}`,
+          content: `This is the current prompt constructor function:\n---\n${originalVariant.promptConstructor}`,
         },
       ];
       if (newModel) {

@@ -47,7 +47,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isFullscreen, toggleFullscreen]);
 
-  const lastSavedFn = props.variant.constructFn;
+  const lastSavedFn = props.variant.promptConstructor;
 
   const modifierKey = useModifierKeyLabel();
 
@@ -96,7 +96,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
 
     const resp = await replaceVariant.mutateAsync({
       id: props.variant.id,
-      constructFn: currentFn,
+      promptConstructor: currentFn,
       streamScenarios: visibleScenarios,
     });
     if (resp.status === "error") {

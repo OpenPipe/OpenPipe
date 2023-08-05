@@ -13,6 +13,7 @@ import {
 } from "~/utils/accessControl";
 import userOrg from "~/server/utils/userOrg";
 import generateTypes from "~/modelProviders/generateTypes";
+import { promptConstructorVersion } from "~/promptConstructor/version";
 
 export const experimentsRouter = createTRPCRouter({
   stats: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -318,7 +319,7 @@ export const experimentsRouter = createTRPCRouter({
           sortIndex: 0,
           // The interpolated $ is necessary until dedent incorporates
           // https://github.com/dmnd/dedent/pull/46
-          constructFn: dedent`
+          promptConstructor: dedent`
           /**
            * Use Javascript to define an OpenAI chat completion
            * (https://platform.openai.com/docs/api-reference/chat/create).
@@ -339,7 +340,7 @@ export const experimentsRouter = createTRPCRouter({
           });`,
           model: "gpt-3.5-turbo-0613",
           modelProvider: "openai/ChatCompletion",
-          constructFnVersion: 2,
+          promptConstructorVersion,
         },
       }),
       prisma.templateVariable.create({

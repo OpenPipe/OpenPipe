@@ -1,11 +1,11 @@
 import { expect, test } from "vitest";
-import parseConstructFn from "./parseConstructFn";
+import parsePromptConstructor from "./parse";
 import assert from "assert";
 
 // Note: this has to be run with `vitest --no-threads` option or else
 // isolated-vm seems to throw errors
-test("parseConstructFn", async () => {
-  const constructed = await parseConstructFn(
+test("parsePromptConstructor", async () => {
+  const constructed = await parsePromptConstructor(
     `
     // These sometimes have a comment
 
@@ -38,7 +38,7 @@ test("parseConstructFn", async () => {
 });
 
 test("bad syntax", async () => {
-  const parsed = await parseConstructFn(`definePrompt("openai/ChatCompletion", {`);
+  const parsed = await parsePromptConstructor(`definePrompt("openai/ChatCompletion", {`);
 
   assert("error" in parsed);
   expect(parsed.error).toContain("Unexpected end of input");

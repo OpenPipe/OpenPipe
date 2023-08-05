@@ -5,8 +5,8 @@ import { prisma } from "~/server/db";
 import { wsConnection } from "~/utils/wsConnection";
 import { runEvalsForOutput } from "../utils/evaluations";
 import hashPrompt from "../utils/hashPrompt";
-import parseConstructFn from "../utils/parseConstructFn";
 import defineTask from "./defineTask";
+import parsePromptConstructor from "~/promptConstructor/parse";
 
 export type QueryModelJob = {
   cellId: string;
@@ -75,7 +75,10 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
     return;
   }
 
-  const prompt = await parseConstructFn(variant.constructFn, scenario.variableValues as JsonObject);
+  const prompt = await parsePromptConstructor(
+    variant.promptConstructor,
+    scenario.variableValues as JsonObject,
+  );
 
   if ("error" in prompt) {
     await prisma.scenarioVariantCell.update({

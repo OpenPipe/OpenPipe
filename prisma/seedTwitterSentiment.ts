@@ -2,6 +2,7 @@ import { prisma } from "~/server/db";
 import dedent from "dedent";
 import fs from "fs";
 import { parse } from "csv-parse/sync";
+import { promptConstructorVersion } from "~/promptConstructor/version";
 
 const defaultId = "11111111-1111-1111-1111-111111111112";
 
@@ -85,8 +86,8 @@ await prisma.promptVariant.createMany({
       sortIndex: 0,
       model: "gpt-3.5-turbo-0613",
       modelProvider: "openai/ChatCompletion",
-      constructFnVersion: 1,
-      constructFn: dedent`
+      promptConstructorVersion,
+      promptConstructor: dedent`
           definePrompt("openai/ChatCompletion", {
             model: "gpt-3.5-turbo-0613",
             messages: [

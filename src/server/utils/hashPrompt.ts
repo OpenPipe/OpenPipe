@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { type JsonValue } from "type-fest";
-import { type ParsedConstructFn } from "./parseConstructFn";
+import { ParsedPromptConstructor } from "~/promptConstructor/parse";
 
 function sortKeys(obj: JsonValue): JsonValue {
   if (typeof obj !== "object" || obj === null) {
@@ -25,7 +25,7 @@ function sortKeys(obj: JsonValue): JsonValue {
   return sortedObj;
 }
 
-export default function hashPrompt(prompt: ParsedConstructFn<any>): string {
+export default function hashPrompt(prompt: ParsedPromptConstructor<any>): string {
   // Sort object keys recursively
   const sortedObj = sortKeys(prompt as unknown as JsonValue);
 
