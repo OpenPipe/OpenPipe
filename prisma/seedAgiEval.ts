@@ -3,6 +3,7 @@ import { generateNewCell } from "~/server/utils/generateNewCell";
 import dedent from "dedent";
 import { execSync } from "child_process";
 import fs from "fs";
+import { promptConstructorVersion } from "~/promptConstructor/version";
 
 const defaultId = "11111111-1111-1111-1111-111111111112";
 
@@ -98,8 +99,8 @@ for (const dataset of datasets) {
         sortIndex: 0,
         model: "gpt-3.5-turbo-0613",
         modelProvider: "openai/ChatCompletion",
-        constructFnVersion: 1,
-        constructFn: dedent`
+        promptConstructorVersion,
+        promptConstructor: dedent`
           definePrompt("openai/ChatCompletion", {
             model: "gpt-3.5-turbo-0613",
             messages: [

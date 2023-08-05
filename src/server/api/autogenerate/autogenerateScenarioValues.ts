@@ -51,7 +51,7 @@ export const autogenerateScenarioValues = async (
 
   messages.push({
     role: "user",
-    content: `Prompt constructor function:\n---\n${prompt.constructFn}`,
+    content: `Prompt constructor function:\n---\n${prompt.promptConstructor}`,
   });
 
   existingScenarios

@@ -4,7 +4,7 @@ import { isObject, isString } from "lodash-es";
 import { type JsonObject } from "type-fest";
 import { validate } from "jsonschema";
 
-export type ParsedConstructFn<T extends keyof typeof modelProviders> = {
+export type ParsedPromptConstructor<T extends keyof typeof modelProviders> = {
   modelProvider: T;
   model: keyof (typeof modelProviders)[T]["models"];
   modelInput: Parameters<(typeof modelProviders)[T]["getModel"]>[0];
@@ -12,12 +12,12 @@ export type ParsedConstructFn<T extends keyof typeof modelProviders> = {
 
 const isolate = new ivm.Isolate({ memoryLimit: 128 });
 
-export default async function parseConstructFn(
-  constructFn: string,
+export default async function parsePromptConstructor(
+  promptConstructor: string,
   scenario: JsonObject | undefined = {},
-): Promise<ParsedConstructFn<keyof typeof modelProviders> | { error: string }> {
+): Promise<ParsedPromptConstructor<keyof typeof modelProviders> | { error: string }> {
   try {
-    const modifiedConstructFn = constructFn.replace(
+    const modifiedConstructFn = promptConstructor.replace(
       "definePrompt(",
       "global.prompt = definePrompt(",
     );

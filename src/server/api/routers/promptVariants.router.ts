@@ -9,9 +9,10 @@ import { reorderPromptVariants } from "~/server/utils/reorderPromptVariants";
 import { type PromptVariant } from "@prisma/client";
 import { deriveNewConstructFn } from "~/server/utils/deriveNewContructFn";
 import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
-import parseConstructFn from "~/server/utils/parseConstructFn";
 import modelProviders from "~/modelProviders/modelProviders";
 import { ZodSupportedProvider } from "~/modelProviders/types";
+import parsePromptConstructor from "~/promptConstructor/parse";
+import { promptConstructorVersion } from "~/promptConstructor/version";
 
 export const promptVariantsRouter = createTRPCRouter({
   list: publicProcedure
@@ -199,8 +200,9 @@ export const promptVariantsRouter = createTRPCRouter({
           experimentId: input.experimentId,
           label: newVariantLabel,
           sortIndex: (originalVariant?.sortIndex ?? 0) + 1,
-          constructFn: newConstructFn,
-          constructFnVersion: 2,
+          promptConstructor: newConstructFn,
+          promptConstructorVersion:
+            originalVariant?.promptConstructorVersion ?? promptConstructorVersion,
           model: originalVariant?.model ?? "gpt-3.5-turbo",
           modelProvider: originalVariant?.modelProvider ?? "openai/ChatCompletion",
         },
@@ -310,7 +312,7 @@ export const promptVariantsRouter = createTRPCRouter({
       });
       await requireCanModifyExperiment(existing.experimentId, ctx);
 
-      const constructedPrompt = await parseConstructFn(existing.constructFn);
+      const constructedPrompt = await parsePromptConstructor(existing.promptConstructor);
 
       if ("error" in constructedPrompt) {
         return userError(constructedPrompt.error);
@@ -332,7 +334,7 @@ export const promptVariantsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        constructFn: z.string(),
+        promptConstructor: z.string(),
         streamScenarios: z.array(z.string()),
       }),
     )
@@ -348,7 +350,7 @@ export const promptVariantsRouter = createTRPCRouter({
         throw new Error(`Prompt Variant with id ${input.id} does not exist`);
       }
 
-      const parsedPrompt = await parseConstructFn(input.constructFn);
+      const parsedPrompt = await parsePromptConstructor(input.promptConstructor);
 
       if ("error" in parsedPrompt) {
         return userError(parsedPrompt.error);
@@ -361,8 +363,8 @@ export const promptVariantsRouter = createTRPCRouter({
           label: existing.label,
           sortIndex: existing.sortIndex,
           uiId: existing.uiId,
-          constructFn: input.constructFn,
-          constructFnVersion: 2,
+          promptConstructor: input.promptConstructor,
+          promptConstructorVersion: existing.promptConstructorVersion,
           modelProvider: parsedPrompt.modelProvider,
           model: parsedPrompt.model,
         },

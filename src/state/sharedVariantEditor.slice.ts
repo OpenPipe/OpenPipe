@@ -1,7 +1,7 @@
 import { type RouterOutputs } from "~/utils/api";
 import { type SliceCreator } from "./store";
 import loader from "@monaco-editor/loader";
-import formatPromptConstructor from "~/utils/formatPromptConstructor";
+import formatPromptConstructor from "~/promptConstructor/format";
 
 export const editorBackground = "#fafafa";
 

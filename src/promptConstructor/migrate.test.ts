@@ -1,10 +1,10 @@
 import "dotenv/config";
 import dedent from "dedent";
 import { expect, test } from "vitest";
-import { migrate1to2, migrate2to3 } from ".";
+import { migrate1to2, migrate2to3 } from "./migrate";
 
 test("migrate1to2", () => {
-  const constructFn = dedent`
+  const promptConstructor = dedent`
   // Test comment
 
   prompt = {
@@ -18,7 +18,7 @@ test("migrate1to2", () => {
   }
   `;
 
-  const migrated = migrate1to2(constructFn);
+  const migrated = migrate1to2(promptConstructor);
   expect(migrated).toBe(dedent`
     // Test comment
     
@@ -35,7 +35,7 @@ test("migrate1to2", () => {
 });
 
 test("migrate2to3", () => {
-  const constructFn = dedent`
+  const promptConstructor = dedent`
   // Test comment
 
   definePrompt("anthropic", {
@@ -44,7 +44,7 @@ test("migrate2to3", () => {
   })
   `;
 
-  const migrated = migrate2to3(constructFn);
+  const migrated = migrate2to3(promptConstructor);
   expect(migrated).toBe(dedent`
     // Test comment
     

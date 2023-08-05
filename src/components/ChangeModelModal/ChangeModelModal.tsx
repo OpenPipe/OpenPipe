@@ -68,7 +68,7 @@ export const ChangeModelModal = ({
       return;
     await replaceVariantMutation.mutateAsync({
       id: variant.id,
-      constructFn: modifiedPromptFn,
+      promptConstructor: modifiedPromptFn,
       streamScenarios: visibleScenarios,
     });
     await utils.promptVariants.list.invalidate();
@@ -107,7 +107,7 @@ export const ChangeModelModal = ({
             <ModelSearch selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
             {isString(modifiedPromptFn) && (
               <CompareFunctions
-                originalFunction={variant.constructFn}
+                originalFunction={variant.promptConstructor}
                 newFunction={modifiedPromptFn}
                 leftTitle={originalLabel}
                 rightTitle={convertedLabel}

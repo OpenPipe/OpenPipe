@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
-import parseConstructFn from "./parseConstructFn";
 import { type JsonObject } from "type-fest";
 import hashPrompt from "./hashPrompt";
 import { omit } from "lodash-es";
 import { queueQueryModel } from "../tasks/queryModel.task";
+import parsePromptConstructor from "~/promptConstructor/parse";
 
 export const generateNewCell = async (
   variantId: string,
@@ -41,8 +41,8 @@ export const generateNewCell = async (
 
   if (cell) return;
 
-  const parsedConstructFn = await parseConstructFn(
-    variant.constructFn,
+  const parsedConstructFn = await parsePromptConstructor(
+    variant.promptConstructor,
     scenario.variableValues as JsonObject,
   );
 

@@ -31,11 +31,11 @@ model Experiment {
 model PromptVariant {
     id String @id @default(uuid()) @db.Uuid
 
-    label              String
-    constructFn        String
-    constructFnVersion Int
-    model              String
-    modelProvider      String
+    label                    String
+    promptConstructor        String
+    promptConstructorVersion Int
+    model                    String
+    modelProvider            String
 
     uiId      String  @default(uuid()) @db.Uuid
     visible   Boolean @default(true)
@@ -177,10 +177,10 @@ model OutputEvaluation {
 model Dataset {
     id String @id @default(uuid()) @db.Uuid
 
-    name        String
+    name           String
     datasetEntries DatasetEntry[]
 
-    organizationId String        @db.Uuid
+    organizationId String       @db.Uuid
     organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
