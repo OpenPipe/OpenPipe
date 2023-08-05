@@ -1,6 +1,6 @@
 import openaiChatCompletionFrontend from "./openai-ChatCompletion/frontend";
 import replicateLlama2Frontend from "./replicate-llama2/frontend";
-import anthropicFrontend from "./anthropic/frontend";
+import anthropicFrontend from "./anthropic-completion/frontend";
 import { type SupportedProvider, type FrontendModelProvider } from "./types";
 
 // Keep attributes here that need to be accessible from the frontend. We can't
@@ -9,7 +9,7 @@ import { type SupportedProvider, type FrontendModelProvider } from "./types";
 const frontendModelProviders: Record<SupportedProvider, FrontendModelProvider<any, any>> = {
   "openai/ChatCompletion": openaiChatCompletionFrontend,
   "replicate/llama2": replicateLlama2Frontend,
-  anthropic: anthropicFrontend,
+  "anthropic/completion": anthropicFrontend,
 };
 
 export default frontendModelProviders;
