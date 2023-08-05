@@ -294,12 +294,15 @@ export const experimentsRouter = createTRPCRouter({
     // Anyone can create an experiment
     requireNothing(ctx);
 
+    const organizationId = (await userOrg(ctx.session.user.id)).id;
+
     const maxSortIndex =
       (
         await prisma.experiment.aggregate({
           _max: {
             sortIndex: true,
           },
+          where: { organizationId },
         })
       )._max?.sortIndex ?? 0;
 
@@ -307,7 +310,7 @@ export const experimentsRouter = createTRPCRouter({
       data: {
         sortIndex: maxSortIndex + 1,
         label: `Experiment ${maxSortIndex + 1}`,
-        organizationId: (await userOrg(ctx.session.user.id)).id,
+        organizationId,
       },
     });
 
