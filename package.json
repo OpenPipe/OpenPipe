@@ -18,7 +18,8 @@
     "start": "next start",
     "codegen": "tsx src/codegen/export-openai-types.ts",
     "seed": "tsx prisma/seed.ts",
-    "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'"
+    "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'",
+    "test": "pnpm vitest --no-threads"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.5.8",
