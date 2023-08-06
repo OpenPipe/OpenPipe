@@ -255,13 +255,52 @@ model LoggedCall {
     id String @id @default(uuid()) @db.Uuid
 
     startTime DateTime
+
+    // True if this call was served from the cache, false otherwise
+    cacheHit Boolean
+
+    // A LoggedCall is always associated with a LoggedCallModelResponse. If this
+    // is a cache miss, it's a new LoggedCallModelResponse we created for this.
+    // If it's a cache hit, it's the existing LoggedCallModelResponse we served.    
+    modelResponseId String                  @db.Uuid
+    modelResponse   LoggedCallModelResponse @relation(fields: [modelResponseId], references: [id], onDelete: Cascade)
+
+    // The response created by this LoggedCall. Will be null if this LoggedCall is a cache hit.
+    createdResponse LoggedCallModelResponse[] @relation(name: "ModelResponseCreatedBy")
+
+    organizationId String        @db.Uuid
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+    tags LoggedCallTag[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([startTime])
+}
+
+model LoggedCallModelResponse {
+    id String @id @default(uuid()) @db.Uuid
+
+    reqPayload Json
+
+    // The HTTP status returned by the model provider
+    respStatus  Int?
+    respPayload Json?
+
+    // Should be null if the request was successful, and some string if the request failed.
+    error String?
+
+    startTime DateTime
     endTime   DateTime
 
-    reqPayload  Json
-    respPayload Json?
-    respStatus  Int?
-    error       String?
+    // Note: the function to calculate the cacheKey should include the project
+    // ID so we don't share cached responses between projects, which could be an
+    // attack vector. Also, we should only set the cacheKey on the model if the
+    // request was successful.
+    cacheKey String?
 
+    // Derived fields
     durationMs   Int?
     inputTokens  Int?
     outputTokens Int?
@@ -269,19 +308,15 @@ model LoggedCall {
     completionId String?
     totalCost    Decimal? @db.Decimal(18, 12)
 
-    cacheParentId String?     @db.Uuid
-    cacheParent   LoggedCall? @relation(name: "CacheParentChild", fields: [cacheParentId], references: [id], onDelete: Cascade)
+    // The LoggedCall that created this LoggedCallModelResponse
+    createdById String     @unique @db.Uuid
+    createdBy   LoggedCall @relation(name: "ModelResponseCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
 
-    organizationId String        @db.Uuid
-    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+    loggedCalls LoggedCall[]
 
-    tags          LoggedCallTag[]
-    cacheChildren LoggedCall[]    @relation(name: "CacheParentChild")
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@index([startTime])
+    @@index([cacheKey])
 }
 
 model LoggedCallTag {
