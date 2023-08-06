@@ -260,13 +260,13 @@ model LoggedCall {
     cacheHit Boolean
 
     // A LoggedCall is always associated with a LoggedCallModelResponse. If this
-    // is a cache miss, it's a new LoggedCallModelResponse we created for this.
-    // If it's a cache hit, it's the existing LoggedCallModelResponse we served.    
+    // is a cache miss, we create a new LoggedCallModelResponse.
+    // If it's a cache hit, it's a pre-existing LoggedCallModelResponse.    
     modelResponseId String                  @db.Uuid
     modelResponse   LoggedCallModelResponse @relation(fields: [modelResponseId], references: [id], onDelete: Cascade)
 
     // The response created by this LoggedCall. Will be null if this LoggedCall is a cache hit.
-    createdResponse LoggedCallModelResponse[] @relation(name: "ModelResponseCreatedBy")
+    createdResponse LoggedCallModelResponse[] @relation(name: "ModelResponseOriginalCall")
 
     organizationId String        @db.Uuid
     organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -309,8 +309,8 @@ model LoggedCallModelResponse {
     totalCost    Decimal? @db.Decimal(18, 12)
 
     // The LoggedCall that created this LoggedCallModelResponse
-    createdById String     @unique @db.Uuid
-    createdBy   LoggedCall @relation(name: "ModelResponseCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+    originalLoggedCallId String     @unique @db.Uuid
+    originalLoggedCall   LoggedCall @relation(name: "ModelResponseOriginalCall", fields: [originalLoggedCallId], references: [id], onDelete: Cascade)
 
     createdAt   DateTime     @default(now())
     updatedAt   DateTime     @updatedAt
@@ -320,11 +320,11 @@ model LoggedCallModelResponse {
 }
 
 model LoggedCallTag {
-    id    String  @id @default(cuid())
+    id    String @id @default(uuid()) @db.Uuid
     name  String
     value String?
 
-    loggedCallId String
+    loggedCallId String        @db.Uuid
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
     @@index([name])

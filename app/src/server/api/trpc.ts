@@ -11,6 +11,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
 import superjson from "superjson";
+import { type OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
 import { getServerAuthSession } from "~/server/auth";
 import { prisma } from "~/server/db";
@@ -26,6 +27,7 @@ import { capturePath } from "~/utils/analytics/serverAnalytics";
 
 type CreateContextOptions = {
   session: Session | null;
+  apiKey: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -44,6 +46,7 @@ const noOp = () => {};
 export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     session: opts.session,
+    apiKey: opts.apiKey,
     prisma,
     markAccessControlRun: noOp,
   };
@@ -61,8 +64,13 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   // Get the session from the server using the getServerSession wrapper function
   const session = await getServerAuthSession({ req, res });
 
+  const apiKey = req.headers["x-openpipe-api-key"] as string | null;
+
+  console.log('api key is', apiKey)
+
   return createInnerTRPCContext({
     session,
+    apiKey,
   });
 };
 
@@ -76,18 +84,21 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
 
 export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
-const t = initTRPC.context<typeof createTRPCContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
-      },
-    };
-  },
-});
+const t = initTRPC
+  .context<typeof createTRPCContext>()
+  .meta<OpenApiMeta>()
+  .create({
+    transformer: superjson,
+    errorFormatter({ shape, error }) {
+      return {
+        ...shape,
+        data: {
+          ...shape.data,
+          zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
+        },
+      };
+    },
+  });
 
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
