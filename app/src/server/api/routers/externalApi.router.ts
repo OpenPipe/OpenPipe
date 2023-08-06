@@ -85,7 +85,7 @@ export const externalApiRouter = createTRPCRouter({
         data: {
             organizationId: key.organizationId,
             startTime: new Date(input.startTime),
-            cacheHit: false,
+            cacheHit: true,
             modelResponseId: existingResponse.id,
         }
       })
