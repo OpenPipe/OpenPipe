@@ -3,12 +3,10 @@ import { Breadcrumb, BreadcrumbItem, Divider, Text, VStack } from "@chakra-ui/re
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import { useExperiments, useSelectedOrg } from "~/utils/hooks";
+import { useSelectedOrg } from "~/utils/hooks";
 
 export default function HomePage() {
   const { data: selectedOrg } = useSelectedOrg();
-
-  const experiments = useExperiments();
 
   return (
     <AppShell>
@@ -27,21 +25,6 @@ export default function HomePage() {
           {selectedOrg?.name}
         </Text>
         <Divider />
-        {/* TODO: Add more dashboard cards (one looks weird) */}
-        {/* <HStack w="full">
-          <StatsCard title="Recent Experiments" href="/experiments">
-            <VStack alignItems="flex-start" w="full">
-              {experiments.data?.slice(0, 5).map((exp) => (
-                <Link key={exp.id} href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}>
-                  <VStack key={exp.id} alignItems="flex-start" spacing={0}>
-                    <Text fontWeight="bold">{exp.label}</Text>
-                    <Text flex={1}>Last updated {formatTimePast(exp.updatedAt)}</Text>
-                  </VStack>
-                </Link>
-              ))}
-            </VStack>
-          </StatsCard>
-        </HStack> */}
       </VStack>
     </AppShell>
   );
