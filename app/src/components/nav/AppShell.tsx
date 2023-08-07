@@ -87,9 +87,7 @@ const NavSidebar = () => {
         >
           CONFIGURATION
         </Text>
-        <NavSidebarOption activeHrefPattern="/settings">
-          <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
-        </NavSidebarOption>
+        <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
       </VStack>
       {user && <UserMenu user={user} borderColor={"gray.200"} />}
       <Divider />
