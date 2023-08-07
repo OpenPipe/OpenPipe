@@ -18,6 +18,7 @@ import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import DatasetEntriesTable from "~/components/datasets/DatasetEntriesTable";
 import { DatasetHeaderButtons } from "~/components/datasets/DatasetHeaderButtons/DatasetHeaderButtons";
+import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 
 export default function Dataset() {
   const router = useRouter();
@@ -55,14 +56,8 @@ export default function Dataset() {
   return (
     <AppShell title={dataset.data?.name}>
       <VStack h="full">
-        <Flex
-          px={8}
-          py={2}
-          w="full"
-          direction={{ base: "column", sm: "row" }}
-          alignItems={{ base: "flex-start", sm: "center" }}
-        >
-          <Breadcrumb flex={1} mt={1}>
+        <PageHeaderContainer>
+          <Breadcrumb>
             <BreadcrumbItem>
               <Link href="/data">
                 <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
@@ -88,7 +83,7 @@ export default function Dataset() {
             </BreadcrumbItem>
           </Breadcrumb>
           <DatasetHeaderButtons />
-        </Flex>
+        </PageHeaderContainer>
         <Box w="full" overflowX="auto" flex={1} px={8} pt={8} pb={16}>
           {datasetId && <DatasetEntriesTable />}
         </Box>

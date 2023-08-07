@@ -1,14 +1,12 @@
 import {
   SimpleGrid,
   Icon,
-  VStack,
   Breadcrumb,
   BreadcrumbItem,
   Flex,
   Center,
   Text,
   Link,
-  HStack,
 } from "@chakra-ui/react";
 import { RiFlaskLine } from "react-icons/ri";
 import AppShell from "~/components/nav/AppShell";
@@ -19,6 +17,7 @@ import {
   NewExperimentCard,
 } from "~/components/experiments/ExperimentCard";
 import { signIn, useSession } from "next-auth/react";
+import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 
 export default function ExperimentsPage() {
   const experiments = api.experiments.list.useQuery();
@@ -50,29 +49,27 @@ export default function ExperimentsPage() {
 
   return (
     <AppShell title="Experiments">
-      <VStack alignItems={"flex-start"} px={8} py={2}>
-        <HStack minH={8} align="center" pt={2}>
-          <Breadcrumb flex={1}>
-            <BreadcrumbItem>
-              <Flex alignItems="center">
-                <Icon as={RiFlaskLine} boxSize={4} mr={2} /> Experiments
-              </Flex>
-            </BreadcrumbItem>
-          </Breadcrumb>
-        </HStack>
-        <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} py="4">
-          <NewExperimentCard />
-          {experiments.data && !experiments.isLoading ? (
-            experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} />)
-          ) : (
-            <>
-              <ExperimentCardSkeleton />
-              <ExperimentCardSkeleton />
-              <ExperimentCardSkeleton />
-            </>
-          )}
-        </SimpleGrid>
-      </VStack>
+      <PageHeaderContainer>
+        <Breadcrumb>
+          <BreadcrumbItem minH={8}>
+            <Flex alignItems="center">
+              <Icon as={RiFlaskLine} boxSize={4} mr={2} /> Experiments
+            </Flex>
+          </BreadcrumbItem>
+        </Breadcrumb>
+      </PageHeaderContainer>
+      <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} py="4" px={8}>
+        <NewExperimentCard />
+        {experiments.data && !experiments.isLoading ? (
+          experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} />)
+        ) : (
+          <>
+            <ExperimentCardSkeleton />
+            <ExperimentCardSkeleton />
+            <ExperimentCardSkeleton />
+          </>
+        )}
+      </SimpleGrid>
     </AppShell>
   );
 }

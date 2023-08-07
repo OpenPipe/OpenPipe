@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import Head from "next/head";
 import Link from "next/link";
-import { BsGithub, BsPersonCircle } from "react-icons/bs";
+import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
 import UserMenu from "./UserMenu";
@@ -75,6 +75,21 @@ const NavSidebar = () => {
             </HStack>
           </NavSidebarOption>
         )}
+      </VStack>
+      <VStack w="full" alignItems="flex-start" spacing={0}>
+        <Text
+          pl={2}
+          pb={2}
+          fontSize="xs"
+          fontWeight="bold"
+          color="gray.500"
+          display={{ base: "none", md: "flex" }}
+        >
+          CONFIGURATION
+        </Text>
+        <NavSidebarOption activeHrefPattern="/settings">
+          <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
+        </NavSidebarOption>
       </VStack>
       {user && <UserMenu user={user} borderColor={"gray.200"} />}
       <Divider />

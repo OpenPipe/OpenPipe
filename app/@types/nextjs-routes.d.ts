@@ -25,6 +25,7 @@ declare module "nextjs-routes" {
     | StaticRoute<"/home">
     | StaticRoute<"/">
     | StaticRoute<"/sentry-example-page">
+    | StaticRoute<"/settings">
     | StaticRoute<"/world-champs">
     | StaticRoute<"/world-champs/signup">;
 

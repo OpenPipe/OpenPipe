@@ -5,7 +5,7 @@ import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useSelectedOrg } from "~/utils/hooks";
 
-export default function HomePage() {
+export default function Settings() {
   const utils = api.useContext();
   const { data: selectedOrg } = useSelectedOrg();
 
@@ -24,10 +24,11 @@ export default function HomePage() {
   useEffect(() => {
     setName(selectedOrg?.name);
   }, [selectedOrg?.name]);
+
   return (
     <AppShell>
       <PageHeaderContainer>
-        <Breadcrumb flex={1}>
+        <Breadcrumb>
           <BreadcrumbItem isCurrentPage>
             <Input
               size="sm"
