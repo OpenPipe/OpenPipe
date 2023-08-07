@@ -50,7 +50,7 @@ export default function DatasetsPage() {
 
   return (
     <AppShell title="Data">
-      <VStack alignItems={"flex-start"} px={4} py={2}>
+      <VStack alignItems={"flex-start"} px={8} py={2}>
         <HStack minH={8} align="center" pt={2}>
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
@@ -60,7 +60,7 @@ export default function DatasetsPage() {
             </BreadcrumbItem>
           </Breadcrumb>
         </HStack>
-        <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} p="4">
+        <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} py="4">
           <NewDatasetCard />
           {datasets.data && !datasets.isLoading ? (
             datasets?.data?.map((dataset) => (

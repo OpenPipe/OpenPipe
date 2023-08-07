@@ -105,7 +105,8 @@ export default function Experiment() {
       <AppShell title={experiment.data?.label}>
         <VStack h="full">
           <Flex
-            px={4}
+            pl={8}
+            pr={4}
             py={2}
             w="full"
             direction={{ base: "column", sm: "row" }}

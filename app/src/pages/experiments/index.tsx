@@ -50,7 +50,7 @@ export default function ExperimentsPage() {
 
   return (
     <AppShell title="Experiments">
-      <VStack alignItems={"flex-start"} px={4} py={2}>
+      <VStack alignItems={"flex-start"} px={8} py={2}>
         <HStack minH={8} align="center" pt={2}>
           <Breadcrumb flex={1}>
             <BreadcrumbItem>
@@ -60,7 +60,7 @@ export default function ExperimentsPage() {
             </BreadcrumbItem>
           </Breadcrumb>
         </HStack>
-        <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} p="4">
+        <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} py="4">
           <NewExperimentCard />
           {experiments.data && !experiments.isLoading ? (
             experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} />)

@@ -1,15 +1,15 @@
-import * as OpenAI from "openai-beta";
+import * as openai from "openai-beta";
 import { readEnv } from "openai-beta/core";
 
 // Anything we don't override we want to pass through to openai directly
 export * as openai from "openai-beta";
 
-interface ClientOptions extends OpenAI.ClientOptions {
+interface ClientOptions extends openai.ClientOptions {
   openPipeApiKey?: string;
   openPipeBaseUrl?: string;
 }
 
-export class OpenPipe extends OpenAI.OpenAI {
+export class OpenAI extends openai.OpenAI {
   openPipeApiKey: string;
   openPipeBaseUrl: string;
 

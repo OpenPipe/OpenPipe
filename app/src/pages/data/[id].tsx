@@ -56,8 +56,7 @@ export default function Dataset() {
     <AppShell title={dataset.data?.name}>
       <VStack h="full">
         <Flex
-          pl={4}
-          pr={8}
+          px={8}
           py={2}
           w="full"
           direction={{ base: "column", sm: "row" }}
@@ -90,7 +89,7 @@ export default function Dataset() {
           </Breadcrumb>
           <DatasetHeaderButtons />
         </Flex>
-        <Box w="full" overflowX="auto" flex={1} pl={4} pr={8} pt={8} pb={16}>
+        <Box w="full" overflowX="auto" flex={1} px={8} pt={8} pb={16}>
           {datasetId && <DatasetEntriesTable />}
         </Box>
       </VStack>

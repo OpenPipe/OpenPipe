@@ -200,8 +200,11 @@ model DatasetEntry {
     updatedAt DateTime @updatedAt
 }
 
+// TODO rename Organization to Project
 model Organization {
     id                String  @id @default(uuid()) @db.Uuid
+    name              String  @default("Project 1")
+
     personalOrgUserId String? @unique @db.Uuid
     PersonalOrgUser   User?   @relation(fields: [personalOrgUserId], references: [id], onDelete: Cascade)
 

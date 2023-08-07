@@ -9,6 +9,7 @@ import { worldChampsRouter } from "./routers/worldChamps.router";
 import { datasetsRouter } from "./routers/datasets.router";
 import { datasetEntries } from "./routers/datasetEntries.router";
 import { externalApiRouter } from "./routers/externalApi.router";
+import { organizationsRouter } from "./routers/organizations.router";
 
 /**
  * This is the primary router for your server.
@@ -25,6 +26,7 @@ export const appRouter = createTRPCRouter({
   worldChamps: worldChampsRouter,
   datasets: datasetsRouter,
   datasetEntries: datasetEntries,
+  organizations: organizationsRouter,
   externalApi: externalApiRouter,
 });
 

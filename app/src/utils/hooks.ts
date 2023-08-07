@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
 import { NumberParam, useQueryParam, withDefault } from "use-query-params";
+import { useAppStore } from "~/state/store";
 
 export const useExperiment = () => {
   const router = useRouter();
@@ -132,3 +133,11 @@ export const useScenario = (scenarioId: string) => {
 };
 
 export const useVisibleScenarioIds = () => useScenarios().data?.scenarios.map((s) => s.id) ?? [];
+
+export const useSelectedOrg = () => {
+  const selectedOrgId = useAppStore((state) => state.selectedOrgId);
+  return api.organizations.get.useQuery(
+    { id: selectedOrgId ?? "" },
+    { enabled: !!selectedOrgId },
+  );
+};
