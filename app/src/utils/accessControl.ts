@@ -16,6 +16,26 @@ export const requireNothing = (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 };
 
+export const requireCanViewOrganization = async (organizationId: string, ctx: TRPCContext) => {
+  const userId = ctx.session?.user.id;
+  if (!userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  const canView = await prisma.organizationUser.findFirst({
+    where: {
+      userId,
+      organizationId,
+    },
+  });
+
+  if (!canView) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  ctx.markAccessControlRun();
+};
+
 export const requireCanModifyOrganization = async (organizationId: string, ctx: TRPCContext) => {
   const userId = ctx.session?.user.id;
   if (!userId) {

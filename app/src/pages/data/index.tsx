@@ -9,7 +9,6 @@ import {
   Link,
 } from "@chakra-ui/react";
 import AppShell from "~/components/nav/AppShell";
-import { api } from "~/utils/api";
 import { signIn, useSession } from "next-auth/react";
 import { RiDatabase2Line } from "react-icons/ri";
 import {
@@ -19,9 +18,10 @@ import {
 } from "~/components/datasets/DatasetCard";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
+import { useDatasets } from "~/utils/hooks";
 
 export default function DatasetsPage() {
-  const datasets = api.datasets.list.useQuery();
+  const datasets = useDatasets();
 
   const user = useSession().data;
   const authLoading = useSession().status === "loading";

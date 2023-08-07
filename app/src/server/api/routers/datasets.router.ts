@@ -4,35 +4,33 @@ import { prisma } from "~/server/db";
 import {
   requireCanModifyDataset,
   requireCanViewDataset,
+  requireCanViewOrganization,
   requireNothing,
 } from "~/utils/accessControl";
 import userOrg from "~/server/utils/userOrg";
 
 export const datasetsRouter = createTRPCRouter({
-  list: protectedProcedure.query(async ({ ctx }) => {
-    // Anyone can list experiments
-    requireNothing(ctx);
+  list: protectedProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewOrganization(input.organizationId, ctx);
 
-    const datasets = await prisma.dataset.findMany({
-      where: {
-        organization: {
-          organizationUsers: {
-            some: { userId: ctx.session.user.id },
+      const datasets = await prisma.dataset.findMany({
+        where: {
+          organizationId: input.organizationId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          _count: {
+            select: { datasetEntries: true },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        _count: {
-          select: { datasetEntries: true },
-        },
-      },
-    });
+      });
 
-    return datasets;
-  }),
+      return datasets;
+    }),
 
   get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     await requireCanViewDataset(input.id, ctx);

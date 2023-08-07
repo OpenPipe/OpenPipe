@@ -9,6 +9,7 @@ import {
   canModifyExperiment,
   requireCanModifyExperiment,
   requireCanViewExperiment,
+  requireCanViewOrganization,
   requireNothing,
 } from "~/utils/accessControl";
 import userOrg from "~/server/utils/userOrg";
@@ -43,50 +44,47 @@ export const experimentsRouter = createTRPCRouter({
       testScenarioCount,
     };
   }),
-  list: protectedProcedure.query(async ({ ctx }) => {
-    // Anyone can list experiments
-    requireNothing(ctx);
+  list: protectedProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewOrganization(input.organizationId, ctx)
 
-    const experiments = await prisma.experiment.findMany({
-      where: {
-        organization: {
-          organizationUsers: {
-            some: { userId: ctx.session.user.id },
-          },
+      const experiments = await prisma.experiment.findMany({
+        where: {
+          organizationId: input.organizationId,
         },
-      },
-      orderBy: {
-        sortIndex: "desc",
-      },
-    });
+        orderBy: {
+          sortIndex: "desc",
+        },
+      });
 
-    // TODO: look for cleaner way to do this. Maybe aggregate?
-    const experimentsWithCounts = await Promise.all(
-      experiments.map(async (experiment) => {
-        const visibleTestScenarioCount = await prisma.testScenario.count({
-          where: {
-            experimentId: experiment.id,
-            visible: true,
-          },
-        });
+      // TODO: look for cleaner way to do this. Maybe aggregate?
+      const experimentsWithCounts = await Promise.all(
+        experiments.map(async (experiment) => {
+          const visibleTestScenarioCount = await prisma.testScenario.count({
+            where: {
+              experimentId: experiment.id,
+              visible: true,
+            },
+          });
 
-        const visiblePromptVariantCount = await prisma.promptVariant.count({
-          where: {
-            experimentId: experiment.id,
-            visible: true,
-          },
-        });
+          const visiblePromptVariantCount = await prisma.promptVariant.count({
+            where: {
+              experimentId: experiment.id,
+              visible: true,
+            },
+          });
 
-        return {
-          ...experiment,
-          testScenarioCount: visibleTestScenarioCount,
-          promptVariantCount: visiblePromptVariantCount,
-        };
-      }),
-    );
+          return {
+            ...experiment,
+            testScenarioCount: visibleTestScenarioCount,
+            promptVariantCount: visiblePromptVariantCount,
+          };
+        }),
+      );
 
-    return experimentsWithCounts;
-  }),
+      return experimentsWithCounts;
+    }),
 
   get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     await requireCanViewExperiment(input.id, ctx);

@@ -10,7 +10,6 @@ import {
 } from "@chakra-ui/react";
 import { RiFlaskLine } from "react-icons/ri";
 import AppShell from "~/components/nav/AppShell";
-import { api } from "~/utils/api";
 import {
   ExperimentCard,
   ExperimentCardSkeleton,
@@ -19,9 +18,10 @@ import {
 import { signIn, useSession } from "next-auth/react";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
+import { useExperiments } from "~/utils/hooks";
 
 export default function ExperimentsPage() {
-  const experiments = api.experiments.list.useQuery();
+  const experiments = useExperiments();
 
   const user = useSession().data;
   const authLoading = useSession().status === "loading";
