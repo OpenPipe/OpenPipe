@@ -18,6 +18,7 @@ import {
 } from "~/components/experiments/ExperimentCard";
 import { signIn, useSession } from "next-auth/react";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
+import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 
 export default function ExperimentsPage() {
   const experiments = api.experiments.list.useQuery();
@@ -51,6 +52,9 @@ export default function ExperimentsPage() {
     <AppShell title="Experiments">
       <PageHeaderContainer>
         <Breadcrumb>
+          <BreadcrumbItem>
+            <ProjectBreadcrumbContents />
+          </BreadcrumbItem>
           <BreadcrumbItem minH={8}>
             <Flex alignItems="center">
               <Icon as={RiFlaskLine} boxSize={4} mr={2} /> Experiments

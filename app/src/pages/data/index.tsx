@@ -18,6 +18,7 @@ import {
   NewDatasetCard,
 } from "~/components/datasets/DatasetCard";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
+import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 
 export default function DatasetsPage() {
   const datasets = api.datasets.list.useQuery();
@@ -51,6 +52,9 @@ export default function DatasetsPage() {
     <AppShell title="Data">
       <PageHeaderContainer>
         <Breadcrumb>
+          <BreadcrumbItem>
+            <ProjectBreadcrumbContents />
+          </BreadcrumbItem>
           <BreadcrumbItem minH={8}>
             <Flex alignItems="center">
               <Icon as={RiDatabase2Line} boxSize={4} mr={2} /> Datasets

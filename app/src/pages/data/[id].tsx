@@ -19,6 +19,7 @@ import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import DatasetEntriesTable from "~/components/datasets/DatasetEntriesTable";
 import { DatasetHeaderButtons } from "~/components/datasets/DatasetHeaderButtons/DatasetHeaderButtons";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
+import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 
 export default function Dataset() {
   const router = useRouter();
@@ -58,6 +59,9 @@ export default function Dataset() {
       <VStack h="full">
         <PageHeaderContainer>
           <Breadcrumb>
+            <BreadcrumbItem>
+              <ProjectBreadcrumbContents />
+            </BreadcrumbItem>
             <BreadcrumbItem>
               <Link href="/data">
                 <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>

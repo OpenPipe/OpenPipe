@@ -24,6 +24,8 @@ import { useSyncVariantEditor } from "~/state/sync";
 import { ExperimentHeaderButtons } from "~/components/experiments/ExperimentHeaderButtons/ExperimentHeaderButtons";
 import Head from "next/head";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
+import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
+
 
 // TODO: import less to fix deployment with server side props
 // export const getServerSideProps = async (context: GetServerSidePropsContext<{ id: string }>) => {
@@ -107,6 +109,9 @@ export default function Experiment() {
         <VStack h="full">
           <PageHeaderContainer>
             <Breadcrumb>
+              <BreadcrumbItem>
+                <ProjectBreadcrumbContents />
+              </BreadcrumbItem>
               <BreadcrumbItem>
                 <Link href="/experiments">
                   <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>

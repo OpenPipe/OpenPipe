@@ -1,9 +1,11 @@
-import { Breadcrumb, BreadcrumbItem, Input } from "@chakra-ui/react";
+import { Breadcrumb, BreadcrumbItem, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useSelectedOrg } from "~/utils/hooks";
+import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -29,21 +31,11 @@ export default function Settings() {
     <AppShell>
       <PageHeaderContainer>
         <Breadcrumb>
+          <BreadcrumbItem>
+            <ProjectBreadcrumbContents />
+          </BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>
-            <Input
-              size="sm"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onBlur={onSaveName}
-              borderWidth={1}
-              borderColor="transparent"
-              fontSize={16}
-              px={0}
-              minW={{ base: 100, lg: 300 }}
-              flex={1}
-              _hover={{ borderColor: "gray.300" }}
-              _focus={{ borderColor: "blue.500", outline: "none" }}
-            />
+            <Text>Project Settings</Text>
           </BreadcrumbItem>
         </Breadcrumb>
       </PageHeaderContainer>
