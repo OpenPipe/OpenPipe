@@ -130,7 +130,12 @@ export default function ProjectMenu() {
             <Divider />
             <VStack spacing={0}>
               {orgs?.map((org) => (
-                <ProjectOption key={org.id} org={org} isActive={org.id === selectedOrgId} />
+                <ProjectOption
+                  key={org.id}
+                  org={org}
+                  isActive={org.id === selectedOrgId}
+                  onClose={popover.onClose}
+                />
               ))}
             </VStack>
             <HStack
@@ -152,14 +157,25 @@ export default function ProjectMenu() {
   );
 }
 
-const ProjectOption = ({ org, isActive }: { org: Organization; isActive: boolean }) => {
+const ProjectOption = ({
+  org,
+  isActive,
+  onClose,
+}: {
+  org: Organization;
+  isActive: boolean;
+  onClose: () => void;
+}) => {
   const setSelectedOrgId = useAppStore((s) => s.setSelectedOrgId);
   const [gearHovered, setGearHovered] = useState(false);
   return (
     <HStack
       as={Link}
       href="/home"
-      onClick={() => setSelectedOrgId(org.id)}
+      onClick={() => {
+        setSelectedOrgId(org.id);
+        onClose();
+      }}
       w="full"
       justifyContent="space-between"
       bgColor={isActive ? "gray.100" : "transparent"}
