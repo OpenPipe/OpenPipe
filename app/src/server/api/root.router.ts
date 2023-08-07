@@ -8,6 +8,7 @@ import { evaluationsRouter } from "./routers/evaluations.router";
 import { worldChampsRouter } from "./routers/worldChamps.router";
 import { datasetsRouter } from "./routers/datasets.router";
 import { datasetEntries } from "./routers/datasetEntries.router";
+import { externalApiRouter } from "./routers/externalApi.router";
 
 /**
  * This is the primary router for your server.
@@ -24,6 +25,7 @@ export const appRouter = createTRPCRouter({
   worldChamps: worldChampsRouter,
   datasets: datasetsRouter,
   datasetEntries: datasetEntries,
+  externalApi: externalApiRouter,
 });
 
 // export type definition of API

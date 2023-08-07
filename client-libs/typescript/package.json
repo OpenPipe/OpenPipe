@@ -1,0 +1,24 @@
+{
+  "name": "openpipe",
+  "version": "0.1.0",
+  "description": "Metrics and auto-evaluation for LLM calls",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "openai-beta": "npm:openai@4.0.0-beta.7",
+    "openai-legacy": "npm:openai@3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.8",
+    "dotenv": "^16.3.1",
+    "tsx": "^3.12.7",
+    "typescript": "^5.0.4"
+  }
+}
