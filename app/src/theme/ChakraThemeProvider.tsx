@@ -1,6 +1,5 @@
-import { extendTheme } from "@chakra-ui/react";
+import { extendTheme, defineStyleConfig, ChakraProvider } from "@chakra-ui/react";
 import "@fontsource/inconsolata";
-import { ChakraProvider } from "@chakra-ui/react";
 import { modalAnatomy } from "@chakra-ui/anatomy";
 import { createMultiStyleConfigHelpers } from "@chakra-ui/styled-system";
 
@@ -16,6 +15,13 @@ const modalTheme = defineMultiStyleConfig({
   baseStyle: definePartsStyle({
     dialog: { borderRadius: "sm" },
   }),
+});
+
+const Divider = defineStyleConfig({
+  baseStyle: {
+    borderColor: "gray.300",
+    backgroundColor: "gray.300",
+  },
 });
 
 const theme = extendTheme({
@@ -53,6 +59,7 @@ const theme = extendTheme({
       },
     },
     Modal: modalTheme,
+    Divider,
   },
 });
 
