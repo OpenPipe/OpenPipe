@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { generateApiKey } from "~/server/utils/generateApiKey";
 import { requireCanModifyOrganization, requireNothing } from "~/utils/accessControl";
 
 export const organizationsRouter = createTRPCRouter({
@@ -41,6 +42,13 @@ export const organizationsRouter = createTRPCRouter({
             role: "ADMIN",
           },
         }),
+        prisma.apiKey.create({
+          data: {
+            name: "Default API Key",
+            organizationId: newOrgId,
+            apiKey: generateApiKey(),
+          },
+        }),
       ]);
       organizations.push(newOrg);
     }
@@ -53,6 +61,9 @@ export const organizationsRouter = createTRPCRouter({
       where: {
         id: input.id,
       },
+      include: {
+        apiKeys: true,
+      }
     });
   }),
   update: protectedProcedure
