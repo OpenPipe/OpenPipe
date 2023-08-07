@@ -6,47 +6,78 @@ import {
   PopoverTrigger,
   PopoverContent,
   Flex,
+  IconButton,
+  Icon,
+  Divider,
+  Button,
+  useDisclosure,
+  Spinner,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { AiFillCaretDown } from "react-icons/ai";
+import { BsGear, BsPlus } from "react-icons/bs";
+import { type Organization } from "@prisma/client";
 
 import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
 import NavSidebarOption from "./NavSidebarOption";
-import { useSelectedOrg } from "~/utils/hooks";
+import { useHandledAsyncCallback, useSelectedOrg } from "~/utils/hooks";
+import { useRouter } from "next/router";
 
 export default function ProjectMenu() {
+  const router = useRouter();
+  const isActive = router.pathname.startsWith("/home");
+  const utils = api.useContext();
+
   const selectedOrgId = useAppStore((s) => s.selectedOrgId);
   const setSelectedOrgId = useAppStore((s) => s.setSelectedOrgId);
 
-  const { data } = api.organizations.list.useQuery();
+  const { data: orgs } = api.organizations.list.useQuery();
 
   useEffect(() => {
-    if (data && data[0] && (!selectedOrgId || !data.find((org) => org.id === selectedOrgId))) {
-      setSelectedOrgId(data[0].id);
+    if (orgs && orgs[0] && (!selectedOrgId || !orgs.find((org) => org.id === selectedOrgId))) {
+      setSelectedOrgId(orgs[0].id);
     }
-  }, [selectedOrgId, setSelectedOrgId, data]);
+  }, [selectedOrgId, setSelectedOrgId, orgs]);
 
   const { data: selectedOrg } = useSelectedOrg();
 
+  const [expandButtonHovered, setExpandButtonHovered] = useState(false);
+
+  const popover = useDisclosure();
+
+  const createMutation = api.organizations.create.useMutation();
+  const [createProject, isLoading] = useHandledAsyncCallback(async () => {
+    const newOrg = await createMutation.mutateAsync({ name: "New Project" });
+    await utils.organizations.list.invalidate();
+    setSelectedOrgId(newOrg.id);
+    await router.push({ pathname: "/settings" });
+  }, [createMutation, router]);
+
   return (
     <>
-      <Popover placement="right">
-        <PopoverTrigger>
-          <VStack w="full" alignItems="flex-start" spacing={0}>
-            <Text
-              pl={2}
-              pb={2}
-              fontSize="xs"
-              fontWeight="bold"
-              color="gray.500"
-              display={{ base: "none", md: "flex" }}
-            >
-              PROJECT
-            </Text>
-            <NavSidebarOption activeHrefPattern="/home">
-              <Link href="/home">
-                <HStack w="full">
+      <Popover
+        placement="bottom-start"
+        isOpen={popover.isOpen}
+        onClose={popover.onClose}
+        closeOnBlur
+      >
+        <VStack w="full" alignItems="flex-start" spacing={0}>
+          <Text
+            pl={2}
+            pb={2}
+            fontSize="xs"
+            fontWeight="bold"
+            color="gray.500"
+            display={{ base: "none", md: "flex" }}
+          >
+            PROJECT
+          </Text>
+          <NavSidebarOption activeHrefPattern="/home" disableHoverEffect={expandButtonHovered}>
+            <Link href="/home">
+              <HStack w="full" justifyContent="space-between">
+                <HStack>
                   <Flex
                     p={1}
                     borderRadius={4}
@@ -63,12 +94,93 @@ export default function ProjectMenu() {
                     {selectedOrg?.name}
                   </Text>
                 </HStack>
-              </Link>
-            </NavSidebarOption>
+                <PopoverTrigger>
+                  <IconButton
+                    aria-label="Open Project Menu"
+                    icon={<Icon as={AiFillCaretDown} boxSize={3} />}
+                    size="xs"
+                    colorScheme="gray"
+                    color="gray.500"
+                    variant="ghost"
+                    mr={2}
+                    borderRadius={4}
+                    onMouseEnter={() => setExpandButtonHovered(true)}
+                    onMouseLeave={() => setExpandButtonHovered(false)}
+                    _hover={{ bgColor: isActive ? "gray.300" : "gray.200", transitionDelay: 0 }}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      popover.onToggle();
+                    }}
+                  />
+                </PopoverTrigger>
+              </HStack>
+            </Link>
+          </NavSidebarOption>
+        </VStack>
+        <PopoverContent
+          _focusVisible={{ boxShadow: "unset" }}
+          minW={0}
+          borderColor="blue.400"
+          w="auto"
+        >
+          <VStack alignItems="flex-start" spacing={2} py={4} px={2}>
+            <Text color="gray.500" fontSize="xs" fontWeight="bold" pb={1}>
+              PROJECTS
+            </Text>
+            <Divider />
+            <VStack spacing={0}>
+              {orgs?.map((org) => (
+                <ProjectOption key={org.id} org={org} isActive={org.id === selectedOrgId} />
+              ))}
+            </VStack>
+            <HStack
+              as={Button}
+              variant="ghost"
+              colorScheme="blue"
+              color="blue.400"
+              pr={8}
+              w="full"
+              onClick={createProject}
+            >
+              <Icon as={isLoading ? Spinner : BsPlus} boxSize={6} />
+              <Text>New project</Text>
+            </HStack>
           </VStack>
-        </PopoverTrigger>
-        <PopoverContent _focusVisible={{ boxShadow: "unset", outline: "unset" }}></PopoverContent>
+        </PopoverContent>
       </Popover>
     </>
   );
 }
+
+const ProjectOption = ({ org, isActive }: { org: Organization; isActive: boolean }) => {
+  const setSelectedOrgId = useAppStore((s) => s.setSelectedOrgId);
+  const [gearHovered, setGearHovered] = useState(false);
+  return (
+    <HStack
+      as={Link}
+      href="/home"
+      onClick={() => setSelectedOrgId(org.id)}
+      w="full"
+      justifyContent="space-between"
+      bgColor={isActive ? "gray.100" : "transparent"}
+      _hover={gearHovered ? undefined : { bgColor: "gray.200", textDecoration: "none" }}
+      p={2}
+      borderRadius={4}
+    >
+      <Text>{org.name}</Text>
+      <IconButton
+        as={Link}
+        href="/settings"
+        aria-label={`Open ${org.name} settings`}
+        icon={<Icon as={BsGear} boxSize={5} strokeWidth={0.5} color="gray.500" />}
+        variant="ghost"
+        size="xs"
+        p={0}
+        onMouseEnter={() => setGearHovered(true)}
+        onMouseLeave={() => setGearHovered(false)}
+        _hover={{ bgColor: isActive ? "gray.300" : "gray.100", transitionDelay: 0 }}
+        borderRadius={4}
+      />
+    </HStack>
+  );
+};

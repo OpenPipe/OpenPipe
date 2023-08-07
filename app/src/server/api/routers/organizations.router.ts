@@ -22,7 +22,7 @@ export const organizationsRouter = createTRPCRouter({
         },
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
     });
 
@@ -63,7 +63,7 @@ export const organizationsRouter = createTRPCRouter({
       },
       include: {
         apiKeys: true,
-      }
+      },
     });
   }),
   update: protectedProcedure
@@ -78,5 +78,34 @@ export const organizationsRouter = createTRPCRouter({
           name: input.updates.name,
         },
       });
+    }),
+  create: protectedProcedure
+    .input(z.object({ name: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      requireNothing(ctx);
+      const newOrgId = uuidv4();
+      const [newOrg] = await prisma.$transaction([
+        prisma.organization.create({
+          data: {
+            id: newOrgId,
+            name: input.name,
+          },
+        }),
+        prisma.organizationUser.create({
+          data: {
+            userId: ctx.session.user.id,
+            organizationId: newOrgId,
+            role: "ADMIN",
+          },
+        }),
+        prisma.apiKey.create({
+          data: {
+            name: "Default API Key",
+            organizationId: newOrgId,
+            apiKey: generateApiKey(),
+          },
+        }),
+      ]);
+      return newOrg;
     }),
 });

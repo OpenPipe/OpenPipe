@@ -3,8 +3,9 @@ import { useRouter } from "next/router";
 
 const NavSidebarOption = ({
   activeHrefPattern,
+  disableHoverEffect,
   ...props
-}: { activeHrefPattern?: string } & BoxProps) => {
+}: { activeHrefPattern?: string; disableHoverEffect?: boolean } & BoxProps) => {
   const router = useRouter();
   const isActive = activeHrefPattern && router.pathname.startsWith(activeHrefPattern);
   return (
@@ -12,7 +13,7 @@ const NavSidebarOption = ({
       w="full"
       fontWeight={isActive ? "bold" : "500"}
       bgColor={isActive ? "gray.200" : "transparent"}
-      _hover={{ bgColor: "gray.200", textDecoration: "none" }}
+      _hover={disableHoverEffect ? undefined : { bgColor: "gray.200", textDecoration: "none" }}
       justifyContent="start"
       cursor="pointer"
       borderRadius={4}
