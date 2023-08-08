@@ -106,7 +106,15 @@ const NavSidebar = () => {
   );
 };
 
-export default function AppShell(props: { children: React.ReactNode; title?: string }) {
+export default function AppShell({
+  children,
+  title,
+  requireAuth,
+}: {
+  children: React.ReactNode;
+  title?: string;
+  requireAuth?: boolean;
+}) {
   const [vh, setVh] = useState("100vh"); // Default height to prevent flicker on initial render
 
   useEffect(() => {
@@ -126,14 +134,23 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
     };
   }, []);
 
+  const user = useSession().data;
+  const authLoading = useSession().status === "loading";
+
+  useEffect(() => {
+    if (requireAuth && user === null && !authLoading) {
+      signIn("github").catch(console.error);
+    }
+  }, [requireAuth, user, authLoading]);
+
   return (
     <Flex h={vh} w="100vw">
       <Head>
-        <title>{props.title ? `${props.title} | OpenPipe` : "OpenPipe"}</title>
+        <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
       </Head>
       <NavSidebar />
       <Box h="100%" flex={1} overflowY="auto">
-        {props.children}
+        {children}
       </Box>
     </Flex>
   );

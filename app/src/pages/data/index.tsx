@@ -4,12 +4,8 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   Flex,
-  Center,
-  Text,
-  Link,
 } from "@chakra-ui/react";
 import AppShell from "~/components/nav/AppShell";
-import { signIn, useSession } from "next-auth/react";
 import { RiDatabase2Line } from "react-icons/ri";
 import {
   DatasetCard,
@@ -23,33 +19,8 @@ import { useDatasets } from "~/utils/hooks";
 export default function DatasetsPage() {
   const datasets = useDatasets();
 
-  const user = useSession().data;
-  const authLoading = useSession().status === "loading";
-
-  if (user === null || authLoading) {
-    return (
-      <AppShell title="Data">
-        <Center h="100%">
-          {!authLoading && (
-            <Text>
-              <Link
-                onClick={() => {
-                  signIn("github").catch(console.error);
-                }}
-                textDecor="underline"
-              >
-                Sign in
-              </Link>{" "}
-              to view or create new datasets!
-            </Text>
-          )}
-        </Center>
-      </AppShell>
-    );
-  }
-
   return (
-    <AppShell title="Data">
+    <AppShell title="Data" requireAuth>
       <PageHeaderContainer>
         <Breadcrumb>
           <BreadcrumbItem>

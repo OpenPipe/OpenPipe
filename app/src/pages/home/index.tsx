@@ -58,7 +58,7 @@ export default function HomePage() {
   }, [stats.data]);
 
   return (
-    <AppShell>
+    <AppShell requireAuth>
       <PageHeaderContainer>
         <Breadcrumb>
           <BreadcrumbItem>
