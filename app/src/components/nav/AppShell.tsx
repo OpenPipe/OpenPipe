@@ -52,7 +52,7 @@ const NavSidebar = () => {
           <>
             <ProjectMenu />
             <Divider />
-            <IconLink icon={IoStatsChartOutline} label="Logged Calls" href="/logged-calls" />
+            <IconLink icon={IoStatsChartOutline} label="Logged Calls" href="/logged-calls" beta/>
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
             {env.NEXT_PUBLIC_SHOW_DATA && (
               <IconLink icon={RiDatabase2Line} label="Data" href="/data" />
