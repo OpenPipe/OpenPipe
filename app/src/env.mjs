@@ -20,6 +20,7 @@ export const env = createEnv({
     REPLICATE_API_TOKEN: z.string().default("placeholder"),
     ANTHROPIC_API_KEY: z.string().default("placeholder"),
     SENTRY_AUTH_TOKEN: z.string().optional(),
+    USE_OPENPIPE: z.string().optional(),
   },
 
   /**
@@ -54,6 +55,7 @@ export const env = createEnv({
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+    USE_OPENPIPE: process.env.USE_OPENPIPE,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
