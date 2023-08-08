@@ -16,10 +16,7 @@ export default function ProjectBreadcrumbContents({ orgName = "" }: { orgName?: 
           p={1}
           borderRadius={4}
           backgroundColor="orange.100"
-          minW={6}
-          maxW={6}
-          minH={6}
-          maxH={6}
+          boxSize={6}
           alignItems="center"
           justifyContent="center"
         >
