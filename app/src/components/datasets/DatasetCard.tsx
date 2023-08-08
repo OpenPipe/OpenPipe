@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import { BsPlusSquare } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
+import { useAppStore } from "~/state/store";
 
 type DatasetData = {
   name: string;
@@ -71,11 +72,12 @@ const CountLabel = ({ label, count }: { label: string; count: number }) => {
 
 export const NewDatasetCard = () => {
   const router = useRouter();
+  const selectedOrgId = useAppStore((s) => s.selectedOrgId);
   const createMutation = api.datasets.create.useMutation();
   const [createDataset, isLoading] = useHandledAsyncCallback(async () => {
-    const newDataset = await createMutation.mutateAsync({ label: "New Dataset" });
+    const newDataset = await createMutation.mutateAsync({ organizationId: selectedOrgId ?? "" });
     await router.push({ pathname: "/data/[id]", query: { id: newDataset.id } });
-  }, [createMutation, router]);
+  }, [createMutation, router, selectedOrgId]);
 
   return (
     <AspectRatio ratio={1.2} w="full">

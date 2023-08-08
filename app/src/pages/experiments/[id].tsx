@@ -110,7 +110,7 @@ export default function Experiment() {
           <PageHeaderContainer>
             <Breadcrumb>
               <BreadcrumbItem>
-                <ProjectBreadcrumbContents />
+                <ProjectBreadcrumbContents orgName={experiment.data?.organization?.name} />
               </BreadcrumbItem>
               <BreadcrumbItem>
                 <Link href="/experiments">

@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import { BsPlusSquare } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
+import { useAppStore } from "~/state/store";
 
 type ExperimentData = {
   testScenarioCount: number;
@@ -75,11 +76,17 @@ const CountLabel = ({ label, count }: { label: string; count: number }) => {
 
 export const NewExperimentCard = () => {
   const router = useRouter();
+  const selectedOrgId = useAppStore((s) => s.selectedOrgId);
   const createMutation = api.experiments.create.useMutation();
   const [createExperiment, isLoading] = useHandledAsyncCallback(async () => {
-    const newExperiment = await createMutation.mutateAsync({ label: "New Experiment" });
-    await router.push({ pathname: "/experiments/[id]", query: { id: newExperiment.id } });
-  }, [createMutation, router]);
+    const newExperiment = await createMutation.mutateAsync({
+      organizationId: selectedOrgId ?? "",
+    });
+    await router.push({
+      pathname: "/experiments/[id]",
+      query: { id: newExperiment.id },
+    });
+  }, [createMutation, router, selectedOrgId]);
 
   return (
     <AspectRatio ratio={1.2} w="full">
