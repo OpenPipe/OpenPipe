@@ -23,7 +23,12 @@ import {
   PrismaClient,
 } from "@prisma/client";
 import { Kysely, PostgresDialect } from "kysely";
-import { Pool } from "pg";
+// TODO: Revert to normal import when our tsconfig.json is fixed
+// import { Pool } from "pg";
+import PGModule from "pg";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const UntypedPool = PGModule.Pool as any;
+const Pool = (UntypedPool.default ? UntypedPool.default : UntypedPool) as typeof PGModule.Pool;
 
 import { env } from "~/env.mjs";
 
