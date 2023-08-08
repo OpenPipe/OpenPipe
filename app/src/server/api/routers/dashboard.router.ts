@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
+import dayjs from "~/utils/dayjs";
 
 export const dashboardRouter = createTRPCRouter({
   stats: publicProcedure
@@ -29,6 +30,26 @@ export const dashboardRouter = createTRPCRouter({
         .groupBy("period")
         .orderBy("period")
         .execute();
+
+      let originalDataIndex = periods.length - 1;
+      let dayToMatch = dayjs(input.startDate).startOf("day");
+      const backfilledPeriods: typeof periods = [];
+
+      // Backfill from now to 14 days ago or the date of the first logged call, whichever is earlier
+      while (backfilledPeriods.length < 14 || originalDataIndex >= 0) {
+        const nextOriginalPeriod = periods[originalDataIndex];
+        if (nextOriginalPeriod && dayjs(nextOriginalPeriod?.period).isSame(dayToMatch, "day")) {
+          backfilledPeriods.unshift(nextOriginalPeriod);
+          originalDataIndex--;
+        } else {
+          backfilledPeriods.unshift({
+            period: dayjs(dayToMatch).toDate(),
+            numQueries: 0,
+            totalCost: 0,
+          });
+        }
+        dayToMatch = dayToMatch.subtract(1, "day");
+      }
 
       const totals = await kysely
         .selectFrom("LoggedCall")
@@ -68,7 +89,7 @@ export const dashboardRouter = createTRPCRouter({
         }
       });
 
-      return { periods, totals, errors: namedErrors };
+      return { periods: backfilledPeriods, totals, errors: namedErrors };
     }),
 
   // TODO useInfiniteQuery

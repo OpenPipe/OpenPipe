@@ -105,14 +105,14 @@ export default function LoggedCalls() {
                       stroke="#8884d8"
                       yAxisId="left"
                       dot={false}
-                      strokeWidth={3}
+                      strokeWidth={2}
                     />
                     <Line
                       dataKey="Total Spent (USD)"
                       stroke="#82ca9d"
                       yAxisId="right"
                       dot={false}
-                      strokeWidth={3}
+                      strokeWidth={2}
                     />
                   </LineChart>
                 </ResponsiveContainer>
