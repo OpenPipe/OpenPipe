@@ -1,11 +1,7 @@
 import * as openai from "openai-beta";
-import {
-  readEnv,
-  type RequestOptions,
-} from "openai-beta/core";
-import {
-  CompletionCreateParams,
-} from "openai-beta/resources/chat/completions";
+import { readEnv, type RequestOptions } from "openai-beta/core";
+import { CompletionCreateParams } from "openai-beta/resources/chat/completions";
+import axios from "axios";
 
 export * as openai from "openai-beta";
 import * as openPipeClient from "../codegen";
@@ -27,10 +23,20 @@ export class OpenAI extends openai.OpenAI {
     super({ ...opts });
 
     if (openPipeApiKey) {
-      this.openPipeApi = new openPipeClient.DefaultApi(new openPipeClient.Configuration({
-        apiKey: openPipeApiKey,
-        basePath: openPipeBaseUrl,
-      }));
+      const axiosInstance = axios.create({
+        baseURL: openPipeBaseUrl,
+        headers: {
+          'x-openpipe-api-key': openPipeApiKey,
+        },
+      });
+      this.openPipeApi = new openPipeClient.DefaultApi(
+        new openPipeClient.Configuration({
+          apiKey: openPipeApiKey,
+          basePath: openPipeBaseUrl,
+        }),
+        undefined,
+        axiosInstance
+      );
     }
 
     // Override the chat property
@@ -87,8 +93,7 @@ class ExtendedCompletions extends openai.OpenAI.Chat.Completions {
         params as CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
         options
       );
-      console.log('result is this', result)
-      this.openaiInstance.openPipeApi?.externalApiReport({
+      await this.openaiInstance.openPipeApi?.externalApiReport({
         startTime,
         endTime: Date.now(),
         reqPayload: params,

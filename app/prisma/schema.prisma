@@ -265,11 +265,11 @@ model LoggedCall {
     // A LoggedCall is always associated with a LoggedCallModelResponse. If this
     // is a cache miss, we create a new LoggedCallModelResponse.
     // If it's a cache hit, it's a pre-existing LoggedCallModelResponse.    
-    modelResponseId String                  @db.Uuid
-    modelResponse   LoggedCallModelResponse @relation(fields: [modelResponseId], references: [id], onDelete: Cascade)
+    modelResponseId String?                 @db.Uuid
+    modelResponse   LoggedCallModelResponse? @relation(fields: [modelResponseId], references: [id], onDelete: Cascade)
 
-    // The response created by this LoggedCall. Will be null if this LoggedCall is a cache hit.
-    createdResponse LoggedCallModelResponse[] @relation(name: "ModelResponseOriginalCall")
+    // The responses created by this LoggedCall. Will be empty if this LoggedCall was a cache hit.
+    createdResponses LoggedCallModelResponse[] @relation(name: "ModelResponseOriginalCall")
 
     organizationId String        @db.Uuid
     organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)

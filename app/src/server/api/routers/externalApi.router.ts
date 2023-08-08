@@ -2,6 +2,7 @@ import { type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -56,13 +57,13 @@ export const externalApiRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const apiKey = ctx.apiKey;
       if (!apiKey) {
-        throw new Error("Missing API key");
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const key = await prisma.apiKey.findUnique({
         where: { apiKey },
       });
       if (!key) {
-        throw new Error("Invalid API key");
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const cacheKey = hashRequest(key.organizationId, reqPayload as JsonValue);
@@ -76,19 +77,19 @@ export const externalApiRouter = createTRPCRouter({
         },
         orderBy: {
           startTime: "desc",
-        }
+        },
       });
 
       if (!existingResponse) return { respPayload: null };
 
       await prisma.loggedCall.create({
         data: {
-            organizationId: key.organizationId,
-            startTime: new Date(input.startTime),
-            cacheHit: true,
-            modelResponseId: existingResponse.id,
-        }
-      })
+          organizationId: key.organizationId,
+          startTime: new Date(input.startTime),
+          cacheHit: true,
+          modelResponseId: existingResponse.id,
+        },
+      });
 
       return {
         respPayload: existingResponse.respPayload,
@@ -123,13 +124,13 @@ export const externalApiRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const apiKey = ctx.apiKey;
       if (!apiKey) {
-        throw new Error("Missing API key");
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const key = await prisma.apiKey.findUnique({
         where: { apiKey },
       });
       if (!key) {
-        throw new Error("Invalid API key");
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const respPayload = await respValidator.spa(input.respPayload);
@@ -148,7 +149,6 @@ export const externalApiRouter = createTRPCRouter({
             organizationId: key.organizationId,
             startTime: new Date(input.startTime),
             cacheHit: false,
-            modelResponseId: newModelResponseId,
           },
         }),
         prisma.loggedCallModelResponse.create({
@@ -167,9 +167,17 @@ export const externalApiRouter = createTRPCRouter({
                   cacheKey: requestHash,
                   inputTokens: usage ? usage.prompt_tokens : undefined,
                   outputTokens: usage ? usage.completion_tokens : undefined,
-                  model: respPayload.data.model,
                 }
               : null),
+          },
+        }),
+        // Avoid foreign key constraint error by updating the logged call after the model response is created
+        prisma.loggedCall.update({
+          where: {
+            id: newLoggedCallId,
+          },
+          data: {
+            modelResponseId: newModelResponseId,
           },
         }),
       ]);
