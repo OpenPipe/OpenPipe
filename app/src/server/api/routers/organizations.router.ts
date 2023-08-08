@@ -7,6 +7,7 @@ import { prisma } from "~/server/db";
 import { generateApiKey } from "~/server/utils/generateApiKey";
 import {
   requireCanModifyOrganization,
+  requireCanViewOrganization,
   requireIsOrgAdmin,
   requireNothing,
 } from "~/utils/accessControl";
@@ -61,7 +62,7 @@ export const organizationsRouter = createTRPCRouter({
     return organizations;
   }),
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    requireNothing(ctx);
+    await requireCanViewOrganization(input.id, ctx);
     const [org, userRole] = await prisma.$transaction([
       prisma.organization.findUnique({
         where: {
