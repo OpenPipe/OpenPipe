@@ -1,10 +1,4 @@
-import {
-  SimpleGrid,
-  Icon,
-  Breadcrumb,
-  BreadcrumbItem,
-  Flex,
-} from "@chakra-ui/react";
+import { SimpleGrid, Icon, Breadcrumb, BreadcrumbItem, Flex } from "@chakra-ui/react";
 import AppShell from "~/components/nav/AppShell";
 import { RiDatabase2Line } from "react-icons/ri";
 import {
