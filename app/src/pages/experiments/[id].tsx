@@ -26,7 +26,6 @@ import Head from "next/head";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 
-
 // TODO: import less to fix deployment with server side props
 // export const getServerSideProps = async (context: GetServerSidePropsContext<{ id: string }>) => {
 //   const experimentId = context.params?.id as string;

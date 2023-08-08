@@ -14,9 +14,7 @@ const StatsCard = ({
           {title}
         </Text>
         <Link href={href}>
-          <Text color="blue">
-            View all
-          </Text>
+          <Text color="blue">View all</Text>
         </Link>
       </HStack>
       <Divider />

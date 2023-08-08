@@ -76,7 +76,7 @@ export const requireCanModifyOrganization = async (organizationId: string, ctx: 
   }
 
   ctx.markAccessControlRun();
-}
+};
 
 export const requireCanViewDataset = async (datasetId: string, ctx: TRPCContext) => {
   const dataset = await prisma.dataset.findFirst({
