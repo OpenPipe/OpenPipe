@@ -12,7 +12,6 @@ export const dashboardRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input }) => {
-      console.log("made it 1");
       // Return the stats group by hour
       const periods = await kysely
         .selectFrom("LoggedCall")
@@ -25,29 +24,25 @@ export const dashboardRouter = createTRPCRouter({
         .select(({ fn }) => [
           sql<Date>`date_trunc('day', "LoggedCallModelResponse"."startTime")`.as("period"),
           sql<number>`count("LoggedCall"."id")::int`.as("numQueries"),
-          fn.sum(fn.coalesce('LoggedCallModelResponse.totalCost', sql<number>`0`)).as("totalCost"),
+          fn.sum(fn.coalesce("LoggedCallModelResponse.totalCost", sql<number>`0`)).as("totalCost"),
         ])
         .groupBy("period")
         .orderBy("period")
         .execute();
 
-      console.log("made it 2");
-
       const totals = await kysely
         .selectFrom("LoggedCall")
-        .where("organizationId", "=", input.organizationId)
         .leftJoin(
           "LoggedCallModelResponse",
           "LoggedCall.id",
           "LoggedCallModelResponse.originalLoggedCallId",
         )
+        .where("organizationId", "=", input.organizationId)
         .select(({ fn }) => [
-          fn.sum(fn.coalesce('LoggedCallModelResponse.totalCost', sql<number>`0`)).as("totalCost"),
-          fn.count("id").as("numQueries"),
+          fn.sum(fn.coalesce("LoggedCallModelResponse.totalCost", sql<number>`0`)).as("totalCost"),
+          fn.count("LoggedCall.id").as("numQueries"),
         ])
         .executeTakeFirst();
-
-      console.log("made it 3");
 
       const errors = await kysely
         .selectFrom("LoggedCall")
@@ -57,13 +52,11 @@ export const dashboardRouter = createTRPCRouter({
           "LoggedCall.id",
           "LoggedCallModelResponse.originalLoggedCallId",
         )
-        .select(({ fn }) => [fn.count("id").as("count"), "respStatus as code"])
+        .select(({ fn }) => [fn.count("LoggedCall.id").as("count"), "respStatus as code"])
         .where("respStatus", ">", 200)
         .groupBy("code")
         .orderBy("count", "desc")
         .execute();
-
-      console.log("made it 4");
 
       const namedErrors = errors.map((e) => {
         if (e.code === 429) {
@@ -75,10 +68,7 @@ export const dashboardRouter = createTRPCRouter({
         }
       });
 
-      console.log("data is", { periods, totals, errors: namedErrors });
-
       return { periods, totals, errors: namedErrors };
-      // const resp = await kysely.selectFrom("LoggedCall").selectAll().execute();
     }),
 
   // TODO useInfiniteQuery
