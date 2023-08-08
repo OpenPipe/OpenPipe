@@ -137,7 +137,7 @@ export default function ProjectMenu() {
               PROJECTS
             </Text>
             <Divider />
-            <VStack spacing={0}>
+            <VStack spacing={0} w="full">
               {orgs?.map((org) => (
                 <ProjectOption
                   key={org.id}
