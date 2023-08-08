@@ -117,8 +117,8 @@ export default function Settings() {
               <VStack alignItems="flex-start">
                 <Subtitle>Personal Project</Subtitle>
                 <Text fontSize="sm">
-                  This project is {selectedOrg?.personalOrgUser?.name}'s personal project. It cannot be
-                  deleted.
+                  This project is {selectedOrg?.personalOrgUser?.name}'s personal project. It cannot
+                  be deleted.
                 </Text>
               </VStack>
             ) : (
