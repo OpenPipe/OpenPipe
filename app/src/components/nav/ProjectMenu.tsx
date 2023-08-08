@@ -12,8 +12,9 @@ import {
   Button,
   useDisclosure,
   Spinner,
+  useBreakpointValue,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AiFillCaretDown } from "react-icons/ai";
 import { BsGear, BsPlus } from "react-icons/bs";
@@ -55,6 +56,16 @@ export default function ProjectMenu() {
     await router.push({ pathname: "/settings" });
   }, [createMutation, router]);
 
+  const openMenu = useCallback(
+    (event: React.MouseEvent<Element, MouseEvent>) => {
+      event.preventDefault();
+      popover.onToggle();
+    },
+    [popover],
+  );
+
+  const sidebarExpanded = useBreakpointValue({ base: false, md: true });
+
   return (
     <>
       <Popover
@@ -87,6 +98,7 @@ export default function ProjectMenu() {
                     m={{ base: 0, md: 1 }}
                     alignItems="center"
                     justifyContent="center"
+                    onClick={sidebarExpanded ? undefined : openMenu}
                   >
                     <Text>{selectedOrg?.name[0]?.toUpperCase()}</Text>
                   </Flex>
@@ -107,10 +119,7 @@ export default function ProjectMenu() {
                     onMouseEnter={() => setExpandButtonHovered(true)}
                     onMouseLeave={() => setExpandButtonHovered(false)}
                     _hover={{ bgColor: isActive ? "gray.300" : "gray.200", transitionDelay: 0 }}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      popover.onToggle();
-                    }}
+                    onClick={openMenu}
                   />
                 </PopoverTrigger>
               </HStack>
