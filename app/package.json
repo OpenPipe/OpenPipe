@@ -50,6 +50,7 @@
     "chroma-js": "^2.4.2",
     "concurrently": "^8.2.0",
     "cors": "^2.8.5",
+    "crypto-random-string": "^5.0.0",
     "dayjs": "^1.11.8",
     "dedent": "^1.0.1",
     "dotenv": "^16.3.1",
