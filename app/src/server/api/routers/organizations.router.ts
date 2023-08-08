@@ -1,10 +1,15 @@
+import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { generateApiKey } from "~/server/utils/generateApiKey";
-import { requireCanModifyOrganization, requireNothing } from "~/utils/accessControl";
+import {
+  requireCanModifyOrganization,
+  requireIsOrgAdmin,
+  requireNothing,
+} from "~/utils/accessControl";
 
 export const organizationsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -57,14 +62,34 @@ export const organizationsRouter = createTRPCRouter({
   }),
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     requireNothing(ctx);
-    return await prisma.organization.findUnique({
-      where: {
-        id: input.id,
-      },
-      include: {
-        apiKeys: true,
-      },
-    });
+    const [org, userRole] = await prisma.$transaction([
+      prisma.organization.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          apiKeys: true,
+        },
+      }),
+      prisma.organizationUser.findFirst({
+        where: {
+          userId: ctx.session.user.id,
+          organizationId: input.id,
+          role: {
+            in: ["ADMIN", "MEMBER"],
+          },
+        },
+      }),
+    ]);
+
+    if (!org) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+
+    return {
+      ...org,
+      role: userRole?.role ?? null,
+    };
   }),
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ name: z.string() }) }))
@@ -107,5 +132,15 @@ export const organizationsRouter = createTRPCRouter({
         }),
       ]);
       return newOrg;
+    }),
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await requireIsOrgAdmin(input.id, ctx);
+      return await prisma.organization.delete({
+        where: {
+          id: input.id,
+        },
+      });
     }),
 });
