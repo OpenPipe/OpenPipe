@@ -53,7 +53,7 @@ export default function ProjectMenu() {
     const newOrg = await createMutation.mutateAsync({ name: "New Project" });
     await utils.organizations.list.invalidate();
     setSelectedOrgId(newOrg.id);
-    await router.push({ pathname: "/settings" });
+    await router.push({ pathname: "/project/settings" });
   }, [createMutation, router]);
 
   const openMenu = useCallback(
@@ -195,7 +195,7 @@ const ProjectOption = ({
       <Text>{org.name}</Text>
       <IconButton
         as={Link}
-        href="/settings"
+        href="/project/settings"
         aria-label={`Open ${org.name} settings`}
         icon={<Icon as={BsGear} boxSize={5} strokeWidth={0.5} color="gray.500" />}
         variant="ghost"
