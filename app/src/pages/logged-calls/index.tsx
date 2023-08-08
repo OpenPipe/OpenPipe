@@ -39,7 +39,7 @@ import dayjs from "~/utils/dayjs";
 import { api } from "~/utils/api";
 import LoggedCallTable from "~/components/dashboard/LoggedCallTable";
 
-export default function HomePage() {
+export default function LoggedCalls() {
   const { data: selectedOrg } = useSelectedOrg();
 
   const stats = api.dashboard.stats.useQuery(
@@ -65,7 +65,7 @@ export default function HomePage() {
             <ProjectBreadcrumbContents />
           </BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>
-            <Text>Homepage</Text>
+            <Text>Logged Calls</Text>
           </BreadcrumbItem>
         </Breadcrumb>
       </PageHeaderContainer>

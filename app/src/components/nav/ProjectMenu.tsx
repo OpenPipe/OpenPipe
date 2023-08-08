@@ -86,7 +86,7 @@ export default function ProjectMenu() {
             PROJECT
           </Text>
           <NavSidebarOption activeHrefPattern="/home" disableHoverEffect={expandButtonHovered}>
-            <Link href="/home">
+            <Link href="/logged-calls">
               <HStack w="full" justifyContent="space-between">
                 <HStack>
                   <Flex
@@ -180,7 +180,7 @@ const ProjectOption = ({
   return (
     <HStack
       as={Link}
-      href="/home"
+      href="/logged-calls"
       onClick={() => {
         setSelectedOrgId(org.id);
         onClose();

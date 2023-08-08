@@ -13,6 +13,7 @@ import {
 import Head from "next/head";
 import Link from "next/link";
 import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
+import { IoStatsChartOutline } from "react-icons/io5";
 import { RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
 import UserMenu from "./UserMenu";
@@ -51,6 +52,7 @@ const NavSidebar = () => {
           <>
             <ProjectMenu />
             <Divider />
+            <IconLink icon={IoStatsChartOutline} label="Logged Calls" href="/logged-calls" />
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
             {env.NEXT_PUBLIC_SHOW_DATA && (
               <IconLink icon={RiDatabase2Line} label="Data" href="/data" />
