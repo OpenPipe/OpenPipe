@@ -1,17 +1,14 @@
 import { HStack, Icon, IconButton, Tooltip, Text } from "@chakra-ui/react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { MdContentCopy } from "react-icons/md";
+import { useHandledAsyncCallback } from "~/utils/hooks";
 
 const CopiableCode = ({ code }: { code: string }) => {
   const [copied, setCopied] = useState(false);
 
-  const copyToClipboard = useCallback(() => {
-    const onCopy = async () => {
-      console.log("copied!");
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-    };
-    void onCopy();
+  const [copyToClipboard] = useHandledAsyncCallback(async () => {
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
   }, [code]);
   return (
     <HStack
