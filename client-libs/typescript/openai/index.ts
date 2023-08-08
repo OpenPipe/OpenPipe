@@ -85,7 +85,7 @@ class ExtendedCompletions extends openai.OpenAI.Chat.Completions {
         options
       );
       // Your post API call logic here
-      console.log("Doing post API call for NonStreaming...");
+      console.log("Doing post API call for Streaming...");
       return result;
     } else {
       const startTime = Date.now();
@@ -104,7 +104,7 @@ class ExtendedCompletions extends openai.OpenAI.Chat.Completions {
       });
 
       // Your post API call logic here
-      console.log("Doing post API call for Streaming...");
+      console.log("Doing post API call for NonStreaming...");
       return result;
     }
   }
