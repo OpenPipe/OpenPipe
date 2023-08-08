@@ -206,7 +206,7 @@ model Organization {
     name              String  @default("Project 1")
 
     personalOrgUserId String? @unique @db.Uuid
-    PersonalOrgUser   User?   @relation(fields: [personalOrgUserId], references: [id], onDelete: Cascade)
+    personalOrgUser   User?   @relation(fields: [personalOrgUserId], references: [id], onDelete: Cascade)
 
     createdAt         DateTime           @default(now())
     updatedAt         DateTime           @updatedAt

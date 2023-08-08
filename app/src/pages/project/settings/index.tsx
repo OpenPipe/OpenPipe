@@ -113,24 +113,34 @@ export default function Settings() {
             </VStack>
             <CopiableCode code={`OPENPIPE_API_KEY=${apiKey}`} />
             <Divider />
-            <VStack alignItems="flex-start">
-              <Subtitle color="red.600">Danger Zone</Subtitle>
-              <Text fontSize="sm">
-                Permanently delete your project and all of its data. This action cannot be undone.
-              </Text>
-              <HStack
-                as={Button}
-                isDisabled={selectedOrg?.role !== "ADMIN"}
-                colorScheme="red"
-                variant="outline"
-                borderRadius={4}
-                mt={2}
-                onClick={deleteProjectOpen.onOpen}
-              >
-                <Icon as={BsTrash} />
-                <Text>Delete {selectedOrg?.name}</Text>
-              </HStack>
-            </VStack>
+            {selectedOrg?.personalOrgUserId ? (
+              <VStack alignItems="flex-start">
+                <Subtitle>Personal Project</Subtitle>
+                <Text fontSize="sm">
+                  This project is {selectedOrg?.personalOrgUser?.name}'s personal project. It cannot be
+                  deleted.
+                </Text>
+              </VStack>
+            ) : (
+              <VStack alignItems="flex-start">
+                <Subtitle color="red.600">Danger Zone</Subtitle>
+                <Text fontSize="sm">
+                  Permanently delete your project and all of its data. This action cannot be undone.
+                </Text>
+                <HStack
+                  as={Button}
+                  isDisabled={selectedOrg?.role !== "ADMIN"}
+                  colorScheme="red"
+                  variant="outline"
+                  borderRadius={4}
+                  mt={2}
+                  onClick={deleteProjectOpen.onOpen}
+                >
+                  <Icon as={BsTrash} />
+                  <Text>Delete {selectedOrg?.name}</Text>
+                </HStack>
+              </VStack>
+            )}
           </VStack>
         </VStack>
       </AppShell>

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { generateApiKey } from "~/server/utils/generateApiKey";
+import userOrg from "~/server/utils/userOrg";
 import {
   requireCanModifyOrganization,
   requireCanViewOrganization,
@@ -33,30 +34,8 @@ export const organizationsRouter = createTRPCRouter({
     });
 
     if (!organizations.length) {
-      const newOrgId = uuidv4();
-      const [newOrg] = await prisma.$transaction([
-        prisma.organization.create({
-          data: {
-            id: newOrgId,
-            personalOrgUserId: userId,
-          },
-        }),
-        prisma.organizationUser.create({
-          data: {
-            userId,
-            organizationId: newOrgId,
-            role: "ADMIN",
-          },
-        }),
-        prisma.apiKey.create({
-          data: {
-            name: "Default API Key",
-            organizationId: newOrgId,
-            apiKey: generateApiKey(),
-          },
-        }),
-      ]);
-      organizations.push(newOrg);
+      // TODO: We should move this to a separate endpoint that is called on sign up
+      await userOrg(userId);
     }
 
     return organizations;
@@ -70,6 +49,7 @@ export const organizationsRouter = createTRPCRouter({
         },
         include: {
           apiKeys: true,
+          personalOrgUser: true,
         },
       }),
       prisma.organizationUser.findFirst({
