@@ -4,21 +4,21 @@ import { generateApiKey } from "~/server/utils/generateApiKey";
 
 console.log("backfilling api keys");
 
-const organizations = await prisma.organization.findMany({
+const projects = await prisma.project.findMany({
   include: {
     apiKeys: true,
   },
 });
 
-console.log(`found ${organizations.length} organizations`);
+console.log(`found ${projects.length} projects`);
 
 const apiKeysToCreate: Prisma.ApiKeyCreateManyInput[] = [];
 
-for (const org of organizations) {
-  if (!org.apiKeys.length) {
+for (const proj of projects) {
+  if (!proj.apiKeys.length) {
     apiKeysToCreate.push({
       name: "Default API Key",
-      organizationId: org.id,
+      projectId: proj.id,
       apiKey: generateApiKey(),
     });
   }

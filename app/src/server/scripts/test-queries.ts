@@ -6,7 +6,7 @@ const projectId = "1234";
 // Find all calls in the last 24 hours
 const responses = await prisma.loggedCall.findMany({
   where: {
-    organizationId: projectId,
+    projectId: projectId,
     startTime: {
       gt: dayjs()
         .subtract(24 * 3600)
@@ -24,7 +24,7 @@ const responses = await prisma.loggedCall.findMany({
 // Find all calls in the last 24 hours with promptId 'hello-world'
 const helloWorld = await prisma.loggedCall.findMany({
   where: {
-    organizationId: projectId,
+    projectId: projectId,
     startTime: {
       gt: dayjs()
         .subtract(24 * 3600)
@@ -52,7 +52,7 @@ const totalSpent = await prisma.loggedCallModelResponse.aggregate({
   },
   where: {
     originalLoggedCall: {
-      organizationId: projectId,
+      projectId: projectId,
     },
     startTime: {
       gt: dayjs()

@@ -1,4 +1,4 @@
-import { OrganizationUserRole } from "@prisma/client";
+import { ProjectUserRole } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { type TRPCContext } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -16,16 +16,16 @@ export const requireNothing = (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 };
 
-export const requireIsOrgAdmin = async (organizationId: string, ctx: TRPCContext) => {
+export const requireIsProjectAdmin = async (projectId: string, ctx: TRPCContext) => {
   const userId = ctx.session?.user.id;
   if (!userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const isAdmin = await prisma.organizationUser.findFirst({
+  const isAdmin = await prisma.projectUser.findFirst({
     where: {
       userId,
-      organizationId,
+      projectId,
       role: "ADMIN",
     },
   });
@@ -37,16 +37,16 @@ export const requireIsOrgAdmin = async (organizationId: string, ctx: TRPCContext
   ctx.markAccessControlRun();
 };
 
-export const requireCanViewOrganization = async (organizationId: string, ctx: TRPCContext) => {
+export const requireCanViewProject = async (projectId: string, ctx: TRPCContext) => {
   const userId = ctx.session?.user.id;
   if (!userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const canView = await prisma.organizationUser.findFirst({
+  const canView = await prisma.projectUser.findFirst({
     where: {
       userId,
-      organizationId,
+      projectId,
     },
   });
 
@@ -57,17 +57,17 @@ export const requireCanViewOrganization = async (organizationId: string, ctx: TR
   ctx.markAccessControlRun();
 };
 
-export const requireCanModifyOrganization = async (organizationId: string, ctx: TRPCContext) => {
+export const requireCanModifyProject = async (projectId: string, ctx: TRPCContext) => {
   const userId = ctx.session?.user.id;
   if (!userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const canModify = await prisma.organizationUser.findFirst({
+  const canModify = await prisma.projectUser.findFirst({
     where: {
       userId,
-      organizationId,
-      role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
+      projectId,
+      role: { in: [ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
     },
   });
 
@@ -82,10 +82,10 @@ export const requireCanViewDataset = async (datasetId: string, ctx: TRPCContext)
   const dataset = await prisma.dataset.findFirst({
     where: {
       id: datasetId,
-      organization: {
-        organizationUsers: {
+      project: {
+        projectUsers: {
           some: {
-            role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
+            role: { in: [ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
             userId: ctx.session?.user.id,
           },
         },
@@ -120,10 +120,10 @@ export const canModifyExperiment = async (experimentId: string, userId: string) 
     prisma.experiment.findFirst({
       where: {
         id: experimentId,
-        organization: {
-          organizationUsers: {
+        project: {
+          projectUsers: {
             some: {
-              role: { in: [OrganizationUserRole.ADMIN, OrganizationUserRole.MEMBER] },
+              role: { in: [ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
               userId,
             },
           },

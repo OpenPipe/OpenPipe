@@ -6,14 +6,14 @@ import { promptConstructorVersion } from "~/promptConstructor/version";
 
 const defaultId = "11111111-1111-1111-1111-111111111112";
 
-await prisma.organization.deleteMany({
+await prisma.project.deleteMany({
   where: { id: defaultId },
 });
 
-// If there's an existing org, just seed into it
-const org =
-  (await prisma.organization.findFirst({})) ??
-  (await prisma.organization.create({
+// If there's an existing project, just seed into it
+const project =
+  (await prisma.project.findFirst({})) ??
+  (await prisma.project.create({
     data: { id: defaultId },
   }));
 
@@ -27,7 +27,7 @@ const experimentName = `Twitter Sentiment Analysis`;
 const oldExperiment = await prisma.experiment.findFirst({
   where: {
     label: experimentName,
-    organizationId: org.id,
+    projectId: project.id,
   },
 });
 if (oldExperiment) {
@@ -40,7 +40,7 @@ const experiment = await prisma.experiment.create({
   data: {
     id: oldExperiment?.id ?? undefined,
     label: experimentName,
-    organizationId: org.id,
+    projectId: project.id,
   },
 });
 

@@ -17,39 +17,42 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AiFillCaretDown } from "react-icons/ai";
 import { BsGear, BsPlus } from "react-icons/bs";
-import { type Organization } from "@prisma/client";
+import { type Project } from "@prisma/client";
 
 import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
 import NavSidebarOption from "./NavSidebarOption";
-import { useHandledAsyncCallback, useSelectedOrg } from "~/utils/hooks";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { useRouter } from "next/router";
 
 export default function ProjectMenu() {
   const router = useRouter();
-  const isActive = router.pathname.startsWith("/home");
   const utils = api.useContext();
 
-  const selectedOrgId = useAppStore((s) => s.selectedOrgId);
-  const setSelectedOrgId = useAppStore((s) => s.setSelectedOrgId);
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const setselectedProjectId = useAppStore((s) => s.setselectedProjectId);
 
-  const { data: orgs } = api.organizations.list.useQuery();
+  const { data: projects } = api.projects.list.useQuery();
 
   useEffect(() => {
-    if (orgs && orgs[0] && (!selectedOrgId || !orgs.find((org) => org.id === selectedOrgId))) {
-      setSelectedOrgId(orgs[0].id);
+    if (
+      projects &&
+      projects[0] &&
+      (!selectedProjectId || !projects.find((proj) => proj.id === selectedProjectId))
+    ) {
+      setselectedProjectId(projects[0].id);
     }
-  }, [selectedOrgId, setSelectedOrgId, orgs]);
+  }, [selectedProjectId, setselectedProjectId, projects]);
 
-  const { data: selectedOrg } = useSelectedOrg();
+  const { data: selectedProject } = useSelectedProject();
 
   const popover = useDisclosure();
 
-  const createMutation = api.organizations.create.useMutation();
+  const createMutation = api.projects.create.useMutation();
   const [createProject, isLoading] = useHandledAsyncCallback(async () => {
-    const newOrg = await createMutation.mutateAsync({ name: "New Project" });
-    await utils.organizations.list.invalidate();
-    setSelectedOrgId(newOrg.id);
+    const newProj = await createMutation.mutateAsync({ name: "New Project" });
+    await utils.projects.list.invalidate();
+    setselectedProjectId(newProj.id);
     await router.push({ pathname: "/project/settings" });
   }, [createMutation, router]);
 
@@ -84,10 +87,10 @@ export default function ProjectMenu() {
                 alignItems="center"
                 justifyContent="center"
               >
-                <Text>{selectedOrg?.name[0]?.toUpperCase()}</Text>
+                <Text>{selectedProject?.name[0]?.toUpperCase()}</Text>
               </Flex>
               <Text fontSize="sm" display={{ base: "none", md: "block" }} py={1} flex={1}>
-                {selectedOrg?.name}
+                {selectedProject?.name}
               </Text>
               <Icon as={AiFillCaretDown} boxSize={3} size="xs" color="gray.500" mr={2} />
             </HStack>
@@ -104,11 +107,11 @@ export default function ProjectMenu() {
               </Text>
               <Divider />
               <VStack spacing={0} w="full">
-                {orgs?.map((org) => (
+                {projects?.map((proj) => (
                   <ProjectOption
-                    key={org.id}
-                    org={org}
-                    isActive={org.id === selectedOrgId}
+                    key={proj.id}
+                    proj={proj}
+                    isActive={proj.id === selectedProjectId}
                     onClose={popover.onClose}
                   />
                 ))}
@@ -134,22 +137,22 @@ export default function ProjectMenu() {
 }
 
 const ProjectOption = ({
-  org,
+  proj,
   isActive,
   onClose,
 }: {
-  org: Organization;
+  proj: Project;
   isActive: boolean;
   onClose: () => void;
 }) => {
-  const setSelectedOrgId = useAppStore((s) => s.setSelectedOrgId);
+  const setselectedProjectId = useAppStore((s) => s.setselectedProjectId);
   const [gearHovered, setGearHovered] = useState(false);
   return (
     <HStack
       as={Link}
       href="/experiments"
       onClick={() => {
-        setSelectedOrgId(org.id);
+        setselectedProjectId(proj.id);
         onClose();
       }}
       w="full"
@@ -158,11 +161,11 @@ const ProjectOption = ({
       _hover={gearHovered ? undefined : { bgColor: "gray.200", textDecoration: "none" }}
       p={2}
     >
-      <Text>{org.name}</Text>
+      <Text>{proj.name}</Text>
       <IconButton
         as={Link}
         href="/project/settings"
-        aria-label={`Open ${org.name} settings`}
+        aria-label={`Open ${proj.name} settings`}
         icon={<Icon as={BsGear} boxSize={5} strokeWidth={0.5} color="gray.500" />}
         variant="ghost"
         size="xs"

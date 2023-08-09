@@ -24,9 +24,9 @@ function sortKeys(obj: JsonValue): JsonValue {
   return sortedObj;
 }
 
-export function hashRequest(organizationId: string, reqPayload: JsonValue): string {
+export function hashRequest(projectId: string, reqPayload: JsonValue): string {
   const obj = {
-    organizationId,
+    projectId,
     reqPayload,
   };
   return hashObject(obj);

@@ -311,9 +311,9 @@ const MODEL_RESPONSE_TEMPLATES: {
 
 await prisma.loggedCallModelResponse.deleteMany();
 
-const org = await prisma.organization.findFirst({
+const project = await prisma.project.findFirst({
   where: {
-    personalOrgUserId: {
+    personalProjectUserId: {
       not: null,
     },
   },
@@ -322,8 +322,8 @@ const org = await prisma.organization.findFirst({
   },
 });
 
-if (!org) {
-  console.error("No org found. Sign up to create your first org.");
+if (!project) {
+  console.error("No project found. Sign up to create your first project.");
   process.exit(1);
 }
 
@@ -348,7 +348,7 @@ for (let i = 0; i < 1437; i++) {
     id: loggedCallId,
     cacheHit: false,
     startTime,
-    organizationId: org.id,
+    projectId: project.id,
     createdAt: startTime,
   });
 
@@ -373,7 +373,7 @@ for (let i = 0; i < 1437; i++) {
     respStatus: template.respStatus,
     error: template.error,
     createdAt: startTime,
-    cacheKey: hashRequest(org.id, template.reqPayload as JsonValue),
+    cacheKey: hashRequest(project.id, template.reqPayload as JsonValue),
     durationMs: endTime.getTime() - startTime.getTime(),
     inputTokens: template.inputTokens,
     outputTokens: template.outputTokens,

@@ -5,10 +5,10 @@ import { NumberParam, useQueryParam, withDefault } from "use-query-params";
 import { useAppStore } from "~/state/store";
 
 export const useExperiments = () => {
-  const selectedOrgId = useAppStore((state) => state.selectedOrgId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   return api.experiments.list.useQuery(
-    { organizationId: selectedOrgId ?? "" },
-    { enabled: !!selectedOrgId },
+    { projectId: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId },
   );
 };
 
@@ -27,10 +27,10 @@ export const useExperimentAccess = () => {
 };
 
 export const useDatasets = () => {
-  const selectedOrgId = useAppStore((state) => state.selectedOrgId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   return api.datasets.list.useQuery(
-    { organizationId: selectedOrgId ?? "" },
-    { enabled: !!selectedOrgId },
+    { projectId: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId },
   );
 };
 
@@ -150,7 +150,10 @@ export const useScenario = (scenarioId: string) => {
 
 export const useVisibleScenarioIds = () => useScenarios().data?.scenarios.map((s) => s.id) ?? [];
 
-export const useSelectedOrg = () => {
-  const selectedOrgId = useAppStore((state) => state.selectedOrgId);
-  return api.organizations.get.useQuery({ id: selectedOrgId ?? "" }, { enabled: !!selectedOrgId });
+export const useSelectedProject = () => {
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  return api.projects.get.useQuery(
+    { id: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId },
+  );
 };

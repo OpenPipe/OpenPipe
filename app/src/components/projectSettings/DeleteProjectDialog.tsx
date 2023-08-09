@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback, useSelectedOrg } from "~/utils/hooks";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 
 export const DeleteProjectDialog = ({
   isOpen,
@@ -25,20 +25,20 @@ export const DeleteProjectDialog = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
-  const selectedOrg = useSelectedOrg();
-  const deleteMutation = api.organizations.delete.useMutation();
+  const selectedProject = useSelectedProject();
+  const deleteMutation = api.projects.delete.useMutation();
   const utils = api.useContext();
   const router = useRouter();
 
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const [onDeleteConfirm, isDeleting] = useHandledAsyncCallback(async () => {
-    if (!selectedOrg.data?.id) return;
-    await deleteMutation.mutateAsync({ id: selectedOrg.data.id });
-    await utils.organizations.list.invalidate();
+    if (!selectedProject.data?.id) return;
+    await deleteMutation.mutateAsync({ id: selectedProject.data.id });
+    await utils.projects.list.invalidate();
     await router.push({ pathname: "/experiments" });
     onClose();
-  }, [deleteMutation, selectedOrg, router]);
+  }, [deleteMutation, selectedProject, router]);
 
   const [nameToDelete, setNameToDelete] = useState("");
 
@@ -58,10 +58,10 @@ export const DeleteProjectDialog = ({
                 of the project below.
               </Text>
               <Box bgColor="orange.100" w="full" p={2} borderRadius={4}>
-                <Text fontFamily="inconsolata">{selectedOrg.data?.name}</Text>
+                <Text fontFamily="inconsolata">{selectedProject.data?.name}</Text>
               </Box>
               <Input
-                placeholder={selectedOrg.data?.name}
+                placeholder={selectedProject.data?.name}
                 value={nameToDelete}
                 onChange={(e) => setNameToDelete(e.target.value)}
               />
@@ -76,7 +76,7 @@ export const DeleteProjectDialog = ({
               colorScheme="red"
               onClick={onDeleteConfirm}
               ml={3}
-              isDisabled={nameToDelete !== selectedOrg.data?.name}
+              isDisabled={nameToDelete !== selectedProject.data?.name}
               w={20}
             >
               {isDeleting ? <Spinner /> : "Delete"}
