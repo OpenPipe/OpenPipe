@@ -19,6 +19,8 @@ import {
   useInterval,
   Image,
   Flex,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import { signIn, useSession } from "next-auth/react";
 import Head from "next/head";
@@ -188,12 +190,18 @@ export default function Signup() {
           <Heading size="lg" textAlign="center">
             🏆 Prompt Engineering World Championships
           </Heading>
-          <CountdownTimer
+          {/* <CountdownTimer
             date={new Date("2023-08-14T00:00:00Z")}
             fontSize="2xl"
             alignSelf="center"
             color="gray.500"
-          />
+          /> */}
+          <Alert status="warning" mt={4}>
+            <AlertIcon />
+            We've decided to pause the World Championships for the moment because our systems aren't
+            quite ready. You can still sign up if you're interested and we'll notify you once we
+            reschedule!
+          </Alert>
 
           <ApplicationStatus py={8} alignSelf="center" />
 
