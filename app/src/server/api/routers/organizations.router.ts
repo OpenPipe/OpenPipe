@@ -35,7 +35,8 @@ export const organizationsRouter = createTRPCRouter({
 
     if (!organizations.length) {
       // TODO: We should move this to a separate endpoint that is called on sign up
-      await userOrg(userId);
+      const personalOrg = await userOrg(userId);
+      organizations.push(personalOrg);
     }
 
     return organizations;
