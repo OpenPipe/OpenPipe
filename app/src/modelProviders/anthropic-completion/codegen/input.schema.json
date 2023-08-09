@@ -9,7 +9,8 @@
         "claude-2",
         "claude-2.0",
         "claude-instant-1",
-        "claude-instant-1.1"
+        "claude-instant-1.1",
+        "claude-instant-1.2"
       ]
     },
     "prompt": {
