@@ -111,7 +111,7 @@ export default function Settings() {
                 your code.
               </Text>
             </VStack>
-            <CopiableCode code={`OPENPIPE_API_KEY=${apiKey}`} />
+            <CopiableCode code={apiKey} />
             <Divider />
             {selectedOrg?.personalOrgUserId ? (
               <VStack alignItems="flex-start">

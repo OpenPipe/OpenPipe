@@ -34,9 +34,12 @@ export const dashboardRouter = createTRPCRouter({
 
       let originalDataIndex = periods.length - 1;
       // *SLAMS DOWN GLASS OF WHISKEY* timezones, amirite?
-      let dayToMatch = dayjs(input.startDate || new Date())
+      let dayToMatch = dayjs(input.startDate || new Date());
       // Ensure that the initial date we're matching against is never before the first period
-      if (periods[originalDataIndex] && dayToMatch.isBefore(periods[originalDataIndex]?.period, "day")) {
+      if (
+        periods[originalDataIndex] &&
+        dayToMatch.isBefore(periods[originalDataIndex]?.period, "day")
+      ) {
         dayToMatch = dayjs(periods[originalDataIndex]?.period);
       }
       const backfilledPeriods: typeof periods = [];

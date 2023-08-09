@@ -16,7 +16,7 @@ fs.writeFileSync(schemaPath, JSON.stringify(openApiDocument, null, 2), "utf-8");
 
 console.log("Generating Typescript client");
 
-const tsClientPath = path.join(clientLibsPath, "js/codegen");
+const tsClientPath = path.join(clientLibsPath, "typescript/codegen");
 
 fs.rmSync(tsClientPath, { recursive: true, force: true });
 

@@ -12,9 +12,8 @@ import {
   Button,
   useDisclosure,
   Spinner,
-  useBreakpointValue,
 } from "@chakra-ui/react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AiFillCaretDown } from "react-icons/ai";
 import { BsGear, BsPlus } from "react-icons/bs";
@@ -44,8 +43,6 @@ export default function ProjectMenu() {
 
   const { data: selectedOrg } = useSelectedOrg();
 
-  const [expandButtonHovered, setExpandButtonHovered] = useState(false);
-
   const popover = useDisclosure();
 
   const createMutation = api.organizations.create.useMutation();
@@ -56,113 +53,84 @@ export default function ProjectMenu() {
     await router.push({ pathname: "/project/settings" });
   }, [createMutation, router]);
 
-  const openMenu = useCallback(
-    (event: React.MouseEvent<Element, MouseEvent>) => {
-      event.preventDefault();
-      popover.onToggle();
-    },
-    [popover],
-  );
-
-  const sidebarExpanded = useBreakpointValue({ base: false, md: true });
-
   return (
-    <>
-      <Popover
-        placement="bottom-start"
-        isOpen={popover.isOpen}
-        onClose={popover.onClose}
-        closeOnBlur
+    <VStack w="full" alignItems="flex-start" spacing={0}>
+      <Text
+        pl={2}
+        pb={2}
+        fontSize="xs"
+        fontWeight="bold"
+        color="gray.500"
+        display={{ base: "none", md: "flex" }}
       >
-        <VStack w="full" alignItems="flex-start" spacing={0}>
-          <Text
-            pl={2}
-            pb={2}
-            fontSize="xs"
-            fontWeight="bold"
-            color="gray.500"
-            display={{ base: "none", md: "flex" }}
-          >
-            PROJECT
-          </Text>
-          <NavSidebarOption activeHrefPattern="/home" disableHoverEffect={expandButtonHovered}>
-            <Link href="/logged-calls">
-              <HStack w="full" justifyContent="space-between">
-                <HStack>
-                  <Flex
-                    p={1}
-                    borderRadius={4}
-                    backgroundColor="orange.100"
-                    minW={{ base: 10, md: 8 }}
-                    minH={{ base: 10, md: 8 }}
-                    m={{ base: 0, md: 1 }}
-                    alignItems="center"
-                    justifyContent="center"
-                    onClick={sidebarExpanded ? undefined : openMenu}
-                  >
-                    <Text>{selectedOrg?.name[0]?.toUpperCase()}</Text>
-                  </Flex>
-                  <Text fontSize="sm" display={{ base: "none", md: "block" }} py={1}>
-                    {selectedOrg?.name}
-                  </Text>
-                </HStack>
-                <PopoverTrigger>
-                  <IconButton
-                    aria-label="Open Project Menu"
-                    icon={<Icon as={AiFillCaretDown} boxSize={3} />}
-                    size="xs"
-                    colorScheme="gray"
-                    color="gray.500"
-                    variant="ghost"
-                    mr={2}
-                    borderRadius={4}
-                    onMouseEnter={() => setExpandButtonHovered(true)}
-                    onMouseLeave={() => setExpandButtonHovered(false)}
-                    _hover={{ bgColor: isActive ? "gray.300" : "gray.200", transitionDelay: 0 }}
-                    onClick={openMenu}
-                  />
-                </PopoverTrigger>
-              </HStack>
-            </Link>
-          </NavSidebarOption>
-        </VStack>
-        <PopoverContent
-          _focusVisible={{ boxShadow: "unset" }}
-          minW={0}
-          borderColor="blue.400"
-          w="auto"
+        PROJECT
+      </Text>
+      <NavSidebarOption>
+        <Popover
+          placement="bottom-start"
+          isOpen={popover.isOpen}
+          onClose={popover.onClose}
+          closeOnBlur
         >
-          <VStack alignItems="flex-start" spacing={2} py={4} px={2}>
-            <Text color="gray.500" fontSize="xs" fontWeight="bold" pb={1}>
-              PROJECTS
-            </Text>
-            <Divider />
-            <VStack spacing={0} w="full">
-              {orgs?.map((org) => (
-                <ProjectOption
-                  key={org.id}
-                  org={org}
-                  isActive={org.id === selectedOrgId}
-                  onClose={popover.onClose}
-                />
-              ))}
-            </VStack>
-            <HStack
-              as={Button}
-              variant="ghost"
-              colorScheme="blue"
-              color="blue.400"
-              pr={8}
-              w="full"
-              onClick={createProject}
-            >
-              <Icon as={isLoading ? Spinner : BsPlus} boxSize={6} />
-              <Text>New project</Text>
+          <PopoverTrigger>
+            <HStack w="full" justifyContent="space-between" onClick={popover.onToggle}>
+              <Flex
+                p={1}
+                borderRadius={4}
+                backgroundColor="orange.100"
+                minW={{ base: 10, md: 8 }}
+                minH={{ base: 10, md: 8 }}
+                m={{ base: 0, md: 1 }}
+                alignItems="center"
+                justifyContent="center"
+                // onClick={sidebarExpanded ? undefined : openMenu}
+              >
+                <Text>{selectedOrg?.name[0]?.toUpperCase()}</Text>
+              </Flex>
+              <Text fontSize="sm" display={{ base: "none", md: "block" }} py={1}>
+                {selectedOrg?.name}
+              </Text>
+              <Icon as={AiFillCaretDown} boxSize={3} size="xs" color="gray.500" mr={2} />
             </HStack>
-          </VStack>
-        </PopoverContent>
-      </Popover>
-    </>
+          </PopoverTrigger>
+          <PopoverContent
+            _focusVisible={{ boxShadow: "unset" }}
+            minW={0}
+            borderColor="blue.400"
+            w="full"
+          >
+            <VStack alignItems="flex-start" spacing={2} py={4} px={2}>
+              <Text color="gray.500" fontSize="xs" fontWeight="bold" pb={1}>
+                PROJECTS
+              </Text>
+              <Divider />
+              <VStack spacing={0} w="full">
+                {orgs?.map((org) => (
+                  <ProjectOption
+                    key={org.id}
+                    org={org}
+                    isActive={org.id === selectedOrgId}
+                    onClose={popover.onClose}
+                  />
+                ))}
+              </VStack>
+              <HStack
+                as={Button}
+                variant="ghost"
+                colorScheme="blue"
+                color="blue.400"
+                pr={8}
+                w="full"
+                onClick={createProject}
+              >
+                <Icon as={isLoading ? Spinner : BsPlus} boxSize={6} />
+                <Text>New project</Text>
+              </HStack>
+            </VStack>
+          </PopoverContent>
+        </Popover>
+      </NavSidebarOption>
+    </VStack>
   );
 }
 
@@ -180,7 +148,7 @@ const ProjectOption = ({
   return (
     <HStack
       as={Link}
-      href="/logged-calls"
+      href="/experiments"
       onClick={() => {
         setSelectedOrgId(org.id);
         onClose();
@@ -190,7 +158,6 @@ const ProjectOption = ({
       bgColor={isActive ? "gray.100" : "transparent"}
       _hover={gearHovered ? undefined : { bgColor: "gray.200", textDecoration: "none" }}
       p={2}
-      borderRadius={4}
     >
       <Text>{org.name}</Text>
       <IconButton

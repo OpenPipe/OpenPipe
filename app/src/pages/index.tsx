@@ -4,7 +4,7 @@ import { type GetServerSideProps } from "next";
 export const getServerSideProps: GetServerSideProps = async () => {
   return {
     redirect: {
-      destination: "/logged-calls",
+      destination: "/experiments",
       permanent: false,
     },
   };
