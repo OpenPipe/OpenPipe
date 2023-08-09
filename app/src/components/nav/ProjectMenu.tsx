@@ -73,7 +73,7 @@ export default function ProjectMenu() {
           closeOnBlur
         >
           <PopoverTrigger>
-            <HStack w="full" justifyContent="space-between" onClick={popover.onToggle}>
+            <HStack w="full" onClick={popover.onToggle}>
               <Flex
                 p={1}
                 borderRadius={4}
@@ -83,11 +83,10 @@ export default function ProjectMenu() {
                 m={{ base: 0, md: 1 }}
                 alignItems="center"
                 justifyContent="center"
-                // onClick={sidebarExpanded ? undefined : openMenu}
               >
                 <Text>{selectedOrg?.name[0]?.toUpperCase()}</Text>
               </Flex>
-              <Text fontSize="sm" display={{ base: "none", md: "block" }} py={1}>
+              <Text fontSize="sm" display={{ base: "none", md: "block" }} py={1} flex={1}>
                 {selectedOrg?.name}
               </Text>
               <Icon as={AiFillCaretDown} boxSize={3} size="xs" color="gray.500" mr={2} />
