@@ -51,7 +51,7 @@ const totalSpent = await prisma.loggedCallModelResponse.aggregate({
     totalCost: true,
   },
   where: {
-    createdBy: {
+    originalLoggedCall: {
       organizationId: projectId,
     },
     startTime: {
