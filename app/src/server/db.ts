@@ -9,8 +9,8 @@ import {
   type OutputEvaluation,
   type Dataset,
   type DatasetEntry,
-  type Organization,
-  type OrganizationUser,
+  type Project,
+  type ProjectUser,
   type WorldChampEntrant,
   type LoggedCall,
   type LoggedCallModelResponse,
@@ -43,8 +43,8 @@ interface DB {
   OutputEvaluation: OutputEvaluation;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
-  Organization: Organization;
-  OrganizationUser: OrganizationUser;
+  Project: Project;
+  ProjectUser: ProjectUser;
   WorldChampEntrant: WorldChampEntrant;
   LoggedCall: LoggedCall;
   LoggedCallModelResponse: LoggedCallModelResponse;

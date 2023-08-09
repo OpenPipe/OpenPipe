@@ -72,12 +72,12 @@ const CountLabel = ({ label, count }: { label: string; count: number }) => {
 
 export const NewDatasetCard = () => {
   const router = useRouter();
-  const selectedOrgId = useAppStore((s) => s.selectedOrgId);
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const createMutation = api.datasets.create.useMutation();
   const [createDataset, isLoading] = useHandledAsyncCallback(async () => {
-    const newDataset = await createMutation.mutateAsync({ organizationId: selectedOrgId ?? "" });
+    const newDataset = await createMutation.mutateAsync({ projectId: selectedProjectId ?? "" });
     await router.push({ pathname: "/data/[id]", query: { id: newDataset.id } });
-  }, [createMutation, router, selectedOrgId]);
+  }, [createMutation, router, selectedProjectId]);
 
   return (
     <AspectRatio ratio={1.2} w="full">

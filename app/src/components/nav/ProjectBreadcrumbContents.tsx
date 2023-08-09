@@ -1,12 +1,12 @@
 import { HStack, Flex, Text } from "@chakra-ui/react";
-import { useSelectedOrg } from "~/utils/hooks";
+import { useSelectedProject } from "~/utils/hooks";
 
 // Have to export only contents here instead of full BreadcrumbItem because Chakra doesn't
 // recognize a BreadcrumbItem exported with this component as a valid child of Breadcrumb.
-export default function ProjectBreadcrumbContents({ orgName = "" }: { orgName?: string }) {
-  const { data: selectedOrg } = useSelectedOrg();
+export default function ProjectBreadcrumbContents({ projectName = "" }: { projectName?: string }) {
+  const { data: selectedProject } = useSelectedProject();
 
-  orgName = orgName || selectedOrg?.name || "";
+  projectName = projectName || selectedProject?.name || "";
 
   return (
     <HStack w="full">
@@ -18,10 +18,10 @@ export default function ProjectBreadcrumbContents({ orgName = "" }: { orgName?: 
         alignItems="center"
         justifyContent="center"
       >
-        <Text>{orgName[0]?.toUpperCase()}</Text>
+        <Text>{projectName[0]?.toUpperCase()}</Text>
       </Flex>
       <Text display={{ base: "none", md: "block" }} py={1}>
-        {orgName}
+        {projectName}
       </Text>
     </HStack>
   );

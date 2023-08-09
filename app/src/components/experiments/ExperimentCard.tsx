@@ -76,17 +76,17 @@ const CountLabel = ({ label, count }: { label: string; count: number }) => {
 
 export const NewExperimentCard = () => {
   const router = useRouter();
-  const selectedOrgId = useAppStore((s) => s.selectedOrgId);
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const createMutation = api.experiments.create.useMutation();
   const [createExperiment, isLoading] = useHandledAsyncCallback(async () => {
     const newExperiment = await createMutation.mutateAsync({
-      organizationId: selectedOrgId ?? "",
+      projectId: selectedProjectId ?? "",
     });
     await router.push({
       pathname: "/experiments/[id]",
       query: { id: newExperiment.id },
     });
-  }, [createMutation, router, selectedOrgId]);
+  }, [createMutation, router, selectedProjectId]);
 
   return (
     <AspectRatio ratio={1.2} w="full">

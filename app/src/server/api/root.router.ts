@@ -9,7 +9,7 @@ import { worldChampsRouter } from "./routers/worldChamps.router";
 import { datasetsRouter } from "./routers/datasets.router";
 import { datasetEntries } from "./routers/datasetEntries.router";
 import { externalApiRouter } from "./routers/externalApi.router";
-import { organizationsRouter } from "./routers/organizations.router";
+import { projectsRouter } from "./routers/projects.router";
 import { dashboardRouter } from "./routers/dashboard.router";
 
 /**
@@ -27,7 +27,7 @@ export const appRouter = createTRPCRouter({
   worldChamps: worldChampsRouter,
   datasets: datasetsRouter,
   datasetEntries: datasetEntries,
-  organizations: organizationsRouter,
+  projects: projectsRouter,
   dashboard: dashboardRouter,
   externalApi: externalApiRouter,
 });

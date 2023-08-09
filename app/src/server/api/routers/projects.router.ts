@@ -5,15 +5,15 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { generateApiKey } from "~/server/utils/generateApiKey";
-import userOrg from "~/server/utils/userOrg";
+import userProject from "~/server/utils/userProject";
 import {
-  requireCanModifyOrganization,
-  requireCanViewOrganization,
-  requireIsOrgAdmin,
+  requireCanModifyProject,
+  requireCanViewProject,
+  requireIsProjectAdmin,
   requireNothing,
 } from "~/utils/accessControl";
 
-export const organizationsRouter = createTRPCRouter({
+export const projectsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     requireNothing(ctx);
@@ -22,9 +22,9 @@ export const organizationsRouter = createTRPCRouter({
       return null;
     }
 
-    const organizations = await prisma.organization.findMany({
+    const projects = await prisma.project.findMany({
       where: {
-        organizationUsers: {
+        projectUsers: {
           some: { userId: ctx.session.user.id },
         },
       },
@@ -33,30 +33,30 @@ export const organizationsRouter = createTRPCRouter({
       },
     });
 
-    if (!organizations.length) {
+    if (!projects.length) {
       // TODO: We should move this to a separate endpoint that is called on sign up
-      const personalOrg = await userOrg(userId);
-      organizations.push(personalOrg);
+      const personalProject = await userProject(userId);
+      projects.push(personalProject);
     }
 
-    return organizations;
+    return projects;
   }),
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    await requireCanViewOrganization(input.id, ctx);
-    const [org, userRole] = await prisma.$transaction([
-      prisma.organization.findUnique({
+    await requireCanViewProject(input.id, ctx);
+    const [proj, userRole] = await prisma.$transaction([
+      prisma.project.findUnique({
         where: {
           id: input.id,
         },
         include: {
           apiKeys: true,
-          personalOrgUser: true,
+          personalProjectUser: true,
         },
       }),
-      prisma.organizationUser.findFirst({
+      prisma.projectUser.findFirst({
         where: {
           userId: ctx.session.user.id,
-          organizationId: input.id,
+          projectId: input.id,
           role: {
             in: ["ADMIN", "MEMBER"],
           },
@@ -64,20 +64,20 @@ export const organizationsRouter = createTRPCRouter({
       }),
     ]);
 
-    if (!org) {
+    if (!proj) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
     return {
-      ...org,
+      ...proj,
       role: userRole?.role ?? null,
     };
   }),
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ name: z.string() }) }))
     .mutation(async ({ input, ctx }) => {
-      await requireCanModifyOrganization(input.id, ctx);
-      return await prisma.organization.update({
+      await requireCanModifyProject(input.id, ctx);
+      return await prisma.project.update({
         where: {
           id: input.id,
         },
@@ -90,36 +90,36 @@ export const organizationsRouter = createTRPCRouter({
     .input(z.object({ name: z.string() }))
     .mutation(async ({ input, ctx }) => {
       requireNothing(ctx);
-      const newOrgId = uuidv4();
-      const [newOrg] = await prisma.$transaction([
-        prisma.organization.create({
+      const newProjectId = uuidv4();
+      const [newProject] = await prisma.$transaction([
+        prisma.project.create({
           data: {
-            id: newOrgId,
+            id: newProjectId,
             name: input.name,
           },
         }),
-        prisma.organizationUser.create({
+        prisma.projectUser.create({
           data: {
             userId: ctx.session.user.id,
-            organizationId: newOrgId,
+            projectId: newProjectId,
             role: "ADMIN",
           },
         }),
         prisma.apiKey.create({
           data: {
             name: "Default API Key",
-            organizationId: newOrgId,
+            projectId: newProjectId,
             apiKey: generateApiKey(),
           },
         }),
       ]);
-      return newOrg;
+      return newProject;
     }),
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await requireIsOrgAdmin(input.id, ctx);
-      return await prisma.organization.delete({
+      await requireIsProjectAdmin(input.id, ctx);
+      return await prisma.project.delete({
         where: {
           id: input.id,
         },

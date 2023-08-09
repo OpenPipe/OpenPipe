@@ -8,9 +8,9 @@ import { generateNewCell } from "~/server/utils/generateNewCell";
 import {
   canModifyExperiment,
   requireCanModifyExperiment,
-  requireCanModifyOrganization,
+  requireCanModifyProject,
   requireCanViewExperiment,
-  requireCanViewOrganization,
+  requireCanViewProject,
 } from "~/utils/accessControl";
 import generateTypes from "~/modelProviders/generateTypes";
 import { promptConstructorVersion } from "~/promptConstructor/version";
@@ -44,13 +44,13 @@ export const experimentsRouter = createTRPCRouter({
     };
   }),
   list: protectedProcedure
-    .input(z.object({ organizationId: z.string() }))
+    .input(z.object({ projectId: z.string() }))
     .query(async ({ input, ctx }) => {
-      await requireCanViewOrganization(input.organizationId, ctx);
+      await requireCanViewProject(input.projectId, ctx);
 
       const experiments = await prisma.experiment.findMany({
         where: {
-          organizationId: input.organizationId,
+          projectId: input.projectId,
         },
         orderBy: {
           sortIndex: "desc",
@@ -90,7 +90,7 @@ export const experimentsRouter = createTRPCRouter({
     const experiment = await prisma.experiment.findFirstOrThrow({
       where: { id: input.id },
       include: {
-        organization: true,
+        project: true,
       },
     });
 
@@ -108,10 +108,10 @@ export const experimentsRouter = createTRPCRouter({
   }),
 
   fork: protectedProcedure
-    .input(z.object({ id: z.string(), organizationId: z.string() }))
+    .input(z.object({ id: z.string(), projectId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       await requireCanViewExperiment(input.id, ctx);
-      await requireCanModifyOrganization(input.organizationId, ctx);
+      await requireCanModifyProject(input.projectId, ctx);
 
       const [
         existingExp,
@@ -264,7 +264,7 @@ export const experimentsRouter = createTRPCRouter({
             id: newExperimentId,
             sortIndex: maxSortIndex + 1,
             label: `${existingExp.label} (forked)`,
-            organizationId: input.organizationId,
+            projectId: input.projectId,
           },
         }),
         prisma.promptVariant.createMany({
@@ -294,9 +294,9 @@ export const experimentsRouter = createTRPCRouter({
     }),
 
   create: protectedProcedure
-    .input(z.object({ organizationId: z.string() }))
+    .input(z.object({ projectId: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await requireCanModifyOrganization(input.organizationId, ctx);
+      await requireCanModifyProject(input.projectId, ctx);
 
       const maxSortIndex =
         (
@@ -304,7 +304,7 @@ export const experimentsRouter = createTRPCRouter({
             _max: {
               sortIndex: true,
             },
-            where: { organizationId: input.organizationId },
+            where: { projectId: input.projectId },
           })
         )._max?.sortIndex ?? 0;
 
@@ -312,7 +312,7 @@ export const experimentsRouter = createTRPCRouter({
         data: {
           sortIndex: maxSortIndex + 1,
           label: `Experiment ${maxSortIndex + 1}`,
-          organizationId: input.organizationId,
+          projectId: input.projectId,
         },
       });
 

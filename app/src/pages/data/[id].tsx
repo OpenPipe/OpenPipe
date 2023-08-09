@@ -60,7 +60,7 @@ export default function Dataset() {
         <PageHeaderContainer>
           <Breadcrumb>
             <BreadcrumbItem>
-              <ProjectBreadcrumbContents orgName={dataset.data?.organization?.name} />
+              <ProjectBreadcrumbContents projectName={dataset.data?.project?.name} />
             </BreadcrumbItem>
             <BreadcrumbItem>
               <Link href="/data">

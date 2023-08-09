@@ -10,7 +10,7 @@ export const dashboardRouter = createTRPCRouter({
       z.object({
         // TODO: actually take startDate into account
         startDate: z.string().optional(),
-        organizationId: z.string(),
+        projectId: z.string(),
       }),
     )
     .query(async ({ input }) => {
@@ -22,7 +22,7 @@ export const dashboardRouter = createTRPCRouter({
           "LoggedCall.id",
           "LoggedCallModelResponse.originalLoggedCallId",
         )
-        .where("organizationId", "=", input.organizationId)
+        .where("projectId", "=", input.projectId)
         .select(({ fn }) => [
           sql<Date>`date_trunc('day', "LoggedCallModelResponse"."startTime")`.as("period"),
           sql<number>`count("LoggedCall"."id")::int`.as("numQueries"),
@@ -70,7 +70,7 @@ export const dashboardRouter = createTRPCRouter({
           "LoggedCall.id",
           "LoggedCallModelResponse.originalLoggedCallId",
         )
-        .where("organizationId", "=", input.organizationId)
+        .where("projectId", "=", input.projectId)
         .select(({ fn }) => [
           fn.sum(fn.coalesce("LoggedCallModelResponse.totalCost", sql<number>`0`)).as("totalCost"),
           fn.count("LoggedCall.id").as("numQueries"),
@@ -79,7 +79,7 @@ export const dashboardRouter = createTRPCRouter({
 
       const errors = await kysely
         .selectFrom("LoggedCall")
-        .where("organizationId", "=", input.organizationId)
+        .where("projectId", "=", input.projectId)
         .leftJoin(
           "LoggedCallModelResponse",
           "LoggedCall.id",

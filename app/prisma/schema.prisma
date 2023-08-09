@@ -16,8 +16,8 @@ model Experiment {
 
     sortIndex Int @default(0)
 
-    organizationId String        @db.Uuid
-    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    projectId String   @db.Uuid
+    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -180,8 +180,8 @@ model Dataset {
     name           String
     datasetEntries DatasetEntry[]
 
-    organizationId String       @db.Uuid
-    organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -200,36 +200,35 @@ model DatasetEntry {
     updatedAt DateTime @updatedAt
 }
 
-// TODO rename Organization to Project
-model Organization {
-    id                String  @id @default(uuid()) @db.Uuid
-    name              String  @default("Project 1")
+model Project {
+    id   String @id @default(uuid()) @db.Uuid
+    name String @default("Project 1")
 
-    personalOrgUserId String? @unique @db.Uuid
-    personalOrgUser   User?   @relation(fields: [personalOrgUserId], references: [id], onDelete: Cascade)
+    personalProjectUserId String? @unique @db.Uuid
+    personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
 
-    createdAt         DateTime           @default(now())
-    updatedAt         DateTime           @updatedAt
-    organizationUsers OrganizationUser[]
-    experiments       Experiment[]
-    datasets          Dataset[]
-    loggedCalls       LoggedCall[]
-    apiKeys           ApiKey[]
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+    projectUsers ProjectUser[]
+    experiments  Experiment[]
+    datasets     Dataset[]
+    loggedCalls  LoggedCall[]
+    apiKeys      ApiKey[]
 }
 
-enum OrganizationUserRole {
+enum ProjectUserRole {
     ADMIN
     MEMBER
     VIEWER
 }
 
-model OrganizationUser {
+model ProjectUser {
     id String @id @default(uuid()) @db.Uuid
 
-    role OrganizationUserRole
+    role ProjectUserRole
 
-    organizationId String        @db.Uuid
-    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    projectId String   @db.Uuid
+    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     userId String @db.Uuid
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -237,7 +236,7 @@ model OrganizationUser {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([organizationId, userId])
+    @@unique([projectId, userId])
 }
 
 model WorldChampEntrant {
@@ -265,14 +264,14 @@ model LoggedCall {
     // A LoggedCall is always associated with a LoggedCallModelResponse. If this
     // is a cache miss, we create a new LoggedCallModelResponse.
     // If it's a cache hit, it's a pre-existing LoggedCallModelResponse.    
-    modelResponseId String?                 @db.Uuid
+    modelResponseId String?                  @db.Uuid
     modelResponse   LoggedCallModelResponse? @relation(fields: [modelResponseId], references: [id], onDelete: Cascade)
 
     // The responses created by this LoggedCall. Will be empty if this LoggedCall was a cache hit.
     createdResponses LoggedCallModelResponse[] @relation(name: "ModelResponseOriginalCall")
 
-    organizationId String        @db.Uuid
-    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    projectId String   @db.Uuid
+    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     tags LoggedCallTag[]
 
@@ -323,11 +322,11 @@ model LoggedCallModelResponse {
 }
 
 model LoggedCallTag {
-    id    String @id @default(uuid()) @db.Uuid
+    id    String  @id @default(uuid()) @db.Uuid
     name  String
     value String?
 
-    loggedCallId String        @db.Uuid
+    loggedCallId String     @db.Uuid
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
     @@index([name])
@@ -340,8 +339,8 @@ model ApiKey {
     name   String
     apiKey String @unique
 
-    organizationId String        @db.Uuid
-    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    projectId String   @db.Uuid
+    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -390,8 +389,8 @@ model User {
 
     accounts          Account[]
     sessions          Session[]
-    organizationUsers OrganizationUser[]
-    organizations     Organization[]
+    projectUsers      ProjectUser[]
+    projects          Project[]
     worldChampEntrant WorldChampEntrant?
 
     createdAt DateTime @default(now())

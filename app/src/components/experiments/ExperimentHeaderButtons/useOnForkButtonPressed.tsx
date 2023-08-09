@@ -10,15 +10,15 @@ export const useOnForkButtonPressed = () => {
 
   const user = useSession().data;
   const experiment = useExperiment();
-  const selectedOrgId = useAppStore((state) => state.selectedOrgId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
   const forkMutation = api.experiments.fork.useMutation();
 
   const [onFork, isForking] = useHandledAsyncCallback(async () => {
-    if (!experiment.data?.id || !selectedOrgId) return;
+    if (!experiment.data?.id || !selectedProjectId) return;
     const forkedExperimentId = await forkMutation.mutateAsync({
       id: experiment.data.id,
-      organizationId: selectedOrgId,
+      projectId: selectedProjectId,
     });
     await router.push({ pathname: "/experiments/[id]", query: { id: forkedExperimentId } });
   }, [forkMutation, experiment.data?.id, router]);

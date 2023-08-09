@@ -34,17 +34,17 @@ import { useMemo } from "react";
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import { useSelectedOrg } from "~/utils/hooks";
+import { useSelectedProject } from "~/utils/hooks";
 import dayjs from "~/utils/dayjs";
 import { api } from "~/utils/api";
 import LoggedCallTable from "~/components/dashboard/LoggedCallTable";
 
 export default function LoggedCalls() {
-  const { data: selectedOrg } = useSelectedOrg();
+  const { data: selectedProject } = useSelectedProject();
 
   const stats = api.dashboard.stats.useQuery(
-    { organizationId: selectedOrg?.id ?? "" },
-    { enabled: !!selectedOrg },
+    { projectId: selectedProject?.id ?? "" },
+    { enabled: !!selectedProject },
   );
 
   const data = useMemo(() => {
@@ -71,7 +71,7 @@ export default function LoggedCalls() {
       </PageHeaderContainer>
       <VStack px={8} pt={4} alignItems="flex-start" spacing={4}>
         <Text fontSize="2xl" fontWeight="bold">
-          {selectedOrg?.name}
+          {selectedProject?.name}
         </Text>
         <Divider />
         <VStack margin="auto" spacing={4} align="stretch" w="full">

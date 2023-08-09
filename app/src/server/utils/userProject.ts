@@ -1,15 +1,15 @@
 import { prisma } from "~/server/db";
 import { generateApiKey } from "./generateApiKey";
 
-export default async function userOrg(userId: string) {
-  return await prisma.organization.upsert({
+export default async function userProject(userId: string) {
+  return await prisma.project.upsert({
     where: {
-      personalOrgUserId: userId,
+      personalProjectUserId: userId,
     },
     update: {},
     create: {
-      personalOrgUserId: userId,
-      organizationUsers: {
+      personalProjectUserId: userId,
+      projectUsers: {
         create: {
           userId: userId,
           role: "ADMIN",

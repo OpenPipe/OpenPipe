@@ -17,33 +17,35 @@ import { BsTrash } from "react-icons/bs";
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback, useSelectedOrg } from "~/utils/hooks";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import CopiableCode from "~/components/CopiableCode";
 import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectDialog";
 
 export default function Settings() {
   const utils = api.useContext();
-  const { data: selectedOrg } = useSelectedOrg();
+  const { data: selectedProject } = useSelectedProject();
 
   const apiKey =
-    selectedOrg?.apiKeys?.length && selectedOrg?.apiKeys[0] ? selectedOrg?.apiKeys[0].apiKey : "";
+    selectedProject?.apiKeys?.length && selectedProject?.apiKeys[0]
+      ? selectedProject?.apiKeys[0].apiKey
+      : "";
 
-  const updateMutation = api.organizations.update.useMutation();
+  const updateMutation = api.projects.update.useMutation();
   const [onSaveName] = useHandledAsyncCallback(async () => {
-    if (name && name !== selectedOrg?.name && selectedOrg?.id) {
+    if (name && name !== selectedProject?.name && selectedProject?.id) {
       await updateMutation.mutateAsync({
-        id: selectedOrg.id,
+        id: selectedProject.id,
         updates: { name },
       });
-      await Promise.all([utils.organizations.get.invalidate({ id: selectedOrg.id })]);
+      await Promise.all([utils.projects.get.invalidate({ id: selectedProject.id })]);
     }
-  }, [updateMutation, selectedOrg]);
+  }, [updateMutation, selectedProject]);
 
-  const [name, setName] = useState(selectedOrg?.name);
+  const [name, setName] = useState(selectedProject?.name);
   useEffect(() => {
-    setName(selectedOrg?.name);
-  }, [selectedOrg?.name]);
+    setName(selectedProject?.name);
+  }, [selectedProject?.name]);
 
   const deleteProjectOpen = useDisclosure();
 
@@ -66,7 +68,7 @@ export default function Settings() {
               Project Settings
             </Text>
             <Text fontSize="sm">
-              Configure your project settings. These settings only apply to {selectedOrg?.name}.
+              Configure your project settings. These settings only apply to {selectedProject?.name}.
             </Text>
           </VStack>
           <VStack
@@ -90,7 +92,7 @@ export default function Settings() {
                 borderColor="gray.300"
               />
               <Button
-                isDisabled={!name || name === selectedOrg?.name}
+                isDisabled={!name || name === selectedProject?.name}
                 colorScheme="orange"
                 borderRadius={4}
                 mt={2}
@@ -113,12 +115,12 @@ export default function Settings() {
             </VStack>
             <CopiableCode code={apiKey} />
             <Divider />
-            {selectedOrg?.personalOrgUserId ? (
+            {selectedProject?.personalProjectUserId ? (
               <VStack alignItems="flex-start">
                 <Subtitle>Personal Project</Subtitle>
                 <Text fontSize="sm">
-                  This project is {selectedOrg?.personalOrgUser?.name}'s personal project. It cannot
-                  be deleted.
+                  This project is {selectedProject?.personalProjectUser?.name}'s personal project.
+                  It cannot be deleted.
                 </Text>
               </VStack>
             ) : (
@@ -129,7 +131,7 @@ export default function Settings() {
                 </Text>
                 <HStack
                   as={Button}
-                  isDisabled={selectedOrg?.role !== "ADMIN"}
+                  isDisabled={selectedProject?.role !== "ADMIN"}
                   colorScheme="red"
                   variant="outline"
                   borderRadius={4}
@@ -137,7 +139,7 @@ export default function Settings() {
                   onClick={deleteProjectOpen.onOpen}
                 >
                   <Icon as={BsTrash} />
-                  <Text>Delete {selectedOrg?.name}</Text>
+                  <Text>Delete {selectedProject?.name}</Text>
                 </HStack>
               </VStack>
             )}

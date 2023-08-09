@@ -66,7 +66,7 @@ export const externalApiRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
       const reqPayload = await reqValidator.spa(input.reqPayload);
-      const cacheKey = hashRequest(key.organizationId, reqPayload as JsonValue);
+      const cacheKey = hashRequest(key.projectId, reqPayload as JsonValue);
 
       const existingResponse = await prisma.loggedCallModelResponse.findFirst({
         where: {
@@ -84,7 +84,7 @@ export const externalApiRouter = createTRPCRouter({
 
       await prisma.loggedCall.create({
         data: {
-          organizationId: key.organizationId,
+          projectId: key.projectId,
           startTime: new Date(input.startTime),
           cacheHit: true,
           modelResponseId: existingResponse.id,
@@ -135,7 +135,7 @@ export const externalApiRouter = createTRPCRouter({
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const respPayload = await respValidator.spa(input.respPayload);
 
-      const requestHash = hashRequest(key.organizationId, reqPayload as JsonValue);
+      const requestHash = hashRequest(key.projectId, reqPayload as JsonValue);
 
       const newLoggedCallId = uuidv4();
       const newModelResponseId = uuidv4();
@@ -146,7 +146,7 @@ export const externalApiRouter = createTRPCRouter({
         prisma.loggedCall.create({
           data: {
             id: newLoggedCallId,
-            organizationId: key.organizationId,
+            projectId: key.projectId,
             startTime: new Date(input.startTime),
             cacheHit: false,
           },
