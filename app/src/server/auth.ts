@@ -2,8 +2,15 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type GetServerSidePropsContext } from "next";
 import { getServerSession, type NextAuthOptions, type DefaultSession } from "next-auth";
 import { prisma } from "~/server/db";
-import GitHubProvider from "next-auth/providers/github";
+import GitHubModule from "next-auth/providers/github";
 import { env } from "~/env.mjs";
+
+// The client codegen script doesn't properly read the default export
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const untypedGitHubModule = GitHubModule as unknown as any;
+const GitHubProvider: typeof GitHubModule = untypedGitHubModule.default
+  ? untypedGitHubModule.default
+  : untypedGitHubModule;
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`

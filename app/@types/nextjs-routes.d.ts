@@ -12,8 +12,10 @@ declare module "nextjs-routes" {
 
   export type Route =
     | StaticRoute<"/account/signin">
+    | DynamicRoute<"/api/[...trpc]", { "trpc": string[] }>
     | DynamicRoute<"/api/auth/[...nextauth]", { "nextauth": string[] }>
     | StaticRoute<"/api/experiments/og-image">
+    | StaticRoute<"/api/openapi">
     | StaticRoute<"/api/sentry-example-api">
     | DynamicRoute<"/api/trpc/[trpc]", { "trpc": string }>
     | DynamicRoute<"/data/[id]", { "id": string }>
@@ -21,6 +23,8 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/experiments/[id]", { "id": string }>
     | StaticRoute<"/experiments">
     | StaticRoute<"/">
+    | StaticRoute<"/logged-calls">
+    | StaticRoute<"/project/settings">
     | StaticRoute<"/sentry-example-page">
     | StaticRoute<"/world-champs">
     | StaticRoute<"/world-champs/signup">;

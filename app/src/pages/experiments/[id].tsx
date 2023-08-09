@@ -23,6 +23,8 @@ import { useAppStore } from "~/state/store";
 import { useSyncVariantEditor } from "~/state/sync";
 import { ExperimentHeaderButtons } from "~/components/experiments/ExperimentHeaderButtons/ExperimentHeaderButtons";
 import Head from "next/head";
+import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
+import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 
 // TODO: import less to fix deployment with server side props
 // export const getServerSideProps = async (context: GetServerSidePropsContext<{ id: string }>) => {
@@ -104,14 +106,11 @@ export default function Experiment() {
       )}
       <AppShell title={experiment.data?.label}>
         <VStack h="full">
-          <Flex
-            px={4}
-            py={2}
-            w="full"
-            direction={{ base: "column", sm: "row" }}
-            alignItems={{ base: "flex-start", sm: "center" }}
-          >
-            <Breadcrumb flex={1}>
+          <PageHeaderContainer>
+            <Breadcrumb>
+              <BreadcrumbItem>
+                <ProjectBreadcrumbContents orgName={experiment.data?.organization?.name} />
+              </BreadcrumbItem>
               <BreadcrumbItem>
                 <Link href="/experiments">
                   <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
@@ -143,7 +142,7 @@ export default function Experiment() {
               </BreadcrumbItem>
             </Breadcrumb>
             <ExperimentHeaderButtons />
-          </Flex>
+          </PageHeaderContainer>
           <ExperimentSettingsDrawer />
           <Box w="100%" overflowX="auto" flex={1}>
             <OutputsTable experimentId={router.query.id as string | undefined} />

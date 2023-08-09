@@ -1,10 +1,10 @@
 import { type Prisma } from "@prisma/client";
-import { type JsonObject } from "type-fest";
+import { type JsonValue, type JsonObject } from "type-fest";
 import modelProviders from "~/modelProviders/modelProviders";
 import { prisma } from "~/server/db";
 import { wsConnection } from "~/utils/wsConnection";
 import { runEvalsForOutput } from "../utils/evaluations";
-import hashPrompt from "../utils/hashPrompt";
+import hashObject from "../utils/hashObject";
 import defineTask from "./defineTask";
 import parsePromptConstructor from "~/promptConstructor/parse";
 
@@ -99,7 +99,7 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
       }
     : null;
 
-  const inputHash = hashPrompt(prompt);
+  const inputHash = hashObject(prompt as JsonValue);
 
   let modelResponse = await prisma.modelResponse.create({
     data: {

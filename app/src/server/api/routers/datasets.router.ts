@@ -3,65 +3,62 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/
 import { prisma } from "~/server/db";
 import {
   requireCanModifyDataset,
+  requireCanModifyOrganization,
   requireCanViewDataset,
-  requireNothing,
+  requireCanViewOrganization,
 } from "~/utils/accessControl";
-import userOrg from "~/server/utils/userOrg";
 
 export const datasetsRouter = createTRPCRouter({
-  list: protectedProcedure.query(async ({ ctx }) => {
-    // Anyone can list experiments
-    requireNothing(ctx);
+  list: protectedProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewOrganization(input.organizationId, ctx);
 
-    const datasets = await prisma.dataset.findMany({
-      where: {
-        organization: {
-          organizationUsers: {
-            some: { userId: ctx.session.user.id },
+      const datasets = await prisma.dataset.findMany({
+        where: {
+          organizationId: input.organizationId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          _count: {
+            select: { datasetEntries: true },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        _count: {
-          select: { datasetEntries: true },
-        },
-      },
-    });
+      });
 
-    return datasets;
-  }),
+      return datasets;
+    }),
 
   get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     await requireCanViewDataset(input.id, ctx);
     return await prisma.dataset.findFirstOrThrow({
       where: { id: input.id },
+      include: {
+        organization: true,
+      },
     });
   }),
 
-  create: protectedProcedure.input(z.object({})).mutation(async ({ ctx }) => {
-    // Anyone can create an experiment
-    requireNothing(ctx);
+  create: protectedProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await requireCanModifyOrganization(input.organizationId, ctx);
 
-    const numDatasets = await prisma.dataset.count({
-      where: {
-        organization: {
-          organizationUsers: {
-            some: { userId: ctx.session.user.id },
-          },
+      const numDatasets = await prisma.dataset.count({
+        where: {
+          organizationId: input.organizationId,
         },
-      },
-    });
+      });
 
-    return await prisma.dataset.create({
-      data: {
-        name: `Dataset ${numDatasets + 1}`,
-        organizationId: (await userOrg(ctx.session.user.id)).id,
-      },
-    });
-  }),
+      return await prisma.dataset.create({
+        data: {
+          name: `Dataset ${numDatasets + 1}`,
+          organizationId: input.organizationId,
+        },
+      });
+    }),
 
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ name: z.string() }) }))

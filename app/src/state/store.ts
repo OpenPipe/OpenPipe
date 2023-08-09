@@ -14,6 +14,8 @@ export type State = {
   api: APIClient | null;
   setApi: (api: APIClient) => void;
   sharedVariantEditor: SharedVariantEditorSlice;
+  selectedOrgId: string | null;
+  setSelectedOrgId: (orgId: string) => void;
 };
 
 export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], [], T>;
@@ -39,6 +41,11 @@ const useBaseStore = create<State, [["zustand/immer", never]]>(
         state.drawerOpen = false;
       }),
     sharedVariantEditor: createVariantEditorSlice(set, get, ...rest),
+    selectedOrgId: null,
+    setSelectedOrgId: (orgId: string) =>
+      set((state) => {
+        state.selectedOrgId = orgId;
+      }),
   })),
 );
 

@@ -11,7 +11,6 @@ export default function useSocket<T>(channel?: string | null) {
   useEffect(() => {
     if (!channel) return;
 
-    console.log("connecting to channel", channel);
     // Create websocket connection
     socketRef.current = io(url);
 

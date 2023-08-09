@@ -20,6 +20,7 @@ export const env = createEnv({
     REPLICATE_API_TOKEN: z.string().default("placeholder"),
     ANTHROPIC_API_KEY: z.string().default("placeholder"),
     SENTRY_AUTH_TOKEN: z.string().optional(),
+    OPENPIPE_API_KEY: z.string().optional(),
   },
 
   /**
@@ -33,6 +34,7 @@ export const env = createEnv({
     NEXT_PUBLIC_HOST: z.string().url().default("http://localhost:3000"),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SHOW_DATA: z.string().optional(),
+    NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS: z.string().optional(),
   },
 
   /**
@@ -54,6 +56,8 @@ export const env = createEnv({
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+    OPENPIPE_API_KEY: process.env.OPENPIPE_API_KEY,
+    NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS: process.env.NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

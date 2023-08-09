@@ -1,4 +1,5 @@
 import { prisma } from "~/server/db";
+import { generateApiKey } from "./generateApiKey";
 
 export default async function userOrg(userId: string) {
   return await prisma.organization.upsert({
@@ -13,6 +14,14 @@ export default async function userOrg(userId: string) {
           userId: userId,
           role: "ADMIN",
         },
+      },
+      apiKeys: {
+        create: [
+          {
+            name: "Default API Key",
+            apiKey: generateApiKey(),
+          },
+        ],
       },
     },
   });

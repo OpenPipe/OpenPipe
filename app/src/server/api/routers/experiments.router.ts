@@ -8,10 +8,10 @@ import { generateNewCell } from "~/server/utils/generateNewCell";
 import {
   canModifyExperiment,
   requireCanModifyExperiment,
+  requireCanModifyOrganization,
   requireCanViewExperiment,
-  requireNothing,
+  requireCanViewOrganization,
 } from "~/utils/accessControl";
-import userOrg from "~/server/utils/userOrg";
 import generateTypes from "~/modelProviders/generateTypes";
 import { promptConstructorVersion } from "~/promptConstructor/version";
 
@@ -43,55 +43,55 @@ export const experimentsRouter = createTRPCRouter({
       testScenarioCount,
     };
   }),
-  list: protectedProcedure.query(async ({ ctx }) => {
-    // Anyone can list experiments
-    requireNothing(ctx);
+  list: protectedProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewOrganization(input.organizationId, ctx);
 
-    const experiments = await prisma.experiment.findMany({
-      where: {
-        organization: {
-          organizationUsers: {
-            some: { userId: ctx.session.user.id },
-          },
+      const experiments = await prisma.experiment.findMany({
+        where: {
+          organizationId: input.organizationId,
         },
-      },
-      orderBy: {
-        sortIndex: "desc",
-      },
-    });
+        orderBy: {
+          sortIndex: "desc",
+        },
+      });
 
-    // TODO: look for cleaner way to do this. Maybe aggregate?
-    const experimentsWithCounts = await Promise.all(
-      experiments.map(async (experiment) => {
-        const visibleTestScenarioCount = await prisma.testScenario.count({
-          where: {
-            experimentId: experiment.id,
-            visible: true,
-          },
-        });
+      // TODO: look for cleaner way to do this. Maybe aggregate?
+      const experimentsWithCounts = await Promise.all(
+        experiments.map(async (experiment) => {
+          const visibleTestScenarioCount = await prisma.testScenario.count({
+            where: {
+              experimentId: experiment.id,
+              visible: true,
+            },
+          });
 
-        const visiblePromptVariantCount = await prisma.promptVariant.count({
-          where: {
-            experimentId: experiment.id,
-            visible: true,
-          },
-        });
+          const visiblePromptVariantCount = await prisma.promptVariant.count({
+            where: {
+              experimentId: experiment.id,
+              visible: true,
+            },
+          });
 
-        return {
-          ...experiment,
-          testScenarioCount: visibleTestScenarioCount,
-          promptVariantCount: visiblePromptVariantCount,
-        };
-      }),
-    );
+          return {
+            ...experiment,
+            testScenarioCount: visibleTestScenarioCount,
+            promptVariantCount: visiblePromptVariantCount,
+          };
+        }),
+      );
 
-    return experimentsWithCounts;
-  }),
+      return experimentsWithCounts;
+    }),
 
   get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     await requireCanViewExperiment(input.id, ctx);
     const experiment = await prisma.experiment.findFirstOrThrow({
       where: { id: input.id },
+      include: {
+        organization: true,
+      },
     });
 
     const canModify = ctx.session?.user.id
@@ -107,222 +107,224 @@ export const experimentsRouter = createTRPCRouter({
     };
   }),
 
-  fork: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ input, ctx }) => {
-    await requireCanViewExperiment(input.id, ctx);
+  fork: protectedProcedure
+    .input(z.object({ id: z.string(), organizationId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await requireCanViewExperiment(input.id, ctx);
+      await requireCanModifyOrganization(input.organizationId, ctx);
 
-    const [
-      existingExp,
-      existingVariants,
-      existingScenarios,
-      existingCells,
-      evaluations,
-      templateVariables,
-    ] = await prisma.$transaction([
-      prisma.experiment.findUniqueOrThrow({
-        where: {
-          id: input.id,
-        },
-      }),
-      prisma.promptVariant.findMany({
-        where: {
-          experimentId: input.id,
-          visible: true,
-        },
-      }),
-      prisma.testScenario.findMany({
-        where: {
-          experimentId: input.id,
-          visible: true,
-        },
-      }),
-      prisma.scenarioVariantCell.findMany({
-        where: {
-          testScenario: {
-            visible: true,
+      const [
+        existingExp,
+        existingVariants,
+        existingScenarios,
+        existingCells,
+        evaluations,
+        templateVariables,
+      ] = await prisma.$transaction([
+        prisma.experiment.findUniqueOrThrow({
+          where: {
+            id: input.id,
           },
-          promptVariant: {
+        }),
+        prisma.promptVariant.findMany({
+          where: {
             experimentId: input.id,
             visible: true,
           },
-        },
-        include: {
-          modelResponses: {
-            include: {
-              outputEvaluations: true,
+        }),
+        prisma.testScenario.findMany({
+          where: {
+            experimentId: input.id,
+            visible: true,
+          },
+        }),
+        prisma.scenarioVariantCell.findMany({
+          where: {
+            testScenario: {
+              visible: true,
+            },
+            promptVariant: {
+              experimentId: input.id,
+              visible: true,
             },
           },
-        },
-      }),
-      prisma.evaluation.findMany({
-        where: {
-          experimentId: input.id,
-        },
-      }),
-      prisma.templateVariable.findMany({
-        where: {
-          experimentId: input.id,
-        },
-      }),
-    ]);
+          include: {
+            modelResponses: {
+              include: {
+                outputEvaluations: true,
+              },
+            },
+          },
+        }),
+        prisma.evaluation.findMany({
+          where: {
+            experimentId: input.id,
+          },
+        }),
+        prisma.templateVariable.findMany({
+          where: {
+            experimentId: input.id,
+          },
+        }),
+      ]);
 
-    const newExperimentId = uuidv4();
+      const newExperimentId = uuidv4();
 
-    const existingToNewVariantIds = new Map<string, string>();
-    const variantsToCreate: Prisma.PromptVariantCreateManyInput[] = [];
-    for (const variant of existingVariants) {
-      const newVariantId = uuidv4();
-      existingToNewVariantIds.set(variant.id, newVariantId);
-      variantsToCreate.push({
-        ...variant,
-        id: newVariantId,
-        experimentId: newExperimentId,
-      });
-    }
-
-    const existingToNewScenarioIds = new Map<string, string>();
-    const scenariosToCreate: Prisma.TestScenarioCreateManyInput[] = [];
-    for (const scenario of existingScenarios) {
-      const newScenarioId = uuidv4();
-      existingToNewScenarioIds.set(scenario.id, newScenarioId);
-      scenariosToCreate.push({
-        ...scenario,
-        id: newScenarioId,
-        experimentId: newExperimentId,
-        variableValues: scenario.variableValues as Prisma.InputJsonValue,
-      });
-    }
-
-    const existingToNewEvaluationIds = new Map<string, string>();
-    const evaluationsToCreate: Prisma.EvaluationCreateManyInput[] = [];
-    for (const evaluation of evaluations) {
-      const newEvaluationId = uuidv4();
-      existingToNewEvaluationIds.set(evaluation.id, newEvaluationId);
-      evaluationsToCreate.push({
-        ...evaluation,
-        id: newEvaluationId,
-        experimentId: newExperimentId,
-      });
-    }
-
-    const cellsToCreate: Prisma.ScenarioVariantCellCreateManyInput[] = [];
-    const modelResponsesToCreate: Prisma.ModelResponseCreateManyInput[] = [];
-    const outputEvaluationsToCreate: Prisma.OutputEvaluationCreateManyInput[] = [];
-    for (const cell of existingCells) {
-      const newCellId = uuidv4();
-      const { modelResponses, ...cellData } = cell;
-      cellsToCreate.push({
-        ...cellData,
-        id: newCellId,
-        promptVariantId: existingToNewVariantIds.get(cell.promptVariantId) ?? "",
-        testScenarioId: existingToNewScenarioIds.get(cell.testScenarioId) ?? "",
-        prompt: (cell.prompt as Prisma.InputJsonValue) ?? undefined,
-      });
-      for (const modelResponse of modelResponses) {
-        const newModelResponseId = uuidv4();
-        const { outputEvaluations, ...modelResponseData } = modelResponse;
-        modelResponsesToCreate.push({
-          ...modelResponseData,
-          id: newModelResponseId,
-          scenarioVariantCellId: newCellId,
-          output: (modelResponse.output as Prisma.InputJsonValue) ?? undefined,
+      const existingToNewVariantIds = new Map<string, string>();
+      const variantsToCreate: Prisma.PromptVariantCreateManyInput[] = [];
+      for (const variant of existingVariants) {
+        const newVariantId = uuidv4();
+        existingToNewVariantIds.set(variant.id, newVariantId);
+        variantsToCreate.push({
+          ...variant,
+          id: newVariantId,
+          experimentId: newExperimentId,
         });
-        for (const evaluation of outputEvaluations) {
-          outputEvaluationsToCreate.push({
-            ...evaluation,
-            id: uuidv4(),
-            modelResponseId: newModelResponseId,
-            evaluationId: existingToNewEvaluationIds.get(evaluation.evaluationId) ?? "",
+      }
+
+      const existingToNewScenarioIds = new Map<string, string>();
+      const scenariosToCreate: Prisma.TestScenarioCreateManyInput[] = [];
+      for (const scenario of existingScenarios) {
+        const newScenarioId = uuidv4();
+        existingToNewScenarioIds.set(scenario.id, newScenarioId);
+        scenariosToCreate.push({
+          ...scenario,
+          id: newScenarioId,
+          experimentId: newExperimentId,
+          variableValues: scenario.variableValues as Prisma.InputJsonValue,
+        });
+      }
+
+      const existingToNewEvaluationIds = new Map<string, string>();
+      const evaluationsToCreate: Prisma.EvaluationCreateManyInput[] = [];
+      for (const evaluation of evaluations) {
+        const newEvaluationId = uuidv4();
+        existingToNewEvaluationIds.set(evaluation.id, newEvaluationId);
+        evaluationsToCreate.push({
+          ...evaluation,
+          id: newEvaluationId,
+          experimentId: newExperimentId,
+        });
+      }
+
+      const cellsToCreate: Prisma.ScenarioVariantCellCreateManyInput[] = [];
+      const modelResponsesToCreate: Prisma.ModelResponseCreateManyInput[] = [];
+      const outputEvaluationsToCreate: Prisma.OutputEvaluationCreateManyInput[] = [];
+      for (const cell of existingCells) {
+        const newCellId = uuidv4();
+        const { modelResponses, ...cellData } = cell;
+        cellsToCreate.push({
+          ...cellData,
+          id: newCellId,
+          promptVariantId: existingToNewVariantIds.get(cell.promptVariantId) ?? "",
+          testScenarioId: existingToNewScenarioIds.get(cell.testScenarioId) ?? "",
+          prompt: (cell.prompt as Prisma.InputJsonValue) ?? undefined,
+        });
+        for (const modelResponse of modelResponses) {
+          const newModelResponseId = uuidv4();
+          const { outputEvaluations, ...modelResponseData } = modelResponse;
+          modelResponsesToCreate.push({
+            ...modelResponseData,
+            id: newModelResponseId,
+            scenarioVariantCellId: newCellId,
+            output: (modelResponse.output as Prisma.InputJsonValue) ?? undefined,
           });
+          for (const evaluation of outputEvaluations) {
+            outputEvaluationsToCreate.push({
+              ...evaluation,
+              id: uuidv4(),
+              modelResponseId: newModelResponseId,
+              evaluationId: existingToNewEvaluationIds.get(evaluation.evaluationId) ?? "",
+            });
+          }
         }
       }
-    }
 
-    const templateVariablesToCreate: Prisma.TemplateVariableCreateManyInput[] = [];
-    for (const templateVariable of templateVariables) {
-      templateVariablesToCreate.push({
-        ...templateVariable,
-        id: uuidv4(),
-        experimentId: newExperimentId,
-      });
-    }
+      const templateVariablesToCreate: Prisma.TemplateVariableCreateManyInput[] = [];
+      for (const templateVariable of templateVariables) {
+        templateVariablesToCreate.push({
+          ...templateVariable,
+          id: uuidv4(),
+          experimentId: newExperimentId,
+        });
+      }
 
-    const maxSortIndex =
-      (
-        await prisma.experiment.aggregate({
-          _max: {
-            sortIndex: true,
+      const maxSortIndex =
+        (
+          await prisma.experiment.aggregate({
+            _max: {
+              sortIndex: true,
+            },
+          })
+        )._max?.sortIndex ?? 0;
+
+      await prisma.$transaction([
+        prisma.experiment.create({
+          data: {
+            id: newExperimentId,
+            sortIndex: maxSortIndex + 1,
+            label: `${existingExp.label} (forked)`,
+            organizationId: input.organizationId,
           },
-        })
-      )._max?.sortIndex ?? 0;
+        }),
+        prisma.promptVariant.createMany({
+          data: variantsToCreate,
+        }),
+        prisma.testScenario.createMany({
+          data: scenariosToCreate,
+        }),
+        prisma.scenarioVariantCell.createMany({
+          data: cellsToCreate,
+        }),
+        prisma.modelResponse.createMany({
+          data: modelResponsesToCreate,
+        }),
+        prisma.evaluation.createMany({
+          data: evaluationsToCreate,
+        }),
+        prisma.outputEvaluation.createMany({
+          data: outputEvaluationsToCreate,
+        }),
+        prisma.templateVariable.createMany({
+          data: templateVariablesToCreate,
+        }),
+      ]);
 
-    await prisma.$transaction([
-      prisma.experiment.create({
+      return newExperimentId;
+    }),
+
+  create: protectedProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await requireCanModifyOrganization(input.organizationId, ctx);
+
+      const maxSortIndex =
+        (
+          await prisma.experiment.aggregate({
+            _max: {
+              sortIndex: true,
+            },
+            where: { organizationId: input.organizationId },
+          })
+        )._max?.sortIndex ?? 0;
+
+      const exp = await prisma.experiment.create({
         data: {
-          id: newExperimentId,
           sortIndex: maxSortIndex + 1,
-          label: `${existingExp.label} (forked)`,
-          organizationId: (await userOrg(ctx.session.user.id)).id,
+          label: `Experiment ${maxSortIndex + 1}`,
+          organizationId: input.organizationId,
         },
-      }),
-      prisma.promptVariant.createMany({
-        data: variantsToCreate,
-      }),
-      prisma.testScenario.createMany({
-        data: scenariosToCreate,
-      }),
-      prisma.scenarioVariantCell.createMany({
-        data: cellsToCreate,
-      }),
-      prisma.modelResponse.createMany({
-        data: modelResponsesToCreate,
-      }),
-      prisma.evaluation.createMany({
-        data: evaluationsToCreate,
-      }),
-      prisma.outputEvaluation.createMany({
-        data: outputEvaluationsToCreate,
-      }),
-      prisma.templateVariable.createMany({
-        data: templateVariablesToCreate,
-      }),
-    ]);
+      });
 
-    return newExperimentId;
-  }),
-
-  create: protectedProcedure.input(z.object({})).mutation(async ({ ctx }) => {
-    // Anyone can create an experiment
-    requireNothing(ctx);
-
-    const organizationId = (await userOrg(ctx.session.user.id)).id;
-
-    const maxSortIndex =
-      (
-        await prisma.experiment.aggregate({
-          _max: {
-            sortIndex: true,
-          },
-          where: { organizationId },
-        })
-      )._max?.sortIndex ?? 0;
-
-    const exp = await prisma.experiment.create({
-      data: {
-        sortIndex: maxSortIndex + 1,
-        label: `Experiment ${maxSortIndex + 1}`,
-        organizationId,
-      },
-    });
-
-    const [variant, _, scenario1, scenario2, scenario3] = await prisma.$transaction([
-      prisma.promptVariant.create({
-        data: {
-          experimentId: exp.id,
-          label: "Prompt Variant 1",
-          sortIndex: 0,
-          // The interpolated $ is necessary until dedent incorporates
-          // https://github.com/dmnd/dedent/pull/46
-          promptConstructor: dedent`
+      const [variant, _, scenario1, scenario2, scenario3] = await prisma.$transaction([
+        prisma.promptVariant.create({
+          data: {
+            experimentId: exp.id,
+            label: "Prompt Variant 1",
+            sortIndex: 0,
+            // The interpolated $ is necessary until dedent incorporates
+            // https://github.com/dmnd/dedent/pull/46
+            promptConstructor: dedent`
           /**
            * Use Javascript to define an OpenAI chat completion
            * (https://platform.openai.com/docs/api-reference/chat/create).
@@ -341,49 +343,49 @@ export const experimentsRouter = createTRPCRouter({
               },
             ],
           });`,
-          model: "gpt-3.5-turbo-0613",
-          modelProvider: "openai/ChatCompletion",
-          promptConstructorVersion,
-        },
-      }),
-      prisma.templateVariable.create({
-        data: {
-          experimentId: exp.id,
-          label: "language",
-        },
-      }),
-      prisma.testScenario.create({
-        data: {
-          experimentId: exp.id,
-          variableValues: {
-            language: "English",
+            model: "gpt-3.5-turbo-0613",
+            modelProvider: "openai/ChatCompletion",
+            promptConstructorVersion,
           },
-        },
-      }),
-      prisma.testScenario.create({
-        data: {
-          experimentId: exp.id,
-          variableValues: {
-            language: "Spanish",
+        }),
+        prisma.templateVariable.create({
+          data: {
+            experimentId: exp.id,
+            label: "language",
           },
-        },
-      }),
-      prisma.testScenario.create({
-        data: {
-          experimentId: exp.id,
-          variableValues: {
-            language: "German",
+        }),
+        prisma.testScenario.create({
+          data: {
+            experimentId: exp.id,
+            variableValues: {
+              language: "English",
+            },
           },
-        },
-      }),
-    ]);
+        }),
+        prisma.testScenario.create({
+          data: {
+            experimentId: exp.id,
+            variableValues: {
+              language: "Spanish",
+            },
+          },
+        }),
+        prisma.testScenario.create({
+          data: {
+            experimentId: exp.id,
+            variableValues: {
+              language: "German",
+            },
+          },
+        }),
+      ]);
 
-    await generateNewCell(variant.id, scenario1.id);
-    await generateNewCell(variant.id, scenario2.id);
-    await generateNewCell(variant.id, scenario3.id);
+      await generateNewCell(variant.id, scenario1.id);
+      await generateNewCell(variant.id, scenario2.id);
+      await generateNewCell(variant.id, scenario3.id);
 
-    return exp;
-  }),
+      return exp;
+    }),
 
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ label: z.string() }) }))

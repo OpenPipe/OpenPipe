@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import { type JsonObject } from "type-fest";
-import hashPrompt from "./hashPrompt";
+import hashObject from "./hashObject";
 import { omit } from "lodash-es";
 import { queueQueryModel } from "../tasks/queryModel.task";
 import parsePromptConstructor from "~/promptConstructor/parse";
@@ -57,7 +57,7 @@ export const generateNewCell = async (
     return;
   }
 
-  const inputHash = hashPrompt(parsedConstructFn);
+  const inputHash = hashObject(parsedConstructFn);
 
   cell = await prisma.scenarioVariantCell.create({
     data: {

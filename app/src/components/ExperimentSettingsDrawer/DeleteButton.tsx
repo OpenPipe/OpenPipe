@@ -14,6 +14,7 @@ import {
 import { useRouter } from "next/router";
 import { useRef } from "react";
 import { BsTrash } from "react-icons/bs";
+import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 
@@ -23,6 +24,8 @@ export const DeleteButton = () => {
   const utils = api.useContext();
   const router = useRouter();
 
+  const closeDrawer = useAppStore((s) => s.closeDrawer);
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -31,6 +34,8 @@ export const DeleteButton = () => {
     await mutation.mutateAsync({ id: experiment.data.id });
     await utils.experiments.list.invalidate();
     await router.push({ pathname: "/experiments" });
+    closeDrawer();
+
     onClose();
   }, [mutation, experiment.data?.id, router]);
 

@@ -7,48 +7,22 @@ import {
   Image,
   Text,
   Box,
-  type BoxProps,
   Link as ChakraLink,
   Flex,
 } from "@chakra-ui/react";
 import Head from "next/head";
-import Link, { type LinkProps } from "next/link";
-import { BsGithub, BsPersonCircle } from "react-icons/bs";
-import { useRouter } from "next/router";
-import { type IconType } from "react-icons";
+import Link from "next/link";
+import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
+import { IoStatsChartOutline } from "react-icons/io5";
 import { RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
 import UserMenu from "./UserMenu";
 import { env } from "~/env.mjs";
+import ProjectMenu from "./ProjectMenu";
+import NavSidebarOption from "./NavSidebarOption";
+import IconLink from "./IconLink";
 
-type IconLinkProps = BoxProps & LinkProps & { label?: string; icon: IconType; href: string };
-
-const IconLink = ({ icon, label, href, color, ...props }: IconLinkProps) => {
-  const router = useRouter();
-  const isActive = href && router.pathname.startsWith(href);
-  return (
-    <Link href={href} style={{ width: "100%" }}>
-      <HStack
-        w="full"
-        p={4}
-        color={color}
-        as={ChakraLink}
-        bgColor={isActive ? "gray.200" : "transparent"}
-        _hover={{ bgColor: "gray.300", textDecoration: "none" }}
-        justifyContent="start"
-        cursor="pointer"
-        {...props}
-      >
-        <Icon as={icon} boxSize={6} mr={2} />
-        <Text fontWeight="bold" fontSize="sm">
-          {label}
-        </Text>
-      </HStack>
-    </Link>
-  );
-};
-
-const Divider = () => <Box h="1px" bgColor="gray.200" />;
+const Divider = () => <Box h="1px" bgColor="gray.300" w="full" />;
 
 const NavSidebar = () => {
   const user = useSession().data;
@@ -56,22 +30,31 @@ const NavSidebar = () => {
   return (
     <VStack
       align="stretch"
-      bgColor="gray.100"
+      bgColor="gray.50"
       py={2}
+      px={2}
       pb={0}
       height="100%"
-      w={{ base: "56px", md: "200px" }}
+      w={{ base: "56px", md: "240px" }}
       overflow="hidden"
+      borderRightWidth={1}
+      borderColor="gray.300"
     >
-      <HStack as={Link} href="/" _hover={{ textDecoration: "none" }} spacing={0} px={4} py={2}>
+      <HStack as={Link} href="/" _hover={{ textDecoration: "none" }} spacing={0} px={2} py={2}>
         <Image src="/logo.svg" alt="" boxSize={6} mr={4} />
         <Heading size="md" fontFamily="inconsolata, monospace">
           OpenPipe
         </Heading>
       </HStack>
-      <VStack spacing={0} align="flex-start" overflowY="auto" overflowX="hidden" flex={1}>
+      <Divider />
+      <VStack align="flex-start" overflowY="auto" overflowX="hidden" flex={1}>
         {user != null && (
           <>
+            <ProjectMenu />
+            <Divider />
+            {env.NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS && (
+              <IconLink icon={IoStatsChartOutline} label="Logged Calls" href="/logged-calls" beta />
+            )}
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
             {env.NEXT_PUBLIC_SHOW_DATA && (
               <IconLink icon={RiDatabase2Line} label="Data" href="/data" />
@@ -79,29 +62,39 @@ const NavSidebar = () => {
           </>
         )}
         {user === null && (
-          <HStack
-            w="full"
-            p={4}
-            as={ChakraLink}
-            _hover={{ bgColor: "gray.300", textDecoration: "none" }}
-            justifyContent="start"
-            cursor="pointer"
-            onClick={() => {
-              signIn("github").catch(console.error);
-            }}
-          >
-            <Icon as={BsPersonCircle} boxSize={6} mr={2} />
-            <Text fontWeight="bold" fontSize="sm">
-              Sign In
-            </Text>
-          </HStack>
+          <NavSidebarOption>
+            <HStack
+              w="full"
+              p={4}
+              as={ChakraLink}
+              justifyContent="start"
+              onClick={() => {
+                signIn("github").catch(console.error);
+              }}
+            >
+              <Icon as={BsPersonCircle} boxSize={6} mr={2} />
+              <Text fontWeight="bold" fontSize="sm">
+                Sign In
+              </Text>
+            </HStack>
+          </NavSidebarOption>
         )}
       </VStack>
-      {user ? (
-        <UserMenu user={user} borderColor={"gray.200"} borderTopWidth={1} borderBottomWidth={1} />
-      ) : (
-        <Divider />
-      )}
+      <VStack w="full" alignItems="flex-start" spacing={0}>
+        <Text
+          pl={2}
+          pb={2}
+          fontSize="xs"
+          fontWeight="bold"
+          color="gray.500"
+          display={{ base: "none", md: "flex" }}
+        >
+          CONFIGURATION
+        </Text>
+        <IconLink icon={BsGearFill} label="Project Settings" href="/project/settings" />
+      </VStack>
+      {user && <UserMenu user={user} borderColor={"gray.200"} />}
+      <Divider />
       <VStack spacing={0} align="center">
         <ChakraLink
           href="https://github.com/openpipe/openpipe"
@@ -117,7 +110,15 @@ const NavSidebar = () => {
   );
 };
 
-export default function AppShell(props: { children: React.ReactNode; title?: string }) {
+export default function AppShell({
+  children,
+  title,
+  requireAuth,
+}: {
+  children: React.ReactNode;
+  title?: string;
+  requireAuth?: boolean;
+}) {
   const [vh, setVh] = useState("100vh"); // Default height to prevent flicker on initial render
 
   useEffect(() => {
@@ -137,14 +138,23 @@ export default function AppShell(props: { children: React.ReactNode; title?: str
     };
   }, []);
 
+  const user = useSession().data;
+  const authLoading = useSession().status === "loading";
+
+  useEffect(() => {
+    if (requireAuth && user === null && !authLoading) {
+      signIn("github").catch(console.error);
+    }
+  }, [requireAuth, user, authLoading]);
+
   return (
     <Flex h={vh} w="100vw">
       <Head>
-        <title>{props.title ? `${props.title} | OpenPipe` : "OpenPipe"}</title>
+        <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
       </Head>
       <NavSidebar />
       <Box h="100%" flex={1} overflowY="auto">
-        {props.children}
+        {children}
       </Box>
     </Flex>
   );

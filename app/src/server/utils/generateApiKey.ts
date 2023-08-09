@@ -1,0 +1,5 @@
+import cryptoRandomString from "crypto-random-string";
+
+const KEY_LENGTH = 42;
+
+export const generateApiKey = () => `opc_${cryptoRandomString({ length: KEY_LENGTH })}`;

@@ -2,6 +2,15 @@ import { useRouter } from "next/router";
 import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
 import { NumberParam, useQueryParam, withDefault } from "use-query-params";
+import { useAppStore } from "~/state/store";
+
+export const useExperiments = () => {
+  const selectedOrgId = useAppStore((state) => state.selectedOrgId);
+  return api.experiments.list.useQuery(
+    { organizationId: selectedOrgId ?? "" },
+    { enabled: !!selectedOrgId },
+  );
+};
 
 export const useExperiment = () => {
   const router = useRouter();
@@ -15,6 +24,14 @@ export const useExperiment = () => {
 
 export const useExperimentAccess = () => {
   return useExperiment().data?.access ?? { canView: false, canModify: false };
+};
+
+export const useDatasets = () => {
+  const selectedOrgId = useAppStore((state) => state.selectedOrgId);
+  return api.datasets.list.useQuery(
+    { organizationId: selectedOrgId ?? "" },
+    { enabled: !!selectedOrgId },
+  );
 };
 
 export const useDataset = () => {
@@ -132,3 +149,8 @@ export const useScenario = (scenarioId: string) => {
 };
 
 export const useVisibleScenarioIds = () => useScenarios().data?.scenarios.map((s) => s.id) ?? [];
+
+export const useSelectedOrg = () => {
+  const selectedOrgId = useAppStore((state) => state.selectedOrgId);
+  return api.organizations.get.useQuery({ id: selectedOrgId ?? "" }, { enabled: !!selectedOrgId });
+};
