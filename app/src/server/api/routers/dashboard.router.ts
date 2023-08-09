@@ -32,11 +32,15 @@ export const dashboardRouter = createTRPCRouter({
         .execute();
 
       let originalDataIndex = periods.length - 1;
-      let dayToMatch = dayjs(input.startDate).startOf("day");
+      // *SLAMS DOWN GLASS OF WHISKEY* timezones, amirite?
+      let dayToMatch = dayjs(input.startDate || new Date()).add(1, "day");
       const backfilledPeriods: typeof periods = [];
 
       // Backfill from now to 14 days ago or the date of the first logged call, whichever is earlier
-      while (backfilledPeriods.length < 14 || originalDataIndex >= 0) {
+      while (
+        backfilledPeriods.length < 14 ||
+        (periods[0]?.period && !dayToMatch.isBefore(periods[0]?.period, "day"))
+      ) {
         const nextOriginalPeriod = periods[originalDataIndex];
         if (nextOriginalPeriod && dayjs(nextOriginalPeriod?.period).isSame(dayToMatch, "day")) {
           backfilledPeriods.unshift(nextOriginalPeriod);

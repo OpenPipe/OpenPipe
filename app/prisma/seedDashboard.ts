@@ -331,13 +331,19 @@ const loggedCallsToCreate: Prisma.LoggedCallCreateManyInput[] = [];
 const loggedCallModelResponsesToCreate: Prisma.LoggedCallModelResponseCreateManyInput[] = [];
 const loggedCallsToUpdate: Prisma.LoggedCallUpdateArgs[] = [];
 const loggedCallTagsToCreate: Prisma.LoggedCallTagCreateManyInput[] = [];
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 437; i++) {
   const loggedCallId = uuidv4();
   const loggedCallModelResponseId = uuidv4();
+  const template =
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    MODEL_RESPONSE_TEMPLATES[Math.floor(Math.random() * MODEL_RESPONSE_TEMPLATES.length)]!;
+  const model = template.reqPayload.model;
   // choose random time in the last two weeks, with a bias towards the last few days
-  const startTime = new Date(Date.now() - Math.random() * 1000 * 60 * 60 * 24 * 14);
-  // choose random time anywhere from 1 to 25 seconds later
-  const endTime = new Date(startTime.getTime() + Math.random() * 1000 * 24);
+  const startTime = new Date(Date.now() - Math.pow(Math.random(), 2) * 1000 * 60 * 60 * 24 * 14);
+  // choose random delay anywhere from 2 to 10 seconds later for gpt-4, or 1 to 5 seconds for gpt-3.5
+  const delay =
+    model === "gpt-4" ? 1000 * 2 + Math.random() * 1000 * 8 : 1000 + Math.random() * 1000 * 4;
+  const endTime = new Date(startTime.getTime() + delay);
   loggedCallsToCreate.push({
     id: loggedCallId,
     cacheHit: false,
@@ -345,9 +351,18 @@ for (let i = 0; i < 100; i++) {
     organizationId: org.id,
     createdAt: startTime,
   });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const template =
-    MODEL_RESPONSE_TEMPLATES[Math.floor(Math.random() * MODEL_RESPONSE_TEMPLATES.length)]!;
+
+  const { promptTokenPrice, completionTokenPrice } =
+    model === "gpt-4"
+      ? {
+          promptTokenPrice: 0.00003,
+          completionTokenPrice: 0.00006,
+        }
+      : {
+          promptTokenPrice: 0.0000015,
+          completionTokenPrice: 0.000002,
+        };
+
   loggedCallModelResponsesToCreate.push({
     id: loggedCallModelResponseId,
     startTime,
@@ -363,7 +378,8 @@ for (let i = 0; i < 100; i++) {
     inputTokens: template.inputTokens,
     outputTokens: template.outputTokens,
     finishReason: template.finishReason,
-    totalCost: template.inputTokens * 0.06 + template.outputTokens * 0.06,
+    totalCost:
+      template.inputTokens * promptTokenPrice + template.outputTokens * completionTokenPrice,
   });
   loggedCallsToUpdate.push({
     where: {
