@@ -8,6 +8,7 @@ export const dashboardRouter = createTRPCRouter({
   stats: publicProcedure
     .input(
       z.object({
+        // TODO: actually take startDate into account
         startDate: z.string().optional(),
         organizationId: z.string(),
       }),
@@ -33,7 +34,11 @@ export const dashboardRouter = createTRPCRouter({
 
       let originalDataIndex = periods.length - 1;
       // *SLAMS DOWN GLASS OF WHISKEY* timezones, amirite?
-      let dayToMatch = dayjs(input.startDate || new Date()).add(1, "day");
+      let dayToMatch = dayjs(input.startDate || new Date())
+      // Ensure that the initial date we're matching against is never before the first period
+      if (periods[originalDataIndex] && dayToMatch.isBefore(periods[originalDataIndex]?.period, "day")) {
+        dayToMatch = dayjs(periods[originalDataIndex]?.period);
+      }
       const backfilledPeriods: typeof periods = [];
 
       // Backfill from now to 14 days ago or the date of the first logged call, whichever is earlier
