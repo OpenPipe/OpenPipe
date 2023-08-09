@@ -15,8 +15,7 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { AiFillCaretDown } from "react-icons/ai";
-import { BsGear, BsPlus } from "react-icons/bs";
+import { BsChevronRight, BsGear, BsPlus } from "react-icons/bs";
 import { type Project } from "@prisma/client";
 
 import { useAppStore } from "~/state/store";
@@ -68,14 +67,9 @@ export default function ProjectMenu() {
       >
         PROJECT
       </Text>
-      <NavSidebarOption>
-        <Popover
-          placement="bottom-start"
-          isOpen={popover.isOpen}
-          onClose={popover.onClose}
-          closeOnBlur
-        >
-          <PopoverTrigger>
+      <Popover placement="right" isOpen={popover.isOpen} onClose={popover.onClose} closeOnBlur>
+        <PopoverTrigger>
+          <NavSidebarOption>
             <HStack w="full" onClick={popover.onToggle}>
               <Flex
                 p={1}
@@ -92,46 +86,41 @@ export default function ProjectMenu() {
               <Text fontSize="sm" display={{ base: "none", md: "block" }} py={1} flex={1}>
                 {selectedProject?.name}
               </Text>
-              <Icon as={AiFillCaretDown} boxSize={3} size="xs" color="gray.500" mr={2} />
+              <Icon as={BsChevronRight} boxSize={4} color="gray.500" />
             </HStack>
-          </PopoverTrigger>
-          <PopoverContent
-            _focusVisible={{ boxShadow: "unset" }}
-            minW={0}
-            borderColor="blue.400"
-            w="full"
-          >
-            <VStack alignItems="flex-start" spacing={2} py={4} px={2}>
-              <Text color="gray.500" fontSize="xs" fontWeight="bold" pb={1}>
-                PROJECTS
-              </Text>
-              <Divider />
-              <VStack spacing={0} w="full">
-                {projects?.map((proj) => (
-                  <ProjectOption
-                    key={proj.id}
-                    proj={proj}
-                    isActive={proj.id === selectedProjectId}
-                    onClose={popover.onClose}
-                  />
-                ))}
-              </VStack>
-              <HStack
-                as={Button}
-                variant="ghost"
-                colorScheme="blue"
-                color="blue.400"
-                pr={8}
-                w="full"
-                onClick={createProject}
-              >
-                <Icon as={isLoading ? Spinner : BsPlus} boxSize={6} />
-                <Text>New project</Text>
-              </HStack>
+          </NavSidebarOption>
+        </PopoverTrigger>
+        <PopoverContent _focusVisible={{ outline: "unset" }} ml={-1}>
+          <VStack alignItems="flex-start" spacing={2} py={4} px={2}>
+            <Text color="gray.500" fontSize="xs" fontWeight="bold" pb={1}>
+              PROJECTS
+            </Text>
+            <Divider />
+            <VStack spacing={0} w="full">
+              {projects?.map((proj) => (
+                <ProjectOption
+                  key={proj.id}
+                  proj={proj}
+                  isActive={proj.id === selectedProjectId}
+                  onClose={popover.onClose}
+                />
+              ))}
             </VStack>
-          </PopoverContent>
-        </Popover>
-      </NavSidebarOption>
+            <HStack
+              as={Button}
+              variant="ghost"
+              colorScheme="blue"
+              color="blue.400"
+              pr={8}
+              w="full"
+              onClick={createProject}
+            >
+              <Icon as={isLoading ? Spinner : BsPlus} boxSize={6} />
+              <Text>New project</Text>
+            </HStack>
+          </VStack>
+        </PopoverContent>
+      </Popover>
     </VStack>
   );
 }
