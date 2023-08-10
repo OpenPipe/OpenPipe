@@ -1,11 +1,10 @@
-import { Box, type BoxProps } from "@chakra-ui/react";
+import { Box, type BoxProps, forwardRef } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
-const NavSidebarOption = ({
-  activeHrefPattern,
-  disableHoverEffect,
-  ...props
-}: { activeHrefPattern?: string; disableHoverEffect?: boolean } & BoxProps) => {
+const NavSidebarOption = forwardRef<
+  { activeHrefPattern?: string; disableHoverEffect?: boolean } & BoxProps,
+  "div"
+>(({ activeHrefPattern, disableHoverEffect, ...props }, ref) => {
   const router = useRouter();
   const isActive = activeHrefPattern && router.pathname.startsWith(activeHrefPattern);
   return (
@@ -18,10 +17,13 @@ const NavSidebarOption = ({
       cursor="pointer"
       borderRadius={4}
       {...props}
+      ref={ref}
     >
       {props.children}
     </Box>
   );
-};
+});
+
+NavSidebarOption.displayName = "NavSidebarOption";
 
 export default NavSidebarOption;
