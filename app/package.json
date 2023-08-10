@@ -19,7 +19,7 @@
     "codegen": "tsx src/server/scripts/client-codegen.ts",
     "seed": "tsx prisma/seed.ts",
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'",
-    "test": "pnpm vitest --no-threads"
+    "test": "pnpm vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.5.8",

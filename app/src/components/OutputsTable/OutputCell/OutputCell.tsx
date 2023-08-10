@@ -1,7 +1,7 @@
 import { api } from "~/utils/api";
 import { type PromptVariant, type Scenario } from "../types";
 import { type StackProps, Text, VStack } from "@chakra-ui/react";
-import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import { useScenarioVars, useHandledAsyncCallback } from "~/utils/hooks";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
@@ -23,10 +23,7 @@ export default function OutputCell({
   variant: PromptVariant;
 }): ReactElement | null {
   const utils = api.useContext();
-  const experiment = useExperiment();
-  const vars = api.templateVars.list.useQuery({
-    experimentId: experiment.data?.id ?? "",
-  }).data;
+  const vars = useScenarioVars().data;
 
   const scenarioVariables = scenario.variableValues as Record<string, string>;
   const templateHasVariables =

@@ -1,4 +1,9 @@
-import { extendTheme, defineStyleConfig, ChakraProvider } from "@chakra-ui/react";
+import {
+  extendTheme,
+  defineStyleConfig,
+  ChakraProvider,
+  createStandaloneToast,
+} from "@chakra-ui/react";
 import "@fontsource/inconsolata";
 import { modalAnatomy } from "@chakra-ui/anatomy";
 import { createMultiStyleConfigHelpers } from "@chakra-ui/styled-system";
@@ -63,6 +68,15 @@ const theme = extendTheme({
   },
 });
 
+const { ToastContainer, toast } = createStandaloneToast(theme);
+
+export { toast };
+
 export const ChakraThemeProvider = ({ children }: { children: JSX.Element }) => {
-  return <ChakraProvider theme={theme}>{children}</ChakraProvider>;
+  return (
+    <ChakraProvider theme={theme}>
+      <ToastContainer />
+      {children}
+    </ChakraProvider>
+  );
 };

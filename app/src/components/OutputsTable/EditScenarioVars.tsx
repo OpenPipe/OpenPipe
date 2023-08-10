@@ -1,103 +1,185 @@
-import { Text, Button, HStack, Heading, Icon, Input, Stack } from "@chakra-ui/react";
-import { useState } from "react";
-import { BsCheck, BsX } from "react-icons/bs";
+import { Text, Button, HStack, Heading, Icon, IconButton, Stack, VStack } from "@chakra-ui/react";
+import { type TemplateVariable } from "@prisma/client";
+import { useEffect, useState } from "react";
+import { BsPencil, BsX } from "react-icons/bs";
 import { api } from "~/utils/api";
-import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
+import { useExperiment, useHandledAsyncCallback, useScenarioVars } from "~/utils/hooks";
+import { maybeReportError } from "~/utils/standardResponses";
+import { FloatingLabelInput } from "./FloatingLabelInput";
+
+export const ScenarioVar = ({
+  variable,
+  isEditing,
+  setIsEditing,
+}: {
+  variable: Pick<TemplateVariable, "id" | "label">;
+  isEditing: boolean;
+  setIsEditing: (isEditing: boolean) => void;
+}) => {
+  const utils = api.useContext();
+
+  const [label, setLabel] = useState(variable.label);
+
+  useEffect(() => {
+    setLabel(variable.label);
+  }, [variable.label]);
+
+  const renameVarMutation = api.scenarioVars.rename.useMutation();
+  const [onRename] = useHandledAsyncCallback(async () => {
+    const resp = await renameVarMutation.mutateAsync({ id: variable.id, label });
+    if (maybeReportError(resp)) return;
+
+    setIsEditing(false);
+    await utils.scenarioVars.list.invalidate();
+    await utils.scenarios.list.invalidate();
+  }, [label, variable.id]);
+
+  const deleteMutation = api.scenarioVars.delete.useMutation();
+  const [onDeleteVar] = useHandledAsyncCallback(async () => {
+    await deleteMutation.mutateAsync({ id: variable.id });
+    await utils.scenarioVars.list.invalidate();
+  }, [variable.id]);
+
+  if (isEditing) {
+    return (
+      <HStack w="full">
+        <FloatingLabelInput
+          flex={1}
+          label="Renamed Variable"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onRename();
+            }
+            // If the user types a space, replace it with an underscore
+            if (e.key === " ") {
+              e.preventDefault();
+              setLabel((label) => label && `${label}_`);
+            }
+          }}
+        />
+        <Button size="sm" onClick={() => setIsEditing(false)}>
+          Cancel
+        </Button>
+        <Button size="sm" colorScheme="blue" onClick={onRename}>
+          Save
+        </Button>
+      </HStack>
+    );
+  } else {
+    return (
+      <HStack w="full" borderTopWidth={1} borderColor="gray.200">
+        <Text flex={1}>{variable.label}</Text>
+        <IconButton
+          aria-label="Edit"
+          variant="unstyled"
+          minW="unset"
+          color="gray.400"
+          onClick={() => setIsEditing(true)}
+          _hover={{ color: "gray.800", cursor: "pointer" }}
+          icon={<Icon as={BsPencil} />}
+        />
+        <IconButton
+          aria-label="Delete"
+          variant="unstyled"
+          minW="unset"
+          color="gray.400"
+          onClick={onDeleteVar}
+          _hover={{ color: "gray.800", cursor: "pointer" }}
+          icon={<Icon as={BsX} boxSize={6} />}
+        />
+      </HStack>
+    );
+  }
+};
 
 export default function EditScenarioVars() {
   const experiment = useExperiment();
-  const vars =
-    api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" }).data ?? [];
+  const vars = useScenarioVars();
+
+  const [currentlyEditingId, setCurrentlyEditingId] = useState<string | null>(null);
 
   const [newVariable, setNewVariable] = useState<string>("");
-  const newVarIsValid = newVariable.length > 0 && !vars.map((v) => v.label).includes(newVariable);
+  const newVarIsValid = newVariable?.length ?? 0 > 0;
 
   const utils = api.useContext();
-  const addVarMutation = api.templateVars.create.useMutation();
+  const addVarMutation = api.scenarioVars.create.useMutation();
   const [onAddVar] = useHandledAsyncCallback(async () => {
     if (!experiment.data?.id) return;
-    if (!newVarIsValid) return;
-    await addVarMutation.mutateAsync({
+    if (!newVariable) return;
+    const resp = await addVarMutation.mutateAsync({
       experimentId: experiment.data.id,
       label: newVariable,
     });
-    await utils.templateVars.list.invalidate();
+    if (maybeReportError(resp)) return;
+
+    await utils.scenarioVars.list.invalidate();
     setNewVariable("");
   }, [addVarMutation, experiment.data?.id, newVarIsValid, newVariable]);
-
-  const deleteMutation = api.templateVars.delete.useMutation();
-  const [onDeleteVar] = useHandledAsyncCallback(async (id: string) => {
-    await deleteMutation.mutateAsync({ id });
-    await utils.templateVars.list.invalidate();
-  }, []);
 
   return (
     <Stack>
       <Heading size="sm">Scenario Variables</Heading>
-      <Stack spacing={2}>
+      <VStack spacing={4}>
         <Text fontSize="sm">
           Scenario variables can be used in your prompt variants as well as evaluations.
         </Text>
-        <HStack spacing={0}>
-          <Input
-            placeholder="Add Scenario Variable"
-            size="sm"
-            borderTopRadius={0}
-            borderRightRadius={0}
-            value={newVariable}
-            onChange={(e) => setNewVariable(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                onAddVar();
-              }
-              // If the user types a space, replace it with an underscore
-              if (e.key === " ") {
-                e.preventDefault();
-                setNewVariable((v) => v + "_");
-              }
-            }}
-          />
-          <Button
-            size="xs"
-            height="100%"
-            borderLeftRadius={0}
-            isDisabled={!newVarIsValid}
-            onClick={onAddVar}
-          >
-            <Icon as={BsCheck} boxSize={8} />
-          </Button>
-        </HStack>
-
-        <HStack spacing={2} py={4} wrap="wrap">
-          {vars.map((variable) => (
-            <HStack
+        <VStack spacing={0} w="full">
+          {vars.data?.map((variable) => (
+            <ScenarioVar
+              variable={variable}
               key={variable.id}
-              spacing={0}
-              bgColor="blue.100"
-              color="blue.600"
-              pl={2}
-              pr={0}
-              fontWeight="bold"
-            >
-              <Text fontSize="sm" flex={1}>
-                {variable.label}
-              </Text>
-              <Button
-                size="xs"
-                variant="ghost"
-                colorScheme="blue"
-                p="unset"
-                minW="unset"
-                px="unset"
-                onClick={() => onDeleteVar(variable.id)}
-              >
-                <Icon as={BsX} boxSize={6} color="blue.800" />
-              </Button>
-            </HStack>
+              isEditing={currentlyEditingId === variable.id}
+              setIsEditing={(isEditing) => {
+                if (isEditing) {
+                  setCurrentlyEditingId(variable.id);
+                } else {
+                  setCurrentlyEditingId(null);
+                }
+              }}
+            />
           ))}
-        </HStack>
-      </Stack>
+        </VStack>
+        {currentlyEditingId !== "new" && (
+          <Button
+            colorScheme="blue"
+            size="sm"
+            onClick={() => setCurrentlyEditingId("new")}
+            alignSelf="end"
+          >
+            New Variable
+          </Button>
+        )}
+        {currentlyEditingId === "new" && (
+          <HStack w="full">
+            <FloatingLabelInput
+              flex={1}
+              label="New Variable"
+              value={newVariable}
+              onChange={(e) => setNewVariable(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onAddVar();
+                }
+                // If the user types a space, replace it with an underscore
+                if (e.key === " ") {
+                  e.preventDefault();
+                  setNewVariable((v) => v && `${v}_`);
+                }
+              }}
+            />
+            <Button size="sm" onClick={() => setCurrentlyEditingId(null)}>
+              Cancel
+            </Button>
+            <Button size="sm" colorScheme="blue" onClick={onAddVar}>
+              Save
+            </Button>
+          </HStack>
+        )}
+      </VStack>
     </Stack>
   );
 }

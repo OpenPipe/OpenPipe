@@ -1,7 +1,7 @@
 import { isEqual } from "lodash-es";
 import { useEffect, useState, type DragEvent } from "react";
 import { api } from "~/utils/api";
-import { useExperiment, useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
+import { useExperimentAccess, useHandledAsyncCallback, useScenarioVars } from "~/utils/hooks";
 import { type Scenario } from "./types";
 
 import {
@@ -41,8 +41,7 @@ export default function ScenarioEditor({
     if (savedValues) setValues(savedValues);
   }, [savedValues]);
 
-  const experiment = useExperiment();
-  const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" });
+  const vars = useScenarioVars();
 
   const variableLabels = vars.data?.map((v) => v.label) ?? [];
 

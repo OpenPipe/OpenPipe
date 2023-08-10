@@ -58,7 +58,7 @@ export const ScenarioEditorModal = ({
     await utils.scenarios.list.invalidate();
   }, [mutation, values]);
 
-  const vars = api.templateVars.list.useQuery({ experimentId: experiment.data?.id ?? "" });
+  const vars = api.scenarioVars.list.useQuery({ experimentId: experiment.data?.id ?? "" });
   const variableLabels = vars.data?.map((v) => v.label) ?? [];
 
   return (

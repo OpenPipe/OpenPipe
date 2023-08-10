@@ -72,7 +72,7 @@ export const ScenariosHeader = () => {
               Autogenerate Scenario
             </MenuItem>
             <MenuItem icon={<BsPencil />} onClick={openDrawer}>
-              Edit Vars
+              Add or Remove Variables
             </MenuItem>
           </MenuList>
         </Menu>

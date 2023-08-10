@@ -157,3 +157,12 @@ export const useSelectedProject = () => {
     { enabled: !!selectedProjectId },
   );
 };
+
+export const useScenarioVars = () => {
+  const experiment = useExperiment();
+
+  return api.scenarioVars.list.useQuery(
+    { experimentId: experiment.data?.id ?? "" },
+    { enabled: experiment.data?.id != null },
+  );
+};
