@@ -1,5 +1,5 @@
-import { PersistOptions } from "zustand/middleware/persist";
-import { State } from "./store";
+import { type PersistOptions } from "zustand/middleware/persist";
+import { type State } from "./store";
 
 export const stateToPersist = {
   selectedProjectId: null as string | null,

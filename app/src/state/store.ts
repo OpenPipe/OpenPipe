@@ -7,7 +7,7 @@ import {
   createVariantEditorSlice,
 } from "./sharedVariantEditor.slice";
 import { type APIClient } from "~/utils/api";
-import { persistOptions, stateToPersist } from "./persist";
+import { persistOptions, type stateToPersist } from "./persist";
 
 export type State = {
   drawerOpen: boolean;

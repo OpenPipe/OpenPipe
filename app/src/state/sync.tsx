@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 import { api } from "~/utils/api";
-import { useScenarios } from "~/utils/hooks";
+import { useScenarioVars } from "~/utils/hooks";
 import { useAppStore } from "./store";
 
 export function useSyncVariantEditor() {
-  const scenarios = useScenarios();
+  const scenarioVars = useScenarioVars();
 
   useEffect(() => {
-    if (scenarios.data) {
-      useAppStore.getState().sharedVariantEditor.setScenarios(scenarios.data.scenarios);
+    if (scenarioVars.data) {
+      useAppStore.getState().sharedVariantEditor.setScenarioVars(scenarioVars.data);
     }
-  }, [scenarios.data]);
+  }, [scenarioVars.data]);
 }
 
 export function SyncAppStore() {

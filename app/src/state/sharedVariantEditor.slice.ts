@@ -8,9 +8,9 @@ export const editorBackground = "#fafafa";
 export type SharedVariantEditorSlice = {
   monaco: null | ReturnType<typeof loader.__getMonacoInstance>;
   loadMonaco: () => Promise<void>;
-  scenarios: RouterOutputs["scenarios"]["list"]["scenarios"];
+  scenarioVars: RouterOutputs["scenarioVars"]["list"];
   updateScenariosModel: () => void;
-  setScenarios: (scenarios: RouterOutputs["scenarios"]["list"]["scenarios"]) => void;
+  setScenarioVars: (scenarioVars: RouterOutputs["scenarioVars"]["list"]) => void;
 };
 
 export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = (set, get) => ({
@@ -60,10 +60,10 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
     });
     get().sharedVariantEditor.updateScenariosModel();
   },
-  scenarios: [],
-  setScenarios: (scenarios) => {
+  scenarioVars: [],
+  setScenarioVars: (scenarios) => {
     set((state) => {
-      state.sharedVariantEditor.scenarios = scenarios;
+      state.sharedVariantEditor.scenarioVars = scenarios;
     });
 
     get().sharedVariantEditor.updateScenariosModel();
@@ -73,16 +73,15 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
     const monaco = get().sharedVariantEditor.monaco;
     if (!monaco) return;
 
-    const modelContents = `
-    const scenarios = ${JSON.stringify(
-      get().sharedVariantEditor.scenarios.map((s) => s.variableValues),
-      null,
-      2,
-    )} as const;
-    
-    type Scenario = typeof scenarios[number];
-    declare var scenario: Scenario | { [key: string]: string };
+    const modelContents = `    
+    declare var scenario: {
+      ${get()
+        .sharedVariantEditor.scenarioVars.map((s) => `${s.label}: string;`)
+        .join("\n")}
+    };
     `;
+
+    console.log(modelContents);
 
     const scenariosModel = monaco.editor.getModel(monaco.Uri.parse("file:///scenarios.ts"));
 

@@ -3,7 +3,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/
 import { prisma } from "~/server/db";
 import { Prisma } from "@prisma/client";
 import { generateNewCell } from "~/server/utils/generateNewCell";
-import userError from "~/server/utils/error";
+import { error, success } from "~/utils/standardResponses";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { reorderPromptVariants } from "~/server/utils/reorderPromptVariants";
 import { type PromptVariant } from "@prisma/client";
@@ -315,7 +315,7 @@ export const promptVariantsRouter = createTRPCRouter({
       const constructedPrompt = await parsePromptConstructor(existing.promptConstructor);
 
       if ("error" in constructedPrompt) {
-        return userError(constructedPrompt.error);
+        return error(constructedPrompt.error);
       }
 
       const model = input.newModel
@@ -353,7 +353,7 @@ export const promptVariantsRouter = createTRPCRouter({
       const parsedPrompt = await parsePromptConstructor(input.promptConstructor);
 
       if ("error" in parsedPrompt) {
-        return userError(parsedPrompt.error);
+        return error(parsedPrompt.error);
       }
 
       // Create a duplicate with only the config changed
@@ -398,7 +398,7 @@ export const promptVariantsRouter = createTRPCRouter({
         });
       }
 
-      return { status: "ok" } as const;
+      return success();
     }),
 
   reorder: protectedProcedure

@@ -12,6 +12,7 @@ import {
   Select,
   FormHelperText,
   Code,
+  IconButton,
 } from "@chakra-ui/react";
 import { type Evaluation, EvalType } from "@prisma/client";
 import { useCallback, useState } from "react";
@@ -183,46 +184,37 @@ export default function EditEvaluations() {
                 <Text flex={1}>
                   {evaluation.evalType}: &quot;{evaluation.value}&quot;
                 </Text>
-                <Button
+
+                <IconButton
+                  aria-label="Edit"
                   variant="unstyled"
-                  color="gray.400"
-                  height="unset"
-                  width="unset"
                   minW="unset"
+                  color="gray.400"
                   onClick={() => setEditingId(evaluation.id)}
-                  _hover={{
-                    color: "gray.800",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Icon as={BsPencil} boxSize={4} />
-                </Button>
-                <Button
+                  _hover={{ color: "gray.800", cursor: "pointer" }}
+                  icon={<Icon as={BsPencil} />}
+                />
+                <IconButton
+                  aria-label="Delete"
                   variant="unstyled"
-                  color="gray.400"
-                  height="unset"
-                  width="unset"
                   minW="unset"
+                  color="gray.400"
                   onClick={() => onDelete(evaluation.id)}
-                  _hover={{
-                    color: "gray.800",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Icon as={BsX} boxSize={6} />
-                </Button>
+                  _hover={{ color: "gray.800", cursor: "pointer" }}
+                  icon={<Icon as={BsX} boxSize={6} />}
+                />
               </HStack>
             ),
           )}
           {editingId == null && (
             <Button
               onClick={() => setEditingId("new")}
-              alignSelf="flex-start"
+              alignSelf="end"
               size="sm"
               mt={4}
               colorScheme="blue"
             >
-              Add Evaluation
+              New Evaluation
             </Button>
           )}
           {editingId == "new" && (

@@ -3,7 +3,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
 import { experimentsRouter } from "./routers/experiments.router";
 import { scenariosRouter } from "./routers/scenarios.router";
 import { scenarioVariantCellsRouter } from "./routers/scenarioVariantCells.router";
-import { templateVarsRouter } from "./routers/templateVariables.router";
+import { scenarioVarsRouter } from "./routers/scenarioVariables.router";
 import { evaluationsRouter } from "./routers/evaluations.router";
 import { worldChampsRouter } from "./routers/worldChamps.router";
 import { datasetsRouter } from "./routers/datasets.router";
@@ -22,7 +22,7 @@ export const appRouter = createTRPCRouter({
   experiments: experimentsRouter,
   scenarios: scenariosRouter,
   scenarioVariantCells: scenarioVariantCellsRouter,
-  templateVars: templateVarsRouter,
+  scenarioVars: scenarioVarsRouter,
   evaluations: evaluationsRouter,
   worldChamps: worldChampsRouter,
   datasets: datasetsRouter,
