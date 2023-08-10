@@ -191,7 +191,7 @@ export default function OutputCell({
 
   return (
     <CellWrapper>
-      <Text>{contentToDisplay}</Text>
+      <Text whiteSpace="pre-wrap">{contentToDisplay}</Text>
     </CellWrapper>
   );
 }
