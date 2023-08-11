@@ -67,7 +67,7 @@ export default function ProjectMenu() {
       >
         PROJECT
       </Text>
-      <Popover placement="right" isOpen={popover.isOpen} onClose={popover.onClose} closeOnBlur>
+      <Popover placement="right-end" isOpen={popover.isOpen} onClose={popover.onClose} closeOnBlur>
         <PopoverTrigger>
           <NavSidebarOption>
             <HStack w="full" onClick={popover.onToggle}>
@@ -90,7 +90,7 @@ export default function ProjectMenu() {
             </HStack>
           </NavSidebarOption>
         </PopoverTrigger>
-        <PopoverContent _focusVisible={{ outline: "unset" }} ml={-1}>
+        <PopoverContent _focusVisible={{ outline: "unset" }} ml={-1} minW={0} w="full">
           <VStack alignItems="flex-start" spacing={2} py={4} px={2}>
             <Text color="gray.500" fontSize="xs" fontWeight="bold" pb={1}>
               PROJECTS
@@ -149,6 +149,7 @@ const ProjectOption = ({
       bgColor={isActive ? "gray.100" : "transparent"}
       _hover={gearHovered ? undefined : { bgColor: "gray.200", textDecoration: "none" }}
       p={2}
+      borderRadius={4}
     >
       <Text>{proj.name}</Text>
       <IconButton

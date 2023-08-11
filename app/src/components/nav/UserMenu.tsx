@@ -47,7 +47,7 @@ export default function UserMenu({ user, ...rest }: { user: Session } & StackPro
             </HStack>
           </NavSidebarOption>
         </PopoverTrigger>
-        <PopoverContent _focusVisible={{ outline: "unset" }} ml={-1}>
+        <PopoverContent _focusVisible={{ outline: "unset" }} ml={-1} minW={48} w="full">
           <VStack align="stretch" spacing={0}>
             {/* sign out */}
             <HStack
