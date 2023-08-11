@@ -19,7 +19,7 @@ const CopiableCode = ({ code }: { code: string }) => {
       w="full"
       justifyContent="space-between"
     >
-      <Text fontFamily="inconsolata" fontWeight="bold" letterSpacing={0.5}>
+      <Text fontFamily="inconsolata" fontWeight="bold" letterSpacing={0.5} overflowX="auto">
         {code}
       </Text>
       <Tooltip closeOnClick={false} label={copied ? "Copied!" : "Copy to clipboard"}>

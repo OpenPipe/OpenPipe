@@ -5,7 +5,6 @@ import {
   type TextProps,
   VStack,
   HStack,
-  Input,
   Button,
   Divider,
   Icon,
@@ -21,6 +20,7 @@ import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import CopiableCode from "~/components/CopiableCode";
 import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectDialog";
+import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -84,7 +84,7 @@ export default function Settings() {
               <Text fontWeight="bold" fontSize="xl">
                 Display Name
               </Text>
-              <Input
+              <AutoResizeTextArea
                 w="full"
                 maxW={600}
                 value={name}
@@ -136,10 +136,13 @@ export default function Settings() {
                   variant="outline"
                   borderRadius={4}
                   mt={2}
+                  height="auto"
                   onClick={deleteProjectOpen.onOpen}
                 >
                   <Icon as={BsTrash} />
-                  <Text>Delete {selectedProject?.name}</Text>
+                  <Text overflowWrap="break-word" whiteSpace="normal" py={2}>
+                    Delete {selectedProject?.name}
+                  </Text>
                 </HStack>
               </VStack>
             )}
