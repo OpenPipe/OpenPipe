@@ -28,6 +28,10 @@ const modelProvider: AnthropicProvider = {
   inputSchema: inputSchema as JSONSchema4,
   canStream: true,
   getCompletion,
+  getUsage: (input, output) => {
+    // TODO: add usage logic
+    return null;
+  },
   ...frontendModelProvider,
 };
 

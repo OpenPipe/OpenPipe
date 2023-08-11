@@ -75,6 +75,10 @@ const modelProvider: ReplicateLlama2Provider = {
   },
   canStream: true,
   getCompletion,
+  getUsage: (input, output) => {
+    // TODO: add usage logic
+    return null;
+  },
   ...frontendModelProvider,
 };
 
