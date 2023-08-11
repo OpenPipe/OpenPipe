@@ -141,11 +141,13 @@ export const externalApiRouter = createTRPCRouter({
       const newModelResponseId = uuidv4();
 
       let usage;
+      let model;
       if (reqPayload.success && respPayload.success) {
         usage = modelProvider.getUsage(
           input.reqPayload as CompletionCreateParams,
           input.respPayload as ChatCompletion,
         );
+        model = reqPayload.data.model;
       }
 
       await prisma.$transaction([
@@ -155,6 +157,7 @@ export const externalApiRouter = createTRPCRouter({
             projectId: key.projectId,
             requestedAt: new Date(input.requestedAt),
             cacheHit: false,
+            model,
           },
         }),
         prisma.loggedCallModelResponse.create({
@@ -191,14 +194,6 @@ export const externalApiRouter = createTRPCRouter({
         name: name.replaceAll(/[^a-zA-Z0-9_]/g, "_"),
         value,
       }));
-
-      if (reqPayload.success) {
-        tagsToCreate.push({
-          loggedCallId: newLoggedCallId,
-          name: "$model",
-          value: reqPayload.data.model,
-        });
-      }
       await prisma.loggedCallTag.createMany({
         data: tagsToCreate,
       });

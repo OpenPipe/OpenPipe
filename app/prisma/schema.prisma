@@ -273,7 +273,8 @@ model LoggedCall {
     projectId String   @db.Uuid
     project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    tags LoggedCallTag[]
+    model        String?
+    tags         LoggedCallTag[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
