@@ -5,16 +5,13 @@
     "description": "The public API for reporting API calls to OpenPipe",
     "version": "0.1.0"
   },
-  "servers": [
-    {
-      "url": "https://app.openpipe.ai/api"
-    }
-  ],
+  "servers": [{ "url": "https://app.openpipe.ai/api" }],
   "paths": {
     "/v1/check-cache": {
       "post": {
         "operationId": "externalApi-checkCache",
         "description": "Check if a prompt is cached",
+        "security": [{ "Authorization": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -22,24 +19,18 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "requestedAt": {
+                  "startTime": {
                     "type": "number",
                     "description": "Unix timestamp in milliseconds"
                   },
-                  "reqPayload": {
-                    "description": "JSON-encoded request payload"
-                  },
+                  "reqPayload": { "description": "JSON-encoded request payload" },
                   "tags": {
                     "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    },
+                    "additionalProperties": { "type": "string" },
                     "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }"
                   }
                 },
-                "required": [
-                  "requestedAt"
-                ],
+                "required": ["startTime"],
                 "additionalProperties": false
               }
             }
@@ -54,18 +45,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "respPayload": {
-                      "description": "JSON-encoded response payload"
-                    }
+                    "respPayload": { "description": "JSON-encoded response payload" }
                   },
                   "additionalProperties": false
                 }
               }
             }
           },
-          "default": {
-            "$ref": "#/components/responses/error"
-          }
+          "default": { "$ref": "#/components/responses/error" }
         }
       }
     },
@@ -73,6 +60,7 @@
       "post": {
         "operationId": "externalApi-report",
         "description": "Report an API call",
+        "security": [{ "Authorization": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -80,40 +68,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "requestedAt": {
+                  "startTime": {
                     "type": "number",
                     "description": "Unix timestamp in milliseconds"
                   },
-                  "receivedAt": {
-                    "type": "number",
-                    "description": "Unix timestamp in milliseconds"
-                  },
-                  "reqPayload": {
-                    "description": "JSON-encoded request payload"
-                  },
-                  "respPayload": {
-                    "description": "JSON-encoded response payload"
-                  },
-                  "statusCode": {
-                    "type": "number",
-                    "description": "HTTP status code of response"
-                  },
-                  "errorMessage": {
-                    "type": "string",
-                    "description": "User-friendly error message"
-                  },
+                  "endTime": { "type": "number", "description": "Unix timestamp in milliseconds" },
+                  "reqPayload": { "description": "JSON-encoded request payload" },
+                  "respPayload": { "description": "JSON-encoded response payload" },
+                  "respStatus": { "type": "number", "description": "HTTP status code of response" },
+                  "error": { "type": "string", "description": "User-friendly error message" },
                   "tags": {
                     "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    },
+                    "additionalProperties": { "type": "string" },
                     "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }"
                   }
                 },
-                "required": [
-                  "requestedAt",
-                  "receivedAt"
-                ],
+                "required": ["startTime", "endTime"],
                 "additionalProperties": false
               }
             }
@@ -123,26 +93,15 @@
         "responses": {
           "200": {
             "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           },
-          "default": {
-            "$ref": "#/components/responses/error"
-          }
+          "default": { "$ref": "#/components/responses/error" }
         }
       }
     }
   },
   "components": {
-    "securitySchemes": {
-      "Authorization": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    },
+    "securitySchemes": { "Authorization": { "type": "http", "scheme": "bearer" } },
     "responses": {
       "error": {
         "description": "Error response",
@@ -151,32 +110,19 @@
             "schema": {
               "type": "object",
               "properties": {
-                "message": {
-                  "type": "string"
-                },
-                "code": {
-                  "type": "string"
-                },
+                "message": { "type": "string" },
+                "code": { "type": "string" },
                 "issues": {
                   "type": "array",
                   "items": {
                     "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "message"
-                    ],
+                    "properties": { "message": { "type": "string" } },
+                    "required": ["message"],
                     "additionalProperties": false
                   }
                 }
               },
-              "required": [
-                "message",
-                "code"
-              ],
+              "required": ["message", "code"],
               "additionalProperties": false
             }
           }

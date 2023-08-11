@@ -35,6 +35,7 @@ export const externalApiRouter = createTRPCRouter({
         method: "POST",
         path: "/v1/check-cache",
         description: "Check if a prompt is cached",
+        protect: true,
       },
     })
     .input(
@@ -102,6 +103,7 @@ export const externalApiRouter = createTRPCRouter({
         method: "POST",
         path: "/v1/report",
         description: "Report an API call",
+        protect: true,
       },
     })
     .input(
@@ -122,6 +124,7 @@ export const externalApiRouter = createTRPCRouter({
     )
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
+      console.log("GOT TAGS", input.tags);
       const apiKey = ctx.apiKey;
       if (!apiKey) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
