@@ -7,6 +7,8 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { hashRequest } from "~/server/utils/hashObject";
+import modelProvider from "~/modelProviders/openai-ChatCompletion";
+import { ChatCompletion, CompletionCreateParams } from "openai/resources/chat/completions";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -16,11 +18,6 @@ const reqValidator = z.object({
 const respValidator = z.object({
   id: z.string(),
   model: z.string(),
-  usage: z.object({
-    total_tokens: z.number(),
-    prompt_tokens: z.number(),
-    completion_tokens: z.number(),
-  }),
   choices: z.array(
     z.object({
       finish_reason: z.string(),
@@ -140,7 +137,15 @@ export const externalApiRouter = createTRPCRouter({
       const newLoggedCallId = uuidv4();
       const newModelResponseId = uuidv4();
 
-      const usage = respPayload.success ? respPayload.data.usage : undefined;
+      let usage;
+      let model;
+      if (reqPayload.success && respPayload.success) {
+        usage = modelProvider.getUsage(
+          input.reqPayload as CompletionCreateParams,
+          input.respPayload as ChatCompletion,
+        );
+        model = modelProvider.getModel(input.reqPayload as CompletionCreateParams);
+      }
 
       await prisma.$transaction([
         prisma.loggedCall.create({
@@ -162,13 +167,10 @@ export const externalApiRouter = createTRPCRouter({
             respStatus: input.respStatus,
             error: input.error,
             durationMs: input.endTime - input.startTime,
-            ...(respPayload.success
-              ? {
-                  cacheKey: requestHash,
-                  inputTokens: usage ? usage.prompt_tokens : undefined,
-                  outputTokens: usage ? usage.completion_tokens : undefined,
-                }
-              : null),
+            cacheKey: respPayload.success ? requestHash : null,
+            inputTokens: usage?.inputTokens,
+            outputTokens: usage?.outputTokens,
+            totalCost: usage?.cost,
           },
         }),
         // Avoid foreign key constraint error by updating the logged call after the model response is created
@@ -182,24 +184,22 @@ export const externalApiRouter = createTRPCRouter({
         }),
       ]);
 
-      if (input.tags) {
-        const tagsToCreate = Object.entries(input.tags).map(([name, value]) => ({
-          loggedCallId: newLoggedCallId,
-          // sanitize tags
-          name: name.replaceAll(/[^a-zA-Z0-9_]/g, "_"),
-          value,
-        }));
+      const tagsToCreate = Object.entries(input.tags ?? {}).map(([name, value]) => ({
+        loggedCallId: newLoggedCallId,
+        // sanitize tags
+        name: name.replaceAll(/[^a-zA-Z0-9_]/g, "_"),
+        value,
+      }));
 
-        if (reqPayload.success) {
-          tagsToCreate.push({
-            loggedCallId: newLoggedCallId,
-            name: "$model",
-            value: reqPayload.data.model,
-          });
-        }
-        await prisma.loggedCallTag.createMany({
-          data: tagsToCreate,
+      if (reqPayload.success) {
+        tagsToCreate.push({
+          loggedCallId: newLoggedCallId,
+          name: "$model",
+          value: reqPayload.data.model,
         });
       }
+      await prisma.loggedCallTag.createMany({
+        data: tagsToCreate,
+      });
     }),
 });

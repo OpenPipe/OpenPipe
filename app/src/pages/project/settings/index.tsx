@@ -38,7 +38,10 @@ export default function Settings() {
         id: selectedProject.id,
         updates: { name },
       });
-      await Promise.all([utils.projects.get.invalidate({ id: selectedProject.id })]);
+      await Promise.all([
+        utils.projects.get.invalidate({ id: selectedProject.id }),
+        utils.projects.list.invalidate(),
+      ]);
     }
   }, [updateMutation, selectedProject]);
 
