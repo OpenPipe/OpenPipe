@@ -51,7 +51,7 @@ export const runAllEvals = async (experimentId: string) => {
   const outputs = await prisma.modelResponse.findMany({
     where: {
       outdated: false,
-      output: {
+      respPayload: {
         not: Prisma.AnyNull,
       },
       scenarioVariantCell: {

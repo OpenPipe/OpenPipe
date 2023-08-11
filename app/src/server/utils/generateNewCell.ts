@@ -57,7 +57,7 @@ export const generateNewCell = async (
     return;
   }
 
-  const inputHash = hashObject(parsedConstructFn);
+  const cacheKey = hashObject(parsedConstructFn);
 
   cell = await prisma.scenarioVariantCell.create({
     data: {
@@ -73,8 +73,8 @@ export const generateNewCell = async (
 
   const matchingModelResponse = await prisma.modelResponse.findFirst({
     where: {
-      inputHash,
-      output: {
+      cacheKey,
+      respPayload: {
         not: Prisma.AnyNull,
       },
     },
@@ -92,7 +92,7 @@ export const generateNewCell = async (
       data: {
         ...omit(matchingModelResponse, ["id", "scenarioVariantCell"]),
         scenarioVariantCellId: cell.id,
-        output: matchingModelResponse.output as Prisma.InputJsonValue,
+        respPayload: matchingModelResponse.respPayload as Prisma.InputJsonValue,
       },
     });
 

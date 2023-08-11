@@ -107,7 +107,7 @@ export default function OutputCell({
 
   if (disabledReason) return <Text color="gray.500">{disabledReason}</Text>;
 
-  const showLogs = !streamedMessage && !mostRecentResponse?.output;
+  const showLogs = !streamedMessage && !mostRecentResponse?.respPayload;
 
   if (showLogs)
     return (
@@ -160,13 +160,13 @@ export default function OutputCell({
       </CellWrapper>
     );
 
-  const normalizedOutput = mostRecentResponse?.output
-    ? provider.normalizeOutput(mostRecentResponse?.output)
+  const normalizedOutput = mostRecentResponse?.respPayload
+    ? provider.normalizeOutput(mostRecentResponse?.respPayload)
     : streamedMessage
     ? provider.normalizeOutput(streamedMessage)
     : null;
 
-  if (mostRecentResponse?.output && normalizedOutput?.type === "json") {
+  if (mostRecentResponse?.respPayload && normalizedOutput?.type === "json") {
     return (
       <CellWrapper>
         <SyntaxHighlighter

@@ -99,26 +99,27 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
       }
     : null;
 
-  const inputHash = hashObject(prompt as JsonValue);
+  const cacheKey = hashObject(prompt as JsonValue);
 
   let modelResponse = await prisma.modelResponse.create({
     data: {
-      inputHash,
+      cacheKey,
       scenarioVariantCellId: cellId,
       requestedAt: new Date(),
     },
   });
   const response = await provider.getCompletion(prompt.modelInput, onStream);
   if (response.type === "success") {
+    const usage = provider.getUsage(prompt.modelInput, response.value);
     modelResponse = await prisma.modelResponse.update({
       where: { id: modelResponse.id },
       data: {
-        output: response.value as Prisma.InputJsonObject,
+        respPayload: response.value as Prisma.InputJsonObject,
         statusCode: response.statusCode,
         receivedAt: new Date(),
-        promptTokens: response.promptTokens,
-        completionTokens: response.completionTokens,
-        cost: response.cost,
+        inputTokens: usage?.inputTokens,
+        outputTokens: usage?.outputTokens,
+        cost: usage?.cost,
       },
     });
 

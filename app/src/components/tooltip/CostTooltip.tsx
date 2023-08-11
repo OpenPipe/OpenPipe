@@ -2,14 +2,14 @@ import { HStack, Icon, Text, Tooltip, type TooltipProps, VStack, Divider } from 
 import { BsCurrencyDollar } from "react-icons/bs";
 
 type CostTooltipProps = {
-  promptTokens: number | null;
-  completionTokens: number | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
   cost: number;
 } & TooltipProps;
 
 export const CostTooltip = ({
-  promptTokens,
-  completionTokens,
+  inputTokens,
+  outputTokens,
   cost,
   children,
   ...props
@@ -36,12 +36,12 @@ export const CostTooltip = ({
             <HStack>
               <VStack w="28" spacing={1}>
                 <Text>Prompt</Text>
-                <Text>{promptTokens ?? 0}</Text>
+                <Text>{inputTokens ?? 0}</Text>
               </VStack>
               <Divider borderColor="gray.200" h={8} orientation="vertical" />
               <VStack w="28" spacing={1}>
                 <Text whiteSpace="nowrap">Completion</Text>
-                <Text>{completionTokens ?? 0}</Text>
+                <Text>{outputTokens ?? 0}</Text>
               </VStack>
             </HStack>
           </VStack>

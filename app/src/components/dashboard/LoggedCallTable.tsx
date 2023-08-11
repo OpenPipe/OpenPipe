@@ -90,9 +90,9 @@ function TableRow({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const isError = loggedCall.modelResponse?.respStatus !== 200;
-  const timeAgo = dayjs(loggedCall.startTime).fromNow();
-  const fullTime = dayjs(loggedCall.startTime).toString();
+  const isError = loggedCall.modelResponse?.statusCode !== 200;
+  const timeAgo = dayjs(loggedCall.requestedAt).fromNow();
+  const fullTime = dayjs(loggedCall.requestedAt).toString();
 
   const model = useMemo(
     () => loggedCall.tags.find((tag) => tag.name.startsWith("$model"))?.value,
@@ -124,7 +124,7 @@ function TableRow({
         <Td isNumeric>{loggedCall.modelResponse?.inputTokens}</Td>
         <Td isNumeric>{loggedCall.modelResponse?.outputTokens}</Td>
         <Td sx={{ color: isError ? "red.500" : "green.500", fontWeight: "semibold" }} isNumeric>
-          {loggedCall.modelResponse?.respStatus ?? "No response"}
+          {loggedCall.modelResponse?.statusCode ?? "No response"}
         </Td>
       </Tr>
       <Tr>

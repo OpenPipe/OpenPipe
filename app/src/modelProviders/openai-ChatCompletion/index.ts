@@ -4,6 +4,8 @@ import inputSchema from "./codegen/input.schema.json";
 import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
 import { getCompletion } from "./getCompletion";
 import frontendModelProvider from "./frontend";
+import { countOpenAIChatTokens } from "~/utils/countTokens";
+import { truthyFilter } from "~/utils/utils";
 
 const supportedModels = [
   "gpt-4-0613",
@@ -39,6 +41,41 @@ const modelProvider: OpenaiChatModelProvider = {
   inputSchema: inputSchema as JSONSchema4,
   canStream: true,
   getCompletion,
+  getUsage: (input, output) => {
+    if (output.choices.length === 0) return null;
+
+    const model = modelProvider.getModel(input);
+    if (!model) return null;
+
+    let inputTokens: number;
+    let outputTokens: number;
+
+    if (output.usage) {
+      inputTokens = output.usage.prompt_tokens;
+      outputTokens = output.usage.completion_tokens;
+    } else {
+      try {
+        inputTokens = countOpenAIChatTokens(model, input.messages);
+        outputTokens = countOpenAIChatTokens(
+          model,
+          output.choices.map((c) => c.message).filter(truthyFilter),
+        );
+      } catch (err) {
+        inputTokens = 0;
+        outputTokens = 0;
+        // TODO handle this, library seems like maybe it doesn't work with function calls?
+        console.error(err);
+      }
+    }
+
+    const { promptTokenPrice, completionTokenPrice } = frontendModelProvider.models[model];
+    let cost = undefined;
+    if (promptTokenPrice && completionTokenPrice && inputTokens && outputTokens) {
+      cost = inputTokens * promptTokenPrice + outputTokens * completionTokenPrice;
+    }
+
+    return { inputTokens: inputTokens, outputTokens: outputTokens, cost };
+  },
   ...frontendModelProvider,
 };
 

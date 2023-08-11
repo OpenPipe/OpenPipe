@@ -4,14 +4,10 @@ import {
   type ChatCompletion,
   type CompletionCreateParams,
 } from "openai/resources/chat";
-import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { type CompletionResponse } from "../types";
 import { isArray, isString, omit } from "lodash-es";
 import { openai } from "~/server/utils/openai";
-import { truthyFilter } from "~/utils/utils";
 import { APIError } from "openai";
-import frontendModelProvider from "./frontend";
-import modelProvider, { type SupportedModel } from ".";
 
 const mergeStreamedChunks = (
   base: ChatCompletion | null,
@@ -60,9 +56,6 @@ export async function getCompletion(
 ): Promise<CompletionResponse<ChatCompletion>> {
   const start = Date.now();
   let finalCompletion: ChatCompletion | null = null;
-  let promptTokens: number | undefined = undefined;
-  let completionTokens: number | undefined = undefined;
-  const modelName = modelProvider.getModel(input) as SupportedModel;
 
   try {
     if (onStream) {
@@ -86,16 +79,6 @@ export async function getCompletion(
           autoRetry: false,
         };
       }
-      try {
-        promptTokens = countOpenAIChatTokens(modelName, input.messages);
-        completionTokens = countOpenAIChatTokens(
-          modelName,
-          finalCompletion.choices.map((c) => c.message).filter(truthyFilter),
-        );
-      } catch (err) {
-        // TODO handle this, library seems like maybe it doesn't work with function calls?
-        console.error(err);
-      }
     } else {
       const resp = await openai.chat.completions.create(
         { ...input, stream: false },
@@ -104,25 +87,14 @@ export async function getCompletion(
         },
       );
       finalCompletion = resp;
-      promptTokens = resp.usage?.prompt_tokens ?? 0;
-      completionTokens = resp.usage?.completion_tokens ?? 0;
     }
     const timeToComplete = Date.now() - start;
-
-    const { promptTokenPrice, completionTokenPrice } = frontendModelProvider.models[modelName];
-    let cost = undefined;
-    if (promptTokenPrice && completionTokenPrice && promptTokens && completionTokens) {
-      cost = promptTokens * promptTokenPrice + completionTokens * completionTokenPrice;
-    }
 
     return {
       type: "success",
       statusCode: 200,
       value: finalCompletion,
       timeToComplete,
-      promptTokens,
-      completionTokens,
-      cost,
     };
   } catch (error: unknown) {
     if (error instanceof APIError) {

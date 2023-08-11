@@ -7,6 +7,11 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { hashRequest } from "~/server/utils/hashObject";
+import modelProvider from "~/modelProviders/openai-ChatCompletion";
+import {
+  type ChatCompletion,
+  type CompletionCreateParams,
+} from "openai/resources/chat/completions";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -16,11 +21,6 @@ const reqValidator = z.object({
 const respValidator = z.object({
   id: z.string(),
   model: z.string(),
-  usage: z.object({
-    total_tokens: z.number(),
-    prompt_tokens: z.number(),
-    completion_tokens: z.number(),
-  }),
   choices: z.array(
     z.object({
       finish_reason: z.string(),
@@ -76,7 +76,7 @@ export const externalApiRouter = createTRPCRouter({
           originalLoggedCall: true,
         },
         orderBy: {
-          startTime: "desc",
+          requestedAt: "desc",
         },
       });
 
@@ -85,7 +85,7 @@ export const externalApiRouter = createTRPCRouter({
       await prisma.loggedCall.create({
         data: {
           projectId: key.projectId,
-          startTime: new Date(input.startTime),
+          requestedAt: new Date(input.startTime),
           cacheHit: true,
           modelResponseId: existingResponse.id,
         },
@@ -140,14 +140,20 @@ export const externalApiRouter = createTRPCRouter({
       const newLoggedCallId = uuidv4();
       const newModelResponseId = uuidv4();
 
-      const usage = respPayload.success ? respPayload.data.usage : undefined;
+      let usage;
+      if (reqPayload.success && respPayload.success) {
+        usage = modelProvider.getUsage(
+          input.reqPayload as CompletionCreateParams,
+          input.respPayload as ChatCompletion,
+        );
+      }
 
       await prisma.$transaction([
         prisma.loggedCall.create({
           data: {
             id: newLoggedCallId,
             projectId: key.projectId,
-            startTime: new Date(input.startTime),
+            requestedAt: new Date(input.startTime),
             cacheHit: false,
           },
         }),
@@ -155,20 +161,17 @@ export const externalApiRouter = createTRPCRouter({
           data: {
             id: newModelResponseId,
             originalLoggedCallId: newLoggedCallId,
-            startTime: new Date(input.startTime),
-            endTime: new Date(input.endTime),
+            requestedAt: new Date(input.startTime),
+            receivedAt: new Date(input.endTime),
             reqPayload: input.reqPayload as Prisma.InputJsonValue,
             respPayload: input.respPayload as Prisma.InputJsonValue,
-            respStatus: input.respStatus,
-            error: input.error,
+            statusCode: input.respStatus,
+            errorMessage: input.error,
             durationMs: input.endTime - input.startTime,
-            ...(respPayload.success
-              ? {
-                  cacheKey: requestHash,
-                  inputTokens: usage ? usage.prompt_tokens : undefined,
-                  outputTokens: usage ? usage.completion_tokens : undefined,
-                }
-              : null),
+            cacheKey: respPayload.success ? requestHash : null,
+            inputTokens: usage?.inputTokens,
+            outputTokens: usage?.outputTokens,
+            cost: usage?.cost,
           },
         }),
         // Avoid foreign key constraint error by updating the logged call after the model response is created
@@ -182,24 +185,22 @@ export const externalApiRouter = createTRPCRouter({
         }),
       ]);
 
-      if (input.tags) {
-        const tagsToCreate = Object.entries(input.tags).map(([name, value]) => ({
-          loggedCallId: newLoggedCallId,
-          // sanitize tags
-          name: name.replaceAll(/[^a-zA-Z0-9_]/g, "_"),
-          value,
-        }));
+      const tagsToCreate = Object.entries(input.tags ?? {}).map(([name, value]) => ({
+        loggedCallId: newLoggedCallId,
+        // sanitize tags
+        name: name.replaceAll(/[^a-zA-Z0-9_]/g, "_"),
+        value,
+      }));
 
-        if (reqPayload.success) {
-          tagsToCreate.push({
-            loggedCallId: newLoggedCallId,
-            name: "$model",
-            value: reqPayload.data.model,
-          });
-        }
-        await prisma.loggedCallTag.createMany({
-          data: tagsToCreate,
+      if (reqPayload.success) {
+        tagsToCreate.push({
+          loggedCallId: newLoggedCallId,
+          name: "$model",
+          value: reqPayload.data.model,
         });
       }
+      await prisma.loggedCallTag.createMany({
+        data: tagsToCreate,
+      });
     }),
 });
