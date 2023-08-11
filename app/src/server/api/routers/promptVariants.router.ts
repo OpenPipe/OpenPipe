@@ -123,13 +123,13 @@ export const promptVariantsRouter = createTRPCRouter({
         },
         _sum: {
           cost: true,
-          promptTokens: true,
-          completionTokens: true,
+          inputTokens: true,
+          outputTokens: true,
         },
       });
 
-      const promptTokens = overallTokens._sum?.promptTokens ?? 0;
-      const completionTokens = overallTokens._sum?.completionTokens ?? 0;
+      const inputTokens = overallTokens._sum?.inputTokens ?? 0;
+      const outputTokens = overallTokens._sum?.outputTokens ?? 0;
 
       const awaitingEvals = !!evalResults.find(
         (result) => result.totalCount < scenarioCount * evals.length,
@@ -137,8 +137,8 @@ export const promptVariantsRouter = createTRPCRouter({
 
       return {
         evalResults,
-        promptTokens,
-        completionTokens,
+        inputTokens,
+        outputTokens,
         overallCost: overallTokens._sum?.cost ?? 0,
         scenarioCount,
         outputCount,

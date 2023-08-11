@@ -43,9 +43,6 @@ export type CompletionResponse<T> =
       value: T;
       timeToComplete: number;
       statusCode: number;
-      promptTokens?: number;
-      completionTokens?: number;
-      cost?: number;
     };
 
 export type ModelProvider<SupportedModels extends string, InputSchema, OutputSchema> = {
@@ -56,6 +53,10 @@ export type ModelProvider<SupportedModels extends string, InputSchema, OutputSch
     input: InputSchema,
     onStream: ((partialOutput: OutputSchema) => void) | null,
   ) => Promise<CompletionResponse<OutputSchema>>;
+  getUsage: (
+    input: InputSchema,
+    output: OutputSchema,
+  ) => { gpuRuntime?: number; inputTokens?: number; outputTokens?: number; cost?: number } | null;
 
   // This is just a convenience for type inference, don't use it at runtime
   _outputSchema?: OutputSchema | null;

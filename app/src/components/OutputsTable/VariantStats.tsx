@@ -17,8 +17,8 @@ export default function VariantStats(props: { variant: PromptVariant }) {
       initialData: {
         evalResults: [],
         overallCost: 0,
-        promptTokens: 0,
-        completionTokens: 0,
+        inputTokens: 0,
+        outputTokens: 0,
         scenarioCount: 0,
         outputCount: 0,
         awaitingEvals: false,
@@ -68,8 +68,8 @@ export default function VariantStats(props: { variant: PromptVariant }) {
       </HStack>
       {data.overallCost && (
         <CostTooltip
-          promptTokens={data.promptTokens}
-          completionTokens={data.completionTokens}
+          inputTokens={data.inputTokens}
+          outputTokens={data.outputTokens}
           cost={data.overallCost}
         >
           <HStack spacing={0} align="center" color="gray.500">

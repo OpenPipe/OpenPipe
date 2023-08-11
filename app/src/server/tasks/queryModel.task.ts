@@ -110,15 +110,16 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
   });
   const response = await provider.getCompletion(prompt.modelInput, onStream);
   if (response.type === "success") {
+    const usage = provider.getUsage(prompt.modelInput, response.value);
     modelResponse = await prisma.modelResponse.update({
       where: { id: modelResponse.id },
       data: {
         output: response.value as Prisma.InputJsonObject,
         statusCode: response.statusCode,
         receivedAt: new Date(),
-        promptTokens: response.promptTokens,
-        completionTokens: response.completionTokens,
-        cost: response.cost,
+        inputTokens: usage?.inputTokens,
+        outputTokens: usage?.outputTokens,
+        cost: usage?.cost,
       },
     });
 

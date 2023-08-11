@@ -19,8 +19,8 @@ export const OutputStats = ({
       ? modelResponse.receivedAt.getTime() - modelResponse.requestedAt.getTime()
       : 0;
 
-  const promptTokens = modelResponse.promptTokens;
-  const completionTokens = modelResponse.completionTokens;
+  const inputTokens = modelResponse.inputTokens;
+  const outputTokens = modelResponse.outputTokens;
 
   return (
     <HStack
@@ -55,8 +55,8 @@ export const OutputStats = ({
       </HStack>
       {modelResponse.cost && (
         <CostTooltip
-          promptTokens={promptTokens}
-          completionTokens={completionTokens}
+          inputTokens={inputTokens}
+          outputTokens={outputTokens}
           cost={modelResponse.cost}
         >
           <HStack spacing={0}>
