@@ -3,7 +3,7 @@ import { sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
-import { error, success } from "~/utils/standardResponses";
+import { error, success } from "~/utils/errorHandling/standardResponses";
 import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 
 export const scenarioVarsRouter = createTRPCRouter({
