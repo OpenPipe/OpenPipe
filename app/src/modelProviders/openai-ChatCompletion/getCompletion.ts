@@ -8,8 +8,6 @@ import { type CompletionResponse } from "../types";
 import { isArray, isString, omit } from "lodash-es";
 import { openai } from "~/server/utils/openai";
 import { APIError } from "openai";
-import frontendModelProvider from "./frontend";
-import modelProvider, { type SupportedModel } from ".";
 
 const mergeStreamedChunks = (
   base: ChatCompletion | null,
