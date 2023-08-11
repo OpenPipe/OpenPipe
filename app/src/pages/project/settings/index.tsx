@@ -136,10 +136,13 @@ export default function Settings() {
                   variant="outline"
                   borderRadius={4}
                   mt={2}
+                  height="auto"
                   onClick={deleteProjectOpen.onOpen}
                 >
                   <Icon as={BsTrash} />
-                  <Text>Delete {selectedProject?.name}</Text>
+                  <Text overflowWrap="break-word" whiteSpace="normal" py={2}>
+                    Delete {selectedProject?.name}
+                  </Text>
                 </HStack>
               </VStack>
             )}
