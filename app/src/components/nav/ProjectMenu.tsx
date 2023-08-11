@@ -90,7 +90,7 @@ export default function ProjectMenu() {
             </HStack>
           </NavSidebarOption>
         </PopoverTrigger>
-        <PopoverContent _focusVisible={{ outline: "unset" }} ml={-1} minW={0} w="full">
+        <PopoverContent _focusVisible={{ outline: "unset" }} ml={-1} w="auto" minW={100} maxW={280}>
           <VStack alignItems="flex-start" spacing={2} py={4} px={2}>
             <Text color="gray.500" fontSize="xs" fontWeight="bold" pb={1}>
               PROJECTS
@@ -150,6 +150,7 @@ const ProjectOption = ({
       _hover={gearHovered ? undefined : { bgColor: "gray.200", textDecoration: "none" }}
       p={2}
       borderRadius={4}
+      spacing={4}
     >
       <Text>{proj.name}</Text>
       <IconButton
