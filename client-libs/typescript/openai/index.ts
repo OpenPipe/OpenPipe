@@ -26,7 +26,7 @@ export class OpenAI extends openai.OpenAI {
       const axiosInstance = axios.create({
         baseURL: openPipeBaseUrl,
         headers: {
-          'x-openpipe-api-key': openPipeApiKey,
+          "x-openpipe-api-key": openPipeApiKey,
         },
       });
       this.openPipeApi = new openPipeClient.DefaultApi(
@@ -88,18 +88,18 @@ class ExtendedCompletions extends openai.OpenAI.Chat.Completions {
       console.log("Doing post API call for Streaming...");
       return result;
     } else {
-      const startTime = Date.now();
+      const requestedAt = Date.now();
       const result = await super.create(
         params as CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
         options
       );
       await this.openaiInstance.openPipeApi?.externalApiReport({
-        startTime,
-        endTime: Date.now(),
+        requestedAt,
+        receivedAt: Date.now(),
         reqPayload: params,
         respPayload: result,
-        respStatus: 200,
-        error: undefined,
+        statusCode: 200,
+        errorMessage: undefined,
         tags,
       });
 

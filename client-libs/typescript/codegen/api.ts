@@ -85,7 +85,7 @@ export interface ExternalApiCheckCacheRequest {
      * @type {number}
      * @memberof ExternalApiCheckCacheRequest
      */
-    'startTime': number;
+    'requestedAt': number;
     /**
      * JSON-encoded request payload
      * @type {any}
@@ -110,13 +110,13 @@ export interface ExternalApiReportRequest {
      * @type {number}
      * @memberof ExternalApiReportRequest
      */
-    'startTime': number;
+    'requestedAt': number;
     /**
      * Unix timestamp in milliseconds
      * @type {number}
      * @memberof ExternalApiReportRequest
      */
-    'endTime': number;
+    'receivedAt': number;
     /**
      * JSON-encoded request payload
      * @type {any}
@@ -134,13 +134,13 @@ export interface ExternalApiReportRequest {
      * @type {number}
      * @memberof ExternalApiReportRequest
      */
-    'respStatus'?: number;
+    'statusCode'?: number;
     /**
      * User-friendly error message
      * @type {string}
      * @memberof ExternalApiReportRequest
      */
-    'error'?: string;
+    'errorMessage'?: string;
     /**
      * Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }
      * @type {{ [key: string]: string; }}

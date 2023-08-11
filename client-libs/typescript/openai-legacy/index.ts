@@ -13,7 +13,11 @@ type OPConfigurationParameters = {
 export class Configuration extends openai.Configuration {
   public qkConfig?: openPipeClient.Configuration;
 
-  constructor(config: openai.ConfigurationParameters & { opParameters?: OPConfigurationParameters }) {
+  constructor(
+    config: openai.ConfigurationParameters & {
+      opParameters?: OPConfigurationParameters;
+    }
+  ) {
     super(config);
     if (config.opParameters) {
       this.qkConfig = new openPipeClient.Configuration(config.opParameters);
@@ -21,7 +25,9 @@ export class Configuration extends openai.Configuration {
   }
 }
 
-type CreateChatCompletion = InstanceType<typeof openai.OpenAIApi>["createChatCompletion"];
+type CreateChatCompletion = InstanceType<
+  typeof openai.OpenAIApi
+>["createChatCompletion"];
 
 export class OpenAIApi extends openai.OpenAIApi {
   public openPipeApi?: openPipeClient.DefaultApi;
@@ -37,41 +43,44 @@ export class OpenAIApi extends openai.OpenAIApi {
     createChatCompletionRequest: Parameters<CreateChatCompletion>[0],
     options?: Parameters<CreateChatCompletion>[1]
   ): ReturnType<CreateChatCompletion> {
-    const startTime = Date.now();
+    const requestedAt = Date.now();
     let resp: Awaited<ReturnType<CreateChatCompletion>> | null = null;
     let respPayload: openai.CreateChatCompletionResponse | null = null;
-    let respStatus: number | undefined = undefined;
-    let error: string | undefined;
+    let statusCode: number | undefined = undefined;
+    let errorMessage: string | undefined;
     try {
-      resp = await super.createChatCompletion(createChatCompletionRequest, options);
+      resp = await super.createChatCompletion(
+        createChatCompletionRequest,
+        options
+      );
       respPayload = resp.data;
-      respStatus = resp.status;
+      statusCode = resp.status;
     } catch (err) {
       console.error("Error in createChatCompletion");
       if ("isAxiosError" in err && err.isAxiosError) {
-        error = err.response?.data?.error?.message;
+        errorMessage = err.response?.data?.error?.message;
         respPayload = err.response?.data;
-        respStatus = err.response?.status;
+        statusCode = err.response?.status;
       } else if ("message" in err) {
-        error = err.message.toString();
+        errorMessage = err.message.toString();
       }
       throw err;
     } finally {
       this.openPipeApi
         ?.externalApiReport({
-          startTime,
-          endTime: Date.now(),
+          requestedAt,
+          receivedAt: Date.now(),
           reqPayload: createChatCompletionRequest,
           respPayload: respPayload,
-          respStatus: respStatus,
-          error,
+          statusCode: statusCode,
+          errorMessage,
           tags: {
             client: "openai-js",
             clientVersion: version,
           },
         })
         .catch((err) => {
-          console.error("Error reporting to QK", err);
+          console.error("Error reporting to OP", err);
         });
     }
 
