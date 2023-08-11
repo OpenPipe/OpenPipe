@@ -40,8 +40,15 @@ const NavSidebar = () => {
       borderRightWidth={1}
       borderColor="gray.300"
     >
-      <HStack as={Link} href="/" _hover={{ textDecoration: "none" }} spacing={0} px={2} py={2}>
-        <Image src="/logo.svg" alt="" boxSize={6} mr={4} />
+      <HStack
+        as={Link}
+        href="/"
+        _hover={{ textDecoration: "none" }}
+        spacing={{ base: 1, md: 0 }}
+        mx={2}
+        py={1}
+      >
+        <Image src="/logo.svg" alt="" boxSize={6} mr={4} ml={{ base: 0.5, md: 0 }} />
         <Heading size="md" fontFamily="inconsolata, monospace">
           OpenPipe
         </Heading>
