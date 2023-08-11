@@ -22,7 +22,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "startTime": {
+                  "requestedAt": {
                     "type": "number",
                     "description": "Unix timestamp in milliseconds"
                   },
@@ -38,7 +38,7 @@
                   }
                 },
                 "required": [
-                  "startTime"
+                  "requestedAt"
                 ],
                 "additionalProperties": false
               }
@@ -80,11 +80,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "startTime": {
+                  "requestedAt": {
                     "type": "number",
                     "description": "Unix timestamp in milliseconds"
                   },
-                  "endTime": {
+                  "receivedAt": {
                     "type": "number",
                     "description": "Unix timestamp in milliseconds"
                   },
@@ -94,11 +94,11 @@
                   "respPayload": {
                     "description": "JSON-encoded response payload"
                   },
-                  "respStatus": {
+                  "statusCode": {
                     "type": "number",
                     "description": "HTTP status code of response"
                   },
-                  "error": {
+                  "errorMessage": {
                     "type": "string",
                     "description": "User-friendly error message"
                   },
@@ -111,8 +111,8 @@
                   }
                 },
                 "required": [
-                  "startTime",
-                  "endTime"
+                  "requestedAt",
+                  "receivedAt"
                 ],
                 "additionalProperties": false
               }

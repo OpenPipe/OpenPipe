@@ -39,7 +39,7 @@ export const externalApiRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        startTime: z.number().describe("Unix timestamp in milliseconds"),
+        requestedAt: z.number().describe("Unix timestamp in milliseconds"),
         reqPayload: z.unknown().describe("JSON-encoded request payload"),
         tags: z
           .record(z.string())
@@ -85,7 +85,7 @@ export const externalApiRouter = createTRPCRouter({
       await prisma.loggedCall.create({
         data: {
           projectId: key.projectId,
-          requestedAt: new Date(input.startTime),
+          requestedAt: new Date(input.requestedAt),
           cacheHit: true,
           modelResponseId: existingResponse.id,
         },
@@ -106,12 +106,12 @@ export const externalApiRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        startTime: z.number().describe("Unix timestamp in milliseconds"),
-        endTime: z.number().describe("Unix timestamp in milliseconds"),
+        requestedAt: z.number().describe("Unix timestamp in milliseconds"),
+        receivedAt: z.number().describe("Unix timestamp in milliseconds"),
         reqPayload: z.unknown().describe("JSON-encoded request payload"),
         respPayload: z.unknown().optional().describe("JSON-encoded response payload"),
-        respStatus: z.number().optional().describe("HTTP status code of response"),
-        error: z.string().optional().describe("User-friendly error message"),
+        statusCode: z.number().optional().describe("HTTP status code of response"),
+        errorMessage: z.string().optional().describe("User-friendly error message"),
         tags: z
           .record(z.string())
           .optional()
@@ -153,7 +153,7 @@ export const externalApiRouter = createTRPCRouter({
           data: {
             id: newLoggedCallId,
             projectId: key.projectId,
-            requestedAt: new Date(input.startTime),
+            requestedAt: new Date(input.requestedAt),
             cacheHit: false,
           },
         }),
@@ -161,13 +161,13 @@ export const externalApiRouter = createTRPCRouter({
           data: {
             id: newModelResponseId,
             originalLoggedCallId: newLoggedCallId,
-            requestedAt: new Date(input.startTime),
-            receivedAt: new Date(input.endTime),
+            requestedAt: new Date(input.requestedAt),
+            receivedAt: new Date(input.receivedAt),
             reqPayload: input.reqPayload as Prisma.InputJsonValue,
             respPayload: input.respPayload as Prisma.InputJsonValue,
-            statusCode: input.respStatus,
-            errorMessage: input.error,
-            durationMs: input.endTime - input.startTime,
+            statusCode: input.statusCode,
+            errorMessage: input.errorMessage,
+            durationMs: input.receivedAt - input.requestedAt,
             cacheKey: respPayload.success ? requestHash : null,
             inputTokens: usage?.inputTokens,
             outputTokens: usage?.outputTokens,

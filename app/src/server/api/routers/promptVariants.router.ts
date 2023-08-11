@@ -3,7 +3,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/
 import { prisma } from "~/server/db";
 import { Prisma } from "@prisma/client";
 import { generateNewCell } from "~/server/utils/generateNewCell";
-import { error, success } from "~/utils/standardResponses";
+import { error, success } from "~/utils/errorHandling/standardResponses";
 import { recordExperimentUpdated } from "~/server/utils/recordExperimentUpdated";
 import { reorderPromptVariants } from "~/server/utils/reorderPromptVariants";
 import { type PromptVariant } from "@prisma/client";
