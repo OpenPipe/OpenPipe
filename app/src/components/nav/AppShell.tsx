@@ -46,7 +46,7 @@ const NavSidebar = () => {
         _hover={{ textDecoration: "none" }}
         spacing={{ base: 1, md: 0 }}
         mx={2}
-        py={1}
+        py={{ base: 1, md: 2 }}
       >
         <Image src="/logo.svg" alt="" boxSize={6} mr={4} ml={{ base: 0.5, md: 0 }} />
         <Heading size="md" fontFamily="inconsolata, monospace">
