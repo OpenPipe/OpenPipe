@@ -71,7 +71,7 @@ export const runOneEval = async (
   provider: SupportedProvider,
 ): Promise<{ result: number; details?: string }> => {
   const modelProvider = modelProviders[provider];
-  const message = modelProvider.normalizeOutput(modelResponse.output);
+  const message = modelProvider.normalizeOutput(modelResponse.respPayload);
 
   if (!message) return { result: 0 };
 

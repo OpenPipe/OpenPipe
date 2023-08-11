@@ -124,7 +124,7 @@ function TableRow({
         <Td isNumeric>{loggedCall.modelResponse?.inputTokens}</Td>
         <Td isNumeric>{loggedCall.modelResponse?.outputTokens}</Td>
         <Td sx={{ color: isError ? "red.500" : "green.500", fontWeight: "semibold" }} isNumeric>
-          {loggedCall.modelResponse?.respStatus ?? "No response"}
+          {loggedCall.modelResponse?.statusCode ?? "No response"}
         </Td>
       </Tr>
       <Tr>
