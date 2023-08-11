@@ -90,9 +90,9 @@ function TableRow({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const isError = loggedCall.modelResponse?.respStatus !== 200;
-  const timeAgo = dayjs(loggedCall.startTime).fromNow();
-  const fullTime = dayjs(loggedCall.startTime).toString();
+  const isError = loggedCall.modelResponse?.statusCode !== 200;
+  const timeAgo = dayjs(loggedCall.requestedAt).fromNow();
+  const fullTime = dayjs(loggedCall.requestedAt).toString();
 
   const model = useMemo(
     () => loggedCall.tags.find((tag) => tag.name.startsWith("$model"))?.value,

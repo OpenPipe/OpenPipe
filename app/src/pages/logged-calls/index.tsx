@@ -74,7 +74,7 @@ export default function LoggedCalls() {
                       <Icon as={DollarSign} boxSize={4} color="gray.500" />
                     </HStack>
                     <StatNumber>
-                      ${parseFloat(stats.data?.totals?.totalCost?.toString() ?? "0").toFixed(3)}
+                      ${parseFloat(stats.data?.totals?.cost?.toString() ?? "0").toFixed(3)}
                     </StatNumber>
                   </Stat>
                 </CardBody>

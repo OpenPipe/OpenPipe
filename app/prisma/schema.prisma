@@ -112,10 +112,10 @@ model ScenarioVariantCell {
 model ModelResponse {
     id String @id @default(uuid()) @db.Uuid
 
-    inputHash        String
+    cacheKey        String
     requestedAt      DateTime?
     receivedAt       DateTime?
-    output           Json?
+    respPayload      Json?
     cost             Float?
     inputTokens      Int?
     outputTokens     Int?
@@ -131,7 +131,7 @@ model ModelResponse {
     scenarioVariantCell   ScenarioVariantCell @relation(fields: [scenarioVariantCellId], references: [id], onDelete: Cascade)
     outputEvaluations     OutputEvaluation[]
 
-    @@index([inputHash])
+    @@index([cacheKey])
 }
 
 enum EvalType {
@@ -256,7 +256,7 @@ model WorldChampEntrant {
 model LoggedCall {
     id String @id @default(uuid()) @db.Uuid
 
-    startTime DateTime
+    requestedAt DateTime
 
     // True if this call was served from the cache, false otherwise
     cacheHit Boolean
@@ -278,7 +278,7 @@ model LoggedCall {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@index([startTime])
+    @@index([requestedAt])
 }
 
 model LoggedCallModelResponse {
@@ -287,14 +287,14 @@ model LoggedCallModelResponse {
     reqPayload Json
 
     // The HTTP status returned by the model provider
-    respStatus  Int?
+    statusCode  Int?
     respPayload Json?
 
     // Should be null if the request was successful, and some string if the request failed.
-    error String?
+    errorMessage String?
 
-    startTime DateTime
-    endTime   DateTime
+    requestedAt DateTime
+    receivedAt   DateTime
 
     // Note: the function to calculate the cacheKey should include the project
     // ID so we don't share cached responses between projects, which could be an
@@ -308,7 +308,7 @@ model LoggedCallModelResponse {
     outputTokens Int?
     finishReason String?
     completionId String?
-    totalCost    Decimal? @db.Decimal(18, 12)
+    cost         Decimal? @db.Decimal(18, 12)
 
     // The LoggedCall that created this LoggedCallModelResponse
     originalLoggedCallId String     @unique @db.Uuid

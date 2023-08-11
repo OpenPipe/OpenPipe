@@ -24,9 +24,9 @@ export const dashboardRouter = createTRPCRouter({
         )
         .where("projectId", "=", input.projectId)
         .select(({ fn }) => [
-          sql<Date>`date_trunc('day', "LoggedCallModelResponse"."startTime")`.as("period"),
+          sql<Date>`date_trunc('day', "LoggedCallModelResponse"."requestedAt")`.as("period"),
           sql<number>`count("LoggedCall"."id")::int`.as("numQueries"),
-          fn.sum(fn.coalesce("LoggedCallModelResponse.totalCost", sql<number>`0`)).as("totalCost"),
+          fn.sum(fn.coalesce("LoggedCallModelResponse.cost", sql<number>`0`)).as("cost"),
         ])
         .groupBy("period")
         .orderBy("period")
@@ -57,7 +57,7 @@ export const dashboardRouter = createTRPCRouter({
           backfilledPeriods.unshift({
             period: dayjs(dayToMatch).toDate(),
             numQueries: 0,
-            totalCost: 0,
+            cost: 0,
           });
         }
         dayToMatch = dayToMatch.subtract(1, "day");
@@ -72,7 +72,7 @@ export const dashboardRouter = createTRPCRouter({
         )
         .where("projectId", "=", input.projectId)
         .select(({ fn }) => [
-          fn.sum(fn.coalesce("LoggedCallModelResponse.totalCost", sql<number>`0`)).as("totalCost"),
+          fn.sum(fn.coalesce("LoggedCallModelResponse.cost", sql<number>`0`)).as("cost"),
           fn.count("LoggedCall.id").as("numQueries"),
         ])
         .executeTakeFirst();
@@ -85,8 +85,8 @@ export const dashboardRouter = createTRPCRouter({
           "LoggedCall.id",
           "LoggedCallModelResponse.originalLoggedCallId",
         )
-        .select(({ fn }) => [fn.count("LoggedCall.id").as("count"), "respStatus as code"])
-        .where("respStatus", ">", 200)
+        .select(({ fn }) => [fn.count("LoggedCall.id").as("count"), "statusCode as code"])
+        .where("statusCode", ">", 200)
         .groupBy("code")
         .orderBy("count", "desc")
         .execute();
@@ -108,7 +108,7 @@ export const dashboardRouter = createTRPCRouter({
   // https://discord.com/channels/966627436387266600/1122258443886153758/1122258443886153758
   loggedCalls: publicProcedure.input(z.object({})).query(async ({ input }) => {
     const loggedCalls = await prisma.loggedCall.findMany({
-      orderBy: { startTime: "desc" },
+      orderBy: { requestedAt: "desc" },
       include: { tags: true, modelResponse: true },
       take: 20,
     });

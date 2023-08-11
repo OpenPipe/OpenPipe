@@ -339,17 +339,17 @@ for (let i = 0; i < 1437; i++) {
     MODEL_RESPONSE_TEMPLATES[Math.floor(Math.random() * MODEL_RESPONSE_TEMPLATES.length)]!;
   const model = template.reqPayload.model;
   // choose random time in the last two weeks, with a bias towards the last few days
-  const startTime = new Date(Date.now() - Math.pow(Math.random(), 2) * 1000 * 60 * 60 * 24 * 14);
+  const requestedAt = new Date(Date.now() - Math.pow(Math.random(), 2) * 1000 * 60 * 60 * 24 * 14);
   // choose random delay anywhere from 2 to 10 seconds later for gpt-4, or 1 to 5 seconds for gpt-3.5
   const delay =
     model === "gpt-4" ? 1000 * 2 + Math.random() * 1000 * 8 : 1000 + Math.random() * 1000 * 4;
-  const endTime = new Date(startTime.getTime() + delay);
+  const receivedAt = new Date(requestedAt.getTime() + delay);
   loggedCallsToCreate.push({
     id: loggedCallId,
     cacheHit: false,
-    startTime,
+    requestedAt,
     projectId: project.id,
-    createdAt: startTime,
+    createdAt: requestedAt,
   });
 
   const { promptTokenPrice, completionTokenPrice } =
@@ -365,21 +365,20 @@ for (let i = 0; i < 1437; i++) {
 
   loggedCallModelResponsesToCreate.push({
     id: loggedCallModelResponseId,
-    startTime,
-    endTime,
+    requestedAt,
+    receivedAt,
     originalLoggedCallId: loggedCallId,
     reqPayload: template.reqPayload,
     respPayload: template.respPayload,
-    respStatus: template.respStatus,
-    error: template.error,
-    createdAt: startTime,
+    statusCode: template.respStatus,
+    errorMessage: template.error,
+    createdAt: requestedAt,
     cacheKey: hashRequest(project.id, template.reqPayload as JsonValue),
-    durationMs: endTime.getTime() - startTime.getTime(),
+    durationMs: receivedAt.getTime() - requestedAt.getTime(),
     inputTokens: template.inputTokens,
     outputTokens: template.outputTokens,
     finishReason: template.finishReason,
-    totalCost:
-      template.inputTokens * promptTokenPrice + template.outputTokens * completionTokenPrice,
+    cost: template.inputTokens * promptTokenPrice + template.outputTokens * completionTokenPrice,
   });
   loggedCallsToUpdate.push({
     where: {

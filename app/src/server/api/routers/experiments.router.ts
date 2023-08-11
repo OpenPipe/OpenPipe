@@ -227,7 +227,7 @@ export const experimentsRouter = createTRPCRouter({
             ...modelResponseData,
             id: newModelResponseId,
             scenarioVariantCellId: newCellId,
-            output: (modelResponse.output as Prisma.InputJsonValue) ?? undefined,
+            respPayload: (modelResponse.respPayload as Prisma.InputJsonValue) ?? undefined,
           });
           for (const evaluation of outputEvaluations) {
             outputEvaluationsToCreate.push({

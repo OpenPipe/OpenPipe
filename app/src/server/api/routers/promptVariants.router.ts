@@ -55,7 +55,7 @@ export const promptVariantsRouter = createTRPCRouter({
         where: {
           modelResponse: {
             outdated: false,
-            output: { not: Prisma.AnyNull },
+            respPayload: { not: Prisma.AnyNull },
             scenarioVariantCell: {
               promptVariant: {
                 id: input.variantId,
@@ -100,7 +100,7 @@ export const promptVariantsRouter = createTRPCRouter({
           modelResponses: {
             some: {
               outdated: false,
-              output: {
+              respPayload: {
                 not: Prisma.AnyNull,
               },
             },
@@ -111,7 +111,7 @@ export const promptVariantsRouter = createTRPCRouter({
       const overallTokens = await prisma.modelResponse.aggregate({
         where: {
           outdated: false,
-          output: {
+          respPayload: {
             not: Prisma.AnyNull,
           },
           scenarioVariantCell: {

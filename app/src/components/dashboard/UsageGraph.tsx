@@ -24,10 +24,10 @@ export default function UsageGraph() {
 
   const data = useMemo(() => {
     return (
-      stats.data?.periods.map(({ period, numQueries, totalCost }) => ({
+      stats.data?.periods.map(({ period, numQueries, cost }) => ({
         period,
         Requests: numQueries,
-        "Total Spent (USD)": parseFloat(totalCost.toString()),
+        "Total Spent (USD)": parseFloat(cost.toString()),
       })) || []
     );
   }, [stats.data]);

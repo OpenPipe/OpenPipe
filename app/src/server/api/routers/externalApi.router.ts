@@ -8,7 +8,10 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { hashRequest } from "~/server/utils/hashObject";
 import modelProvider from "~/modelProviders/openai-ChatCompletion";
-import { ChatCompletion, CompletionCreateParams } from "openai/resources/chat/completions";
+import {
+  type ChatCompletion,
+  type CompletionCreateParams,
+} from "openai/resources/chat/completions";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -73,7 +76,7 @@ export const externalApiRouter = createTRPCRouter({
           originalLoggedCall: true,
         },
         orderBy: {
-          startTime: "desc",
+          requestedAt: "desc",
         },
       });
 
@@ -82,7 +85,7 @@ export const externalApiRouter = createTRPCRouter({
       await prisma.loggedCall.create({
         data: {
           projectId: key.projectId,
-          startTime: new Date(input.startTime),
+          requestedAt: new Date(input.startTime),
           cacheHit: true,
           modelResponseId: existingResponse.id,
         },
@@ -138,13 +141,11 @@ export const externalApiRouter = createTRPCRouter({
       const newModelResponseId = uuidv4();
 
       let usage;
-      let model;
       if (reqPayload.success && respPayload.success) {
         usage = modelProvider.getUsage(
           input.reqPayload as CompletionCreateParams,
           input.respPayload as ChatCompletion,
         );
-        model = modelProvider.getModel(input.reqPayload as CompletionCreateParams);
       }
 
       await prisma.$transaction([
@@ -152,7 +153,7 @@ export const externalApiRouter = createTRPCRouter({
           data: {
             id: newLoggedCallId,
             projectId: key.projectId,
-            startTime: new Date(input.startTime),
+            requestedAt: new Date(input.startTime),
             cacheHit: false,
           },
         }),
@@ -160,17 +161,17 @@ export const externalApiRouter = createTRPCRouter({
           data: {
             id: newModelResponseId,
             originalLoggedCallId: newLoggedCallId,
-            startTime: new Date(input.startTime),
-            endTime: new Date(input.endTime),
+            requestedAt: new Date(input.startTime),
+            receivedAt: new Date(input.endTime),
             reqPayload: input.reqPayload as Prisma.InputJsonValue,
             respPayload: input.respPayload as Prisma.InputJsonValue,
-            respStatus: input.respStatus,
-            error: input.error,
+            statusCode: input.respStatus,
+            errorMessage: input.error,
             durationMs: input.endTime - input.startTime,
             cacheKey: respPayload.success ? requestHash : null,
             inputTokens: usage?.inputTokens,
             outputTokens: usage?.outputTokens,
-            totalCost: usage?.cost,
+            cost: usage?.cost,
           },
         }),
         // Avoid foreign key constraint error by updating the logged call after the model response is created
