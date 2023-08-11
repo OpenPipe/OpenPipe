@@ -5,7 +5,6 @@ import {
   type TextProps,
   VStack,
   HStack,
-  Input,
   Button,
   Divider,
   Icon,
