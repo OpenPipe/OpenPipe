@@ -15,7 +15,6 @@ import {
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { useMemo } from "react";
 import Link from "next/link";
 
 import { type RouterOutputs } from "~/utils/api";
@@ -53,9 +52,11 @@ export const TableRow = ({
 
   const durationCell = (
     <Td isNumeric>
-      {loggedCall.cacheHit
-        ? "Cache hit"
-        : ((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2) + "s"}
+      {loggedCall.cacheHit ? (
+        <Text color="gray.500">Cached</Text>
+      ) : (
+        ((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2) + "s"
+      )}
     </Td>
   );
 
