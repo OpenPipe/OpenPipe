@@ -3,7 +3,6 @@ import { readEnv, type RequestOptions } from "openai-beta/core";
 import { CompletionCreateParams } from "openai-beta/resources/chat/completions";
 import axios from "axios";
 
-export * as openai from "openai-beta";
 import * as openPipeClient from "../codegen";
 
 interface ClientOptions extends openai.ClientOptions {
@@ -11,7 +10,7 @@ interface ClientOptions extends openai.ClientOptions {
   openPipeBaseUrl?: string;
 }
 
-export class OpenAI extends openai.OpenAI {
+export default class OpenAI extends openai.OpenAI {
   public openPipeApi?: openPipeClient.DefaultApi;
 
   constructor({
@@ -74,37 +73,37 @@ class ExtendedCompletions extends openai.OpenAI.Chat.Completions {
     options?: RequestOptions,
     tags?: Record<string, string>
   ): Promise<any> {
-    // Your pre API call logic here
-    console.log("Doing pre API call...");
+    // // Your pre API call logic here
+    // console.log("Doing pre API call...");
 
-    // Determine the type of request
-    if (params.hasOwnProperty("stream") && params.stream === true) {
-      const result = await super.create(
-        params as CompletionCreateParams.CreateChatCompletionRequestStreaming,
-        options
-      );
-      // Your post API call logic here
-      console.log("Doing post API call for Streaming...");
-      return result;
-    } else {
-      const requestedAt = Date.now();
-      const result = await super.create(
-        params as CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
-        options
-      );
-      await this.openaiInstance.openPipeApi?.externalApiReport({
-        requestedAt,
-        receivedAt: Date.now(),
-        reqPayload: params,
-        respPayload: result,
-        statusCode: 200,
-        errorMessage: undefined,
-        tags,
-      });
+    // // Determine the type of request
+    // if (params.hasOwnProperty("stream") && params.stream === true) {
+    //   const result = await super.create(
+    //     params as CompletionCreateParams.CreateChatCompletionRequestStreaming,
+    //     options
+    //   );
+    //   // Your post API call logic here
+    //   console.log("Doing post API call for Streaming...");
+    //   return result;
+    // } else {
+    //   const requestedAt = Date.now();
+    const result = await super.create(
+      params as CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
+      options
+    );
+    return result;
+    //   await this.openaiInstance.openPipeApi?.externalApiReport({
+    //     requestedAt,
+    //     receivedAt: Date.now(),
+    //     reqPayload: params,
+    //     respPayload: result,
+    //     statusCode: 200,
+    //     errorMessage: undefined,
+    //     tags,
+    //   });
 
-      // Your post API call logic here
-      console.log("Doing post API call for NonStreaming...");
-      return result;
-    }
+    //   console.log("GOT RESULT", result);
+    //   return result;
+    // }
   }
 }
