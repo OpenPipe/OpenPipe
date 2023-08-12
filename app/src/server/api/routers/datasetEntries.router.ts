@@ -29,8 +29,6 @@ export const datasetEntries = createTRPCRouter({
 
       return {
         entries,
-        startIndex: (page - 1) * pageSize + 1,
-        lastPage: Math.ceil(count / pageSize),
         count,
       };
     }),

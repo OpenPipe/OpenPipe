@@ -27,6 +27,7 @@ import { useSelectedProject } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import LoggedCallTable from "~/components/dashboard/LoggedCallTable";
 import UsageGraph from "~/components/dashboard/UsageGraph";
+import LoggedCallsPaginator from "~/components/dashboard/LoggedCallsPaginator";
 
 export default function LoggedCalls() {
   const { data: selectedProject } = useSelectedProject();
@@ -48,7 +49,7 @@ export default function LoggedCalls() {
           </BreadcrumbItem>
         </Breadcrumb>
       </PageHeaderContainer>
-      <VStack px={8} pt={4} alignItems="flex-start" spacing={4}>
+      <VStack px={8} py={4} alignItems="flex-start" spacing={4}>
         <Text fontSize="2xl" fontWeight="bold">
           {selectedProject?.name}
         </Text>
@@ -121,6 +122,7 @@ export default function LoggedCalls() {
             </VStack>
           </HStack>
           <LoggedCallTable />
+          <LoggedCallsPaginator />
         </VStack>
       </VStack>
     </AppShell>

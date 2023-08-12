@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
+import { requireCanViewProject } from "~/utils/accessControl";
 import dayjs from "~/utils/dayjs";
 
 export const dashboardRouter = createTRPCRouter({
@@ -13,7 +14,8 @@ export const dashboardRouter = createTRPCRouter({
         projectId: z.string(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      await requireCanViewProject(input.projectId, ctx);
       // Return the stats group by hour
       const periods = await kysely
         .selectFrom("LoggedCall")
@@ -106,13 +108,25 @@ export const dashboardRouter = createTRPCRouter({
 
   // TODO useInfiniteQuery
   // https://discord.com/channels/966627436387266600/1122258443886153758/1122258443886153758
-  loggedCalls: publicProcedure.input(z.object({})).query(async ({ input }) => {
-    const loggedCalls = await prisma.loggedCall.findMany({
-      orderBy: { requestedAt: "desc" },
-      include: { tags: true, modelResponse: true },
-      take: 20,
-    });
+  loggedCalls: publicProcedure
+    .input(z.object({ projectId: z.string(), page: z.number(), pageSize: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const { projectId, page, pageSize } = input;
 
-    return loggedCalls;
-  }),
+      await requireCanViewProject(projectId, ctx);
+
+      const calls = await prisma.loggedCall.findMany({
+        where: { projectId },
+        orderBy: { requestedAt: "desc" },
+        include: { tags: true, modelResponse: true },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      });
+
+      const count = await prisma.loggedCall.count({
+        where: { projectId },
+      });
+
+      return { count, calls };
+    }),
 });

@@ -175,3 +175,13 @@ export const useScenarioVars = () => {
     { enabled: experiment.data?.id != null },
   );
 };
+
+export const useLoggedCalls = () => {
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const { page, pageSize } = usePageParams();
+
+  return api.dashboard.loggedCalls.useQuery(
+    { projectId: selectedProjectId ?? "", page, pageSize },
+    { enabled: !!selectedProjectId },
+  );
+};
