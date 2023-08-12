@@ -70,15 +70,9 @@ export const externalApiRouter = createTRPCRouter({
       const cacheKey = hashRequest(key.projectId, reqPayload as JsonValue);
 
       const existingResponse = await prisma.loggedCallModelResponse.findFirst({
-        where: {
-          cacheKey,
-        },
-        include: {
-          originalLoggedCall: true,
-        },
-        orderBy: {
-          requestedAt: "desc",
-        },
+        where: { cacheKey },
+        include: { originalLoggedCall: true },
+        orderBy: { requestedAt: "desc" },
       });
 
       if (!existingResponse) return { respPayload: null };

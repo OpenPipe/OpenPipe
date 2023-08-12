@@ -1,22 +1,23 @@
 import openai as original_openai
+from openai.openai_object import OpenAIObject
 import time
 import inspect
 
 from openpipe.merge_openai_chunks import merge_streamed_chunks
 
-from .shared import report_async, report
+from .shared import maybe_check_cache, maybe_check_cache_async, report_async, report
 
 
-class ChatCompletionWrapper:
-    def __getattr__(self, name):
-        return getattr(original_openai.ChatCompletion, name)
-
-    def __setattr__(self, name, value):
-        return setattr(original_openai.ChatCompletion, name, value)
-
+class WrappedChatCompletion(original_openai.ChatCompletion):
     @classmethod
     def create(cls, *args, **kwargs):
         openpipe_options = kwargs.pop("openpipe", {})
+
+        cached_response = maybe_check_cache(
+            openpipe_options=openpipe_options, req_payload=kwargs
+        )
+        if cached_response:
+            return OpenAIObject.construct_from(cached_response, api_key=None)
 
         requested_at = int(time.time() * 1000)
 
@@ -86,6 +87,12 @@ class ChatCompletionWrapper:
     async def acreate(cls, *args, **kwargs):
         openpipe_options = kwargs.pop("openpipe", {})
 
+        cached_response = await maybe_check_cache_async(
+            openpipe_options=openpipe_options, req_payload=kwargs
+        )
+        if cached_response:
+            return OpenAIObject.construct_from(cached_response, api_key=None)
+
         requested_at = int(time.time() * 1000)
 
         try:
@@ -152,13 +159,10 @@ class ChatCompletionWrapper:
 
 
 class OpenAIWrapper:
-    ChatCompletion = ChatCompletionWrapper()
+    ChatCompletion = WrappedChatCompletion()
 
     def __getattr__(self, name):
         return getattr(original_openai, name)
 
     def __setattr__(self, name, value):
         return setattr(original_openai, name, value)
-
-    def __dir__(self):
-        return dir(original_openai) + ["openpipe_base_url", "openpipe_api_key"]
