@@ -80,6 +80,7 @@ export default function Settings() {
             borderWidth={1}
             borderRadius={4}
             borderColor="gray.300"
+            bgColor="white"
             p={6}
             spacing={6}
           >

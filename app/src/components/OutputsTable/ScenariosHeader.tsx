@@ -48,7 +48,20 @@ export const ScenariosHeader = () => {
   );
 
   return (
-    <HStack w="100%" pb={cellPadding.y} pt={0} align="center" spacing={0}>
+    <HStack
+      w="100%"
+      py={cellPadding.y}
+      px={cellPadding.x}
+      align="center"
+      spacing={0}
+      borderTopRightRadius={8}
+      borderTopLeftRadius={8}
+      bgColor="white"
+      borderWidth={1}
+      borderBottomWidth={0}
+      borderColor="gray.300"
+      mt={8}
+    >
       <Text fontSize={16} fontWeight="bold">
         Scenarios ({scenarios.data?.count})
       </Text>

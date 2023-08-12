@@ -53,20 +53,29 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           colStart: i + 2,
           borderLeftWidth: i === 0 ? 1 : 0,
           marginLeft: i === 0 ? "-1px" : 0,
-          backgroundColor: "gray.100",
+          backgroundColor: "white",
         };
+        const isFirst = i === 0;
+        const isLast = i === variants.data.length - 1;
         return (
           <Fragment key={variant.uiId}>
             <VariantHeader
               variant={variant}
               canHide={variants.data.length > 1}
               rowStart={1}
+              borderTopLeftRadius={isFirst ? 8 : 0}
+              borderTopRightRadius={isLast ? 8 : 0}
               {...sharedProps}
             />
             <GridItem rowStart={2} {...sharedProps}>
               <VariantEditor variant={variant} />
             </GridItem>
-            <GridItem rowStart={3} {...sharedProps}>
+            <GridItem
+              rowStart={3}
+              {...sharedProps}
+              borderBottomLeftRadius={isFirst ? 8 : 0}
+              borderBottomRightRadius={isLast ? 8 : 0}
+            >
               <VariantStats variant={variant} />
             </GridItem>
           </Fragment>
@@ -90,6 +99,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           scenario={scenario}
           variants={variants.data}
           canHide={visibleScenariosCount > 1}
+          isLast={i === visibleScenariosCount - 1}
         />
       ))}
       <GridItem

@@ -54,6 +54,7 @@ const Paginator = ({
               value={pageSize}
               onChange={(e) => updatePageSize(parseInt(e.target.value))}
               w={20}
+              backgroundColor="white"
             >
               {pageSizeOptions.map((option) => (
                 <option key={option} value={option}>
@@ -76,6 +77,7 @@ const Paginator = ({
           isDisabled={page === 1}
           aria-label="Go to first page"
           icon={<Icon as={FiChevronsLeft} boxSize={5} strokeWidth={1.5} />}
+          bgColor="white"
         />
         <IconButton
           variant="outline"
@@ -84,6 +86,7 @@ const Paginator = ({
           isDisabled={page === 1}
           aria-label="Previous page"
           icon={<Icon as={FiChevronLeft} boxSize={5} strokeWidth={1.5} />}
+          bgColor="white"
         />
         {condense && (
           <Text>
@@ -97,6 +100,7 @@ const Paginator = ({
           isDisabled={page === lastPage}
           aria-label="Next page"
           icon={<Icon as={FiChevronRight} boxSize={5} strokeWidth={1.5} />}
+          bgColor="white"
         />
         <IconButton
           variant="outline"
@@ -105,6 +109,7 @@ const Paginator = ({
           isDisabled={page === lastPage}
           aria-label="Go to last page"
           icon={<Icon as={FiChevronsRight} boxSize={5} strokeWidth={1.5} />}
+          bgColor="white"
         />
       </HStack>
     </HStack>

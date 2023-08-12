@@ -15,14 +15,10 @@ import {
   Tr,
   Td,
   Divider,
-  Breadcrumb,
-  BreadcrumbItem,
 } from "@chakra-ui/react";
 import { Ban, DollarSign, Hash } from "lucide-react";
 
 import AppShell from "~/components/nav/AppShell";
-import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
-import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import { useSelectedProject } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import LoggedCallsTable from "~/components/dashboard/LoggedCallsTable";
@@ -38,24 +34,14 @@ export default function Dashboard() {
 
   return (
     <AppShell title="Dashboard" requireAuth>
-      <PageHeaderContainer>
-        <Breadcrumb>
-          <BreadcrumbItem>
-            <ProjectBreadcrumbContents />
-          </BreadcrumbItem>
-          <BreadcrumbItem isCurrentPage>
-            <Text>Dashboard</Text>
-          </BreadcrumbItem>
-        </Breadcrumb>
-      </PageHeaderContainer>
-      <VStack px={8} py={4} alignItems="flex-start" spacing={4}>
+      <VStack px={8} py={8} alignItems="flex-start" spacing={4}>
         <Text fontSize="2xl" fontWeight="bold">
-          {selectedProject?.name}
+          Dashboard
         </Text>
         <Divider />
         <VStack margin="auto" spacing={4} align="stretch" w="full">
           <HStack gap={4} align="start">
-            <Card variant="outline" flex={1}>
+            <Card flex={1}>
               <CardHeader>
                 <Heading as="h3" size="sm">
                   Usage Statistics
@@ -66,7 +52,7 @@ export default function Dashboard() {
               </CardBody>
             </Card>
             <VStack spacing="4" width="300px" align="stretch">
-              <Card variant="outline">
+              <Card>
                 <CardBody>
                   <Stat>
                     <HStack>
@@ -79,7 +65,7 @@ export default function Dashboard() {
                   </Stat>
                 </CardBody>
               </Card>
-              <Card variant="outline">
+              <Card>
                 <CardBody>
                   <Stat>
                     <HStack>
@@ -94,7 +80,7 @@ export default function Dashboard() {
                   </Stat>
                 </CardBody>
               </Card>
-              <Card variant="outline" overflow="hidden">
+              <Card overflow="hidden">
                 <Stat>
                   <CardHeader>
                     <HStack>

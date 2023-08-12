@@ -1,25 +1,17 @@
-import { Text, VStack, Breadcrumb, BreadcrumbItem } from "@chakra-ui/react";
+import { Text, VStack, Divider } from "@chakra-ui/react";
 
 import AppShell from "~/components/nav/AppShell";
-import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
-import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import LoggedCallTable from "~/components/requestLogs/LoggedCallsTable";
 import LoggedCallsPaginator from "~/components/requestLogs/LoggedCallsPaginator";
 
 export default function LoggedCalls() {
   return (
     <AppShell title="Request Logs" requireAuth>
-      <PageHeaderContainer>
-        <Breadcrumb>
-          <BreadcrumbItem>
-            <ProjectBreadcrumbContents />
-          </BreadcrumbItem>
-          <BreadcrumbItem isCurrentPage>
-            <Text>Request Logs</Text>
-          </BreadcrumbItem>
-        </Breadcrumb>
-      </PageHeaderContainer>
-      <VStack px={8} py={4} alignItems="flex-start" spacing={4}>
+      <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
+        <Text fontSize="2xl" fontWeight="bold">
+          Request Logs
+        </Text>
+        <Divider />
         <LoggedCallTable />
         <LoggedCallsPaginator />
       </VStack>

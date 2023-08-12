@@ -75,7 +75,7 @@ export default function VariantHeader(
       padding={0}
       sx={{
         position: "sticky",
-        top: "0",
+        top: "-2",
         // Ensure that the menu always appears above the sticky header of other variants
         zIndex: menuOpen ? "dropdown" : 10,
       }}
@@ -84,6 +84,7 @@ export default function VariantHeader(
     >
       <HStack
         spacing={2}
+        py={2}
         alignItems="flex-start"
         minH={headerMinHeight}
         draggable={!isInputHovered}
@@ -102,7 +103,8 @@ export default function VariantHeader(
           setIsDragTarget(false);
         }}
         onDrop={onReorder}
-        backgroundColor={isDragTarget ? "gray.200" : "gray.100"}
+        backgroundColor={isDragTarget ? "gray.200" : "white"}
+        borderTopLeftRadius={gridItemProps.borderTopLeftRadius}
         h="full"
       >
         <Icon

@@ -9,11 +9,11 @@ export default function LoggedCallsTable() {
   const { data: loggedCalls } = useLoggedCalls();
 
   return (
-    <Card variant="outline" width="100%" overflow="hidden">
+    <Card width="100%" overflow="hidden">
       <CardHeader>
         <HStack justifyContent="space-between">
           <Heading as="h3" size="sm">
-            Logged Calls
+            Request Logs
           </Heading>
           <Button as={Link} href="/request-logs" variant="ghost" colorScheme="blue">
             <Text>View All</Text>
