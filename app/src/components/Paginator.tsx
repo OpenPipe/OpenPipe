@@ -40,7 +40,6 @@ const Paginator = ({
   return (
     <HStack
       pt={4}
-      px={4}
       spacing={8}
       justifyContent={condense ? "flex-start" : "space-between"}
       alignItems="center"
@@ -76,7 +75,7 @@ const Paginator = ({
           onClick={goToFirstPage}
           isDisabled={page === 1}
           aria-label="Go to first page"
-          icon={<Icon as={FiChevronsLeft} boxSize={6} strokeWidth={1.5} />}
+          icon={<Icon as={FiChevronsLeft} boxSize={5} strokeWidth={1.5} />}
         />
         <IconButton
           variant="outline"
@@ -84,7 +83,7 @@ const Paginator = ({
           onClick={prevPage}
           isDisabled={page === 1}
           aria-label="Previous page"
-          icon={<Icon as={FiChevronLeft} boxSize={6} strokeWidth={1.5} />}
+          icon={<Icon as={FiChevronLeft} boxSize={5} strokeWidth={1.5} />}
         />
         {condense && (
           <Text>
@@ -97,7 +96,7 @@ const Paginator = ({
           onClick={nextPage}
           isDisabled={page === lastPage}
           aria-label="Next page"
-          icon={<Icon as={FiChevronRight} boxSize={6} strokeWidth={1.5} />}
+          icon={<Icon as={FiChevronRight} boxSize={5} strokeWidth={1.5} />}
         />
         <IconButton
           variant="outline"
@@ -105,7 +104,7 @@ const Paginator = ({
           onClick={goToLastPage}
           isDisabled={page === lastPage}
           aria-label="Go to last page"
-          icon={<Icon as={FiChevronsRight} boxSize={6} strokeWidth={1.5} />}
+          icon={<Icon as={FiChevronsRight} boxSize={5} strokeWidth={1.5} />}
         />
       </HStack>
     </HStack>
