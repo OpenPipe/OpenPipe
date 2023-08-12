@@ -197,26 +197,6 @@ const ProjectOption = ({
       spacing={4}
     >
       <Text>{proj.name}</Text>
-      <IconButton
-        as={Link}
-        href="/project/settings"
-        aria-label={`Open ${proj.name} settings`}
-        icon={
-          <Icon
-            as={BsGear}
-            boxSize={5}
-            strokeWidth={0.5}
-            color={isActive ? "blue.400" : "gray.500"}
-          />
-        }
-        variant="ghost"
-        size="xs"
-        p={0}
-        onMouseEnter={() => setGearHovered(true)}
-        onMouseLeave={() => setGearHovered(false)}
-        _hover={{ bgColor: isActive ? "gray.300" : "gray.100", transitionDelay: 0 }}
-        borderRadius={4}
-      />
     </HStack>
   );
 };
