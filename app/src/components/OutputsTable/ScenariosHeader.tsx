@@ -48,7 +48,20 @@ export const ScenariosHeader = () => {
   );
 
   return (
-    <HStack w="100%" pb={cellPadding.y} pt={0} align="center" spacing={0}>
+    <HStack
+      w="100%"
+      py={cellPadding.y}
+      px={cellPadding.x}
+      align="center"
+      spacing={0}
+      borderTopRightRadius={8}
+      borderTopLeftRadius={8}
+      bgColor="white"
+      borderWidth={1}
+      borderBottomWidth={0}
+      borderColor="gray.300"
+      mt={8}
+    >
       <Text fontSize={16} fontWeight="bold">
         Scenarios ({scenarios.data?.count})
       </Text>
@@ -57,11 +70,16 @@ export const ScenariosHeader = () => {
           <MenuButton
             as={IconButton}
             mt={1}
+            ml={2}
             variant="ghost"
             aria-label="Edit Scenarios"
             icon={<Icon as={loading ? Spinner : BsGear} />}
+            maxW={8}
+            minW={8}
+            minH={8}
+            maxH={8}
           />
-          <MenuList fontSize="md" zIndex="dropdown" mt={-3}>
+          <MenuList fontSize="md" zIndex="dropdown" mt={-1}>
             <MenuItem
               icon={<Icon as={BsPlus} boxSize={6} mx="-5px" />}
               onClick={() => onAddScenario(false)}

@@ -33,25 +33,11 @@ export default function AddVariantButton() {
     <Flex w="100%" justifyContent="flex-end">
       <ActionButton
         onClick={onClick}
-        py={5}
+        py={7}
         leftIcon={<Icon as={loading ? Spinner : BsPlus} boxSize={6} mr={loading ? 1 : 0} />}
       >
         <Text display={{ base: "none", md: "flex" }}>Add Variant</Text>
       </ActionButton>
-      {/* <Button
-        alignItems="center"
-        justifyContent="center"
-        fontWeight="normal"
-        bgColor="transparent"
-        _hover={{ bgColor: "gray.100" }}
-        px={cellPadding.x}
-        onClick={onClick}
-        height="unset"
-        minH={headerMinHeight}
-      >
-        <Icon as={loading ? Spinner : BsPlus} boxSize={6} mr={loading ? 1 : 0} />
-        <Text display={{ base: "none", md: "flex" }}>Add Variant</Text>
-      </Button> */}
     </Flex>
   );
 }

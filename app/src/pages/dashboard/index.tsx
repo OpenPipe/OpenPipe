@@ -15,21 +15,16 @@ import {
   Tr,
   Td,
   Divider,
-  Breadcrumb,
-  BreadcrumbItem,
 } from "@chakra-ui/react";
 import { Ban, DollarSign, Hash } from "lucide-react";
 
 import AppShell from "~/components/nav/AppShell";
-import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
-import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import { useSelectedProject } from "~/utils/hooks";
 import { api } from "~/utils/api";
-import LoggedCallTable from "~/components/dashboard/LoggedCallTable";
+import LoggedCallsTable from "~/components/dashboard/LoggedCallsTable";
 import UsageGraph from "~/components/dashboard/UsageGraph";
-import LoggedCallsPaginator from "~/components/dashboard/LoggedCallsPaginator";
 
-export default function LoggedCalls() {
+export default function Dashboard() {
   const { data: selectedProject } = useSelectedProject();
 
   const stats = api.dashboard.stats.useQuery(
@@ -38,25 +33,15 @@ export default function LoggedCalls() {
   );
 
   return (
-    <AppShell title="Logged Calls" requireAuth>
-      <PageHeaderContainer>
-        <Breadcrumb>
-          <BreadcrumbItem>
-            <ProjectBreadcrumbContents />
-          </BreadcrumbItem>
-          <BreadcrumbItem isCurrentPage>
-            <Text>Logged Calls</Text>
-          </BreadcrumbItem>
-        </Breadcrumb>
-      </PageHeaderContainer>
-      <VStack px={8} py={4} alignItems="flex-start" spacing={4}>
+    <AppShell title="Dashboard" requireAuth>
+      <VStack px={8} py={8} alignItems="flex-start" spacing={4}>
         <Text fontSize="2xl" fontWeight="bold">
-          {selectedProject?.name}
+          Dashboard
         </Text>
         <Divider />
         <VStack margin="auto" spacing={4} align="stretch" w="full">
           <HStack gap={4} align="start">
-            <Card variant="outline" flex={1}>
+            <Card flex={1}>
               <CardHeader>
                 <Heading as="h3" size="sm">
                   Usage Statistics
@@ -67,7 +52,7 @@ export default function LoggedCalls() {
               </CardBody>
             </Card>
             <VStack spacing="4" width="300px" align="stretch">
-              <Card variant="outline">
+              <Card>
                 <CardBody>
                   <Stat>
                     <HStack>
@@ -80,7 +65,7 @@ export default function LoggedCalls() {
                   </Stat>
                 </CardBody>
               </Card>
-              <Card variant="outline">
+              <Card>
                 <CardBody>
                   <Stat>
                     <HStack>
@@ -95,7 +80,7 @@ export default function LoggedCalls() {
                   </Stat>
                 </CardBody>
               </Card>
-              <Card variant="outline" overflow="hidden">
+              <Card overflow="hidden">
                 <Stat>
                   <CardHeader>
                     <HStack>
@@ -121,8 +106,7 @@ export default function LoggedCalls() {
               </Card>
             </VStack>
           </HStack>
-          <LoggedCallTable />
-          <LoggedCallsPaginator />
+          <LoggedCallsTable />
         </VStack>
       </VStack>
     </AppShell>

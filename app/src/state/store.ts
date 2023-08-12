@@ -1,5 +1,6 @@
 import { type StateCreator, create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { enableMapSet } from "immer";
 import { persist } from "zustand/middleware";
 import { createSelectors } from "./createSelectors";
 import {
@@ -8,6 +9,9 @@ import {
 } from "./sharedVariantEditor.slice";
 import { type APIClient } from "~/utils/api";
 import { persistOptions, type stateToPersist } from "./persist";
+import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
+
+enableMapSet();
 
 export type State = {
   drawerOpen: boolean;
@@ -17,7 +21,8 @@ export type State = {
   setApi: (api: APIClient) => void;
   sharedVariantEditor: SharedVariantEditorSlice;
   selectedProjectId: string | null;
-  setselectedProjectId: (id: string) => void;
+  setSelectedProjectId: (id: string) => void;
+  selectedLogs: SelectedLogsSlice;
 };
 
 export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], [], T>;
@@ -48,10 +53,11 @@ const useBaseStore = create<
         }),
       sharedVariantEditor: createVariantEditorSlice(set, get, ...rest),
       selectedProjectId: null,
-      setselectedProjectId: (id: string) =>
+      setSelectedProjectId: (id: string) =>
         set((state) => {
           state.selectedProjectId = id;
         }),
+      selectedLogs: createSelectedLogsSlice(set, get, ...rest),
     })),
     persistOptions,
   ),

@@ -11,6 +11,7 @@ import { datasetEntries } from "./routers/datasetEntries.router";
 import { externalApiRouter } from "./routers/externalApi.router";
 import { projectsRouter } from "./routers/projects.router";
 import { dashboardRouter } from "./routers/dashboard.router";
+import { loggedCallsRouter } from "./routers/loggedCalls.router";
 
 /**
  * This is the primary router for your server.
@@ -29,6 +30,7 @@ export const appRouter = createTRPCRouter({
   datasetEntries: datasetEntries,
   projects: projectsRouter,
   dashboard: dashboardRouter,
+  loggedCalls: loggedCallsRouter,
   externalApi: externalApiRouter,
 });
 

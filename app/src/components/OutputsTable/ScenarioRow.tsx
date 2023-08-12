@@ -10,6 +10,7 @@ const ScenarioRow = (props: {
   variants: PromptVariant[];
   canHide: boolean;
   rowStart: number;
+  isLast: boolean;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -21,10 +22,12 @@ const ScenarioRow = (props: {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         sx={isHovered ? highlightStyle : undefined}
+        bgColor="white"
         borderLeftWidth={1}
         {...borders}
         rowStart={props.rowStart}
         colStart={1}
+        borderBottomLeftRadius={props.isLast ? 8 : 0}
       >
         <ScenarioEditor scenario={props.scenario} hovered={isHovered} canHide={props.canHide} />
       </GridItem>
@@ -34,8 +37,10 @@ const ScenarioRow = (props: {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           sx={isHovered ? highlightStyle : undefined}
+          bgColor="white"
           rowStart={props.rowStart}
           colStart={i + 2}
+          borderBottomRightRadius={props.isLast && i === props.variants.length - 1 ? 8 : 0}
           {...borders}
         >
           <OutputCell key={variant.id} scenario={props.scenario} variant={variant} />

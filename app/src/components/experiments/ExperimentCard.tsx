@@ -7,6 +7,7 @@ import {
   Spinner,
   AspectRatio,
   SkeletonText,
+  Card,
 } from "@chakra-ui/react";
 import { RiFlaskLine } from "react-icons/ri";
 import { formatTimePast } from "~/utils/dayjs";
@@ -29,17 +30,21 @@ type ExperimentData = {
 
 export const ExperimentCard = ({ exp }: { exp: ExperimentData }) => {
   return (
-    <AspectRatio ratio={1.2} w="full">
+    <Card
+      w="full"
+      h="full"
+      cursor="pointer"
+      p={4}
+      bg="white"
+      borderRadius={4}
+      _hover={{ bg: "gray.100" }}
+      transition="background 0.2s"
+    >
       <VStack
         as={Link}
+        w="full"
+        h="full"
         href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}
-        bg="gray.50"
-        _hover={{ bg: "gray.100" }}
-        transition="background 0.2s"
-        cursor="pointer"
-        borderColor="gray.200"
-        borderWidth={1}
-        p={4}
         justify="space-between"
       >
         <HStack w="full" color="gray.700" justify="center">
@@ -57,7 +62,7 @@ export const ExperimentCard = ({ exp }: { exp: ExperimentData }) => {
           <Text flex={1}>Updated {formatTimePast(exp.updatedAt)}</Text>
         </HStack>
       </VStack>
-    </AspectRatio>
+    </Card>
   );
 };
 
@@ -89,30 +94,30 @@ export const NewExperimentCard = () => {
   }, [createMutation, router, selectedProjectId]);
 
   return (
-    <AspectRatio ratio={1.2} w="full">
-      <VStack
-        align="center"
-        justify="center"
-        _hover={{ cursor: "pointer", bg: "gray.50" }}
-        transition="background 0.2s"
-        cursor="pointer"
-        borderColor="gray.200"
-        borderWidth={1}
-        p={4}
-        onClick={createExperiment}
-      >
+    <Card
+      w="full"
+      h="full"
+      cursor="pointer"
+      p={4}
+      bg="white"
+      borderRadius={4}
+      _hover={{ bg: "gray.100" }}
+      transition="background 0.2s"
+      aspectRatio={1.2}
+    >
+      <VStack align="center" justify="center" w="full" h="full" p={4} onClick={createExperiment}>
         <Icon as={isLoading ? Spinner : BsPlusSquare} boxSize={8} />
         <Text display={{ base: "none", md: "block" }} ml={2}>
           New Experiment
         </Text>
       </VStack>
-    </AspectRatio>
+    </Card>
   );
 };
 
 export const ExperimentCardSkeleton = () => (
   <AspectRatio ratio={1.2} w="full">
-    <VStack align="center" borderColor="gray.200" borderWidth={1} p={4} bg="gray.50">
+    <VStack align="center" borderColor="gray.200" borderWidth={1} p={4} bg="white">
       <SkeletonText noOfLines={1} w="80%" />
       <SkeletonText noOfLines={2} w="60%" />
       <SkeletonText noOfLines={1} w="80%" />

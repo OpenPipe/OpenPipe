@@ -18,13 +18,14 @@ declare module "nextjs-routes" {
     | StaticRoute<"/api/openapi">
     | StaticRoute<"/api/sentry-example-api">
     | DynamicRoute<"/api/trpc/[trpc]", { "trpc": string }>
+    | StaticRoute<"/dashboard">
     | DynamicRoute<"/data/[id]", { "id": string }>
     | StaticRoute<"/data">
     | DynamicRoute<"/experiments/[id]", { "id": string }>
     | StaticRoute<"/experiments">
     | StaticRoute<"/">
-    | StaticRoute<"/logged-calls">
     | StaticRoute<"/project/settings">
+    | StaticRoute<"/request-logs">
     | StaticRoute<"/sentry-example-page">
     | StaticRoute<"/world-champs">
     | StaticRoute<"/world-champs/signup">;
