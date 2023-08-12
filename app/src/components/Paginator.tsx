@@ -1,11 +1,6 @@
-import { HStack, IconButton, Text, Select, type StackProps } from "@chakra-ui/react";
+import { HStack, IconButton, Text, Select, type StackProps, Icon } from "@chakra-ui/react";
 import React, { useCallback } from "react";
-import {
-  BsChevronDoubleLeft,
-  BsChevronDoubleRight,
-  BsChevronLeft,
-  BsChevronRight,
-} from "react-icons/bs";
+import { FiChevronsLeft, FiChevronsRight, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { usePageParams } from "~/utils/hooks";
 
 const pageSizeOptions = [10, 25, 50, 100];
@@ -81,7 +76,7 @@ const Paginator = ({
           onClick={goToFirstPage}
           isDisabled={page === 1}
           aria-label="Go to first page"
-          icon={<BsChevronDoubleLeft />}
+          icon={<Icon as={FiChevronsLeft} boxSize={6} strokeWidth={1.5} />}
         />
         <IconButton
           variant="outline"
@@ -89,7 +84,7 @@ const Paginator = ({
           onClick={prevPage}
           isDisabled={page === 1}
           aria-label="Previous page"
-          icon={<BsChevronLeft />}
+          icon={<Icon as={FiChevronLeft} boxSize={6} strokeWidth={1.5} />}
         />
         {condense && (
           <Text>
@@ -102,7 +97,7 @@ const Paginator = ({
           onClick={nextPage}
           isDisabled={page === lastPage}
           aria-label="Next page"
-          icon={<BsChevronRight />}
+          icon={<Icon as={FiChevronRight} boxSize={6} strokeWidth={1.5} />}
         />
         <IconButton
           variant="outline"
@@ -110,7 +105,7 @@ const Paginator = ({
           onClick={goToLastPage}
           isDisabled={page === lastPage}
           aria-label="Go to last page"
-          icon={<BsChevronDoubleRight />}
+          icon={<Icon as={FiChevronsRight} boxSize={6} strokeWidth={1.5} />}
         />
       </HStack>
     </HStack>
