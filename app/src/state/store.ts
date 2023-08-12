@@ -1,5 +1,6 @@
 import { type StateCreator, create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { enableMapSet } from "immer";
 import { persist } from "zustand/middleware";
 import { createSelectors } from "./createSelectors";
 import {
@@ -9,6 +10,8 @@ import {
 import { type APIClient } from "~/utils/api";
 import { persistOptions, type stateToPersist } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
+
+enableMapSet();
 
 export type State = {
   drawerOpen: boolean;

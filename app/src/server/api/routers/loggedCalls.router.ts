@@ -19,10 +19,15 @@ export const loggedCallsRouter = createTRPCRouter({
         take: pageSize,
       });
 
+      const matchingLogs = await prisma.loggedCall.findMany({
+        where: { projectId },
+        select: { id: true },
+      });
+
       const count = await prisma.loggedCall.count({
         where: { projectId },
       });
 
-      return { count, calls };
+      return { calls, count, matchingLogIds: matchingLogs.map((log) => log.id) };
     }),
 });
