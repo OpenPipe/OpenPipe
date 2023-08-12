@@ -25,11 +25,10 @@ import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import { useSelectedProject } from "~/utils/hooks";
 import { api } from "~/utils/api";
-import LoggedCallTable from "~/components/dashboard/LoggedCallTable";
+import LoggedCallsTable from "~/components/dashboard/LoggedCallsTable";
 import UsageGraph from "~/components/dashboard/UsageGraph";
-import LoggedCallsPaginator from "~/components/dashboard/LoggedCallsPaginator";
 
-export default function LoggedCalls() {
+export default function Dashboard() {
   const { data: selectedProject } = useSelectedProject();
 
   const stats = api.dashboard.stats.useQuery(
@@ -38,14 +37,14 @@ export default function LoggedCalls() {
   );
 
   return (
-    <AppShell title="Logged Calls" requireAuth>
+    <AppShell title="Dashboard" requireAuth>
       <PageHeaderContainer>
         <Breadcrumb>
           <BreadcrumbItem>
             <ProjectBreadcrumbContents />
           </BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>
-            <Text>Logged Calls</Text>
+            <Text>Dashboard</Text>
           </BreadcrumbItem>
         </Breadcrumb>
       </PageHeaderContainer>
@@ -121,8 +120,7 @@ export default function LoggedCalls() {
               </Card>
             </VStack>
           </HStack>
-          <LoggedCallTable />
-          <LoggedCallsPaginator />
+          <LoggedCallsTable />
         </VStack>
       </VStack>
     </AppShell>

@@ -14,7 +14,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline } from "react-icons/io5";
-import { RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
+import { RiHome3Line, RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
 import UserMenu from "./UserMenu";
 import { env } from "~/env.mjs";
@@ -59,8 +59,17 @@ const NavSidebar = () => {
           <>
             <ProjectMenu />
             <Divider />
+
             {env.NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS && (
-              <IconLink icon={IoStatsChartOutline} label="Logged Calls" href="/logged-calls" beta />
+              <>
+                <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" beta />
+                <IconLink
+                  icon={IoStatsChartOutline}
+                  label="Request Logs"
+                  href="/request-logs"
+                  beta
+                />
+              </>
             )}
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
             {env.NEXT_PUBLIC_SHOW_DATA && (
