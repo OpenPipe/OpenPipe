@@ -14,11 +14,14 @@ import {
   Text,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { useMemo } from "react";
 import Link from "next/link";
 
 import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "./FormattedJson";
+
+dayjs.extend(relativeTime);
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
