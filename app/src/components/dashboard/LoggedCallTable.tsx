@@ -100,6 +100,14 @@ function TableRow({
     [loggedCall.tags],
   );
 
+  const durationCell = (
+    <Td isNumeric>
+      {loggedCall.cacheHit
+        ? "Cache hit"
+        : ((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2) + "s"}
+    </Td>
+  );
+
   return (
     <>
       <Tr
@@ -121,7 +129,7 @@ function TableRow({
           </Tooltip>
         </Td>
         <Td width="100%">{model}</Td>
-        <Td isNumeric>{((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2)}s</Td>
+        {durationCell}
         <Td isNumeric>{loggedCall.modelResponse?.inputTokens}</Td>
         <Td isNumeric>{loggedCall.modelResponse?.outputTokens}</Td>
         <Td sx={{ color: isError ? "red.500" : "green.500", fontWeight: "semibold" }} isNumeric>

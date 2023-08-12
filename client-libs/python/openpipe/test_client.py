@@ -12,7 +12,6 @@ configure_openpipe(
 )
 
 
-@pytest.mark.skip
 def test_sync():
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -22,7 +21,6 @@ def test_sync():
     print(completion.choices[0].message.content)
 
 
-@pytest.mark.skip
 def test_streaming():
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -34,7 +32,6 @@ def test_streaming():
         print(chunk)
 
 
-@pytest.mark.skip
 async def test_async():
     acompletion = await openai.ChatCompletion.acreate(
         model="gpt-3.5-turbo",
@@ -44,7 +41,6 @@ async def test_async():
     print(acompletion.choices[0].message.content)
 
 
-@pytest.mark.skip
 async def test_async_streaming():
     acompletion = await openai.ChatCompletion.acreate(
         model="gpt-3.5-turbo",
@@ -67,10 +63,26 @@ def test_sync_with_tags():
     print(completion.choices[0].message.content)
 
 
-@pytest.mark.focus
 def test_bad_call():
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-blaster",
         messages=[{"role": "system", "content": "count to 10"}],
         stream=True,
     )
+
+
+@pytest.mark.focus
+async def test_caching():
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "system", "content": "count to 10"}],
+        openpipe={"cache": True},
+    )
+
+    completion2 = await openai.ChatCompletion.acreate(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "system", "content": "count to 10"}],
+        openpipe={"cache": True},
+    )
+
+    print(completion2)
