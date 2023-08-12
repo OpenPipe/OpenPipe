@@ -1,12 +1,12 @@
 import { sql } from "kysely";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { kysely, prisma } from "~/server/db";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { kysely } from "~/server/db";
 import { requireCanViewProject } from "~/utils/accessControl";
 import dayjs from "~/utils/dayjs";
 
 export const dashboardRouter = createTRPCRouter({
-  stats: publicProcedure
+  stats: protectedProcedure
     .input(
       z.object({
         // TODO: actually take startDate into account
@@ -104,29 +104,5 @@ export const dashboardRouter = createTRPCRouter({
       });
 
       return { periods: backfilledPeriods, totals, errors: namedErrors };
-    }),
-
-  // TODO useInfiniteQuery
-  // https://discord.com/channels/966627436387266600/1122258443886153758/1122258443886153758
-  loggedCalls: publicProcedure
-    .input(z.object({ projectId: z.string(), page: z.number(), pageSize: z.number() }))
-    .query(async ({ input, ctx }) => {
-      const { projectId, page, pageSize } = input;
-
-      await requireCanViewProject(projectId, ctx);
-
-      const calls = await prisma.loggedCall.findMany({
-        where: { projectId },
-        orderBy: { requestedAt: "desc" },
-        include: { tags: true, modelResponse: true },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      });
-
-      const count = await prisma.loggedCall.count({
-        where: { projectId },
-      });
-
-      return { count, calls };
     }),
 });

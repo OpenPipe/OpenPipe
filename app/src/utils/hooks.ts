@@ -180,7 +180,7 @@ export const useLoggedCalls = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
 
-  return api.dashboard.loggedCalls.useQuery(
+  return api.loggedCalls.list.useQuery(
     { projectId: selectedProjectId ?? "", page, pageSize },
     { enabled: !!selectedProjectId },
   );

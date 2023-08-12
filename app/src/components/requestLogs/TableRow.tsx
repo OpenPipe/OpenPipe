@@ -20,7 +20,7 @@ import Link from "next/link";
 import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "./FormattedJson";
 
-type LoggedCall = RouterOutputs["dashboard"]["loggedCalls"]["calls"][0];
+type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
 export const TableHeader = () => (
   <Thead>
