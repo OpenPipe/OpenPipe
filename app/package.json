@@ -24,7 +24,6 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.5.8",
     "@apidevtools/json-schema-ref-parser": "^10.1.0",
-    "@babel/preset-typescript": "^7.22.5",
     "@babel/standalone": "^7.22.9",
     "@chakra-ui/anatomy": "^2.2.0",
     "@chakra-ui/next-js": "^2.1.4",

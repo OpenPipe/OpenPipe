@@ -81,8 +81,6 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
     };
     `;
 
-    console.log(modelContents);
-
     const scenariosModel = monaco.editor.getModel(monaco.Uri.parse("file:///scenarios.ts"));
 
     if (scenariosModel) {

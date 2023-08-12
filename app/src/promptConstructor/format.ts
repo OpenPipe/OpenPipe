@@ -4,11 +4,15 @@ import parserTypescript from "prettier/plugins/typescript";
 // @ts-expect-error for some reason missing from types
 import parserEstree from "prettier/plugins/estree";
 
+// This emits a warning in the browser "Critical dependency: the request of a
+// dependency is an expression". Unfortunately doesn't seem to be a way to get
+// around it if we want to use Babel client-side for now. One solution would be
+// to just do the formatting server-side in a trpc call.
+// https://github.com/babel/babel/issues/14301
 import * as babel from "@babel/standalone";
 
 export function stripTypes(tsCode: string): string {
   const options = {
-    presets: ["typescript"],
     filename: "file.ts",
   };
 

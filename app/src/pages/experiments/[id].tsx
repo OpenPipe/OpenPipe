@@ -62,7 +62,7 @@ export default function Experiment() {
 
   useEffect(() => {
     useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
-  });
+  }, []);
 
   const [label, setLabel] = useState(experiment.data?.label || "");
   useEffect(() => {
