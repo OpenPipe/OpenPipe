@@ -33,7 +33,7 @@ export default function ProjectMenu() {
   const utils = api.useContext();
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const setselectedProjectId = useAppStore((s) => s.setselectedProjectId);
+  const setSelectedProjectId = useAppStore((s) => s.setSelectedProjectId);
 
   const { data: projects } = api.projects.list.useQuery();
 
@@ -43,9 +43,9 @@ export default function ProjectMenu() {
       projects[0] &&
       (!selectedProjectId || !projects.find((proj) => proj.id === selectedProjectId))
     ) {
-      setselectedProjectId(projects[0].id);
+      setSelectedProjectId(projects[0].id);
     }
-  }, [selectedProjectId, setselectedProjectId, projects]);
+  }, [selectedProjectId, setSelectedProjectId, projects]);
 
   const { data: selectedProject } = useSelectedProject();
 
@@ -55,7 +55,7 @@ export default function ProjectMenu() {
   const [createProject, isLoading] = useHandledAsyncCallback(async () => {
     const newProj = await createMutation.mutateAsync({ name: "Untitled Project" });
     await utils.projects.list.invalidate();
-    setselectedProjectId(newProj.id);
+    setSelectedProjectId(newProj.id);
     await router.push({ pathname: "/project/settings" });
   }, [createMutation, router]);
 
@@ -176,7 +176,7 @@ const ProjectOption = ({
   isActive: boolean;
   onClose: () => void;
 }) => {
-  const setselectedProjectId = useAppStore((s) => s.setselectedProjectId);
+  const setSelectedProjectId = useAppStore((s) => s.setSelectedProjectId);
   const [gearHovered, setGearHovered] = useState(false);
 
   return (
@@ -184,7 +184,7 @@ const ProjectOption = ({
       as={Link}
       href="/experiments"
       onClick={() => {
-        setselectedProjectId(proj.id);
+        setSelectedProjectId(proj.id);
         onClose();
       }}
       w="full"
