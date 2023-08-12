@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Heading,
   VStack,
@@ -9,6 +9,7 @@ import {
   Box,
   Link as ChakraLink,
   Flex,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import Link from "next/link";
@@ -16,7 +17,6 @@ import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline } from "react-icons/io5";
 import { RiHome3Line, RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
-import UserMenu from "./UserMenu";
 import { env } from "~/env.mjs";
 import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
@@ -27,10 +27,16 @@ const Divider = () => <Box h="1px" bgColor="gray.300" w="full" />;
 const NavSidebar = () => {
   const user = useSession().data;
 
+  // Hack to get around initial flash, see https://github.com/chakra-ui/chakra-ui/issues/6452
+  const isMobile = useBreakpointValue({ base: true, md: false, ssr: false });
+  const renderCount = useRef(0);
+  renderCount.current++;
+
+  const displayLogo = isMobile && renderCount.current > 1;
+
   return (
     <VStack
       align="stretch"
-      bgColor="gray.50"
       py={2}
       px={2}
       pb={0}
@@ -40,20 +46,25 @@ const NavSidebar = () => {
       borderRightWidth={1}
       borderColor="gray.300"
     >
-      <HStack
-        as={Link}
-        href="/"
-        _hover={{ textDecoration: "none" }}
-        spacing={{ base: 1, md: 0 }}
-        mx={2}
-        py={{ base: 1, md: 2 }}
-      >
-        <Image src="/logo.svg" alt="" boxSize={6} mr={4} ml={{ base: 0.5, md: 0 }} />
-        <Heading size="md" fontFamily="inconsolata, monospace">
-          OpenPipe
-        </Heading>
-      </HStack>
-      <Divider />
+      {displayLogo && (
+        <>
+          <HStack
+            as={Link}
+            href="/"
+            _hover={{ textDecoration: "none" }}
+            spacing={{ base: 1, md: 0 }}
+            mx={2}
+            py={{ base: 1, md: 2 }}
+          >
+            <Image src="/logo.svg" alt="" boxSize={6} mr={4} ml={{ base: 0.5, md: 0 }} />
+            <Heading size="md" fontFamily="inconsolata, monospace">
+              OpenPipe
+            </Heading>
+          </HStack>
+          <Divider />
+        </>
+      )}
+
       <VStack align="flex-start" overflowY="auto" overflowX="hidden" flex={1}>
         {user != null && (
           <>
@@ -75,6 +86,19 @@ const NavSidebar = () => {
             {env.NEXT_PUBLIC_SHOW_DATA && (
               <IconLink icon={RiDatabase2Line} label="Data" href="/data" />
             )}
+            <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
+              <Text
+                pl={2}
+                pb={2}
+                fontSize="xs"
+                fontWeight="bold"
+                color="gray.500"
+                display={{ base: "none", md: "flex" }}
+              >
+                CONFIGURATION
+              </Text>
+              <IconLink icon={BsGearFill} label="Project Settings" href="/project/settings" />
+            </VStack>
           </>
         )}
         {user === null && (
@@ -96,20 +120,7 @@ const NavSidebar = () => {
           </NavSidebarOption>
         )}
       </VStack>
-      <VStack w="full" alignItems="flex-start" spacing={0}>
-        <Text
-          pl={2}
-          pb={2}
-          fontSize="xs"
-          fontWeight="bold"
-          color="gray.500"
-          display={{ base: "none", md: "flex" }}
-        >
-          CONFIGURATION
-        </Text>
-        <IconLink icon={BsGearFill} label="Project Settings" href="/project/settings" />
-      </VStack>
-      {user && <UserMenu user={user} borderColor={"gray.200"} />}
+
       <Divider />
       <VStack spacing={0} align="center">
         <ChakraLink
@@ -169,7 +180,7 @@ export default function AppShell({
         <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
       </Head>
       <NavSidebar />
-      <Box h="100%" flex={1} overflowY="auto">
+      <Box h="100%" flex={1} overflowY="auto" bgColor="gray.50">
         {children}
       </Box>
     </Flex>
