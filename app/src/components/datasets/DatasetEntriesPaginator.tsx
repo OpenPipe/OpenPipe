@@ -1,21 +1,16 @@
+import { type StackProps } from "@chakra-ui/react";
+
 import { useDatasetEntries } from "~/utils/hooks";
 import Paginator from "../Paginator";
 
-const DatasetEntriesPaginator = () => {
+const DatasetEntriesPaginator = (props: StackProps) => {
   const { data } = useDatasetEntries();
 
   if (!data) return null;
 
-  const { entries, startIndex, lastPage, count } = data;
+  const { count } = data;
 
-  return (
-    <Paginator
-      numItemsLoaded={entries.length}
-      startIndex={startIndex}
-      lastPage={lastPage}
-      count={count}
-    />
-  );
+  return <Paginator count={count} {...props} />;
 };
 
 export default DatasetEntriesPaginator;

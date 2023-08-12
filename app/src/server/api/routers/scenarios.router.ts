@@ -7,15 +7,13 @@ import { runAllEvals } from "~/server/utils/evaluations";
 import { generateNewCell } from "~/server/utils/generateNewCell";
 import { requireCanModifyExperiment, requireCanViewExperiment } from "~/utils/accessControl";
 
-const PAGE_SIZE = 10;
-
 export const scenariosRouter = createTRPCRouter({
   list: publicProcedure
-    .input(z.object({ experimentId: z.string(), page: z.number() }))
+    .input(z.object({ experimentId: z.string(), page: z.number(), pageSize: z.number() }))
     .query(async ({ input, ctx }) => {
       await requireCanViewExperiment(input.experimentId, ctx);
 
-      const { experimentId, page } = input;
+      const { experimentId, page, pageSize } = input;
 
       const scenarios = await prisma.testScenario.findMany({
         where: {
@@ -23,8 +21,8 @@ export const scenariosRouter = createTRPCRouter({
           visible: true,
         },
         orderBy: { sortIndex: "asc" },
-        skip: (page - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
       });
 
       const count = await prisma.testScenario.count({
@@ -36,8 +34,6 @@ export const scenariosRouter = createTRPCRouter({
 
       return {
         scenarios,
-        startIndex: (page - 1) * PAGE_SIZE + 1,
-        lastPage: Math.ceil(count / PAGE_SIZE),
         count,
       };
     }),
