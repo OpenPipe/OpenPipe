@@ -51,11 +51,6 @@ export const TableRow = ({
   const timeAgo = dayjs(loggedCall.requestedAt).fromNow();
   const fullTime = dayjs(loggedCall.requestedAt).toString();
 
-  const model = useMemo(
-    () => loggedCall.tags.find((tag) => tag.name.startsWith("$model"))?.value,
-    [loggedCall.tags],
-  );
-
   const durationCell = (
     <Td isNumeric>
       {loggedCall.cacheHit
@@ -92,7 +87,7 @@ export const TableRow = ({
               borderWidth={1}
               fontSize="xs"
             >
-              {model}
+              {loggedCall.model}
             </Text>
           </HStack>
         </Td>
