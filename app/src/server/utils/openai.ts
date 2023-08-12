@@ -4,7 +4,8 @@ import path from "path";
 
 import { env } from "~/env.mjs";
 
-import { OpenAI } from "~/../../client-libs/typescript/dist";
+// TODO: use local dependency
+// import { OpenAI } from "openpipe";
 
 let config: ClientOptions;
 
@@ -20,4 +21,6 @@ try {
   config = { apiKey: env.OPENAI_API_KEY ?? "dummy-key" };
 }
 
-export const openai = env.OPENPIPE_API_KEY ? new OpenAI.OpenAI(config) : new OriginalOpenAI(config);
+// export const openai = env.OPENPIPE_API_KEY ? new OpenAI.OpenAI(config) : new OriginalOpenAI(config);
+
+export const openai = new OriginalOpenAI(config);
