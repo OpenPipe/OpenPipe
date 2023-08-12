@@ -44,3 +44,6 @@ yarn-error.log*
 
 # Sentry Auth Token
 .sentryclirc
+
+# custom openai intialization
+src/server/utils/openaiCustomConfig.json
