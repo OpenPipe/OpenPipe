@@ -37,7 +37,7 @@ export default function LoggedCalls() {
   );
 
   return (
-    <AppShell requireAuth>
+    <AppShell title="Logged Calls" requireAuth>
       <PageHeaderContainer>
         <Breadcrumb>
           <BreadcrumbItem>

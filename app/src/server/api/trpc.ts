@@ -64,7 +64,7 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   // Get the session from the server using the getServerSession wrapper function
   const session = await getServerAuthSession({ req, res });
 
-  const apiKey = req.headers["x-openpipe-api-key"] as string | null;
+  const apiKey = req.headers.authorization?.split(" ")[1] as string | null;
 
   return createInnerTRPCContext({
     session,
