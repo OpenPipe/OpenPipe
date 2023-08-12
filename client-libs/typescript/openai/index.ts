@@ -16,8 +16,7 @@ export class OpenAI extends openai.OpenAI {
 
   constructor({
     openPipeApiKey = readEnv("OPENPIPE_API_KEY"),
-    openPipeBaseUrl = readEnv("OPENPIPE_BASE_URL") ??
-      `https://app.openpipe.ai/v1`,
+    openPipeBaseUrl = readEnv("OPENPIPE_BASE_URL") ?? `https://app.openpipe.ai/v1`,
     ...opts
   }: ClientOptions = {}) {
     super({ ...opts });
@@ -26,7 +25,7 @@ export class OpenAI extends openai.OpenAI {
       const axiosInstance = axios.create({
         baseURL: openPipeBaseUrl,
         headers: {
-          "x-openpipe-api-key": openPipeApiKey,
+          Authorization: `Bearer ${openPipeApiKey}`,
         },
       });
       this.openPipeApi = new openPipeClient.DefaultApi(
