@@ -23,15 +23,16 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { ChevronUpIcon, ChevronDownIcon, CopyIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { type RouterOutputs, api } from "~/utils/api";
+import { type RouterOutputs } from "~/utils/api";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atelierCaveLight } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
 import Link from "next/link";
+import { useLoggedCalls } from "~/utils/hooks";
 
 dayjs.extend(relativeTime);
 
-type LoggedCall = RouterOutputs["dashboard"]["loggedCalls"][0];
+type LoggedCall = RouterOutputs["dashboard"]["loggedCalls"]["calls"][0];
 
 const FormattedJson = ({ json }: { json: any }) => {
   const jsonString = stringify(json, { maxLength: 40 });
@@ -156,7 +157,7 @@ function TableRow({
 
 export default function LoggedCallTable() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const loggedCalls = api.dashboard.loggedCalls.useQuery({});
+  const { data: loggedCalls } = useLoggedCalls();
 
   return (
     <Card variant="outline" width="100%" overflow="hidden">
@@ -178,7 +179,7 @@ export default function LoggedCallTable() {
           </Tr>
         </Thead>
         <Tbody>
-          {loggedCalls.data?.map((loggedCall) => {
+          {loggedCalls?.calls.map((loggedCall) => {
             return (
               <TableRow
                 key={loggedCall.id}

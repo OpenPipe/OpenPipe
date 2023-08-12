@@ -1,10 +1,10 @@
 import { type StackProps } from "@chakra-ui/react";
 
-import { useDatasetEntries } from "~/utils/hooks";
+import { useLoggedCalls } from "~/utils/hooks";
 import Paginator from "../Paginator";
 
-const DatasetEntriesPaginator = (props: StackProps) => {
-  const { data } = useDatasetEntries();
+const LoggedCallsPaginator = (props: StackProps) => {
+  const { data } = useLoggedCalls();
 
   if (!data) return null;
 
@@ -13,4 +13,4 @@ const DatasetEntriesPaginator = (props: StackProps) => {
   return <Paginator count={count} {...props} />;
 };
 
-export default DatasetEntriesPaginator;
+export default LoggedCallsPaginator;

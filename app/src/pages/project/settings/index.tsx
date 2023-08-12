@@ -65,7 +65,7 @@ export default function Settings() {
             </BreadcrumbItem>
           </Breadcrumb>
         </PageHeaderContainer>
-        <VStack px={8} pt={4} alignItems="flex-start" spacing={4}>
+        <VStack px={8} py={4} alignItems="flex-start" spacing={4}>
           <VStack spacing={0} alignItems="flex-start">
             <Text fontSize="2xl" fontWeight="bold">
               Project Settings

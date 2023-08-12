@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
-import { NumberParam, useQueryParam, withDefault } from "use-query-params";
+import { NumberParam, useQueryParams } from "use-query-params";
 import { useAppStore } from "~/state/store";
 
 export const useExperiments = () => {
@@ -46,10 +46,10 @@ export const useDataset = () => {
 
 export const useDatasetEntries = () => {
   const dataset = useDataset();
-  const [page] = usePage();
+  const { page, pageSize } = usePageParams();
 
   return api.datasetEntries.list.useQuery(
-    { datasetId: dataset.data?.id ?? "", page },
+    { datasetId: dataset.data?.id ?? "", page, pageSize },
     { enabled: dataset.data?.id != null },
   );
 };
@@ -132,14 +132,23 @@ export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | un
   return [ref, dimensions];
 };
 
-export const usePage = () => useQueryParam("page", withDefault(NumberParam, 1));
+export const usePageParams = () => {
+  const [pageParams, setPageParams] = useQueryParams({
+    page: NumberParam,
+    pageSize: NumberParam,
+  });
+
+  const { page, pageSize } = pageParams;
+
+  return { page: page || 1, pageSize: pageSize || 10, setPageParams };
+};
 
 export const useScenarios = () => {
   const experiment = useExperiment();
-  const [page] = usePage();
+  const { page, pageSize } = usePageParams();
 
   return api.scenarios.list.useQuery(
-    { experimentId: experiment.data?.id ?? "", page },
+    { experimentId: experiment.data?.id ?? "", page, pageSize },
     { enabled: experiment.data?.id != null },
   );
 };
@@ -164,5 +173,15 @@ export const useScenarioVars = () => {
   return api.scenarioVars.list.useQuery(
     { experimentId: experiment.data?.id ?? "" },
     { enabled: experiment.data?.id != null },
+  );
+};
+
+export const useLoggedCalls = () => {
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const { page, pageSize } = usePageParams();
+
+  return api.dashboard.loggedCalls.useQuery(
+    { projectId: selectedProjectId ?? "", page, pageSize },
+    { enabled: !!selectedProjectId },
   );
 };
