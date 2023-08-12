@@ -1,7 +1,6 @@
 "use client";
-import { type Session } from "next-auth";
 import { useSession } from "next-auth/react";
-import React, { ReactNode, useEffect } from "react";
+import React, { type ReactNode, useEffect } from "react";
 import { PostHogProvider } from "posthog-js/react";
 
 import posthog from "posthog-js";

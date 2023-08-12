@@ -12,13 +12,12 @@ import {
   useDisclosure,
   Spinner,
   Link as ChakraLink,
-  IconButton,
   Image,
   Box,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { BsGear, BsPlus, BsPersonCircle } from "react-icons/bs";
+import { BsPlus, BsPersonCircle } from "react-icons/bs";
 import { type Project } from "@prisma/client";
 
 import { useAppStore } from "~/state/store";
