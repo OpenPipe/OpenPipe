@@ -105,6 +105,7 @@ export default function VariantHeader(
         onDrop={onReorder}
         backgroundColor={isDragTarget ? "gray.200" : "white"}
         borderTopLeftRadius={gridItemProps.borderTopLeftRadius}
+        borderTopRightRadius={gridItemProps.borderTopRightRadius}
         h="full"
       >
         <Icon
