@@ -7,9 +7,8 @@ databases:
 services:
   - type: web
     name: querykey-prod-web
-    rootDir: app
     env: docker
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./app/Dockerfile
     dockerContext: .
     plan: standard
     domains:
@@ -32,9 +31,8 @@ services:
 
   - type: web
     name: querykey-prod-wss
-    rootDir: app
     env: docker
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./app/Dockerfile
     dockerContext: .
     plan: free
     dockerCommand: pnpm tsx src/wss-server.ts
