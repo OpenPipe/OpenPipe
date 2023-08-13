@@ -387,6 +387,130 @@ export const experimentsRouter = createTRPCRouter({
       return exp;
     }),
 
+  createFromLoggedCalls: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        // array of strings
+        loggedCallIds: z.array(z.string()),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await requireCanModifyProject(input.projectId, ctx);
+
+      const loggedCalls = await prisma.loggedCall.findMany({
+        where: {
+          id: {
+            in: input.loggedCallIds,
+          },
+        },
+        include: {
+          modelResponse: true,
+        },
+      });
+
+      const experimentId = uuidv4();
+
+      const templateVariablesToCreate: Prisma.TemplateVariableCreateManyInput[] = [];
+      templateVariablesToCreate.push({
+        id: uuidv4(),
+        experimentId,
+        label: "originalRequest",
+      });
+
+      const promptVariantsToCreate: Prisma.PromptVariantCreateManyInput[] = [];
+      const originalPromptId = uuidv4();
+      promptVariantsToCreate.push({
+        id: originalPromptId,
+        experimentId,
+        label: "GPT 3.5",
+        sortIndex: 0,
+        promptConstructor: dedent`definePrompt("openai/ChatCompletion", scenario.originalRequest);`,
+        model: "gpt-3.5-turbo-0613",
+        modelProvider: "openai/ChatCompletion",
+        promptConstructorVersion,
+      });
+      const newPromptId = uuidv4();
+      promptVariantsToCreate.push({
+        id: newPromptId,
+        experimentId,
+        label: "GPT 4",
+        sortIndex: 1,
+        promptConstructor: dedent`definePrompt("openai/ChatCompletion", scenario.originalRequest);`,
+        model: "gpt-4",
+        modelProvider: "openai/ChatCompletion",
+        promptConstructorVersion,
+      });
+
+      const scenariosToCreate: Prisma.TestScenarioCreateManyInput[] = [];
+      const scenarioVariantCellsToCreate: Prisma.ScenarioVariantCellCreateManyInput[] = [];
+      const modelResponsesToCreate: Prisma.ModelResponseCreateManyInput[] = [];
+      for (const loggedCall of loggedCalls) {
+        const newScenarioId = uuidv4();
+        scenariosToCreate.push({
+          id: newScenarioId,
+          experimentId,
+          variableValues: {
+            originalRequest: JSON.stringify(loggedCall.modelResponse?.respPayload),
+          },
+        });
+
+        const newCellId = uuidv4();
+        scenarioVariantCellsToCreate.push({
+          id: newCellId,
+          promptVariantId: originalPromptId,
+          testScenarioId: newScenarioId,
+          prompt: loggedCall.modelResponse?.reqPayload as Prisma.InputJsonValue,
+        });
+
+        if (loggedCall.modelResponse?.cacheKey) {
+          modelResponsesToCreate.push({
+            scenarioVariantCellId: newCellId,
+            cacheKey: loggedCall.modelResponse?.cacheKey,
+            requestedAt: loggedCall.modelResponse?.requestedAt,
+            receivedAt: loggedCall.modelResponse?.receivedAt,
+            inputTokens: loggedCall.modelResponse?.inputTokens,
+            cost: loggedCall.modelResponse?.cost,
+            outputTokens: loggedCall.modelResponse?.outputTokens,
+            statusCode: loggedCall.modelResponse?.statusCode,
+            respPayload: loggedCall.modelResponse?.respPayload as Prisma.InputJsonValue,
+          });
+        }
+      }
+
+      await prisma.$transaction([
+        prisma.experiment.create({
+          data: {
+            id: experimentId,
+            sortIndex: 0,
+            label: `Comparing GPT 3.5 and GPT 4`,
+            projectId: input.projectId,
+          },
+        }),
+        prisma.templateVariable.createMany({
+          data: templateVariablesToCreate,
+        }),
+        prisma.promptVariant.createMany({
+          data: promptVariantsToCreate,
+        }),
+        prisma.testScenario.createMany({
+          data: scenariosToCreate,
+        }),
+        prisma.scenarioVariantCell.createMany({
+          data: scenarioVariantCellsToCreate,
+        }),
+        prisma.modelResponse.createMany({
+          data: modelResponsesToCreate,
+        }),
+      ]);
+
+      for (const scenario of scenariosToCreate) {
+        await generateNewCell(newPromptId, scenario.id as string);
+      }
+
+      return experimentId;
+    }),
+
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ label: z.string() }) }))
     .mutation(async ({ input, ctx }) => {
