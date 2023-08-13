@@ -86,7 +86,6 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         colSpan={allCols - 1}
         rowStart={variantHeaderRows + 1}
         colStart={1}
-        {...borders}
         borderRightWidth={0}
       >
         <ScenariosHeader />
@@ -99,6 +98,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
           scenario={scenario}
           variants={variants.data}
           canHide={visibleScenariosCount > 1}
+          isFirst={i === 0}
           isLast={i === visibleScenariosCount - 1}
         />
       ))}
