@@ -25,11 +25,11 @@
     ".eslintrc.cjs",
     "next-env.d.ts",
     "**/*.ts",
+    "**/*.mts",
     "**/*.tsx",
     "**/*.cjs",
     "**/*.mjs",
-    "**/*.js",
-    "src/pages/api/sentry-example-api.js"
+    "**/*.js"
   ],
   "exclude": ["node_modules"]
 }

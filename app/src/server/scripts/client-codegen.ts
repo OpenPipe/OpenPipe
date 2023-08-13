@@ -4,19 +4,18 @@ import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 
-console.log("Exporting public OpenAPI schema to client-libs/schema.json");
-
 const scriptPath = import.meta.url.replace("file://", "");
 const clientLibsPath = path.join(path.dirname(scriptPath), "../../../../client-libs");
 
-const schemaPath = path.join(clientLibsPath, "schema.json");
+const schemaPath = path.join(clientLibsPath, "openapi.json");
 
-console.log("Exporting schema");
+console.log(`Exporting public OpenAPI schema to ${schemaPath}`);
+
 fs.writeFileSync(schemaPath, JSON.stringify(openApiDocument, null, 2), "utf-8");
 
-console.log("Generating Typescript client");
+console.log("Generating TypeScript client");
 
-const tsClientPath = path.join(clientLibsPath, "typescript/codegen");
+const tsClientPath = path.join(clientLibsPath, "typescript/src/codegen");
 
 fs.rmSync(tsClientPath, { recursive: true, force: true });
 
@@ -27,6 +26,8 @@ execSync(
   },
 );
 
-console.log("Done!");
+console.log("Generating Python client");
 
-process.exit(0);
+execSync(path.join(clientLibsPath, "python/codegen.sh"));
+
+console.log("Done!");

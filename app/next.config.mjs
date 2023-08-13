@@ -36,6 +36,8 @@ let config = {
     });
     return config;
   },
+
+  transpilePackages: ["openpipe"],
 };
 
 config = nextRoutes()(config);

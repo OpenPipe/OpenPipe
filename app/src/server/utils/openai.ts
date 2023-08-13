@@ -1,11 +1,9 @@
-import { type ClientOptions, default as OriginalOpenAI } from "openai";
+import { type ClientOptions } from "openai";
 import fs from "fs";
 import path from "path";
+import OpenAI from "openpipe/src/openai";
 
 import { env } from "~/env.mjs";
-
-// TODO: use local dependency
-// import { OpenAI } from "openpipe";
 
 let config: ClientOptions;
 
@@ -23,4 +21,4 @@ try {
 
 // export const openai = env.OPENPIPE_API_KEY ? new OpenAI.OpenAI(config) : new OriginalOpenAI(config);
 
-export const openai = new OriginalOpenAI(config);
+export const openai = new OpenAI(config);
