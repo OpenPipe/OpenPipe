@@ -309,7 +309,7 @@ model LoggedCallModelResponse {
     outputTokens Int?
     finishReason String?
     completionId String?
-    cost         Decimal? @db.Decimal(18, 12)
+    cost         Float?
 
     // The LoggedCall that created this LoggedCallModelResponse
     originalLoggedCallId String     @unique @db.Uuid
