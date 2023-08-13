@@ -1,9 +1,10 @@
-import { Button, HStack, type ButtonProps, Icon, Text } from "@chakra-ui/react";
+import { Button, HStack, type ButtonProps, Icon, Text, Spinner } from "@chakra-ui/react";
 import { type IconType } from "react-icons";
 
 const ActionButton = ({
   icon,
   label,
+  isLoading,
   ...buttonProps
 }: { icon: IconType; label: string } & ButtonProps) => {
   return (
@@ -20,7 +21,7 @@ const ActionButton = ({
       {...buttonProps}
     >
       <HStack spacing={1}>
-        {icon && <Icon as={icon} />}
+        <Icon as={isLoading ? Spinner : icon} />
         <Text>{label}</Text>
       </HStack>
     </Button>
