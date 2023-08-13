@@ -39,6 +39,7 @@ export const ExperimentCard = ({ exp }: { exp: ExperimentData }) => {
       borderRadius={4}
       _hover={{ bg: "gray.100" }}
       transition="background 0.2s"
+      aspectRatio={1.2}
     >
       <VStack
         as={Link}
