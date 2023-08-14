@@ -33,7 +33,7 @@ export default function OutputCell({
 
   if (!templateHasVariables) disabledReason = "Add a value to the scenario variables to see output";
 
-  const [refetchInterval, setRefetchInterval] = useState(0);
+  const [refetchInterval, setRefetchInterval] = useState<number | false>(false);
   const { data: cell, isLoading: queryLoading } = api.scenarioVariantCells.get.useQuery(
     { scenarioId: scenario.id, variantId: variant.id },
     { refetchInterval },
@@ -64,7 +64,8 @@ export default function OutputCell({
     cell.retrievalStatus === "PENDING" ||
     cell.retrievalStatus === "IN_PROGRESS" ||
     hardRefetching;
-  useEffect(() => setRefetchInterval(awaitingOutput ? 1000 : 0), [awaitingOutput]);
+
+  useEffect(() => setRefetchInterval(awaitingOutput ? 1000 : false), [awaitingOutput]);
 
   // TODO: disconnect from socket if we're not streaming anymore
   const streamedMessage = useSocket<OutputSchema>(cell?.id);
@@ -120,8 +121,13 @@ export default function OutputCell({
             ? response.receivedAt.getTime()
             : Date.now();
           if (response.requestedAt) {
-            numWaitingMessages = Math.floor(
-              (relativeWaitingTime - response.requestedAt.getTime()) / WAITING_MESSAGE_INTERVAL,
+            numWaitingMessages = Math.min(
+              Math.floor(
+                (relativeWaitingTime - response.requestedAt.getTime()) / WAITING_MESSAGE_INTERVAL,
+              ),
+              // Don't try to render more than 15, it'll use too much CPU and
+              // break the page
+              15,
             );
           }
           return (
