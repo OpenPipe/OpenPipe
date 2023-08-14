@@ -112,17 +112,17 @@ model ScenarioVariantCell {
 model ModelResponse {
     id String @id @default(uuid()) @db.Uuid
 
-    cacheKey        String
-    requestedAt      DateTime?
-    receivedAt       DateTime?
-    respPayload      Json?
-    cost             Float?
-    inputTokens      Int?
-    outputTokens     Int?
-    statusCode       Int?
-    errorMessage     String?
-    retryTime        DateTime?
-    outdated         Boolean   @default(false)
+    cacheKey     String
+    requestedAt  DateTime?
+    receivedAt   DateTime?
+    respPayload  Json?
+    cost         Float?
+    inputTokens  Int?
+    outputTokens Int?
+    statusCode   Int?
+    errorMessage String?
+    retryTime    DateTime?
+    outdated     Boolean   @default(false)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -273,8 +273,8 @@ model LoggedCall {
     projectId String   @db.Uuid
     project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    model        String?
-    tags         LoggedCallTag[]
+    model String?
+    tags  LoggedCallTag[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -295,7 +295,7 @@ model LoggedCallModelResponse {
     errorMessage String?
 
     requestedAt DateTime
-    receivedAt   DateTime
+    receivedAt  DateTime
 
     // Note: the function to calculate the cacheKey should include the project
     // ID so we don't share cached responses between projects, which could be an
@@ -340,8 +340,8 @@ model ApiKey {
     name   String
     apiKey String @unique
 
-    projectId String   @db.Uuid
-    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

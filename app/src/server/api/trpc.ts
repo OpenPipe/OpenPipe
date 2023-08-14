@@ -27,7 +27,6 @@ import { capturePath } from "~/utils/analytics/serverAnalytics";
 
 type CreateContextOptions = {
   session: Session | null;
-  apiKey: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -46,7 +45,6 @@ const noOp = () => {};
 export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     session: opts.session,
-    apiKey: opts.apiKey,
     prisma,
     markAccessControlRun: noOp,
   };
@@ -64,11 +62,8 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   // Get the session from the server using the getServerSession wrapper function
   const session = await getServerAuthSession({ req, res });
 
-  const apiKey = req.headers.authorization?.split(" ")[1] as string | null;
-
   return createInnerTRPCContext({
     session,
-    apiKey,
   });
 };
 
