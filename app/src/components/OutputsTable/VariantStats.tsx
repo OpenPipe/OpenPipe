@@ -21,14 +21,18 @@ export default function VariantStats(props: { variant: PromptVariant }) {
         outputTokens: 0,
         scenarioCount: 0,
         outputCount: 0,
+        awaitingCompletions: false,
         awaitingEvals: false,
       },
       refetchInterval,
     },
   );
 
-  // Poll every two seconds while we are waiting for LLM retrievals to finish
-  useEffect(() => setRefetchInterval(data.awaitingEvals ? 5000 : 0), [data.awaitingEvals]);
+  // Poll every five seconds while we are waiting for LLM retrievals to finish
+  useEffect(
+    () => setRefetchInterval(data.awaitingCompletions || data.awaitingEvals ? 5000 : 0),
+    [data.awaitingCompletions, data.awaitingEvals],
+  );
 
   const [passColor, neutralColor, failColor] = useToken("colors", [
     "green.500",
