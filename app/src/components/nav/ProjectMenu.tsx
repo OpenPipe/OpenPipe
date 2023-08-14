@@ -105,8 +105,8 @@ export default function ProjectMenu() {
         </PopoverTrigger>
         <PopoverContent
           _focusVisible={{ outline: "unset" }}
-          ml={-1}
-          w={224}
+          ml={{ base: 2, md: 0 }}
+          w={220}
           boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);"
           fontSize="sm"
         >
