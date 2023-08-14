@@ -51,7 +51,7 @@ const requestUpdatedPromptFunction = async (
             originalModelProvider.inputSchema,
             null,
             2,
-          )}\n\nDo not add any assistant messages.`,
+          )}`,
         },
         {
           role: "user",

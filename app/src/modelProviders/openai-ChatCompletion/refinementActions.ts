@@ -120,9 +120,9 @@ export const refinementActions: Record<string, RefinementAction> = {
   "Convert to function call": {
     icon: TfiThought,
     description: "Use function calls to get output from the model in a more structured way.",
-    instructions: `OpenAI functions are a specialized way for an LLM to return output.
+    instructions: `OpenAI functions are a specialized way for an LLM to return its final output.
   
-      This is what a prompt looks like before adding a function:
+      Example 1 before:
   
       definePrompt("openai/ChatCompletion", {
         model: "gpt-4",
@@ -139,7 +139,7 @@ export const refinementActions: Record<string, RefinementAction> = {
         ],
       });
   
-      This is what one looks like after adding a function:
+      Example 1 after:
   
       definePrompt("openai/ChatCompletion", {
         model: "gpt-4",
@@ -156,7 +156,7 @@ export const refinementActions: Record<string, RefinementAction> = {
         ],
         functions: [
           {
-            name: "extract_sentiment",
+            name: "log_extracted_sentiment",
             parameters: {
               type: "object", // parameters must always be an object with a properties key
               properties: { // properties key is required
@@ -169,13 +169,13 @@ export const refinementActions: Record<string, RefinementAction> = {
           },
         ],
         function_call: {
-          name: "extract_sentiment",
+          name: "log_extracted_sentiment",
         },
       });
   
-      Here's another example of adding a function:
-  
-      Before:
+      =========
+
+      Example 2 before:
   
       definePrompt("openai/ChatCompletion", {
           model: "gpt-3.5-turbo",
@@ -197,7 +197,7 @@ export const refinementActions: Record<string, RefinementAction> = {
           temperature: 0,
       });
   
-      After:
+      Example 2 after:
   
       definePrompt("openai/ChatCompletion", {
           model: "gpt-3.5-turbo",
@@ -215,7 +215,7 @@ export const refinementActions: Record<string, RefinementAction> = {
           temperature: 0,
           functions: [
             {
-              name: "score_post",
+              name: "log_post_score",
               parameters: {
                 type: "object",
                 properties: {
@@ -227,13 +227,13 @@ export const refinementActions: Record<string, RefinementAction> = {
             },
           ],
           function_call: {
-            name: "score_post",
+            name: "log_post_score",
           },
         });
   
-      Another example
+      =========
   
-      Before:
+      Example 3 before:
   
       definePrompt("openai/ChatCompletion", {
         model: "gpt-3.5-turbo",
@@ -246,7 +246,7 @@ export const refinementActions: Record<string, RefinementAction> = {
         ],
       });
   
-      After:
+      Example 3 after:
   
       definePrompt("openai/ChatCompletion", {
         model: "gpt-3.5-turbo",
@@ -258,21 +258,24 @@ export const refinementActions: Record<string, RefinementAction> = {
         ],
         functions: [
           {
-            name: "write_in_language",
+            name: "log_translated_text",
             parameters: {
               type: "object",
               properties: {
-                text: {
+                translated_text: {
                   type: "string",
+                  description: "The text, written in the language specified in the prompt",
                 },
               },
             },
           },
         ],
         function_call: {
-          name: "write_in_language",
+          name: "log_translated_text",
         },
       });
+
+      =========
   
       Add an OpenAI function that takes one or more nested parameters that match the expected output from this prompt.`,
   },
