@@ -310,7 +310,10 @@ const MODEL_RESPONSE_TEMPLATES: {
     inputTokens: 2802,
     outputTokens: 108,
     finishReason: "stop",
-    tags: [{ name: "prompt_id", value: "chatcmpl-7lQS3MktOT8BTgNEytl9dkyssCQqL" }],
+    tags: [
+      { name: "prompt_id", value: "chatcmpl-7lQS3MktOT8BTgNEytl9dkyssCQqL" },
+      { name: "some_other_tag", value: "some_other_value" },
+    ],
   },
 ];
 
