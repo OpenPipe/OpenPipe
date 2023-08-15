@@ -19,7 +19,7 @@ const comparatorToSqlExpression = (comparator: (typeof comparators)[number], val
       case "CONTAINS":
         return sql`${reference} LIKE ${"%" + value + "%"}`;
       case "NOT_CONTAINS":
-        return sql`${reference} NOT LIKE ${"%" + value + "%"} OR ${reference} IS NULL`;
+        return sql`(${reference} NOT LIKE ${"%" + value + "%"} OR ${reference} IS NULL)`;
       default:
         throw new Error("Unknown comparator");
     }
