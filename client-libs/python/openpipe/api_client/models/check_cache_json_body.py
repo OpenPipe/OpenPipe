@@ -5,25 +5,25 @@ from attrs import define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.external_api_check_cache_json_body_tags import ExternalApiCheckCacheJsonBodyTags
+    from ..models.check_cache_json_body_tags import CheckCacheJsonBodyTags
 
 
-T = TypeVar("T", bound="ExternalApiCheckCacheJsonBody")
+T = TypeVar("T", bound="CheckCacheJsonBody")
 
 
 @define
-class ExternalApiCheckCacheJsonBody:
+class CheckCacheJsonBody:
     """
     Attributes:
         requested_at (float): Unix timestamp in milliseconds
         req_payload (Union[Unset, Any]): JSON-encoded request payload
-        tags (Union[Unset, ExternalApiCheckCacheJsonBodyTags]): Extra tags to attach to the call for filtering. Eg {
-            "userId": "123", "promptId": "populate-title" }
+        tags (Union[Unset, CheckCacheJsonBodyTags]): Extra tags to attach to the call for filtering. Eg { "userId":
+            "123", "promptId": "populate-title" }
     """
 
     requested_at: float
     req_payload: Union[Unset, Any] = UNSET
-    tags: Union[Unset, "ExternalApiCheckCacheJsonBodyTags"] = UNSET
+    tags: Union[Unset, "CheckCacheJsonBodyTags"] = UNSET
 
     def to_dict(self) -> Dict[str, Any]:
         requested_at = self.requested_at
@@ -47,7 +47,7 @@ class ExternalApiCheckCacheJsonBody:
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
-        from ..models.external_api_check_cache_json_body_tags import ExternalApiCheckCacheJsonBodyTags
+        from ..models.check_cache_json_body_tags import CheckCacheJsonBodyTags
 
         d = src_dict.copy()
         requested_at = d.pop("requestedAt")
@@ -55,16 +55,16 @@ class ExternalApiCheckCacheJsonBody:
         req_payload = d.pop("reqPayload", UNSET)
 
         _tags = d.pop("tags", UNSET)
-        tags: Union[Unset, ExternalApiCheckCacheJsonBodyTags]
+        tags: Union[Unset, CheckCacheJsonBodyTags]
         if isinstance(_tags, Unset):
             tags = UNSET
         else:
-            tags = ExternalApiCheckCacheJsonBodyTags.from_dict(_tags)
+            tags = CheckCacheJsonBodyTags.from_dict(_tags)
 
-        external_api_check_cache_json_body = cls(
+        check_cache_json_body = cls(
             requested_at=requested_at,
             req_payload=req_payload,
             tags=tags,
         )
 
-        return external_api_check_cache_json_body
+        return check_cache_json_body

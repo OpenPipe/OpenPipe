@@ -5,14 +5,14 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.external_api_check_cache_json_body import ExternalApiCheckCacheJsonBody
-from ...models.external_api_check_cache_response_200 import ExternalApiCheckCacheResponse200
+from ...models.check_cache_json_body import CheckCacheJsonBody
+from ...models.check_cache_response_200 import CheckCacheResponse200
 from ...types import Response
 
 
 def _get_kwargs(
     *,
-    json_body: ExternalApiCheckCacheJsonBody,
+    json_body: CheckCacheJsonBody,
 ) -> Dict[str, Any]:
     pass
 
@@ -20,16 +20,16 @@ def _get_kwargs(
 
     return {
         "method": "post",
-        "url": "/v1/check-cache",
+        "url": "/check-cache",
         "json": json_json_body,
     }
 
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[ExternalApiCheckCacheResponse200]:
+) -> Optional[CheckCacheResponse200]:
     if response.status_code == HTTPStatus.OK:
-        response_200 = ExternalApiCheckCacheResponse200.from_dict(response.json())
+        response_200 = CheckCacheResponse200.from_dict(response.json())
 
         return response_200
     if client.raise_on_unexpected_status:
@@ -40,7 +40,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[ExternalApiCheckCacheResponse200]:
+) -> Response[CheckCacheResponse200]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -52,19 +52,19 @@ def _build_response(
 def sync_detailed(
     *,
     client: AuthenticatedClient,
-    json_body: ExternalApiCheckCacheJsonBody,
-) -> Response[ExternalApiCheckCacheResponse200]:
+    json_body: CheckCacheJsonBody,
+) -> Response[CheckCacheResponse200]:
     """Check if a prompt is cached
 
     Args:
-        json_body (ExternalApiCheckCacheJsonBody):
+        json_body (CheckCacheJsonBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ExternalApiCheckCacheResponse200]
+        Response[CheckCacheResponse200]
     """
 
     kwargs = _get_kwargs(
@@ -81,19 +81,19 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
-    json_body: ExternalApiCheckCacheJsonBody,
-) -> Optional[ExternalApiCheckCacheResponse200]:
+    json_body: CheckCacheJsonBody,
+) -> Optional[CheckCacheResponse200]:
     """Check if a prompt is cached
 
     Args:
-        json_body (ExternalApiCheckCacheJsonBody):
+        json_body (CheckCacheJsonBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ExternalApiCheckCacheResponse200
+        CheckCacheResponse200
     """
 
     return sync_detailed(
@@ -105,19 +105,19 @@ def sync(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
-    json_body: ExternalApiCheckCacheJsonBody,
-) -> Response[ExternalApiCheckCacheResponse200]:
+    json_body: CheckCacheJsonBody,
+) -> Response[CheckCacheResponse200]:
     """Check if a prompt is cached
 
     Args:
-        json_body (ExternalApiCheckCacheJsonBody):
+        json_body (CheckCacheJsonBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ExternalApiCheckCacheResponse200]
+        Response[CheckCacheResponse200]
     """
 
     kwargs = _get_kwargs(
@@ -132,19 +132,19 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
-    json_body: ExternalApiCheckCacheJsonBody,
-) -> Optional[ExternalApiCheckCacheResponse200]:
+    json_body: CheckCacheJsonBody,
+) -> Optional[CheckCacheResponse200]:
     """Check if a prompt is cached
 
     Args:
-        json_body (ExternalApiCheckCacheJsonBody):
+        json_body (CheckCacheJsonBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ExternalApiCheckCacheResponse200
+        CheckCacheResponse200
     """
 
     return (

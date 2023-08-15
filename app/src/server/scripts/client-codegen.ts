@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { openApiDocument } from "~/pages/api/openapi.json";
+import { openApiDocument } from "~/pages/api/v1/openapi.json";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";

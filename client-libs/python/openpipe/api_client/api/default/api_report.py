@@ -5,13 +5,13 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.external_api_report_json_body import ExternalApiReportJsonBody
+from ...models.report_json_body import ReportJsonBody
 from ...types import Response
 
 
 def _get_kwargs(
     *,
-    json_body: ExternalApiReportJsonBody,
+    json_body: ReportJsonBody,
 ) -> Dict[str, Any]:
     pass
 
@@ -19,7 +19,7 @@ def _get_kwargs(
 
     return {
         "method": "post",
-        "url": "/v1/report",
+        "url": "/report",
         "json": json_json_body,
     }
 
@@ -45,12 +45,12 @@ def _build_response(*, client: Union[AuthenticatedClient, Client], response: htt
 def sync_detailed(
     *,
     client: AuthenticatedClient,
-    json_body: ExternalApiReportJsonBody,
+    json_body: ReportJsonBody,
 ) -> Response[Any]:
     """Report an API call
 
     Args:
-        json_body (ExternalApiReportJsonBody):
+        json_body (ReportJsonBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -74,12 +74,12 @@ def sync_detailed(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
-    json_body: ExternalApiReportJsonBody,
+    json_body: ReportJsonBody,
 ) -> Response[Any]:
     """Report an API call
 
     Args:
-        json_body (ExternalApiReportJsonBody):
+        json_body (ReportJsonBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

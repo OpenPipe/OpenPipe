@@ -4,11 +4,11 @@ from attrs import define
 
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="ExternalApiCheckCacheResponse200")
+T = TypeVar("T", bound="CheckCacheResponse200")
 
 
 @define
-class ExternalApiCheckCacheResponse200:
+class CheckCacheResponse200:
     """
     Attributes:
         resp_payload (Union[Unset, Any]): JSON-encoded response payload
@@ -31,8 +31,8 @@ class ExternalApiCheckCacheResponse200:
         d = src_dict.copy()
         resp_payload = d.pop("respPayload", UNSET)
 
-        external_api_check_cache_response_200 = cls(
+        check_cache_response_200 = cls(
             resp_payload=resp_payload,
         )
 
-        return external_api_check_cache_response_200
+        return check_cache_response_200

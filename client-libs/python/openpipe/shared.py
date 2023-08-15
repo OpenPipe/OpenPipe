@@ -1,10 +1,10 @@
 from openpipe.api_client.api.default import (
-    external_api_report,
-    external_api_check_cache,
+    api_report,
+    check_cache,
 )
 from openpipe.api_client.client import AuthenticatedClient
-from openpipe.api_client.models.external_api_report_json_body_tags import (
-    ExternalApiReportJsonBodyTags,
+from openpipe.api_client.models.report_json_body_tags import (
+    ReportJsonBodyTags,
 )
 import toml
 import time
@@ -21,7 +21,7 @@ def _get_tags(openpipe_options):
     tags["$sdk"] = "python"
     tags["$sdk_version"] = version
 
-    return ExternalApiReportJsonBodyTags.from_dict(tags)
+    return ReportJsonBodyTags.from_dict(tags)
 
 
 def _should_check_cache(openpipe_options):
@@ -31,7 +31,7 @@ def _should_check_cache(openpipe_options):
 
 
 def _process_cache_payload(
-    payload: external_api_check_cache.ExternalApiCheckCacheResponse200,
+    payload: check_cache.CheckCacheResponse200,
 ):
     if not payload or not payload.resp_payload:
         return None
@@ -47,9 +47,9 @@ def maybe_check_cache(
     if not _should_check_cache(openpipe_options):
         return None
     try:
-        payload = external_api_check_cache.sync(
+        payload = check_cache.sync(
             client=configured_client,
-            json_body=external_api_check_cache.ExternalApiCheckCacheJsonBody(
+            json_body=check_cache.CheckCacheJsonBody(
                 req_payload=req_payload,
                 requested_at=int(time.time() * 1000),
                 tags=_get_tags(openpipe_options),
@@ -72,9 +72,9 @@ async def maybe_check_cache_async(
         return None
 
     try:
-        payload = await external_api_check_cache.asyncio(
+        payload = await check_cache.asyncio(
             client=configured_client,
-            json_body=external_api_check_cache.ExternalApiCheckCacheJsonBody(
+            json_body=check_cache.CheckCacheJsonBody(
                 req_payload=req_payload,
                 requested_at=int(time.time() * 1000),
                 tags=_get_tags(openpipe_options),
@@ -94,9 +94,9 @@ def report(
     **kwargs,
 ):
     try:
-        external_api_report.sync_detailed(
+        api_report.sync_detailed(
             client=configured_client,
-            json_body=external_api_report.ExternalApiReportJsonBody(
+            json_body=api_report.ReportJsonBody(
                 **kwargs,
                 tags=_get_tags(openpipe_options),
             ),
@@ -112,9 +112,9 @@ async def report_async(
     **kwargs,
 ):
     try:
-        await external_api_report.asyncio_detailed(
+        await api_report.asyncio_detailed(
             client=configured_client,
-            json_body=external_api_report.ExternalApiReportJsonBody(
+            json_body=api_report.ReportJsonBody(
                 **kwargs,
                 tags=_get_tags(openpipe_options),
             ),

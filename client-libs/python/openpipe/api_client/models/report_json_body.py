@@ -5,14 +5,14 @@ from attrs import define
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.external_api_report_json_body_tags import ExternalApiReportJsonBodyTags
+    from ..models.report_json_body_tags import ReportJsonBodyTags
 
 
-T = TypeVar("T", bound="ExternalApiReportJsonBody")
+T = TypeVar("T", bound="ReportJsonBody")
 
 
 @define
-class ExternalApiReportJsonBody:
+class ReportJsonBody:
     """
     Attributes:
         requested_at (float): Unix timestamp in milliseconds
@@ -21,8 +21,8 @@ class ExternalApiReportJsonBody:
         resp_payload (Union[Unset, Any]): JSON-encoded response payload
         status_code (Union[Unset, float]): HTTP status code of response
         error_message (Union[Unset, str]): User-friendly error message
-        tags (Union[Unset, ExternalApiReportJsonBodyTags]): Extra tags to attach to the call for filtering. Eg {
-            "userId": "123", "promptId": "populate-title" }
+        tags (Union[Unset, ReportJsonBodyTags]): Extra tags to attach to the call for filtering. Eg { "userId": "123",
+            "promptId": "populate-title" }
     """
 
     requested_at: float
@@ -31,7 +31,7 @@ class ExternalApiReportJsonBody:
     resp_payload: Union[Unset, Any] = UNSET
     status_code: Union[Unset, float] = UNSET
     error_message: Union[Unset, str] = UNSET
-    tags: Union[Unset, "ExternalApiReportJsonBodyTags"] = UNSET
+    tags: Union[Unset, "ReportJsonBodyTags"] = UNSET
 
     def to_dict(self) -> Dict[str, Any]:
         requested_at = self.requested_at
@@ -66,7 +66,7 @@ class ExternalApiReportJsonBody:
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
-        from ..models.external_api_report_json_body_tags import ExternalApiReportJsonBodyTags
+        from ..models.report_json_body_tags import ReportJsonBodyTags
 
         d = src_dict.copy()
         requested_at = d.pop("requestedAt")
@@ -82,13 +82,13 @@ class ExternalApiReportJsonBody:
         error_message = d.pop("errorMessage", UNSET)
 
         _tags = d.pop("tags", UNSET)
-        tags: Union[Unset, ExternalApiReportJsonBodyTags]
+        tags: Union[Unset, ReportJsonBodyTags]
         if isinstance(_tags, Unset):
             tags = UNSET
         else:
-            tags = ExternalApiReportJsonBodyTags.from_dict(_tags)
+            tags = ReportJsonBodyTags.from_dict(_tags)
 
-        external_api_report_json_body = cls(
+        report_json_body = cls(
             requested_at=requested_at,
             received_at=received_at,
             req_payload=req_payload,
@@ -98,4 +98,4 @@ class ExternalApiReportJsonBody:
             tags=tags,
         )
 
-        return external_api_report_json_body
+        return report_json_body

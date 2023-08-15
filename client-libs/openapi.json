@@ -3,17 +3,17 @@
   "info": {
     "title": "OpenPipe API",
     "description": "The public API for reporting API calls to OpenPipe",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "servers": [
     {
-      "url": "https://app.openpipe.ai/api"
+      "url": "https://app.openpipe.ai/api/v1"
     }
   ],
   "paths": {
-    "/v1/check-cache": {
+    "/check-cache": {
       "post": {
-        "operationId": "externalApi-checkCache",
+        "operationId": "checkCache",
         "description": "Check if a prompt is cached",
         "security": [
           {
@@ -74,9 +74,9 @@
         }
       }
     },
-    "/v1/report": {
+    "/report": {
       "post": {
-        "operationId": "externalApi-report",
+        "operationId": "report",
         "description": "Report an API call",
         "security": [
           {
