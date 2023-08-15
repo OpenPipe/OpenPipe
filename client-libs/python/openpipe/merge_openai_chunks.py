@@ -1,9 +1,9 @@
 from typing import Any, Optional
 
 
-def merge_streamed_chunks(base: Optional[Any], chunk: Any) -> Any:
+def merge_openai_chunks(base: Optional[Any], chunk: Any) -> Any:
     if base is None:
-        return merge_streamed_chunks({**chunk, "choices": []}, chunk)
+        return merge_openai_chunks({**chunk, "choices": []}, chunk)
 
     choices = base["choices"].copy()
     for choice in chunk["choices"]:
@@ -34,9 +34,7 @@ def merge_streamed_chunks(base: Optional[Any], chunk: Any) -> Any:
                 {**new_choice, "message": {"role": "assistant", **choice["delta"]}}
             )
 
-    merged = {
+    return {
         **base,
         "choices": choices,
     }
-
-    return merged

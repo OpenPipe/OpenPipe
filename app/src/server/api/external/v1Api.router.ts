@@ -45,7 +45,8 @@ export const v1ApiRouter = createOpenApiRouter({
           .optional()
           .describe(
             'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
-          ),
+          )
+          .default({}),
       }),
     )
     .output(
@@ -74,6 +75,7 @@ export const v1ApiRouter = createOpenApiRouter({
         },
       });
 
+      await createTags(existingResponse.originalLoggedCallId, input.tags);
       return {
         respPayload: existingResponse.respPayload,
       };
@@ -101,16 +103,16 @@ export const v1ApiRouter = createOpenApiRouter({
           .optional()
           .describe(
             'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
-          ),
+          )
+          .default({}),
       }),
     )
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
-      console.log("GOT TAGS", input.tags);
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const respPayload = await respValidator.spa(input.respPayload);
 
-      const requestHash = hashRequest(ctx.key.project.id, reqPayload as JsonValue);
+      const requestHash = hashRequest(ctx.key.projectId, reqPayload as JsonValue);
 
       const newLoggedCallId = uuidv4();
       const newModelResponseId = uuidv4();
@@ -129,7 +131,7 @@ export const v1ApiRouter = createOpenApiRouter({
         prisma.loggedCall.create({
           data: {
             id: newLoggedCallId,
-            projectId: ctx.key.project.id,
+            projectId: ctx.key.projectId,
             requestedAt: new Date(input.requestedAt),
             cacheHit: false,
             model,
@@ -163,14 +165,76 @@ export const v1ApiRouter = createOpenApiRouter({
         }),
       ]);
 
-      const tagsToCreate = Object.entries(input.tags ?? {}).map(([name, value]) => ({
-        loggedCallId: newLoggedCallId,
-        // sanitize tags
-        name: name.replaceAll(/[^a-zA-Z0-9_]/g, "_"),
-        value,
-      }));
-      await prisma.loggedCallTag.createMany({
-        data: tagsToCreate,
+      await createTags(newLoggedCallId, input.tags);
+    }),
+  localTestingOnlyGetLatestLoggedCall: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/local-testing-only-get-latest-logged-call",
+        description: "Get the latest logged call (only for local testing)",
+        protect: true, // Make sure to protect this endpoint
+      },
+    })
+    .input(z.void())
+    .output(
+      z
+        .object({
+          createdAt: z.date(),
+          cacheHit: z.boolean(),
+          tags: z.record(z.string().nullable()),
+          modelResponse: z
+            .object({
+              id: z.string(),
+              statusCode: z.number().nullable(),
+              errorMessage: z.string().nullable(),
+              reqPayload: z.unknown(),
+              respPayload: z.unknown(),
+            })
+            .nullable(),
+        })
+        .nullable(),
+    )
+    .mutation(async ({ ctx }) => {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("This operation is not allowed in production environment");
+      }
+
+      const latestLoggedCall = await prisma.loggedCall.findFirst({
+        where: { projectId: ctx.key.projectId },
+        orderBy: { requestedAt: "desc" },
+        select: {
+          createdAt: true,
+          cacheHit: true,
+          tags: true,
+          modelResponse: {
+            select: {
+              id: true,
+              statusCode: true,
+              errorMessage: true,
+              reqPayload: true,
+              respPayload: true,
+            },
+          },
+        },
       });
+
+      return (
+        latestLoggedCall && {
+          ...latestLoggedCall,
+          tags: Object.fromEntries(latestLoggedCall.tags.map((tag) => [tag.name, tag.value])),
+        }
+      );
     }),
 });
+
+async function createTags(loggedCallId: string, tags: Record<string, string>) {
+  const tagsToCreate = Object.entries(tags).map(([name, value]) => ({
+    loggedCallId,
+    name: name.replaceAll(/[^a-zA-Z0-9_$]/g, "_"),
+    value,
+  }));
+  await prisma.loggedCallTag.createMany({
+    data: tagsToCreate,
+  });
+}

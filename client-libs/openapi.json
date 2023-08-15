@@ -39,7 +39,8 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }"
+                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }",
+                    "default": {}
                   }
                 },
                 "required": [
@@ -117,7 +118,8 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }"
+                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }",
+                    "default": {}
                   }
                 },
                 "required": [
@@ -136,6 +138,82 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/local-testing-only-get-latest-logged-call": {
+      "get": {
+        "operationId": "localTestingOnlyGetLatestLoggedCall",
+        "description": "Get the latest logged call (only for local testing)",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "cacheHit": {
+                      "type": "boolean"
+                    },
+                    "tags": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string",
+                        "nullable": true
+                      }
+                    },
+                    "modelResponse": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "statusCode": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "errorMessage": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "reqPayload": {},
+                        "respPayload": {}
+                      },
+                      "required": [
+                        "id",
+                        "statusCode",
+                        "errorMessage"
+                      ],
+                      "additionalProperties": false,
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "createdAt",
+                    "cacheHit",
+                    "tags",
+                    "modelResponse"
+                  ],
+                  "additionalProperties": false,
+                  "nullable": true
+                }
               }
             }
           },
