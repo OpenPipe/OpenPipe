@@ -102,6 +102,74 @@ export interface CheckCacheRequest {
 /**
  * 
  * @export
+ * @interface LocalTestingOnlyGetLatestLoggedCall200Response
+ */
+export interface LocalTestingOnlyGetLatestLoggedCall200Response {
+    /**
+     * 
+     * @type {string}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200Response
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200Response
+     */
+    'cacheHit': boolean;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200Response
+     */
+    'tags': { [key: string]: string; };
+    /**
+     * 
+     * @type {LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200Response
+     */
+    'modelResponse': LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse | null;
+}
+/**
+ * 
+ * @export
+ * @interface LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse
+ */
+export interface LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse {
+    /**
+     * 
+     * @type {string}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse
+     */
+    'id': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse
+     */
+    'statusCode': number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse
+     */
+    'errorMessage': string | null;
+    /**
+     * 
+     * @type {any}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse
+     */
+    'reqPayload'?: any;
+    /**
+     * 
+     * @type {any}
+     * @memberof LocalTestingOnlyGetLatestLoggedCall200ResponseModelResponse
+     */
+    'respPayload'?: any;
+}
+/**
+ * 
+ * @export
  * @interface ReportRequest
  */
 export interface ReportRequest {
@@ -195,6 +263,39 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Get the latest logged call (only for local testing)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        localTestingOnlyGetLatestLoggedCall: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/local-testing-only-get-latest-logged-call`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Authorization required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Report an API call
          * @param {ReportRequest} reportRequest 
          * @param {*} [options] Override http request option.
@@ -254,6 +355,15 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get the latest logged call (only for local testing)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async localTestingOnlyGetLatestLoggedCall(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LocalTestingOnlyGetLatestLoggedCall200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.localTestingOnlyGetLatestLoggedCall(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Report an API call
          * @param {ReportRequest} reportRequest 
          * @param {*} [options] Override http request option.
@@ -283,6 +393,14 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.checkCache(checkCacheRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get the latest logged call (only for local testing)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        localTestingOnlyGetLatestLoggedCall(options?: any): AxiosPromise<LocalTestingOnlyGetLatestLoggedCall200Response> {
+            return localVarFp.localTestingOnlyGetLatestLoggedCall(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Report an API call
          * @param {ReportRequest} reportRequest 
          * @param {*} [options] Override http request option.
@@ -310,6 +428,16 @@ export class DefaultApi extends BaseAPI {
      */
     public checkCache(checkCacheRequest: CheckCacheRequest, options?: AxiosRequestConfig) {
         return DefaultApiFp(this.configuration).checkCache(checkCacheRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get the latest logged call (only for local testing)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DefaultApi
+     */
+    public localTestingOnlyGetLatestLoggedCall(options?: AxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).localTestingOnlyGetLatestLoggedCall(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

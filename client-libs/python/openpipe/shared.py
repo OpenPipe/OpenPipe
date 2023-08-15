@@ -1,5 +1,5 @@
 from openpipe.api_client.api.default import (
-    api_report,
+    report as api_report,
     check_cache,
 )
 from openpipe.api_client.client import AuthenticatedClient
