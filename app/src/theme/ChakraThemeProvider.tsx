@@ -45,7 +45,7 @@ const theme = extendTheme({
   components: {
     Button: {
       baseStyle: {
-        borderRadius: "sm",
+        borderRadius: "md",
       },
     },
     Input: {

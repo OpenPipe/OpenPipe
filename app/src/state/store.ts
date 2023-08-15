@@ -10,6 +10,7 @@ import {
 import { type APIClient } from "~/utils/api";
 import { persistOptions, type stateToPersist } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
+import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
 
 enableMapSet();
 
@@ -23,6 +24,7 @@ export type State = {
   selectedProjectId: string | null;
   setSelectedProjectId: (id: string) => void;
   selectedLogs: SelectedLogsSlice;
+  logFilters: LogFiltersSlice;
 };
 
 export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], [], T>;
@@ -58,6 +60,7 @@ const useBaseStore = create<
           state.selectedProjectId = id;
         }),
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),
+      logFilters: createLogFiltersSlice(set, get, ...rest),
     })),
     persistOptions,
   ),

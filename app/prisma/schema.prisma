@@ -326,12 +326,14 @@ model LoggedCallTag {
     id    String  @id @default(uuid()) @db.Uuid
     name  String
     value String?
+    projectId String   @db.Uuid
 
     loggedCallId String     @db.Uuid
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
-    @@index([name])
-    @@index([name, value])
+    @@unique([loggedCallId, name])
+    @@index([projectId, name])
+    @@index([projectId, name, value])
 }
 
 model ApiKey {

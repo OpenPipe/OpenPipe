@@ -75,7 +75,11 @@ export const v1ApiRouter = createOpenApiRouter({
         },
       });
 
-      await createTags(existingResponse.originalLoggedCallId, input.tags);
+      await createTags(
+        existingResponse.originalLoggedCall.projectId,
+        existingResponse.originalLoggedCallId,
+        input.tags,
+      );
       return {
         respPayload: existingResponse.respPayload,
       };
@@ -165,7 +169,7 @@ export const v1ApiRouter = createOpenApiRouter({
         }),
       ]);
 
-      await createTags(newLoggedCallId, input.tags);
+      await createTags(ctx.key.projectId, newLoggedCallId, input.tags);
       return { status: "ok" };
     }),
   localTestingOnlyGetLatestLoggedCall: openApiProtectedProc
@@ -229,8 +233,9 @@ export const v1ApiRouter = createOpenApiRouter({
     }),
 });
 
-async function createTags(loggedCallId: string, tags: Record<string, string>) {
+async function createTags(projectId: string, loggedCallId: string, tags: Record<string, string>) {
   const tagsToCreate = Object.entries(tags).map(([name, value]) => ({
+    projectId,
     loggedCallId,
     name: name.replaceAll(/[^a-zA-Z0-9_$]/g, "_"),
     value,

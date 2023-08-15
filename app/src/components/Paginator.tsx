@@ -37,6 +37,8 @@ const Paginator = ({
   const goToLastPage = () => setPageParams({ page: lastPage }, "replace");
   const goToFirstPage = () => setPageParams({ page: 1 }, "replace");
 
+  if (count === 0) return null;
+
   return (
     <HStack
       pt={4}

@@ -21,7 +21,7 @@ import Link from "next/link";
 import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "./FormattedJson";
 import { useAppStore } from "~/state/store";
-import { useLoggedCalls } from "~/utils/hooks";
+import { useLoggedCalls, useTagNames } from "~/utils/hooks";
 import { useMemo } from "react";
 
 dayjs.extend(relativeTime);
@@ -34,27 +34,32 @@ export const TableHeader = ({ showCheckbox }: { showCheckbox?: boolean }) => {
   const addAll = useAppStore((s) => s.selectedLogs.addSelectedLogIds);
   const clearAll = useAppStore((s) => s.selectedLogs.clearSelectedLogIds);
   const allSelected = useMemo(() => {
-    if (!matchingLogIds) return false;
+    if (!matchingLogIds || !matchingLogIds.length) return false;
     return matchingLogIds.every((id) => selectedLogIds.has(id));
   }, [selectedLogIds, matchingLogIds]);
+  const tagNames = useTagNames().data;
   return (
     <Thead>
       <Tr>
         {showCheckbox && (
-          <Th>
-            <HStack w={8}>
+          <Th pr={0}>
+            <HStack minW={16}>
               <Checkbox
                 isChecked={allSelected}
                 onChange={() => {
                   allSelected ? clearAll() : addAll(matchingLogIds || []);
                 }}
               />
-              <Text>({selectedLogIds.size})</Text>
+              <Text>
+                ({selectedLogIds.size ? `${selectedLogIds.size}/` : ""}
+                {matchingLogIds?.length || 0})
+              </Text>
             </HStack>
           </Th>
         )}
-        <Th>Time</Th>
+        <Th>Sent At</Th>
         <Th>Model</Th>
+        {tagNames?.map((tagName) => <Th key={tagName}>{tagName}</Th>)}
         <Th isNumeric>Duration</Th>
         <Th isNumeric>Input tokens</Th>
         <Th isNumeric>Output tokens</Th>
@@ -76,21 +81,13 @@ export const TableRow = ({
   showCheckbox?: boolean;
 }) => {
   const isError = loggedCall.modelResponse?.statusCode !== 200;
-  const timeAgo = dayjs(loggedCall.requestedAt).fromNow();
+  const requestedAt = dayjs(loggedCall.requestedAt).format("MMMM D h:mm A");
   const fullTime = dayjs(loggedCall.requestedAt).toString();
-
-  const durationCell = (
-    <Td isNumeric>
-      {loggedCall.cacheHit ? (
-        <Text color="gray.500">Cached</Text>
-      ) : (
-        ((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2) + "s"
-      )}
-    </Td>
-  );
 
   const isChecked = useAppStore((s) => s.selectedLogs.selectedLogIds.has(loggedCall.id));
   const toggleChecked = useAppStore((s) => s.selectedLogs.toggleSelectedLogId);
+
+  const tagNames = useTagNames().data;
 
   return (
     <>
@@ -101,6 +98,7 @@ export const TableRow = ({
         sx={{
           "> td": { borderBottom: "none" },
         }}
+        fontSize="sm"
       >
         {showCheckbox && (
           <Td>
@@ -110,11 +108,11 @@ export const TableRow = ({
         <Td>
           <Tooltip label={fullTime} placement="top">
             <Box whiteSpace="nowrap" minW="120px">
-              {timeAgo}
+              {requestedAt}
             </Box>
           </Tooltip>
         </Td>
-        <Td width="100%">
+        <Td>
           <HStack justifyContent="flex-start">
             <Text
               colorScheme="purple"
@@ -124,12 +122,20 @@ export const TableRow = ({
               borderRadius={4}
               borderWidth={1}
               fontSize="xs"
+              whiteSpace="nowrap"
             >
               {loggedCall.model}
             </Text>
           </HStack>
         </Td>
-        {durationCell}
+        {tagNames?.map((tagName) => <Td key={tagName}>{loggedCall.tags[tagName]}</Td>)}
+        <Td isNumeric>
+          {loggedCall.cacheHit ? (
+            <Text color="gray.500">Cached</Text>
+          ) : (
+            ((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2) + "s"
+          )}
+        </Td>
         <Td isNumeric>{loggedCall.modelResponse?.inputTokens}</Td>
         <Td isNumeric>{loggedCall.modelResponse?.outputTokens}</Td>
         <Td sx={{ color: isError ? "red.500" : "green.500", fontWeight: "semibold" }} isNumeric>

@@ -1,8 +1,9 @@
 import { ChatCompletion, ChatCompletionChunk } from "openai-beta/resources/chat";
+import { omit } from "lodash-es";
 
 export default function mergeChunks(
   base: ChatCompletion | null,
-  chunk: ChatCompletionChunk
+  chunk: ChatCompletionChunk,
 ): ChatCompletion {
   if (base === null) {
     return mergeChunks({ ...chunk, choices: [] }, chunk);
