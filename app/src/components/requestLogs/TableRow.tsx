@@ -34,7 +34,7 @@ export const TableHeader = ({ showCheckbox }: { showCheckbox?: boolean }) => {
   const addAll = useAppStore((s) => s.selectedLogs.addSelectedLogIds);
   const clearAll = useAppStore((s) => s.selectedLogs.clearSelectedLogIds);
   const allSelected = useMemo(() => {
-    if (!matchingLogIds) return false;
+    if (!matchingLogIds || !matchingLogIds.length) return false;
     return matchingLogIds.every((id) => selectedLogIds.has(id));
   }, [selectedLogIds, matchingLogIds]);
   return (
@@ -49,7 +49,10 @@ export const TableHeader = ({ showCheckbox }: { showCheckbox?: boolean }) => {
                   allSelected ? clearAll() : addAll(matchingLogIds || []);
                 }}
               />
-              <Text>({selectedLogIds.size})</Text>
+              <Text>
+                ({selectedLogIds.size ? `${selectedLogIds.size}/` : ""}
+                {matchingLogIds?.length || 0})
+              </Text>
             </HStack>
           </Th>
         )}
