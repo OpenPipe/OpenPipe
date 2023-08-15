@@ -72,6 +72,7 @@
     "nextjs-cors": "^2.1.2",
     "nextjs-routes": "^2.0.1",
     "openai": "4.0.0-beta.7",
+    "openpipe": "workspace:*",
     "pg": "^8.11.2",
     "pluralize": "^8.0.0",
     "posthog-js": "^1.75.3",
@@ -100,8 +101,7 @@
     "uuid": "^9.0.0",
     "vite-tsconfig-paths": "^4.2.0",
     "zod": "^3.21.4",
-    "zustand": "^4.3.9",
-    "openpipe": "workspace:*"
+    "zustand": "^4.3.9"
   },
   "devDependencies": {
     "@openapi-contrib/openapi-schema-to-json-schema": "^4.0.5",
@@ -129,6 +129,7 @@
     "eslint-plugin-unused-imports": "^2.0.0",
     "monaco-editor": "^0.40.0",
     "openapi-typescript": "^6.3.4",
+    "openapi-typescript-codegen": "^0.25.0",
     "prisma": "^4.14.0",
     "raw-loader": "^4.0.2",
     "typescript": "^5.0.4",

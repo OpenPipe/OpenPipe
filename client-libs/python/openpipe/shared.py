@@ -19,7 +19,7 @@ configured_client = AuthenticatedClient(
 def _get_tags(openpipe_options):
     tags = openpipe_options.get("tags") or {}
     tags["$sdk"] = "python"
-    tags["$sdk_version"] = version
+    tags["$sdk.version"] = version
 
     return ReportJsonBodyTags.from_dict(tags)
 

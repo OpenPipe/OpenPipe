@@ -156,7 +156,7 @@ async def test_caching():
 
     completion2 = await openai.ChatCompletion.acreate(
         model="gpt-3.5-turbo",
-        messages=[{"role": "system", "content": "count to 10"}],
+        messages=messages,
         openpipe={"cache": True},
     )
     assert completion2.openpipe.cache_status == "HIT"
