@@ -13,9 +13,9 @@ const comparatorToSqlValue = (comparator: (typeof comparators)[number], value: s
     case "=":
       return `= '${value}'`;
     case "!=":
-      return `!= '${value}'`;
+      return `IS DISTINCT FROM '${value}'`;
     case "CONTAINS":
-      return `like '%${value}%'`;
+      return `LIKE '%${value}%'`;
   }
 };
 
