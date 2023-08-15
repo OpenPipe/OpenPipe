@@ -12,7 +12,7 @@ export default function LoggedCallsTable() {
       <Table>
         <TableHeader showCheckbox />
         <Tbody>
-          {loggedCalls?.calls.map((loggedCall) => {
+          {loggedCalls?.calls?.map((loggedCall) => {
             return (
               <TableRow
                 key={loggedCall.id}

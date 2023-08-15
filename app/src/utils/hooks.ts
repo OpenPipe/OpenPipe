@@ -179,9 +179,18 @@ export const useScenarioVars = () => {
 export const useLoggedCalls = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
+  const filters = useAppStore((state) => state.logFilters.filters);
 
   return api.loggedCalls.list.useQuery(
-    { projectId: selectedProjectId ?? "", page, pageSize },
+    { projectId: selectedProjectId ?? "", page, pageSize, filters },
+    { enabled: !!selectedProjectId },
+  );
+};
+
+export const useFilterableFields = () => {
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  return api.loggedCalls.getFilterableFields.useQuery(
+    { projectId: selectedProjectId ?? "" },
     { enabled: !!selectedProjectId },
   );
 };
