@@ -13,6 +13,7 @@ const MODEL_RESPONSE_TEMPLATES: {
   inputTokens: number;
   outputTokens: number;
   finishReason: string;
+  tags: { name: string; value: string }[];
 }[] = [
   {
     reqPayload: {
@@ -107,6 +108,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     inputTokens: 236,
     outputTokens: 5,
     finishReason: "stop",
+    tags: [],
   },
   {
     reqPayload: {
@@ -193,6 +195,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     inputTokens: 222,
     outputTokens: 5,
     finishReason: "stop",
+    tags: [],
   },
   {
     reqPayload: {
@@ -231,6 +234,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     inputTokens: 14,
     outputTokens: 7,
     finishReason: "stop",
+    tags: [{ name: "prompt_id", value: "id2" }],
   },
   {
     reqPayload: {
@@ -306,6 +310,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     inputTokens: 2802,
     outputTokens: 108,
     finishReason: "stop",
+    tags: [{ name: "prompt_id", value: "chatcmpl-7lQS3MktOT8BTgNEytl9dkyssCQqL" }],
   },
 ];
 
@@ -349,6 +354,7 @@ for (let i = 0; i < 1437; i++) {
     cacheHit: false,
     requestedAt,
     projectId: project.id,
+    model: template.reqPayload.model,
     createdAt: requestedAt,
   });
 
@@ -388,12 +394,14 @@ for (let i = 0; i < 1437; i++) {
       modelResponseId: loggedCallModelResponseId,
     },
   });
-  loggedCallTagsToCreate.push({
-    projectId: project.id,
-    loggedCallId,
-    name: "$model",
-    value: template.reqPayload.model,
-  });
+  for (const tag of template.tags) {
+    loggedCallTagsToCreate.push({
+      projectId: project.id,
+      loggedCallId,
+      name: tag.name,
+      value: tag.value,
+    });
+  }
 }
 
 await prisma.$transaction([
