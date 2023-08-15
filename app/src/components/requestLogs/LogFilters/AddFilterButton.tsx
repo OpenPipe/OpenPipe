@@ -16,12 +16,13 @@ const AddFilterButton = () => {
     <HStack
       as={Button}
       variant="ghost"
-      fontWeight="normal"
       onClick={() =>
         addFilter({ field: filterableFields[0] as string, comparator: comparators[0] })
       }
+      spacing={0}
+      fontSize="sm"
     >
-      <Icon as={BsPlus} />
+      <Icon as={BsPlus} boxSize={5} />
       <Text>Add Filter</Text>
     </HStack>
   );
