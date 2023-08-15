@@ -15,7 +15,8 @@ export default class OpenAI extends openai.OpenAI {
 
   constructor({
     openPipeApiKey = readEnv("OPENPIPE_API_KEY"),
-    openPipeBaseUrl = readEnv("OPENPIPE_BASE_URL") ?? `https://app.openpipe.ai/v1`,
+    openPipeBaseUrl = readEnv("OPENPIPE_BASE_URL") ??
+      `https://app.openpipe.ai/v1`,
     ...opts
   }: ClientOptions = {}) {
     super({ ...opts });
@@ -73,37 +74,36 @@ class ExtendedCompletions extends openai.OpenAI.Chat.Completions {
     options?: RequestOptions,
     tags?: Record<string, string>
   ): Promise<any> {
-    // // Your pre API call logic here
-    // console.log("Doing pre API call...");
+    // Your pre API call logic here
+    console.log("Doing pre API call...");
 
-    // // Determine the type of request
-    // if (params.hasOwnProperty("stream") && params.stream === true) {
-    //   const result = await super.create(
-    //     params as CompletionCreateParams.CreateChatCompletionRequestStreaming,
-    //     options
-    //   );
-    //   // Your post API call logic here
-    //   console.log("Doing post API call for Streaming...");
-    //   return result;
-    // } else {
-    //   const requestedAt = Date.now();
-    const result = await super.create(
-      params as CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
-      options
-    );
-    return result;
-    //   await this.openaiInstance.openPipeApi?.externalApiReport({
-    //     requestedAt,
-    //     receivedAt: Date.now(),
-    //     reqPayload: params,
-    //     respPayload: result,
-    //     statusCode: 200,
-    //     errorMessage: undefined,
-    //     tags,
-    //   });
+    // Determine the type of request
+    if (params.hasOwnProperty("stream") && params.stream === true) {
+      const result = await super.create(
+        params as CompletionCreateParams.CreateChatCompletionRequestStreaming,
+        options
+      );
+      // Your post API call logic here
+      console.log("Doing post API call for Streaming...");
+      return result;
+    } else {
+      const requestedAt = Date.now();
+      const result = await super.create(
+        params as CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
+        options
+      );
+      await this.openaiInstance.openPipeApi?.externalApiReport({
+        requestedAt,
+        receivedAt: Date.now(),
+        reqPayload: params,
+        respPayload: result,
+        statusCode: 200,
+        errorMessage: undefined,
+        tags,
+      });
 
-    //   console.log("GOT RESULT", result);
-    //   return result;
-    // }
+      console.log("GOT RESULT", result);
+      return result;
+    }
   }
 }

@@ -389,6 +389,7 @@ for (let i = 0; i < 1437; i++) {
     },
   });
   loggedCallTagsToCreate.push({
+    projectId: project.id,
     loggedCallId,
     name: "$model",
     value: template.reqPayload.model,

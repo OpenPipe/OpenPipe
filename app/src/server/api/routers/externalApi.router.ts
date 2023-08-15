@@ -186,6 +186,7 @@ export const externalApiRouter = createTRPCRouter({
       ]);
 
       const tagsToCreate = Object.entries(input.tags ?? {}).map(([name, value]) => ({
+        projectId: key.projectId,
         loggedCallId: newLoggedCallId,
         // sanitize tags
         name: name.replaceAll(/[^a-zA-Z0-9_]/g, "_"),
