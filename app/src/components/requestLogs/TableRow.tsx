@@ -122,6 +122,7 @@ export const TableRow = ({
               borderRadius={4}
               borderWidth={1}
               fontSize="xs"
+              whiteSpace="nowrap"
             >
               {loggedCall.model}
             </Text>
