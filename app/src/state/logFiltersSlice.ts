@@ -1,8 +1,8 @@
 import { type SliceCreator } from "./store";
 
-export const editorBackground = "#fafafa";
-
 export const comparators = ["=", "!=", "CONTAINS"] as const;
+
+export const defaultFilterableFields = ["Request", "Response", "Model", "Status Code"] as const;
 
 export interface LogFilter {
   field: string;

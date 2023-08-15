@@ -21,7 +21,7 @@ import Link from "next/link";
 import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "./FormattedJson";
 import { useAppStore } from "~/state/store";
-import { useLoggedCalls } from "~/utils/hooks";
+import { useLoggedCalls, useTagNames } from "~/utils/hooks";
 import { useMemo } from "react";
 
 dayjs.extend(relativeTime);
@@ -37,6 +37,7 @@ export const TableHeader = ({ showCheckbox }: { showCheckbox?: boolean }) => {
     if (!matchingLogIds || !matchingLogIds.length) return false;
     return matchingLogIds.every((id) => selectedLogIds.has(id));
   }, [selectedLogIds, matchingLogIds]);
+  const tagNames = useTagNames().data;
   return (
     <Thead>
       <Tr>
@@ -58,6 +59,7 @@ export const TableHeader = ({ showCheckbox }: { showCheckbox?: boolean }) => {
         )}
         <Th>Sent At</Th>
         <Th>Model</Th>
+        {tagNames?.map((tagName) => <Th key={tagName}>{tagName}</Th>)}
         <Th isNumeric>Duration</Th>
         <Th isNumeric>Input tokens</Th>
         <Th isNumeric>Output tokens</Th>
@@ -82,18 +84,10 @@ export const TableRow = ({
   const requestedAt = dayjs(loggedCall.requestedAt).format("MMMM D h:mm A");
   const fullTime = dayjs(loggedCall.requestedAt).toString();
 
-  const durationCell = (
-    <Td isNumeric>
-      {loggedCall.cacheHit ? (
-        <Text color="gray.500">Cached</Text>
-      ) : (
-        ((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2) + "s"
-      )}
-    </Td>
-  );
-
   const isChecked = useAppStore((s) => s.selectedLogs.selectedLogIds.has(loggedCall.id));
   const toggleChecked = useAppStore((s) => s.selectedLogs.toggleSelectedLogId);
+
+  const tagNames = useTagNames().data;
 
   return (
     <>
@@ -118,7 +112,7 @@ export const TableRow = ({
             </Box>
           </Tooltip>
         </Td>
-        <Td width="100%">
+        <Td>
           <HStack justifyContent="flex-start">
             <Text
               colorScheme="purple"
@@ -133,7 +127,14 @@ export const TableRow = ({
             </Text>
           </HStack>
         </Td>
-        {durationCell}
+        {tagNames?.map((tagName) => <Td key={tagName}>{loggedCall.tags[tagName]}</Td>)}
+        <Td isNumeric>
+          {loggedCall.cacheHit ? (
+            <Text color="gray.500">Cached</Text>
+          ) : (
+            ((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2) + "s"
+          )}
+        </Td>
         <Td isNumeric>{loggedCall.modelResponse?.inputTokens}</Td>
         <Td isNumeric>{loggedCall.modelResponse?.outputTokens}</Td>
         <Td sx={{ color: isError ? "red.500" : "green.500", fontWeight: "semibold" }} isNumeric>

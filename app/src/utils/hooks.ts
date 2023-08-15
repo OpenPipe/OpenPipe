@@ -187,9 +187,9 @@ export const useLoggedCalls = () => {
   );
 };
 
-export const useFilterableFields = () => {
+export const useTagNames = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
-  return api.loggedCalls.getFilterableFields.useQuery(
+  return api.loggedCalls.getTagNames.useQuery(
     { projectId: selectedProjectId ?? "" },
     { enabled: !!selectedProjectId },
   );
