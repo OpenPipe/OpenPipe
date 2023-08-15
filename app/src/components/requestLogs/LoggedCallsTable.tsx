@@ -8,7 +8,7 @@ export default function LoggedCallsTable() {
   const loggedCalls = useLoggedCalls().data;
 
   return (
-    <Card width="100%" overflow="hidden">
+    <Card width="100%" overflowX="auto">
       <Table>
         <TableHeader showCheckbox />
         <Tbody>
