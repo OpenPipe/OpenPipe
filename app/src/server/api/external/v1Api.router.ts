@@ -107,7 +107,7 @@ export const v1ApiRouter = createOpenApiRouter({
           .default({}),
       }),
     )
-    .output(z.void())
+    .output(z.object({ status: z.literal("ok") }))
     .mutation(async ({ input, ctx }) => {
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const respPayload = await respValidator.spa(input.respPayload);
@@ -166,6 +166,7 @@ export const v1ApiRouter = createOpenApiRouter({
       ]);
 
       await createTags(newLoggedCallId, input.tags);
+      return { status: "ok" };
     }),
   localTestingOnlyGetLatestLoggedCall: openApiProtectedProc
     .meta({

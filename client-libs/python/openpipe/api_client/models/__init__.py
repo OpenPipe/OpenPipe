@@ -12,6 +12,8 @@ from .local_testing_only_get_latest_logged_call_response_200_tags import (
 )
 from .report_json_body import ReportJsonBody
 from .report_json_body_tags import ReportJsonBodyTags
+from .report_response_200 import ReportResponse200
+from .report_response_200_status import ReportResponse200Status
 
 __all__ = (
     "CheckCacheJsonBody",
@@ -22,4 +24,6 @@ __all__ = (
     "LocalTestingOnlyGetLatestLoggedCallResponse200Tags",
     "ReportJsonBody",
     "ReportJsonBodyTags",
+    "ReportResponse200",
+    "ReportResponse200Status",
 )
