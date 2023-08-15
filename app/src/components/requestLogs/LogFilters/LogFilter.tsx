@@ -15,14 +15,9 @@ const LogFilter = ({ filter, index }: { filter: LogFilter; index: number }) => {
   const [editedValue, setEditedValue] = useState("");
 
   const debouncedUpdateFilter = useCallback(
-    debounce(
-      (index: number, filter: LogFilter) => {
-        console.log("updating filter!!!");
-        updateFilter(index, filter);
-      },
-      200,
-      { leading: true },
-    ),
+    debounce((index: number, filter: LogFilter) => updateFilter(index, filter), 500, {
+      leading: true,
+    }),
     [updateFilter],
   );
 
