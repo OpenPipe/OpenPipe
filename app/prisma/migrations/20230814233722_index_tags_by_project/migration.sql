@@ -17,3 +17,6 @@ ALTER TABLE "LoggedCallTag" ALTER COLUMN "projectId" SET NOT NULL;
 -- CreateIndex
 CREATE INDEX "LoggedCallTag_projectId_name_idx" ON "LoggedCallTag"("projectId", "name");
 CREATE INDEX "LoggedCallTag_projectId_name_value_idx" ON "LoggedCallTag"("projectId", "name", "value");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "LoggedCallTag_loggedCallId_name_key" ON "LoggedCallTag"("loggedCallId", "name");
