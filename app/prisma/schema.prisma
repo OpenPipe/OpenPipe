@@ -331,6 +331,7 @@ model LoggedCallTag {
     loggedCallId String     @db.Uuid
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
+    @@unique([loggedCallId, name])
     @@index([projectId, name])
     @@index([projectId, name, value])
 }

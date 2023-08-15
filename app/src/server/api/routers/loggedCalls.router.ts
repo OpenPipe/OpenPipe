@@ -90,7 +90,28 @@ export const loggedCallsRouter = createTRPCRouter({
           return eb.and(wheres);
         });
 
-      const rawCalls = await baseQuery
+      const tagFilters = input.filters.filter(
+        (filter) => !defaultFilterableFields.includes(filter.field),
+      );
+
+      let updatedBaseQuery = baseQuery;
+
+      for (let i = 0; i < tagFilters.length; i++) {
+        const filter = tagFilters[i];
+        if (!filter?.value) continue;
+        const tableAlias = `lct${i}`;
+        updatedBaseQuery = updatedBaseQuery
+          .leftJoin(`LoggedCallTag as ${tableAlias}`, (join) =>
+            join
+              .onRef("lc.id", "=", `${tableAlias}.loggedCallId`)
+              .on(`${tableAlias}.name`, "=", filter.field),
+          )
+          .where(
+            sql.raw(`${tableAlias}.value ${comparatorToSqlValue(filter.comparator, filter.value)}`),
+          ) as unknown as typeof baseQuery;
+      }
+
+      const rawCalls = await updatedBaseQuery
         .select([
           "lc.id as id",
           "lc.requestedAt as requestedAt",
@@ -129,7 +150,7 @@ export const loggedCallsRouter = createTRPCRouter({
         },
       }));
 
-      const matchingLogIds = await baseQuery.select(["lc.id"]).execute();
+      const matchingLogIds = await updatedBaseQuery.select(["lc.id"]).execute();
 
       const count = matchingLogIds.length;
 
