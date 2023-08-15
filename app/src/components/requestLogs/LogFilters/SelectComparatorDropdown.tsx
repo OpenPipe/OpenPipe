@@ -12,7 +12,6 @@ const SelectComparatorDropdown = ({ filter, index }: { filter: LogFilter; index:
       options={comparators}
       selectedOption={comparator}
       onSelect={(option) => updateFilter(index, { ...filter, comparator: option })}
-      inputGroupProps={{ w: 300 }}
     />
   );
 };

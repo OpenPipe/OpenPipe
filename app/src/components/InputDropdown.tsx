@@ -11,8 +11,6 @@ import {
   Button,
   Text,
   useDisclosure,
-  type PopoverContentProps,
-  type InputGroupProps,
 } from "@chakra-ui/react";
 
 import { FiChevronDown } from "react-icons/fi";
@@ -22,27 +20,20 @@ type InputDropdownProps<T> = {
   options: ReadonlyArray<T>;
   selectedOption: T;
   onSelect: (option: T) => void;
-  inputGroupProps?: InputGroupProps;
-  popoverContentProps?: PopoverContentProps;
 };
 
-const InputDropdown = <T,>({
-  options,
-  selectedOption,
-  onSelect,
-  inputGroupProps,
-  popoverContentProps,
-}: InputDropdownProps<T>) => {
+const InputDropdown = <T,>({ options, selectedOption, onSelect }: InputDropdownProps<T>) => {
   const popover = useDisclosure();
 
   return (
     <Popover placement="bottom-start" {...popover}>
       <PopoverTrigger>
-        <InputGroup cursor="pointer" w={360} {...inputGroupProps}>
+        <InputGroup cursor="pointer" w={(selectedOption as string).length * 14 + 180}>
           <Input
             value={selectedOption as string}
+            // eslint-disable-next-line @typescript-eslint/no-empty-function -- controlled input requires onChange
+            onChange={() => {}}
             cursor="pointer"
-            borderWidth={popover.isOpen ? 2 : undefined}
             borderColor={popover.isOpen ? "blue.500" : undefined}
             _hover={popover.isOpen ? { borderColor: "blue.500" } : undefined}
             contentEditable={false}
@@ -56,7 +47,7 @@ const InputDropdown = <T,>({
           </InputRightElement>
         </InputGroup>
       </PopoverTrigger>
-      <PopoverContent boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);" w={224} {...popoverContentProps}>
+      <PopoverContent boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);" minW={0} w="auto">
         <VStack spacing={0}>
           {options?.map((option, index) => (
             <HStack
@@ -76,7 +67,7 @@ const InputDropdown = <T,>({
               fontSize="sm"
               borderBottomWidth={1}
             >
-              <Text>{option as string}</Text>
+              <Text mr={16}>{option as string}</Text>
               {option === selectedOption && <Icon as={BiCheck} color="blue.500" boxSize={5} />}
             </HStack>
           ))}
