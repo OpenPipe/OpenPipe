@@ -1,6 +1,6 @@
 import { type SliceCreator } from "./store";
 
-export const comparators = ["=", "!=", "CONTAINS"] as const;
+export const comparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
 
 export const defaultFilterableFields = ["Request", "Response", "Model", "Status Code"] as const;
 
