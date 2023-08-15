@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type Expression, type SqlBool, sql } from "kysely";
+import { type Expression, type SqlBool, sql, type RawBuilder } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -8,17 +8,22 @@ import { comparators, defaultFilterableFields } from "~/state/logFiltersSlice";
 import { requireCanViewProject } from "~/utils/accessControl";
 
 // create comparator type based off of comparators
-const comparatorToSqlValue = (comparator: (typeof comparators)[number], value: string) => {
-  switch (comparator) {
-    case "=":
-      return `= '${value}'`;
-    case "!=":
-      return `IS DISTINCT FROM '${value}'`;
-    case "CONTAINS":
-      return `LIKE '%${value}%'`;
-    case "NOT_CONTAINS":
-      return `NOT LIKE '%${value}%'`;
-  }
+const comparatorToSqlExpression = (comparator: (typeof comparators)[number], value: string) => {
+  return (reference: RawBuilder<unknown>): Expression<SqlBool> => {
+    switch (comparator) {
+      case "=":
+        return sql`${reference} = ${value}`;
+      case "!=":
+        // Assuming kysely supports the `IS DISTINCT FROM` operation. If not, you'll need a workaround.
+        return sql`${reference} IS DISTINCT FROM ${value}`;
+      case "CONTAINS":
+        return sql`${reference} LIKE ${"%" + value + "%"}`;
+      case "NOT_CONTAINS":
+        return sql`${reference} NOT LIKE ${"%" + value + "%"} OR ${reference} IS NULL`;
+      default:
+        throw new Error("Unknown comparator");
+    }
+  };
 };
 
 export const loggedCallsRouter = createTRPCRouter({
@@ -50,40 +55,19 @@ export const loggedCallsRouter = createTRPCRouter({
 
           for (const filter of input.filters) {
             if (!filter.value) continue;
+            const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
+
             if (filter.field === "Request") {
-              wheres.push(
-                sql.raw(
-                  `lcmr."reqPayload"::text ${comparatorToSqlValue(
-                    filter.comparator,
-                    filter.value,
-                  )}`,
-                ),
-              );
+              wheres.push(filterExpression(sql.raw(`lcmr."reqPayload"::text`)));
             }
             if (filter.field === "Response") {
-              wheres.push(
-                sql.raw(
-                  `lcmr."respPayload"::text ${comparatorToSqlValue(
-                    filter.comparator,
-                    filter.value,
-                  )}`,
-                ),
-              );
+              wheres.push(filterExpression(sql.raw(`lcmr."respPayload"::text`)));
             }
             if (filter.field === "Model") {
-              wheres.push(
-                sql.raw(`lc."model" ${comparatorToSqlValue(filter.comparator, filter.value)}`),
-              );
+              wheres.push(filterExpression(sql.raw(`lc."model"`)));
             }
             if (filter.field === "Status Code") {
-              wheres.push(
-                sql.raw(
-                  `lcmr."statusCode"::text ${comparatorToSqlValue(
-                    filter.comparator,
-                    filter.value,
-                  )}`,
-                ),
-              );
+              wheres.push(filterExpression(sql.raw(`lcmr."statusCode"::text`)));
             }
           }
 
@@ -103,15 +87,15 @@ export const loggedCallsRouter = createTRPCRouter({
         const filter = tagFilters[i];
         if (!filter?.value) continue;
         const tableAlias = `lct${i}`;
+        const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
+
         updatedBaseQuery = updatedBaseQuery
           .leftJoin(`LoggedCallTag as ${tableAlias}`, (join) =>
             join
               .onRef("lc.id", "=", `${tableAlias}.loggedCallId`)
               .on(`${tableAlias}.name`, "=", filter.field),
           )
-          .where(
-            sql.raw(`${tableAlias}.value ${comparatorToSqlValue(filter.comparator, filter.value)}`),
-          ) as unknown as typeof baseQuery;
+          .where(filterExpression(sql.raw(`${tableAlias}.value`))) as unknown as typeof baseQuery;
       }
 
       const rawCalls = await updatedBaseQuery
