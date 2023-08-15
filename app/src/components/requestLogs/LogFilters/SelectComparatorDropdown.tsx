@@ -2,7 +2,7 @@ import { comparators, type LogFilter } from "~/state/logFiltersSlice";
 import { useAppStore } from "~/state/store";
 import InputDropdown from "~/components/InputDropdown";
 
-const SelectComparatorDropdown = ({ filter, index }: { filter: LogFilter; index: number }) => {
+const SelectComparatorDropdown = ({ filter }: { filter: LogFilter }) => {
   const updateFilter = useAppStore((s) => s.logFilters.updateFilter);
 
   const { comparator } = filter;
@@ -11,7 +11,7 @@ const SelectComparatorDropdown = ({ filter, index }: { filter: LogFilter; index:
     <InputDropdown
       options={comparators}
       selectedOption={comparator}
-      onSelect={(option) => updateFilter(index, { ...filter, comparator: option })}
+      onSelect={(option) => updateFilter({ ...filter, comparator: option })}
     />
   );
 };

@@ -37,7 +37,7 @@ export const loggedCallsRouter = createTRPCRouter({
           z.object({
             field: z.string(),
             comparator: z.enum(comparators),
-            value: z.string().optional(),
+            value: z.string(),
           }),
         ),
       }),

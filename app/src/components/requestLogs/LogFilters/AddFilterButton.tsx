@@ -10,7 +10,14 @@ const AddFilterButton = () => {
     <HStack
       as={Button}
       variant="ghost"
-      onClick={() => addFilter({ field: defaultFilterableFields[0], comparator: comparators[0] })}
+      onClick={() =>
+        addFilter({
+          id: Date.now().toString(),
+          field: defaultFilterableFields[0],
+          comparator: comparators[0],
+          value: "",
+        })
+      }
       spacing={0}
       fontSize="sm"
     >

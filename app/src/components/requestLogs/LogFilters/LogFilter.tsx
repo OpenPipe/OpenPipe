@@ -8,14 +8,14 @@ import { debounce } from "lodash-es";
 import SelectFieldDropdown from "./SelectFieldDropdown";
 import SelectComparatorDropdown from "./SelectComparatorDropdown";
 
-const LogFilter = ({ filter, index }: { filter: LogFilter; index: number }) => {
+const LogFilter = ({ filter }: { filter: LogFilter }) => {
   const updateFilter = useAppStore((s) => s.logFilters.updateFilter);
   const deleteFilter = useAppStore((s) => s.logFilters.deleteFilter);
 
-  const [editedValue, setEditedValue] = useState("");
+  const [editedValue, setEditedValue] = useState(filter.value);
 
   const debouncedUpdateFilter = useCallback(
-    debounce((index: number, filter: LogFilter) => updateFilter(index, filter), 500, {
+    debounce((filter: LogFilter) => updateFilter(filter), 500, {
       leading: true,
     }),
     [updateFilter],
@@ -23,19 +23,19 @@ const LogFilter = ({ filter, index }: { filter: LogFilter; index: number }) => {
 
   return (
     <HStack>
-      <SelectFieldDropdown filter={filter} index={index} />
-      <SelectComparatorDropdown filter={filter} index={index} />
+      <SelectFieldDropdown filter={filter} />
+      <SelectComparatorDropdown filter={filter} />
       <Input
         value={editedValue}
         onChange={(e) => {
           setEditedValue(e.target.value);
-          debouncedUpdateFilter(index, { ...filter, value: e.target.value });
+          debouncedUpdateFilter({ ...filter, value: e.target.value });
         }}
       />
       <IconButton
         aria-label="Delete Filter"
         icon={<BsTrash />}
-        onClick={() => deleteFilter(index)}
+        onClick={() => deleteFilter(filter.id)}
       />
     </HStack>
   );
