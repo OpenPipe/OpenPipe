@@ -1,8 +1,9 @@
 import "dotenv/config";
-import { openApiDocument } from "~/pages/api/openapi.json";
+import { openApiDocument } from "~/pages/api/v1/openapi.json";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
+import { generate } from "openapi-typescript-codegen";
 
 const scriptPath = import.meta.url.replace("file://", "");
 const clientLibsPath = path.join(path.dirname(scriptPath), "../../../../client-libs");
@@ -18,13 +19,20 @@ console.log("Generating TypeScript client");
 const tsClientPath = path.join(clientLibsPath, "typescript/src/codegen");
 
 fs.rmSync(tsClientPath, { recursive: true, force: true });
+fs.mkdirSync(tsClientPath, { recursive: true });
 
-execSync(
-  `pnpm dlx @openapitools/openapi-generator-cli generate -i "${schemaPath}" -g typescript-axios -o "${tsClientPath}"`,
-  {
-    stdio: "inherit",
-  },
-);
+await generate({
+  input: openApiDocument,
+  output: tsClientPath,
+  clientName: "OPClient",
+  httpClient: "node",
+});
+// execSync(
+//   `pnpm run openapi generate --input "${schemaPath}" --output "${tsClientPath}" --name OPClient --client node`,
+//   {
+//     stdio: "inherit",
+//   },
+// );
 
 console.log("Generating Python client");
 

@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Metrics and auto-evaluation for LLM calls",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +13,8 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "axios": "^0.26.0",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2",
     "openai-beta": "npm:openai@4.0.0-beta.7",
     "openai-legacy": "npm:openai@3.3.0"
   },
@@ -20,6 +22,7 @@
     "@types/node": "^20.4.8",
     "dotenv": "^16.3.1",
     "tsx": "^3.12.7",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vitest": "^0.33.0"
   }
 }

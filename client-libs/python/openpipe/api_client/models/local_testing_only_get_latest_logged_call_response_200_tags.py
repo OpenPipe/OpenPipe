@@ -1,15 +1,15 @@
-from typing import Any, Dict, List, Type, TypeVar
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 from attrs import define, field
 
-T = TypeVar("T", bound="ExternalApiReportJsonBodyTags")
+T = TypeVar("T", bound="LocalTestingOnlyGetLatestLoggedCallResponse200Tags")
 
 
 @define
-class ExternalApiReportJsonBodyTags:
-    """Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }"""
+class LocalTestingOnlyGetLatestLoggedCallResponse200Tags:
+    """ """
 
-    additional_properties: Dict[str, str] = field(init=False, factory=dict)
+    additional_properties: Dict[str, Optional[str]] = field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         field_dict: Dict[str, Any] = {}
@@ -21,19 +21,19 @@ class ExternalApiReportJsonBodyTags:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        external_api_report_json_body_tags = cls()
+        local_testing_only_get_latest_logged_call_response_200_tags = cls()
 
-        external_api_report_json_body_tags.additional_properties = d
-        return external_api_report_json_body_tags
+        local_testing_only_get_latest_logged_call_response_200_tags.additional_properties = d
+        return local_testing_only_get_latest_logged_call_response_200_tags
 
     @property
     def additional_keys(self) -> List[str]:
         return list(self.additional_properties.keys())
 
-    def __getitem__(self, key: str) -> str:
+    def __getitem__(self, key: str) -> Optional[str]:
         return self.additional_properties[key]
 
-    def __setitem__(self, key: str, value: str) -> None:
+    def __setitem__(self, key: str, value: Optional[str]) -> None:
         self.additional_properties[key] = value
 
     def __delitem__(self, key: str) -> None:

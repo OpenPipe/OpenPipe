@@ -3,9 +3,16 @@ from openai.openai_object import OpenAIObject
 import time
 import inspect
 
-from openpipe.merge_openai_chunks import merge_streamed_chunks
+from openpipe.merge_openai_chunks import merge_openai_chunks
+from openpipe.openpipe_meta import OpenPipeMeta
 
-from .shared import maybe_check_cache, maybe_check_cache_async, report_async, report
+from .shared import (
+    _should_check_cache,
+    maybe_check_cache,
+    maybe_check_cache_async,
+    report_async,
+    report,
+)
 
 
 class WrappedChatCompletion(original_openai.ChatCompletion):
@@ -29,9 +36,15 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                 def _gen():
                     assembled_completion = None
                     for chunk in chat_completion:
-                        assembled_completion = merge_streamed_chunks(
+                        assembled_completion = merge_openai_chunks(
                             assembled_completion, chunk
                         )
+
+                        cache_status = (
+                            "MISS" if _should_check_cache(openpipe_options) else "SKIP"
+                        )
+                        chunk.openpipe = OpenPipeMeta(cache_status=cache_status)
+
                         yield chunk
 
                     received_at = int(time.time() * 1000)
@@ -58,6 +71,10 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     status_code=200,
                 )
 
+                cache_status = (
+                    "MISS" if _should_check_cache(openpipe_options) else "SKIP"
+                )
+                chat_completion["openpipe"] = OpenPipeMeta(cache_status=cache_status)
             return chat_completion
         except Exception as e:
             received_at = int(time.time() * 1000)
@@ -96,21 +113,28 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
         requested_at = int(time.time() * 1000)
 
         try:
-            chat_completion = original_openai.ChatCompletion.acreate(*args, **kwargs)
+            chat_completion = await original_openai.ChatCompletion.acreate(
+                *args, **kwargs
+            )
 
-            if inspect.isgenerator(chat_completion):
+            if inspect.isasyncgen(chat_completion):
 
-                def _gen():
+                async def _gen():
                     assembled_completion = None
-                    for chunk in chat_completion:
-                        assembled_completion = merge_streamed_chunks(
+                    async for chunk in chat_completion:
+                        assembled_completion = merge_openai_chunks(
                             assembled_completion, chunk
                         )
+                        cache_status = (
+                            "MISS" if _should_check_cache(openpipe_options) else "SKIP"
+                        )
+                        chunk.openpipe = OpenPipeMeta(cache_status=cache_status)
+
                         yield chunk
 
                     received_at = int(time.time() * 1000)
 
-                    report_async(
+                    await report_async(
                         openpipe_options=openpipe_options,
                         requested_at=requested_at,
                         received_at=received_at,
@@ -123,7 +147,7 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
             else:
                 received_at = int(time.time() * 1000)
 
-                report_async(
+                await report_async(
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -132,12 +156,17 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     status_code=200,
                 )
 
+                cache_status = (
+                    "MISS" if _should_check_cache(openpipe_options) else "SKIP"
+                )
+                chat_completion["openpipe"] = OpenPipeMeta(cache_status=cache_status)
+
             return chat_completion
         except Exception as e:
             received_at = int(time.time() * 1000)
 
             if isinstance(e, original_openai.OpenAIError):
-                report_async(
+                await report_async(
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -147,7 +176,7 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     status_code=e.http_status,
                 )
             else:
-                report_async(
+                await report_async(
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,

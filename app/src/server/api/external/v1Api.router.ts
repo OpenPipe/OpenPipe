@@ -2,9 +2,6 @@ import { type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { TRPCError } from "@trpc/server";
-
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { hashRequest } from "~/server/utils/hashObject";
 import modelProvider from "~/modelProviders/openai-ChatCompletion";
@@ -12,6 +9,7 @@ import {
   type ChatCompletion,
   type CompletionCreateParams,
 } from "openai/resources/chat/completions";
+import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -28,12 +26,12 @@ const respValidator = z.object({
   ),
 });
 
-export const externalApiRouter = createTRPCRouter({
-  checkCache: publicProcedure
+export const v1ApiRouter = createOpenApiRouter({
+  checkCache: openApiProtectedProc
     .meta({
       openapi: {
         method: "POST",
-        path: "/v1/check-cache",
+        path: "/check-cache",
         description: "Check if a prompt is cached",
         protect: true,
       },
@@ -47,7 +45,8 @@ export const externalApiRouter = createTRPCRouter({
           .optional()
           .describe(
             'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
-          ),
+          )
+          .default({}),
       }),
     )
     .output(
@@ -56,18 +55,8 @@ export const externalApiRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const apiKey = ctx.apiKey;
-      if (!apiKey) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      const key = await prisma.apiKey.findUnique({
-        where: { apiKey },
-      });
-      if (!key) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
       const reqPayload = await reqValidator.spa(input.reqPayload);
-      const cacheKey = hashRequest(key.projectId, reqPayload as JsonValue);
+      const cacheKey = hashRequest(ctx.key.projectId, reqPayload as JsonValue);
 
       const existingResponse = await prisma.loggedCallModelResponse.findFirst({
         where: { cacheKey },
@@ -79,23 +68,28 @@ export const externalApiRouter = createTRPCRouter({
 
       await prisma.loggedCall.create({
         data: {
-          projectId: key.projectId,
+          projectId: ctx.key.projectId,
           requestedAt: new Date(input.requestedAt),
           cacheHit: true,
           modelResponseId: existingResponse.id,
         },
       });
 
+      await createTags(
+        existingResponse.originalLoggedCall.projectId,
+        existingResponse.originalLoggedCallId,
+        input.tags,
+      );
       return {
         respPayload: existingResponse.respPayload,
       };
     }),
 
-  report: publicProcedure
+  report: openApiProtectedProc
     .meta({
       openapi: {
         method: "POST",
-        path: "/v1/report",
+        path: "/report",
         description: "Report an API call",
         protect: true,
       },
@@ -113,26 +107,16 @@ export const externalApiRouter = createTRPCRouter({
           .optional()
           .describe(
             'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
-          ),
+          )
+          .default({}),
       }),
     )
-    .output(z.void())
+    .output(z.object({ status: z.literal("ok") }))
     .mutation(async ({ input, ctx }) => {
-      console.log("GOT TAGS", input.tags);
-      const apiKey = ctx.apiKey;
-      if (!apiKey) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      const key = await prisma.apiKey.findUnique({
-        where: { apiKey },
-      });
-      if (!key) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const respPayload = await respValidator.spa(input.respPayload);
 
-      const requestHash = hashRequest(key.projectId, reqPayload as JsonValue);
+      const requestHash = hashRequest(ctx.key.projectId, reqPayload as JsonValue);
 
       const newLoggedCallId = uuidv4();
       const newModelResponseId = uuidv4();
@@ -151,7 +135,7 @@ export const externalApiRouter = createTRPCRouter({
         prisma.loggedCall.create({
           data: {
             id: newLoggedCallId,
-            projectId: key.projectId,
+            projectId: ctx.key.projectId,
             requestedAt: new Date(input.requestedAt),
             cacheHit: false,
             model,
@@ -185,15 +169,78 @@ export const externalApiRouter = createTRPCRouter({
         }),
       ]);
 
-      const tagsToCreate = Object.entries(input.tags ?? {}).map(([name, value]) => ({
-        projectId: key.projectId,
-        loggedCallId: newLoggedCallId,
-        // sanitize tags
-        name: name.replaceAll(/[^a-zA-Z0-9_]/g, "_"),
-        value,
-      }));
-      await prisma.loggedCallTag.createMany({
-        data: tagsToCreate,
+      await createTags(ctx.key.projectId, newLoggedCallId, input.tags);
+      return { status: "ok" };
+    }),
+  localTestingOnlyGetLatestLoggedCall: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/local-testing-only-get-latest-logged-call",
+        description: "Get the latest logged call (only for local testing)",
+        protect: true, // Make sure to protect this endpoint
+      },
+    })
+    .input(z.void())
+    .output(
+      z
+        .object({
+          createdAt: z.date(),
+          cacheHit: z.boolean(),
+          tags: z.record(z.string().nullable()),
+          modelResponse: z
+            .object({
+              id: z.string(),
+              statusCode: z.number().nullable(),
+              errorMessage: z.string().nullable(),
+              reqPayload: z.unknown(),
+              respPayload: z.unknown(),
+            })
+            .nullable(),
+        })
+        .nullable(),
+    )
+    .mutation(async ({ ctx }) => {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("This operation is not allowed in production environment");
+      }
+
+      const latestLoggedCall = await prisma.loggedCall.findFirst({
+        where: { projectId: ctx.key.projectId },
+        orderBy: { requestedAt: "desc" },
+        select: {
+          createdAt: true,
+          cacheHit: true,
+          tags: true,
+          modelResponse: {
+            select: {
+              id: true,
+              statusCode: true,
+              errorMessage: true,
+              reqPayload: true,
+              respPayload: true,
+            },
+          },
+        },
       });
+
+      return (
+        latestLoggedCall && {
+          ...latestLoggedCall,
+          tags: Object.fromEntries(latestLoggedCall.tags.map((tag) => [tag.name, tag.value])),
+        }
+      );
     }),
 });
+
+async function createTags(projectId: string, loggedCallId: string, tags: Record<string, string>) {
+  const tagsToCreate = Object.entries(tags).map(([name, value]) => ({
+    projectId,
+    loggedCallId,
+    name: name.replaceAll(/[^a-zA-Z0-9_$]/g, "_"),
+    value,
+  }));
+  await prisma.loggedCallTag.createMany({
+    data: tagsToCreate,
+  });
+}

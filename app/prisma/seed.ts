@@ -2,6 +2,7 @@ import { prisma } from "~/server/db";
 import dedent from "dedent";
 import { generateNewCell } from "~/server/utils/generateNewCell";
 import { promptConstructorVersion } from "~/promptConstructor/version";
+import { env } from "~/env.mjs";
 
 const defaultId = "11111111-1111-1111-1111-111111111111";
 
@@ -15,6 +16,16 @@ const project =
   (await prisma.project.create({
     data: { id: defaultId },
   }));
+
+if (env.OPENPIPE_API_KEY) {
+  await prisma.apiKey.create({
+    data: {
+      projectId: project.id,
+      name: "Default API Key",
+      apiKey: env.OPENPIPE_API_KEY,
+    },
+  });
+}
 
 await prisma.experiment.deleteMany({
   where: {
