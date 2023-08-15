@@ -41,8 +41,8 @@ export const TableHeader = ({ showCheckbox }: { showCheckbox?: boolean }) => {
     <Thead>
       <Tr>
         {showCheckbox && (
-          <Th>
-            <HStack w={8}>
+          <Th pr={0}>
+            <HStack minW={16}>
               <Checkbox
                 isChecked={allSelected}
                 onChange={() => {
@@ -56,7 +56,7 @@ export const TableHeader = ({ showCheckbox }: { showCheckbox?: boolean }) => {
             </HStack>
           </Th>
         )}
-        <Th>Time</Th>
+        <Th>Sent At</Th>
         <Th>Model</Th>
         <Th isNumeric>Duration</Th>
         <Th isNumeric>Input tokens</Th>
@@ -79,7 +79,7 @@ export const TableRow = ({
   showCheckbox?: boolean;
 }) => {
   const isError = loggedCall.modelResponse?.statusCode !== 200;
-  const timeAgo = dayjs(loggedCall.requestedAt).fromNow();
+  const requestedAt = dayjs(loggedCall.requestedAt).format("MMMM D h:mm A");
   const fullTime = dayjs(loggedCall.requestedAt).toString();
 
   const durationCell = (
@@ -104,6 +104,7 @@ export const TableRow = ({
         sx={{
           "> td": { borderBottom: "none" },
         }}
+        fontSize="sm"
       >
         {showCheckbox && (
           <Td>
@@ -113,7 +114,7 @@ export const TableRow = ({
         <Td>
           <Tooltip label={fullTime} placement="top">
             <Box whiteSpace="nowrap" minW="120px">
-              {timeAgo}
+              {requestedAt}
             </Box>
           </Tooltip>
         </Td>
