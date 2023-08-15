@@ -14,7 +14,7 @@ const comparatorToSqlExpression = (comparator: (typeof comparators)[number], val
       case "=":
         return sql`${reference} = ${value}`;
       case "!=":
-        // Assuming kysely supports the `IS DISTINCT FROM` operation. If not, you'll need a workaround.
+        // Handle NULL values
         return sql`${reference} IS DISTINCT FROM ${value}`;
       case "CONTAINS":
         return sql`${reference} LIKE ${"%" + value + "%"}`;
