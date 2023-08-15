@@ -1,20 +1,11 @@
 import { Card, Table, Tbody } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLoggedCalls } from "~/utils/hooks";
 import { TableHeader, TableRow } from "./TableRow";
 
 export default function LoggedCallsTable() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const { data, isLoading } = useLoggedCalls();
-
-  const [loggedCalls, setLoggedCalls] = useState(data);
-
-  useEffect(() => {
-    // persist data while loading
-    if (!isLoading) {
-      setLoggedCalls(data);
-    }
-  }, [data, isLoading]);
+  const loggedCalls = useLoggedCalls().data;
 
   return (
     <Card width="100%" overflow="hidden">

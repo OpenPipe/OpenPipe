@@ -181,10 +181,21 @@ export const useLoggedCalls = () => {
   const { page, pageSize } = usePageParams();
   const filters = useAppStore((state) => state.logFilters.filters);
 
-  return api.loggedCalls.list.useQuery(
+  const { data, isLoading, ...rest } = api.loggedCalls.list.useQuery(
     { projectId: selectedProjectId ?? "", page, pageSize, filters },
     { enabled: !!selectedProjectId },
   );
+
+  const [stableData, setStableData] = useState(data);
+
+  useEffect(() => {
+    // Prevent annoying flashes while logs are loading from the server
+    if (!isLoading) {
+      setStableData(data);
+    }
+  }, [data, isLoading]);
+
+  return { data: stableData, isLoading, ...rest };
 };
 
 export const useTagNames = () => {
