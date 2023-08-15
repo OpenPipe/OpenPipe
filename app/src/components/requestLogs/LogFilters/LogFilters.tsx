@@ -19,8 +19,8 @@ const LogFilters = () => {
       <Text fontWeight="bold" color="gray.500">
         Filters
       </Text>
-      {filters.map((filter, index) => (
-        <LogFilter key={index} filter={filter} index={index} />
+      {filters.map((filter) => (
+        <LogFilter key={filter.id} filter={filter} />
       ))}
       <AddFilterButton />
     </VStack>
