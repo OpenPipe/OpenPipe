@@ -58,7 +58,7 @@ export default function Settings() {
 
   return (
     <>
-      <AppShell>
+      <AppShell requireAuth>
         <PageHeaderContainer>
           <Breadcrumb>
             <BreadcrumbItem>

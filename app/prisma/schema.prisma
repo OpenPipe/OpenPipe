@@ -391,11 +391,12 @@ model User {
 
     role UserRole @default(USER)
 
-    accounts          Account[]
-    sessions          Session[]
-    projectUsers      ProjectUser[]
-    projects          Project[]
-    worldChampEntrant WorldChampEntrant?
+    accounts                Account[]
+    sessions                Session[]
+    projectUsers            ProjectUser[]
+    projects                Project[]
+    worldChampEntrant       WorldChampEntrant?
+    sentUserInvitations     UserInvitation[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
@@ -409,6 +410,8 @@ model UserInvitation {
     email String
     role ProjectUserRole
     invitationToken String @unique
+    senderId String @db.Uuid
+    sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
     @@unique([projectId, email])
     createdAt DateTime @default(now())

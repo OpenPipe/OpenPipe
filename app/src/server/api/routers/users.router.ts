@@ -58,12 +58,45 @@ export const usersRouter = createTRPCRouter({
           email: input.email,
           role: input.role,
           invitationToken: uuidv4(),
+          senderId: ctx.session.user.id,
         },
       });
 
       //   TODO: send email
 
       return success();
+    }),
+  getProjectInvitation: protectedProcedure
+    .input(
+      z.object({
+        invitationToken: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const invitation = await prisma.userInvitation.findUnique({
+        where: {
+          invitationToken: input.invitationToken,
+        },
+        include: {
+          project: {
+            select: {
+              name: true,
+            },
+          },
+          sender: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!invitation) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return invitation;
     }),
   acceptProjectInvitation: protectedProcedure
     .input(
@@ -96,7 +129,7 @@ export const usersRouter = createTRPCRouter({
         },
       });
 
-      return success();
+      return success(invitation.projectId);
     }),
   cancelProjectInvitation: protectedProcedure
     .input(

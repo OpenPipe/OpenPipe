@@ -72,7 +72,9 @@ export const InviteMemberModal = ({
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={8} alignItems="flex-start">
-            <Text>Invite a new member to this project.</Text>
+            <Text>
+              Invite a new member to <b>{selectedProject?.name}</b>.
+            </Text>
 
             <RadioGroup
               defaultValue="MEMBER"

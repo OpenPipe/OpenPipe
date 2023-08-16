@@ -64,7 +64,7 @@ export const projectsRouter = createTRPCRouter({
           userId: ctx.session.user.id,
           projectId: input.id,
           role: {
-            in: ["ADMIN", "MEMBER"],
+            in: ["ADMIN", "MEMBER", "VIEWER"],
           },
         },
       }),
