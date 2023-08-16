@@ -18,7 +18,7 @@ const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpe
 
 const modalTheme = defineMultiStyleConfig({
   baseStyle: definePartsStyle({
-    dialog: { borderRadius: "sm" },
+    dialog: { borderRadius: "md" },
   }),
 });
 

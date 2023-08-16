@@ -21,6 +21,8 @@ import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContent
 import CopiableCode from "~/components/CopiableCode";
 import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectDialog";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
+import MemberTable from "~/components/projectSettings/MemberTable";
+import { InviteMemberModal } from "~/components/projectSettings/InviteMemberModal";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -50,7 +52,8 @@ export default function Settings() {
     setName(selectedProject?.name);
   }, [selectedProject?.name]);
 
-  const deleteProjectOpen = useDisclosure();
+  const inviteMemberModal = useDisclosure();
+  const deleteProjectDialog = useDisclosure();
 
   return (
     <>
@@ -109,6 +112,25 @@ export default function Settings() {
               </Button>
             </VStack>
             <Divider backgroundColor="gray.300" />
+            <VStack w="full" alignItems="flex-start">
+              <HStack w="full" justifyContent="space-between">
+                <Subtitle>Project Members</Subtitle>
+                <Button
+                  variant="outline"
+                  colorScheme="orange"
+                  borderRadius={4}
+                  size="sm"
+                  onClick={inviteMemberModal.onOpen}
+                >
+                  Invite Member
+                </Button>
+              </HStack>
+              <Text fontSize="sm">
+                Add members to your project to allow them to view and edit your project's data.
+              </Text>
+              <MemberTable />
+            </VStack>
+            <Divider backgroundColor="gray.300" />
             <VStack alignItems="flex-start">
               <Subtitle>Project API Key</Subtitle>
               <Text fontSize="sm">
@@ -141,7 +163,7 @@ export default function Settings() {
                   borderRadius={4}
                   mt={2}
                   height="auto"
-                  onClick={deleteProjectOpen.onOpen}
+                  onClick={deleteProjectDialog.onOpen}
                 >
                   <Icon as={BsTrash} />
                   <Text overflowWrap="break-word" whiteSpace="normal" py={2}>
@@ -153,7 +175,11 @@ export default function Settings() {
           </VStack>
         </VStack>
       </AppShell>
-      <DeleteProjectDialog isOpen={deleteProjectOpen.isOpen} onClose={deleteProjectOpen.onClose} />
+      <InviteMemberModal isOpen={inviteMemberModal.isOpen} onClose={inviteMemberModal.onClose} />
+      <DeleteProjectDialog
+        isOpen={deleteProjectDialog.isOpen}
+        onClose={deleteProjectDialog.onClose}
+      />
     </>
   );
 }
