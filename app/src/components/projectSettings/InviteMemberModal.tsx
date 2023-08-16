@@ -104,9 +104,7 @@ export const InviteMemberModal = ({
                   }
                 }}
               />
-              <FormHelperText>
-                Enter the email of the person you want to invite to this project.
-              </FormHelperText>
+              <FormHelperText>Enter the email of the person you want to invite.</FormHelperText>
             </FormControl>
           </VStack>
         </ModalBody>
