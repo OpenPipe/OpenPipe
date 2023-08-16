@@ -66,14 +66,15 @@ const MemberTable = () => {
                 <Td fontSize="sm">{member.role}</Td>
                 {selectedProject.role === "ADMIN" && (
                   <Td textAlign="end">
-                    {member.user.id !== session?.user?.id && (
-                      <IconButton
-                        aria-label="Remove member"
-                        colorScheme="red"
-                        icon={<BsTrash />}
-                        onClick={() => setMemberToRemove(member.user)}
-                      />
-                    )}
+                    {member.user.id !== session?.user?.id &&
+                      member.user.id !== selectedProject.personalProjectUserId && (
+                        <IconButton
+                          aria-label="Remove member"
+                          colorScheme="red"
+                          icon={<BsTrash />}
+                          onClick={() => setMemberToRemove(member.user)}
+                        />
+                      )}
                   </Td>
                 )}
               </Tr>
