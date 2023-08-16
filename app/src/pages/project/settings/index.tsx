@@ -9,9 +9,10 @@ import {
   Divider,
   Icon,
   useDisclosure,
+  Box,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { BsTrash } from "react-icons/bs";
+import { BsPlus, BsTrash } from "react-icons/bs";
 
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
@@ -113,22 +114,28 @@ export default function Settings() {
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack w="full" alignItems="flex-start">
-              <HStack w="full" justifyContent="space-between">
-                <Subtitle>Project Members</Subtitle>
-                <Button
-                  variant="outline"
-                  colorScheme="orange"
-                  borderRadius={4}
-                  size="sm"
-                  onClick={inviteMemberModal.onOpen}
-                >
-                  Invite Member
-                </Button>
-              </HStack>
+              <Subtitle>Project Members</Subtitle>
+
               <Text fontSize="sm">
                 Add members to your project to allow them to view and edit your project's data.
               </Text>
-              <MemberTable />
+              <Box mt={4} w="full">
+                <MemberTable />
+              </Box>
+              <Button
+                variant="outline"
+                colorScheme="orange"
+                borderRadius={4}
+                onClick={inviteMemberModal.onOpen}
+                mt={2}
+                _disabled={{
+                  opacity: 0.6,
+                }}
+                isDisabled={selectedProject?.role !== "ADMIN"}
+              >
+                <Icon as={BsPlus} boxSize={5} />
+                <Text>Invite New Member</Text>
+              </Button>
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack alignItems="flex-start">

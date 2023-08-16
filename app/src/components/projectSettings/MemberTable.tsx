@@ -82,7 +82,7 @@ const MemberTable = () => {
             return (
               <Tr key={invitation.id}>
                 <Td>
-                  <Text fontWeight="bold">Invitation pending</Text>
+                  <Text as="i">Invitation pending</Text>
                 </Td>
                 <Td>{invitation.email}</Td>
                 <Td fontSize="sm">{invitation.role}</Td>

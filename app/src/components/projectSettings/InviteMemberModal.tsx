@@ -18,7 +18,7 @@ import {
   RadioGroup,
   Radio,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
@@ -39,10 +39,17 @@ export const InviteMemberModal = ({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<ProjectRole>("MEMBER");
 
+  useEffect(() => {
+    setEmail("");
+    setRole("MEMBER");
+  }, [isOpen]);
+
+  const emailIsValid = !email || !email.match(/.+@.+\..+/);
+
   const inviteMemberMutation = api.users.inviteToProject.useMutation();
 
   const [inviteMember, isInviting] = useHandledAsyncCallback(async () => {
-    if (!selectedProject?.id || !email || !role) return;
+    if (!selectedProject?.id || !role) return;
     const resp = await inviteMemberMutation.mutateAsync({
       projectId: selectedProject.id,
       email,
@@ -52,8 +59,6 @@ export const InviteMemberModal = ({
     await utils.projects.get.invalidate();
     onClose();
   }, [inviteMemberMutation, email, role, selectedProject?.id, onClose]);
-
-  const emailIsValid = !email || !email.match(/.+@.+\..+/);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -90,11 +95,7 @@ export const InviteMemberModal = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => {
-                  if (
-                    e.key === "Enter" &&
-                    (e.metaKey || e.ctrlKey || e.shiftKey || true) &&
-                    emailIsValid
-                  ) {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey || e.shiftKey)) {
                     e.preventDefault();
                     e.currentTarget.blur();
                     inviteMember();
