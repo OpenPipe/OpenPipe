@@ -163,6 +163,8 @@ export const usersRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      requireNothing(ctx);
+
       const invitation = await prisma.userInvitation.findUnique({
         where: {
           invitationToken: input.invitationToken,
@@ -172,8 +174,6 @@ export const usersRouter = createTRPCRouter({
       if (!invitation) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
-
-      await requireIsProjectAdmin(invitation.projectId, ctx);
 
       await prisma.userInvitation.delete({
         where: {
