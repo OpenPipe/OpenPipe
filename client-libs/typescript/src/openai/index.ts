@@ -5,9 +5,9 @@ import {
   ChatCompletion,
   ChatCompletionChunk,
   CompletionCreateParams,
-  Completions,
 } from "openai-beta/resources/chat/completions";
 
+import { WrappedStream } from "./streaming";
 import { DefaultService, OPClient } from "../codegen";
 import { Stream } from "openai-beta/streaming";
 import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags } from "../shared";
@@ -27,11 +27,11 @@ export default class OpenAI extends openai.OpenAI {
           BASE:
             openpipe?.baseUrl ?? readEnv("OPENPIPE_BASE_URL") ?? "https://app.openpipe.ai/api/v1",
           TOKEN: openPipeApiKey,
-        })
+        }),
       );
     } else {
       console.warn(
-        "You're using the OpenPipe client without an API key. No completion requests will be logged."
+        "You're using the OpenPipe client without an API key. No completion requests will be logged.",
       );
     }
   }
@@ -43,10 +43,10 @@ class WrappedChat extends openai.OpenAI.Chat {
     this.completions.opClient = client;
   }
 
-  completions: InstrumentedCompletions = new InstrumentedCompletions(this.client);
+  completions: WrappedCompletions = new WrappedCompletions(this.client);
 }
 
-class InstrumentedCompletions extends openai.OpenAI.Chat.Completions {
+class WrappedCompletions extends openai.OpenAI.Chat.Completions {
   opClient?: OPClient;
 
   constructor(client: openai.OpenAI, opClient?: OPClient) {
@@ -54,32 +54,35 @@ class InstrumentedCompletions extends openai.OpenAI.Chat.Completions {
     this.opClient = opClient;
   }
 
-  _report(args: Parameters<DefaultService["report"]>[0]) {
+  async _report(args: Parameters<DefaultService["report"]>[0]) {
     try {
-      return this.opClient ? this.opClient.default.report(args) : Promise.resolve();
+      this.opClient ? await this.opClient.default.report(args) : Promise.resolve();
     } catch (e) {
       console.error(e);
-      return Promise.resolve();
     }
   }
 
   create(
     body: CompletionCreateParams.CreateChatCompletionRequestNonStreaming & OpenPipeArgs,
-    options?: Core.RequestOptions
+    options?: Core.RequestOptions,
   ): Promise<Core.APIResponse<ChatCompletion & { openpipe: OpenPipeMeta }>>;
   create(
     body: CompletionCreateParams.CreateChatCompletionRequestStreaming & OpenPipeArgs,
-    options?: Core.RequestOptions
-  ): Promise<Core.APIResponse<Stream<ChatCompletionChunk>>>;
+    options?: Core.RequestOptions,
+  ): Promise<Core.APIResponse<WrappedStream>>;
   async create(
     { openpipe, ...body }: CompletionCreateParams & OpenPipeArgs,
-    options?: Core.RequestOptions
-  ): Promise<
-    Core.APIResponse<(ChatCompletion & { openpipe: OpenPipeMeta }) | Stream<ChatCompletionChunk>>
-  > {
-    console.log("LALALA REPORT", this.opClient);
+    options?: Core.RequestOptions,
+  ): Promise<Core.APIResponse<(ChatCompletion & { openpipe: OpenPipeMeta }) | WrappedStream>> {
     const requestedAt = Date.now();
-    const cacheRequested = openpipe?.cache ?? false;
+    let reportingFinished: OpenPipeMeta["reportingFinished"] = Promise.resolve();
+    let cacheRequested = openpipe?.cache ?? false;
+    if (cacheRequested && body.stream) {
+      console.warn(
+        `Caching is not yet supported for streaming requests. Ignoring cache flag. Vote for this feature at https://github.com/OpenPipe/OpenPipe/issues/159`,
+      );
+      cacheRequested = false;
+    }
 
     if (cacheRequested) {
       try {
@@ -92,12 +95,13 @@ class InstrumentedCompletions extends openai.OpenAI.Chat.Completions {
           .then((res) => res.respPayload);
 
         if (cached) {
+          const meta = {
+            cacheStatus: "HIT",
+            reportingFinished,
+          };
           return {
             ...cached,
-            openpipe: {
-              cacheStatus: "HIT",
-              reportingFinished: Promise.resolve(),
-            },
+            openpipe: meta,
           };
         }
       } catch (e) {
@@ -105,15 +109,23 @@ class InstrumentedCompletions extends openai.OpenAI.Chat.Completions {
       }
     }
 
-    let reportingFinished: OpenPipeMeta["reportingFinished"] = Promise.resolve();
-
     try {
       if (body.stream) {
         const stream = await super.create(body, options);
+        const wrappedStream = new WrappedStream(stream, (response) =>
+          this._report({
+            requestedAt,
+            receivedAt: Date.now(),
+            reqPayload: body,
+            respPayload: response,
+            statusCode: 200,
+            tags: getTags(openpipe),
+          }),
+        );
 
         // Do some logging of each chunk here
 
-        return stream;
+        return wrappedStream;
       } else {
         const response = await super.create(body, options);
 
@@ -146,6 +158,16 @@ class InstrumentedCompletions extends openai.OpenAI.Chat.Completions {
           errorMessage: message,
           tags: getTags(openpipe),
         });
+      }
+      // make sure error is an object we can add properties to
+      if (typeof error === "object" && error !== null) {
+        error = {
+          ...error,
+          openpipe: {
+            cacheStatus: cacheRequested ? "MISS" : "SKIP",
+            reportingFinished,
+          },
+        };
       }
 
       throw error;

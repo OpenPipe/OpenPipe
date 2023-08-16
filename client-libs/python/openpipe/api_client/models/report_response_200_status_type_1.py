@@ -1,8 +1,8 @@
 from enum import Enum
 
 
-class ReportResponse200Status(str, Enum):
-    OK = "ok"
+class ReportResponse200StatusType1(str, Enum):
+    ERROR = "error"
 
     def __str__(self) -> str:
         return str(self.value)
