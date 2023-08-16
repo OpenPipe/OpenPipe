@@ -26,26 +26,6 @@ import Head from "next/head";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 
-// TODO: import less to fix deployment with server side props
-// export const getServerSideProps = async (context: GetServerSidePropsContext<{ id: string }>) => {
-//   const experimentId = context.params?.id as string;
-
-//   const helpers = createServerSideHelpers({
-//     router: appRouter,
-//     ctx: createInnerTRPCContext({ session: null }),
-//     transformer: superjson, // optional - adds superjson serialization
-//   });
-
-//   // prefetch query
-//   await helpers.experiments.stats.prefetch({ id: experimentId });
-
-//   return {
-//     props: {
-//       trpcState: helpers.dehydrate(),
-//     },
-//   };
-// };
-
 export default function Experiment() {
   const router = useRouter();
   const utils = api.useContext();
