@@ -77,7 +77,7 @@ export const InviteMemberModal = ({
             </Text>
 
             <RadioGroup
-              defaultValue="MEMBER"
+              value={role}
               onChange={(e) => setRole(e as ProjectRole)}
               colorScheme="orange"
             >
