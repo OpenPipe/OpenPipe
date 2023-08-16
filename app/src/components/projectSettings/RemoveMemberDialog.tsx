@@ -51,11 +51,7 @@ export const RemoveMemberDialog = ({
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
-                Are you sure you want to remove{" "}
-                <b>
-                  {member?.name} ({member?.email})
-                </b>{" "}
-                from the project?
+                Are you sure you want to remove <b>{member?.name}</b> from the project?
               </Text>
             </VStack>
           </AlertDialogBody>

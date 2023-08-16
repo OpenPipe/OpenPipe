@@ -10,6 +10,7 @@ import {
   Icon,
   useDisclosure,
   Box,
+  Tooltip,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { BsPlus, BsTrash } from "react-icons/bs";
@@ -122,20 +123,26 @@ export default function Settings() {
               <Box mt={4} w="full">
                 <MemberTable />
               </Box>
-              <Button
-                variant="outline"
-                colorScheme="orange"
-                borderRadius={4}
-                onClick={inviteMemberModal.onOpen}
-                mt={2}
-                _disabled={{
-                  opacity: 0.6,
-                }}
-                isDisabled={selectedProject?.role !== "ADMIN"}
+              <Tooltip
+                isDisabled={selectedProject?.role === "ADMIN"}
+                label="Only admins can invite new members"
+                hasArrow
               >
-                <Icon as={BsPlus} boxSize={5} />
-                <Text>Invite New Member</Text>
-              </Button>
+                <Button
+                  variant="outline"
+                  colorScheme="orange"
+                  borderRadius={4}
+                  onClick={inviteMemberModal.onOpen}
+                  mt={2}
+                  _disabled={{
+                    opacity: 0.6,
+                  }}
+                  isDisabled={selectedProject?.role !== "ADMIN"}
+                >
+                  <Icon as={BsPlus} boxSize={5} />
+                  <Text>Invite New Member</Text>
+                </Button>
+              </Tooltip>
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack alignItems="flex-start">

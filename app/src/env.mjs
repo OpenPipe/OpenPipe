@@ -21,6 +21,8 @@ export const env = createEnv({
     ANTHROPIC_API_KEY: z.string().default("placeholder"),
     SENTRY_AUTH_TOKEN: z.string().optional(),
     OPENPIPE_API_KEY: z.string().optional(),
+    BREVO_API_KEY: z.string().default("placeholder"),
+    BREVO_EMAIL: z.string().default("placeholder"),
   },
 
   /**
@@ -58,6 +60,8 @@ export const env = createEnv({
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     OPENPIPE_API_KEY: process.env.OPENPIPE_API_KEY,
     NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS: process.env.NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS,
+    BREVO_API_KEY: process.env.BREVO_API_KEY,
+    BREVO_EMAIL: process.env.BREVO_EMAIL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

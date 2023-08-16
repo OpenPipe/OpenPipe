@@ -3,9 +3,10 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { success } from "~/utils/errorHandling/standardResponses";
-import { requireIsProjectAdmin } from "~/utils/accessControl";
+import { error, success } from "~/utils/errorHandling/standardResponses";
+import { requireIsProjectAdmin, requireNothing } from "~/utils/accessControl";
 import { TRPCError } from "@trpc/server";
+import { sendProjectInvitation } from "~/server/emails/sendProjectInvitation";
 
 export const usersRouter = createTRPCRouter({
   inviteToProject: protectedProcedure
@@ -36,10 +37,7 @@ export const usersRouter = createTRPCRouter({
         });
 
         if (existingMembership) {
-          throw new TRPCError({
-            code: "PRECONDITION_FAILED",
-            message: `A user with ${input.email} is already a member of this project`,
-          });
+          return error(`A user with ${input.email} is already a member of this project`);
         }
       }
 
@@ -60,9 +58,32 @@ export const usersRouter = createTRPCRouter({
           invitationToken: uuidv4(),
           senderId: ctx.session.user.id,
         },
+        include: {
+          project: {
+            select: {
+              name: true,
+            },
+          },
+        },
       });
 
-      //   TODO: send email
+      try {
+        await sendProjectInvitation({
+          invitationToken: invitation.invitationToken,
+          recipientEmail: input.email,
+          invitationSenderName: ctx.session.user.name || "",
+          invitationSenderEmail: ctx.session.user.email || "",
+          projectName: invitation.project.name,
+        });
+      } catch (e) {
+        // If we fail to send the email, we should delete the invitation
+        await prisma.userInvitation.delete({
+          where: {
+            invitationToken: invitation.invitationToken,
+          },
+        });
+        return error("Failed to send email");
+      }
 
       return success();
     }),
@@ -72,7 +93,9 @@ export const usersRouter = createTRPCRouter({
         invitationToken: z.string(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      requireNothing(ctx);
+
       const invitation = await prisma.userInvitation.findUnique({
         where: {
           invitationToken: input.invitationToken,
@@ -105,6 +128,8 @@ export const usersRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      requireNothing(ctx);
+
       const invitation = await prisma.userInvitation.findUnique({
         where: {
           invitationToken: input.invitationToken,

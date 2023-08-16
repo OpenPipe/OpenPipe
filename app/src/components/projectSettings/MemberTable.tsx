@@ -69,6 +69,7 @@ const MemberTable = () => {
                     {member.user.id !== session?.user?.id && (
                       <IconButton
                         aria-label="Remove member"
+                        colorScheme="red"
                         icon={<BsTrash />}
                         onClick={() => setMemberToRemove(member.user)}
                       />

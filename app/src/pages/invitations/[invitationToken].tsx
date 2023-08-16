@@ -1,4 +1,4 @@
-import { Center, Text, VStack, HStack, Button } from "@chakra-ui/react";
+import { Center, Text, VStack, HStack, Button, Card } from "@chakra-ui/react";
 
 import { useRouter } from "next/router";
 import AppShell from "~/components/nav/AppShell";
@@ -72,24 +72,37 @@ export default function Invitation() {
   return (
     <>
       <AppShell requireAuth title="Invitation">
-        <Center>
-          <VStack spacing={4} w="full" maxW="2xl" px={4}>
-            <Text fontSize="lg" fontWeight="bold">
-              You've been invited to join a project
-            </Text>
-            <Text>
-              You've been invited to join the project <b>{invitation.data.project.name}</b> by{" "}
-              <b>{invitation.data.sender.name}</b>.
-            </Text>
-            <HStack>
-              <Button colorScheme="gray" isLoading={isDeclining} onClick={declineInvitation}>
-                Decline
-              </Button>
-              <Button colorScheme="orange" isLoading={isAccepting} onClick={acceptInvitation}>
-                Accept
-              </Button>
-            </HStack>
-          </VStack>
+        <Center h="full">
+          <Card>
+            <VStack
+              spacing={8}
+              w="full"
+              maxW="2xl"
+              p={16}
+              borderWidth={1}
+              borderRadius={8}
+              bgColor="white"
+            >
+              <Text fontSize="lg" fontWeight="bold">
+                You're invited! 🎉
+              </Text>
+              <Text textAlign="center">
+                You've been invited to join <b>{invitation.data.project.name}</b> by{" "}
+                <b>
+                  {invitation.data.sender.name} ({invitation.data.sender.email})
+                </b>
+                .
+              </Text>
+              <HStack spacing={4}>
+                <Button colorScheme="gray" isLoading={isDeclining} onClick={declineInvitation}>
+                  Decline
+                </Button>
+                <Button colorScheme="orange" isLoading={isAccepting} onClick={acceptInvitation}>
+                  Accept
+                </Button>
+              </HStack>
+            </VStack>
+          </Card>
         </Center>
       </AppShell>
     </>
