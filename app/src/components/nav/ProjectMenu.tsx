@@ -15,7 +15,7 @@ import {
   Image,
   Box,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { BsPlus, BsPersonCircle } from "react-icons/bs";
 import { type Project } from "@prisma/client";
@@ -105,8 +105,8 @@ export default function ProjectMenu() {
         </PopoverTrigger>
         <PopoverContent
           _focusVisible={{ outline: "unset" }}
-          ml={-1}
-          w={224}
+          w={220}
+          ml={{ base: 2, md: 0 }}
           boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);"
           fontSize="sm"
         >
@@ -176,7 +176,6 @@ const ProjectOption = ({
   onClose: () => void;
 }) => {
   const setSelectedProjectId = useAppStore((s) => s.setSelectedProjectId);
-  const [gearHovered, setGearHovered] = useState(false);
 
   return (
     <HStack
@@ -188,8 +187,8 @@ const ProjectOption = ({
       }}
       w="full"
       justifyContent="space-between"
-      _hover={gearHovered ? undefined : { bgColor: "gray.200", textDecoration: "none" }}
-      color={isActive ? "blue.400" : undefined}
+      _hover={{ bgColor: "gray.200", textDecoration: "none" }}
+      bgColor={isActive ? "gray.100" : undefined}
       py={2}
       px={4}
       borderRadius={4}
