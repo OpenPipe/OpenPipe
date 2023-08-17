@@ -46,24 +46,38 @@ const MemberTable = () => {
 
   return (
     <>
-      <Table>
-        <Thead>
+      <Table fontSize={{ base: "sm", md: "md" }}>
+        <Thead
+          sx={{
+            th: {
+              base: { px: 0 },
+              md: { px: 6 },
+            },
+          }}
+        >
           <Tr>
             <Th>Name</Th>
-            <Th>Email</Th>
+            <Th display={{ base: "none", md: "block" }}>Email</Th>
             <Th>Role</Th>
             {selectedProject?.role === "ADMIN" && <Th />}
           </Tr>
         </Thead>
-        <Tbody>
+        <Tbody
+          sx={{
+            td: {
+              base: { px: 0 },
+              md: { px: 6 },
+            },
+          }}
+        >
           {selectedProject?.projectUsers.map((member) => {
             return (
               <Tr key={member.id}>
                 <Td>
                   <Text fontWeight="bold">{member.user.name}</Text>
                 </Td>
-                <Td>{member.user.email}</Td>
-                <Td fontSize="sm">{member.role}</Td>
+                <Td display={{ base: "none", md: "block" }}>{member.user.email}</Td>
+                <Td fontSize={{ base: "xs", md: "sm" }}>{member.role}</Td>
                 {selectedProject.role === "ADMIN" && (
                   <Td textAlign="end">
                     {member.user.id !== session?.user?.id &&
