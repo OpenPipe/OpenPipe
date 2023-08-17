@@ -2,11 +2,13 @@ import { type JSONSchema4 } from "json-schema";
 import { type IconType } from "react-icons";
 import { type JsonValue } from "type-fest";
 import { z } from "zod";
+import { type OpenpipeChatInput } from "./openpipe-chat";
 
 export const ZodSupportedProvider = z.union([
   z.literal("openai/ChatCompletion"),
   z.literal("replicate/llama2"),
   z.literal("anthropic/completion"),
+  z.literal("openpipe/Chat"),
 ]);
 
 export type SupportedProvider = z.infer<typeof ZodSupportedProvider>;
@@ -22,6 +24,7 @@ export type Model = {
   description?: string;
   learnMoreUrl?: string;
   apiDocsUrl?: string;
+  templatePrompt?: (initialPrompt: OpenpipeChatInput["messages"]) => string;
 };
 
 export type ProviderModel = { provider: z.infer<typeof ZodSupportedProvider>; model: string };
