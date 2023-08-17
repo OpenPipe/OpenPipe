@@ -23,8 +23,7 @@ import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-
-type ProjectRole = "MEMBER" | "ADMIN";
+import { type ProjectUserRole } from "@prisma/client";
 
 export const InviteMemberModal = ({
   isOpen,
@@ -37,7 +36,7 @@ export const InviteMemberModal = ({
   const utils = api.useContext();
 
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<ProjectRole>("MEMBER");
+  const [role, setRole] = useState<ProjectUserRole>("MEMBER");
 
   useEffect(() => {
     setEmail("");
@@ -78,7 +77,7 @@ export const InviteMemberModal = ({
 
             <RadioGroup
               value={role}
-              onChange={(e) => setRole(e as ProjectRole)}
+              onChange={(e) => setRole(e as ProjectUserRole)}
               colorScheme="orange"
             >
               <VStack w="full" alignItems="flex-start">

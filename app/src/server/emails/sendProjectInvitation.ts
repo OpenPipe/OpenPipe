@@ -22,8 +22,8 @@ export const sendProjectInvitation = async ({
     `;
 
   await sendEmail({
-    email: recipientEmail,
+    to: recipientEmail,
     subject: "You've been invited to join a project",
-    htmlContent: emailBody,
+    body: emailBody,
   });
 };

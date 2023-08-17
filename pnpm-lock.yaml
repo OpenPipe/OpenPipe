@@ -140,12 +140,15 @@ importers:
       lucide-react:
         specifier: ^0.265.0
         version: 0.265.0(react@18.2.0)
+      marked:
+        specifier: ^7.0.3
+        version: 7.0.3
       next:
         specifier: ^13.4.2
         version: 13.4.2(@babel/core@7.22.10)(react-dom@18.2.0)(react@18.2.0)
       next-auth:
         specifier: ^4.22.1
-        version: 4.22.1(next@13.4.2)(react-dom@18.2.0)(react@18.2.0)
+        version: 4.22.1(next@13.4.2)(nodemailer@6.9.4)(react-dom@18.2.0)(react@18.2.0)
       next-query-params:
         specifier: ^4.2.3
         version: 4.2.3(next@13.4.2)(react@18.2.0)(use-query-params@2.2.1)
@@ -155,6 +158,9 @@ importers:
       nextjs-routes:
         specifier: ^2.0.1
         version: 2.0.1(next@13.4.2)
+      nodemailer:
+        specifier: ^6.9.4
+        version: 6.9.4
       openai:
         specifier: 4.0.0-beta.7
         version: 4.0.0-beta.7
@@ -279,6 +285,9 @@ importers:
       '@types/node':
         specifier: ^18.16.0
         version: 18.16.0
+      '@types/nodemailer':
+        specifier: ^6.4.9
+        version: 6.4.9
       '@types/pg':
         specifier: ^8.10.2
         version: 8.10.2
@@ -2442,7 +2451,7 @@ packages:
       next-auth: ^4
     dependencies:
       '@prisma/client': 4.14.0(prisma@4.14.0)
-      next-auth: 4.22.1(next@13.4.2)(react-dom@18.2.0)(react@18.2.0)
+      next-auth: 4.22.1(next@13.4.2)(nodemailer@6.9.4)(react-dom@18.2.0)(react@18.2.0)
     dev: false
 
   /@next/env@13.4.2:
@@ -3178,6 +3187,12 @@ packages:
 
   /@types/node@20.4.8:
     resolution: {integrity: sha512-0mHckf6D2DiIAzh8fM8f3HQCvMKDpK94YQ0DSVkfWTG9BZleYIWudw9cJxX8oCk9bM+vAkDyujDV6dmKHbvQpg==}
+    dev: true
+
+  /@types/nodemailer@6.4.9:
+    resolution: {integrity: sha512-XYG8Gv+sHjaOtUpiuytahMy2mM3rectgroNbs6R3djZEKmPNiIJwe9KqOJBGzKKnNZNKvnuvmugBgpq3w/S0ig==}
+    dependencies:
+      '@types/node': 20.4.10
     dev: true
 
   /@types/parse-json@4.0.0:
@@ -6533,6 +6548,12 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
+  /marked@7.0.3:
+    resolution: {integrity: sha512-ev2uM40p0zQ/GbvqotfKcSWEa59fJwluGZj5dcaUOwDRrB1F3dncdXy8NWUApk4fi8atU3kTBOwjyjZ0ud0dxw==}
+    engines: {node: '>= 16'}
+    hasBin: true
+    dev: false
+
   /md5@2.3.0:
     resolution: {integrity: sha512-T1GITYmFaKuO91vxyoQMFETst+O71VUPEU3ze5GNzDm0OWdP8v1ziTaAEPUr/3kLsY3Sftgz242A1SetQiDL7g==}
     dependencies:
@@ -6700,7 +6721,7 @@ packages:
   /neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  /next-auth@4.22.1(next@13.4.2)(react-dom@18.2.0)(react@18.2.0):
+  /next-auth@4.22.1(next@13.4.2)(nodemailer@6.9.4)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-NTR3f6W7/AWXKw8GSsgSyQcDW6jkslZLH8AiZa5PQ09w1kR8uHtR9rez/E9gAq/o17+p0JYHE8QjF3RoniiObA==}
     peerDependencies:
       next: ^12.2.5 || ^13
@@ -6716,6 +6737,7 @@ packages:
       cookie: 0.5.0
       jose: 4.14.4
       next: 13.4.2(@babel/core@7.22.10)(react-dom@18.2.0)(react@18.2.0)
+      nodemailer: 6.9.4
       oauth: 0.9.15
       openid-client: 5.4.3
       preact: 10.16.0
@@ -6850,6 +6872,11 @@ packages:
 
   /node-releases@2.0.13:
     resolution: {integrity: sha512-uYr7J37ae/ORWdZeQ1xxMJe3NtdmqMC/JZK+geofDrkLUApKRHPd18/TxtBOJ4A0/+uUIliorNrfYV6s1b02eQ==}
+
+  /nodemailer@6.9.4:
+    resolution: {integrity: sha512-CXjQvrQZV4+6X5wP6ZIgdehJamI63MFoYFGGPtHudWym9qaEHDNdPzaj5bfMCvxG1vhAileSWW90q7nL0N36mA==}
+    engines: {node: '>=6.0.0'}
+    dev: false
 
   /normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
