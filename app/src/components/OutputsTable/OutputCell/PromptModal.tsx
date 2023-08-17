@@ -40,9 +40,14 @@ export default function PromptModal(props: {
   cell: NonNullable<RouterOutputs["scenarioVariantCells"]["get"]>;
   disclosure: UseDisclosureReturn;
 }) {
-  const { data } = api.scenarioVariantCells.getTemplatedPromptMessage.useQuery({
-    cellId: props.cell.id,
-  });
+  const { data } = api.scenarioVariantCells.getTemplatedPromptMessage.useQuery(
+    {
+      cellId: props.cell.id,
+    },
+    {
+      enabled: props.disclosure.isOpen,
+    },
+  );
 
   return (
     <Modal isOpen={props.disclosure.isOpen} onClose={props.disclosure.onClose} size="xl">
