@@ -1,7 +1,7 @@
 import { HStack, Icon, IconButton, Spinner, Tooltip, useDisclosure } from "@chakra-ui/react";
 import { BsArrowClockwise, BsInfoCircle } from "react-icons/bs";
 import { useExperimentAccess } from "~/utils/hooks";
-import ExpandedModal from "./PromptModal";
+import PromptModal from "./PromptModal";
 import { type RouterOutputs } from "~/utils/api";
 
 export const CellOptions = ({
@@ -32,7 +32,7 @@ export const CellOptions = ({
               variant="ghost"
             />
           </Tooltip>
-          <ExpandedModal cell={cell} disclosure={modalDisclosure} />
+          <PromptModal cell={cell} disclosure={modalDisclosure} />
         </>
       )}
       {canModify && (

@@ -4,7 +4,13 @@ import inputSchema from "./input.schema.json";
 import { getCompletion } from "./getCompletion";
 import frontendModelProvider from "./frontend";
 
-const supportedModels = ["Open-Orca/OpenOrcaxOpenChat-Preview2-13B"] as const;
+const supportedModels = [
+  "Open-Orca/OpenOrcaxOpenChat-Preview2-13B",
+  "Open-Orca/OpenOrca-Platypus2-13B",
+  "stabilityai/StableBeluga-13B",
+  "NousResearch/Nous-Hermes-Llama2-13b",
+  "jondurbin/airoboros-l2-13b-gpt4-2.0",
+] as const;
 
 export type SupportedModel = (typeof supportedModels)[number];
 
@@ -31,12 +37,7 @@ export type OpenpipeChatModelProvider = ModelProvider<
 >;
 
 const modelProvider: OpenpipeChatModelProvider = {
-  getModel: (input) => {
-    if (supportedModels.includes(input.model as SupportedModel))
-      return input.model as SupportedModel;
-
-    return null;
-  },
+  getModel: (input) => input.model,
   inputSchema: inputSchema as JSONSchema4,
   canStream: true,
   getCompletion,
