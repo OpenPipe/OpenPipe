@@ -10,6 +10,7 @@ const CopiableCode = ({ code, ...rest }: { code: string } & StackProps) => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
   }, [code]);
+
   return (
     <HStack
       backgroundColor="blackAlpha.800"
@@ -29,6 +30,8 @@ const CopiableCode = ({ code, ...rest }: { code: string } & StackProps) => {
         whiteSpace="pre-wrap"
       >
         {code}
+        {/* Necessary for trailing newline to actually be displayed */}
+        {code.endsWith("\n") ? "\n" : ""}
       </Text>
       <Tooltip closeOnClick={false} label={copied ? "Copied!" : "Copy to clipboard"}>
         <IconButton
