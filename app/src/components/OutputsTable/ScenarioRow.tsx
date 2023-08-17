@@ -15,7 +15,7 @@ const ScenarioRow = (props: {
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const highlightStyle = { backgroundColor: "gray.50" };
+  const highlightStyle = { backgroundColor: "blackAlpha.50" };
 
   return (
     <>
