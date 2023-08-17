@@ -53,7 +53,7 @@ export default function PromptModal(props: {
     <Modal isOpen={props.disclosure.isOpen} onClose={props.disclosure.onClose} size="xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Prompt info</ModalHeader>
+        <ModalHeader>Prompt Details</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack py={4} w="">
