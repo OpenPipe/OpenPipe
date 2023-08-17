@@ -8,7 +8,7 @@ const replicate = new Replicate({
 });
 
 const modelIds: Record<ReplicateLlama2Input["model"], string> = {
-  "7b-chat": "4f0b260b6a13eb53a6b1891f089d57c08f41003ae79458be5011303d81a394dc",
+  "7b-chat": "7b0bfc9aff140d5b75bacbed23e91fd3c34b01a1e958d32132de6e0a19796e2c",
   "13b-chat": "2a7f981751ec7fdf87b5b91ad4db53683a98082e9ff7bfd12c8cd5ea85980a52",
   "70b-chat": "2c1608e18606fad2812020dc541930f2d0495ce32eee50074220b87300bc16e1",
 };
