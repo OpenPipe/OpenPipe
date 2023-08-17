@@ -156,7 +156,18 @@ export const templateAiroborosPrompt = (messages: OpenpipeChatInput["messages"])
     }
   }
 
-  let prompt = `${combinedSystemMessage}\n${conversationMessages.join(splitter)}`;
+  let systemMessage = "";
+
+  if (combinedSystemMessage) {
+    // If there is no user message, add a user tag to the system message
+    if (conversationMessages.find((message) => message.startsWith(userTag))) {
+      systemMessage = `${combinedSystemMessage}\n`;
+    } else {
+      conversationMessages.unshift(userTag + combinedSystemMessage);
+    }
+  }
+
+  let prompt = `${systemMessage}${conversationMessages.join(splitter)}`;
 
   // Ensure that the prompt ends with an assistant message
   const lastUserIndex = prompt.lastIndexOf(userTag);
@@ -165,6 +176,8 @@ export const templateAiroborosPrompt = (messages: OpenpipeChatInput["messages"])
   if (lastUserIndex > lastAssistantIndex) {
     prompt += splitter + assistantTag;
   }
+
+  console.log("prompt is", prompt);
 
   return prompt;
 };
