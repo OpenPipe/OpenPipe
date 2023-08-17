@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Table,
   Thead,
@@ -44,6 +44,15 @@ const MemberTable = () => {
     [selectedProject?.id, cancelInvitationMutation],
   );
 
+  const sortedMembers = useMemo(() => {
+    if (!selectedProject?.projectUsers) return [];
+    return selectedProject.projectUsers.sort((a, b) => {
+      if (a.role === b.role) return a.createdAt < b.createdAt ? -1 : 1;
+      // Take advantage of fact that ADMIN is alphabetically before MEMBER
+      return a.role < b.role ? -1 : 1;
+    });
+  }, [selectedProject?.projectUsers]);
+
   return (
     <>
       <Table fontSize={{ base: "sm", md: "md" }}>
@@ -70,30 +79,31 @@ const MemberTable = () => {
             },
           }}
         >
-          {selectedProject?.projectUsers.map((member) => {
-            return (
-              <Tr key={member.id}>
-                <Td>
-                  <Text fontWeight="bold">{member.user.name}</Text>
-                </Td>
-                <Td display={{ base: "none", md: "block" }}>{member.user.email}</Td>
-                <Td fontSize={{ base: "xs", md: "sm" }}>{member.role}</Td>
-                {selectedProject.role === "ADMIN" && (
-                  <Td textAlign="end">
-                    {member.user.id !== session?.user?.id &&
-                      member.user.id !== selectedProject.personalProjectUserId && (
-                        <IconButton
-                          aria-label="Remove member"
-                          colorScheme="red"
-                          icon={<BsTrash />}
-                          onClick={() => setMemberToRemove(member.user)}
-                        />
-                      )}
+          {selectedProject &&
+            sortedMembers.map((member) => {
+              return (
+                <Tr key={member.id}>
+                  <Td>
+                    <Text fontWeight="bold">{member.user.name}</Text>
                   </Td>
-                )}
-              </Tr>
-            );
-          })}
+                  <Td display={{ base: "none", md: "block" }}>{member.user.email}</Td>
+                  <Td fontSize={{ base: "xs", md: "sm" }}>{member.role}</Td>
+                  {selectedProject.role === "ADMIN" && (
+                    <Td textAlign="end">
+                      {member.user.id !== session?.user?.id &&
+                        member.user.id !== selectedProject.personalProjectUserId && (
+                          <IconButton
+                            aria-label="Remove member"
+                            colorScheme="red"
+                            icon={<BsTrash />}
+                            onClick={() => setMemberToRemove(member.user)}
+                          />
+                        )}
+                    </Td>
+                  )}
+                </Tr>
+              );
+            })}
           {selectedProject?.projectUserInvitations?.map((invitation) => {
             return (
               <Tr key={invitation.id}>
