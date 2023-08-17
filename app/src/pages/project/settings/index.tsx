@@ -60,7 +60,7 @@ export default function Settings() {
   return (
     <>
       <AppShell requireAuth>
-        <PageHeaderContainer>
+        <PageHeaderContainer px={4}>
           <Breadcrumb>
             <BreadcrumbItem>
               <ProjectBreadcrumbContents />
@@ -70,7 +70,7 @@ export default function Settings() {
             </BreadcrumbItem>
           </Breadcrumb>
         </PageHeaderContainer>
-        <VStack px={8} py={4} alignItems="flex-start" spacing={4}>
+        <VStack px={4} py={4} alignItems="flex-start" spacing={4}>
           <VStack spacing={0} alignItems="flex-start">
             <Text fontSize="2xl" fontWeight="bold">
               Project Settings
