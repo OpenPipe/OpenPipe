@@ -3,8 +3,8 @@ import { type FrontendModelProvider } from "../types";
 import { refinementActions } from "./refinementActions";
 import {
   templateOpenOrcaPrompt,
-  templateAlpacaInstructPrompt,
-  templateSystemUserAssistantPrompt,
+  //   templateAlpacaInstructPrompt,
+  //   templateSystemUserAssistantPrompt,
   templateInstructionInputResponsePrompt,
   templateAiroborosPrompt,
 } from "./templatePrompt";
@@ -22,24 +22,24 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatO
       learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrcaxOpenChat-Preview2-13B",
       templatePrompt: templateOpenOrcaPrompt,
     },
-    "Open-Orca/OpenOrca-Platypus2-13B": {
-      name: "OpenOrca-Platypus2-13B",
-      contextWindow: 4096,
-      pricePerSecond: 0.0003,
-      speed: "medium",
-      provider: "openpipe/Chat",
-      learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B",
-      templatePrompt: templateAlpacaInstructPrompt,
-    },
-    "stabilityai/StableBeluga-13B": {
-      name: "StableBeluga-13B",
-      contextWindow: 4096,
-      pricePerSecond: 0.0003,
-      speed: "medium",
-      provider: "openpipe/Chat",
-      learnMoreUrl: "https://huggingface.co/stabilityai/StableBeluga-13B",
-      templatePrompt: templateSystemUserAssistantPrompt,
-    },
+    // "Open-Orca/OpenOrca-Platypus2-13B": {
+    //   name: "OpenOrca-Platypus2-13B",
+    //   contextWindow: 4096,
+    //   pricePerSecond: 0.0003,
+    //   speed: "medium",
+    //   provider: "openpipe/Chat",
+    //   learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B",
+    //   templatePrompt: templateAlpacaInstructPrompt,
+    // },
+    // "stabilityai/StableBeluga-13B": {
+    //   name: "StableBeluga-13B",
+    //   contextWindow: 4096,
+    //   pricePerSecond: 0.0003,
+    //   speed: "medium",
+    //   provider: "openpipe/Chat",
+    //   learnMoreUrl: "https://huggingface.co/stabilityai/StableBeluga-13B",
+    //   templatePrompt: templateSystemUserAssistantPrompt,
+    // },
     "NousResearch/Nous-Hermes-Llama2-13b": {
       name: "Nous-Hermes-Llama2-13b",
       contextWindow: 4096,

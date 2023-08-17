@@ -6,8 +6,8 @@ import frontendModelProvider from "./frontend";
 
 const supportedModels = [
   "Open-Orca/OpenOrcaxOpenChat-Preview2-13B",
-  "Open-Orca/OpenOrca-Platypus2-13B",
-  "stabilityai/StableBeluga-13B",
+  // "Open-Orca/OpenOrca-Platypus2-13B",
+  // "stabilityai/StableBeluga-13B",
   "NousResearch/Nous-Hermes-Llama2-13b",
   "jondurbin/airoboros-l2-13b-gpt4-2.0",
 ] as const;
