@@ -66,7 +66,7 @@ const MemberTable = () => {
         >
           <Tr>
             <Th>Name</Th>
-            <Th display={{ base: "none", md: "block" }}>Email</Th>
+            <Th display={{ base: "none", md: "table-cell" }}>Email</Th>
             <Th>Role</Th>
             {selectedProject?.role === "ADMIN" && <Th />}
           </Tr>
@@ -86,7 +86,9 @@ const MemberTable = () => {
                   <Td>
                     <Text fontWeight="bold">{member.user.name}</Text>
                   </Td>
-                  <Td display={{ base: "none", md: "block" }}>{member.user.email}</Td>
+                  <Td display={{ base: "none", md: "table-cell" }} h="full">
+                    {member.user.email}
+                  </Td>
                   <Td fontSize={{ base: "xs", md: "sm" }}>{member.role}</Td>
                   {selectedProject.role === "ADMIN" && (
                     <Td textAlign="end">
