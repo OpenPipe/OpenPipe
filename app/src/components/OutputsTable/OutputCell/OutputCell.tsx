@@ -11,7 +11,7 @@ import { OutputStats } from "./OutputStats";
 import { RetryCountdown } from "./RetryCountdown";
 import frontendModelProviders from "~/modelProviders/frontendModelProviders";
 import { ResponseLog } from "./ResponseLog";
-import { CellOptions } from "./TopActions";
+import { CellOptions } from "./CellOptions";
 
 const WAITING_MESSAGE_INTERVAL = 20000;
 
