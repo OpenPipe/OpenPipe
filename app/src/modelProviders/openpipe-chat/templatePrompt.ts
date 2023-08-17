@@ -177,7 +177,5 @@ export const templateAiroborosPrompt = (messages: OpenpipeChatInput["messages"])
     prompt += splitter + assistantTag;
   }
 
-  console.log("prompt is", prompt);
-
   return prompt;
 };
