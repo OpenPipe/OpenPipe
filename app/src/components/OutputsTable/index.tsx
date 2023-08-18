@@ -1,4 +1,4 @@
-import { Box, Grid, GridItem, type GridItemProps } from "@chakra-ui/react";
+import { Grid, GridItem, type GridItemProps } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import AddVariantButton from "./AddVariantButton";
 import ScenarioRow from "./ScenarioRow";
