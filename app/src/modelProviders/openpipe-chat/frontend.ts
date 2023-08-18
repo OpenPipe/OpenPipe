@@ -3,7 +3,7 @@ import { type FrontendModelProvider } from "../types";
 import { refinementActions } from "./refinementActions";
 import {
   templateOpenOrcaPrompt,
-  //   templateAlpacaInstructPrompt,
+  templateAlpacaInstructPrompt,
   //   templateSystemUserAssistantPrompt,
   templateInstructionInputResponsePrompt,
   templateAiroborosPrompt,
@@ -22,15 +22,16 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatO
       learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrcaxOpenChat-Preview2-13B",
       templatePrompt: templateOpenOrcaPrompt,
     },
-    // "Open-Orca/OpenOrca-Platypus2-13B": {
-    //   name: "OpenOrca-Platypus2-13B",
-    //   contextWindow: 4096,
-    //   pricePerSecond: 0.0003,
-    //   speed: "medium",
-    //   provider: "openpipe/Chat",
-    //   learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B",
-    //   templatePrompt: templateAlpacaInstructPrompt,
-    // },
+    "Open-Orca/OpenOrca-Platypus2-13B": {
+      name: "OpenOrca-Platypus2-13B",
+      contextWindow: 4096,
+      pricePerSecond: 0.0003,
+      speed: "medium",
+      provider: "openpipe/Chat",
+      learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B",
+      templatePrompt: templateAlpacaInstructPrompt,
+      defaultStopTokens: ["</s>"],
+    },
     // "stabilityai/StableBeluga-13B": {
     //   name: "StableBeluga-13B",
     //   contextWindow: 4096,

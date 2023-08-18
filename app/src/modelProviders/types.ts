@@ -25,6 +25,7 @@ export type Model = {
   learnMoreUrl?: string;
   apiDocsUrl?: string;
   templatePrompt?: (initialPrompt: OpenpipeChatInput["messages"]) => string;
+  defaultStopTokens?: string[];
 };
 
 export type ProviderModel = { provider: z.infer<typeof ZodSupportedProvider>; model: string };
