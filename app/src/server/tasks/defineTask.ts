@@ -1,15 +1,24 @@
-// Import necessary dependencies
-import { quickAddJob, type Helpers, type Task } from "graphile-worker";
+import { type Helpers, type Task, makeWorkerUtils } from "graphile-worker";
 import { env } from "~/env.mjs";
 
-// Define the defineTask function
+let workerUtilsPromise: ReturnType<typeof makeWorkerUtils> | null = null;
+
+function workerUtils() {
+  if (!workerUtilsPromise) {
+    workerUtilsPromise = makeWorkerUtils({
+      connectionString: env.DATABASE_URL,
+    });
+  }
+  return workerUtilsPromise;
+}
+
 function defineTask<TPayload>(
   taskIdentifier: string,
   taskHandler: (payload: TPayload, helpers: Helpers) => Promise<void>,
 ) {
   const enqueue = async (payload: TPayload, runAt?: Date) => {
     console.log("Enqueuing task", taskIdentifier, payload);
-    await quickAddJob({ connectionString: env.DATABASE_URL }, taskIdentifier, payload, { runAt });
+    await (await workerUtils()).addJob(taskIdentifier, payload, { runAt });
   };
 
   const handler = (payload: TPayload, helpers: Helpers) => {
