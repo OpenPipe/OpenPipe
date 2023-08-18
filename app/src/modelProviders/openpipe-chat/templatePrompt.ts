@@ -223,3 +223,52 @@ export const templateVicunaPrompt = (messages: OpenpipeChatInput["messages"]) =>
 
   return prompt.trim();
 };
+
+// <System prompt/Character Card>
+
+// ### Instruction:
+// Your instruction or question here.
+// For roleplay purposes, I suggest the following - Write <CHAR NAME>'s next reply in a chat between <YOUR NAME> and <CHAR NAME>. Write a single reply only.
+
+// ### Response:
+export const templateGryphePrompt = (messages: OpenpipeChatInput["messages"]) => {
+  const splitter = "\n\n";
+
+  const instructionTag = "### Instruction:\n";
+  const responseTag = "### Response:\n";
+
+  let combinedSystemMessage = "";
+  const conversationMessages = [];
+
+  for (const message of messages) {
+    if (message.role === "system") {
+      combinedSystemMessage += message.content;
+    } else if (message.role === "user") {
+      conversationMessages.push(instructionTag + message.content);
+    } else {
+      conversationMessages.push(responseTag + message.content);
+    }
+  }
+
+  let systemMessage = "";
+
+  if (combinedSystemMessage) {
+    // If there is no user message, add a user tag to the system message
+    if (conversationMessages.find((message) => message.startsWith(instructionTag))) {
+      systemMessage = `${combinedSystemMessage}\n\n`;
+    } else {
+      conversationMessages.unshift(instructionTag + combinedSystemMessage);
+    }
+  }
+
+  let prompt = `${systemMessage}${conversationMessages.join(splitter)}`;
+
+  // Ensure that the prompt ends with an assistant message
+  const lastInstructionIndex = prompt.lastIndexOf(instructionTag);
+  const lastAssistantIndex = prompt.lastIndexOf(responseTag);
+  if (lastInstructionIndex > lastAssistantIndex) {
+    prompt += splitter + responseTag;
+  }
+
+  return prompt;
+};

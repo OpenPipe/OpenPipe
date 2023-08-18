@@ -7,6 +7,7 @@ import {
   //   templateSystemUserAssistantPrompt,
   templateInstructionInputResponsePrompt,
   templateAiroborosPrompt,
+  templateGryphePrompt,
   templateVicunaPrompt,
 } from "./templatePrompt";
 
@@ -68,6 +69,15 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatO
       provider: "openpipe/Chat",
       learnMoreUrl: "https://huggingface.co/lmsys/vicuna-13b-v1.5",
       templatePrompt: templateVicunaPrompt,
+    },
+    "Gryphe/MythoMax-L2-13b": {
+      name: "MythoMax-L2-13b",
+      contextWindow: 4096,
+      pricePerSecond: 0.0003,
+      speed: "medium",
+      provider: "openpipe/Chat",
+      learnMoreUrl: "https://huggingface.co/Gryphe/MythoMax-L2-13b",
+      templatePrompt: templateGryphePrompt,
     },
     "NousResearch/Nous-Hermes-llama-2-7b": {
       name: "Nous-Hermes-llama-2-7b",
