@@ -61,7 +61,7 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
         evalsComplete,
       };
     }),
-  forceRefetch: protectedProcedure
+  hardRefetch: protectedProcedure
     .input(
       z.object({
         scenarioId: z.string(),
@@ -85,7 +85,10 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
       });
 
       if (!cell) {
-        await generateNewCell(input.variantId, input.scenarioId, { stream: true });
+        await generateNewCell(input.variantId, input.scenarioId, {
+          stream: true,
+          hardRefetch: true,
+        });
         return;
       }
 
@@ -96,7 +99,7 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
         },
       });
 
-      await queueQueryModel(cell.id, true);
+      await queueQueryModel(cell.id, { stream: true, hardRefetch: true });
     }),
   getTemplatedPromptMessage: publicProcedure
     .input(
