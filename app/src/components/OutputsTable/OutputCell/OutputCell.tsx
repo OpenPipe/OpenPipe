@@ -43,7 +43,7 @@ export default function OutputCell({
 
   type OutputSchema = Parameters<typeof provider.normalizeOutput>[0];
 
-  const { mutateAsync: hardRefetchMutate } = api.scenarioVariantCells.forceRefetch.useMutation();
+  const { mutateAsync: hardRefetchMutate } = api.scenarioVariantCells.hardRefetch.useMutation();
   const [hardRefetch, hardRefetching] = useHandledAsyncCallback(async () => {
     await hardRefetchMutate({ scenarioId: scenario.id, variantId: variant.id });
     await utils.scenarioVariantCells.get.invalidate({

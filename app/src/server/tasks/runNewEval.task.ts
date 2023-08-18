@@ -13,5 +13,6 @@ export const runNewEval = defineTask<RunNewEvalJob>("runNewEval", async (task) =
 });
 
 export const queueRunNewEval = async (experimentId: string) => {
-  await runNewEval.enqueue({ experimentId });
+  // Evals are lower priority than completions
+  await runNewEval.enqueue({ experimentId }, { priority: 4 });
 };
