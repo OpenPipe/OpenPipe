@@ -109,6 +109,12 @@ const requestUpdatedPromptFunction = async (
         function_call: {
           name: "update_prompt_constructor_function",
         },
+        openpipe: {
+          tags: {
+            prompt_id: "deriveNewConstructFn",
+            model_translation: (!!newModel).toString(),
+          },
+        },
       });
       const argString = completion.choices[0]?.message?.function_call?.arguments || "{}";
 
