@@ -14,8 +14,6 @@ services:
     domains:
       - app.openpipe.ai
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: DATABASE_URL
         fromDatabase:
           name: querykey-prod
@@ -42,3 +40,9 @@ services:
     dockerContext: .
     plan: starter
     dockerCommand: pnpm tsx src/server/tasks/worker.ts
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: querykey-prod
+          property: connectionString
+      - fromGroup: querykey-prod
