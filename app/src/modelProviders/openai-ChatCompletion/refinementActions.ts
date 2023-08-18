@@ -12,7 +12,6 @@ export const refinementActions: Record<string, RefinementAction> = {
   
       definePrompt("openai/ChatCompletion", {
           model: "gpt-4",
-          stream: true,
           messages: [
               {
               role: "system",
@@ -29,7 +28,6 @@ export const refinementActions: Record<string, RefinementAction> = {
   
       definePrompt("openai/ChatCompletion", {
           model: "gpt-4",
-          stream: true,
           messages: [
               {
               role: "system",
@@ -126,7 +124,6 @@ export const refinementActions: Record<string, RefinementAction> = {
   
       definePrompt("openai/ChatCompletion", {
         model: "gpt-4",
-        stream: true,
         messages: [
           {
             role: "system",
@@ -143,7 +140,6 @@ export const refinementActions: Record<string, RefinementAction> = {
   
       definePrompt("openai/ChatCompletion", {
         model: "gpt-4",
-        stream: true,
         messages: [
           {
             role: "system",
@@ -237,7 +233,6 @@ export const refinementActions: Record<string, RefinementAction> = {
   
       definePrompt("openai/ChatCompletion", {
         model: "gpt-3.5-turbo",
-        stream: true,
         messages: [
           {
             role: "system",
