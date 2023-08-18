@@ -3,10 +3,11 @@ import { type FrontendModelProvider } from "../types";
 import { refinementActions } from "./refinementActions";
 import {
   templateOpenOrcaPrompt,
-  //   templateAlpacaInstructPrompt,
+  templateAlpacaInstructPrompt,
   //   templateSystemUserAssistantPrompt,
   templateInstructionInputResponsePrompt,
   templateAiroborosPrompt,
+  templateHumanAssistantPrompt,
 } from "./templatePrompt";
 
 const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatOutput> = {
@@ -22,15 +23,16 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatO
       learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrcaxOpenChat-Preview2-13B",
       templatePrompt: templateOpenOrcaPrompt,
     },
-    // "Open-Orca/OpenOrca-Platypus2-13B": {
-    //   name: "OpenOrca-Platypus2-13B",
-    //   contextWindow: 4096,
-    //   pricePerSecond: 0.0003,
-    //   speed: "medium",
-    //   provider: "openpipe/Chat",
-    //   learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B",
-    //   templatePrompt: templateAlpacaInstructPrompt,
-    // },
+    "Open-Orca/OpenOrca-Platypus2-13B": {
+      name: "OpenOrca-Platypus2-13B",
+      contextWindow: 4096,
+      pricePerSecond: 0.0003,
+      speed: "medium",
+      provider: "openpipe/Chat",
+      learnMoreUrl: "https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B",
+      templatePrompt: templateAlpacaInstructPrompt,
+      defaultStopTokens: ["</s>"],
+    },
     // "stabilityai/StableBeluga-13B": {
     //   name: "StableBeluga-13B",
     //   contextWindow: 4096,
@@ -57,6 +59,24 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatO
       provider: "openpipe/Chat",
       learnMoreUrl: "https://huggingface.co/jondurbin/airoboros-l2-13b-gpt4-2.0",
       templatePrompt: templateAiroborosPrompt,
+    },
+    "lmsys/vicuna-13b-v1.5": {
+      name: "vicuna-13b-v1.5",
+      contextWindow: 4096,
+      pricePerSecond: 0.0003,
+      speed: "medium",
+      provider: "openpipe/Chat",
+      learnMoreUrl: "https://huggingface.co/lmsys/vicuna-13b-v1.5",
+      templatePrompt: templateHumanAssistantPrompt,
+    },
+    "NousResearch/Nous-Hermes-llama-2-7b": {
+      name: "Nous-Hermes-llama-2-7b",
+      contextWindow: 4096,
+      pricePerSecond: 0.0003,
+      speed: "medium",
+      provider: "openpipe/Chat",
+      learnMoreUrl: "https://huggingface.co/NousResearch/Nous-Hermes-llama-2-7b",
+      templatePrompt: templateInstructionInputResponsePrompt,
     },
   },
 

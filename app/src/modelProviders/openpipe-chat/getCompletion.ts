@@ -8,10 +8,12 @@ import frontendModelProvider from "./frontend";
 
 const modelEndpoints: Record<OpenpipeChatInput["model"], string> = {
   "Open-Orca/OpenOrcaxOpenChat-Preview2-13B": "https://5ef82gjxk8kdys-8000.proxy.runpod.net/v1",
-  // "Open-Orca/OpenOrca-Platypus2-13B": "https://lt5qlel6qcji8t-8000.proxy.runpod.net/v1",
+  "Open-Orca/OpenOrca-Platypus2-13B": "https://lt5qlel6qcji8t-8000.proxy.runpod.net/v1",
   // "stabilityai/StableBeluga-13B": "https://vcorl8mxni2ou1-8000.proxy.runpod.net/v1",
   "NousResearch/Nous-Hermes-Llama2-13b": "https://ncv8pw3u0vb8j2-8000.proxy.runpod.net/v1",
   "jondurbin/airoboros-l2-13b-gpt4-2.0": "https://9nrbx7oph4btou-8000.proxy.runpod.net/v1",
+  "lmsys/vicuna-13b-v1.5": "https://h88hkt3ux73rb7-8000.proxy.runpod.net/v1",
+  "NousResearch/Nous-Hermes-llama-2-7b": "https://ua1bpc6kv3dgge-8000.proxy.runpod.net/v1",
 };
 
 export async function getCompletion(
@@ -36,10 +38,20 @@ export async function getCompletion(
   const start = Date.now();
   let finalCompletion: OpenpipeChatOutput = "";
 
+  const completionParams = {
+    model,
+    prompt: templatedPrompt,
+    ...rest,
+  };
+
+  if (!completionParams.stop && frontendModelProvider.models[model].defaultStopTokens) {
+    completionParams.stop = frontendModelProvider.models[model].defaultStopTokens;
+  }
+
   try {
     if (onStream) {
       const resp = await openai.completions.create(
-        { model, prompt: templatedPrompt, ...rest, stream: true },
+        { ...completionParams, stream: true },
         {
           maxRetries: 0,
         },
@@ -58,7 +70,7 @@ export async function getCompletion(
       }
     } else {
       const resp = await openai.completions.create(
-        { model, prompt: templatedPrompt, ...rest, stream: false },
+        { ...completionParams, stream: false },
         {
           maxRetries: 0,
         },
