@@ -7,6 +7,7 @@ import {
   //   templateSystemUserAssistantPrompt,
   templateInstructionInputResponsePrompt,
   templateAiroborosPrompt,
+  templateHumanAssistantPrompt,
 } from "./templatePrompt";
 
 const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatOutput> = {
@@ -58,6 +59,24 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatO
       provider: "openpipe/Chat",
       learnMoreUrl: "https://huggingface.co/jondurbin/airoboros-l2-13b-gpt4-2.0",
       templatePrompt: templateAiroborosPrompt,
+    },
+    "lmsys/vicuna-13b-v1.5": {
+      name: "vicuna-13b-v1.5",
+      contextWindow: 4096,
+      pricePerSecond: 0.0003,
+      speed: "medium",
+      provider: "openpipe/Chat",
+      learnMoreUrl: "https://huggingface.co/lmsys/vicuna-13b-v1.5",
+      templatePrompt: templateHumanAssistantPrompt,
+    },
+    "NousResearch/Nous-Hermes-llama-2-7b": {
+      name: "Nous-Hermes-llama-2-7b",
+      contextWindow: 4096,
+      pricePerSecond: 0.0003,
+      speed: "medium",
+      provider: "openpipe/Chat",
+      learnMoreUrl: "https://huggingface.co/NousResearch/Nous-Hermes-llama-2-7b",
+      templatePrompt: templateInstructionInputResponsePrompt,
     },
   },
 

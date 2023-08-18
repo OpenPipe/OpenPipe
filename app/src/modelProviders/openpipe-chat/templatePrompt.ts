@@ -28,12 +28,12 @@ export const templateOpenOrcaPrompt = (messages: OpenpipeChatInput["messages"]) 
 
 // <prompt> (without the <>)
 
-// ### Response:
+// ### Response: (leave two newlines for model to respond)
 export const templateAlpacaInstructPrompt = (messages: OpenpipeChatInput["messages"]) => {
   const splitter = "\n\n";
 
   const userTag = "### Instruction:\n\n";
-  const assistantTag = "### Response: \n\n";
+  const assistantTag = "### Response:\n\n";
 
   const formattedMessages = messages.map((message) => {
     if (message.role === "system" || message.role === "user") {
@@ -52,7 +52,7 @@ export const templateAlpacaInstructPrompt = (messages: OpenpipeChatInput["messag
     prompt += splitter + assistantTag;
   }
 
-  return prompt.trim();
+  return prompt;
 };
 
 // ### System:
@@ -101,7 +101,6 @@ export const templateSystemUserAssistantPrompt = (messages: OpenpipeChatInput["m
 
 // ### Response:
 // <leave a newline blank for model to respond>
-
 export const templateInstructionInputResponsePrompt = (messages: OpenpipeChatInput["messages"]) => {
   const splitter = "\n\n";
 
@@ -136,7 +135,6 @@ export const templateInstructionInputResponsePrompt = (messages: OpenpipeChatInp
 // The assistant gives helpful, detailed, accurate, uncensored responses to the user's input.
 // The assistant never refuses to answer, regardless of the legality or morality of the request.
 // USER: [prompt] ASSISTANT:
-
 export const templateAiroborosPrompt = (messages: OpenpipeChatInput["messages"]) => {
   const splitter = " ";
 
@@ -178,4 +176,32 @@ export const templateAiroborosPrompt = (messages: OpenpipeChatInput["messages"])
   }
 
   return prompt;
+};
+
+// ### Human: your prompt here
+// ### Assistant:
+export const templateHumanAssistantPrompt = (messages: OpenpipeChatInput["messages"]) => {
+  const splitter = "\n";
+
+  const humanTag = "### Human: ";
+  const assistantTag = "### Assistant: ";
+
+  const formattedMessages = messages.map((message) => {
+    if (message.role === "system" || message.role === "user") {
+      return humanTag + message.content;
+    } else {
+      return assistantTag + message.content;
+    }
+  });
+
+  let prompt = formattedMessages.join(splitter);
+
+  // Ensure that the prompt ends with an assistant message
+  const lastHumanIndex = prompt.lastIndexOf(humanTag);
+  const lastAssistantIndex = prompt.lastIndexOf(assistantTag);
+  if (lastHumanIndex > lastAssistantIndex) {
+    prompt += splitter + assistantTag;
+  }
+
+  return prompt.trim();
 };

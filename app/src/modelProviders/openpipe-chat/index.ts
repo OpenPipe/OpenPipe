@@ -10,6 +10,8 @@ const supportedModels = [
   // "stabilityai/StableBeluga-13B",
   "NousResearch/Nous-Hermes-Llama2-13b",
   "jondurbin/airoboros-l2-13b-gpt4-2.0",
+  "lmsys/vicuna-13b-v1.5",
+  "NousResearch/Nous-Hermes-llama-2-7b",
 ] as const;
 
 export type SupportedModel = (typeof supportedModels)[number];
