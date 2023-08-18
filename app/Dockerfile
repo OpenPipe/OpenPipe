@@ -45,4 +45,4 @@ EXPOSE 3000
 ENV PORT 3000
 
 # Run the "run-prod.sh" script
-CMD /code/app/run-prod.sh
+CMD /code/app/scripts/run-prod.sh
