@@ -1,15 +1,16 @@
-import { Grid, GridItem, type GridItemProps } from "@chakra-ui/react";
+import { Box, Grid, GridItem, type GridItemProps } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import AddVariantButton from "./AddVariantButton";
 import ScenarioRow from "./ScenarioRow";
 import VariantEditor from "./VariantEditor";
-import VariantHeader from "../VariantHeader/VariantHeader";
+import VariantHeader from "./VariantHeader/VariantHeader";
 import VariantStats from "./VariantStats";
 import { ScenariosHeader } from "./ScenariosHeader";
 import { borders } from "./styles";
 import { useScenarios } from "~/utils/hooks";
 import ScenarioPaginator from "./ScenarioPaginator";
 import { Fragment } from "react";
+import useScrolledPast from "./useHasScrolledPast";
 
 export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
   const variants = api.promptVariants.list.useQuery(
@@ -18,6 +19,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
   );
 
   const scenarios = useScenarios();
+  const shouldFlattenHeader = useScrolledPast(50);
 
   if (!variants.data || !scenarios.data) return null;
 
@@ -63,8 +65,8 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
               variant={variant}
               canHide={variants.data.length > 1}
               rowStart={1}
-              borderTopLeftRadius={isFirst ? 8 : 0}
-              borderTopRightRadius={isLast ? 8 : 0}
+              borderTopLeftRadius={isFirst && !shouldFlattenHeader ? 8 : 0}
+              borderTopRightRadius={isLast && !shouldFlattenHeader ? 8 : 0}
               {...sharedProps}
             />
             <GridItem rowStart={2} {...sharedProps}>

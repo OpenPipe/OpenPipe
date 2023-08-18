@@ -1,6 +1,4 @@
-import { type PromptVariant } from "../OutputsTable/types";
-import { api } from "~/utils/api";
-import { useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
+import { useState } from "react";
 import {
   Icon,
   Menu,
@@ -14,10 +12,13 @@ import {
 } from "@chakra-ui/react";
 import { BsFillTrashFill, BsGear, BsStars } from "react-icons/bs";
 import { FaRegClone } from "react-icons/fa";
-import { useState } from "react";
-import { RefinePromptModal } from "../RefinePromptModal/RefinePromptModal";
 import { RiExchangeFundsFill } from "react-icons/ri";
-import { ChangeModelModal } from "../ChangeModelModal/ChangeModelModal";
+
+import { api } from "~/utils/api";
+import { useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
+import { type PromptVariant } from "../types";
+import { RefinePromptModal } from "../../RefinePromptModal/RefinePromptModal";
+import { ChangeModelModal } from "../../ChangeModelModal/ChangeModelModal";
 
 export default function VariantHeaderMenuButton({
   variant,

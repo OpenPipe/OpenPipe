@@ -8,7 +8,7 @@ import {
   useHandledAsyncCallback,
   useVisibleScenarioIds,
 } from "~/utils/hooks";
-import { cellPadding } from "../constants";
+import { cellPadding } from "./constants";
 import { ActionButton } from "./ScenariosHeader";
 
 export default function AddVariantButton() {

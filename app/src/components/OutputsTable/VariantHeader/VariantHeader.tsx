@@ -1,11 +1,11 @@
 import { useState, type DragEvent } from "react";
-import { type PromptVariant } from "../OutputsTable/types";
+import { type PromptVariant } from "../types";
 import { api } from "~/utils/api";
 import { RiDraggable } from "react-icons/ri";
 import { useExperimentAccess, useHandledAsyncCallback } from "~/utils/hooks";
 import { HStack, Icon, Text, GridItem, type GridItemProps } from "@chakra-ui/react"; // Changed here
 import { cellPadding, headerMinHeight } from "../constants";
-import AutoResizeTextArea from "../AutoResizeTextArea";
+import AutoResizeTextArea from "../../AutoResizeTextArea";
 import VariantHeaderMenuButton from "./VariantHeaderMenuButton";
 
 export default function VariantHeader(
@@ -75,7 +75,7 @@ export default function VariantHeader(
       padding={0}
       sx={{
         position: "sticky",
-        top: "-2",
+        top: "0",
         // Ensure that the menu always appears above the sticky header of other variants
         zIndex: menuOpen ? "dropdown" : 10,
       }}

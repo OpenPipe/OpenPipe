@@ -67,7 +67,13 @@ export default function ProjectMenu() {
   );
 
   return (
-    <VStack w="full" alignItems="flex-start" spacing={0} py={1}>
+    <VStack
+      w="full"
+      alignItems="flex-start"
+      spacing={0}
+      py={1}
+      zIndex={popover.isOpen ? "dropdown" : undefined}
+    >
       <Popover
         placement="bottom"
         isOpen={popover.isOpen}
