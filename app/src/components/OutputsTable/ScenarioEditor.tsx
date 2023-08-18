@@ -111,25 +111,23 @@ export default function ScenarioEditor({
         onDrop={onReorder}
         backgroundColor={isDragTarget ? "gray.100" : "transparent"}
       >
-        {variableLabels.length === 0 ? (
-          <Box color="gray.500">
-            {vars.data ? "No scenario variables configured" : "Loading..."}
-          </Box>
-        ) : (
+        {
           <VStack spacing={4} flex={1} py={2}>
             <HStack justifyContent="space-between" w="100%" align="center" spacing={0}>
               <Text flex={1}>Scenario</Text>
-              <Tooltip label="Expand" hasArrow>
-                <IconButton
-                  aria-label="Expand"
-                  icon={<Icon as={BsArrowsAngleExpand} boxSize={3} />}
-                  onClick={() => setScenarioEditorModalOpen(true)}
-                  size="xs"
-                  colorScheme="gray"
-                  color="gray.500"
-                  variant="ghost"
-                />
-              </Tooltip>
+              {variableLabels.length && (
+                <Tooltip label="Expand" hasArrow>
+                  <IconButton
+                    aria-label="Expand"
+                    icon={<Icon as={BsArrowsAngleExpand} boxSize={3} />}
+                    onClick={() => setScenarioEditorModalOpen(true)}
+                    size="xs"
+                    colorScheme="gray"
+                    color="gray.500"
+                    variant="ghost"
+                  />
+                </Tooltip>
+              )}
               {canModify && props.canHide && (
                 <Tooltip label="Delete" hasArrow>
                   <IconButton
@@ -150,31 +148,38 @@ export default function ScenarioEditor({
                 </Tooltip>
               )}
             </HStack>
-            {variableLabels.map((key) => {
-              const value = values[key] ?? "";
-              return (
-                <FloatingLabelInput
-                  key={key}
-                  label={key}
-                  isDisabled={!canModify}
-                  style={{ width: "100%" }}
-                  maxHeight={32}
-                  value={value}
-                  onChange={(e) => {
-                    setValues((prev) => ({ ...prev, [key]: e.target.value }));
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                      e.preventDefault();
-                      e.currentTarget.blur();
-                      onSave();
-                    }
-                  }}
-                  onMouseEnter={() => setVariableInputHovered(true)}
-                  onMouseLeave={() => setVariableInputHovered(false)}
-                />
-              );
-            })}
+
+            {variableLabels.length === 0 ? (
+              <Box color="gray.500">
+                {vars.data ? "No scenario variables configured" : "Loading..."}
+              </Box>
+            ) : (
+              variableLabels.map((key) => {
+                const value = values[key] ?? "";
+                return (
+                  <FloatingLabelInput
+                    key={key}
+                    label={key}
+                    isDisabled={!canModify}
+                    style={{ width: "100%" }}
+                    maxHeight={32}
+                    value={value}
+                    onChange={(e) => {
+                      setValues((prev) => ({ ...prev, [key]: e.target.value }));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                        onSave();
+                      }
+                    }}
+                    onMouseEnter={() => setVariableInputHovered(true)}
+                    onMouseLeave={() => setVariableInputHovered(false)}
+                  />
+                );
+              })
+            )}
             {hasChanged && (
               <HStack justify="right">
                 <Button
@@ -192,7 +197,7 @@ export default function ScenarioEditor({
               </HStack>
             )}
           </VStack>
-        )}
+        }
       </HStack>
       {scenarioEditorModalOpen && (
         <ScenarioEditorModal

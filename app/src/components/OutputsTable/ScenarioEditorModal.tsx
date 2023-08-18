@@ -65,11 +65,11 @@ export const ScenarioEditorModal = ({
     <Modal
       isOpen
       onClose={onClose}
-      size={{ base: "xl", sm: "2xl", md: "3xl", lg: "5xl", xl: "7xl" }}
+      size={{ base: "xl", sm: "2xl", md: "3xl", lg: "4xl", xl: "5xl" }}
     >
       <ModalOverlay />
       <ModalContent w={1200}>
-        <ModalHeader />
+        <ModalHeader>Edit Scenario</ModalHeader>
         <ModalCloseButton />
         <ModalBody maxW="unset">
           <VStack spacing={8}>
