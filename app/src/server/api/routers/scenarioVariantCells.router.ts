@@ -1,4 +1,6 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import modelProviders from "~/modelProviders/modelProviders";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { queueQueryModel } from "~/server/tasks/queryModel.task";
@@ -95,5 +97,47 @@ export const scenarioVariantCellsRouter = createTRPCRouter({
       });
 
       await queueQueryModel(cell.id, true);
+    }),
+  getTemplatedPromptMessage: publicProcedure
+    .input(
+      z.object({
+        cellId: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const cell = await prisma.scenarioVariantCell.findUnique({
+        where: { id: input.cellId },
+        include: {
+          promptVariant: true,
+          modelResponses: true,
+        },
+      });
+
+      if (!cell) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+        });
+      }
+
+      const promptMessages = (cell.prompt as { messages: [] })["messages"];
+
+      if (!promptMessages) return null;
+
+      const { modelProvider, model } = cell.promptVariant;
+
+      const provider = modelProviders[modelProvider as keyof typeof modelProviders];
+
+      if (!provider) return null;
+
+      const modelObj = provider.models[model as keyof typeof provider.models];
+
+      const templatePrompt = modelObj?.templatePrompt;
+
+      if (!templatePrompt) return null;
+
+      return {
+        templatedPrompt: templatePrompt(promptMessages),
+        learnMoreUrl: modelObj.learnMoreUrl,
+      };
     }),
 });
