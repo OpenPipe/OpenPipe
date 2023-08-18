@@ -82,7 +82,7 @@ export class DefaultService {
             tags?: Record<string, string>;
         },
     ): CancelablePromise<{
-        status: 'ok';
+        status: ('ok' | 'error');
     }> {
         return this.httpRequest.request({
             method: 'POST',

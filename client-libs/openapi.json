@@ -141,9 +141,19 @@
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "string",
-                      "enum": [
-                        "ok"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "ok"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "error"
+                          ]
+                        }
                       ]
                     }
                   },

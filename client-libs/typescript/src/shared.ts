@@ -1,4 +1,5 @@
 import pkg from "../package.json";
+import { DefaultService } from "./codegen";
 
 export type OpenPipeConfig = {
   apiKey?: string;
@@ -15,8 +16,10 @@ export type OpenPipeMeta = {
   // We report your call to OpenPipe asynchronously in the background. If you
   // need to wait until the report is sent to take further action, you can await
   // this promise.
-  reportingFinished: Promise<void | { status: "ok" }>;
+  reportingFinished: Promise<void>;
 };
+
+export type ReportFn = (...args: Parameters<DefaultService["report"]>) => Promise<void>;
 
 export const getTags = (args: OpenPipeArgs["openpipe"]): Record<string, string> => ({
   ...args?.tags,

@@ -66,7 +66,7 @@ export const v1ApiRouter = createOpenApiRouter({
 
       if (!existingResponse) return { respPayload: null };
 
-      await prisma.loggedCall.create({
+      const newCall = await prisma.loggedCall.create({
         data: {
           projectId: ctx.key.projectId,
           requestedAt: new Date(input.requestedAt),
@@ -75,11 +75,7 @@ export const v1ApiRouter = createOpenApiRouter({
         },
       });
 
-      await createTags(
-        existingResponse.originalLoggedCall.projectId,
-        existingResponse.originalLoggedCallId,
-        input.tags,
-      );
+      await createTags(newCall.projectId, newCall.id, input.tags);
       return {
         respPayload: existingResponse.respPayload,
       };
@@ -111,7 +107,7 @@ export const v1ApiRouter = createOpenApiRouter({
           .default({}),
       }),
     )
-    .output(z.object({ status: z.literal("ok") }))
+    .output(z.object({ status: z.union([z.literal("ok"), z.literal("error")]) }))
     .mutation(async ({ input, ctx }) => {
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const respPayload = await respValidator.spa(input.respPayload);
@@ -212,6 +208,7 @@ export const v1ApiRouter = createOpenApiRouter({
           createdAt: true,
           cacheHit: true,
           tags: true,
+          id: true,
           modelResponse: {
             select: {
               id: true,
@@ -237,7 +234,7 @@ async function createTags(projectId: string, loggedCallId: string, tags: Record<
   const tagsToCreate = Object.entries(tags).map(([name, value]) => ({
     projectId,
     loggedCallId,
-    name: name.replaceAll(/[^a-zA-Z0-9_$]/g, "_"),
+    name: name.replaceAll(/[^a-zA-Z0-9_$.]/g, "_"),
     value,
   }));
   await prisma.loggedCallTag.createMany({

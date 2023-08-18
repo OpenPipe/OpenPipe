@@ -2,10 +2,13 @@ import dotenv from "dotenv";
 import { expect, test } from "vitest";
 import OpenAI from ".";
 import {
+  ChatCompletion,
   CompletionCreateParams,
   CreateChatCompletionRequestMessage,
 } from "openai-beta/resources/chat/completions";
 import { OPClient } from "../codegen";
+import mergeChunks from "./mergeChunks";
+import assert from "assert";
 
 dotenv.config({ path: "../.env" });
 
@@ -31,9 +34,7 @@ test("basic call", async () => {
   };
   const completion = await oaiClient.chat.completions.create({
     ...payload,
-    openpipe: {
-      tags: { promptId: "test" },
-    },
+    openpipe: { tags: { promptId: "test" } },
   });
   await completion.openpipe.reportingFinished;
   const lastLogged = await lastLoggedCall();
@@ -46,29 +47,32 @@ const randomString = (length: number) => {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   return Array.from(
     { length },
-    () => characters[Math.floor(Math.random() * characters.length)]
+    () => characters[Math.floor(Math.random() * characters.length)],
   ).join("");
 };
 
-test.skip("streaming", async () => {
+test("streaming", async () => {
   const completion = await oaiClient.chat.completions.create({
     model: "gpt-3.5-turbo",
-    messages: [{ role: "system", content: "count to 4" }],
+    messages: [{ role: "system", content: "count to 3" }],
     stream: true,
   });
 
-  let merged = null;
+  let merged: ChatCompletion | null = null;
   for await (const chunk of completion) {
-    merged = merge_openai_chunks(merged, chunk);
+    merged = mergeChunks(merged, chunk);
   }
 
   const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.modelResponse?.respPayload.choices[0].message.content).toBe(
-    merged.choices[0].message.content
-  );
+  await completion.openpipe.reportingFinished;
+
+  expect(merged).toMatchObject(lastLogged?.modelResponse?.respPayload);
+  expect(lastLogged?.modelResponse?.reqPayload.messages).toMatchObject([
+    { role: "system", content: "count to 3" },
+  ]);
 });
 
-test.skip("bad call streaming", async () => {
+test("bad call streaming", async () => {
   try {
     await oaiClient.chat.completions.create({
       model: "gpt-3.5-turbo-blaster",
@@ -76,26 +80,29 @@ test.skip("bad call streaming", async () => {
       stream: true,
     });
   } catch (e) {
+    await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
-    expect(lastLogged?.modelResponse?.errorMessage).toBe(
-      "The model `gpt-3.5-turbo-blaster` does not exist"
+    expect(lastLogged?.modelResponse?.errorMessage).toEqual(
+      "The model `gpt-3.5-turbo-blaster` does not exist",
     );
-    expect(lastLogged?.modelResponse?.statusCode).toBe(404);
+    expect(lastLogged?.modelResponse?.statusCode).toEqual(404);
   }
 });
 
 test("bad call", async () => {
   try {
     await oaiClient.chat.completions.create({
-      model: "gpt-3.5-turbo-booster",
+      model: "gpt-3.5-turbo-buster",
       messages: [{ role: "system", content: "count to 10" }],
     });
   } catch (e) {
+    assert("openpipe" in e);
+    await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
-    expect(lastLogged?.modelResponse?.errorMessage).toBe(
-      "The model `gpt-3.5-turbo-booster` does not exist"
+    expect(lastLogged?.modelResponse?.errorMessage).toEqual(
+      "The model `gpt-3.5-turbo-buster` does not exist",
     );
-    expect(lastLogged?.modelResponse?.statusCode).toBe(404);
+    expect(lastLogged?.modelResponse?.statusCode).toEqual(404);
   }
 });
 
@@ -109,12 +116,12 @@ test("caching", async () => {
     messages: [message],
     openpipe: { cache: true },
   });
-  expect(completion.openpipe.cacheStatus).toBe("MISS");
+  expect(completion.openpipe.cacheStatus).toEqual("MISS");
 
   await completion.openpipe.reportingFinished;
   const firstLogged = await lastLoggedCall();
-  expect(completion.choices[0].message.content).toBe(
-    firstLogged?.modelResponse?.respPayload.choices[0].message.content
+  expect(completion.choices[0].message.content).toEqual(
+    firstLogged?.modelResponse?.respPayload.choices[0].message.content,
   );
 
   const completion2 = await oaiClient.chat.completions.create({
@@ -122,5 +129,5 @@ test("caching", async () => {
     messages: [message],
     openpipe: { cache: true },
   });
-  expect(completion2.openpipe.cacheStatus).toBe("HIT");
+  expect(completion2.openpipe.cacheStatus).toEqual("HIT");
 });
