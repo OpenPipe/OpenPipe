@@ -53,6 +53,11 @@ export const runGpt4Eval = async (
         },
       },
     ],
+    openpipe: {
+      tags: {
+        prompt_id: "runOneEval",
+      },
+    },
   });
 
   try {

@@ -16,7 +16,16 @@ export async function getCompletion(
   try {
     if (onStream) {
       const resp = await openai.chat.completions.create(
-        { ...input, stream: true },
+        {
+          ...input,
+          stream: true,
+          openpipe: {
+            tags: {
+              prompt_id: "getCompletion",
+              stream: "true",
+            },
+          },
+        },
         {
           maxRetries: 0,
         },
@@ -34,7 +43,16 @@ export async function getCompletion(
       }
     } else {
       const resp = await openai.chat.completions.create(
-        { ...input, stream: false },
+        {
+          ...input,
+          stream: false,
+          openpipe: {
+            tags: {
+              prompt_id: "getCompletion",
+              stream: "false",
+            },
+          },
+        },
         {
           maxRetries: 0,
         },
