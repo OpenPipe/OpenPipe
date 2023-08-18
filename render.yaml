@@ -2,7 +2,7 @@ databases:
   - name: querykey-prod
     databaseName: querykey_prod
     user: querykey
-    plan: starter
+    plan: standard
 
 services:
   - type: web
@@ -10,7 +10,7 @@ services:
     runtime: docker
     dockerfilePath: ./app/Dockerfile
     dockerContext: .
-    plan: standard
+    plan: pro
     domains:
       - app.openpipe.ai
     envVars:
@@ -38,8 +38,9 @@ services:
     runtime: docker
     dockerfilePath: ./app/Dockerfile
     dockerContext: .
-    plan: starter
-    dockerCommand: pnpm tsx src/server/tasks/worker.ts
+    plan: pro
+    # Run 4 workers
+    dockerCommand: pnpm concurrently "pnpm worker" "pnpm worker" "pnpm worker" "pnpm worker"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
