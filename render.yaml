@@ -7,7 +7,7 @@ databases:
 services:
   - type: web
     name: querykey-prod-web
-    env: docker
+    runtime: docker
     dockerfilePath: ./app/Dockerfile
     dockerContext: .
     plan: standard
@@ -21,8 +21,6 @@ services:
           name: querykey-prod
           property: connectionString
       - fromGroup: querykey-prod
-      - key: NEXT_PUBLIC_SOCKET_URL
-        value: https://querykey-prod-wss.onrender.com
       # Render support says we need to manually set this because otherwise
       # sometimes it checks a different random port that NextJS opens for
       # liveness and the liveness check fails.
@@ -31,8 +29,16 @@ services:
 
   - type: web
     name: querykey-prod-wss
-    env: docker
+    runtime: docker
     dockerfilePath: ./app/Dockerfile
     dockerContext: .
     plan: free
     dockerCommand: pnpm tsx src/wss-server.ts
+
+  - type: worker
+    name: querykey-prod-worker
+    runtime: docker
+    dockerfilePath: ./app/Dockerfile
+    dockerContext: .
+    plan: starter
+    dockerCommand: pnpm tsx src/server/tasks/worker.ts

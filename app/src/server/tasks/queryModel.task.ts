@@ -153,7 +153,7 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
           stream,
           numPreviousTries: numPreviousTries + 1,
         },
-        retryTime,
+        { runAt: retryTime, jobKey: cellId },
       );
       await prisma.scenarioVariantCell.update({
         where: { id: cellId },
@@ -184,6 +184,6 @@ export const queueQueryModel = async (cellId: string, stream: boolean) => {
         jobQueuedAt: new Date(),
       },
     }),
-    queryModel.enqueue({ cellId, stream, numPreviousTries: 0 }),
+    queryModel.enqueue({ cellId, stream, numPreviousTries: 0 }, { jobKey: cellId }),
   ]);
 };
