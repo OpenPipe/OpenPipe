@@ -178,6 +178,7 @@ export const experimentsRouter = createTRPCRouter({
         existingToNewVariantIds.set(variant.id, newVariantId);
         variantsToCreate.push({
           ...variant,
+          uiId: uuidv4(),
           id: newVariantId,
           experimentId: newExperimentId,
         });
@@ -191,6 +192,7 @@ export const experimentsRouter = createTRPCRouter({
         scenariosToCreate.push({
           ...scenario,
           id: newScenarioId,
+          uiId: uuidv4(),
           experimentId: newExperimentId,
           variableValues: scenario.variableValues as Prisma.InputJsonValue,
         });
