@@ -134,6 +134,9 @@ importers:
       kysely:
         specifier: ^0.26.1
         version: 0.26.1
+      kysely-codegen:
+        specifier: ^0.10.1
+        version: 0.10.1(kysely@0.26.1)(pg@8.11.2)
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -6391,6 +6394,30 @@ packages:
       object.values: 1.1.6
     dev: true
 
+  /kysely-codegen@0.10.1(kysely@0.26.1)(pg@8.11.2):
+    resolution: {integrity: sha512-8Bslh952gN5gtucRv4jTZDFD18RBioS6M50zHfe5kwb5iSyEAunU4ZYMdHzkHraa4zxjg5/183XlOryBCXLRIw==}
+    hasBin: true
+    peerDependencies:
+      better-sqlite3: '>=7.6.2'
+      kysely: '>=0.19.12'
+      mysql2: ^2.3.3 || ^3.0.0
+      pg: ^8.8.0
+    peerDependenciesMeta:
+      better-sqlite3:
+        optional: true
+      mysql2:
+        optional: true
+      pg:
+        optional: true
+    dependencies:
+      chalk: 4.1.2
+      dotenv: 16.3.1
+      kysely: 0.26.1
+      micromatch: 4.0.5
+      minimist: 1.2.8
+      pg: 8.11.2
+    dev: false
+
   /kysely@0.26.1:
     resolution: {integrity: sha512-FVRomkdZofBu3O8SiwAOXrwbhPZZr8mBN5ZeUWyprH29jzvy6Inzqbd0IMmGxpd4rcOCL9HyyBNWBa8FBqDAdg==}
     engines: {node: '>=14.0.0'}
@@ -6611,7 +6638,6 @@ packages:
     dependencies:
       braces: 3.0.2
       picomatch: 2.3.1
-    dev: true
 
   /mime-db@1.52.0:
     resolution: {integrity: sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==}

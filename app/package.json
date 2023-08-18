@@ -18,6 +18,7 @@
     "lint": "next lint",
     "start": "TZ=UTC next start",
     "codegen:clients": "tsx src/server/scripts/client-codegen.ts",
+    "codegen:db": "prisma generate && kysely-codegen --dialect postgres --out-file src/server/db.types.ts",
     "seed": "tsx prisma/seed.ts",
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'",
     "test": "pnpm vitest"
@@ -65,6 +66,7 @@
     "json-stringify-pretty-compact": "^4.0.0",
     "jsonschema": "^1.4.1",
     "kysely": "^0.26.1",
+    "kysely-codegen": "^0.10.1",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.265.0",
     "marked": "^7.0.3",
