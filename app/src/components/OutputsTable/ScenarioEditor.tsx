@@ -16,7 +16,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { BsArrowsAngleExpand, BsX } from "react-icons/bs";
-import { cellPadding } from "../constants";
+import { cellPadding } from "./constants";
 import { FloatingLabelInput } from "./FloatingLabelInput";
 import { ScenarioEditorModal } from "./ScenarioEditorModal";
 

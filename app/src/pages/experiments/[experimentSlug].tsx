@@ -124,7 +124,7 @@ export default function Experiment() {
             <ExperimentHeaderButtons />
           </PageHeaderContainer>
           <ExperimentSettingsDrawer />
-          <Box w="100%" overflowX="auto" flex={1}>
+          <Box w="100%" overflowX="auto" flex={1} id="output-container">
             <OutputsTable experimentId={experiment.data?.id} />
           </Box>
         </VStack>

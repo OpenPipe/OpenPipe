@@ -11,7 +11,7 @@ import {
   IconButton,
   Spinner,
 } from "@chakra-ui/react";
-import { cellPadding } from "../constants";
+import { cellPadding } from "./constants";
 import {
   useExperiment,
   useExperimentAccess,

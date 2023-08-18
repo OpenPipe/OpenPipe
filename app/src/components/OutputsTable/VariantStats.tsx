@@ -1,6 +1,6 @@
 import { HStack, Icon, Text, useToken } from "@chakra-ui/react";
 import { type PromptVariant } from "./types";
-import { cellPadding } from "../constants";
+import { cellPadding } from "./constants";
 import { api } from "~/utils/api";
 import chroma from "chroma-js";
 import { BsCurrencyDollar } from "react-icons/bs";
