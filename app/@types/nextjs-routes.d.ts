@@ -21,7 +21,7 @@ declare module "nextjs-routes" {
     | StaticRoute<"/dashboard">
     | DynamicRoute<"/data/[id]", { "id": string }>
     | StaticRoute<"/data">
-    | DynamicRoute<"/experiments/[id]", { "id": string }>
+    | DynamicRoute<"/experiments/[experimentSlug]", { "experimentSlug": string }>
     | StaticRoute<"/experiments">
     | StaticRoute<"/">
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>
