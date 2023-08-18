@@ -16,11 +16,14 @@ export const useOnForkButtonPressed = () => {
 
   const [onFork, isForking] = useHandledAsyncCallback(async () => {
     if (!experiment.data?.id || !selectedProjectId) return;
-    const forkedExperimentId = await forkMutation.mutateAsync({
+    const newExperiment = await forkMutation.mutateAsync({
       id: experiment.data.id,
       projectId: selectedProjectId,
     });
-    await router.push({ pathname: "/experiments/[id]", query: { id: forkedExperimentId } });
+    await router.push({
+      pathname: "/experiments/[experimentSlug]",
+      query: { experimentSlug: newExperiment.slug },
+    });
   }, [forkMutation, experiment.data?.id, router]);
 
   const onForkButtonPressed = useCallback(() => {

@@ -85,14 +85,15 @@ export const experimentsRouter = createTRPCRouter({
       return experimentsWithCounts;
     }),
 
-  get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    await requireCanViewExperiment(input.id, ctx);
+  get: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input, ctx }) => {
     const experiment = await prisma.experiment.findFirstOrThrow({
-      where: { id: input.id },
+      where: { slug: input.slug },
       include: {
         project: true,
       },
     });
+
+    await requireCanViewExperiment(experiment.id, ctx);
 
     const canModify = ctx.session?.user.id
       ? await canModifyExperiment(experiment.id, ctx.session?.user.id)
@@ -290,7 +291,10 @@ export const experimentsRouter = createTRPCRouter({
         }),
       ]);
 
-      return newExperimentId;
+      const newExperiment = await prisma.experiment.findUniqueOrThrow({
+        where: { id: newExperimentId },
+      });
+      return newExperiment;
     }),
 
   create: protectedProcedure

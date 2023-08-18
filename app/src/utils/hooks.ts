@@ -15,8 +15,8 @@ export const useExperiments = () => {
 export const useExperiment = () => {
   const router = useRouter();
   const experiment = api.experiments.get.useQuery(
-    { id: router.query.id as string },
-    { enabled: !!router.query.id },
+    { slug: router.query.experimentSlug as string },
+    { enabled: !!router.query.experimentSlug },
   );
 
   return experiment;

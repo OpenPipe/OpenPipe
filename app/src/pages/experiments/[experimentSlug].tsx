@@ -33,9 +33,9 @@ export default function Experiment() {
 
   const experiment = useExperiment();
   const experimentStats = api.experiments.stats.useQuery(
-    { id: router.query.id as string },
+    { id: experiment.data?.id as string },
     {
-      enabled: !!router.query.id,
+      enabled: !!experiment.data?.id,
     },
   );
   const stats = experimentStats.data;
@@ -125,7 +125,7 @@ export default function Experiment() {
           </PageHeaderContainer>
           <ExperimentSettingsDrawer />
           <Box w="100%" overflowX="auto" flex={1}>
-            <OutputsTable experimentId={router.query.id as string | undefined} />
+            <OutputsTable experimentId={experiment.data?.id} />
           </Box>
         </VStack>
       </AppShell>

@@ -14,21 +14,11 @@ import { formatTimePast } from "~/utils/dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { BsPlusSquare } from "react-icons/bs";
-import { api } from "~/utils/api";
+import { RouterOutputs, api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 
-type ExperimentData = {
-  testScenarioCount: number;
-  promptVariantCount: number;
-  id: string;
-  label: string;
-  sortIndex: number;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export const ExperimentCard = ({ exp }: { exp: ExperimentData }) => {
+export const ExperimentCard = ({ exp }: { exp: RouterOutputs["experiments"]["list"][0] }) => {
   return (
     <Card
       w="full"
@@ -45,7 +35,7 @@ export const ExperimentCard = ({ exp }: { exp: ExperimentData }) => {
         as={Link}
         w="full"
         h="full"
-        href={{ pathname: "/experiments/[id]", query: { id: exp.id } }}
+        href={{ pathname: "/experiments/[experimentSlug]", query: { experimentSlug: exp.slug } }}
         justify="space-between"
       >
         <HStack w="full" color="gray.700" justify="center">
@@ -89,8 +79,8 @@ export const NewExperimentCard = () => {
       projectId: selectedProjectId ?? "",
     });
     await router.push({
-      pathname: "/experiments/[id]",
-      query: { id: newExperiment.id },
+      pathname: "/experiments/[experimentSlug]",
+      query: { experimentSlug: newExperiment.slug },
     });
   }, [createMutation, router, selectedProjectId]);
 
