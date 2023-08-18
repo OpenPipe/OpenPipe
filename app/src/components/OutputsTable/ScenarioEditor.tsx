@@ -115,17 +115,19 @@ export default function ScenarioEditor({
           <VStack spacing={4} flex={1} py={2}>
             <HStack justifyContent="space-between" w="100%" align="center" spacing={0}>
               <Text flex={1}>Scenario</Text>
-              <Tooltip label="Expand" hasArrow>
-                <IconButton
-                  aria-label="Expand"
-                  icon={<Icon as={BsArrowsAngleExpand} boxSize={3} />}
-                  onClick={() => setScenarioEditorModalOpen(true)}
-                  size="xs"
-                  colorScheme="gray"
-                  color="gray.500"
-                  variant="ghost"
-                />
-              </Tooltip>
+              {variableLabels.length && (
+                <Tooltip label="Expand" hasArrow>
+                  <IconButton
+                    aria-label="Expand"
+                    icon={<Icon as={BsArrowsAngleExpand} boxSize={3} />}
+                    onClick={() => setScenarioEditorModalOpen(true)}
+                    size="xs"
+                    colorScheme="gray"
+                    color="gray.500"
+                    variant="ghost"
+                  />
+                </Tooltip>
+              )}
               {canModify && props.canHide && (
                 <Tooltip label="Delete" hasArrow>
                   <IconButton
