@@ -26,6 +26,10 @@ export const env = createEnv({
     SMTP_PORT: z.string().default("placeholder"),
     SMTP_LOGIN: z.string().default("placeholder"),
     SMTP_PASSWORD: z.string().default("placeholder"),
+    WORKER_CONCURRENCY: z
+      .string()
+      .default("10")
+      .transform((val) => parseInt(val)),
   },
 
   /**
@@ -68,6 +72,7 @@ export const env = createEnv({
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_LOGIN: process.env.SMTP_LOGIN,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    WORKER_CONCURRENCY: process.env.WORKER_CONCURRENCY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

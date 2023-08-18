@@ -1,4 +1,4 @@
-import { type Helpers, type Task, makeWorkerUtils } from "graphile-worker";
+import { type Helpers, type Task, makeWorkerUtils, TaskSpec } from "graphile-worker";
 import { env } from "~/env.mjs";
 
 let workerUtilsPromise: ReturnType<typeof makeWorkerUtils> | null = null;
@@ -16,9 +16,11 @@ function defineTask<TPayload>(
   taskIdentifier: string,
   taskHandler: (payload: TPayload, helpers: Helpers) => Promise<void>,
 ) {
-  const enqueue = async (payload: TPayload, runAt?: Date) => {
+  const enqueue = async (payload: TPayload, spec?: TaskSpec) => {
     console.log("Enqueuing task", taskIdentifier, payload);
-    await (await workerUtils()).addJob(taskIdentifier, payload, { runAt });
+
+    const utils = await workerUtils();
+    return await utils.addJob(taskIdentifier, payload, spec);
   };
 
   const handler = (payload: TPayload, helpers: Helpers) => {

@@ -17,7 +17,7 @@ const taskList = registeredTasks.reduce((acc, task) => {
 // Run a worker to execute jobs:
 const runner = await run({
   connectionString: env.DATABASE_URL,
-  concurrency: 10,
+  concurrency: env.WORKER_CONCURRENCY,
   // Install signal handlers for graceful shutdown on SIGINT, SIGTERM, etc
   noHandleSignals: false,
   pollInterval: 1000,
