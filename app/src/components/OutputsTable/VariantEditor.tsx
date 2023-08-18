@@ -110,7 +110,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
     setIsChanged(false);
 
     await utils.promptVariants.list.invalidate();
-  }, [checkForChanges]);
+  }, [checkForChanges, replaceVariant.mutateAsync]);
 
   useEffect(() => {
     if (monaco) {
