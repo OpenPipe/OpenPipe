@@ -178,23 +178,41 @@ export const templateAiroborosPrompt = (messages: OpenpipeChatInput["messages"])
   return prompt;
 };
 
-// ### Human: your prompt here
-// ### Assistant:
-export const templateHumanAssistantPrompt = (messages: OpenpipeChatInput["messages"]) => {
+// A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.
+
+// USER: {prompt}
+// ASSISTANT:
+export const templateVicunaPrompt = (messages: OpenpipeChatInput["messages"]) => {
   const splitter = "\n";
 
   const humanTag = "### Human: ";
   const assistantTag = "### Assistant: ";
 
-  const formattedMessages = messages.map((message) => {
-    if (message.role === "system" || message.role === "user") {
-      return humanTag + message.content;
-    } else {
-      return assistantTag + message.content;
-    }
-  });
+  let combinedSystemMessage = "";
+  const conversationMessages = [];
 
-  let prompt = formattedMessages.join(splitter);
+  for (const message of messages) {
+    if (message.role === "system") {
+      combinedSystemMessage += message.content;
+    } else if (message.role === "user") {
+      conversationMessages.push(humanTag + message.content);
+    } else {
+      conversationMessages.push(assistantTag + message.content);
+    }
+  }
+
+  let systemMessage = "";
+
+  if (combinedSystemMessage) {
+    // If there is no user message, add a user tag to the system message
+    if (conversationMessages.find((message) => message.startsWith(humanTag))) {
+      systemMessage = `${combinedSystemMessage}\n\n`;
+    } else {
+      conversationMessages.unshift(humanTag + combinedSystemMessage);
+    }
+  }
+
+  let prompt = `${systemMessage}${conversationMessages.join(splitter)}`;
 
   // Ensure that the prompt ends with an assistant message
   const lastHumanIndex = prompt.lastIndexOf(humanTag);

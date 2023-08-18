@@ -7,7 +7,7 @@ import {
   //   templateSystemUserAssistantPrompt,
   templateInstructionInputResponsePrompt,
   templateAiroborosPrompt,
-  templateHumanAssistantPrompt,
+  templateVicunaPrompt,
 } from "./templatePrompt";
 
 const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatOutput> = {
@@ -67,7 +67,7 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatO
       speed: "medium",
       provider: "openpipe/Chat",
       learnMoreUrl: "https://huggingface.co/lmsys/vicuna-13b-v1.5",
-      templatePrompt: templateHumanAssistantPrompt,
+      templatePrompt: templateVicunaPrompt,
     },
     "NousResearch/Nous-Hermes-llama-2-7b": {
       name: "Nous-Hermes-llama-2-7b",
