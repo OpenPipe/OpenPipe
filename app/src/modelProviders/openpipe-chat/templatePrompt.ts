@@ -185,8 +185,8 @@ export const templateAiroborosPrompt = (messages: OpenpipeChatInput["messages"])
 export const templateVicunaPrompt = (messages: OpenpipeChatInput["messages"]) => {
   const splitter = "\n";
 
-  const humanTag = "### Human: ";
-  const assistantTag = "### Assistant: ";
+  const humanTag = "USER: ";
+  const assistantTag = "ASSISTANT: ";
 
   let combinedSystemMessage = "";
   const conversationMessages = [];
