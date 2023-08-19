@@ -41,7 +41,7 @@ const requestUpdatedPromptFunction = async (
 ) => {
   const originalModelProvider = modelProviders[originalVariant.modelProvider as SupportedProvider];
   const originalModel = originalModelProvider.models[originalVariant.model] as Model;
-  let newContructionFn = "";
+  let newConstructionFn = "";
   for (let i = 0; i < NUM_RETRIES; i++) {
     try {
       const messages: CreateChatCompletionRequestMessage[] = [
@@ -137,7 +137,7 @@ const requestUpdatedPromptFunction = async (
       const args = await contructPromptFunctionArgs.copy(); // Get the actual value from the isolate
 
       if (args && isObject(args) && "new_prompt_function" in args) {
-        newContructionFn = await formatPromptConstructor(args.new_prompt_function as string);
+        newConstructionFn = await formatPromptConstructor(args.new_prompt_function as string);
         break;
       }
     } catch (e) {
@@ -145,5 +145,5 @@ const requestUpdatedPromptFunction = async (
     }
   }
 
-  return newContructionFn;
+  return newConstructionFn;
 };
