@@ -30,6 +30,10 @@ export const env = createEnv({
       .string()
       .default("10")
       .transform((val) => parseInt(val)),
+    WORKER_MAX_POOL_SIZE: z
+      .string()
+      .default("10")
+      .transform((val) => parseInt(val)),
   },
 
   /**
@@ -73,6 +77,7 @@ export const env = createEnv({
     SMTP_LOGIN: process.env.SMTP_LOGIN,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
     WORKER_CONCURRENCY: process.env.WORKER_CONCURRENCY,
+    WORKER_MAX_POOL_SIZE: process.env.WORKER_MAX_POOL_SIZE,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
