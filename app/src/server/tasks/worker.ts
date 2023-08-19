@@ -1,5 +1,6 @@
 import { type TaskList, run } from "graphile-worker";
 import "dotenv/config";
+import "../../../sentry.server.config";
 
 import { env } from "~/env.mjs";
 import { queryModel } from "./queryModel.task";
