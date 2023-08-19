@@ -11,6 +11,7 @@ import { type APIClient } from "~/utils/api";
 import { persistOptions, type stateToPersist } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
 import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
+import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisiblitySlice";
 
 enableMapSet();
 
@@ -25,6 +26,7 @@ export type State = {
   setSelectedProjectId: (id: string) => void;
   selectedLogs: SelectedLogsSlice;
   logFilters: LogFiltersSlice;
+  columnVisibility: ColumnVisibilitySlice;
 };
 
 export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], [], T>;
@@ -43,7 +45,6 @@ const useBaseStore = create<
         set((state) => {
           state.api = api;
         }),
-
       drawerOpen: false,
       openDrawer: () =>
         set((state) => {
@@ -61,6 +62,7 @@ const useBaseStore = create<
         }),
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),
       logFilters: createLogFiltersSlice(set, get, ...rest),
+      columnVisibility: createColumnVisibilitySlice(set, get, ...rest),
     })),
     persistOptions,
   ),
