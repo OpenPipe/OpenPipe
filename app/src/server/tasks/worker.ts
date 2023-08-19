@@ -19,6 +19,7 @@ const taskList = registeredTasks.reduce((acc, task) => {
 const runner = await run({
   connectionString: env.DATABASE_URL,
   concurrency: env.WORKER_CONCURRENCY,
+  maxPoolSize: env.WORKER_MAX_POOL_SIZE,
   // Install signal handlers for graceful shutdown on SIGINT, SIGTERM, etc
   noHandleSignals: false,
   pollInterval: 1000,
