@@ -59,7 +59,11 @@ export const TableHeader = ({ showCheckbox }: { showCheckbox?: boolean }) => {
         )}
         <Th>Sent At</Th>
         <Th>Model</Th>
-        {tagNames?.map((tagName) => <Th key={tagName}>{tagName}</Th>)}
+        {tagNames?.map((tagName) => (
+          <Th key={tagName} textTransform={"none"}>
+            {tagName}
+          </Th>
+        ))}
         <Th isNumeric>Duration</Th>
         <Th isNumeric>Input tokens</Th>
         <Th isNumeric>Output tokens</Th>
