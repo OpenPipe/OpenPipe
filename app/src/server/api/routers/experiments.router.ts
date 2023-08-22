@@ -432,6 +432,10 @@ export const experimentsRouter = createTRPCRouter({
       const originalPromptObj = loggedCalls[0].modelResponse?.reqPayload as Record<string, unknown>;
       delete originalPromptObj["model"];
       delete originalPromptObj["messages"];
+      const keyValueStrings = Object.entries(originalPromptObj).map(
+        ([key, value]) => `"${key}": ${JSON.stringify(value)}`,
+      );
+      const originalPromptObjString = keyValueStrings.join(",\n");
       promptVariantsToCreate.push({
         id: originalPromptId,
         experimentId,
@@ -440,7 +444,7 @@ export const experimentsRouter = createTRPCRouter({
         promptConstructor: dedent`definePrompt("openai/ChatCompletion", {
           model: "gpt-3.5-turbo-0613",
           messages: scenario.messages,
-          ${originalPromptObj.toString()}
+          ${originalPromptObjString}
         });`,
         model: "gpt-3.5-turbo-0613",
         modelProvider: "openai/ChatCompletion",
