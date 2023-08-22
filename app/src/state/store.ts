@@ -8,7 +8,7 @@ import {
   createVariantEditorSlice,
 } from "./sharedVariantEditor.slice";
 import { type APIClient } from "~/utils/api";
-import { PersistedState, persistOptions } from "./persist";
+import { type PersistedState, persistOptions } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
 import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
 import { createColumnVisibilitySlice, type ColumnVisibilitySlice } from "./columnVisiblitySlice";
@@ -17,7 +17,6 @@ enableMapSet();
 
 export type State = {
   isRehydrated: boolean;
-  setIsRehydrated: (isRehydrated: boolean) => void;
   drawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
@@ -40,10 +39,6 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
   persist(
     immer((set, get, ...rest) => ({
       isRehydrated: false,
-      setIsRehydrated: (isRehydrated) =>
-        set((state) => {
-          state.isRehydrated = isRehydrated;
-        }),
       api: null,
       setApi: (api) =>
         set((state) => {

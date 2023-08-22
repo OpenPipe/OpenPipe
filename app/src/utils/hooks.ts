@@ -205,3 +205,12 @@ export const useTagNames = () => {
     { enabled: !!selectedProjectId },
   );
 };
+
+export const useIsClientRehydrated = () => {
+  const isRehydrated = useAppStore((state) => state.isRehydrated);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  return isRehydrated && isMounted;
+};

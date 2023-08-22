@@ -10,7 +10,7 @@ export default function LoggedCallsTable() {
   return (
     <Card width="100%" overflowX="auto">
       <Table>
-        <TableHeader showCheckbox />
+        <TableHeader isSimple />
         <Tbody>
           {loggedCalls?.calls?.map((loggedCall) => {
             return (
@@ -25,7 +25,7 @@ export default function LoggedCallsTable() {
                     setExpandedRow(loggedCall.id);
                   }
                 }}
-                showCheckbox
+                isSimple
               />
             );
           })}

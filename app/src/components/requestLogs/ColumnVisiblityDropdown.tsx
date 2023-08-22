@@ -14,7 +14,7 @@ import { BiCheck } from "react-icons/bi";
 import { BsToggles } from "react-icons/bs";
 import { useMemo } from "react";
 
-import { useTagNames } from "~/utils/hooks";
+import { useIsClientRehydrated, useTagNames } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { StaticColumnKeys } from "~/state/columnVisiblitySlice";
 import ActionButton from "./ActionButton";
@@ -64,8 +64,8 @@ const ColumnVisiblityDropdown = () => {
     return options;
   }, [tagNames]);
 
-  const isRehydrated = useAppStore((s) => s.isRehydrated);
-  if (!isRehydrated) return null;
+  const isClientRehydrated = useIsClientRehydrated();
+  if (!isClientRehydrated) return null;
 
   return (
     <Popover
@@ -101,7 +101,11 @@ const ColumnVisiblityDropdown = () => {
               borderBottomWidth={1}
             >
               <Text mr={16}>{option.label}</Text>
-              {visibleColumns.has(option.key) && <Icon as={BiCheck} color="blue.500" boxSize={5} />}
+              <Box w={5}>
+                {visibleColumns.has(option.key) && (
+                  <Icon as={BiCheck} color="blue.500" boxSize={5} />
+                )}
+              </Box>
             </HStack>
           ))}
         </VStack>
