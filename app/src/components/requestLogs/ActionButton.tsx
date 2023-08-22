@@ -21,7 +21,7 @@ const ActionButton = ({
     >
       <HStack spacing={1}>
         {icon && <Icon as={icon} />}
-        <Text>{label}</Text>
+        <Text display={{ base: "none", md: "flex" }}>{label}</Text>
       </HStack>
     </Button>
   );
