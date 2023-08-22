@@ -98,6 +98,11 @@ export const autogenerateScenarioValues = async (
 
       function_call: { name: "add_scenario" },
       temperature: 0.5,
+      openpipe: {
+        tags: {
+          prompt_id: "autogenerateScenarioValues",
+        },
+      },
     });
 
     const parsed = JSON.parse(

@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { isError } from "lodash-es";
 import { env } from "~/env.mjs";
 
 if (env.NEXT_PUBLIC_SENTRY_DSN) {
@@ -14,5 +15,11 @@ if (env.NEXT_PUBLIC_SENTRY_DSN) {
 
     // Setting this option to true will print useful information to the console while you're setting up Sentry.
     debug: false,
+  });
+} else {
+  // Install local debug exception handler for rejected promises
+  process.on("unhandledRejection", (reason) => {
+    const reasonDetails = isError(reason) ? reason?.stack : reason;
+    console.log("Unhandled Rejection at:", reasonDetails);
   });
 }

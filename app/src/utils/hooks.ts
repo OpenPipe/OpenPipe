@@ -15,8 +15,8 @@ export const useExperiments = () => {
 export const useExperiment = () => {
   const router = useRouter();
   const experiment = api.experiments.get.useQuery(
-    { id: router.query.id as string },
-    { enabled: !!router.query.id },
+    { slug: router.query.experimentSlug as string },
+    { enabled: !!router.query.experimentSlug },
   );
 
   return experiment;
@@ -179,9 +179,38 @@ export const useScenarioVars = () => {
 export const useLoggedCalls = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
+  const filters = useAppStore((state) => state.logFilters.filters);
 
-  return api.loggedCalls.list.useQuery(
-    { projectId: selectedProjectId ?? "", page, pageSize },
+  const { data, isLoading, ...rest } = api.loggedCalls.list.useQuery(
+    { projectId: selectedProjectId ?? "", page, pageSize, filters },
     { enabled: !!selectedProjectId },
   );
+
+  const [stableData, setStableData] = useState(data);
+
+  useEffect(() => {
+    // Prevent annoying flashes while logs are loading from the server
+    if (!isLoading) {
+      setStableData(data);
+    }
+  }, [data, isLoading]);
+
+  return { data: stableData, isLoading, ...rest };
+};
+
+export const useTagNames = () => {
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  return api.loggedCalls.getTagNames.useQuery(
+    { projectId: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId },
+  );
+};
+
+export const useIsClientRehydrated = () => {
+  const isRehydrated = useAppStore((state) => state.isRehydrated);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  return isRehydrated && isMounted;
 };

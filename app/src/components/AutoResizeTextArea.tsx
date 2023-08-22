@@ -1,13 +1,13 @@
 import { Textarea, type TextareaProps } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export const AutoResizeTextarea: React.ForwardRefRenderFunction<
   HTMLTextAreaElement,
   TextareaProps & { minRows?: number }
 > = ({ minRows = 1, overflowY = "hidden", ...props }, ref) => {
   const [isRerendered, setIsRerendered] = useState(false);
-  useLayoutEffect(() => setIsRerendered(true), []);
+  useEffect(() => setIsRerendered(true), []);
 
   return (
     <Textarea

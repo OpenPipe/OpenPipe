@@ -2,28 +2,23 @@ databases:
   - name: querykey-prod
     databaseName: querykey_prod
     user: querykey
-    plan: starter
+    plan: standard
 
 services:
   - type: web
     name: querykey-prod-web
-    rootDir: app
-    env: docker
-    dockerfilePath: Dockerfile
+    runtime: docker
+    dockerfilePath: ./app/Dockerfile
     dockerContext: .
-    plan: standard
+    plan: pro
     domains:
       - app.openpipe.ai
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: DATABASE_URL
         fromDatabase:
           name: querykey-prod
           property: connectionString
       - fromGroup: querykey-prod
-      - key: NEXT_PUBLIC_SOCKET_URL
-        value: https://querykey-prod-wss.onrender.com
       # Render support says we need to manually set this because otherwise
       # sometimes it checks a different random port that NextJS opens for
       # liveness and the liveness check fails.
@@ -32,9 +27,22 @@ services:
 
   - type: web
     name: querykey-prod-wss
-    rootDir: app
-    env: docker
-    dockerfilePath: Dockerfile
+    runtime: docker
+    dockerfilePath: ./app/Dockerfile
     dockerContext: .
     plan: free
     dockerCommand: pnpm tsx src/wss-server.ts
+
+  - type: worker
+    name: querykey-prod-worker
+    runtime: docker
+    dockerfilePath: ./app/Dockerfile
+    dockerContext: .
+    plan: pro
+    dockerCommand: /code/app/scripts/run-workers-prod.sh
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: querykey-prod
+          property: connectionString
+      - fromGroup: querykey-prod

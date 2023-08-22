@@ -1,109 +1,176 @@
 import * as openai from "openai-beta";
+import * as Core from "openai-beta/core";
 import { readEnv, type RequestOptions } from "openai-beta/core";
-import { CompletionCreateParams } from "openai-beta/resources/chat/completions";
-import axios from "axios";
+import {
+  ChatCompletion,
+  ChatCompletionChunk,
+  CompletionCreateParams,
+} from "openai-beta/resources/chat/completions";
 
-import * as openPipeClient from "../codegen";
+import { WrappedStream } from "./streaming";
+import { DefaultService, OPClient } from "../codegen";
+import { Stream } from "openai-beta/streaming";
+import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags } from "../shared";
 
-interface ClientOptions extends openai.ClientOptions {
-  openPipeApiKey?: string;
-  openPipeBaseUrl?: string;
-}
-
+export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig };
 export default class OpenAI extends openai.OpenAI {
-  public openPipeApi?: openPipeClient.DefaultApi;
+  public opClient?: OPClient;
 
-  constructor({
-    openPipeApiKey = readEnv("OPENPIPE_API_KEY"),
-    openPipeBaseUrl = readEnv("OPENPIPE_BASE_URL") ?? `https://app.openpipe.ai/v1`,
-    ...opts
-  }: ClientOptions = {}) {
-    super({ ...opts });
+  constructor({ openpipe, ...options }: ClientOptions = {}) {
+    super({ ...options });
+
+    const openPipeApiKey = openpipe?.apiKey ?? readEnv("OPENPIPE_API_KEY");
 
     if (openPipeApiKey) {
-      const axiosInstance = axios.create({
-        baseURL: openPipeBaseUrl,
-        headers: {
-          Authorization: `Bearer ${openPipeApiKey}`,
-        },
-      });
-      this.openPipeApi = new openPipeClient.DefaultApi(
-        new openPipeClient.Configuration({
-          apiKey: openPipeApiKey,
-          basePath: openPipeBaseUrl,
+      this.chat.setClient(
+        new OPClient({
+          BASE:
+            openpipe?.baseUrl ?? readEnv("OPENPIPE_BASE_URL") ?? "https://app.openpipe.ai/api/v1",
+          TOKEN: openPipeApiKey,
         }),
-        undefined,
-        axiosInstance
       );
-    }
-
-    // Override the chat property
-    this.chat = new ExtendedChat(this);
-
-    if (openPipeApiKey === undefined) {
-      console.error(
-        "The OPENPIPE_API_KEY environment variable is missing or empty; either provide it, or instantiate the OpenPipe client with an openPipeApiKey option, like new OpenPipe({ openPipeApiKey: undefined })."
+    } else {
+      console.warn(
+        "You're using the OpenPipe client without an API key. No completion requests will be logged.",
       );
     }
   }
+  chat: WrappedChat = new WrappedChat(this);
 }
 
-class ExtendedChat extends openai.OpenAI.Chat {
-  completions: ExtendedCompletions;
-
-  constructor(openaiInstance: OpenAI) {
-    super(openaiInstance);
-    // Initialize the new completions instance
-    this.completions = new ExtendedCompletions(openaiInstance);
+class WrappedChat extends openai.OpenAI.Chat {
+  setClient(client: OPClient) {
+    this.completions.opClient = client;
   }
+
+  completions: WrappedCompletions = new WrappedCompletions(this.client);
 }
 
-class ExtendedCompletions extends openai.OpenAI.Chat.Completions {
-  private openaiInstance: OpenAI;
+class WrappedCompletions extends openai.OpenAI.Chat.Completions {
+  opClient?: OPClient;
 
-  constructor(openaiInstance: OpenAI) {
-    super(openaiInstance);
-    this.openaiInstance = openaiInstance;
+  constructor(client: openai.OpenAI, opClient?: OPClient) {
+    super(client);
+    this.opClient = opClient;
   }
 
+  async _report(args: Parameters<DefaultService["report"]>[0]) {
+    try {
+      this.opClient ? await this.opClient.default.report(args) : Promise.resolve();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  create(
+    body: CompletionCreateParams.CreateChatCompletionRequestNonStreaming & OpenPipeArgs,
+    options?: Core.RequestOptions,
+  ): Promise<Core.APIResponse<ChatCompletion & { openpipe: OpenPipeMeta }>>;
+  create(
+    body: CompletionCreateParams.CreateChatCompletionRequestStreaming & OpenPipeArgs,
+    options?: Core.RequestOptions,
+  ): Promise<Core.APIResponse<WrappedStream>>;
   async create(
-    params:
-      | CompletionCreateParams.CreateChatCompletionRequestNonStreaming
-      | CompletionCreateParams.CreateChatCompletionRequestStreaming,
-    options?: RequestOptions,
-    tags?: Record<string, string>
-  ): Promise<any> {
-    // // Your pre API call logic here
-    // console.log("Doing pre API call...");
+    { openpipe, ...body }: CompletionCreateParams & OpenPipeArgs,
+    options?: Core.RequestOptions,
+  ): Promise<Core.APIResponse<(ChatCompletion & { openpipe: OpenPipeMeta }) | WrappedStream>> {
+    const requestedAt = Date.now();
+    let reportingFinished: OpenPipeMeta["reportingFinished"] = Promise.resolve();
+    let cacheRequested = openpipe?.cache ?? false;
+    if (cacheRequested && body.stream) {
+      console.warn(
+        `Caching is not yet supported for streaming requests. Ignoring cache flag. Vote for this feature at https://github.com/OpenPipe/OpenPipe/issues/159`,
+      );
+      cacheRequested = false;
+    }
 
-    // // Determine the type of request
-    // if (params.hasOwnProperty("stream") && params.stream === true) {
-    //   const result = await super.create(
-    //     params as CompletionCreateParams.CreateChatCompletionRequestStreaming,
-    //     options
-    //   );
-    //   // Your post API call logic here
-    //   console.log("Doing post API call for Streaming...");
-    //   return result;
-    // } else {
-    //   const requestedAt = Date.now();
-    const result = await super.create(
-      params as CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
-      options
-    );
-    return result;
-    //   await this.openaiInstance.openPipeApi?.externalApiReport({
-    //     requestedAt,
-    //     receivedAt: Date.now(),
-    //     reqPayload: params,
-    //     respPayload: result,
-    //     statusCode: 200,
-    //     errorMessage: undefined,
-    //     tags,
-    //   });
+    if (cacheRequested) {
+      try {
+        const cached = await this.opClient?.default
+          .checkCache({
+            requestedAt,
+            reqPayload: body,
+            tags: getTags(openpipe),
+          })
+          .then((res) => res.respPayload);
 
-    //   console.log("GOT RESULT", result);
-    //   return result;
-    // }
+        if (cached) {
+          const meta = {
+            cacheStatus: "HIT",
+            reportingFinished,
+          };
+          return {
+            ...cached,
+            openpipe: meta,
+          };
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    try {
+      if (body.stream) {
+        const stream = await super.create(body, options);
+        const wrappedStream = new WrappedStream(stream, (response) =>
+          this._report({
+            requestedAt,
+            receivedAt: Date.now(),
+            reqPayload: body,
+            respPayload: response,
+            statusCode: 200,
+            tags: getTags(openpipe),
+          }),
+        );
+
+        // Do some logging of each chunk here
+
+        return wrappedStream;
+      } else {
+        const response = await super.create(body, options);
+
+        reportingFinished = this._report({
+          requestedAt,
+          receivedAt: Date.now(),
+          reqPayload: body,
+          respPayload: response,
+          statusCode: 200,
+          tags: getTags(openpipe),
+        });
+        return {
+          ...response,
+          openpipe: {
+            cacheStatus: cacheRequested ? "MISS" : "SKIP",
+            reportingFinished,
+          },
+        };
+      }
+    } catch (error: unknown) {
+      if (error instanceof openai.APIError) {
+        const rawMessage = error.message as string | string[];
+        const message = Array.isArray(rawMessage) ? rawMessage.join(", ") : rawMessage;
+        reportingFinished = this._report({
+          requestedAt,
+          receivedAt: Date.now(),
+          reqPayload: body,
+          respPayload: error.error,
+          statusCode: error.status,
+          errorMessage: message,
+          tags: getTags(openpipe),
+        });
+      }
+      // make sure error is an object we can add properties to
+      if (typeof error === "object" && error !== null) {
+        error = {
+          ...error,
+          openpipe: {
+            cacheStatus: cacheRequested ? "MISS" : "SKIP",
+            reportingFinished,
+          },
+        };
+      }
+
+      throw error;
+    }
   }
 }

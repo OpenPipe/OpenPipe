@@ -6,13 +6,13 @@ RUN yarn global add pnpm
 # DEPS
 FROM base as deps
 
-WORKDIR /app
+WORKDIR /code
 
-COPY prisma ./
+COPY app/prisma app/package.json ./app/
+COPY client-libs/typescript/package.json ./client-libs/typescript/
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
 
-COPY package.json pnpm-lock.yaml ./
-
-RUN pnpm install --frozen-lockfile
+RUN cd app && pnpm install --frozen-lockfile
 
 # BUILDER
 FROM base as builder
@@ -25,22 +25,24 @@ ARG NEXT_PUBLIC_SENTRY_DSN
 ARG SENTRY_AUTH_TOKEN
 ARG NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS
 
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+WORKDIR /code
+COPY --from=deps /code/node_modules ./node_modules
+COPY --from=deps /code/app/node_modules ./app/node_modules
+COPY --from=deps /code/client-libs/typescript/node_modules ./client-libs/typescript/node_modules
 COPY . .
-RUN SKIP_ENV_VALIDATION=1 pnpm build
+RUN cd app && SKIP_ENV_VALIDATION=1 pnpm build
 
 # RUNNER
 FROM base as runner
-WORKDIR /app
+WORKDIR /code/app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-COPY --from=builder /app/ ./
+COPY --from=builder /code/ /code/
 
 EXPOSE 3000
 ENV PORT 3000
 
 # Run the "run-prod.sh" script
-CMD /app/run-prod.sh
+CMD /code/app/scripts/run-prod.sh

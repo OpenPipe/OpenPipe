@@ -85,14 +85,15 @@ export const experimentsRouter = createTRPCRouter({
       return experimentsWithCounts;
     }),
 
-  get: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    await requireCanViewExperiment(input.id, ctx);
+  get: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input, ctx }) => {
     const experiment = await prisma.experiment.findFirstOrThrow({
-      where: { id: input.id },
+      where: { slug: input.slug },
       include: {
         project: true,
       },
     });
+
+    await requireCanViewExperiment(experiment.id, ctx);
 
     const canModify = ctx.session?.user.id
       ? await canModifyExperiment(experiment.id, ctx.session?.user.id)
@@ -177,6 +178,7 @@ export const experimentsRouter = createTRPCRouter({
         existingToNewVariantIds.set(variant.id, newVariantId);
         variantsToCreate.push({
           ...variant,
+          uiId: uuidv4(),
           id: newVariantId,
           experimentId: newExperimentId,
         });
@@ -190,6 +192,7 @@ export const experimentsRouter = createTRPCRouter({
         scenariosToCreate.push({
           ...scenario,
           id: newScenarioId,
+          uiId: uuidv4(),
           experimentId: newExperimentId,
           variableValues: scenario.variableValues as Prisma.InputJsonValue,
         });
@@ -290,7 +293,10 @@ export const experimentsRouter = createTRPCRouter({
         }),
       ]);
 
-      return newExperimentId;
+      const newExperiment = await prisma.experiment.findUniqueOrThrow({
+        where: { id: newExperimentId },
+      });
+      return newExperiment;
     }),
 
   create: protectedProcedure
@@ -335,7 +341,6 @@ export const experimentsRouter = createTRPCRouter({
           
           definePrompt("openai/ChatCompletion", {
             model: "gpt-3.5-turbo-0613",
-            stream: true,
             messages: [
               {
                 role: "system",

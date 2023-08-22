@@ -1,7 +1,5 @@
 import { type SliceCreator } from "./store";
 
-export const editorBackground = "#fafafa";
-
 export type SelectedLogsSlice = {
   selectedLogIds: Set<string>;
   toggleSelectedLogId: (id: string) => void;

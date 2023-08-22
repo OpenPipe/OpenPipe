@@ -41,7 +41,7 @@ const requestUpdatedPromptFunction = async (
 ) => {
   const originalModelProvider = modelProviders[originalVariant.modelProvider as SupportedProvider];
   const originalModel = originalModelProvider.models[originalVariant.model] as Model;
-  let newContructionFn = "";
+  let newConstructionFn = "";
   for (let i = 0; i < NUM_RETRIES; i++) {
     try {
       const messages: CreateChatCompletionRequestMessage[] = [
@@ -51,7 +51,7 @@ const requestUpdatedPromptFunction = async (
             originalModelProvider.inputSchema,
             null,
             2,
-          )}\n\nDo not add any assistant messages.`,
+          )}`,
         },
         {
           role: "user",
@@ -109,6 +109,12 @@ const requestUpdatedPromptFunction = async (
         function_call: {
           name: "update_prompt_constructor_function",
         },
+        openpipe: {
+          tags: {
+            prompt_id: "deriveNewConstructFn",
+            model_translation: (!!newModel).toString(),
+          },
+        },
       });
       const argString = completion.choices[0]?.message?.function_call?.arguments || "{}";
 
@@ -131,7 +137,7 @@ const requestUpdatedPromptFunction = async (
       const args = await contructPromptFunctionArgs.copy(); // Get the actual value from the isolate
 
       if (args && isObject(args) && "new_prompt_function" in args) {
-        newContructionFn = await formatPromptConstructor(args.new_prompt_function as string);
+        newConstructionFn = await formatPromptConstructor(args.new_prompt_function as string);
         break;
       }
     } catch (e) {
@@ -139,5 +145,5 @@ const requestUpdatedPromptFunction = async (
     }
   }
 
-  return newContructionFn;
+  return newConstructionFn;
 };

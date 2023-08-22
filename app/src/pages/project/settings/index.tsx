@@ -9,9 +9,11 @@ import {
   Divider,
   Icon,
   useDisclosure,
+  Box,
+  Tooltip,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { BsTrash } from "react-icons/bs";
+import { BsPlus, BsTrash } from "react-icons/bs";
 
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
@@ -21,6 +23,8 @@ import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContent
 import CopiableCode from "~/components/CopiableCode";
 import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectDialog";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
+import MemberTable from "~/components/projectSettings/MemberTable";
+import { InviteMemberModal } from "~/components/projectSettings/InviteMemberModal";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -50,12 +54,13 @@ export default function Settings() {
     setName(selectedProject?.name);
   }, [selectedProject?.name]);
 
-  const deleteProjectOpen = useDisclosure();
+  const inviteMemberModal = useDisclosure();
+  const deleteProjectDialog = useDisclosure();
 
   return (
     <>
-      <AppShell>
-        <PageHeaderContainer>
+      <AppShell requireAuth>
+        <PageHeaderContainer px={{ base: 4, md: 8 }}>
           <Breadcrumb>
             <BreadcrumbItem>
               <ProjectBreadcrumbContents />
@@ -65,7 +70,7 @@ export default function Settings() {
             </BreadcrumbItem>
           </Breadcrumb>
         </PageHeaderContainer>
-        <VStack px={8} py={4} alignItems="flex-start" spacing={4}>
+        <VStack px={{ base: 4, md: 8 }} py={4} alignItems="flex-start" spacing={4}>
           <VStack spacing={0} alignItems="flex-start">
             <Text fontSize="2xl" fontWeight="bold">
               Project Settings
@@ -109,6 +114,37 @@ export default function Settings() {
               </Button>
             </VStack>
             <Divider backgroundColor="gray.300" />
+            <VStack w="full" alignItems="flex-start">
+              <Subtitle>Project Members</Subtitle>
+
+              <Text fontSize="sm">
+                Add members to your project to allow them to view and edit your project's data.
+              </Text>
+              <Box mt={4} w="full">
+                <MemberTable />
+              </Box>
+              <Tooltip
+                isDisabled={selectedProject?.role === "ADMIN"}
+                label="Only admins can invite new members"
+                hasArrow
+              >
+                <Button
+                  variant="outline"
+                  colorScheme="orange"
+                  borderRadius={4}
+                  onClick={inviteMemberModal.onOpen}
+                  mt={2}
+                  _disabled={{
+                    opacity: 0.6,
+                  }}
+                  isDisabled={selectedProject?.role !== "ADMIN"}
+                >
+                  <Icon as={BsPlus} boxSize={5} />
+                  <Text>Invite New Member</Text>
+                </Button>
+              </Tooltip>
+            </VStack>
+            <Divider backgroundColor="gray.300" />
             <VStack alignItems="flex-start">
               <Subtitle>Project API Key</Subtitle>
               <Text fontSize="sm">
@@ -141,7 +177,7 @@ export default function Settings() {
                   borderRadius={4}
                   mt={2}
                   height="auto"
-                  onClick={deleteProjectOpen.onOpen}
+                  onClick={deleteProjectDialog.onOpen}
                 >
                   <Icon as={BsTrash} />
                   <Text overflowWrap="break-word" whiteSpace="normal" py={2}>
@@ -153,7 +189,11 @@ export default function Settings() {
           </VStack>
         </VStack>
       </AppShell>
-      <DeleteProjectDialog isOpen={deleteProjectOpen.isOpen} onClose={deleteProjectOpen.onClose} />
+      <InviteMemberModal isOpen={inviteMemberModal.isOpen} onClose={inviteMemberModal.onClose} />
+      <DeleteProjectDialog
+        isOpen={deleteProjectDialog.isOpen}
+        onClose={deleteProjectDialog.onClose}
+      />
     </>
   );
 }

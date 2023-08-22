@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Text, VStack, Divider, HStack } from "@chakra-ui/react";
 import { RiFlaskLine } from "react-icons/ri";
+import { FiFilter } from "react-icons/fi";
 import { useRouter } from "next/router";
 
 import AppShell from "~/components/nav/AppShell";
@@ -9,6 +11,8 @@ import ActionButton from "~/components/requestLogs/ActionButton";
 import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
+import LogFilters from "~/components/requestLogs/LogFilters/LogFilters";
+import ColumnVisiblityDropdown from "~/components/requestLogs/ColumnVisiblityDropdown";
 
 export default function LoggedCalls() {
   const router = useRouter();
@@ -22,16 +26,18 @@ export default function LoggedCalls() {
   const [createFromLoggedCalls, creating] = useHandledAsyncCallback(async () => {
     if (!selectedLogIds || !selectedProjectId) return;
 
-    const experimentId = await createFromLoggedCallsMutation({
+    const experimentSlug = await createFromLoggedCallsMutation({
       projectId: selectedProjectId,
       loggedCallIds: Array.from(selectedLogIds),
     });
 
-    if (experimentId) {
+    if (experimentSlug) {
       clearSelectedLogIds();
-      await router.push({ pathname: "/experiments/[id]", query: { id: experimentId } });
+      await router.push({ pathname: "/experiments/[experimentSlug]", query: { experimentSlug } });
     }
   }, [createFromLoggedCallsMutation, selectedLogIds, clearSelectedLogIds, selectedProjectId]);
+
+  const [filtersShown, setFiltersShown] = useState(true);
 
   return (
     <AppShell title="Request Logs" requireAuth>
@@ -41,6 +47,14 @@ export default function LoggedCalls() {
         </Text>
         <Divider />
         <HStack w="full" justifyContent="flex-end">
+          <ColumnVisiblityDropdown />
+          <ActionButton
+            onClick={() => {
+              setFiltersShown(!filtersShown);
+            }}
+            label={filtersShown ? "Hide Filters" : "Show Filters"}
+            icon={FiFilter}
+          />
           <ActionButton
             label="Experiment"
             icon={RiFlaskLine}
@@ -49,6 +63,7 @@ export default function LoggedCalls() {
             onClick={createFromLoggedCalls}
           />
         </HStack>
+        {filtersShown && <LogFilters />}
         <LoggedCallTable />
         <LoggedCallsPaginator />
       </VStack>

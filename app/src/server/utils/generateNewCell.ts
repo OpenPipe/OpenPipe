@@ -9,10 +9,8 @@ import parsePromptConstructor from "~/promptConstructor/parse";
 export const generateNewCell = async (
   variantId: string,
   scenarioId: string,
-  options?: { stream?: boolean },
+  options: { stream?: boolean; hardRefetch?: boolean } = {},
 ): Promise<void> => {
-  const stream = options?.stream ?? false;
-
   const variant = await prisma.promptVariant.findUnique({
     where: {
       id: variantId,
@@ -121,6 +119,6 @@ export const generateNewCell = async (
       }),
     );
   } else {
-    await queueQueryModel(cell.id, stream);
+    await queueQueryModel(cell.id, options);
   }
 };

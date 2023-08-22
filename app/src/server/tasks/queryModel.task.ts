@@ -25,7 +25,6 @@ function calculateDelay(numPreviousTries: number): number {
 }
 
 export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) => {
-  console.log("RUNNING TASK", task);
   const { cellId, stream, numPreviousTries } = task;
   const cell = await prisma.scenarioVariantCell.findUnique({
     where: { id: cellId },
@@ -153,7 +152,7 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
           stream,
           numPreviousTries: numPreviousTries + 1,
         },
-        retryTime,
+        { runAt: retryTime, jobKey: cellId, priority: 3 },
       );
       await prisma.scenarioVariantCell.update({
         where: { id: cellId },
@@ -172,7 +171,13 @@ export const queryModel = defineTask<QueryModelJob>("queryModel", async (task) =
   }
 });
 
-export const queueQueryModel = async (cellId: string, stream: boolean) => {
+export const queueQueryModel = async (
+  cellId: string,
+  options: { stream?: boolean; hardRefetch?: boolean } = {},
+) => {
+  // Hard refetches are higher priority than streamed queries, which are higher priority than non-streamed queries.
+  const jobPriority = options.hardRefetch ? 0 : options.stream ? 1 : 2;
+
   await Promise.all([
     prisma.scenarioVariantCell.update({
       where: {
@@ -184,6 +189,13 @@ export const queueQueryModel = async (cellId: string, stream: boolean) => {
         jobQueuedAt: new Date(),
       },
     }),
-    queryModel.enqueue({ cellId, stream, numPreviousTries: 0 }),
+
+    queryModel.enqueue(
+      { cellId, stream: options.stream ?? false, numPreviousTries: 0 },
+
+      // Streamed queries are higher priority than non-streamed queries. Lower
+      // numbers are higher priority in graphile-worker.
+      { jobKey: cellId, priority: jobPriority },
+    ),
   ]);
 };

@@ -18,7 +18,7 @@ const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpe
 
 const modalTheme = defineMultiStyleConfig({
   baseStyle: definePartsStyle({
-    dialog: { borderRadius: "sm" },
+    dialog: { borderRadius: "md", mx: 4 },
   }),
 });
 
@@ -45,7 +45,7 @@ const theme = extendTheme({
   components: {
     Button: {
       baseStyle: {
-        borderRadius: "sm",
+        borderRadius: "md",
       },
     },
     Input: {

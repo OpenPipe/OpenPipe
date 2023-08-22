@@ -5,14 +5,14 @@ import { TableHeader, TableRow } from "./TableRow";
 
 export default function LoggedCallsTable() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const { data: loggedCalls } = useLoggedCalls();
+  const loggedCalls = useLoggedCalls().data;
 
   return (
-    <Card width="100%" overflow="hidden">
+    <Card width="100%" overflowX="auto">
       <Table>
-        <TableHeader showCheckbox />
+        <TableHeader isSimple />
         <Tbody>
-          {loggedCalls?.calls.map((loggedCall) => {
+          {loggedCalls?.calls?.map((loggedCall) => {
             return (
               <TableRow
                 key={loggedCall.id}
@@ -25,7 +25,7 @@ export default function LoggedCallsTable() {
                     setExpandedRow(loggedCall.id);
                   }
                 }}
-                showCheckbox
+                isSimple
               />
             );
           })}

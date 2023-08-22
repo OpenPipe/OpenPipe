@@ -11,7 +11,9 @@ datasource db {
 }
 
 model Experiment {
-    id    String @id @default(uuid()) @db.Uuid
+    id String @id @default(uuid()) @db.Uuid
+
+    slug  String @unique @default(dbgenerated("short_nanoid()"))
     label String
 
     sortIndex Int @default(0)
@@ -112,17 +114,17 @@ model ScenarioVariantCell {
 model ModelResponse {
     id String @id @default(uuid()) @db.Uuid
 
-    cacheKey        String
-    requestedAt      DateTime?
-    receivedAt       DateTime?
-    respPayload      Json?
-    cost             Float?
-    inputTokens      Int?
-    outputTokens     Int?
-    statusCode       Int?
-    errorMessage     String?
-    retryTime        DateTime?
-    outdated         Boolean   @default(false)
+    cacheKey     String
+    requestedAt  DateTime?
+    receivedAt   DateTime?
+    respPayload  Json?
+    cost         Float?
+    inputTokens  Int?
+    outputTokens Int?
+    statusCode   Int?
+    errorMessage String?
+    retryTime    DateTime?
+    outdated     Boolean   @default(false)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -207,13 +209,14 @@ model Project {
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
 
-    createdAt    DateTime      @default(now())
-    updatedAt    DateTime      @updatedAt
-    projectUsers ProjectUser[]
-    experiments  Experiment[]
-    datasets     Dataset[]
-    loggedCalls  LoggedCall[]
-    apiKeys      ApiKey[]
+    createdAt              DateTime         @default(now())
+    updatedAt              DateTime         @updatedAt
+    projectUsers           ProjectUser[]
+    projectUserInvitations UserInvitation[]
+    experiments            Experiment[]
+    datasets               Dataset[]
+    loggedCalls            LoggedCall[]
+    apiKeys                ApiKey[]
 }
 
 enum ProjectUserRole {
@@ -273,8 +276,8 @@ model LoggedCall {
     projectId String   @db.Uuid
     project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    model        String?
-    tags         LoggedCallTag[]
+    model String?
+    tags  LoggedCallTag[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -295,7 +298,7 @@ model LoggedCallModelResponse {
     errorMessage String?
 
     requestedAt DateTime
-    receivedAt   DateTime
+    receivedAt  DateTime
 
     // Note: the function to calculate the cacheKey should include the project
     // ID so we don't share cached responses between projects, which could be an
@@ -323,15 +326,17 @@ model LoggedCallModelResponse {
 }
 
 model LoggedCallTag {
-    id    String  @id @default(uuid()) @db.Uuid
-    name  String
-    value String?
+    id        String  @id @default(uuid()) @db.Uuid
+    name      String
+    value     String?
+    projectId String  @db.Uuid
 
     loggedCallId String     @db.Uuid
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
-    @@index([name])
-    @@index([name, value])
+    @@unique([loggedCallId, name])
+    @@index([projectId, name])
+    @@index([projectId, name, value])
 }
 
 model ApiKey {
@@ -340,8 +345,8 @@ model ApiKey {
     name   String
     apiKey String @unique
 
-    projectId String   @db.Uuid
-    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -388,14 +393,31 @@ model User {
 
     role UserRole @default(USER)
 
-    accounts          Account[]
-    sessions          Session[]
-    projectUsers      ProjectUser[]
-    projects          Project[]
-    worldChampEntrant WorldChampEntrant?
+    accounts            Account[]
+    sessions            Session[]
+    projectUsers        ProjectUser[]
+    projects            Project[]
+    worldChampEntrant   WorldChampEntrant?
+    sentUserInvitations UserInvitation[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
+}
+
+model UserInvitation {
+    id String @id @default(uuid()) @db.Uuid
+
+    projectId       String          @db.Uuid
+    project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    email           String
+    role            ProjectUserRole
+    invitationToken String          @unique
+    senderId        String          @db.Uuid
+    sender          User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt
+
+    @@unique([projectId, email])
 }
 
 model VerificationToken {

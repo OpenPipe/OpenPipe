@@ -8,12 +8,15 @@ import {
   createVariantEditorSlice,
 } from "./sharedVariantEditor.slice";
 import { type APIClient } from "~/utils/api";
-import { persistOptions, type stateToPersist } from "./persist";
+import { type PersistedState, persistOptions } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
+import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
+import { createColumnVisibilitySlice, type ColumnVisibilitySlice } from "./columnVisiblitySlice";
 
 enableMapSet();
 
 export type State = {
+  isRehydrated: boolean;
   drawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
@@ -23,6 +26,8 @@ export type State = {
   selectedProjectId: string | null;
   setSelectedProjectId: (id: string) => void;
   selectedLogs: SelectedLogsSlice;
+  logFilters: LogFiltersSlice;
+  columnVisibility: ColumnVisibilitySlice;
 };
 
 export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], [], T>;
@@ -30,18 +35,15 @@ export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], []
 export type SetFn = Parameters<SliceCreator<unknown>>[0];
 export type GetFn = Parameters<SliceCreator<unknown>>[1];
 
-const useBaseStore = create<
-  State,
-  [["zustand/persist", typeof stateToPersist], ["zustand/immer", never]]
->(
+const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zustand/immer", never]]>(
   persist(
     immer((set, get, ...rest) => ({
+      isRehydrated: false,
       api: null,
       setApi: (api) =>
         set((state) => {
           state.api = api;
         }),
-
       drawerOpen: false,
       openDrawer: () =>
         set((state) => {
@@ -58,6 +60,8 @@ const useBaseStore = create<
           state.selectedProjectId = id;
         }),
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),
+      logFilters: createLogFiltersSlice(set, get, ...rest),
+      columnVisibility: createColumnVisibilitySlice(set, get, ...rest),
     })),
     persistOptions,
   ),

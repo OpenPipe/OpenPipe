@@ -51,6 +51,12 @@ export const projectsRouter = createTRPCRouter({
         include: {
           apiKeys: true,
           personalProjectUser: true,
+          projectUsers: {
+            include: {
+              user: true,
+            },
+          },
+          projectUserInvitations: true,
         },
       }),
       prisma.projectUser.findFirst({
@@ -58,7 +64,7 @@ export const projectsRouter = createTRPCRouter({
           userId: ctx.session.user.id,
           projectId: input.id,
           role: {
-            in: ["ADMIN", "MEMBER"],
+            in: ["ADMIN", "MEMBER", "VIEWER"],
           },
         },
       }),

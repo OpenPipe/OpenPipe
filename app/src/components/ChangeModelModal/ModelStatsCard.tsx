@@ -87,7 +87,7 @@ export const ModelStatsCard = ({
               label="Price"
               info={
                 <Text>
-                  ${model.pricePerSecond.toFixed(3)}
+                  ${model.pricePerSecond.toFixed(4)}
                   <Text color="gray.500"> / second</Text>
                 </Text>
               }

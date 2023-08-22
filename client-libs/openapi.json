@@ -3,17 +3,17 @@
   "info": {
     "title": "OpenPipe API",
     "description": "The public API for reporting API calls to OpenPipe",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "servers": [
     {
-      "url": "https://app.openpipe.ai/api"
+      "url": "https://app.openpipe.ai/api/v1"
     }
   ],
   "paths": {
-    "/v1/check-cache": {
+    "/check-cache": {
       "post": {
-        "operationId": "externalApi-checkCache",
+        "operationId": "checkCache",
         "description": "Check if a prompt is cached",
         "security": [
           {
@@ -39,7 +39,8 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }"
+                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }",
+                    "default": {}
                   }
                 },
                 "required": [
@@ -74,9 +75,9 @@
         }
       }
     },
-    "/v1/report": {
+    "/report": {
       "post": {
-        "operationId": "externalApi-report",
+        "operationId": "report",
         "description": "Report an API call",
         "security": [
           {
@@ -117,7 +118,8 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }"
+                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }",
+                    "default": {}
                   }
                 },
                 "required": [
@@ -135,7 +137,107 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "ok"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "error"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/local-testing-only-get-latest-logged-call": {
+      "get": {
+        "operationId": "localTestingOnlyGetLatestLoggedCall",
+        "description": "Get the latest logged call (only for local testing)",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "cacheHit": {
+                      "type": "boolean"
+                    },
+                    "tags": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string",
+                        "nullable": true
+                      }
+                    },
+                    "modelResponse": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "statusCode": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "errorMessage": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "reqPayload": {},
+                        "respPayload": {}
+                      },
+                      "required": [
+                        "id",
+                        "statusCode",
+                        "errorMessage"
+                      ],
+                      "additionalProperties": false,
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "createdAt",
+                    "cacheHit",
+                    "tags",
+                    "modelResponse"
+                  ],
+                  "additionalProperties": false,
+                  "nullable": true
+                }
               }
             }
           },

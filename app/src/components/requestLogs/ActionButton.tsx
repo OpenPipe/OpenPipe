@@ -22,7 +22,7 @@ const ActionButton = ({
     >
       <HStack spacing={1}>
         <Icon as={isLoading ? Spinner : icon} />
-        <Text>{label}</Text>
+        <Text display={{ base: "none", md: "flex" }}>{label}</Text>
       </HStack>
     </Button>
   );
