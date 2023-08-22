@@ -21,4 +21,7 @@ export const persistOptions: PersistOptions<State, PersistedState> = {
     setItem: (key, value) => localStorage.setItem(key, SuperJSON.stringify(value)),
     removeItem: (key) => localStorage.removeItem(key),
   },
+  onRehydrateStorage: (state) => {
+    if (state) state.isRehydrated = true;
+  },
 };
