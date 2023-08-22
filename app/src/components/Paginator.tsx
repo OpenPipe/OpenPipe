@@ -1,15 +1,19 @@
-import { HStack, IconButton, Text, Select, type StackProps, Icon } from "@chakra-ui/react";
+import {
+  HStack,
+  IconButton,
+  Text,
+  Select,
+  type StackProps,
+  Icon,
+  useBreakpointValue,
+} from "@chakra-ui/react";
 import React, { useCallback } from "react";
 import { FiChevronsLeft, FiChevronsRight, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { usePageParams } from "~/utils/hooks";
 
 const pageSizeOptions = [10, 25, 50, 100];
 
-const Paginator = ({
-  count,
-  condense,
-  ...props
-}: { count: number; condense?: boolean } & StackProps) => {
+const Paginator = ({ count, ...props }: { count: number; condense?: boolean } & StackProps) => {
   const { page, pageSize, setPageParams } = usePageParams();
 
   const lastPage = Math.ceil(count / pageSize);
@@ -36,6 +40,9 @@ const Paginator = ({
 
   const goToLastPage = () => setPageParams({ page: lastPage }, "replace");
   const goToFirstPage = () => setPageParams({ page: 1 }, "replace");
+
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const condense = isMobile || props.condense;
 
   if (count === 0) return null;
 
