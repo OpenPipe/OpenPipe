@@ -9,6 +9,7 @@ import { useAppStore } from "~/state/store";
 import { RiFlaskLine } from "react-icons/ri";
 import { FiFilter } from "react-icons/fi";
 import LogFilters from "~/components/requestLogs/LogFilters/LogFilters";
+import ColumnVisiblityDropdown from "~/components/requestLogs/ColumnVisiblityDropdown";
 
 export default function LoggedCalls() {
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
@@ -23,6 +24,7 @@ export default function LoggedCalls() {
         </Text>
         <Divider />
         <HStack w="full" justifyContent="flex-end">
+          <ColumnVisiblityDropdown />
           <ActionButton
             onClick={() => {
               setFiltersShown(!filtersShown);
