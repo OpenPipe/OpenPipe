@@ -24,8 +24,6 @@ const ColumnVisiblityDropdown = () => {
 
   const wholeStore = useAppStore();
 
-  console.log("wholeStore", wholeStore);
-
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
   const toggleColumnVisibility = useAppStore((s) => s.columnVisibility.toggleColumnVisibility);
   const totalColumns = Object.keys(StaticColumnKeys).length + (tagNames?.length ?? 0);
