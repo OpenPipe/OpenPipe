@@ -11,11 +11,13 @@ import { type APIClient } from "~/utils/api";
 import { persistOptions, type stateToPersist } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
 import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
-import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisiblitySlice";
+import { createColumnVisibilitySlice, type ColumnVisibilitySlice } from "./columnVisiblitySlice";
 
 enableMapSet();
 
 export type State = {
+  isRehydrated: boolean;
+  setIsRehydrated: (isRehydrated: boolean) => void;
   drawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
@@ -40,6 +42,11 @@ const useBaseStore = create<
 >(
   persist(
     immer((set, get, ...rest) => ({
+      isRehydrated: false,
+      setIsRehydrated: (isRehydrated) =>
+        set((state) => {
+          state.isRehydrated = isRehydrated;
+        }),
       api: null,
       setApi: (api) =>
         set((state) => {

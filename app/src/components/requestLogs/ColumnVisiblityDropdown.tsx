@@ -12,19 +12,15 @@ import {
 } from "@chakra-ui/react";
 import { BiCheck } from "react-icons/bi";
 import { BsToggles } from "react-icons/bs";
+import { useMemo } from "react";
 
 import { useTagNames } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { StaticColumnKeys } from "~/state/columnVisiblitySlice";
 import ActionButton from "./ActionButton";
-import { useMemo } from "react";
 
 const ColumnVisiblityDropdown = () => {
   const tagNames = useTagNames().data;
-
-  const wholeStore = useAppStore();
-
-  console.log("wholeStore", wholeStore);
 
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
   const toggleColumnVisibility = useAppStore((s) => s.columnVisibility.toggleColumnVisibility);
@@ -68,6 +64,9 @@ const ColumnVisiblityDropdown = () => {
     return options;
   }, [tagNames]);
 
+  const isRehydrated = useAppStore((s) => s.isRehydrated);
+  if (!isRehydrated) return null;
+
   return (
     <Popover
       placement="bottom-start"
@@ -78,7 +77,7 @@ const ColumnVisiblityDropdown = () => {
       <PopoverTrigger>
         <Box>
           <ActionButton
-            label={`Columns (${totalColumns - visibleColumns.size}/${totalColumns})`}
+            label={`Columns (${visibleColumns.size}/${totalColumns})`}
             icon={BsToggles}
           />
         </Box>
