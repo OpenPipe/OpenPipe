@@ -8,17 +8,11 @@ import ActionButton from "~/components/requestLogs/ActionButton";
 import { useAppStore } from "~/state/store";
 import { RiFlaskLine } from "react-icons/ri";
 import { FiFilter } from "react-icons/fi";
-import { BsToggles } from "react-icons/bs";
 import LogFilters from "~/components/requestLogs/LogFilters/LogFilters";
-import { useTagNames } from "~/utils/hooks";
-import { StaticColumnKeys } from "~/state/columnVisiblitySlice";
+import ColumnVisiblityDropdown from "~/components/requestLogs/ColumnVisiblityDropdown";
 
 export default function LoggedCalls() {
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
-  const hiddenColumns = useAppStore((s) => s.columnVisibility.hiddenColumns);
-  const tagNames = useTagNames().data;
-
-  const totalColumns = Object.keys(StaticColumnKeys).length + (tagNames?.length ?? 0);
 
   const [filtersShown, setFiltersShown] = useState(true);
 
@@ -30,13 +24,7 @@ export default function LoggedCalls() {
         </Text>
         <Divider />
         <HStack w="full" justifyContent="flex-end">
-          <ActionButton
-            onClick={() => {
-              console.log("experimenting with these ids", selectedLogIds);
-            }}
-            label={`Show (${totalColumns - hiddenColumns.size}/${totalColumns})`}
-            icon={BsToggles}
-          />
+          <ColumnVisiblityDropdown />
           <ActionButton
             onClick={() => {
               setFiltersShown(!filtersShown);

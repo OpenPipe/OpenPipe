@@ -14,29 +14,24 @@ export enum StaticColumnKeys {
 }
 
 export type ColumnVisibilitySlice = {
-  hiddenColumns: Set<string>;
+  visibleColumns: Set<string>;
   toggleColumnVisibility: (columnKey: string) => void;
-  showAllColumns: () => void;
-  hideColumns: (columnKeys: string[]) => void;
+  showAllColumns: (columnKeys: string[]) => void;
 };
 
 export const createColumnVisibilitySlice: SliceCreator<ColumnVisibilitySlice> = (set, get) => ({
-  hiddenColumns: new Set(),
-  allColumns: new Set(),
+  // initialize with all static columns visible
+  visibleColumns: new Set(Object.values(StaticColumnKeys)),
   toggleColumnVisibility: (columnKey: string) =>
     set((state) => {
-      if (state.columnVisibility.hiddenColumns.has(columnKey)) {
-        state.columnVisibility.hiddenColumns.delete(columnKey);
+      if (state.columnVisibility.visibleColumns.has(columnKey)) {
+        state.columnVisibility.visibleColumns.delete(columnKey);
       } else {
-        state.columnVisibility.hiddenColumns.add(columnKey);
+        state.columnVisibility.visibleColumns.add(columnKey);
       }
     }),
-  showAllColumns: () =>
+  showAllColumns: (columnKeys: string[]) =>
     set((state) => {
-      state.columnVisibility.hiddenColumns = new Set();
-    }),
-  hideColumns: (columnKeys: string[]) =>
-    set((state) => {
-      state.columnVisibility.hiddenColumns = new Set(columnKeys);
+      state.columnVisibility.visibleColumns = new Set(columnKeys);
     }),
 });
