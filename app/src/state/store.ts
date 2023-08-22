@@ -8,7 +8,7 @@ import {
   createVariantEditorSlice,
 } from "./sharedVariantEditor.slice";
 import { type APIClient } from "~/utils/api";
-import { persistOptions, type stateToPersist } from "./persist";
+import { PersistedState, persistOptions } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
 import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
 import { createColumnVisibilitySlice, type ColumnVisibilitySlice } from "./columnVisiblitySlice";
@@ -36,10 +36,7 @@ export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], []
 export type SetFn = Parameters<SliceCreator<unknown>>[0];
 export type GetFn = Parameters<SliceCreator<unknown>>[1];
 
-const useBaseStore = create<
-  State,
-  [["zustand/persist", typeof stateToPersist], ["zustand/immer", never]]
->(
+const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zustand/immer", never]]>(
   persist(
     immer((set, get, ...rest) => ({
       isRehydrated: false,
