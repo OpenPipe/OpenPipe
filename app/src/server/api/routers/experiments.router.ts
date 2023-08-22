@@ -14,6 +14,7 @@ import {
 } from "~/utils/accessControl";
 import generateTypes from "~/modelProviders/generateTypes";
 import { promptConstructorVersion } from "~/promptConstructor/version";
+import { error } from "console";
 
 export const experimentsRouter = createTRPCRouter({
   stats: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -396,7 +397,6 @@ export const experimentsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        // array of strings
         loggedCallIds: z.array(z.string()),
       }),
     )
@@ -414,35 +414,35 @@ export const experimentsRouter = createTRPCRouter({
         },
       });
 
+      if (loggedCalls.length === 0 || !loggedCalls[0]) {
+        return error("No logged calls found");
+      }
+
       const experimentId = uuidv4();
 
       const templateVariablesToCreate: Prisma.TemplateVariableCreateManyInput[] = [];
       templateVariablesToCreate.push({
         id: uuidv4(),
         experimentId,
-        label: "originalRequest",
+        label: "messages",
       });
 
       const promptVariantsToCreate: Prisma.PromptVariantCreateManyInput[] = [];
       const originalPromptId = uuidv4();
+      const originalPromptObj = loggedCalls[0].modelResponse?.reqPayload as Record<string, unknown>;
+      delete originalPromptObj["model"];
+      delete originalPromptObj["messages"];
       promptVariantsToCreate.push({
         id: originalPromptId,
         experimentId,
         label: "GPT 3.5",
         sortIndex: 0,
-        promptConstructor: dedent`definePrompt("openai/ChatCompletion", scenario.originalRequest);`,
+        promptConstructor: dedent`definePrompt("openai/ChatCompletion", {
+          model: "gpt-3.5-turbo-0613",
+          messages: scenario.messages,
+          ${originalPromptObj.toString()}
+        });`,
         model: "gpt-3.5-turbo-0613",
-        modelProvider: "openai/ChatCompletion",
-        promptConstructorVersion,
-      });
-      const newPromptId = uuidv4();
-      promptVariantsToCreate.push({
-        id: newPromptId,
-        experimentId,
-        label: "GPT 4",
-        sortIndex: 1,
-        promptConstructor: dedent`definePrompt("openai/ChatCompletion", scenario.originalRequest);`,
-        model: "gpt-4",
         modelProvider: "openai/ChatCompletion",
         promptConstructorVersion,
       });
@@ -452,11 +452,12 @@ export const experimentsRouter = createTRPCRouter({
       const modelResponsesToCreate: Prisma.ModelResponseCreateManyInput[] = [];
       for (const loggedCall of loggedCalls) {
         const newScenarioId = uuidv4();
+        const reqPayload = loggedCall.modelResponse?.reqPayload as Record<string, unknown>;
         scenariosToCreate.push({
           id: newScenarioId,
           experimentId,
           variableValues: {
-            originalRequest: JSON.stringify(loggedCall.modelResponse?.respPayload),
+            messages: JSON.stringify(reqPayload.messages),
           },
         });
 
@@ -483,12 +484,12 @@ export const experimentsRouter = createTRPCRouter({
         }
       }
 
-      await prisma.$transaction([
+      const [experiment] = await prisma.$transaction([
         prisma.experiment.create({
           data: {
             id: experimentId,
             sortIndex: 0,
-            label: `Comparing GPT 3.5 and GPT 4`,
+            label: `Experiment from Logs`,
             projectId: input.projectId,
           },
         }),
@@ -509,11 +510,7 @@ export const experimentsRouter = createTRPCRouter({
         }),
       ]);
 
-      for (const scenario of scenariosToCreate) {
-        await generateNewCell(newPromptId, scenario.id as string);
-      }
-
-      return experimentId;
+      return experiment.slug;
     }),
 
   update: protectedProcedure
