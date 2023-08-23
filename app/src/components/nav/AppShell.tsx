@@ -15,12 +15,14 @@ import Head from "next/head";
 import Link from "next/link";
 import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline } from "react-icons/io5";
-import { RiHome3Line, RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
+import { RiHome3Line, RiFlaskLine } from "react-icons/ri";
+import { FaRobot } from "react-icons/fa";
 import { signIn, useSession } from "next-auth/react";
 import { env } from "~/env.mjs";
 import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
 import IconLink from "./IconLink";
+import { BetaModal } from "./BetaModal";
 
 const Divider = () => <Box h="1px" bgColor="gray.300" w="full" />;
 
@@ -71,21 +73,10 @@ const NavSidebar = () => {
             <ProjectMenu />
             <Divider />
 
-            {env.NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS && (
-              <>
-                <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" beta />
-                <IconLink
-                  icon={IoStatsChartOutline}
-                  label="Request Logs"
-                  href="/request-logs"
-                  beta
-                />
-              </>
-            )}
+            <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" beta />
+            <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" beta />
+            <IconLink icon={FaRobot} label="Fine Tunes" href="/fine-tunes" beta />
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
-            {env.NEXT_PUBLIC_SHOW_DATA && (
-              <IconLink icon={RiDatabase2Line} label="Data" href="/data" />
-            )}
             <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
               <Text
                 pl={2}
@@ -141,10 +132,12 @@ export default function AppShell({
   children,
   title,
   requireAuth,
+  requireBeta,
 }: {
   children: React.ReactNode;
   title?: string;
   requireAuth?: boolean;
+  requireBeta?: boolean;
 }) {
   const [vh, setVh] = useState("100vh"); // Default height to prevent flicker on initial render
 
@@ -175,14 +168,17 @@ export default function AppShell({
   }, [requireAuth, user, authLoading]);
 
   return (
-    <Flex h={vh} w="100vw">
-      <Head>
-        <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
-      </Head>
-      <NavSidebar />
-      <Box h="100%" flex={1} overflowY="auto" bgColor="gray.50">
-        {children}
-      </Box>
-    </Flex>
+    <>
+      <Flex h={vh} w="100vw">
+        <Head>
+          <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
+        </Head>
+        <NavSidebar />
+        <Box h="100%" flex={1} overflowY="auto" bgColor="gray.50">
+          {children}
+        </Box>
+      </Flex>
+      {requireBeta && !env.NEXT_PUBLIC_FF_SHOW_BETA_FEATURES && <BetaModal />}
+    </>
   );
 }

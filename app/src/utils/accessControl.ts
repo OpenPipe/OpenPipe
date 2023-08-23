@@ -78,33 +78,6 @@ export const requireCanModifyProject = async (projectId: string, ctx: TRPCContex
   }
 };
 
-export const requireCanViewDataset = async (datasetId: string, ctx: TRPCContext) => {
-  ctx.markAccessControlRun();
-
-  const dataset = await prisma.dataset.findFirst({
-    where: {
-      id: datasetId,
-      project: {
-        projectUsers: {
-          some: {
-            role: { in: [ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
-            userId: ctx.session?.user.id,
-          },
-        },
-      },
-    },
-  });
-
-  if (!dataset) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-};
-
-export const requireCanModifyDataset = async (datasetId: string, ctx: TRPCContext) => {
-  // Right now all users who can view a dataset can also modify it
-  await requireCanViewDataset(datasetId, ctx);
-};
-
 export const requireCanViewExperiment = (experimentId: string, ctx: TRPCContext): Promise<void> => {
   // Right now all experiments are publicly viewable, so this is a no-op.
   ctx.markAccessControlRun();

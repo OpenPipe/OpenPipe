@@ -181,6 +181,7 @@ model Dataset {
 
     name           String
     datasetEntries DatasetEntry[]
+    fineTunes      FineTune[]
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -192,8 +193,8 @@ model Dataset {
 model DatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    input  String
-    output String?
+    loggedCallId String @db.Uuid
+    loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
     datasetId String   @db.Uuid
     dataset   Dataset? @relation(fields: [datasetId], references: [id], onDelete: Cascade)
@@ -216,6 +217,7 @@ model Project {
     experiments            Experiment[]
     datasets               Dataset[]
     loggedCalls            LoggedCall[]
+    fineTunes              FineTune[]
     apiKeys                ApiKey[]
 }
 
@@ -276,8 +278,9 @@ model LoggedCall {
     projectId String   @db.Uuid
     project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    model String?
-    tags  LoggedCallTag[]
+    model           String?
+    tags            LoggedCallTag[]
+    datasetEntries  DatasetEntry[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -312,7 +315,7 @@ model LoggedCallModelResponse {
     outputTokens Int?
     finishReason String?
     completionId String?
-    cost         Decimal? @db.Decimal(18, 12)
+    cost         Float?
 
     // The LoggedCall that created this LoggedCallModelResponse
     originalLoggedCallId String     @unique @db.Uuid
@@ -426,4 +429,34 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+enum FineTuneStatus {
+    PENDING
+    TRAINING
+    AWAITING_DEPLOYMENT
+    DEPLOYING
+    DEPLOYED
+    ERROR
+}
+
+model FineTune {
+    id String @id @default(uuid()) @db.Uuid
+
+    slug      String @unique
+    baseModel String
+    status    FineTuneStatus @default(PENDING)
+    trainingStartedAt    DateTime?
+    trainingFinishedAt   DateTime?
+    deploymentStartedAt  DateTime?
+    deploymentFinishedAt DateTime?
+
+    datasetId String   @db.Uuid
+    dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

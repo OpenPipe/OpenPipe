@@ -60,6 +60,7 @@
     "framer-motion": "^10.12.17",
     "gpt-tokens": "^1.0.10",
     "graphile-worker": "^0.13.0",
+    "human-id": "^4.0.0",
     "immer": "^10.0.2",
     "isolated-vm": "^4.5.0",
     "json-schema-to-typescript": "^13.0.2",

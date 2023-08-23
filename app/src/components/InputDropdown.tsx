@@ -11,6 +11,7 @@ import {
   Button,
   Text,
   useDisclosure,
+  type InputGroupProps,
 } from "@chakra-ui/react";
 
 import { FiChevronDown } from "react-icons/fi";
@@ -20,15 +21,25 @@ type InputDropdownProps<T> = {
   options: ReadonlyArray<T>;
   selectedOption: T;
   onSelect: (option: T) => void;
+  inputGroupProps?: InputGroupProps;
 };
 
-const InputDropdown = <T,>({ options, selectedOption, onSelect }: InputDropdownProps<T>) => {
+const InputDropdown = <T,>({
+  options,
+  selectedOption,
+  onSelect,
+  inputGroupProps,
+}: InputDropdownProps<T>) => {
   const popover = useDisclosure();
 
   return (
     <Popover placement="bottom-start" {...popover}>
       <PopoverTrigger>
-        <InputGroup cursor="pointer" w={(selectedOption as string).length * 14 + 180}>
+        <InputGroup
+          cursor="pointer"
+          w={(selectedOption as string).length * 14 + 180}
+          {...inputGroupProps}
+        >
           <Input
             value={selectedOption as string}
             // eslint-disable-next-line @typescript-eslint/no-empty-function -- controlled input requires onChange
