@@ -103,13 +103,13 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             <VStack>
               <HStack spacing={2} w="full">
                 <Text fontWeight="bold" w={36}>
-                  Model Slug:
+                  Model ID:
                 </Text>
                 <Input
                   value={modelSlug}
                   onChange={(e) => setModelSlug(e.target.value)}
                   w={48}
-                  placeholder="unique-slug"
+                  placeholder="unique-id"
                   onKeyDown={(e) => {
                     // If the user types anything other than a-z, A-Z, or 0-9, replace it with -
                     if (!/[a-zA-Z0-9]/.test(e.key)) {

@@ -16,7 +16,7 @@ const FineTunesTable = ({}) => {
         <Table>
           <Thead>
             <Tr>
-              <Th>Slug</Th>
+              <Th>ID</Th>
               <Th>Created At</Th>
               <Th>Base Model</Th>
               <Th>Dataset Size</Th>
