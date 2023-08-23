@@ -19,8 +19,6 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/api/v1/[...trpc]", { "trpc": string[] }>
     | StaticRoute<"/api/v1/openapi">
     | StaticRoute<"/dashboard">
-    | DynamicRoute<"/data/[id]", { "id": string }>
-    | StaticRoute<"/data">
     | DynamicRoute<"/experiments/[experimentSlug]", { "experimentSlug": string }>
     | StaticRoute<"/experiments">
     | StaticRoute<"/">
