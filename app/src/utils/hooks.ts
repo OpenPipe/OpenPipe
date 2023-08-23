@@ -26,34 +26,6 @@ export const useExperimentAccess = () => {
   return useExperiment().data?.access ?? { canView: false, canModify: false };
 };
 
-export const useDatasets = () => {
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
-  return api.datasets.list.useQuery(
-    { projectId: selectedProjectId ?? "" },
-    { enabled: !!selectedProjectId },
-  );
-};
-
-export const useDataset = () => {
-  const router = useRouter();
-  const dataset = api.datasets.get.useQuery(
-    { id: router.query.id as string },
-    { enabled: !!router.query.id },
-  );
-
-  return dataset;
-};
-
-export const useDatasetEntries = () => {
-  const dataset = useDataset();
-  const { page, pageSize } = usePageParams();
-
-  return api.datasetEntries.list.useQuery(
-    { datasetId: dataset.data?.id ?? "", page, pageSize },
-    { enabled: dataset.data?.id != null },
-  );
-};
-
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
 export function useHandledAsyncCallback<T extends unknown[], U>(
@@ -202,6 +174,16 @@ export const useTagNames = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   return api.loggedCalls.getTagNames.useQuery(
     { projectId: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId },
+  );
+};
+
+export const useFineTunes = () => {
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const { page, pageSize } = usePageParams();
+
+  return api.fineTunes.list.useQuery(
+    { projectId: selectedProjectId ?? "", page, pageSize },
     { enabled: !!selectedProjectId },
   );
 };
