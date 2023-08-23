@@ -38,7 +38,6 @@ export const BetaModal = () => {
             <Text>Beta-Only Feature</Text>
           </HStack>
         </ModalHeader>
-        <ModalCloseButton />
         <ModalBody maxW="unset">
           <VStack spacing={8} py={4} alignItems="flex-start">
             <Text fontSize="md">
