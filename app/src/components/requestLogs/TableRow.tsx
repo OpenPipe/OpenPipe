@@ -29,7 +29,7 @@ dayjs.extend(relativeTime);
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
-export const TableHeader = ({ isSimple }: { isSimple?: boolean }) => {
+export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
   const matchingLogIds = useLoggedCalls().data?.matchingLogIds;
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
   const addAll = useAppStore((s) => s.selectedLogs.addSelectedLogIds);
@@ -46,7 +46,7 @@ export const TableHeader = ({ isSimple }: { isSimple?: boolean }) => {
   return (
     <Thead>
       <Tr>
-        {isSimple && (
+        {showOptions && (
           <Th pr={0}>
             <HStack minW={16}>
               <Checkbox
@@ -84,12 +84,12 @@ export const TableRow = ({
   loggedCall,
   isExpanded,
   onToggle,
-  isSimple,
+  showOptions,
 }: {
   loggedCall: LoggedCall;
   isExpanded: boolean;
   onToggle: () => void;
-  isSimple?: boolean;
+  showOptions?: boolean;
 }) => {
   const isError = loggedCall.modelResponse?.statusCode !== 200;
   const requestedAt = dayjs(loggedCall.requestedAt).format("MMMM D h:mm A");
@@ -100,6 +100,10 @@ export const TableRow = ({
 
   const tagNames = useTagNames().data;
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
+
+  const visibleTagNames = useMemo(() => {
+    return tagNames?.filter((tagName) => visibleColumns.has(tagName)) ?? [];
+  }, [tagNames, visibleColumns]);
 
   const isClientRehydrated = useIsClientRehydrated();
   if (!isClientRehydrated) return null;
@@ -115,7 +119,7 @@ export const TableRow = ({
         }}
         fontSize="sm"
       >
-        {isSimple && (
+        {showOptions && (
           <Td>
             <Checkbox isChecked={isChecked} onChange={() => toggleChecked(loggedCall.id)} />
           </Td>
@@ -147,9 +151,9 @@ export const TableRow = ({
             </HStack>
           </Td>
         )}
-        {tagNames
-          ?.filter((tagName) => visibleColumns.has(tagName))
-          .map((tagName) => <Td key={tagName}>{loggedCall.tags[tagName]}</Td>)}
+        {visibleTagNames.map((tagName) => (
+          <Td key={tagName}>{loggedCall.tags[tagName]}</Td>
+        ))}
         {visibleColumns.has(StaticColumnKeys.DURATION) && (
           <Td isNumeric>
             {loggedCall.cacheHit ? (
@@ -172,7 +176,7 @@ export const TableRow = ({
         )}
       </Tr>
       <Tr>
-        <Td colSpan={8} p={0}>
+        <Td colSpan={visibleColumns.size + 1} w="full" p={0}>
           <Collapse in={isExpanded} unmountOnExit={true}>
             <VStack p={4} align="stretch">
               <HStack align="stretch">
