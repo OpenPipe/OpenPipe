@@ -14,6 +14,7 @@ import {
   Button,
   useDisclosure,
   type UseDisclosureReturn,
+  Input,
 } from "@chakra-ui/react";
 import { FaRobot } from "react-icons/fa";
 
@@ -45,8 +46,11 @@ const FineTuneButton = () => {
 export default FineTuneButton;
 
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
-  const [selectedBaseModel, setSelectedBaseModel] = useState(SUPPORTED_BASE_MODELS[0]);
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
+
+  const [selectedBaseModel, setSelectedBaseModel] = useState(SUPPORTED_BASE_MODELS[0]);
+  const [modelSlug, setModelSlug] = useState("");
+
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
       <ModalOverlay />
@@ -61,6 +65,17 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         <ModalBody maxW="unset">
           <VStack w="full" spacing={6} pt={4} alignItems="flex-start">
             <Text>We'll train on the logs you've selected.</Text>
+            <HStack spacing={2} w="full">
+              <Text fontWeight="bold" w={36}>
+                Model Slug:
+              </Text>
+              <Input
+                value={modelSlug}
+                onChange={(e) => setModelSlug(e.target.value)}
+                w={48}
+                placeholder="unique_slug"
+              />
+            </HStack>
             <HStack spacing={2}>
               <Text fontWeight="bold" w={36}>
                 Dataset Size:
