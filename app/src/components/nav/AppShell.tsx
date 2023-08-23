@@ -22,6 +22,7 @@ import { env } from "~/env.mjs";
 import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
 import IconLink from "./IconLink";
+import { BetaModal } from "./BetaModal";
 
 const Divider = () => <Box h="1px" bgColor="gray.300" w="full" />;
 
@@ -140,10 +141,12 @@ export default function AppShell({
   children,
   title,
   requireAuth,
+  requireBeta,
 }: {
   children: React.ReactNode;
   title?: string;
   requireAuth?: boolean;
+  requireBeta?: boolean;
 }) {
   const [vh, setVh] = useState("100vh"); // Default height to prevent flicker on initial render
 
@@ -174,14 +177,17 @@ export default function AppShell({
   }, [requireAuth, user, authLoading]);
 
   return (
-    <Flex h={vh} w="100vw">
-      <Head>
-        <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
-      </Head>
-      <NavSidebar />
-      <Box h="100%" flex={1} overflowY="auto" bgColor="gray.50">
-        {children}
-      </Box>
-    </Flex>
+    <>
+      <Flex h={vh} w="100vw">
+        <Head>
+          <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
+        </Head>
+        <NavSidebar />
+        <Box h="100%" flex={1} overflowY="auto" bgColor="gray.50">
+          {children}
+        </Box>
+      </Flex>
+      {requireBeta && <BetaModal />}
+    </>
   );
 }
