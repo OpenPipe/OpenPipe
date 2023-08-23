@@ -11,6 +11,7 @@ import {
   Text,
   HStack,
   Icon,
+  Link,
 } from "@chakra-ui/react";
 import { BsStars } from "react-icons/bs";
 import { useRouter } from "next/router";
@@ -19,6 +20,8 @@ import { useSession } from "next-auth/react";
 export const BetaModal = () => {
   const router = useRouter();
   const session = useSession();
+
+  const email = session.data?.user.email ?? "";
 
   return (
     <Modal
@@ -40,14 +43,19 @@ export const BetaModal = () => {
           <VStack spacing={8} py={4} alignItems="flex-start">
             <Text fontSize="md">
               This feature is currently in beta. To receive early access to beta-only features, join
-              the waitlist. You'll receive an email at <b>{session.data?.user.email}</b> when you're
-              approved.
+              the waitlist. You'll receive an email at <b>{email}</b> when you're approved.
             </Text>
           </VStack>
         </ModalBody>
         <ModalFooter>
           <HStack spacing={4}>
-            <Button colorScheme="orange" onClick={router.back}>
+            <Button
+              as={Link}
+              textDecoration="none !important"
+              colorScheme="orange"
+              target="_blank"
+              href={`https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc#email=${email}`}
+            >
               Join Waitlist
             </Button>
             <Button colorScheme="blue" onClick={router.back}>
