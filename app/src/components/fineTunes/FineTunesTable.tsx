@@ -1,5 +1,6 @@
 import { Card, Table, Thead, Tr, Th, Tbody, Td, VStack, Icon, Text } from "@chakra-ui/react";
 import { FaTable } from "react-icons/fa";
+import { type FineTuneStatus } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
@@ -17,8 +18,9 @@ const FineTunesTable = ({}) => {
             <Tr>
               <Th>Slug</Th>
               <Th>Created At</Th>
-              <Th>Status</Th>
+              <Th>Base Model</Th>
               <Th>Dataset Size</Th>
+              <Th>Status</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -27,8 +29,11 @@ const FineTunesTable = ({}) => {
                 <Tr key={fineTune.id}>
                   <Td>{fineTune.slug}</Td>
                   <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
-                  <Td>{fineTune.status}</Td>
+                  <Td>{fineTune.baseModel}</Td>
                   <Td>{fineTune.dataset._count.datasetEntries}</Td>
+                  <Td fontSize="sm" fontWeight="bold">
+                    <Text color={getStatusColor(fineTune.status)}>{fineTune.status}</Text>
+                  </Td>
                 </Tr>
               );
             })}
@@ -47,3 +52,14 @@ const FineTunesTable = ({}) => {
 };
 
 export default FineTunesTable;
+
+const getStatusColor = (status: FineTuneStatus) => {
+  switch (status) {
+    case "DEPLOYED":
+      return "green.500";
+    case "ERROR":
+      return "red.500";
+    default:
+      return "yellow.500";
+  }
+};

@@ -61,7 +61,7 @@ export const fineTunesRouter = createTRPCRouter({
         baseModel: z.string(),
       }),
     )
-    .query(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       await requireCanModifyProject(input.projectId, ctx);
 
       const existingFineTune = await prisma.fineTune.findFirst({

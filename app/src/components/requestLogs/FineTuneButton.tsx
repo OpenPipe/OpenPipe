@@ -18,7 +18,10 @@ import {
 } from "@chakra-ui/react";
 import { FaRobot } from "react-icons/fa";
 import humanId from "human-id";
+import { useRouter } from "next/router";
 
+import { useHandledAsyncCallback } from "~/utils/hooks";
+import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "./ActionButton";
 import InputDropdown from "../InputDropdown";
@@ -47,7 +50,9 @@ const FineTuneButton = () => {
 export default FineTuneButton;
 
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
+  const clearSelectedLogIds = useAppStore((s) => s.selectedLogs.clearSelectedLogIds);
 
   const [selectedBaseModel, setSelectedBaseModel] = useState(SUPPORTED_BASE_MODELS[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
@@ -58,6 +63,26 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       setModelSlug(humanId({ separator: "-", capitalize: false }));
     }
   }, [disclosure.isOpen]);
+
+  const utils = api.useContext();
+  const router = useRouter();
+
+  const createFineTuneMutation = api.fineTunes.create.useMutation();
+
+  const [createFineTune, creationInProgress] = useHandledAsyncCallback(async () => {
+    if (!selectedProjectId || !modelSlug || !selectedBaseModel || !selectedLogIds.size) return;
+    await createFineTuneMutation.mutateAsync({
+      projectId: selectedProjectId,
+      slug: modelSlug,
+      baseModel: selectedBaseModel,
+      selectedLogIds: Array.from(selectedLogIds),
+    });
+
+    clearSelectedLogIds();
+    await utils.fineTunes.list.invalidate();
+    await router.push({ pathname: "/fine-tunes" });
+    disclosure.onClose();
+  }, [createFineTuneMutation, selectedProjectId, selectedLogIds, modelSlug, selectedBaseModel]);
 
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
@@ -121,11 +146,9 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             </Button>
             <Button
               colorScheme="blue"
-              onClick={() => {
-                console.log("fine tune");
-              }}
+              onClick={createFineTune}
+              isLoading={creationInProgress}
               minW={24}
-              isLoading={false}
               isDisabled={!modelSlug}
             >
               Start Training
