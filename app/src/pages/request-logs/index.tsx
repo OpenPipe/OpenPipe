@@ -10,6 +10,7 @@ import { RiFlaskLine } from "react-icons/ri";
 import { FiFilter } from "react-icons/fi";
 import LogFilters from "~/components/requestLogs/LogFilters/LogFilters";
 import ColumnVisiblityDropdown from "~/components/requestLogs/ColumnVisiblityDropdown";
+import FineTuneButton from "~/components/requestLogs/FineTuneButton";
 
 export default function LoggedCalls() {
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
@@ -24,14 +25,7 @@ export default function LoggedCalls() {
         </Text>
         <Divider />
         <HStack w="full" justifyContent="flex-end">
-          <ColumnVisiblityDropdown />
-          <ActionButton
-            onClick={() => {
-              setFiltersShown(!filtersShown);
-            }}
-            label={filtersShown ? "Hide Filters" : "Show Filters"}
-            icon={FiFilter}
-          />
+          <FineTuneButton />
           <ActionButton
             onClick={() => {
               console.log("experimenting with these ids", selectedLogIds);
@@ -39,6 +33,14 @@ export default function LoggedCalls() {
             label="Experiment"
             icon={RiFlaskLine}
             isDisabled={selectedLogIds.size === 0}
+          />
+          <ColumnVisiblityDropdown />
+          <ActionButton
+            onClick={() => {
+              setFiltersShown(!filtersShown);
+            }}
+            label={filtersShown ? "Hide Filters" : "Show Filters"}
+            icon={FiFilter}
           />
         </HStack>
         {filtersShown && <LogFilters />}
