@@ -73,18 +73,9 @@ const NavSidebar = () => {
             <ProjectMenu />
             <Divider />
 
-            {env.NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS && (
-              <>
-                <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" beta />
-                <IconLink
-                  icon={IoStatsChartOutline}
-                  label="Request Logs"
-                  href="/request-logs"
-                  beta
-                />
-                <IconLink icon={FaRobot} label="Fine Tunes" href="/fine-tunes" beta />
-              </>
-            )}
+            <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" beta />
+            <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" beta />
+            <IconLink icon={FaRobot} label="Fine Tunes" href="/fine-tunes" beta />
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
             <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
               <Text
@@ -187,7 +178,7 @@ export default function AppShell({
           {children}
         </Box>
       </Flex>
-      {requireBeta && !env.NEXT_PUBLIC_SHOW_BETA_FEATURES && <BetaModal />}
+      {requireBeta && !env.NEXT_PUBLIC_FF_SHOW_BETA_FEATURES && <BetaModal />}
     </>
   );
 }
