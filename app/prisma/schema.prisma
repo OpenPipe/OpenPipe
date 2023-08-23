@@ -446,10 +446,10 @@ model FineTune {
     slug      String @unique
     baseModel String
     status    FineTuneStatus @default(PENDING)
-    training_started_at DateTime?
-    training_finished_at DateTime?
-    deployment_started_at DateTime?
-    deployment_finished_at DateTime?
+    trainingStartedAt    DateTime?
+    trainingFinishedAt   DateTime?
+    deploymentStartedAt  DateTime?
+    deploymentFinishedAt DateTime?
 
     datasetId String   @db.Uuid
     dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
