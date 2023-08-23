@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -17,6 +17,7 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { FaRobot } from "react-icons/fa";
+import humanId from "human-id";
 
 import { useAppStore } from "~/state/store";
 import ActionButton from "./ActionButton";
@@ -49,7 +50,14 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
 
   const [selectedBaseModel, setSelectedBaseModel] = useState(SUPPORTED_BASE_MODELS[0]);
-  const [modelSlug, setModelSlug] = useState("");
+  const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
+
+  useEffect(() => {
+    if (disclosure.isOpen) {
+      setSelectedBaseModel(SUPPORTED_BASE_MODELS[0]);
+      setModelSlug(humanId({ separator: "-", capitalize: false }));
+    }
+  }, [disclosure.isOpen]);
 
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
@@ -63,37 +71,42 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody maxW="unset">
-          <VStack w="full" spacing={6} pt={4} alignItems="flex-start">
-            <Text>We'll train on the logs you've selected.</Text>
-            <HStack spacing={2} w="full">
-              <Text fontWeight="bold" w={36}>
-                Model Slug:
-              </Text>
-              <Input
-                value={modelSlug}
-                onChange={(e) => setModelSlug(e.target.value)}
-                w={48}
-                placeholder="unique_slug"
-              />
-            </HStack>
-            <HStack spacing={2}>
-              <Text fontWeight="bold" w={36}>
-                Dataset Size:
-              </Text>
-              <Text>{selectedLogIds.size} logs</Text>
-            </HStack>
-            <HStack spacing={2}>
-              <Text fontWeight="bold" w={36}>
-                Base model:
-              </Text>
-              <InputDropdown
-                options={SUPPORTED_BASE_MODELS}
-                selectedOption={selectedBaseModel}
-                onSelect={(option) => setSelectedBaseModel(option)}
-                inputGroupProps={{ w: 48 }}
-              />
-            </HStack>
-            <Button variant="unstyled" colorScheme="gray" color="blue.500">
+          <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
+            <Text>
+              We'll train on the <b>{selectedLogIds.size}</b> logs you've selected.
+            </Text>
+            <VStack>
+              <HStack spacing={2} w="full">
+                <Text fontWeight="bold" w={36}>
+                  Model Slug:
+                </Text>
+                <Input
+                  value={modelSlug}
+                  onChange={(e) => setModelSlug(e.target.value)}
+                  w={48}
+                  placeholder="unique-slug"
+                  onKeyDown={(e) => {
+                    // If the user types anything other than a-z, A-Z, or 0-9, replace it with -
+                    if (!/[a-zA-Z0-9]/.test(e.key)) {
+                      e.preventDefault();
+                      setModelSlug((s) => s && `${s}-`);
+                    }
+                  }}
+                />
+              </HStack>
+              <HStack spacing={2}>
+                <Text fontWeight="bold" w={36}>
+                  Base model:
+                </Text>
+                <InputDropdown
+                  options={SUPPORTED_BASE_MODELS}
+                  selectedOption={selectedBaseModel}
+                  onSelect={(option) => setSelectedBaseModel(option)}
+                  inputGroupProps={{ w: 48 }}
+                />
+              </HStack>
+            </VStack>
+            <Button variant="unstyled" color="blue.600">
               <HStack>
                 <Text>Advanced Options</Text>
                 <Icon as={FiChevronDown} />
@@ -113,6 +126,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
               }}
               minW={24}
               isLoading={false}
+              isDisabled={!modelSlug}
             >
               Start Training
             </Button>
