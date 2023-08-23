@@ -78,9 +78,9 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       selectedLogIds: Array.from(selectedLogIds),
     });
 
-    clearSelectedLogIds();
     await utils.fineTunes.list.invalidate();
     await router.push({ pathname: "/fine-tunes" });
+    clearSelectedLogIds();
     disclosure.onClose();
   }, [createFineTuneMutation, selectedProjectId, selectedLogIds, modelSlug, selectedBaseModel]);
 
