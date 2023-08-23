@@ -77,6 +77,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
               {...sharedProps}
               borderBottomLeftRadius={isFirst ? 8 : 0}
               borderBottomRightRadius={isLast ? 8 : 0}
+              boxShadow="5px 5px 15px 1px rgba(0, 0, 0, 0.1);"
             >
               <VariantStats variant={variant} />
             </GridItem>

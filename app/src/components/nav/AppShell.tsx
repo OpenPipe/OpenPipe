@@ -96,7 +96,7 @@ const NavSidebar = () => {
           <NavSidebarOption>
             <HStack
               w="full"
-              p={4}
+              p={{ base: 2, md: 4 }}
               as={ChakraLink}
               justifyContent="start"
               onClick={() => {
