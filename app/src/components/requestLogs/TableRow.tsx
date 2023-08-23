@@ -14,18 +14,15 @@ import {
   Text,
   Checkbox,
 } from "@chakra-ui/react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import Link from "next/link";
 
+import dayjs from "~/utils/dayjs";
 import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "./FormattedJson";
 import { useAppStore } from "~/state/store";
 import { useIsClientRehydrated, useLoggedCalls, useTagNames } from "~/utils/hooks";
 import { useMemo } from "react";
 import { StaticColumnKeys } from "~/state/columnVisiblitySlice";
-
-dayjs.extend(relativeTime);
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 

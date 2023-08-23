@@ -16,6 +16,7 @@ import Link from "next/link";
 import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline } from "react-icons/io5";
 import { RiHome3Line, RiFlaskLine } from "react-icons/ri";
+import { FaRobot } from "react-icons/fa";
 import { signIn, useSession } from "next-auth/react";
 import { env } from "~/env.mjs";
 import ProjectMenu from "./ProjectMenu";
@@ -80,6 +81,7 @@ const NavSidebar = () => {
                   href="/request-logs"
                   beta
                 />
+                <IconLink icon={FaRobot} label="Fine Tunes" href="/fine-tunes" beta />
               </>
             )}
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />

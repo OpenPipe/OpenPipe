@@ -9,6 +9,7 @@ import { worldChampsRouter } from "./routers/worldChamps.router";
 import { projectsRouter } from "./routers/projects.router";
 import { dashboardRouter } from "./routers/dashboard.router";
 import { loggedCallsRouter } from "./routers/loggedCalls.router";
+import { fineTunesRouter } from "./routers/fineTunes.router";
 import { usersRouter } from "./routers/users.router";
 import { adminJobsRouter } from "./routers/adminJobs.router";
 
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
   projects: projectsRouter,
   dashboard: dashboardRouter,
   loggedCalls: loggedCallsRouter,
+  fineTunes: fineTunesRouter,
   users: usersRouter,
   adminJobs: adminJobsRouter,
 });

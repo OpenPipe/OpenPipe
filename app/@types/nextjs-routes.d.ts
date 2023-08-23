@@ -21,6 +21,7 @@ declare module "nextjs-routes" {
     | StaticRoute<"/dashboard">
     | DynamicRoute<"/experiments/[experimentSlug]", { "experimentSlug": string }>
     | StaticRoute<"/experiments">
+    | StaticRoute<"/fine-tunes">
     | StaticRoute<"/">
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>
     | StaticRoute<"/project/settings">
