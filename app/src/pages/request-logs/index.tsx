@@ -18,7 +18,7 @@ export default function LoggedCalls() {
   const [filtersShown, setFiltersShown] = useState(true);
 
   return (
-    <AppShell title="Request Logs" requireAuth>
+    <AppShell title="Request Logs" requireAuth requireBeta>
       <Box h="100vh" overflowY="scroll">
         <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
           <Text fontSize="2xl" fontWeight="bold">
