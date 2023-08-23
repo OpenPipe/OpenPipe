@@ -15,7 +15,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline } from "react-icons/io5";
-import { RiHome3Line, RiDatabase2Line, RiFlaskLine } from "react-icons/ri";
+import { RiHome3Line, RiFlaskLine } from "react-icons/ri";
 import { signIn, useSession } from "next-auth/react";
 import { env } from "~/env.mjs";
 import ProjectMenu from "./ProjectMenu";
@@ -83,9 +83,6 @@ const NavSidebar = () => {
               </>
             )}
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
-            {env.NEXT_PUBLIC_SHOW_DATA && (
-              <IconLink icon={RiDatabase2Line} label="Data" href="/data" />
-            )}
             <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
               <Text
                 pl={2}

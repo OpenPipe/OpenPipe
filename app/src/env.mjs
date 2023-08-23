@@ -46,7 +46,6 @@ export const env = createEnv({
     NEXT_PUBLIC_SOCKET_URL: z.string().url().default("http://localhost:3318"),
     NEXT_PUBLIC_HOST: z.string().url().default("http://localhost:3000"),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
-    NEXT_PUBLIC_SHOW_DATA: z.string().optional(),
     NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS: z.string().optional(),
   },
 
@@ -62,7 +61,6 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
     NEXT_PUBLIC_HOST: process.env.NEXT_PUBLIC_HOST,
-    NEXT_PUBLIC_SHOW_DATA: process.env.NEXT_PUBLIC_SHOW_DATA,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     REPLICATE_API_TOKEN: process.env.REPLICATE_API_TOKEN,
