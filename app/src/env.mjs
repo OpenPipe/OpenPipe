@@ -47,6 +47,7 @@ export const env = createEnv({
     NEXT_PUBLIC_HOST: z.string().url().default("http://localhost:3000"),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS: z.string().optional(),
+    NEXT_PUBLIC_SHOW_BETA_FEATURES: z.string().optional(),
   },
 
   /**
@@ -69,6 +70,7 @@ export const env = createEnv({
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     OPENPIPE_API_KEY: process.env.OPENPIPE_API_KEY,
     NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS: process.env.NEXT_PUBLIC_FF_SHOW_LOGGED_CALLS,
+    NEXT_PUBLIC_SHOW_BETA_FEATURES: process.env.NEXT_PUBLIC_SHOW_BETA_FEATURES,
     SENDER_EMAIL: process.env.SENDER_EMAIL,
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: process.env.SMTP_PORT,

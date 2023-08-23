@@ -187,7 +187,7 @@ export default function AppShell({
           {children}
         </Box>
       </Flex>
-      {requireBeta && <BetaModal />}
+      {requireBeta && !env.NEXT_PUBLIC_SHOW_BETA_FEATURES && <BetaModal />}
     </>
   );
 }
