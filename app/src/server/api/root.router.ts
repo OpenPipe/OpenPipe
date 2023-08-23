@@ -6,8 +6,6 @@ import { scenarioVariantCellsRouter } from "./routers/scenarioVariantCells.route
 import { scenarioVarsRouter } from "./routers/scenarioVariables.router";
 import { evaluationsRouter } from "./routers/evaluations.router";
 import { worldChampsRouter } from "./routers/worldChamps.router";
-import { datasetsRouter } from "./routers/datasets.router";
-import { datasetEntries } from "./routers/datasetEntries.router";
 import { projectsRouter } from "./routers/projects.router";
 import { dashboardRouter } from "./routers/dashboard.router";
 import { loggedCallsRouter } from "./routers/loggedCalls.router";
@@ -27,8 +25,6 @@ export const appRouter = createTRPCRouter({
   scenarioVars: scenarioVarsRouter,
   evaluations: evaluationsRouter,
   worldChamps: worldChampsRouter,
-  datasets: datasetsRouter,
-  datasetEntries: datasetEntries,
   projects: projectsRouter,
   dashboard: dashboardRouter,
   loggedCalls: loggedCallsRouter,
