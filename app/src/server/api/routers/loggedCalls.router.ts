@@ -4,13 +4,13 @@ import { jsonArrayFrom } from "kysely/helpers/postgres";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
 import { type JsonValue } from "type-fest";
+import { shuffle } from "lodash-es";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { comparators, defaultFilterableFields } from "~/state/logFiltersSlice";
 import { requireCanViewProject } from "~/utils/accessControl";
 import hashObject from "~/server/utils/hashObject";
-import { shuffleArray } from "~/server/utils/shuffleArray";
 
 // create comparator type based off of comparators
 const comparatorToSqlExpression = (comparator: (typeof comparators)[number], value: string) => {
@@ -246,13 +246,16 @@ export const loggedCallsRouter = createTRPCRouter({
       for (const loggedCall of formattedLoggedCalls) {
         loggedCall.input = loggedCall.input.filter((message) => {
           const hash = hashObject(message);
+          // If the same message appears in a single input multiple times, there is some danger of
+          // it being removed from all logged calls. This is enough of an edge case that we don't
+          // need to worry about it for now.
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           return inputMessageHashMap.get(hash)! < formattedLoggedCalls.length;
         });
       }
 
       // Stringify inputs and outputs
-      const stringifiedLoggedCalls = shuffleArray(formattedLoggedCalls).map((loggedCall) => ({
+      const stringifiedLoggedCalls = shuffle(formattedLoggedCalls).map((loggedCall) => ({
         input: JSON.stringify(loggedCall.input),
         output: JSON.stringify(loggedCall.output),
       }));
@@ -270,8 +273,8 @@ export const loggedCallsRouter = createTRPCRouter({
       const archive = archiver("zip");
 
       archive.pipe(output);
-      archive.append(trainingDataJSONL, { name: "training.jsonl" });
-      archive.append(testingDataJSONL, { name: "testing.jsonl" });
+      archive.append(trainingDataJSONL, { name: "train.jsonl" });
+      archive.append(testingDataJSONL, { name: "test.jsonl" });
       await archive.finalize();
 
       // Convert buffer to base64
