@@ -1,6 +1,26 @@
-# OpenPipe
+<h1 align="center">
+ <a href="https://openpipe.ai">
+  <img height="70" src="https://github.com/openpipe/openpipe/assets/41524992/70af25fb-1f90-42d9-8a20-3606e3b5aaba" alt="logo">
+ </a>
+ <br>
+ OpenPipe
+</h1>
 
-OpenPipe is a flexible playground for comparing and optimizing LLM prompts. It lets you quickly generate, test and compare candidate prompts, and can automatically [translate](#-translate-between-model-apis) those prompts between models.
+<h3 align="center">Turn expensive prompts into cheap fine-tuned models.</h3>
+
+<p align="center">
+  <a href="./LICENSE" target="_blank">
+      <img src="https://img.shields.io/static/v1?label=license&message=Apache 2.0&color=white" alt="License">
+  </a> |
+  <a href="https://app.openpipe.ai/" target="_blank">
+      Hosted Version
+  </a> |
+  <a href="#running-locally">
+      Running Locally
+  </a>
+</p>
+
+Use powerful and expensive LLMs to finetune smaller and cheaper models suited to your exact needs. Evaluate model and prompt combinations in the playground. Query your past requests and export optimized training data. 
 
 <img src="https://github.com/openpipe/openpipe/assets/41524992/66bb1843-cb72-4130-a369-eec2df3b8201" alt="demo">
 
