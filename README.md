@@ -17,9 +17,25 @@ These are simple experiments users have created that show how OpenPipe works. Fe
 
 ## Supported Models
 
-- All models available through the OpenAI [chat completion API](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
-- Llama2 [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat), [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat), [70b chat](https://replicate.com/replicate/llama70b-v2-chat).
-- Anthropic's [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude) and [Claude 2](https://www.anthropic.com/index/claude-2)
+#### OpenAI
+  - [GPT 3.5 Turbo](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
+  - [GPT 3.5 Turbo 16k](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
+  - [GPT 4](https://openai.com/gpt-4)
+#### Llama2
+  - [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat)
+  - [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat)
+  - [70b chat](https://replicate.com/replicate/llama70b-v2-chat)
+#### Llama2 fine-tunes
+  - [Open-Orca/OpenOrcaxOpenChat-Preview2-13B](https://huggingface.co/Open-Orca/OpenOrcaxOpenChat-Preview2-13B)
+  - [Open-Orca/OpenOrca-Platypus2-13B](https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B)
+  - [NousResearch/Nous-Hermes-Llama2-13b](https://huggingface.co/NousResearch/Nous-Hermes-Llama2-13b)
+  - [jondurbin/airoboros-l2-13b-gpt4-2.0](https://huggingface.co/jondurbin/airoboros-l2-13b-gpt4-2.0)
+  - [lmsys/vicuna-13b-v1.5](https://huggingface.co/lmsys/vicuna-13b-v1.5)
+  - [Gryphe/MythoMax-L2-13b](https://huggingface.co/Gryphe/MythoMax-L2-13b)
+  - [NousResearch/Nous-Hermes-llama-2-7b](https://huggingface.co/NousResearch/Nous-Hermes-llama-2-7b)
+#### Anthropic
+  - [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude)
+  - [Claude 2](https://www.anthropic.com/index/claude-2)
 
 ## Features
 
