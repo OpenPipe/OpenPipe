@@ -20,11 +20,11 @@
   </a>
 </p>
 
-Use powerful and expensive LLMs to finetune smaller and cheaper models suited to your exact needs. Evaluate model and prompt combinations in the playground. Query your past requests and export optimized training data. 
+Use powerful and expensive LLMs to fine-tune smaller and cheaper models suited to your exact needs. Evaluate model and prompt combinations in the playground. Query your past requests and export optimized training data. 
 
-<img src="https://github.com/openpipe/openpipe/assets/41524992/66bb1843-cb72-4130-a369-eec2df3b8201" alt="demo">
+<img src="https://github.com/openpipe/openpipe/assets/41524992/eaa8b92d-4536-4f63-bbef-4b0b1a60f6b5" alt="fine-tune demo">
 
-You can use our hosted version of OpenPipe at https://openpipe.ai. You can also clone this repository and [run it locally](#running-locally).
+You can use our hosted version of OpenPipe at https://app.openpipe.ai. You can also clone this repository and [run it locally](#running-locally).
 
 ## Sample Experiments
 
@@ -45,7 +45,7 @@ These are simple experiments users have created that show how OpenPipe works. Fe
   - [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat)
   - [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat)
   - [70b chat](https://replicate.com/replicate/llama70b-v2-chat)
-#### Llama2 fine-tunes
+#### Llama2 -tunes
   - [Open-Orca/OpenOrcaxOpenChat-Preview2-13B](https://huggingface.co/Open-Orca/OpenOrcaxOpenChat-Preview2-13B)
   - [Open-Orca/OpenOrca-Platypus2-13B](https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B)
   - [NousResearch/Nous-Hermes-Llama2-13b](https://huggingface.co/NousResearch/Nous-Hermes-Llama2-13b)
@@ -57,7 +57,9 @@ These are simple experiments users have created that show how OpenPipe works. Fe
   - [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude)
   - [Claude 2](https://www.anthropic.com/index/claude-2)
 
-## Features
+## Playground Features
+
+<img src="https://github.com/openpipe/openpipe/assets/41524992/66bb1843-cb72-4130-a369-eec2df3b8201" alt="playground demo">
 
 ### 🔍 Visualize Responses
 
@@ -73,9 +75,9 @@ Write your prompt in one format and automatically convert it to work with any ot
 
 <!-- <img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/1e19ccf2-96b6-4e93-a3a5-1449710d1b5b" alt="translate between models"> -->
 
-### 🛠️ Refine Your Prompts Automatically
+### 🛠️ Re Your Prompts Automatically
 
-Use a growing database of best-practice refinements to improve your prompts automatically.
+Use a growing database of best-practice rements to improve your prompts automatically.
 
 <!-- <img width="480" alt="Screenshot 2023-08-01 at 11 55 38 PM" src="https://github.com/OpenPipe/OpenPipe/assets/41524992/87a27fe7-daef-445c-a5e2-1c82b23f9f99" alt="add function call"> -->
 
