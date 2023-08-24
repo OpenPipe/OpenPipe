@@ -168,6 +168,7 @@ export default function AppShell({
   }, [requireAuth, user, authLoading]);
 
   const flags = useAppStore((s) => s.featureFlags.featureFlags);
+  const flagsLoaded = useAppStore((s) => s.featureFlags.flagsLoaded);
 
   return (
     <>
@@ -180,7 +181,7 @@ export default function AppShell({
           {children}
         </Box>
       </Flex>
-      {requireBeta && !flags.betaAccess && <BetaModal />}
+      {requireBeta && flagsLoaded && !flags.betaAccess && <BetaModal />}
     </>
   );
 }

@@ -1,6 +1,7 @@
 import { type SliceCreator } from "./store";
 
 export type FeatureFlagsSlice = {
+  flagsLoaded: boolean;
   featureFlags: {
     betaAccess: boolean;
   };
@@ -8,6 +9,7 @@ export type FeatureFlagsSlice = {
 };
 
 export const createFeatureFlagsSlice: SliceCreator<FeatureFlagsSlice> = (set) => ({
+  flagsLoaded: false,
   featureFlags: {
     betaAccess: false,
   },
@@ -16,5 +18,6 @@ export const createFeatureFlagsSlice: SliceCreator<FeatureFlagsSlice> = (set) =>
       state.featureFlags.featureFlags = {
         betaAccess: flags?.includes("betaAccess") ?? false,
       };
+      state.featureFlags.flagsLoaded = true;
     }),
 });
