@@ -205,17 +205,18 @@ export const loggedCallsRouter = createTRPCRouter({
             projectId: input.projectId,
             id: { in: input.selectedLogIds },
           },
+          statusCode: 200,
         },
       });
 
       // Convert the database data into the desired format
-      let formattedLoggedCalls: { input: JsonValue[]; output: JsonValue }[] = loggedCallsFromDb.map(
-        (call) => ({
-          input: (call.reqPayload as unknown as Record<string, unknown>).messages as JsonValue[],
+      let formattedLoggedCalls: { instruction: JsonValue[]; output: JsonValue }[] =
+        loggedCallsFromDb.map((call) => ({
+          instruction: (call.reqPayload as unknown as Record<string, unknown>)
+            .messages as JsonValue[],
           output: (call.respPayload as unknown as { choices: { message: unknown }[] }).choices[0]
             ?.message as JsonValue,
-        }),
-      );
+        }));
 
       if (input.removeDuplicates) {
         const deduplicatedLoggedCalls = [];
@@ -230,33 +231,33 @@ export const loggedCallsRouter = createTRPCRouter({
         formattedLoggedCalls = deduplicatedLoggedCalls;
       }
 
-      // Remove duplicate messages from input
-      const inputMessageHashMap = new Map<string, number>();
+      // Remove duplicate messages from instructions
+      const instructionMessageHashMap = new Map<string, number>();
       for (const loggedCall of formattedLoggedCalls) {
-        for (const message of loggedCall.input) {
+        for (const message of loggedCall.instruction) {
           const hash = hashObject(message);
-          if (inputMessageHashMap.has(hash)) {
+          if (instructionMessageHashMap.has(hash)) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            inputMessageHashMap.set(hash, inputMessageHashMap.get(hash)! + 1);
+            instructionMessageHashMap.set(hash, instructionMessageHashMap.get(hash)! + 1);
           } else {
-            inputMessageHashMap.set(hash, 0);
+            instructionMessageHashMap.set(hash, 0);
           }
         }
       }
       for (const loggedCall of formattedLoggedCalls) {
-        loggedCall.input = loggedCall.input.filter((message) => {
+        loggedCall.instruction = loggedCall.instruction.filter((message) => {
           const hash = hashObject(message);
-          // If the same message appears in a single input multiple times, there is some danger of
+          // If the same message appears in a single instruction multiple times, there is some danger of
           // it being removed from all logged calls. This is enough of an edge case that we don't
           // need to worry about it for now.
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          return inputMessageHashMap.get(hash)! < formattedLoggedCalls.length;
+          return instructionMessageHashMap.get(hash)! < formattedLoggedCalls.length;
         });
       }
 
-      // Stringify inputs and outputs
+      // Stringify instructions and outputs
       const stringifiedLoggedCalls = shuffle(formattedLoggedCalls).map((loggedCall) => ({
-        input: JSON.stringify(loggedCall.input),
+        instruction: JSON.stringify(loggedCall.instruction),
         output: JSON.stringify(loggedCall.output),
       }));
 
