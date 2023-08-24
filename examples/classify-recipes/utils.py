@@ -5,7 +5,7 @@ from peft import PeftModel
 import os
 
 
-def merge(config_file: str):
+def merge_lora_model(config_file: str):
     config = yaml.load(open(config_file, "r"), Loader=yaml.FullLoader)
 
     base_model = config["base_model"]
