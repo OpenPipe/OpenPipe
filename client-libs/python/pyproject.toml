@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "openpipe"
-version = "0.1.0"
+version = "3.0.0"
 description = ""
-authors = ["Kyle Corbitt <kyle@corbt.com>"]
+authors = ["Kyle Corbitt <kyle@openpipe.ai>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
