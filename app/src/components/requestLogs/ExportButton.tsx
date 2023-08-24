@@ -18,6 +18,8 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  Collapse,
+  Box,
   useDisclosure,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
@@ -28,7 +30,7 @@ import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "./ActionButton";
 import InputDropdown from "../InputDropdown";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 const SUPPORTED_EXPORT_FORMATS = ["alpaca-finetune", "openai-fine-tune", "unformatted"];
 
@@ -60,6 +62,7 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
   const [selectedExportFormat, setSelectedExportFormat] = useState(SUPPORTED_EXPORT_FORMATS[0]);
   const [testingSplit, setTestingSplit] = useState(10);
   const [removeDuplicates, setRemoveDuplicates] = useState(true);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -121,13 +124,6 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               We'll export the <b>{selectedLogIds.size}</b> logs you have selected in the format of
               your choice.
             </Text>
-            <Checkbox
-              colorScheme="blue"
-              isChecked={removeDuplicates}
-              onChange={(e) => setRemoveDuplicates(e.target.checked)}
-            >
-              <Text>Remove duplicates? (recommended)</Text>
-            </Checkbox>
             <VStack alignItems="flex-start" spacing={4}>
               <HStack spacing={2}>
                 <Text fontWeight="bold" w={48}>
@@ -161,12 +157,29 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                 </HStack>
               </HStack>
             </VStack>
-            <Button variant="unstyled" color="blue.600">
-              <HStack>
-                <Text>Advanced Options</Text>
-                <Icon as={FiChevronDown} />
-              </HStack>
-            </Button>
+            <VStack alignItems="flex-start" spacing={0}>
+              <Button
+                variant="unstyled"
+                color="blue.600"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              >
+                <HStack>
+                  <Text>Advanced Options</Text>
+                  <Icon as={showAdvancedOptions ? FiChevronUp : FiChevronDown} />
+                </HStack>
+              </Button>
+              <Collapse in={showAdvancedOptions} unmountOnExit={true}>
+                <VStack align="stretch" pt={4}>
+                  <Checkbox
+                    colorScheme="blue"
+                    isChecked={removeDuplicates}
+                    onChange={(e) => setRemoveDuplicates(e.target.checked)}
+                  >
+                    <Text>Remove duplicates? (recommended)</Text>
+                  </Checkbox>
+                </VStack>
+              </Collapse>
+            </VStack>
           </VStack>
         </ModalBody>
         <ModalFooter>
