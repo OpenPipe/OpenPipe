@@ -239,7 +239,7 @@ export const loggedCallsRouter = createTRPCRouter({
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             inputMessageHashMap.set(hash, inputMessageHashMap.get(hash)! + 1);
           } else {
-            inputMessageHashMap.set(JSON.stringify(message), 0);
+            inputMessageHashMap.set(hash, 0);
           }
         }
       }
