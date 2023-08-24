@@ -31,6 +31,7 @@ import { useAppStore } from "~/state/store";
 import ActionButton from "./ActionButton";
 import InputDropdown from "../InputDropdown";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
+import InfoCircle from "../InfoCircle";
 
 const SUPPORTED_EXPORT_FORMATS = ["alpaca-finetune", "openai-fine-tune", "unformatted"];
 
@@ -129,9 +130,10 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                 flexDir={{ base: "column", md: "row" }}
                 alignItems={{ base: "flex-start", md: "center" }}
               >
-                <Text fontWeight="bold" w={48}>
-                  Format:
-                </Text>
+                <HStack w={48} alignItems="center" spacing={1}>
+                  <Text fontWeight="bold">Format:</Text>
+                  <InfoCircle tooltipText="Format logs for for fine tuning or export them without formatting." />
+                </HStack>
                 <InputDropdown
                   options={SUPPORTED_EXPORT_FORMATS}
                   selectedOption={selectedExportFormat}
@@ -143,9 +145,10 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                 flexDir={{ base: "column", md: "row" }}
                 alignItems={{ base: "flex-start", md: "center" }}
               >
-                <Text fontWeight="bold" w={48}>
-                  Testing Split:
-                </Text>
+                <HStack w={48} alignItems="center" spacing={1}>
+                  <Text fontWeight="bold">Testing Split:</Text>
+                  <InfoCircle tooltipText="The percent of your logs that will be reserved for testing and saved in another file. Logs are split randomly." />
+                </HStack>
                 <HStack>
                   <NumberInput
                     defaultValue={10}
@@ -176,13 +179,16 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               </Button>
               <Collapse in={showAdvancedOptions} unmountOnExit={true}>
                 <VStack align="stretch" pt={4}>
-                  <Checkbox
-                    colorScheme="blue"
-                    isChecked={removeDuplicates}
-                    onChange={(e) => setRemoveDuplicates(e.target.checked)}
-                  >
-                    <Text>Remove duplicates (recommended)</Text>
-                  </Checkbox>
+                  <HStack>
+                    <Checkbox
+                      colorScheme="blue"
+                      isChecked={removeDuplicates}
+                      onChange={(e) => setRemoveDuplicates(e.target.checked)}
+                    >
+                      <Text>Remove duplicates</Text>
+                    </Checkbox>
+                    <InfoCircle tooltipText="To avoid overfitting and speed up training, automatically deduplicate logs with matching input and output." />
+                  </HStack>
                 </VStack>
               </Collapse>
             </VStack>
