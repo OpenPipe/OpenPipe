@@ -14,6 +14,7 @@ import {
   Link as ChakraLink,
   Image,
   Box,
+  Portal,
 } from "@chakra-ui/react";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -109,64 +110,66 @@ export default function ProjectMenu() {
             </HStack>
           </NavSidebarOption>
         </PopoverTrigger>
-        <PopoverContent
-          _focusVisible={{ outline: "unset" }}
-          w={220}
-          ml={{ base: 2, md: 0 }}
-          boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);"
-          fontSize="sm"
-        >
-          <VStack alignItems="flex-start" spacing={1} py={1}>
-            <Text px={3} py={2}>
-              {user?.user.email}
-            </Text>
-            <Divider />
-            <Text alignSelf="flex-start" fontWeight="bold" px={3} pt={2}>
-              Your Projects
-            </Text>
-            <VStack spacing={0} w="full" px={1}>
-              {projects?.map((proj) => (
-                <ProjectOption
-                  key={proj.id}
-                  proj={proj}
-                  isActive={proj.id === selectedProjectId}
-                  onClose={popover.onClose}
-                />
-              ))}
-              <HStack
-                as={Button}
-                variant="ghost"
-                colorScheme="blue"
-                color="blue.400"
-                fontSize="sm"
-                justifyContent="flex-start"
-                onClick={createProject}
-                w="full"
-                borderRadius={4}
-                spacing={0}
-              >
-                <Text>Add project</Text>
-                <Icon as={isLoading ? Spinner : BsPlus} boxSize={4} strokeWidth={0.5} />
-              </HStack>
-            </VStack>
+        <Portal>
+          <PopoverContent
+            _focusVisible={{ outline: "unset" }}
+            w={220}
+            ml={{ base: 2, md: 0 }}
+            boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);"
+            fontSize="sm"
+          >
+            <VStack alignItems="flex-start" spacing={1} py={1}>
+              <Text px={3} py={2}>
+                {user?.user.email}
+              </Text>
+              <Divider />
+              <Text alignSelf="flex-start" fontWeight="bold" px={3} pt={2}>
+                Your Projects
+              </Text>
+              <VStack spacing={0} w="full" px={1}>
+                {projects?.map((proj) => (
+                  <ProjectOption
+                    key={proj.id}
+                    proj={proj}
+                    isActive={proj.id === selectedProjectId}
+                    onClose={popover.onClose}
+                  />
+                ))}
+                <HStack
+                  as={Button}
+                  variant="ghost"
+                  colorScheme="blue"
+                  color="blue.400"
+                  fontSize="sm"
+                  justifyContent="flex-start"
+                  onClick={createProject}
+                  w="full"
+                  borderRadius={4}
+                  spacing={0}
+                >
+                  <Text>Add project</Text>
+                  <Icon as={isLoading ? Spinner : BsPlus} boxSize={4} strokeWidth={0.5} />
+                </HStack>
+              </VStack>
 
-            <Divider />
-            <VStack w="full" px={1}>
-              <ChakraLink
-                onClick={() => {
-                  signOut().catch(console.error);
-                }}
-                _hover={{ bgColor: "gray.200", textDecoration: "none" }}
-                w="full"
-                py={2}
-                px={2}
-                borderRadius={4}
-              >
-                <Text>Sign out</Text>
-              </ChakraLink>
+              <Divider />
+              <VStack w="full" px={1}>
+                <ChakraLink
+                  onClick={() => {
+                    signOut().catch(console.error);
+                  }}
+                  _hover={{ bgColor: "gray.200", textDecoration: "none" }}
+                  w="full"
+                  py={2}
+                  px={2}
+                  borderRadius={4}
+                >
+                  <Text>Sign out</Text>
+                </ChakraLink>
+              </VStack>
             </VStack>
-          </VStack>
-        </PopoverContent>
+          </PopoverContent>
+        </Portal>
       </Popover>
     </VStack>
   );
