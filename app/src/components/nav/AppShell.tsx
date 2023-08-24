@@ -18,11 +18,11 @@ import { IoStatsChartOutline } from "react-icons/io5";
 import { RiHome3Line, RiFlaskLine } from "react-icons/ri";
 import { FaRobot } from "react-icons/fa";
 import { signIn, useSession } from "next-auth/react";
-import { env } from "~/env.mjs";
 import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
 import IconLink from "./IconLink";
 import { BetaModal } from "./BetaModal";
+import { useAppStore } from "~/state/store";
 
 const Divider = () => <Box h="1px" bgColor="gray.300" w="full" />;
 
@@ -167,6 +167,8 @@ export default function AppShell({
     }
   }, [requireAuth, user, authLoading]);
 
+  const flags = useAppStore((s) => s.featureFlags.featureFlags);
+
   return (
     <>
       <Flex h={vh} w="100vw">
@@ -178,7 +180,7 @@ export default function AppShell({
           {children}
         </Box>
       </Flex>
-      {requireBeta && !env.NEXT_PUBLIC_FF_SHOW_BETA_FEATURES && <BetaModal />}
+      {requireBeta && !flags.betaAccess && <BetaModal />}
     </>
   );
 }
