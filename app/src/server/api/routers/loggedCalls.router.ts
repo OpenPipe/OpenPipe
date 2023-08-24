@@ -1,11 +1,16 @@
 import { z } from "zod";
 import { type Expression, type SqlBool, sql, type RawBuilder } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
+import archiver from "archiver";
+import { WritableStreamBuffer } from "stream-buffers";
+import { type JsonValue } from "type-fest";
+import { shuffle } from "lodash-es";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { comparators, defaultFilterableFields } from "~/state/logFiltersSlice";
 import { requireCanViewProject } from "~/utils/accessControl";
+import hashObject from "~/server/utils/hashObject";
 
 // create comparator type based off of comparators
 const comparatorToSqlExpression = (comparator: (typeof comparators)[number], value: string) => {
@@ -179,5 +184,102 @@ export const loggedCallsRouter = createTRPCRouter({
       });
 
       return tags.map((tag) => tag.name);
+    }),
+  export: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        selectedLogIds: z.string().array(),
+        testingSplit: z.number(),
+        selectedExportFormat: z.string(),
+        removeDuplicates: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await requireCanViewProject(input.projectId, ctx);
+
+      // Fetch the real data using Prisma
+      const loggedCallsFromDb = await ctx.prisma.loggedCallModelResponse.findMany({
+        where: {
+          originalLoggedCall: {
+            projectId: input.projectId,
+            id: { in: input.selectedLogIds },
+          },
+        },
+      });
+
+      // Convert the database data into the desired format
+      let formattedLoggedCalls: { input: JsonValue[]; output: JsonValue }[] = loggedCallsFromDb.map(
+        (call) => ({
+          input: (call.reqPayload as unknown as Record<string, unknown>).messages as JsonValue[],
+          output: (call.respPayload as unknown as { choices: { message: unknown }[] }).choices[0]
+            ?.message as JsonValue,
+        }),
+      );
+
+      if (input.removeDuplicates) {
+        const deduplicatedLoggedCalls = [];
+        const loggedCallHashSet = new Set<string>();
+        for (const loggedCall of formattedLoggedCalls) {
+          const loggedCallHash = hashObject(loggedCall);
+          if (!loggedCallHashSet.has(loggedCallHash)) {
+            loggedCallHashSet.add(loggedCallHash);
+            deduplicatedLoggedCalls.push(loggedCall);
+          }
+        }
+        formattedLoggedCalls = deduplicatedLoggedCalls;
+      }
+
+      // Remove duplicate messages from input
+      const inputMessageHashMap = new Map<string, number>();
+      for (const loggedCall of formattedLoggedCalls) {
+        for (const message of loggedCall.input) {
+          const hash = hashObject(message);
+          if (inputMessageHashMap.has(hash)) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            inputMessageHashMap.set(hash, inputMessageHashMap.get(hash)! + 1);
+          } else {
+            inputMessageHashMap.set(hash, 0);
+          }
+        }
+      }
+      for (const loggedCall of formattedLoggedCalls) {
+        loggedCall.input = loggedCall.input.filter((message) => {
+          const hash = hashObject(message);
+          // If the same message appears in a single input multiple times, there is some danger of
+          // it being removed from all logged calls. This is enough of an edge case that we don't
+          // need to worry about it for now.
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          return inputMessageHashMap.get(hash)! < formattedLoggedCalls.length;
+        });
+      }
+
+      // Stringify inputs and outputs
+      const stringifiedLoggedCalls = shuffle(formattedLoggedCalls).map((loggedCall) => ({
+        input: JSON.stringify(loggedCall.input),
+        output: JSON.stringify(loggedCall.output),
+      }));
+
+      const splitIndex = Math.floor((stringifiedLoggedCalls.length * input.testingSplit) / 100);
+
+      const testingData = stringifiedLoggedCalls.slice(0, splitIndex);
+      const trainingData = stringifiedLoggedCalls.slice(splitIndex);
+
+      // Convert arrays to JSONL format
+      const trainingDataJSONL = trainingData.map((item) => JSON.stringify(item)).join("\n");
+      const testingDataJSONL = testingData.map((item) => JSON.stringify(item)).join("\n");
+
+      const output = new WritableStreamBuffer();
+      const archive = archiver("zip");
+
+      archive.pipe(output);
+      archive.append(trainingDataJSONL, { name: "train.jsonl" });
+      archive.append(testingDataJSONL, { name: "test.jsonl" });
+      await archive.finalize();
+
+      // Convert buffer to base64
+      const base64 = output.getContents().toString("base64");
+
+      return base64;
     }),
 });
