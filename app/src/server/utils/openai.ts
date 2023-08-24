@@ -17,10 +17,6 @@ try {
   // Set a dummy key so it doesn't fail at build time
   config = {
     apiKey: env.OPENAI_API_KEY ?? "dummy-key",
-    openpipe: {
-      apiKey: env.OPENPIPE_API_KEY,
-      baseUrl: "http://localhost:3000/api/v1",
-    },
   };
 }
 
