@@ -8,12 +8,16 @@ from openpipe.api_client.models.report_json_body_tags import (
 )
 import toml
 import time
+import os
 
 version = toml.load("pyproject.toml")["tool"]["poetry"]["version"]
 
 configured_client = AuthenticatedClient(
     base_url="https://app.openpipe.ai/api/v1", token=""
 )
+
+if os.environ.get("OPENPIPE_API_KEY"):
+    configured_client.token = os.environ["OPENPIPE_API_KEY"]
 
 
 def _get_tags(openpipe_options):
