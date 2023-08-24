@@ -1,9 +1,12 @@
 [tool.poetry]
 name = "openpipe"
-version = "0.1.0"
-description = ""
-authors = ["Kyle Corbitt <kyle@corbt.com>"]
+version = "3.0.1"
+description = "Python client library for the OpenPipe service"
+authors = ["Kyle Corbitt <kyle@openpipe.ai>"]
 license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/OpenPipe/OpenPipe"
+repository = "https://github.com/OpenPipe/OpenPipe"
 
 [tool.poetry.dependencies]
 python = "^3.9"

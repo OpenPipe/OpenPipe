@@ -4,7 +4,7 @@ import time
 import inspect
 
 from openpipe.merge_openai_chunks import merge_openai_chunks
-from openpipe.openpipe_meta import OpenPipeMeta
+from openpipe.openpipe_meta import openpipe_meta
 
 from .shared import (
     _should_check_cache,
@@ -41,9 +41,11 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                         )
 
                         cache_status = (
-                            "MISS" if _should_check_cache(openpipe_options) else "SKIP"
+                            "MISS"
+                            if _should_check_cache(openpipe_options, kwargs)
+                            else "SKIP"
                         )
-                        chunk.openpipe = OpenPipeMeta(cache_status=cache_status)
+                        chunk.openpipe = openpipe_meta(cache_status=cache_status)
 
                         yield chunk
 
@@ -72,9 +74,9 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                 )
 
                 cache_status = (
-                    "MISS" if _should_check_cache(openpipe_options) else "SKIP"
+                    "MISS" if _should_check_cache(openpipe_options, kwargs) else "SKIP"
                 )
-                chat_completion["openpipe"] = OpenPipeMeta(cache_status=cache_status)
+                chat_completion["openpipe"] = openpipe_meta(cache_status=cache_status)
             return chat_completion
         except Exception as e:
             received_at = int(time.time() * 1000)
@@ -126,9 +128,11 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                             assembled_completion, chunk
                         )
                         cache_status = (
-                            "MISS" if _should_check_cache(openpipe_options) else "SKIP"
+                            "MISS"
+                            if _should_check_cache(openpipe_options, kwargs)
+                            else "SKIP"
                         )
-                        chunk.openpipe = OpenPipeMeta(cache_status=cache_status)
+                        chunk.openpipe = openpipe_meta(cache_status=cache_status)
 
                         yield chunk
 
@@ -157,9 +161,9 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                 )
 
                 cache_status = (
-                    "MISS" if _should_check_cache(openpipe_options) else "SKIP"
+                    "MISS" if _should_check_cache(openpipe_options, kwargs) else "SKIP"
                 )
-                chat_completion["openpipe"] = OpenPipeMeta(cache_status=cache_status)
+                chat_completion["openpipe"] = openpipe_meta(cache_status=cache_status)
 
             return chat_completion
         except Exception as e:

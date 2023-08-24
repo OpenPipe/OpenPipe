@@ -3,3 +3,4 @@
 *.pyc
 node_modules/
 *.tsbuildinfo
+dist/
