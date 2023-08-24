@@ -11,7 +11,8 @@ import { type APIClient } from "~/utils/api";
 import { type PersistedState, persistOptions } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
 import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
-import { createColumnVisibilitySlice, type ColumnVisibilitySlice } from "./columnVisiblitySlice";
+import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisiblitySlice";
+import { type FeatureFlagsSlice, createFeatureFlagsSlice } from "./featureFlags";
 
 enableMapSet();
 
@@ -28,6 +29,7 @@ export type State = {
   selectedLogs: SelectedLogsSlice;
   logFilters: LogFiltersSlice;
   columnVisibility: ColumnVisibilitySlice;
+  featureFlags: FeatureFlagsSlice;
 };
 
 export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], [], T>;
@@ -62,6 +64,7 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),
       logFilters: createLogFiltersSlice(set, get, ...rest),
       columnVisibility: createColumnVisibilitySlice(set, get, ...rest),
+      featureFlags: createFeatureFlagsSlice(set, get, ...rest),
     })),
     persistOptions,
   ),
