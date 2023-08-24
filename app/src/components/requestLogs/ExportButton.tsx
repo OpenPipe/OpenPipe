@@ -19,7 +19,6 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   Collapse,
-  Box,
   useDisclosure,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
