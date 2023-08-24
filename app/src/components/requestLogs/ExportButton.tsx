@@ -19,6 +19,7 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   Collapse,
+  Flex,
   useDisclosure,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
@@ -124,7 +125,10 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               your choice.
             </Text>
             <VStack alignItems="flex-start" spacing={4}>
-              <HStack spacing={2}>
+              <Flex
+                flexDir={{ base: "column", md: "row" }}
+                alignItems={{ base: "flex-start", md: "center" }}
+              >
                 <Text fontWeight="bold" w={48}>
                   Format:
                 </Text>
@@ -134,8 +138,11 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                   onSelect={(option) => setSelectedExportFormat(option)}
                   inputGroupProps={{ w: 48 }}
                 />
-              </HStack>
-              <HStack spacing={2}>
+              </Flex>
+              <Flex
+                flexDir={{ base: "column", md: "row" }}
+                alignItems={{ base: "flex-start", md: "center" }}
+              >
                 <Text fontWeight="bold" w={48}>
                   Testing Split:
                 </Text>
@@ -154,7 +161,7 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                     </NumberInputStepper>
                   </NumberInput>
                 </HStack>
-              </HStack>
+              </Flex>
             </VStack>
             <VStack alignItems="flex-start" spacing={0}>
               <Button
@@ -174,7 +181,7 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                     isChecked={removeDuplicates}
                     onChange={(e) => setRemoveDuplicates(e.target.checked)}
                   >
-                    <Text>Remove duplicates? (recommended)</Text>
+                    <Text>Remove duplicates (recommended)</Text>
                   </Checkbox>
                 </VStack>
               </Collapse>
