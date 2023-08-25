@@ -80,7 +80,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     },
     respStatus: 200,
     respPayload: {
-      id: "chatcmpl-7lNspqePJWVyXwXebupxb1eMozo6Q",
+      id: "chatcmpl-7",
       model: "gpt-3.5-turbo-0613",
       usage: {
         total_tokens: 241,
@@ -108,7 +108,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     inputTokens: 236,
     outputTokens: 5,
     finishReason: "stop",
-    tags: [],
+    tags: [{ name: "prompt_id", value: "define_func" }],
   },
   {
     reqPayload: {
@@ -167,7 +167,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     },
     respStatus: 200,
     respPayload: {
-      id: "chatcmpl-7lNifmc5AncyAvleZRDBhAcLFYBIT",
+      id: "chatcmpl-7",
       model: "gpt-3.5-turbo-0613",
       usage: {
         total_tokens: 227,
@@ -210,7 +210,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     },
     respStatus: 200,
     respPayload: {
-      id: "chatcmpl-7lNh1TtrsJVgz3Nj70bKkZZk7xPi7",
+      id: "chatcmpl-7",
       model: "gpt-3.5-turbo-0613",
       usage: {
         total_tokens: 21,
@@ -234,7 +234,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     inputTokens: 14,
     outputTokens: 7,
     finishReason: "stop",
-    tags: [{ name: "prompt_id", value: "id2" }],
+    tags: [{ name: "prompt_id", value: "translate_text" }],
   },
   {
     reqPayload: {
@@ -281,7 +281,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     },
     respStatus: 200,
     respPayload: {
-      id: "chatcmpl-7lQS3MktOT8BTgNEytl9dkyssCQqL",
+      id: "chatcmpl-7",
       model: "gpt-4-0613",
       usage: {
         total_tokens: 2910,
@@ -311,7 +311,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     outputTokens: 108,
     finishReason: "stop",
     tags: [
-      { name: "prompt_id", value: "chatcmpl-7lQS3MktOT8BTgNEytl9dkyssCQqL" },
+      { name: "prompt_id", value: "chatcmpl-7" },
       { name: "some_other_tag", value: "some_other_value" },
     ],
   },
@@ -339,7 +339,7 @@ const loggedCallsToCreate: Prisma.LoggedCallCreateManyInput[] = [];
 const loggedCallModelResponsesToCreate: Prisma.LoggedCallModelResponseCreateManyInput[] = [];
 const loggedCallsToUpdate: Prisma.LoggedCallUpdateArgs[] = [];
 const loggedCallTagsToCreate: Prisma.LoggedCallTagCreateManyInput[] = [];
-for (let i = 0; i < 1437; i++) {
+for (let i = 0; i < 11437; i++) {
   const loggedCallId = uuidv4();
   const loggedCallModelResponseId = uuidv4();
   const template =
