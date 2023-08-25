@@ -147,9 +147,10 @@ export default function OutputCell({
                 <ResponseLog
                   time={response.receivedAt}
                   title="Response received from API"
-                  message={`statusCode: ${response.statusCode ?? ""}\n ${
-                    response.errorMessage ?? ""
-                  }`}
+                  message={[
+                    response.statusCode ? `Status: ${response.statusCode}\n` : "",
+                    response.errorMessage ?? "",
+                  ].join("")}
                 />
               )}
             </Fragment>
