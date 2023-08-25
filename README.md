@@ -32,7 +32,7 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
  * <b>Fine-Tune</b>
    * Easy integration with OpenPipe's SDK in both Python and JS.
    * Swiftly query logs using intuitive built-in filters.
-   * Export data in multiple formats, including Alpaca and ChatGPT, with deduplication.
+   * Export data in multiple training formats, including Alpaca and ChatGPT, with deduplication.
 
  * <b>Experiment</b>
    * Bulk-test wide-reaching scenarios using code templating.
