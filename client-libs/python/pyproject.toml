@@ -1,12 +1,13 @@
 [tool.poetry]
 name = "openpipe"
-version = "3.0.1"
+version = "3.0.3"
 description = "Python client library for the OpenPipe service"
 authors = ["Kyle Corbitt <kyle@openpipe.ai>"]
 license = "Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/OpenPipe/OpenPipe"
 repository = "https://github.com/OpenPipe/OpenPipe"
+include = ["pyproject.toml"]
 
 [tool.poetry.dependencies]
 python = "^3.9"

@@ -6,11 +6,11 @@ from openpipe.api_client.client import AuthenticatedClient
 from openpipe.api_client.models.report_json_body_tags import (
     ReportJsonBodyTags,
 )
-import toml
 import time
 import os
 
-version = toml.load("pyproject.toml")["tool"]["poetry"]["version"]
+# TODO: sync with pyproject.toml
+version = "3.0.3"
 
 configured_client = AuthenticatedClient(
     base_url="https://app.openpipe.ai/api/v1", token=""
