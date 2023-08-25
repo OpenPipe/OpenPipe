@@ -17,10 +17,23 @@ const modelEndpoints: Record<OpenpipeChatInput["model"], string> = {
   "NousResearch/Nous-Hermes-llama-2-7b": "https://ua1bpc6kv3dgge-8000.proxy.runpod.net/v1",
 };
 
+const CUSTOM_MODELS_ENABLED = false;
+
 export async function getCompletion(
   input: OpenpipeChatInput,
   onStream: ((partialOutput: OpenpipeChatOutput) => void) | null,
 ): Promise<CompletionResponse<OpenpipeChatOutput>> {
+  // Temporarily disable these models because of GPU constraints
+
+  if (!CUSTOM_MODELS_ENABLED) {
+    return {
+      type: "error",
+      message:
+        "We've disabled this model temporarily because of GPU capacity constraints. Check back later.",
+      autoRetry: false,
+    };
+  }
+
   const { model, messages, ...rest } = input;
 
   const templatedPrompt = frontendModelProvider.models[model].templatePrompt?.(messages);
