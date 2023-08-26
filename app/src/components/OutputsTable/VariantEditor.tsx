@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FiMaximize, FiMinimize } from "react-icons/fi";
-import { editorBackground } from "~/state/sharedVariantEditor.slice";
+import { type CreatedEditor, editorBackground } from "~/state/sharedVariantEditor.slice";
 import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
 import {
@@ -24,8 +24,10 @@ import { type PromptVariant } from "./types";
 export default function VariantEditor(props: { variant: PromptVariant }) {
   const { canModify } = useExperimentAccess();
   const monaco = useAppStore.use.sharedVariantEditor.monaco();
-  const editorRef = useRef<ReturnType<NonNullable<typeof monaco>["editor"]["create"]> | null>(null);
+  const updateOptionsForEditor = useAppStore.use.sharedVariantEditor.updateOptionsForEditor();
+  const editorRef = useRef<CreatedEditor | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const lastSavedFnRef = useRef(props.variant.promptConstructor);
   const [editorId] = useState(() => `editor_${Math.random().toString(36).substring(7)}`);
   const [isChanged, setIsChanged] = useState(false);
 
@@ -48,22 +50,18 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
   }, [isFullscreen, toggleFullscreen]);
 
   const lastSavedFn = props.variant.promptConstructor;
+  useEffect(() => {
+    // Store in ref so that we can access it dynamically
+    lastSavedFnRef.current = lastSavedFn;
+  }, [lastSavedFn]);
 
   const modifierKey = useModifierKeyLabel();
 
   const checkForChanges = useCallback(() => {
     if (!editorRef.current) return;
     const currentFn = editorRef.current.getValue();
-    setIsChanged(currentFn.length > 0 && currentFn !== lastSavedFn);
-  }, [lastSavedFn]);
-
-  const matchUpdatedSavedFn = useCallback(() => {
-    if (!editorRef.current) return;
-    editorRef.current.setValue(lastSavedFn);
-    setIsChanged(false);
-  }, [lastSavedFn]);
-
-  useEffect(matchUpdatedSavedFn, [matchUpdatedSavedFn, lastSavedFn]);
+    setIsChanged(currentFn.length > 0 && currentFn !== lastSavedFnRef.current);
+  }, [editorRef]);
 
   const replaceVariant = api.promptVariants.replaceVariant.useMutation();
   const utils = api.useContext();
@@ -136,6 +134,11 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
         readOnly: !canModify,
       });
 
+      updateOptionsForEditor(props.variant.uiId, {
+        getContent: () => editorRef.current?.getValue() || "",
+        setContent: (content) => editorRef.current?.setValue(content),
+      });
+
       // Workaround because otherwise the commands only work on whatever
       // editor was loaded on the page last.
       // https://github.com/microsoft/monaco-editor/issues/2947#issuecomment-1422265201
@@ -155,7 +158,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
         });
       });
 
-      editorRef.current.onDidChangeModelContent(checkForChanges);
+      const checkForChangesListener = editorRef.current.onDidChangeModelContent(checkForChanges);
 
       const resizeObserver = new ResizeObserver(() => {
         editorRef.current?.layout();
@@ -164,6 +167,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
 
       return () => {
         resizeObserver.disconnect();
+        checkForChangesListener.dispose();
         editorRef.current?.dispose();
       };
     }
@@ -171,7 +175,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
     // We intentionally skip the onSave and props.savedConfig dependencies here because
     // we don't want to re-render the editor from scratch
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [monaco, editorId]);
+  }, [monaco, editorId, updateOptionsForEditor]);
 
   useEffect(() => {
     if (!editorRef.current) return;

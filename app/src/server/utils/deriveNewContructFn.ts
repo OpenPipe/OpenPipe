@@ -12,14 +12,20 @@ const isolate = new ivm.Isolate({ memoryLimit: 128 });
 
 export async function deriveNewConstructFn(
   originalVariant: PromptVariant | null,
+  originalPromptFn?: string,
   newModel?: Model,
   instructions?: string,
 ) {
-  if (originalVariant && !newModel && !instructions) {
-    return originalVariant.promptConstructor;
+  if (originalPromptFn && !newModel && !instructions) {
+    return originalPromptFn;
   }
-  if (originalVariant && (newModel || instructions)) {
-    return await requestUpdatedPromptFunction(originalVariant, newModel, instructions);
+  if (originalVariant && originalPromptFn && (newModel || instructions)) {
+    return await requestUpdatedPromptFunction(
+      originalVariant,
+      originalPromptFn,
+      newModel,
+      instructions,
+    );
   }
   return dedent`
     prompt = {
@@ -36,6 +42,7 @@ export async function deriveNewConstructFn(
 const NUM_RETRIES = 5;
 const requestUpdatedPromptFunction = async (
   originalVariant: PromptVariant,
+  originalPromptFn: string,
   newModel?: Model,
   instructions?: string,
 ) => {
@@ -55,7 +62,7 @@ const requestUpdatedPromptFunction = async (
         },
         {
           role: "user",
-          content: `This is the current prompt constructor function:\n---\n${originalVariant.promptConstructor}`,
+          content: `This is the current prompt constructor function:\n---\n${originalPromptFn}`,
         },
       ];
       if (newModel) {

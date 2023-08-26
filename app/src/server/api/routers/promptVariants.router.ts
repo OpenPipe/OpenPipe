@@ -298,6 +298,7 @@ export const promptVariantsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
+        originalPromptFn: z.string(),
         instructions: z.string().optional(),
         newModel: z
           .object({
@@ -315,22 +316,21 @@ export const promptVariantsRouter = createTRPCRouter({
       });
       await requireCanModifyExperiment(existing.experimentId, ctx);
 
-      const constructedPrompt = await parsePromptConstructor(existing.promptConstructor);
-
-      if ("error" in constructedPrompt) {
-        return error(constructedPrompt.error);
-      }
-
       const model = input.newModel
         ? modelProviders[input.newModel.provider].models[input.newModel.model]
         : undefined;
 
-      const promptConstructionFn = await deriveNewConstructFn(existing, model, input.instructions);
+      const promptConstructionFn = await deriveNewConstructFn(
+        existing,
+        input.originalPromptFn,
+        model,
+        input.instructions,
+      );
 
       // TODO: Validate promptConstructionFn
       // TODO: Record in some sort of history
 
-      return promptConstructionFn;
+      return success(promptConstructionFn);
     }),
 
   replaceVariant: protectedProcedure

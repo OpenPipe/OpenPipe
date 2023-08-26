@@ -1,16 +1,26 @@
+import loader, { type Monaco } from "@monaco-editor/loader";
+
 import { type RouterOutputs } from "~/utils/api";
 import { type SliceCreator } from "./store";
-import loader from "@monaco-editor/loader";
 import formatPromptConstructor from "~/promptConstructor/format";
 
 export const editorBackground = "#fafafa";
 
+export type CreatedEditor = ReturnType<Monaco["editor"]["create"]>;
+
+type EditorOptions = {
+  getContent: () => string;
+  setContent: (content: string) => void;
+};
+
 export type SharedVariantEditorSlice = {
-  monaco: null | ReturnType<typeof loader.__getMonacoInstance>;
+  monaco: null | Monaco;
   loadMonaco: () => Promise<void>;
   scenarioVars: RouterOutputs["scenarioVars"]["list"];
   updateScenariosModel: () => void;
   setScenarioVars: (scenarioVars: RouterOutputs["scenarioVars"]["list"]) => void;
+  editorOptionsMap: Record<string, EditorOptions>;
+  updateOptionsForEditor: (uiId: string, { getContent, setContent }: EditorOptions) => void;
 };
 
 export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = (set, get) => ({
@@ -92,5 +102,11 @@ export const createVariantEditorSlice: SliceCreator<SharedVariantEditorSlice> = 
         monaco.Uri.parse("file:///scenarios.ts"),
       );
     }
+  },
+  editorOptionsMap: {},
+  updateOptionsForEditor: (uiId, options) => {
+    set((state) => {
+      state.sharedVariantEditor.editorOptionsMap[uiId] = options;
+    });
   },
 });

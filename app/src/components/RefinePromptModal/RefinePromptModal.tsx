@@ -1,3 +1,4 @@
+import { useState, useMemo, useCallback } from "react";
 import {
   Button,
   Modal,
@@ -9,22 +10,23 @@ import {
   ModalOverlay,
   VStack,
   Text,
-  Spinner,
   HStack,
   Icon,
   SimpleGrid,
 } from "@chakra-ui/react";
 import { BsStars } from "react-icons/bs";
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
+import { useHandledAsyncCallback } from "~/utils/hooks";
 import { type PromptVariant } from "@prisma/client";
-import { useState } from "react";
+
 import CompareFunctions from "./CompareFunctions";
 import { CustomInstructionsInput } from "../CustomInstructionsInput";
 import { RefineAction } from "./RefineAction";
-import { isObject, isString } from "lodash-es";
+import { isString } from "lodash-es";
 import { type RefinementAction, type SupportedProvider } from "~/modelProviders/types";
 import frontendModelProviders from "~/modelProviders/frontendModelProviders";
+import { useAppStore } from "~/state/store";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
 export const RefinePromptModal = ({
   variant,
@@ -33,19 +35,23 @@ export const RefinePromptModal = ({
   variant: PromptVariant;
   onClose: () => void;
 }) => {
-  const utils = api.useContext();
-  const visibleScenarios = useVisibleScenarioIds();
+  const editorOptionsMap = useAppStore((s) => s.sharedVariantEditor.editorOptionsMap);
+  const originalPromptFn = useMemo(
+    () => editorOptionsMap[variant.uiId]?.getContent() || "",
+    [editorOptionsMap, variant.uiId],
+  );
 
   const refinementActions =
     frontendModelProviders[variant.modelProvider as SupportedProvider].refinementActions || {};
 
-  const { mutateAsync: getModifiedPromptMutateAsync, data: refinedPromptFn } =
+  const { mutateAsync: getModifiedPromptMutateAsync } =
     api.promptVariants.getModifiedPromptFn.useMutation();
   const [instructions, setInstructions] = useState<string>("");
 
   const [activeRefineActionLabel, setActiveRefineActionLabel] = useState<string | undefined>(
     undefined,
   );
+  const [refinedPromptFn, setRefinedPromptFn] = useState<string>();
 
   const [getModifiedPromptFn, modificationInProgress] = useHandledAsyncCallback(
     async (label?: string) => {
@@ -54,31 +60,22 @@ export const RefinePromptModal = ({
         ? (refinementActions[label] as RefinementAction).instructions
         : instructions;
       setActiveRefineActionLabel(label);
-      await getModifiedPromptMutateAsync({
+      const resp = await getModifiedPromptMutateAsync({
         id: variant.id,
+        originalPromptFn,
         instructions: updatedInstructions,
       });
+      if (maybeReportError(resp)) return;
+      setRefinedPromptFn(resp.payload);
     },
     [getModifiedPromptMutateAsync, onClose, variant, instructions, setActiveRefineActionLabel],
   );
 
-  const replaceVariantMutation = api.promptVariants.replaceVariant.useMutation();
-
-  const [replaceVariant, replacementInProgress] = useHandledAsyncCallback(async () => {
-    if (
-      !variant.experimentId ||
-      !refinedPromptFn ||
-      (isObject(refinedPromptFn) && "status" in refinedPromptFn)
-    )
-      return;
-    await replaceVariantMutation.mutateAsync({
-      id: variant.id,
-      promptConstructor: refinedPromptFn,
-      streamScenarios: visibleScenarios,
-    });
-    await utils.promptVariants.list.invalidate();
+  const replaceVariant = useCallback(() => {
+    if (!refinedPromptFn) return;
+    editorOptionsMap[variant.uiId]?.setContent(refinedPromptFn);
     onClose();
-  }, [replaceVariantMutation, variant, onClose, refinedPromptFn]);
+  }, [variant.uiId, editorOptionsMap, onClose, refinedPromptFn]);
 
   return (
     <Modal
@@ -126,7 +123,7 @@ export const RefinePromptModal = ({
               />
             </VStack>
             <CompareFunctions
-              originalFunction={variant.promptConstructor}
+              originalFunction={originalPromptFn}
               newFunction={isString(refinedPromptFn) ? refinedPromptFn : undefined}
               maxH="40vh"
             />
@@ -139,9 +136,9 @@ export const RefinePromptModal = ({
               colorScheme="blue"
               onClick={replaceVariant}
               minW={24}
-              isDisabled={replacementInProgress || !refinedPromptFn}
+              isDisabled={!refinedPromptFn}
             >
-              {replacementInProgress ? <Spinner boxSize={4} /> : <Text>Accept</Text>}
+              Accept
             </Button>
           </HStack>
         </ModalFooter>
