@@ -1,5 +1,5 @@
 {
-  "name": "openpipe",
+  "name": "openpipe2",
   "version": "0.1.0",
   "type": "module",
   "description": "Metrics and auto-evaluation for LLM calls",
@@ -7,8 +7,16 @@
     "build": "tsc",
     "test": "vitest"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/src/",
+    "./openai/*": "./src/openai/*",
+    "./lib/index": "./lib/index.js",
+    "./lib/index.js": "./lib/index.js",
+    "./feature": "./feature/index.js",
+    "./feature/index": "./feature/index.js",
+    "./feature/index.js": "./feature/index.js",
+    "./package.json": "./package.json"
+  },
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",

@@ -15,7 +15,11 @@
     "incremental": true,
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
+    "declaration": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

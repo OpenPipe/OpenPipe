@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import OpenAI, { type ClientOptions } from "openpipe/src/openai";
+import OpenAI, { type ClientOptions } from "openpipe2/openai";
 
 import { env } from "~/env.mjs";
 
