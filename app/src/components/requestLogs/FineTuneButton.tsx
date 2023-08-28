@@ -16,7 +16,7 @@ import {
   type UseDisclosureReturn,
   Input,
 } from "@chakra-ui/react";
-import { FaRobot } from "react-icons/fa";
+import { AiTwotoneThunderbolt } from "react-icons/ai";
 import humanId from "human-id";
 import { useRouter } from "next/router";
 
@@ -39,7 +39,7 @@ const FineTuneButton = () => {
       <ActionButton
         onClick={disclosure.onOpen}
         label="Fine Tune"
-        icon={FaRobot}
+        icon={AiTwotoneThunderbolt}
         isDisabled={selectedLogIds.size === 0}
       />
       <FineTuneModal disclosure={disclosure} />
@@ -90,7 +90,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       <ModalContent w={1200}>
         <ModalHeader>
           <HStack>
-            <Icon as={FaRobot} />
+            <Icon as={AiTwotoneThunderbolt} />
             <Text>Fine Tune</Text>
           </HStack>
         </ModalHeader>

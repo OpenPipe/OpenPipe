@@ -16,7 +16,7 @@ import Link from "next/link";
 import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline } from "react-icons/io5";
 import { RiHome3Line, RiFlaskLine } from "react-icons/ri";
-import { FaRobot } from "react-icons/fa";
+import { AiOutlineThunderbolt } from "react-icons/ai";
 import { signIn, useSession } from "next-auth/react";
 import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
@@ -75,7 +75,7 @@ const NavSidebar = () => {
 
             <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" beta />
             <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" beta />
-            <IconLink icon={FaRobot} label="Fine Tunes" href="/fine-tunes" beta />
+            <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" beta />
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
             <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
               <Text
