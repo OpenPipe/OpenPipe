@@ -28,15 +28,15 @@ export async function deriveNewConstructFn(
     );
   }
   return dedent`
-    prompt = {
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "Return 'Hello, world!'",
-        }
-      ]
-    }`;
+  definePrompt("openai/ChatCompletion", {
+    model: "gpt-3.5-turbo-0613",
+    messages: [
+      {
+        role: "system",
+        content: \`Hello, world!\`,
+      },
+    ],
+  });`;
 }
 
 const NUM_RETRIES = 5;
