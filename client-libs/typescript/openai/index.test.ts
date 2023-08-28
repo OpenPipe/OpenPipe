@@ -80,6 +80,7 @@ test("bad call streaming", async () => {
       stream: true,
     });
   } catch (e) {
+    // @ts-expect-error need to check for error type
     await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
     expect(lastLogged?.modelResponse?.errorMessage).toEqual(
@@ -96,7 +97,9 @@ test("bad call", async () => {
       messages: [{ role: "system", content: "count to 10" }],
     });
   } catch (e) {
+    // @ts-expect-error need to check for error type
     assert("openpipe" in e);
+    // @ts-expect-error need to check for error type
     await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
     expect(lastLogged?.modelResponse?.errorMessage).toEqual(
@@ -120,7 +123,8 @@ test("caching", async () => {
 
   await completion.openpipe.reportingFinished;
   const firstLogged = await lastLoggedCall();
-  expect(completion.choices[0].message.content).toEqual(
+
+  expect(completion.choices[0]?.message.content).toEqual(
     firstLogged?.modelResponse?.respPayload.choices[0].message.content,
   );
 

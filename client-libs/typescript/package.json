@@ -1,21 +1,16 @@
 {
-  "name": "openpipe2",
-  "version": "0.1.0",
+  "name": "openpipe-dev",
+  "version": "0.3.0",
   "type": "module",
   "description": "Metrics and auto-evaluation for LLM calls",
   "scripts": {
-    "build": "tsc",
+    "build": "./build.sh",
     "test": "vitest"
   },
-  "exports": {
-    ".": "./dist/src/",
-    "./openai/*": "./src/openai/*",
-    "./lib/index": "./lib/index.js",
-    "./lib/index.js": "./lib/index.js",
-    "./feature": "./feature/index.js",
-    "./feature/index": "./feature/index.js",
-    "./feature/index.js": "./feature/index.js",
-    "./package.json": "./package.json"
+  "main": "./index.ts",
+  "publishConfig": {
+    "access": "public",
+    "main": "./index.js"
   },
   "keywords": [],
   "author": "",
