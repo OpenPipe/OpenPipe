@@ -98,9 +98,7 @@ export const NewExperimentCard = () => {
     >
       <VStack align="center" justify="center" w="full" h="full" p={4} onClick={createExperiment}>
         <Icon as={isLoading ? Spinner : BsPlusSquare} boxSize={8} />
-        <Text display={{ base: "none", md: "block" }} ml={2}>
-          New Experiment
-        </Text>
+        <Text ml={2}>New Experiment</Text>
       </VStack>
     </Card>
   );

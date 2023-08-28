@@ -1,3 +1,4 @@
+import { useState, useMemo, useCallback } from "react";
 import {
   Button,
   HStack,
@@ -14,16 +15,18 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { type PromptVariant } from "@prisma/client";
-import { isObject, isString } from "lodash-es";
-import { useState } from "react";
+import { isString } from "lodash-es";
 import { RiExchangeFundsFill } from "react-icons/ri";
+
 import { type ProviderModel } from "~/modelProviders/types";
 import { api } from "~/utils/api";
-import { useExperiment, useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
+import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { lookupModel, modelLabel } from "~/utils/utils";
 import CompareFunctions from "../RefinePromptModal/CompareFunctions";
 import { ModelSearch } from "./ModelSearch";
 import { ModelStatsCard } from "./ModelStatsCard";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { useAppStore } from "~/state/store";
 
 export const ChangeModelModal = ({
   variant,
@@ -32,48 +35,43 @@ export const ChangeModelModal = ({
   variant: PromptVariant;
   onClose: () => void;
 }) => {
+  const editorOptionsMap = useAppStore((s) => s.sharedVariantEditor.editorOptionsMap);
+  const originalPromptFn = useMemo(
+    () => editorOptionsMap[variant.uiId]?.getContent() || "",
+    [editorOptionsMap, variant.uiId],
+  );
+
   const originalModel = lookupModel(variant.modelProvider, variant.model);
   const [selectedModel, setSelectedModel] = useState({
     provider: variant.modelProvider,
     model: variant.model,
   } as ProviderModel);
   const [convertedModel, setConvertedModel] = useState<ProviderModel | undefined>();
-  const visibleScenarios = useVisibleScenarioIds();
-
-  const utils = api.useContext();
+  const [modifiedPromptFn, setModifiedPromptFn] = useState<string>();
 
   const experiment = useExperiment();
 
-  const { mutateAsync: getModifiedPromptMutateAsync, data: modifiedPromptFn } =
+  const { mutateAsync: getModifiedPromptMutateAsync } =
     api.promptVariants.getModifiedPromptFn.useMutation();
 
   const [getModifiedPromptFn, modificationInProgress] = useHandledAsyncCallback(async () => {
     if (!experiment) return;
 
-    await getModifiedPromptMutateAsync({
+    const resp = await getModifiedPromptMutateAsync({
       id: variant.id,
+      originalPromptFn,
       newModel: selectedModel,
     });
+    if (maybeReportError(resp)) return;
+    setModifiedPromptFn(resp.payload);
     setConvertedModel(selectedModel);
   }, [getModifiedPromptMutateAsync, onClose, experiment, variant, selectedModel]);
 
-  const replaceVariantMutation = api.promptVariants.replaceVariant.useMutation();
-
-  const [replaceVariant, replacementInProgress] = useHandledAsyncCallback(async () => {
-    if (
-      !variant.experimentId ||
-      !modifiedPromptFn ||
-      (isObject(modifiedPromptFn) && "status" in modifiedPromptFn)
-    )
-      return;
-    await replaceVariantMutation.mutateAsync({
-      id: variant.id,
-      promptConstructor: modifiedPromptFn,
-      streamScenarios: visibleScenarios,
-    });
-    await utils.promptVariants.list.invalidate();
+  const replaceVariant = useCallback(() => {
+    if (!modifiedPromptFn) return;
+    editorOptionsMap[variant.uiId]?.setContent(modifiedPromptFn);
     onClose();
-  }, [replaceVariantMutation, variant, onClose, modifiedPromptFn]);
+  }, [variant.uiId, editorOptionsMap, onClose, modifiedPromptFn]);
 
   const originalLabel = modelLabel(variant.modelProvider, variant.model);
   const selectedLabel = modelLabel(selectedModel.provider, selectedModel.model);
@@ -130,9 +128,9 @@ export const ChangeModelModal = ({
               colorScheme="blue"
               onClick={replaceVariant}
               minW={24}
-              isDisabled={!convertedModel || modificationInProgress || replacementInProgress}
+              isDisabled={!convertedModel || modificationInProgress}
             >
-              {replacementInProgress ? <Spinner boxSize={4} /> : <Text>Accept</Text>}
+              Accept
             </Button>
           </HStack>
         </ModalFooter>
