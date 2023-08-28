@@ -17,9 +17,14 @@ export default function ExperimentCard({ experiment }) {
     setAnchorEl(null);
   };
 
-  const handleDelete = () => {
-    deleteExperiment(experiment.id);
-    handleClose();
+  const handleDelete = async () => {
+    try {
+      await deleteExperiment(experiment?.id);
+      handleClose();
+    } catch (error) {
+      console.error('Deletion failed:', error);
+      // Notify the user about the deletion failure
+    }
   };
 
   return (
