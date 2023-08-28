@@ -13,6 +13,11 @@ import { useExperiments } from "~/utils/hooks";
 export default function ExperimentsPage() {
   const experiments = useExperiments();
 
+  const deleteExperiment = (id) => {
+    const updatedExperiments = experiments.data.filter((exp) => exp.id !== id);
+    experiments.setData(updatedExperiments);
+  };
+
   return (
     <AppShell title="Experiments" requireAuth>
       <PageHeaderContainer>
@@ -30,7 +35,7 @@ export default function ExperimentsPage() {
       <SimpleGrid w="full" columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={8} py="4" px={8}>
         <NewExperimentCard />
         {experiments.data && !experiments.isLoading ? (
-          experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} />)
+          experiments?.data?.map((exp) => <ExperimentCard key={exp.id} exp={exp} onDelete={deleteExperiment} />)
         ) : (
           <>
             <ExperimentCardSkeleton />
