@@ -2,3 +2,4 @@ axolotl/
 models/
 data/
 wandb/
+cache/
