@@ -1,14 +1,17 @@
 {
-  "name": "openpipe",
-  "version": "0.1.0",
+  "name": "openpipe-dev",
+  "version": "0.3.3",
   "type": "module",
   "description": "Metrics and auto-evaluation for LLM calls",
   "scripts": {
-    "build": "tsc",
+    "build": "./build.sh",
     "test": "vitest"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./index.ts",
+  "publishConfig": {
+    "access": "public",
+    "main": "./index.js"
+  },
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",

@@ -2,7 +2,7 @@
 import { isArray, isString } from "lodash-es";
 import { APIError } from "openai";
 import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
-import mergeChunks from "openpipe/src/openai/mergeChunks";
+import mergeChunks from "openpipe/openai/mergeChunks";
 import { openai } from "~/server/utils/openai";
 import { type CompletionResponse } from "../types";
 
