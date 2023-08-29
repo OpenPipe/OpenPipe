@@ -10,8 +10,18 @@ mkdir /tmp/openpipe-build-dist
 
 cp -rp * /tmp/openpipe-build-dist
 
+# Rename package name in package.json
+python3 -c "
+import json
+with open('/tmp/openpipe-build-dist/package.json', 'r') as f:
+    data = json.load(f)
+data['name'] = 'openpipe'
+with open('/tmp/openpipe-build-dist/package.json', 'w') as f:
+    json.dump(data, f, indent=4)
+"
+
+rm -rf /tmp/openpipe-build-dist/node_modules
 mv /tmp/openpipe-build-dist dist
-rm -rf dist/node_modules
 
 # build to .js files
 (cd dist && npm exec tsc -- --noEmit false)
