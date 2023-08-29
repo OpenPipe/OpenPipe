@@ -1,3 +1,4 @@
+import { type MouseEvent, useState } from "react";
 import {
   HStack,
   Icon,
@@ -8,17 +9,29 @@ import {
   AspectRatio,
   SkeletonText,
   Card,
+  useDisclosure,
+  Box,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+  useToast,
 } from "@chakra-ui/react";
 import { RiFlaskLine } from "react-icons/ri";
-import { formatTimePast } from "~/utils/dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { BsPlusSquare } from "react-icons/bs";
-import { RouterOutputs, api } from "~/utils/api";
+import { BsPlusSquare, BsThreeDotsVertical, BsLink45Deg, BsTrash } from "react-icons/bs";
+
+import { formatTimePast } from "~/utils/dayjs";
+import { type RouterOutputs, api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
+import DeleteExperimentDialog from "./DeleteExperimentDialog";
 
 export const ExperimentCard = ({ exp }: { exp: RouterOutputs["experiments"]["list"][0] }) => {
+  const [isMenuHovered, setIsMenuHovered] = useState(false);
+
   return (
     <Card
       w="full"
@@ -27,7 +40,7 @@ export const ExperimentCard = ({ exp }: { exp: RouterOutputs["experiments"]["lis
       p={4}
       bg="white"
       borderRadius={4}
-      _hover={{ bg: "gray.100" }}
+      _hover={{ bg: isMenuHovered ? undefined : "gray.100" }}
       transition="background 0.2s"
       aspectRatio={1.2}
     >
@@ -38,9 +51,17 @@ export const ExperimentCard = ({ exp }: { exp: RouterOutputs["experiments"]["lis
         href={{ pathname: "/experiments/[experimentSlug]", query: { experimentSlug: exp.slug } }}
         justify="space-between"
       >
-        <HStack w="full" color="gray.700" justify="center">
-          <Icon as={RiFlaskLine} boxSize={4} />
-          <Text fontWeight="bold">{exp.label}</Text>
+        <HStack w="full" justify="space-between" spacing={0}>
+          <Box w={6} />
+          <HStack color="gray.700" justify="center">
+            <Icon as={RiFlaskLine} boxSize={4} />
+            <Text fontWeight="bold">{exp.label}</Text>
+          </HStack>
+          <CardMenu
+            experimentId={exp.id}
+            experimentSlug={exp.slug}
+            setIsMenuHovered={setIsMenuHovered}
+          />
         </HStack>
         <HStack h="full" spacing={4} flex={1} align="center">
           <CountLabel label="Variants" count={exp.promptVariantCount} />
@@ -54,6 +75,75 @@ export const ExperimentCard = ({ exp }: { exp: RouterOutputs["experiments"]["lis
         </HStack>
       </VStack>
     </Card>
+  );
+};
+
+const CardMenu = ({
+  experimentId,
+  experimentSlug,
+  setIsMenuHovered,
+}: {
+  experimentId: string;
+  experimentSlug: string;
+  setIsMenuHovered: (isHovered: boolean) => void;
+}) => {
+  const deleteDisclosure = useDisclosure();
+  const menuDisclosure = useDisclosure();
+  const toast = useToast();
+  const [copyShareLink] = useHandledAsyncCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      if (typeof window === "undefined") return;
+      e.preventDefault();
+      e.stopPropagation();
+      const shareLink = `${window.location.origin}/experiments/${experimentSlug}`;
+      await navigator.clipboard.writeText(shareLink);
+      toast({
+        title: "Share link copied to clipboard",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+      menuDisclosure.onClose();
+    },
+    [toast, menuDisclosure.onClose, experimentSlug],
+  );
+  return (
+    <>
+      <Menu isLazy {...menuDisclosure}>
+        <MenuButton
+          as={IconButton}
+          aria-label="Options"
+          icon={<BsThreeDotsVertical />}
+          variant="ghost"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            menuDisclosure.onOpen();
+          }}
+          onMouseEnter={() => setIsMenuHovered(true)}
+          onMouseLeave={() => setIsMenuHovered(false)}
+          boxSize={6}
+          minW={0}
+        />
+        <MenuList>
+          <MenuItem icon={<Icon as={BsLink45Deg} boxSize={5} />} onClick={copyShareLink}>
+            Copy Link
+          </MenuItem>
+          <MenuItem
+            icon={<Icon as={BsTrash} boxSize={5} />}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              deleteDisclosure.onOpen();
+            }}
+            color="red.500"
+          >
+            Delete
+          </MenuItem>
+        </MenuList>
+      </Menu>
+      <DeleteExperimentDialog experimentId={experimentId} disclosure={deleteDisclosure} />
+    </>
   );
 };
 

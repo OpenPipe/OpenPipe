@@ -14,22 +14,24 @@ import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 
 const DeleteExperimentDialog = ({
-  disclosure,
-  onDelete,
   experimentId,
+  onDelete,
+  disclosure,
 }: {
-  disclosure: UseDisclosureReturn;
-  onDelete: () => void;
   experimentId?: string;
+  onDelete?: () => void;
+  disclosure: UseDisclosureReturn;
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const mutation = api.experiments.delete.useMutation();
+  const utils = api.useContext();
 
   const [onDeleteConfirm] = useHandledAsyncCallback(async () => {
     if (!experimentId) return;
     await mutation.mutateAsync({ id: experimentId });
-    onDelete();
+    await utils.experiments.list.invalidate();
+    onDelete?.();
 
     disclosure.onClose();
   }, [mutation, experimentId, disclosure.onClose]);
