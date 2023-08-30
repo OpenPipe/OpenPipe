@@ -27,7 +27,7 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 <br>
 
 
-## 🪛 Features
+## Features
 
  * <b>Experiment</b>
    * Bulk-test wide-reaching scenarios using code templating.
