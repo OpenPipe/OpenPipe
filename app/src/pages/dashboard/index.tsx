@@ -33,7 +33,7 @@ export default function Dashboard() {
   );
 
   return (
-    <AppShell title="Dashboard" requireAuth requireBeta>
+    <AppShell title="Dashboard" requireAuth>
       <VStack px={8} py={8} alignItems="flex-start" spacing={4}>
         <Text fontSize="2xl" fontWeight="bold">
           Dashboard

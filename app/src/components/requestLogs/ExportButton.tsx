@@ -47,6 +47,7 @@ const ExportButton = () => {
         label="Export"
         icon={BiExport}
         isDisabled={selectedLogIds.size === 0}
+        requireBeta
       />
       <ExportLogsModal disclosure={disclosure} />
     </>

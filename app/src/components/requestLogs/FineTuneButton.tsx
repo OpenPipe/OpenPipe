@@ -41,6 +41,7 @@ const FineTuneButton = () => {
         label="Fine Tune"
         icon={AiTwotoneThunderbolt}
         isDisabled={selectedLogIds.size === 0}
+        requireBeta
       />
       <FineTuneModal disclosure={disclosure} />
     </>
