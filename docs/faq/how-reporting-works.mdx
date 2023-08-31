@@ -1,0 +1,23 @@
+---
+title: "How reporting works"
+description: "Our SDK wraps calls and forwards requests"
+---
+
+### Does reporting calls add latency to streamed requests?
+
+Streamed requests won't have any added latency. The SDK forwards each streamed token as it's received from the server while
+simultaneously collecting it in the response it will report to your OpenPipe instance once the entire response has been received.
+
+#### Your OpenAI key never leaves your machine.
+
+Calls to OpenAI are carried out by our SDK **on your machine**, meaning that your API key is secure, and you'll
+continue getting uninterrupted inference even if your OpenPipe instance goes down.
+
+## <br />
+
+### Want to dig deeper? Take a peek in our open-source code.
+
+We benefit from a growing community of developers and customers who are
+dedicated to improving the OpenPipe experience. Our [open source repo](https://github.com/openpipe/openpipe)
+is an opportunity for developers to confirm the quality of our offering
+and to make improvements when they can.

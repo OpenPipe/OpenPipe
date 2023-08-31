@@ -3,6 +3,7 @@
 This client allows you automatically report your OpenAI calls to [OpenPipe](https://openpipe.ai/). OpenPipe
 
 ## Installation
+
 `pip install openpipe`
 
 ## Usage
@@ -15,7 +16,7 @@ This client allows you automatically report your OpenAI calls to [OpenPipe](http
 from openpipe import openai, configure_openpipe
 import os
 
-# Set the OpenPipe API key you got in step (3) above.
+# Set the OpenPipe API key you got in step (2) above.
 # If you have the `OPENPIPE_API_KEY` environment variable set we'll read from it by default.
 configure_openpipe(api_key=os.getenv("OPENPIPE_API_KEY"))
 
