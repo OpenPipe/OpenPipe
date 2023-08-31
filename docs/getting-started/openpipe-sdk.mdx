@@ -1,0 +1,114 @@
+---
+title: "Installing the SDK"
+---
+
+Use the OpenPipe SDK as a drop-in replacement for the generic OpenAI package. We currently support logging OpenAI calls and support for more LLM providers will be added soon.
+
+<Tabs>
+  <Tab title="Python">
+
+Find the SDK at https://pypi.org/project/openpipe/
+
+## Simple Integration
+
+Add `OPENPIPE_API_KEY` to your environment variables.
+
+```bash
+export OPENPIPE_API_KEY=opk-<your-api-key>
+# Or you can set it in your code, as shown in the example below
+```
+
+Replace this line
+
+```python
+from openai import openai
+```
+
+with this one
+
+```python
+from openpipe import openai
+```
+
+## Adding Searchable Tags
+
+OpenPipe has a concept of "tagging." This is very useful for grouping a certain set of completions together.
+When you're using a dataset for fine-tuning, you can select all the prompts that match a certain set of tags. Here's how you can use the tagging feature:
+
+```python
+from openpipe import openai, configure_openpipe
+import os
+
+# If you have the `OPENPIPE_API_KEY` environment variable set
+# we'll read from it by default.
+configure_openpipe(api_key=os.getenv("OPENPIPE_API_KEY"))
+
+# Configure OpenAI the same way you would normally
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+completion = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "system", "content": "count to 10"}],
+    openpipe={"tags": {"prompt_id": "counting", "any_key": "any_value"}},
+)
+
+```
+
+  </Tab>
+  <Tab title="NodeJS">
+
+Find the SDK at https://www.npmjs.com/package/openpipe
+
+## Simple Integration
+
+Add `OPENPIPE_API_KEY` to your environment variables.
+
+```bash
+export OPENPIPE_API_KEY=opk-<your-api-key>
+# Or you can set it in your code, as shown in the example below
+```
+
+Replace this line
+
+```typescript
+import OpenAI from "openai";
+```
+
+with this one
+
+```typescript
+import OpenAI from "openpipe/openai";
+```
+
+## Adding Searchable Tags
+
+OpenPipe has a concept of "tagging." This is very useful for grouping a certain set of completions together.
+When you're using a dataset for fine-tuning, you can select all the prompts that match a certain set of tags. Here's how you can use the tagging feature:
+
+```typescript
+// Fully compatible with original OpenAI initialization
+const openai = new OpenAI({
+  apiKey: "my api key", // defaults to process.env["OPENAI_API_KEY"]
+  // openpipe key is optional
+  openpipe: {
+    apiKey: "my api key", // defaults to process.env["OPENPIPE_API_KEY"]
+    baseUrl: "my url", // defaults to process.env["OPENPIPE_BASE_URL"] or https://app.openpipe.ai/api/v1 if not set
+  },
+});
+
+const completion = await openai.chat.completions.create({
+  messages: [{ role: "user", content: "Count to 10" }],
+  model: "gpt-3.5-turbo",
+  // optional
+  openpipe: {
+    // Add custom searchable tags
+    tags: {
+      prompt_id: "counting",
+      any_key: "any_value",
+    },
+  },
+});
+```
+
+  </Tab>
+</Tabs>

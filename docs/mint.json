@@ -1,0 +1,65 @@
+{
+  "name": "OpenPipe",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.webp",
+  "colors": {
+    "primary": "#FF5733",
+    "light": "#FF5733",
+    "dark": "#FF5733"
+  },
+  "modeToggle": {
+    "default": "light"
+  },
+  "topbarCtaButton": {
+    "name": "Sign In",
+    "url": "https://app.openpipe.ai"
+  },
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/openpipe/openpipe"
+    }
+  ],
+  "feedback": {
+    "suggestEdit": true,
+    "raiseIssue": true
+  },
+  "navigation": [
+    {
+      "group": "Welcome",
+      "pages": ["introduction", "overview"]
+    },
+    {
+      "group": "Getting Started",
+      "pages": ["getting-started/quick-start", "getting-started/openpipe-sdk"]
+    },
+    {
+      "group": "Features",
+      "pages": [
+        "features/log-search",
+        "features/exporting-data",
+        "features/fine-tuning",
+        "features/experiment-playground"
+      ]
+    },
+    {
+      "group": "FAQ",
+      "pages": ["faq/how-reporting-works"]
+    }
+  ],
+  "topbarLinks": [
+    {
+      "name": "Github",
+      "url": "https://github.com/OpenPipe/OpenPipe"
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/OpenPipeAI",
+    "linkedin": "https://www.linkedin.com/company/openpipe/about/",
+    "github": "https://github.com/OpenPipe/OpenPipe"
+  }
+}
