@@ -2,11 +2,12 @@ import { Card, CardHeader, Heading, Table, Tbody, HStack, Button, Text } from "@
 import { useState } from "react";
 import Link from "next/link";
 import { useLoggedCalls } from "~/utils/hooks";
-import { TableHeader, TableRow } from "../requestLogs/TableRow";
+import { EmptyTableRow, TableHeader, TableRow } from "../requestLogs/TableRow";
 
 export default function LoggedCallsTable() {
+  const { data: loggedCalls } = useLoggedCalls(false);
+
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const { data: loggedCalls } = useLoggedCalls();
 
   return (
     <Card width="100%" overflow="hidden">
@@ -23,22 +24,26 @@ export default function LoggedCallsTable() {
       <Table>
         <TableHeader />
         <Tbody>
-          {loggedCalls?.calls.map((loggedCall) => {
-            return (
-              <TableRow
-                key={loggedCall.id}
-                loggedCall={loggedCall}
-                isExpanded={loggedCall.id === expandedRow}
-                onToggle={() => {
-                  if (loggedCall.id === expandedRow) {
-                    setExpandedRow(null);
-                  } else {
-                    setExpandedRow(loggedCall.id);
-                  }
-                }}
-              />
-            );
-          })}
+          {loggedCalls?.calls.length ? (
+            loggedCalls?.calls.map((loggedCall) => {
+              return (
+                <TableRow
+                  key={loggedCall.id}
+                  loggedCall={loggedCall}
+                  isExpanded={loggedCall.id === expandedRow}
+                  onToggle={() => {
+                    if (loggedCall.id === expandedRow) {
+                      setExpandedRow(null);
+                    } else {
+                      setExpandedRow(loggedCall.id);
+                    }
+                  }}
+                />
+              );
+            })
+          ) : (
+            <EmptyTableRow filtersApplied={false} />
+          )}
         </Tbody>
       </Table>
     </Card>

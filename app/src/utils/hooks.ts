@@ -148,13 +148,13 @@ export const useScenarioVars = () => {
   );
 };
 
-export const useLoggedCalls = () => {
+export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
   const filters = useAppStore((state) => state.logFilters.filters);
 
   const { data, isLoading, ...rest } = api.loggedCalls.list.useQuery(
-    { projectId: selectedProjectId ?? "", page, pageSize, filters },
+    { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? filters : [] },
     { enabled: !!selectedProjectId },
   );
 

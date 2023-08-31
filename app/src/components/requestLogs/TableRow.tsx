@@ -13,6 +13,7 @@ import {
   ButtonGroup,
   Text,
   Checkbox,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import Link from "next/link";
 
@@ -196,5 +197,43 @@ export const TableRow = ({
         </Td>
       </Tr>
     </>
+  );
+};
+
+export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: boolean }) => {
+  const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
+  const filters = useAppStore((state) => state.logFilters.filters);
+  const { isLoading } = useLoggedCalls();
+
+  if (isLoading) return null;
+
+  if (filters.length && filtersApplied) {
+    return (
+      <Tr>
+        <Td w="full" colSpan={visibleColumns.size + 1}>
+          <Text color="gray.500" textAlign="center" w="full" p={4}>
+            No matching request logs found. Try removing some filters.
+          </Text>
+        </Td>
+      </Tr>
+    );
+  }
+
+  return (
+    <Tr>
+      <Td w="full" colSpan={visibleColumns.size + 1}>
+        <Text color="gray.500" textAlign="center" w="full" p={4}>
+          This project has no request logs. Learn how to add request logs to your project in our{" "}
+          <ChakraLink
+            href="https://docs.openpipe.ai/getting-started/quick-start"
+            target="_blank"
+            color="blue.600"
+          >
+            Quick Start
+          </ChakraLink>{" "}
+          guide.
+        </Text>
+      </Td>
+    </Tr>
   );
 };
