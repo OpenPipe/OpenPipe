@@ -40,10 +40,10 @@
     {
       "group": "Features",
       "pages": [
-        "features/log-search",
+        "features/log-filters",
         "features/exporting-data",
         "features/fine-tuning",
-        "features/experiment-playground"
+        "features/experiments"
       ]
     },
     {
