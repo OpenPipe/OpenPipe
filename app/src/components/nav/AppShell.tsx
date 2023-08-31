@@ -17,6 +17,7 @@ import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline } from "react-icons/io5";
 import { RiHome3Line, RiFlaskLine } from "react-icons/ri";
 import { AiOutlineThunderbolt } from "react-icons/ai";
+import { FaReadme } from "react-icons/fa";
 import { signIn, useSession } from "next-auth/react";
 import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
@@ -111,7 +112,22 @@ const NavSidebar = () => {
           </NavSidebarOption>
         )}
       </VStack>
-
+      <HStack
+        w="full"
+        px={{ base: 2, md: 4 }}
+        py={{ base: 1, md: 2 }}
+        as={ChakraLink}
+        justifyContent="start"
+        href="https://docs.openpipe.ai"
+        target="_blank"
+        color="gray.500"
+        spacing={1}
+      >
+        <Icon as={FaReadme} boxSize={4} mr={2} />
+        <Text fontWeight="bold" fontSize="sm">
+          Read the Docs
+        </Text>
+      </HStack>
       <Divider />
       <VStack spacing={0} align="center">
         <ChakraLink
