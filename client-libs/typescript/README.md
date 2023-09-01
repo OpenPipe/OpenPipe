@@ -59,11 +59,11 @@ main();
 
 ## FAQ
 
-<i>How do I report calls to my self-hosted instance?</i>
+#### <i>How do I report calls to my self-hosted instance?</i>
 
 Start an instance by following the instructions on [Running Locally](https://github.com/OpenPipe/OpenPipe#running-locally). Once it's running, point your `OPENPIPE_BASE_URL` to your self-hosted instance.
 
-<i>What if my `OPENPIPE_BASE_URL` is misconfigured or my instance goes down? Will my OpenAI calls stop working?</i>
+#### <i>What if my `OPENPIPE_BASE_URL` is misconfigured or my instance goes down? Will my OpenAI calls stop working?</i>
 
 Your OpenAI calls will continue to function as expected no matter what. The sdk handles logging errors gracefully without affecting OpenAI inference.
 
