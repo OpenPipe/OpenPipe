@@ -13,15 +13,18 @@ import {
 } from "@chakra-ui/react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline } from "react-icons/io5";
 import { RiHome3Line, RiFlaskLine } from "react-icons/ri";
 import { AiOutlineThunderbolt } from "react-icons/ai";
+import { FaReadme } from "react-icons/fa";
 import { signIn, useSession } from "next-auth/react";
+
 import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
 import IconLink from "./IconLink";
-import { BetaModal } from "./BetaModal";
+import { BetaModal } from "../BetaModal";
 import { useAppStore } from "~/state/store";
 
 const Divider = () => <Box h="1px" bgColor="gray.300" w="full" />;
@@ -73,8 +76,8 @@ const NavSidebar = () => {
             <ProjectMenu />
             <Divider />
 
-            <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" beta />
-            <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" beta />
+            <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" />
+            <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" />
             <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" beta />
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
             <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
@@ -111,7 +114,22 @@ const NavSidebar = () => {
           </NavSidebarOption>
         )}
       </VStack>
-
+      <HStack
+        w="full"
+        px={{ base: 2, md: 4 }}
+        py={{ base: 1, md: 2 }}
+        as={ChakraLink}
+        justifyContent="start"
+        href="https://docs.openpipe.ai"
+        target="_blank"
+        color="gray.500"
+        spacing={1}
+      >
+        <Icon as={FaReadme} boxSize={4} mr={2} />
+        <Text fontWeight="bold" fontSize="sm">
+          Read the Docs
+        </Text>
+      </HStack>
       <Divider />
       <VStack spacing={0} align="center">
         <ChakraLink
@@ -140,6 +158,7 @@ export default function AppShell({
   requireBeta?: boolean;
 }) {
   const [vh, setVh] = useState("100vh"); // Default height to prevent flicker on initial render
+  const router = useRouter();
 
   useEffect(() => {
     const setHeight = () => {
@@ -181,7 +200,7 @@ export default function AppShell({
           {children}
         </Box>
       </Flex>
-      {requireBeta && flagsLoaded && !flags.betaAccess && <BetaModal />}
+      <BetaModal isOpen={!!requireBeta && flagsLoaded && !flags.betaAccess} onClose={router.back} />
     </>
   );
 }

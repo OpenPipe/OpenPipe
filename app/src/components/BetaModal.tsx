@@ -13,19 +13,17 @@ import {
   Link,
 } from "@chakra-ui/react";
 import { BsStars } from "react-icons/bs";
-import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 
-export const BetaModal = () => {
-  const router = useRouter();
+export const BetaModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const session = useSession();
 
   const email = session.data?.user.email ?? "";
 
   return (
     <Modal
-      isOpen
-      onClose={router.back}
+      isOpen={isOpen}
+      onClose={onClose}
       closeOnOverlayClick={false}
       size={{ base: "xl", md: "2xl" }}
     >
@@ -56,7 +54,7 @@ export const BetaModal = () => {
             >
               Join Waitlist
             </Button>
-            <Button colorScheme="blue" onClick={router.back}>
+            <Button colorScheme="blue" onClick={onClose}>
               Done
             </Button>
           </HStack>
