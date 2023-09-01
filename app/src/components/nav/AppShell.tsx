@@ -116,8 +116,8 @@ const NavSidebar = () => {
       </VStack>
       <HStack
         w="full"
-        px={{ base: 2, md: 4 }}
-        py={{ base: 1, md: 2 }}
+        px={{ base: 3, md: 4 }}
+        py={{ base: 0, md: 1 }}
         as={ChakraLink}
         justifyContent="start"
         href="https://docs.openpipe.ai"
@@ -126,8 +126,8 @@ const NavSidebar = () => {
         spacing={1}
       >
         <Icon as={FaReadme} boxSize={4} mr={2} />
-        <Text fontWeight="bold" fontSize="sm">
-          Read the Docs
+        <Text fontWeight="bold" fontSize="sm" display={{ base: "none", md: "flex" }}>
+          Open Documentation
         </Text>
       </HStack>
       <Divider />
