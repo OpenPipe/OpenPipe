@@ -57,6 +57,7 @@ export default function ProjectMenu() {
     await utils.projects.list.invalidate();
     setSelectedProjectId(newProj.id);
     await router.push({ pathname: "/project/settings" });
+    popover.onClose();
   }, [createMutation, router]);
 
   const user = useSession().data;

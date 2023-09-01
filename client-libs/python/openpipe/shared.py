@@ -6,11 +6,9 @@ from openpipe.api_client.client import AuthenticatedClient
 from openpipe.api_client.models.report_json_body_tags import (
     ReportJsonBodyTags,
 )
-import toml
 import time
 import os
-
-version = toml.load("pyproject.toml")["tool"]["poetry"]["version"]
+import pkg_resources
 
 configured_client = AuthenticatedClient(
     base_url="https://app.openpipe.ai/api/v1", token=""
@@ -23,7 +21,7 @@ if os.environ.get("OPENPIPE_API_KEY"):
 def _get_tags(openpipe_options):
     tags = openpipe_options.get("tags") or {}
     tags["$sdk"] = "python"
-    tags["$sdk.version"] = version
+    tags["$sdk.version"] = pkg_resources.get_distribution('openpipe').version
 
     return ReportJsonBodyTags.from_dict(tags)
 

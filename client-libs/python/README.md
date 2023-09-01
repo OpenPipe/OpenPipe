@@ -24,7 +24,7 @@ configure_openpipe(api_key=os.getenv("OPENPIPE_API_KEY"))
 openai.api_key = os.getenv("OPENAI_API_KEY")
 ```
 
-You can use the OpenPipe client for normal
+You can now use your new OpenAI client, which functions identically to the generic OpenAI client while also reporting calls to your OpenPipe instance.
 
 ## Special Features
 
