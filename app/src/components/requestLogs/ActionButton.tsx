@@ -8,10 +8,15 @@ import { BetaModal } from "../BetaModal";
 const ActionButton = ({
   icon,
   label,
-  onClick,
   requireBeta = false,
+  onClick,
   ...buttonProps
-}: { icon: IconType; label: string; onClick: () => void; requireBeta?: boolean } & ButtonProps) => {
+}: {
+  icon: IconType;
+  label: string;
+  requireBeta?: boolean;
+  onClick?: () => void;
+} & ButtonProps) => {
   const flags = useAppStore((s) => s.featureFlags.featureFlags);
   const flagsLoaded = useAppStore((s) => s.featureFlags.flagsLoaded);
 
