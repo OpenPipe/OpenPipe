@@ -1,27 +1,41 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { success } from "~/utils/errorHandling/standardResponses";
 
 export const datasetsRouter = createTRPCRouter({
-  list: publicProcedure.input(z.object({ projectId: z.string() })).query(async ({ input, ctx }) => {
-    await requireCanViewProject(input.projectId, ctx);
-
-    return await prisma.dataset.findMany({
-      where: {
-        projectId: input.projectId,
-      },
+  get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
+    const dataset = await prisma.dataset.findUniqueOrThrow({
+      where: { id: input.id },
       include: {
-        _count: {
-          select: {
-            datasetEntries: true,
+        project: true,
+      },
+    });
+
+    await requireCanViewProject(dataset.projectId, ctx);
+
+    return dataset;
+  }),
+  list: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewProject(input.projectId, ctx);
+
+      return await prisma.dataset.findMany({
+        where: {
+          projectId: input.projectId,
+        },
+        include: {
+          _count: {
+            select: {
+              datasetEntries: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-  }),
+        orderBy: { createdAt: "desc" },
+      });
+    }),
 
   create: protectedProcedure
     .input(
@@ -74,7 +88,7 @@ export const datasetsRouter = createTRPCRouter({
       });
       await requireCanModifyProject(projectId, ctx);
 
-      await prisma.evaluation.delete({
+      await prisma.dataset.delete({
         where: { id: input.id },
       });
 

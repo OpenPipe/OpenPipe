@@ -156,6 +156,16 @@ export const useDatasets = () => {
   );
 };
 
+export const useDataset = () => {
+  const router = useRouter();
+  const dataset = api.datasets.get.useQuery(
+    { id: router.query.id as string },
+    { enabled: !!router.query.id },
+  );
+
+  return dataset;
+};
+
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
