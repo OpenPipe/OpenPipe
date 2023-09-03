@@ -10,6 +10,10 @@ import {
 import { type APIClient } from "~/utils/api";
 import { type PersistedState, persistOptions } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
+import {
+  type SelectedDatasetEntriesSlice,
+  createSelectedDatasetEntriesSlice,
+} from "./selectedDatasetEntriesSlice";
 import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
 import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisiblitySlice";
 import { type FeatureFlagsSlice, createFeatureFlagsSlice } from "./featureFlags";
@@ -24,6 +28,7 @@ export type State = {
   selectedProjectId: string | null;
   setSelectedProjectId: (id: string) => void;
   selectedLogs: SelectedLogsSlice;
+  selectedDatasetEntries: SelectedDatasetEntriesSlice;
   logFilters: LogFiltersSlice;
   columnVisibility: ColumnVisibilitySlice;
   featureFlags: FeatureFlagsSlice;
@@ -50,6 +55,7 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
           state.selectedProjectId = id;
         }),
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),
+      selectedDatasetEntries: createSelectedDatasetEntriesSlice(set, get, ...rest),
       logFilters: createLogFiltersSlice(set, get, ...rest),
       columnVisibility: createColumnVisibilitySlice(set, get, ...rest),
       featureFlags: createFeatureFlagsSlice(set, get, ...rest),

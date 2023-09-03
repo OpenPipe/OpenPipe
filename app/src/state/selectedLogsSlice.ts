@@ -7,7 +7,7 @@ export type SelectedLogsSlice = {
   clearSelectedLogIds: () => void;
 };
 
-export const createSelectedLogsSlice: SliceCreator<SelectedLogsSlice> = (set, get) => ({
+export const createSelectedLogsSlice: SliceCreator<SelectedLogsSlice> = (set) => ({
   selectedLogIds: new Set(),
   toggleSelectedLogId: (id: string) =>
     set((state) => {

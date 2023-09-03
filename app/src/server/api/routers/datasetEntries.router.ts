@@ -8,19 +8,40 @@ import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessCo
 import { error, success } from "~/utils/errorHandling/standardResponses";
 
 export const datasetEntriesRouter = createTRPCRouter({
-  list: publicProcedure.input(z.object({ datasetId: z.string() })).query(async ({ input, ctx }) => {
-    const { projectId } = await prisma.dataset.findUniqueOrThrow({
-      where: { id: input.datasetId },
-    });
-    await requireCanViewProject(projectId, ctx);
+  list: publicProcedure
+    .input(z.object({ datasetId: z.string(), page: z.number(), pageSize: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const { datasetId, page, pageSize } = input;
 
-    return await prisma.datasetEntry.findMany({
-      where: {
-        datasetId: input.datasetId,
-      },
-      orderBy: { createdAt: "asc" },
-    });
-  }),
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: { id: datasetId },
+      });
+      await requireCanViewProject(projectId, ctx);
+
+      const [entries, matchingEntries] = await prisma.$transaction([
+        prisma.datasetEntry.findMany({
+          where: {
+            datasetId: datasetId,
+          },
+          orderBy: { createdAt: "asc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.datasetEntry.findMany({
+          where: {
+            datasetId: datasetId,
+          },
+          select: {
+            id: true,
+          },
+        }),
+      ]);
+
+      return {
+        entries,
+        matchingEntryIds: matchingEntries.map((entry) => entry.id),
+      };
+    }),
 
   create: protectedProcedure
     .input(
