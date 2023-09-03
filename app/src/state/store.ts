@@ -18,9 +18,6 @@ enableMapSet();
 
 export type State = {
   isRehydrated: boolean;
-  drawerOpen: boolean;
-  openDrawer: () => void;
-  closeDrawer: () => void;
   api: APIClient | null;
   setApi: (api: APIClient) => void;
   sharedVariantEditor: SharedVariantEditorSlice;
@@ -45,15 +42,6 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
       setApi: (api) =>
         set((state) => {
           state.api = api;
-        }),
-      drawerOpen: false,
-      openDrawer: () =>
-        set((state) => {
-          state.drawerOpen = true;
-        }),
-      closeDrawer: () =>
-        set((state) => {
-          state.drawerOpen = false;
         }),
       sharedVariantEditor: createVariantEditorSlice(set, get, ...rest),
       selectedProjectId: null,

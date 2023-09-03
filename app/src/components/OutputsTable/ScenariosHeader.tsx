@@ -19,15 +19,13 @@ import {
   useScenarios,
 } from "~/utils/hooks";
 import { BsGear, BsPencil, BsPlus, BsStars } from "react-icons/bs";
-import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
 
 export const ActionButton = (props: ButtonProps) => (
   <Button size="sm" variant="ghost" color="gray.600" {...props} />
 );
 
-export const ScenariosHeader = () => {
-  const openDrawer = useAppStore((s) => s.openDrawer);
+export const ScenariosHeader = ({ openDrawer }: { openDrawer: () => void }) => {
   const { canModify } = useExperimentAccess();
   const scenarios = useScenarios();
 

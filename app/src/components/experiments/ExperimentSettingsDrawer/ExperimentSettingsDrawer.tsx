@@ -7,18 +7,19 @@ import {
   DrawerOverlay,
   Heading,
   VStack,
+  type UseDisclosureReturn,
 } from "@chakra-ui/react";
-import EditScenarioVars from "../OutputsTable/EditScenarioVars";
-import EditEvaluations from "../OutputsTable/EditEvaluations";
-import { useAppStore } from "~/state/store";
+import EditScenarioVars from "./EditScenarioVars";
+import EditEvaluations from "./EditEvaluations";
 import { DeleteButton } from "./DeleteButton";
 
-export default function ExperimentSettingsDrawer() {
-  const isOpen = useAppStore((state) => state.drawerOpen);
-  const closeDrawer = useAppStore((state) => state.closeDrawer);
-
+export default function ExperimentSettingsDrawer({
+  disclosure,
+}: {
+  disclosure: UseDisclosureReturn;
+}) {
   return (
-    <Drawer isOpen={isOpen} placement="right" onClose={closeDrawer} size="md">
+    <Drawer placement="right" size="md" {...disclosure}>
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton />
@@ -31,7 +32,7 @@ export default function ExperimentSettingsDrawer() {
               <EditScenarioVars />
               <EditEvaluations />
             </VStack>
-            <DeleteButton />
+            <DeleteButton closeDrawer={disclosure.onClose} />
           </VStack>
         </DrawerBody>
       </DrawerContent>

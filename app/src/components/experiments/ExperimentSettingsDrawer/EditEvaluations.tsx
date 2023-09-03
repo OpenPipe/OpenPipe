@@ -19,7 +19,7 @@ import { useCallback, useState } from "react";
 import { BsPencil, BsX } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
-import AutoResizeTextArea from "../AutoResizeTextArea";
+import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 
 type EvalValues = Pick<Evaluation, "label" | "value" | "evalType">;
 

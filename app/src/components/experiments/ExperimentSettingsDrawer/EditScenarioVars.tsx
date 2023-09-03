@@ -5,7 +5,7 @@ import { BsPencil, BsX } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback, useScenarioVars } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { FloatingLabelInput } from "./FloatingLabelInput";
+import { FloatingLabelInput } from "~/components/OutputsTable/FloatingLabelInput";
 
 export const ScenarioVar = ({
   variable,

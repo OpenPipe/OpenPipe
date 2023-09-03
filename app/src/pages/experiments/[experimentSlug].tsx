@@ -8,26 +8,25 @@ import {
   Input,
   Text,
   VStack,
+  useDisclosure,
 } from "@chakra-ui/react";
 import Link from "next/link";
 
-import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { RiFlaskLine } from "react-icons/ri";
 import OutputsTable from "~/components/OutputsTable";
-import ExperimentSettingsDrawer from "~/components/ExperimentSettingsDrawer/ExperimentSettingsDrawer";
+import ExperimentSettingsDrawer from "~/components/experiments/ExperimentSettingsDrawer/ExperimentSettingsDrawer";
+import { ExperimentHeaderButtons } from "~/components/experiments/ExperimentHeaderButtons/ExperimentHeaderButtons";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { useSyncVariantEditor } from "~/state/sync";
-import { ExperimentHeaderButtons } from "~/components/experiments/ExperimentHeaderButtons/ExperimentHeaderButtons";
 import Head from "next/head";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 
 export default function Experiment() {
-  const router = useRouter();
   const utils = api.useContext();
   useSyncVariantEditor();
 
@@ -44,6 +43,7 @@ export default function Experiment() {
     useAppStore.getState().sharedVariantEditor.loadMonaco().catch(console.error);
   }, []);
 
+  const drawerDisclosure = useDisclosure();
   const [label, setLabel] = useState(experiment.data?.label || "");
   useEffect(() => {
     setLabel(experiment.data?.label || "");
@@ -121,9 +121,9 @@ export default function Experiment() {
                 )}
               </BreadcrumbItem>
             </Breadcrumb>
-            <ExperimentHeaderButtons />
+            <ExperimentHeaderButtons openDrawer={drawerDisclosure.onOpen} />
           </PageHeaderContainer>
-          <ExperimentSettingsDrawer />
+          <ExperimentSettingsDrawer disclosure={drawerDisclosure} />
           <Box w="100%" overflowX="auto" flex={1} id="output-container">
             <OutputsTable experimentId={experiment.data?.id} />
           </Box>
