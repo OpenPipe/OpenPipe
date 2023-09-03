@@ -196,6 +196,11 @@ model DatasetEntry {
     loggedCallId String @db.Uuid
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
+    input        Json
+    output       Json?
+    inputTokens  Int
+    outputTokens Int
+
     datasetId String   @db.Uuid
     dataset   Dataset? @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 

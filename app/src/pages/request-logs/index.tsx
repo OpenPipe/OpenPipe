@@ -12,6 +12,7 @@ import LogFilters from "~/components/requestLogs/LogFilters/LogFilters";
 import ColumnVisiblityDropdown from "~/components/requestLogs/ColumnVisiblityDropdown";
 import FineTuneButton from "~/components/requestLogs/FineTuneButton";
 import ExportButton from "~/components/requestLogs/ExportButton";
+import AddToDatasetButton from "~/components/requestLogs/AddToDatasetButton";
 
 export default function LoggedCalls() {
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
@@ -37,6 +38,7 @@ export default function LoggedCalls() {
               isDisabled={selectedLogIds.size === 0}
               requireBeta
             />
+            <AddToDatasetButton />
             <ExportButton />
             <ColumnVisiblityDropdown />
             <ActionButton

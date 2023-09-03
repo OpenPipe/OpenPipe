@@ -81,7 +81,7 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
       return;
     const response = await exportLogsMutation.mutateAsync({
       projectId: selectedProjectId,
-      selectedLogIds: Array.from(selectedLogIds),
+      loggedCallIds: Array.from(selectedLogIds),
       testingSplit,
       selectedExportFormat,
       removeDuplicates,

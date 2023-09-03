@@ -148,6 +148,14 @@ export const useScenarioVars = () => {
   );
 };
 
+export const useDatasets = () => {
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  return api.datasets.list.useQuery(
+    { projectId: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId },
+  );
+};
+
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();

@@ -189,7 +189,7 @@ export const loggedCallsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        selectedLogIds: z.string().array(),
+        loggedCallIds: z.string().array(),
         testingSplit: z.number(),
         selectedExportFormat: z.string(),
         removeDuplicates: z.boolean(),
@@ -203,7 +203,7 @@ export const loggedCallsRouter = createTRPCRouter({
         where: {
           originalLoggedCall: {
             projectId: input.projectId,
-            id: { in: input.selectedLogIds },
+            id: { in: input.loggedCallIds },
           },
           statusCode: 200,
         },
