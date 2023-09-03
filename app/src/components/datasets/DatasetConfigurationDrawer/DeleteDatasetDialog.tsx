@@ -27,7 +27,7 @@ const DeleteDatasetDialog = ({
   const mutation = api.datasets.delete.useMutation();
   const utils = api.useContext();
 
-  const [onDeleteConfirm] = useHandledAsyncCallback(async () => {
+  const [onDeleteConfirm, deletionInProgress] = useHandledAsyncCallback(async () => {
     if (!datasetId) return;
     await mutation.mutateAsync({ id: datasetId });
     await utils.datasets.list.invalidate();
@@ -55,7 +55,12 @@ const DeleteDatasetDialog = ({
             <Button ref={cancelRef} onClick={disclosure.onClose}>
               Cancel
             </Button>
-            <Button colorScheme="red" onClick={onDeleteConfirm} ml={3}>
+            <Button
+              colorScheme="red"
+              isLoading={deletionInProgress}
+              onClick={onDeleteConfirm}
+              ml={3}
+            >
               Delete
             </Button>
           </AlertDialogFooter>

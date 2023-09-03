@@ -27,7 +27,7 @@ const DeleteExperimentDialog = ({
   const mutation = api.experiments.delete.useMutation();
   const utils = api.useContext();
 
-  const [onDeleteConfirm] = useHandledAsyncCallback(async () => {
+  const [onDeleteConfirm, deletionInProgress] = useHandledAsyncCallback(async () => {
     if (!experimentId) return;
     await mutation.mutateAsync({ id: experimentId });
     await utils.experiments.list.invalidate();
@@ -53,7 +53,12 @@ const DeleteExperimentDialog = ({
             <Button ref={cancelRef} onClick={disclosure.onClose}>
               Cancel
             </Button>
-            <Button colorScheme="red" onClick={onDeleteConfirm} ml={3}>
+            <Button
+              colorScheme="red"
+              isLoading={deletionInProgress}
+              onClick={onDeleteConfirm}
+              ml={3}
+            >
               Delete
             </Button>
           </AlertDialogFooter>

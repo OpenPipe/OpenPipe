@@ -72,7 +72,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
   useEffect(() => {
     if (disclosure.isOpen) {
       setSelectedDatasetOption(existingDatasetOptions?.[0]);
-      setCreateNewDataset(!existingDatasetOptions?.length);
+      setCreateNewDataset(!existingDatasetOptions[0]?.id);
     }
   }, [disclosure.isOpen, existingDatasetOptions]);
 
@@ -148,7 +148,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
                     isChecked={createNewDataset}
                     onChange={(e) => setCreateNewDataset(e.target.checked)}
                     paddingLeft={4}
-                    isDisabled={!existingDatasetOptions?.length}
+                    isDisabled={!existingDatasetOptions[0]?.id}
                   >
                     <Text>Create New Dataset</Text>
                   </Checkbox>
