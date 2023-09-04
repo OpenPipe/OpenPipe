@@ -59,7 +59,7 @@ export type ModelProvider<SupportedModels extends string, InputSchema, OutputSch
   ) => Promise<CompletionResponse<OutputSchema>>;
   getUsage: (
     input: InputSchema,
-    output: OutputSchema,
+    output?: OutputSchema,
   ) => { gpuRuntime?: number; inputTokens?: number; outputTokens?: number; cost?: number } | null;
 
   // This is just a convenience for type inference, don't use it at runtime
