@@ -64,7 +64,10 @@ const FunctionCallEditor = ({
         return false;
       };
 
-      editor.onDidBlurEditorText(attemptDocumentFormat);
+      editor.onDidBlurEditorText(() => {
+        attemptDocumentFormat();
+        onEdit({ name: function_call.name, arguments: editor.getValue() });
+      });
 
       // Interval function to check for action availability
       const checkForActionInterval = setInterval(() => {
@@ -88,7 +91,7 @@ const FunctionCallEditor = ({
         editor?.dispose();
       };
     }
-  }, [monaco, editorId, function_call.arguments]);
+  }, [monaco, editorId, function_call.name, function_call.arguments, onEdit]);
 
   return (
     <VStack w="full" alignItems="flex-start">
