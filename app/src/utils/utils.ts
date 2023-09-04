@@ -37,5 +37,18 @@ export const parseableToFunctionCall = (str: string) => {
     return false;
   }
 
+  // Check if the "arguments" value is parseable to an object
+  let parsedArguments: unknown;
+  try {
+    parsedArguments = JSON.parse(parsedJSON["arguments"]);
+  } catch {
+    return false;
+  }
+
+  // Check if parsedArguments is an object and not null
+  if (typeof parsedArguments !== "object" || parsedArguments === null) {
+    return false;
+  }
+
   return true;
 };

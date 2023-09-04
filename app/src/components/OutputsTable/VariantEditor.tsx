@@ -132,6 +132,7 @@ export default function VariantEditor(props: { variant: PromptVariant }) {
         wordWrapBreakBeforeCharacters: "",
         quickSuggestions: true,
         readOnly: !canModify,
+        scrollBeyondLastLine: false,
       });
 
       updateOptionsForEditor(props.variant.uiId, {

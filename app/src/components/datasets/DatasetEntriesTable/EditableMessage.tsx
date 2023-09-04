@@ -5,6 +5,7 @@ import { BsX } from "react-icons/bs";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import InputDropdown from "~/components/InputDropdown";
 import { parseableToFunctionCall } from "~/utils/utils";
+import FunctionCallEditor from "./FunctionCallEditor";
 
 const MESSAGE_ROLE_OPTIONS = ["system", "user", "assistant", "function"] as const;
 const OUTPUT_OPTIONS = ["plaintext", "func_call"] as const;
@@ -35,7 +36,13 @@ const EditableMessage = ({
             <InputDropdown
               options={MESSAGE_ROLE_OPTIONS}
               selectedOption={role}
-              onSelect={(option) => onEdit({ role: option, content })}
+              onSelect={(option) => {
+                const updatedMessage = { role: option, content };
+                if (role === "assistant" && currentOutputOption === "func_call") {
+                  updatedMessage.content = JSON.stringify(function_call, null, 2);
+                }
+                onEdit(updatedMessage);
+              }}
               inputGroupProps={{ w: "32", bgColor: "orange.50" }}
             />
           )}
@@ -79,11 +86,18 @@ const EditableMessage = ({
           </HStack>
         )}
       </HStack>
-      <AutoResizeTextArea
-        value={content || JSON.stringify(function_call, null, 2)}
-        onChange={(e) => onEdit({ role, content: e.target.value })}
-        bgColor="orange.50"
-      />
+      {function_call ? (
+        <FunctionCallEditor
+          function_call={function_call}
+          onEdit={(function_call) => onEdit({ role, function_call, content: null })}
+        />
+      ) : (
+        <AutoResizeTextArea
+          value={content || JSON.stringify(function_call, null, 2)}
+          onChange={(e) => onEdit({ role, content: e.target.value })}
+          bgColor="orange.50"
+        />
+      )}
     </VStack>
   );
 };

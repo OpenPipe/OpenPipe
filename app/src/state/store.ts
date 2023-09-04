@@ -7,6 +7,10 @@ import {
   type SharedVariantEditorSlice,
   createVariantEditorSlice,
 } from "./sharedVariantEditor.slice";
+import {
+  type SharedArgumentsEditorSlice,
+  createArgumentsEditorSlice,
+} from "./sharedArgumentsEditor.slice";
 import { type APIClient } from "~/utils/api";
 import { type PersistedState, persistOptions } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
@@ -25,6 +29,7 @@ export type State = {
   api: APIClient | null;
   setApi: (api: APIClient) => void;
   sharedVariantEditor: SharedVariantEditorSlice;
+  sharedArgumentsEditor: SharedArgumentsEditorSlice;
   selectedProjectId: string | null;
   setSelectedProjectId: (id: string) => void;
   selectedLogs: SelectedLogsSlice;
@@ -49,6 +54,7 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
           state.api = api;
         }),
       sharedVariantEditor: createVariantEditorSlice(set, get, ...rest),
+      sharedArgumentsEditor: createArgumentsEditorSlice(set, get, ...rest),
       selectedProjectId: null,
       setSelectedProjectId: (id: string) =>
         set((state) => {

@@ -311,7 +311,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     outputTokens: 108,
     finishReason: "stop",
     tags: [
-      { name: "prompt_id", value: "chatcmpl-7" },
+      { name: "prompt_id", value: "define_func" },
       { name: "some_other_tag", value: "some_other_value" },
     ],
   },

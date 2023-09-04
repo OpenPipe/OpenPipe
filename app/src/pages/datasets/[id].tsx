@@ -21,6 +21,7 @@ import DatasetConfigurationDrawer from "~/components/datasets/DatasetConfigurati
 import { DatasetHeaderButtons } from "~/components/datasets/DatasetHeaderButtons";
 import DatasetEntriesTable from "~/components/datasets/DatasetEntriesTable/DatasetEntriesTable";
 import DatasetEntryPaginator from "~/components/datasets/DatasetEntryPaginator";
+import { useAppStore } from "~/state/store";
 
 export default function Dataset() {
   const utils = api.useContext();
@@ -32,6 +33,10 @@ export default function Dataset() {
   useEffect(() => {
     setName(dataset.data?.name || "");
   }, [dataset.data?.name]);
+
+  useEffect(() => {
+    useAppStore.getState().sharedArgumentsEditor.loadMonaco().catch(console.error);
+  }, []);
 
   const updateMutation = api.datasets.update.useMutation();
   const [onSaveName] = useHandledAsyncCallback(async () => {
