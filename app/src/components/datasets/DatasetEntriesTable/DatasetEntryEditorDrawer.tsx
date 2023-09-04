@@ -79,7 +79,7 @@ export default function DatasetDentryEditorDrawer({
         </DrawerHeader>
         <DrawerBody h="full" pb={4} bgColor="orange.50">
           <VStack h="full" justifyContent="space-between">
-            <VStack w="full" spacing={12}>
+            <VStack w="full" spacing={12} py={4}>
               <VStack w="full" alignItems="flex-start">
                 <Text fontWeight="bold">Input</Text>
                 {inputMessagesToSave.map((message, i) => {
@@ -121,6 +121,7 @@ export default function DatasetDentryEditorDrawer({
               </VStack>
               <VStack w="full" alignItems="flex-start">
                 <Text fontWeight="bold">Output</Text>
+                <Divider my={4} />
                 <EditableMessage
                   message={outputMessageToSave}
                   onEdit={(message) => setOutputMessageToSave(message)}

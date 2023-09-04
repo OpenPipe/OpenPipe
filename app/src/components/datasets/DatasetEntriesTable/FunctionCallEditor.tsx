@@ -44,16 +44,38 @@ const FunctionCallEditor = ({
 
       editorRef.current = editor;
 
-      // Interval function to check for action availability
-      const checkForActionInterval = setInterval(() => {
+      const updateHeight = () => {
+        const contentHeight = editor.getContentHeight();
+        container.style.height = `${contentHeight}px`;
+        editor.layout();
+      };
+
+      const attemptDocumentFormat = () => {
         const action = editor.getAction("editor.action.formatDocument");
         if (action) {
-          action.run().catch((error) => {
-            console.error("Error running formatDocument:", error);
-          });
+          action
+            .run()
+            .then(updateHeight)
+            .catch((error) => {
+              console.error("Error running formatDocument:", error);
+            });
+          return true;
+        }
+        return false;
+      };
+
+      editor.onDidBlurEditorText(attemptDocumentFormat);
+
+      // Interval function to check for action availability
+      const checkForActionInterval = setInterval(() => {
+        const formatted = attemptDocumentFormat();
+        if (formatted) {
           clearInterval(checkForActionInterval); // Clear the interval once the action is found and run
         }
       }, 100); // Check every 100ms
+
+      // Add content change listener
+      const contentChangeListener = editor.onDidChangeModelContent(updateHeight);
 
       const resizeObserver = new ResizeObserver(() => {
         editor.layout();
@@ -61,6 +83,7 @@ const FunctionCallEditor = ({
       resizeObserver.observe(container);
 
       return () => {
+        contentChangeListener.dispose();
         resizeObserver.disconnect();
         editor?.dispose();
       };
@@ -82,16 +105,16 @@ const FunctionCallEditor = ({
       <Text fontWeight="bold" w={32}>
         Arguments
       </Text>
-      <Box
-        id={editorId}
+      <VStack
         borderRadius={4}
         border="1px solid"
         borderColor="gray.200"
         w="full"
-        height={100}
-        resize="vertical"
-        overflow="auto"
-      />
+        py={1}
+        bgColor="white"
+      >
+        <Box id={editorId} w="full" />
+      </VStack>
     </VStack>
   );
 };
