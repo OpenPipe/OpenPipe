@@ -76,32 +76,36 @@ export default function DatasetDentryEditorDrawer({
         </DrawerHeader>
         <DrawerBody h="full" pb={4} bgColor="gray.100">
           <VStack h="full" justifyContent="space-between">
-            <VStack w="full" spacing={6} alignItems="flex-start">
-              <Text fontWeight="bold">Input:</Text>
-              {inputMessagesToSave.map((message, i) => {
-                return (
-                  <EditableMessage
-                    key={i}
-                    message={message}
-                    onEdit={(message) => {
-                      const newInputMessages = [...inputMessagesToSave];
-                      newInputMessages[i] = message;
-                      setInputMessagesToSave(newInputMessages);
-                    }}
-                    onDelete={() => {
-                      const newInputMessages = [...inputMessagesToSave];
-                      newInputMessages.splice(i, 1);
-                      setInputMessagesToSave(newInputMessages);
-                    }}
-                  />
-                );
-              })}
-              <Text fontWeight="bold">Output:</Text>
-              <EditableMessage
-                message={outputMessageToSave}
-                onEdit={(message) => setOutputMessageToSave(message)}
-                isOutput
-              />
+            <VStack w="full" spacing={12}>
+              <VStack w="full" alignItems="flex-start">
+                <Text fontWeight="bold">Input:</Text>
+                {inputMessagesToSave.map((message, i) => {
+                  return (
+                    <EditableMessage
+                      key={i}
+                      message={message}
+                      onEdit={(message) => {
+                        const newInputMessages = [...inputMessagesToSave];
+                        newInputMessages[i] = message;
+                        setInputMessagesToSave(newInputMessages);
+                      }}
+                      onDelete={() => {
+                        const newInputMessages = [...inputMessagesToSave];
+                        newInputMessages.splice(i, 1);
+                        setInputMessagesToSave(newInputMessages);
+                      }}
+                    />
+                  );
+                })}
+              </VStack>
+              <VStack w="full" alignItems="flex-start">
+                <Text fontWeight="bold">Output:</Text>
+                <EditableMessage
+                  message={outputMessageToSave}
+                  onEdit={(message) => setOutputMessageToSave(message)}
+                  isOutput
+                />
+              </VStack>
             </VStack>
           </VStack>
         </DrawerBody>

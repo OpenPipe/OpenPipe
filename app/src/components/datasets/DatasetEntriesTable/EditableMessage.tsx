@@ -29,7 +29,14 @@ const EditableMessage = ({
   const couldBeFunctionCall = !!function_call || (content && parseableToFunctionCall(content));
 
   return (
-    <VStack w="full">
+    <VStack
+      w="full"
+      bgColor="orange.50"
+      border="1px solid"
+      borderColor="gray.200"
+      borderRadius={4}
+      p={4}
+    >
       <HStack w="full" justifyContent="space-between">
         <HStack>
           {!isOutput && (
@@ -43,7 +50,7 @@ const EditableMessage = ({
                 }
                 onEdit(updatedMessage);
               }}
-              inputGroupProps={{ w: "32", bgColor: "orange.50" }}
+              inputGroupProps={{ w: "32", bgColor: "white" }}
             />
           )}
           {role === "assistant" && (
@@ -64,7 +71,7 @@ const EditableMessage = ({
                 console.log("updatedMessage", updatedMessage);
                 onEdit(updatedMessage);
               }}
-              inputGroupProps={{ w: "32", bgColor: "orange.50" }}
+              inputGroupProps={{ w: "32", bgColor: "white" }}
               isDisabled={!couldBeFunctionCall}
             />
           )}
@@ -95,7 +102,7 @@ const EditableMessage = ({
         <AutoResizeTextArea
           value={content || JSON.stringify(function_call, null, 2)}
           onChange={(e) => onEdit({ role, content: e.target.value })}
-          bgColor="orange.50"
+          bgColor="white"
         />
       )}
     </VStack>

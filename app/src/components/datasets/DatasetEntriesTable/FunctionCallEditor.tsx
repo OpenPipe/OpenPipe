@@ -68,17 +68,9 @@ const FunctionCallEditor = ({
   }, [monaco, editorId, function_call.arguments]);
 
   return (
-    <VStack
-      w="full"
-      alignItems="flex-start"
-      p={4}
-      bgColor="orange.50"
-      border="1px solid"
-      borderColor="gray.200"
-      borderRadius={4}
-    >
-      <HStack>
-        <Text fontWeight="bold" w={32}>
+    <VStack w="full" alignItems="flex-start">
+      <HStack w="full">
+        <Text fontWeight="bold" w={200}>
           Name:
         </Text>
         <Input
