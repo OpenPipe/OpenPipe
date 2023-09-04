@@ -41,6 +41,7 @@ export const TableHeader = () => {
         <Th>Created At</Th>
         <Th isNumeric>Input tokens</Th>
         <Th isNumeric>Output tokens</Th>
+        <Th isNumeric>Type</Th>
       </Tr>
     </Thead>
   );
@@ -69,9 +70,6 @@ export const TableRow = ({
       onClick={onToggle}
       key={datasetEntry.id}
       _hover={{ bgColor: "gray.50", cursor: "pointer" }}
-      sx={{
-        "> td": { borderBottom: "none" },
-      }}
       fontSize="sm"
     >
       {showOptions && (
@@ -88,6 +86,7 @@ export const TableRow = ({
       </Td>
       <Td isNumeric>{datasetEntry.inputTokens}</Td>
       <Td isNumeric>{datasetEntry.outputTokens}</Td>
+      <Td isNumeric>{datasetEntry.type}</Td>
     </Tr>
   );
 };

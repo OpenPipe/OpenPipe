@@ -179,16 +179,21 @@ model OutputEvaluation {
 model Dataset {
     id String @id @default(uuid()) @db.Uuid
 
-    name           String
-    datasetEntries DatasetEntry[]
-    trainingFineTunes      FineTune[] @relation("FineTuneTrainingDataset")
-    testingFineTunes       FineTune[] @relation("FineTuneTestingDataset")
+    name                String
+    datasetEntries      DatasetEntry[]
+    fineTunes           FineTune[]
+    trainingRatio  Float @default(0.8)
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+enum DatasetEntryType {
+    TRAIN
+    TEST
 }
 
 model DatasetEntry {
@@ -201,6 +206,8 @@ model DatasetEntry {
     output       Json?
     inputTokens  Int
     outputTokens Int
+
+    type DatasetEntryType
 
     datasetId String   @db.Uuid
     dataset   Dataset? @relation(fields: [datasetId], references: [id], onDelete: Cascade)
@@ -457,10 +464,8 @@ model FineTune {
     deploymentStartedAt  DateTime?
     deploymentFinishedAt DateTime?
 
-    trainingDatasetId String   @db.Uuid
-    trainingDataset   Dataset @relation(fields: [trainingDatasetId], references: [id], onDelete: Cascade, name: "FineTuneTrainingDataset")
-    testingDatasetId  String   @db.Uuid
-    testingDataset    Dataset @relation(fields: [testingDatasetId], references: [id], onDelete: Cascade, name: "FineTuneTestingDataset")
+    datasetId String   @db.Uuid
+    dataset    Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

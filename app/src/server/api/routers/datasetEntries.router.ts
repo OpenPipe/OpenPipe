@@ -85,11 +85,14 @@ export const datasetEntriesRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       let datasetId: string;
       const creationTransactions: Prisma.PrismaPromise<unknown>[] = [];
+      let trainingRatio = 0.8;
       if (input.datasetId) {
         datasetId = input.datasetId;
-        const { projectId } = await prisma.dataset.findUniqueOrThrow({
-          where: { id: input.datasetId },
-        });
+        const { projectId, trainingRatio: datasetTrainingRatio } =
+          await prisma.dataset.findUniqueOrThrow({
+            where: { id: input.datasetId },
+          });
+        trainingRatio = datasetTrainingRatio;
         await requireCanModifyProject(projectId, ctx);
       } else if (input.newDatasetParams) {
         await requireCanModifyProject(input.newDatasetParams.projectId, ctx);
@@ -153,6 +156,7 @@ export const datasetEntriesRouter = createTRPCRouter({
               output: output as unknown as Prisma.InputJsonValue,
               inputTokens: loggedCall.modelResponse?.inputTokens || 0,
               outputTokens: loggedCall.modelResponse?.outputTokens || 0,
+              type: Math.random() < trainingRatio ? "TRAIN" : "TEST",
             },
           }),
         );
@@ -169,6 +173,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         updates: z.object({
+          type: z.enum(["TRAIN", "TEST"]).optional(),
           input: z.string().optional(),
           output: z.string().optional(),
         }),
@@ -210,6 +215,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       await prisma.datasetEntry.update({
         where: { id: input.id },
         data: {
+          type: input.updates.type,
           input: parsedInput,
           output: parsedOutput,
           inputTokens,

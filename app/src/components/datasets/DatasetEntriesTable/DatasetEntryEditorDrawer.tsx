@@ -16,11 +16,13 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { type CreateChatCompletionRequestMessage } from "openai/resources/chat";
+import { BsPlus } from "react-icons/bs";
+import { type DatasetEntryType } from "@prisma/client";
 
 import { api } from "~/utils/api";
 import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EditableMessage from "./EditableMessage";
-import { BsPlus } from "react-icons/bs";
+import EntryTypeDropdown from "./EntryTypeDropdown";
 
 export default function DatasetDentryEditorDrawer({
   datasetEntryId,
@@ -69,13 +71,33 @@ export default function DatasetDentryEditorDrawer({
     await utils.datasetEntries.get.invalidate({ id: datasetEntryId });
   }, [updateMutation, datasetEntryId, inputMessagesToSave, outputMessageToSave, utils]);
 
+  const [onUpdateType] = useHandledAsyncCallback(
+    async (type: DatasetEntryType) => {
+      if (!datasetEntryId) return;
+      await updateMutation.mutateAsync({
+        id: datasetEntryId,
+        updates: {
+          type,
+        },
+      });
+      await utils.datasetEntries.list.invalidate();
+      await utils.datasetEntries.get.invalidate({ id: datasetEntryId });
+    },
+    [updateMutation, datasetEntryId, utils],
+  );
+
   return (
     <Drawer isOpen={!!datasetEntryId} onClose={clearDatasetEntryId} placement="right" size="md">
       <DrawerOverlay />
       <DrawerContent>
-        <DrawerCloseButton />
+        <DrawerCloseButton pt={6} />
         <DrawerHeader bgColor="orange.50">
-          <Heading size="md">Dataset Entry</Heading>
+          <HStack w="full" justifyContent="space-between" pr={8}>
+            <Heading size="md">Dataset Entry</Heading>
+            {datasetEntry && (
+              <EntryTypeDropdown type={datasetEntry.type} onTypeChange={onUpdateType} />
+            )}
+          </HStack>
         </DrawerHeader>
         <DrawerBody h="full" pb={4} bgColor="orange.50">
           <VStack h="full" justifyContent="space-between">

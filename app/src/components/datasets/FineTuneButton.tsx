@@ -20,7 +20,7 @@ import { AiTwotoneThunderbolt } from "react-icons/ai";
 import humanId from "human-id";
 import { useRouter } from "next/router";
 
-import { useHandledAsyncCallback } from "~/utils/hooks";
+import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "../ActionButton";
@@ -54,6 +54,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
   const clearSelectedIds = useAppStore((s) => s.selectedDatasetEntries.clearSelectedIds);
+  const dataset = useDataset().data;
 
   const [selectedBaseModel, setSelectedBaseModel] = useState(SUPPORTED_BASE_MODELS[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
@@ -71,12 +72,12 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const createFineTuneMutation = api.fineTunes.create.useMutation();
 
   const [createFineTune, creationInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId || !modelSlug || !selectedBaseModel || !selectedIds.size) return;
+    if (!selectedProjectId || !modelSlug || !selectedBaseModel || !selectedIds.size || !dataset)
+      return;
     await createFineTuneMutation.mutateAsync({
-      projectId: selectedProjectId,
       slug: modelSlug,
       baseModel: selectedBaseModel,
-      datasetEntryIds: Array.from(selectedIds),
+      datasetId: dataset.id,
     });
 
     await utils.fineTunes.list.invalidate();
@@ -99,7 +100,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              We'll train on 90% of the <b>{selectedIds.size}</b> logs you've selected.
+              We'll train on {100 * (dataset?.trainingRatio ?? 0.8)}% of the{" "}
+              <b>{selectedIds.size}</b> logs you've selected.
             </Text>
             <VStack>
               <HStack spacing={2} w="full">
