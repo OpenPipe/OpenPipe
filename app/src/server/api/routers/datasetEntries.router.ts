@@ -30,7 +30,7 @@ export const datasetEntriesRouter = createTRPCRouter({
           where: {
             datasetId: datasetId,
           },
-          orderBy: { createdAt: "asc" },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           skip: (page - 1) * pageSize,
           take: pageSize,
         }),
