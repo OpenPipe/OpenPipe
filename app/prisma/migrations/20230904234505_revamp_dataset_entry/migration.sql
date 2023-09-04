@@ -19,3 +19,6 @@ ADD COLUMN     "inputTokens" INTEGER NOT NULL,
 ADD COLUMN     "output" JSONB,
 ADD COLUMN     "outputTokens" INTEGER NOT NULL,
 ADD COLUMN     "type" "DatasetEntryType" NOT NULL;
+
+-- CreateIndex
+CREATE INDEX "DatasetEntry_datasetId_createdAt_id_idx" ON "DatasetEntry"("datasetId", "createdAt", "id");
