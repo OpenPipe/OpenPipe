@@ -70,7 +70,7 @@ const FunctionCallEditor = ({
   return (
     <VStack w="full" alignItems="flex-start">
       <HStack w="full">
-        <Text fontWeight="bold" w={200}>
+        <Text fontWeight="bold" w={192}>
           Name:
         </Text>
         <Input
