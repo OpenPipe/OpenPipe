@@ -93,17 +93,12 @@ export const promptVariantsRouter = createTRPCRouter({
           visible: true,
         },
       });
-      const outputCount = await prisma.scenarioVariantCell.count({
+      const finishedCount = await prisma.scenarioVariantCell.count({
         where: {
           promptVariantId: input.variantId,
           testScenario: { visible: true },
-          modelResponses: {
-            some: {
-              outdated: false,
-              respPayload: {
-                not: Prisma.AnyNull,
-              },
-            },
+          retrievalStatus: {
+            in: ["COMPLETE", "ERROR"],
           },
         },
       });
@@ -131,7 +126,7 @@ export const promptVariantsRouter = createTRPCRouter({
       const inputTokens = overallTokens._sum?.inputTokens ?? 0;
       const outputTokens = overallTokens._sum?.outputTokens ?? 0;
 
-      const awaitingCompletions = outputCount < scenarioCount;
+      const awaitingCompletions = finishedCount < scenarioCount;
 
       const awaitingEvals = !!evalResults.find(
         (result) => result.totalCount < scenarioCount * evals.length,
@@ -143,7 +138,7 @@ export const promptVariantsRouter = createTRPCRouter({
         outputTokens,
         overallCost: overallTokens._sum?.cost ?? 0,
         scenarioCount,
-        outputCount,
+        finishedCount,
         awaitingCompletions,
         awaitingEvals,
       };

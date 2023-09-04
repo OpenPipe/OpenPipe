@@ -20,7 +20,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
         inputTokens: 0,
         outputTokens: 0,
         scenarioCount: 0,
-        outputCount: 0,
+        finishedCount: 0,
         awaitingCompletions: false,
         awaitingEvals: false,
       },
@@ -42,7 +42,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
 
   const scale = chroma.scale([failColor, neutralColor, passColor]).domain([0, 0.5, 1]);
 
-  const showNumFinished = data.scenarioCount > 0 && data.scenarioCount !== data.outputCount;
+  const showNumFinished = data.scenarioCount > 0 && data.scenarioCount !== data.finishedCount;
 
   return (
     <HStack
@@ -55,7 +55,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
       <HStack px={cellPadding.x} flexWrap="wrap">
         {showNumFinished && (
           <Text>
-            {data.outputCount} / {data.scenarioCount}
+            {data.finishedCount} / {data.scenarioCount}
           </Text>
         )}
         {data.evalResults.map((result) => {
