@@ -78,7 +78,7 @@ const NavSidebar = () => {
 
             <IconLink icon={RiHome3Line} label="Dashboard" href="/dashboard" />
             <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" />
-            <IconLink icon={AiOutlineDatabase} label="Datasets" href="/datasets" />
+            <IconLink icon={AiOutlineDatabase} label="Datasets" href="/datasets" beta />
             <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" beta />
             <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" />
             <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
