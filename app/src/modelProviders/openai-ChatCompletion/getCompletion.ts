@@ -14,7 +14,7 @@ export async function getCompletion(
   let finalCompletion: ChatCompletion | null = null;
 
   try {
-    if (onStream) {
+    if (onStream && !input.function_call) {
       const resp = await openai.chat.completions.create(
         {
           ...input,
