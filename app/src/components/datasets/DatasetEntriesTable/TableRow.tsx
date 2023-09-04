@@ -115,9 +115,11 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
     <Tr>
       <Td w="full" colSpan={visibleColumns.size + 1}>
         <Text color="gray.500" textAlign="center" w="full" p={4}>
-          This dataset has no entries. Add some logs in the
+          This dataset has no entries. Add some logs in the{" "}
           <Link href="/request-logs">
-            <Text color="blue.600">Request Logs</Text>
+            <Text as="span" color="blue.600">
+              Request Logs
+            </Text>
           </Link>{" "}
           tab.
         </Text>
