@@ -6,6 +6,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanViewProject, requireCanModifyProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
+import { shuffle } from "lodash-es";
 
 export const fineTunesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -26,7 +27,16 @@ export const fineTunesRouter = createTRPCRouter({
           projectId,
         },
         include: {
-          dataset: {
+          trainingDataset: {
+            include: {
+              _count: {
+                select: {
+                  datasetEntries: true,
+                },
+              },
+            },
+          },
+          testingDataset: {
             include: {
               _count: {
                 select: {
@@ -56,7 +66,7 @@ export const fineTunesRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        selectedLogIds: z.array(z.string()),
+        datasetEntryIds: z.array(z.string()),
         slug: z.string(),
         baseModel: z.string(),
       }),
@@ -74,18 +84,66 @@ export const fineTunesRouter = createTRPCRouter({
         return error("A fine tune with that slug already exists");
       }
 
-      const newDatasetId = uuidv4();
+      const splitIndex = Math.floor(input.datasetEntryIds.length * 0.1);
 
-      const datasetEntriesToCreate: Prisma.DatasetEntryCreateManyDatasetInput[] =
-        input.selectedLogIds.map((loggedCallId) => ({
-          loggedCallId,
+      const shuffledIds = shuffle(input.datasetEntryIds);
+
+      const testingIds = shuffledIds.slice(0, splitIndex);
+      const trainingIds = shuffledIds.slice(splitIndex);
+
+      const [existingTestingEntries, existingTrainingEntries] = await prisma.$transaction([
+        prisma.datasetEntry.findMany({
+          where: {
+            id: {
+              in: testingIds,
+            },
+          },
+        }),
+        prisma.datasetEntry.findMany({
+          where: {
+            id: {
+              in: trainingIds,
+            },
+          },
+        }),
+      ]);
+      //   type Prisma.DatasetEntryCreateManyDatasetInput = {
+      //     id?: string | undefined;
+      //     loggedCallId: string;
+      //     input: Prisma.NullTypes.JsonNull | Prisma.InputJsonValue;
+      //     output?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined;
+      //     inputTokens: number;
+      //     outputTokens: number;
+      //     createdAt?: string | ... 1 more ... | undefined;
+      //     updatedAt?: string | ... 1 more ... | undefined;
+      // }
+
+      const testingEntriesToCreate: Prisma.DatasetEntryCreateManyDatasetInput[] =
+        existingTestingEntries.map((entry) => ({
+          loggedCallId: entry.loggedCallId,
+          input: entry.input as Prisma.InputJsonValue,
+          output: entry.output as Prisma.InputJsonValue,
+          inputTokens: entry.inputTokens,
+          outputTokens: entry.outputTokens,
         }));
+
+      const trainingEntriesToCreate: Prisma.DatasetEntryCreateManyDatasetInput[] =
+        existingTrainingEntries.map((entry) => ({
+          loggedCallId: entry.loggedCallId,
+          input: entry.input as Prisma.InputJsonValue,
+          output: entry.output as Prisma.InputJsonValue,
+          inputTokens: entry.inputTokens,
+          outputTokens: entry.outputTokens,
+        }));
+
+      const testingDatasetId = uuidv4();
+      const trainingDatasetId = uuidv4();
 
       await prisma.$transaction([
         prisma.dataset.create({
           data: {
-            id: newDatasetId,
-            name: input.slug,
+            id: testingDatasetId,
+            name: `${input.slug}-testing`,
             project: {
               connect: {
                 id: input.projectId,
@@ -93,7 +151,23 @@ export const fineTunesRouter = createTRPCRouter({
             },
             datasetEntries: {
               createMany: {
-                data: datasetEntriesToCreate,
+                data: testingEntriesToCreate,
+              },
+            },
+          },
+        }),
+        prisma.dataset.create({
+          data: {
+            id: trainingDatasetId,
+            name: `${input.slug}-training`,
+            project: {
+              connect: {
+                id: input.projectId,
+              },
+            },
+            datasetEntries: {
+              createMany: {
+                data: trainingEntriesToCreate,
               },
             },
           },
@@ -103,7 +177,8 @@ export const fineTunesRouter = createTRPCRouter({
             projectId: input.projectId,
             slug: input.slug,
             baseModel: input.baseModel,
-            datasetId: newDatasetId,
+            trainingDatasetId,
+            testingDatasetId,
           },
         }),
       ]);

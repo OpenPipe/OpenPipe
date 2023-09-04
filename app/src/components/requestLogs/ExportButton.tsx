@@ -28,7 +28,7 @@ import { BiExport } from "react-icons/bi";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import ActionButton from "./ActionButton";
+import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import InfoCircle from "../InfoCircle";

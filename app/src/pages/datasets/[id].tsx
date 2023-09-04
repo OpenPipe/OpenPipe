@@ -6,6 +6,7 @@ import {
   Icon,
   Input,
   VStack,
+  HStack,
   useDisclosure,
 } from "@chakra-ui/react";
 import Link from "next/link";
@@ -22,6 +23,8 @@ import { DatasetHeaderButtons } from "~/components/datasets/DatasetHeaderButtons
 import DatasetEntriesTable from "~/components/datasets/DatasetEntriesTable/DatasetEntriesTable";
 import DatasetEntryPaginator from "~/components/datasets/DatasetEntryPaginator";
 import { useAppStore } from "~/state/store";
+import FineTuneButton from "~/components/datasets/FineTuneButton";
+import ExperimentButton from "~/components/datasets/ExperimentButton";
 
 export default function Dataset() {
   const utils = api.useContext();
@@ -95,6 +98,10 @@ export default function Dataset() {
             <DatasetHeaderButtons openDrawer={drawerDisclosure.onOpen} />
           </PageHeaderContainer>
           <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
+            <HStack w="full" justifyContent="flex-end">
+              <FineTuneButton />
+              <ExperimentButton />
+            </HStack>
             <DatasetEntriesTable />
             <DatasetEntryPaginator />
           </VStack>

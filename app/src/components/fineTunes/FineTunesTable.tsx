@@ -19,7 +19,8 @@ const FineTunesTable = ({}) => {
               <Th>ID</Th>
               <Th>Created At</Th>
               <Th>Base Model</Th>
-              <Th>Dataset Size</Th>
+              <Th>Training Size</Th>
+              <Th>Testing Size</Th>
               <Th>Status</Th>
             </Tr>
           </Thead>
@@ -30,7 +31,8 @@ const FineTunesTable = ({}) => {
                   <Td>{fineTune.slug}</Td>
                   <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
                   <Td>{fineTune.baseModel}</Td>
-                  <Td>{fineTune.dataset._count.datasetEntries}</Td>
+                  <Td>{fineTune.trainingDataset._count.datasetEntries}</Td>
+                  <Td>{fineTune.testingDataset._count.datasetEntries}</Td>
                   <Td fontSize="sm" fontWeight="bold">
                     <Text color={getStatusColor(fineTune.status)}>{fineTune.status}</Text>
                   </Td>

@@ -125,7 +125,7 @@ export default function Experiment() {
           </PageHeaderContainer>
           <ExperimentSettingsDrawer disclosure={drawerDisclosure} />
           <Box w="100%" overflowX="auto" flex={1} id="output-container">
-            <OutputsTable experimentId={experiment.data?.id} />
+            <OutputsTable experimentId={experiment.data?.id} openDrawer={drawerDisclosure.onOpen} />
           </Box>
         </VStack>
       </AppShell>

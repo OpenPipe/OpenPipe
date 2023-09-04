@@ -23,7 +23,7 @@ import { FiPlusSquare } from "react-icons/fi";
 import { useDatasets, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import ActionButton from "./ActionButton";
+import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useRouter } from "next/router";
