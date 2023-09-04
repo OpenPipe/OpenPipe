@@ -137,6 +137,11 @@ export const datasetEntriesRouter = createTRPCRouter({
         const resp = loggedCall.modelResponse?.respPayload as unknown as ChatCompletion | undefined;
         if (resp && resp.choices?.[0]) {
           output = resp.choices[0].message;
+        } else {
+          output = {
+            role: "assistant",
+            content: "",
+          };
         }
 
         creationTransactions.push(
