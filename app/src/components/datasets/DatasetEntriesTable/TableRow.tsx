@@ -1,22 +1,8 @@
-import {
-  Box,
-  Heading,
-  Td,
-  Tr,
-  Thead,
-  Th,
-  Tooltip,
-  Collapse,
-  HStack,
-  VStack,
-  Text,
-  Checkbox,
-} from "@chakra-ui/react";
+import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox } from "@chakra-ui/react";
 import Link from "next/link";
 
 import dayjs from "~/utils/dayjs";
 import { type RouterOutputs } from "~/utils/api";
-import { FormattedJson } from "~/components/FormattedJson";
 import { useAppStore } from "~/state/store";
 import { useIsClientRehydrated, useDatasetEntries } from "~/utils/hooks";
 import { useMemo } from "react";
@@ -62,12 +48,10 @@ export const TableHeader = () => {
 
 export const TableRow = ({
   datasetEntry,
-  isExpanded,
   onToggle,
   showOptions,
 }: {
   datasetEntry: DatasetEntry;
-  isExpanded: boolean;
   onToggle: () => void;
   showOptions?: boolean;
 }) => {
@@ -81,48 +65,30 @@ export const TableRow = ({
   if (!isClientRehydrated) return null;
 
   return (
-    <>
-      <Tr
-        onClick={onToggle}
-        key={datasetEntry.id}
-        _hover={{ bgColor: "gray.50", cursor: "pointer" }}
-        sx={{
-          "> td": { borderBottom: "none" },
-        }}
-        fontSize="sm"
-      >
-        {showOptions && (
-          <Td>
-            <Checkbox isChecked={isChecked} onChange={() => toggleChecked(datasetEntry.id)} />
-          </Td>
-        )}
+    <Tr
+      onClick={onToggle}
+      key={datasetEntry.id}
+      _hover={{ bgColor: "gray.50", cursor: "pointer" }}
+      sx={{
+        "> td": { borderBottom: "none" },
+      }}
+      fontSize="sm"
+    >
+      {showOptions && (
         <Td>
-          <Tooltip label={fullTime} placement="top">
-            <Box whiteSpace="nowrap" minW="120px">
-              {createdAt}
-            </Box>
-          </Tooltip>
+          <Checkbox isChecked={isChecked} onChange={() => toggleChecked(datasetEntry.id)} />
         </Td>
-        <Td isNumeric>{datasetEntry.inputTokens}</Td>
-        <Td isNumeric>{datasetEntry.outputTokens}</Td>
-      </Tr>
-      <Tr>
-        <Td colSpan={4} w="full" p={0}>
-          <Collapse in={isExpanded} unmountOnExit={true}>
-            <HStack align="stretch" p={4}>
-              <VStack flex={1} align="stretch">
-                <Heading size="sm">Input</Heading>
-                <FormattedJson json={datasetEntry.input} />
-              </VStack>
-              <VStack flex={1} align="stretch">
-                <Heading size="sm">Output</Heading>
-                <FormattedJson json={datasetEntry.output} />
-              </VStack>
-            </HStack>
-          </Collapse>
-        </Td>
-      </Tr>
-    </>
+      )}
+      <Td>
+        <Tooltip label={fullTime} placement="top">
+          <Box whiteSpace="nowrap" minW="120px">
+            {createdAt}
+          </Box>
+        </Tooltip>
+      </Td>
+      <Td isNumeric>{datasetEntry.inputTokens}</Td>
+      <Td isNumeric>{datasetEntry.outputTokens}</Td>
+    </Tr>
   );
 };
 

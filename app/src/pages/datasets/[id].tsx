@@ -18,7 +18,7 @@ import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import DatasetConfigurationDrawer from "~/components/datasets/DatasetConfigurationDrawer/DatasetConfigurationDrawer";
-import { DatasetHeaderButtons } from "~/components/datasets/DatasetConfigurationDrawer/DatasetHeaderButtons";
+import { DatasetHeaderButtons } from "~/components/datasets/DatasetHeaderButtons";
 import DatasetEntriesTable from "~/components/datasets/DatasetEntriesTable/DatasetEntriesTable";
 import DatasetEntryPaginator from "~/components/datasets/DatasetEntryPaginator";
 
