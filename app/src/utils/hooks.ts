@@ -187,6 +187,10 @@ export const useDatasetEntries = () => {
   return { data: stableData, isLoading, ...rest };
 };
 
+export const useDatasetEntry = (entryId: string | null) => {
+  return api.datasetEntries.get.useQuery({ id: entryId as string }, { enabled: !!entryId });
+};
+
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();

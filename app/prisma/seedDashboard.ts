@@ -108,7 +108,7 @@ const MODEL_RESPONSE_TEMPLATES: {
     inputTokens: 236,
     outputTokens: 5,
     finishReason: "stop",
-    tags: [{ name: "prompt_id", value: "define_func" }],
+    tags: [{ name: "prompt_id", value: "add_scenario" }],
   },
   {
     reqPayload: {

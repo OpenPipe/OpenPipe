@@ -1,14 +1,21 @@
 import { type Prisma } from "@prisma/client";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import {
+  type ChatCompletion,
+  type CompletionCreateParams,
+  type CreateChatCompletionRequestMessage,
+} from "openai/resources/chat";
+import { TRPCError } from "@trpc/server";
 
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
+import { countOpenAIChatTokens } from "~/utils/countTokens";
 
 export const datasetEntriesRouter = createTRPCRouter({
-  list: publicProcedure
+  list: protectedProcedure
     .input(z.object({ datasetId: z.string(), page: z.number(), pageSize: z.number() }))
     .query(async ({ input, ctx }) => {
       const { datasetId, page, pageSize } = input;
@@ -42,7 +49,26 @@ export const datasetEntriesRouter = createTRPCRouter({
         matchingEntryIds: matchingEntries.map((entry) => entry.id),
       };
     }),
+  get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
+    const entry = await prisma.datasetEntry.findUniqueOrThrow({
+      where: { id: input.id },
+      include: {
+        dataset: true,
+      },
+    });
 
+    if (!entry.dataset) {
+      throw new TRPCError({ message: "Dataset not found for dataset entry", code: "NOT_FOUND" });
+    }
+
+    await requireCanViewProject(entry.dataset.projectId, ctx);
+
+    if (!entry) {
+      throw new TRPCError({ message: "Dataset entry not found", code: "NOT_FOUND" });
+    }
+
+    return entry;
+  }),
   create: protectedProcedure
     .input(
       z.object({
@@ -102,18 +128,30 @@ export const datasetEntriesRouter = createTRPCRouter({
         },
       });
 
-      creationTransactions.push(
-        prisma.datasetEntry.createMany({
-          data: loggedCalls.map((loggedCall) => ({
-            datasetId,
-            loggedCallId: loggedCall.id,
-            input: loggedCall.modelResponse?.reqPayload as Prisma.InputJsonValue,
-            output: loggedCall.modelResponse?.respPayload as Prisma.InputJsonValue,
-            inputTokens: loggedCall.modelResponse?.inputTokens || 0,
-            outputTokens: loggedCall.modelResponse?.outputTokens || 0,
-          })),
-        }),
-      );
+      for (const loggedCall of loggedCalls) {
+        if (!loggedCall.modelResponse) continue;
+        const inputMessages = (
+          loggedCall.modelResponse?.reqPayload as unknown as CompletionCreateParams
+        ).messages;
+        let output: ChatCompletion.Choice.Message | null = null;
+        const resp = loggedCall.modelResponse?.respPayload as unknown as ChatCompletion | undefined;
+        if (resp && resp.choices[0]) {
+          output = resp.choices[0].message;
+        }
+
+        creationTransactions.push(
+          prisma.datasetEntry.create({
+            data: {
+              datasetId,
+              loggedCallId: loggedCall.id,
+              input: inputMessages as unknown as Prisma.InputJsonValue,
+              output: output as unknown as Prisma.InputJsonValue,
+              inputTokens: loggedCall.modelResponse?.inputTokens || 0,
+              outputTokens: loggedCall.modelResponse?.outputTokens || 0,
+            },
+          }),
+        );
+      }
 
       // Ensure dataset and dataset entries are created atomically
       await prisma.$transaction(creationTransactions);
@@ -145,11 +183,32 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(dataset.projectId, ctx);
 
+      let parsedInput = undefined;
+      let inputTokens = undefined;
+      if (input.updates.input) {
+        parsedInput = JSON.parse(input.updates.input);
+        inputTokens = countOpenAIChatTokens(
+          "gpt-4-0613",
+          parsedInput as unknown as CreateChatCompletionRequestMessage[],
+        );
+      }
+
+      let parsedOutput = undefined;
+      let outputTokens = undefined;
+      if (input.updates.output) {
+        parsedOutput = JSON.parse(input.updates.output);
+        outputTokens = countOpenAIChatTokens("gpt-4-0613", [
+          parsedOutput as unknown as ChatCompletion.Choice.Message,
+        ]);
+      }
+
       await prisma.datasetEntry.update({
         where: { id: input.id },
         data: {
-          input: input.updates.input,
-          output: input.updates.output,
+          input: parsedInput,
+          output: parsedOutput,
+          inputTokens,
+          outputTokens,
         },
       });
 
