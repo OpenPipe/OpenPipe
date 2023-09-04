@@ -12,12 +12,15 @@ import {
   HStack,
   Button,
   Text,
+  Divider,
+  Icon,
 } from "@chakra-ui/react";
 import { type CreateChatCompletionRequestMessage } from "openai/resources/chat";
 
 import { api } from "~/utils/api";
 import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EditableMessage from "./EditableMessage";
+import { BsPlus } from "react-icons/bs";
 
 export default function DatasetDentryEditorDrawer({
   datasetEntryId,
@@ -71,35 +74,53 @@ export default function DatasetDentryEditorDrawer({
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton />
-        <DrawerHeader bgColor="gray.100">
+        <DrawerHeader bgColor="orange.50">
           <Heading size="md">Dataset Entry</Heading>
         </DrawerHeader>
-        <DrawerBody h="full" pb={4} bgColor="gray.100">
+        <DrawerBody h="full" pb={4} bgColor="orange.50">
           <VStack h="full" justifyContent="space-between">
             <VStack w="full" spacing={12}>
               <VStack w="full" alignItems="flex-start">
-                <Text fontWeight="bold">Input:</Text>
+                <Text fontWeight="bold">Input</Text>
                 {inputMessagesToSave.map((message, i) => {
                   return (
-                    <EditableMessage
-                      key={i}
-                      message={message}
-                      onEdit={(message) => {
-                        const newInputMessages = [...inputMessagesToSave];
-                        newInputMessages[i] = message;
-                        setInputMessagesToSave(newInputMessages);
-                      }}
-                      onDelete={() => {
-                        const newInputMessages = [...inputMessagesToSave];
-                        newInputMessages.splice(i, 1);
-                        setInputMessagesToSave(newInputMessages);
-                      }}
-                    />
+                    <>
+                      <Divider key={`divider-${i}`} my={4} />
+                      <EditableMessage
+                        key={i}
+                        message={message}
+                        onEdit={(message) => {
+                          const newInputMessages = [...inputMessagesToSave];
+                          newInputMessages[i] = message;
+                          setInputMessagesToSave(newInputMessages);
+                        }}
+                        onDelete={() => {
+                          const newInputMessages = [...inputMessagesToSave];
+                          newInputMessages.splice(i, 1);
+                          setInputMessagesToSave(newInputMessages);
+                        }}
+                      />
+                    </>
                   );
                 })}
+                <Divider my={4} />
+                <Button
+                  w="full"
+                  onClick={() =>
+                    setInputMessagesToSave([...inputMessagesToSave, { role: "user", content: "" }])
+                  }
+                  variant="outline"
+                  color="gray.500"
+                  _hover={{ bgColor: "orange.100" }}
+                >
+                  <HStack spacing={0}>
+                    <Text>Add Message</Text>
+                    <Icon as={BsPlus} boxSize={6} />
+                  </HStack>
+                </Button>
               </VStack>
               <VStack w="full" alignItems="flex-start">
-                <Text fontWeight="bold">Output:</Text>
+                <Text fontWeight="bold">Output</Text>
                 <EditableMessage
                   message={outputMessageToSave}
                   onEdit={(message) => setOutputMessageToSave(message)}
@@ -109,7 +130,7 @@ export default function DatasetDentryEditorDrawer({
             </VStack>
           </VStack>
         </DrawerBody>
-        <DrawerFooter bgColor="gray.100">
+        <DrawerFooter bgColor="orange.50">
           <HStack>
             <Button
               onClick={() => {
@@ -119,7 +140,7 @@ export default function DatasetDentryEditorDrawer({
             >
               Reset
             </Button>
-            <Button isLoading={savingInProgress} onClick={onSave}>
+            <Button isLoading={savingInProgress} onClick={onSave} colorScheme="orange">
               Save
             </Button>
           </HStack>
