@@ -26,17 +26,9 @@ const EditableMessage = ({
   const currentOutputOption: (typeof OUTPUT_OPTIONS)[number] = function_call
     ? "func_call"
     : "plaintext";
-  const couldBeFunctionCall = !!function_call || (content && parseableToFunctionCall(content));
 
   return (
-    <VStack
-      w="full"
-      bgColor="orange.50"
-      border="1px solid"
-      borderColor="gray.200"
-      borderRadius={4}
-      p={4}
-    >
+    <VStack w="full">
       <HStack w="full" justifyContent="space-between">
         <HStack>
           {!isOutput && (
@@ -65,14 +57,15 @@ const EditableMessage = ({
                 };
                 if (option === "plaintext") {
                   updatedMessage.content = JSON.stringify(function_call, null, 2);
-                } else if (option === "func_call" && content) {
-                  updatedMessage.function_call = JSON.parse(content);
+                } else if (option === "func_call") {
+                  updatedMessage.function_call =
+                    content && parseableToFunctionCall(content)
+                      ? JSON.parse(content)
+                      : { name: "", arguments: "{}" };
                 }
-                console.log("updatedMessage", updatedMessage);
                 onEdit(updatedMessage);
               }}
               inputGroupProps={{ w: "32", bgColor: "white" }}
-              isDisabled={!couldBeFunctionCall}
             />
           )}
         </HStack>

@@ -133,9 +133,9 @@ export const datasetEntriesRouter = createTRPCRouter({
         const inputMessages = (
           loggedCall.modelResponse?.reqPayload as unknown as CompletionCreateParams
         ).messages;
-        let output: ChatCompletion.Choice.Message | null = null;
+        let output: ChatCompletion.Choice.Message | undefined = undefined;
         const resp = loggedCall.modelResponse?.respPayload as unknown as ChatCompletion | undefined;
-        if (resp && resp.choices[0]) {
+        if (resp && resp.choices?.[0]) {
           output = resp.choices[0].message;
         }
 
