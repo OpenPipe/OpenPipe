@@ -202,7 +202,7 @@ model DatasetEntry {
     loggedCallId String @db.Uuid
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
-    input        Json
+    input        Json  @default("[]")
     output       Json?
     inputTokens  Int
     outputTokens Int
