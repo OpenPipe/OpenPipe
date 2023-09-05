@@ -13,40 +13,42 @@ import { api } from "~/utils/api";
 
 import { useHandledAsyncCallback } from "~/utils/hooks";
 
-const DeleteExperimentDialog = ({
-  experimentId,
+const DeleteDatasetDialog = ({
+  datasetId,
   onDelete,
   disclosure,
 }: {
-  experimentId?: string;
+  datasetId?: string;
   onDelete?: () => void;
   disclosure: UseDisclosureReturn;
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const mutation = api.experiments.delete.useMutation();
+  const mutation = api.datasets.delete.useMutation();
   const utils = api.useContext();
 
   const [onDeleteConfirm, deletionInProgress] = useHandledAsyncCallback(async () => {
-    if (!experimentId) return;
-    await mutation.mutateAsync({ id: experimentId });
-    await utils.experiments.list.invalidate();
+    if (!datasetId) return;
+    await mutation.mutateAsync({ id: datasetId });
+    await utils.datasets.list.invalidate();
     onDelete?.();
 
     disclosure.onClose();
-  }, [mutation, experimentId, disclosure.onClose]);
+  }, [mutation, datasetId, disclosure.onClose]);
+
+  console.log("dataset id", datasetId);
 
   return (
     <AlertDialog leastDestructiveRef={cancelRef} {...disclosure}>
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Delete Experiment
+            Delete Dataset
           </AlertDialogHeader>
 
           <AlertDialogBody>
-            If you delete this experiment all the associated prompts and scenarios will be deleted
-            as well. Are you sure?
+            If you delete this dataset all the associated dataset entries will be deleted as well.
+            Are you sure?
           </AlertDialogBody>
 
           <AlertDialogFooter>
@@ -68,4 +70,4 @@ const DeleteExperimentDialog = ({
   );
 };
 
-export default DeleteExperimentDialog;
+export default DeleteDatasetDialog;

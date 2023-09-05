@@ -12,6 +12,13 @@ export const countOpenAIChatTokens = (
   model: SupportedModel,
   messages: ChatCompletion.Choice.Message[],
 ) => {
-  return new GPTTokens({ model, messages: messages as unknown as GPTTokensMessageItem[] })
-    .usedTokens;
+  const reformattedMessages = messages.map((message) => ({
+    role: message.role,
+    // Not completely accurate, but gives a rough idea of the token count
+    content: message.content ?? JSON.stringify(message.function_call),
+  }));
+  return new GPTTokens({
+    model,
+    messages: reformattedMessages as unknown as GPTTokensMessageItem[],
+  }).usedTokens;
 };

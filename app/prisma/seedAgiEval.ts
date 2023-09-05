@@ -1,5 +1,4 @@
 import { prisma } from "~/server/db";
-import { generateNewCell } from "~/server/utils/generateNewCell";
 import dedent from "dedent";
 import { execSync } from "child_process";
 import fs from "fs";

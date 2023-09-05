@@ -148,6 +148,49 @@ export const useScenarioVars = () => {
   );
 };
 
+export const useDatasets = () => {
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  return api.datasets.list.useQuery(
+    { projectId: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId },
+  );
+};
+
+export const useDataset = () => {
+  const router = useRouter();
+  const dataset = api.datasets.get.useQuery(
+    { id: router.query.id as string },
+    { enabled: !!router.query.id },
+  );
+
+  return dataset;
+};
+
+export const useDatasetEntries = () => {
+  const dataset = useDataset().data;
+  const { page, pageSize } = usePageParams();
+
+  const { data, isLoading, ...rest } = api.datasetEntries.list.useQuery(
+    { datasetId: dataset?.id ?? "", page, pageSize },
+    { enabled: !!dataset?.id },
+  );
+
+  const [stableData, setStableData] = useState(data);
+
+  useEffect(() => {
+    // Prevent annoying flashes while logs are loading from the server
+    if (!isLoading) {
+      setStableData(data);
+    }
+  }, [data, isLoading]);
+
+  return { data: stableData, isLoading, ...rest };
+};
+
+export const useDatasetEntry = (entryId: string | null) => {
+  return api.datasetEntries.get.useQuery({ id: entryId as string }, { enabled: !!entryId });
+};
+
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();

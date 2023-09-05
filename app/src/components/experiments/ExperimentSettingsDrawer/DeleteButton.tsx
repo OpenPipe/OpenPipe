@@ -2,17 +2,15 @@ import { Button, Icon, useDisclosure, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { BsTrash } from "react-icons/bs";
 
-import { useAppStore } from "~/state/store";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
-import DeleteExperimentDialog from "../experiments/DeleteExperimentDialog";
+import DeleteExperimentDialog from "../DeleteExperimentDialog";
 
-export const DeleteButton = () => {
+export const DeleteButton = ({ closeDrawer }: { closeDrawer: () => void }) => {
   const experiment = useExperiment();
   const router = useRouter();
 
   const disclosure = useDisclosure();
 
-  const closeDrawer = useAppStore((s) => s.closeDrawer);
   const [onDelete] = useHandledAsyncCallback(async () => {
     await router.push({ pathname: "/experiments" });
     closeDrawer();

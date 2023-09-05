@@ -119,10 +119,10 @@ export const v1ApiRouter = createOpenApiRouter({
 
       let usage;
       let model;
-      if (reqPayload.success && respPayload.success) {
+      if (reqPayload.success) {
         usage = modelProvider.getUsage(
           input.reqPayload as CompletionCreateParams,
-          input.respPayload as ChatCompletion,
+          respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
         );
         model = reqPayload.data.model;
       }

@@ -16,12 +16,16 @@ import {
 
 import { FiChevronDown } from "react-icons/fi";
 import { BiCheck } from "react-icons/bi";
+import { isEqual } from "lodash-es";
+import React from "react";
 
 type InputDropdownProps<T> = {
   options: ReadonlyArray<T>;
   selectedOption: T;
   onSelect: (option: T) => void;
   inputGroupProps?: InputGroupProps;
+  getDisplayLabel?: (option: T) => string;
+  isDisabled?: boolean;
 };
 
 const InputDropdown = <T,>({
@@ -29,19 +33,21 @@ const InputDropdown = <T,>({
   selectedOption,
   onSelect,
   inputGroupProps,
+  getDisplayLabel = (option) => option as string,
+  isDisabled,
 }: InputDropdownProps<T>) => {
-  const popover = useDisclosure();
+  const { onOpen, ...popover } = useDisclosure();
 
   return (
-    <Popover placement="bottom-start" {...popover}>
+    <Popover placement="bottom-start" onOpen={isDisabled ? undefined : onOpen} {...popover}>
       <PopoverTrigger>
         <InputGroup
           cursor="pointer"
-          w={(selectedOption as string).length * 14 + 180}
+          w={getDisplayLabel(selectedOption).length * 14 + 180}
           {...inputGroupProps}
         >
           <Input
-            value={selectedOption as string}
+            value={getDisplayLabel(selectedOption)}
             // eslint-disable-next-line @typescript-eslint/no-empty-function -- controlled input requires onChange
             onChange={() => {}}
             cursor="pointer"
@@ -52,9 +58,10 @@ const InputDropdown = <T,>({
             onFocus={(e) => {
               e.target.blur();
             }}
+            isDisabled={isDisabled}
           />
           <InputRightElement>
-            <Icon as={FiChevronDown} />
+            <Icon as={FiChevronDown} color={isDisabled ? "gray.300" : undefined} />
           </InputRightElement>
         </InputGroup>
       </PopoverTrigger>
@@ -78,8 +85,10 @@ const InputDropdown = <T,>({
               fontSize="sm"
               borderBottomWidth={1}
             >
-              <Text mr={16}>{option as string}</Text>
-              {option === selectedOption && <Icon as={BiCheck} color="blue.500" boxSize={5} />}
+              <Text mr={16}>{getDisplayLabel(option)}</Text>
+              {isEqual(option, selectedOption) && (
+                <Icon as={BiCheck} color="blue.500" boxSize={5} />
+              )}
             </HStack>
           ))}
         </VStack>

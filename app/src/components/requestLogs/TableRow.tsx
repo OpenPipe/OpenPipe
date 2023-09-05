@@ -9,17 +9,14 @@ import {
   Collapse,
   HStack,
   VStack,
-  Button,
-  ButtonGroup,
   Text,
   Checkbox,
   Link as ChakraLink,
 } from "@chakra-ui/react";
-import Link from "next/link";
 
 import dayjs from "~/utils/dayjs";
 import { type RouterOutputs } from "~/utils/api";
-import { FormattedJson } from "./FormattedJson";
+import { FormattedJson } from "../FormattedJson";
 import { useAppStore } from "~/state/store";
 import { useIsClientRehydrated, useLoggedCalls, useTagNames } from "~/utils/hooks";
 import { useMemo } from "react";
@@ -176,23 +173,16 @@ export const TableRow = ({
       <Tr>
         <Td colSpan={visibleColumns.size + 1} w="full" p={0}>
           <Collapse in={isExpanded} unmountOnExit={true}>
-            <VStack p={4} align="stretch">
-              <HStack align="stretch">
-                <VStack flex={1} align="stretch">
-                  <Heading size="sm">Input</Heading>
-                  <FormattedJson json={loggedCall.modelResponse?.reqPayload} />
-                </VStack>
-                <VStack flex={1} align="stretch">
-                  <Heading size="sm">Output</Heading>
-                  <FormattedJson json={loggedCall.modelResponse?.respPayload} />
-                </VStack>
-              </HStack>
-              <ButtonGroup alignSelf="flex-end">
-                <Button as={Link} colorScheme="blue" href={{ pathname: "/experiments" }}>
-                  Experiments
-                </Button>
-              </ButtonGroup>
-            </VStack>
+            <HStack align="stretch" p={4}>
+              <VStack flex={1} align="stretch">
+                <Heading size="sm">Input</Heading>
+                <FormattedJson json={loggedCall.modelResponse?.reqPayload} />
+              </VStack>
+              <VStack flex={1} align="stretch">
+                <Heading size="sm">Output</Heading>
+                <FormattedJson json={loggedCall.modelResponse?.respPayload} />
+              </VStack>
+            </HStack>
           </Collapse>
         </Td>
       </Tr>

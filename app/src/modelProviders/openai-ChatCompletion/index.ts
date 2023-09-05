@@ -42,24 +42,21 @@ const modelProvider: OpenaiChatModelProvider = {
   canStream: true,
   getCompletion,
   getUsage: (input, output) => {
-    if (output.choices.length === 0) return null;
-
     const model = modelProvider.getModel(input);
     if (!model) return null;
 
     let inputTokens: number;
     let outputTokens: number;
 
-    if (output.usage) {
+    if (output?.usage) {
       inputTokens = output.usage.prompt_tokens;
       outputTokens = output.usage.completion_tokens;
     } else {
       try {
         inputTokens = countOpenAIChatTokens(model, input.messages);
-        outputTokens = countOpenAIChatTokens(
-          model,
-          output.choices.map((c) => c.message).filter(truthyFilter),
-        );
+        outputTokens = output
+          ? countOpenAIChatTokens(model, output.choices.map((c) => c.message).filter(truthyFilter))
+          : 0;
       } catch (err) {
         inputTokens = 0;
         outputTokens = 0;

@@ -17,7 +17,7 @@ import { useMemo } from "react";
 import { useIsClientRehydrated, useTagNames } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { StaticColumnKeys } from "~/state/columnVisiblitySlice";
-import ActionButton from "./ActionButton";
+import ActionButton from "../ActionButton";
 
 const ColumnVisiblityDropdown = () => {
   const tagNames = useTagNames().data;

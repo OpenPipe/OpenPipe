@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
-import { type Prisma } from "@prisma/client";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -55,14 +53,18 @@ export const fineTunesRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        projectId: z.string(),
-        selectedLogIds: z.array(z.string()),
+        datasetId: z.string(),
         slug: z.string(),
         baseModel: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await requireCanModifyProject(input.projectId, ctx);
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: {
+          id: input.datasetId,
+        },
+      });
+      await requireCanModifyProject(projectId, ctx);
 
       const existingFineTune = await prisma.fineTune.findFirst({
         where: {
@@ -74,39 +76,14 @@ export const fineTunesRouter = createTRPCRouter({
         return error("A fine tune with that slug already exists");
       }
 
-      const newDatasetId = uuidv4();
-
-      const datasetEntriesToCreate: Prisma.DatasetEntryCreateManyDatasetInput[] =
-        input.selectedLogIds.map((loggedCallId) => ({
-          loggedCallId,
-        }));
-
-      await prisma.$transaction([
-        prisma.dataset.create({
-          data: {
-            id: newDatasetId,
-            name: input.slug,
-            project: {
-              connect: {
-                id: input.projectId,
-              },
-            },
-            datasetEntries: {
-              createMany: {
-                data: datasetEntriesToCreate,
-              },
-            },
-          },
-        }),
-        prisma.fineTune.create({
-          data: {
-            projectId: input.projectId,
-            slug: input.slug,
-            baseModel: input.baseModel,
-            datasetId: newDatasetId,
-          },
-        }),
-      ]);
+      await prisma.fineTune.create({
+        data: {
+          projectId,
+          slug: input.slug,
+          baseModel: input.baseModel,
+          datasetId: input.datasetId,
+        },
+      });
 
       return success();
     }),

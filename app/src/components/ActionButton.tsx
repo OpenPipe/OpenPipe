@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button, HStack, type ButtonProps, Icon, Text } from "@chakra-ui/react";
 import { type IconType } from "react-icons";
 import { useAppStore } from "~/state/store";
-import { BetaModal } from "../BetaModal";
+import { BetaModal } from "./BetaModal";
 
 const ActionButton = ({
   icon,

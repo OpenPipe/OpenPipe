@@ -12,7 +12,13 @@ import ScenarioPaginator from "./ScenarioPaginator";
 import { Fragment } from "react";
 import useScrolledPast from "./useHasScrolledPast";
 
-export default function OutputsTable({ experimentId }: { experimentId: string | undefined }) {
+export default function OutputsTable({
+  experimentId,
+  openDrawer,
+}: {
+  experimentId: string | undefined;
+  openDrawer: () => void;
+}) {
   const variants = api.promptVariants.list.useQuery(
     { experimentId: experimentId as string },
     { enabled: !!experimentId },
@@ -91,7 +97,7 @@ export default function OutputsTable({ experimentId }: { experimentId: string | 
         colStart={1}
         borderRightWidth={0}
       >
-        <ScenariosHeader />
+        <ScenariosHeader openDrawer={openDrawer} />
       </GridItem>
 
       {scenarios.data.scenarios.map((scenario, i) => (

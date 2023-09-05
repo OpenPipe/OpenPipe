@@ -3,16 +3,13 @@ import { useOnForkButtonPressed } from "./useOnForkButtonPressed";
 import { useExperiment } from "~/utils/hooks";
 import { BsGearFill } from "react-icons/bs";
 import { TbGitFork } from "react-icons/tb";
-import { useAppStore } from "~/state/store";
 
-export const ExperimentHeaderButtons = () => {
+export const ExperimentHeaderButtons = ({ openDrawer }: { openDrawer: () => void }) => {
   const experiment = useExperiment();
 
   const canModify = experiment.data?.access.canModify ?? false;
 
   const { onForkButtonPressed, isForking } = useOnForkButtonPressed();
-
-  const openDrawer = useAppStore((s) => s.openDrawer);
 
   if (experiment.isLoading) return null;
 
