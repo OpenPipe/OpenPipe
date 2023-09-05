@@ -20,7 +20,7 @@ import { AiTwotoneThunderbolt } from "react-icons/ai";
 import humanId from "human-id";
 import { useRouter } from "next/router";
 
-import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
+import { useDataset, useDatasetEntries, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "../ActionButton";
@@ -30,7 +30,9 @@ import { FiChevronDown } from "react-icons/fi";
 const SUPPORTED_BASE_MODELS = ["llama2-7b", "llama2-13b", "llama2-70b", "gpt-3.5-turbo"];
 
 const FineTuneButton = () => {
-  const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
+  const datasetEntries = useDatasetEntries().data;
+
+  const numEntries = datasetEntries?.matchingEntryIds.length || 0;
 
   const disclosure = useDisclosure();
 
@@ -40,7 +42,7 @@ const FineTuneButton = () => {
         onClick={disclosure.onOpen}
         label="Fine Tune"
         icon={AiTwotoneThunderbolt}
-        isDisabled={selectedIds.size === 0}
+        isDisabled={numEntries === 0}
         requireBeta
       />
       <FineTuneModal disclosure={disclosure} />
@@ -52,9 +54,10 @@ export default FineTuneButton;
 
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
-  const clearSelectedIds = useAppStore((s) => s.selectedDatasetEntries.clearSelectedIds);
   const dataset = useDataset().data;
+  const datasetEntries = useDatasetEntries().data;
+
+  const numEntries = datasetEntries?.matchingEntryIds.length || 0;
 
   const [selectedBaseModel, setSelectedBaseModel] = useState(SUPPORTED_BASE_MODELS[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
@@ -72,8 +75,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const createFineTuneMutation = api.fineTunes.create.useMutation();
 
   const [createFineTune, creationInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId || !modelSlug || !selectedBaseModel || !selectedIds.size || !dataset)
-      return;
+    if (!selectedProjectId || !modelSlug || !selectedBaseModel || !dataset || !numEntries) return;
     await createFineTuneMutation.mutateAsync({
       slug: modelSlug,
       baseModel: selectedBaseModel,
@@ -82,9 +84,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
     await utils.fineTunes.list.invalidate();
     await router.push({ pathname: "/fine-tunes" });
-    clearSelectedIds();
     disclosure.onClose();
-  }, [createFineTuneMutation, selectedProjectId, selectedIds, modelSlug, selectedBaseModel]);
+  }, [createFineTuneMutation, selectedProjectId, modelSlug, selectedBaseModel, numEntries]);
 
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
@@ -100,8 +101,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              We'll train on {100 * (dataset?.trainingRatio ?? 0.8)}% of the{" "}
-              <b>{selectedIds.size}</b> logs you've selected.
+              We'll train on {100 * (dataset?.trainingRatio ?? 0.8)}% of the <b>{numEntries}</b>{" "}
+              entries in this dataset.
             </Text>
             <VStack>
               <HStack spacing={2} w="full">

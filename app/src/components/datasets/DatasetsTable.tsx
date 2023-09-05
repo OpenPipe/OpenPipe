@@ -18,7 +18,7 @@ const DatasetsTable = ({}) => {
             <Tr>
               <Th>Name</Th>
               <Th>Created At</Th>
-              <Th>Entries</Th>
+              <Th>Size</Th>
             </Tr>
           </Thead>
           <Tbody>
