@@ -7,6 +7,7 @@ import {
   type CreateChatCompletionRequestMessage,
 } from "openai/resources/chat";
 import { TRPCError } from "@trpc/server";
+import { shuffle } from "lodash-es";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -25,7 +26,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       });
       await requireCanViewProject(projectId, ctx);
 
-      const [entries, matchingEntries] = await prisma.$transaction([
+      const [entries, matchingEntries, trainingCount, testingCount] = await prisma.$transaction([
         prisma.datasetEntry.findMany({
           where: {
             datasetId: datasetId,
@@ -42,11 +43,25 @@ export const datasetEntriesRouter = createTRPCRouter({
             id: true,
           },
         }),
+        prisma.datasetEntry.count({
+          where: {
+            datasetId: datasetId,
+            type: "TRAIN",
+          },
+        }),
+        prisma.datasetEntry.count({
+          where: {
+            datasetId: datasetId,
+            type: "TEST",
+          },
+        }),
       ]);
 
       return {
         entries,
         matchingEntryIds: matchingEntries.map((entry) => entry.id),
+        trainingCount,
+        testingCount,
       };
     }),
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -84,7 +99,6 @@ export const datasetEntriesRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       let datasetId: string;
-      const creationTransactions: Prisma.PrismaPromise<unknown>[] = [];
       let trainingRatio = 0.8;
       if (input.datasetId) {
         datasetId = input.datasetId;
@@ -97,42 +111,54 @@ export const datasetEntriesRouter = createTRPCRouter({
       } else if (input.newDatasetParams) {
         await requireCanModifyProject(input.newDatasetParams.projectId, ctx);
         datasetId = uuidv4();
-        creationTransactions.push(
-          prisma.dataset.create({
-            data: {
-              id: datasetId,
-              projectId: input.newDatasetParams.projectId,
-              name: input.newDatasetParams.name,
-            },
-          }),
-        );
       } else {
         return error("No datasetId or newDatasetParams provided");
       }
 
-      const loggedCalls = await prisma.loggedCall.findMany({
-        where: {
-          id: {
-            in: input.loggedCallIds,
-          },
-          modelResponse: {
-            isNot: null,
-          },
-        },
-        include: {
-          modelResponse: {
-            select: {
-              reqPayload: true,
-              respPayload: true,
-              inputTokens: true,
-              outputTokens: true,
+      const [loggedCalls, existingTrainingCount, existingTestingCount] = await prisma.$transaction([
+        prisma.loggedCall.findMany({
+          where: {
+            id: {
+              in: input.loggedCallIds,
+            },
+            modelResponse: {
+              isNot: null,
             },
           },
-        },
-      });
+          include: {
+            modelResponse: {
+              select: {
+                reqPayload: true,
+                respPayload: true,
+                inputTokens: true,
+                outputTokens: true,
+              },
+            },
+          },
+        }),
+        prisma.datasetEntry.count({
+          where: {
+            datasetId,
+            type: "TRAIN",
+          },
+        }),
+        prisma.datasetEntry.count({
+          where: {
+            datasetId,
+            type: "TEST",
+          },
+        }),
+      ]);
 
-      for (const loggedCall of loggedCalls) {
-        if (!loggedCall.modelResponse) continue;
+      const shuffledLoggedCalls = shuffle(loggedCalls);
+
+      const totalEntries = existingTrainingCount + existingTestingCount + loggedCalls.length;
+      const numTrainingToAdd = Math.floor(trainingRatio * totalEntries) - existingTrainingCount;
+
+      const datasetEntriesToCreate: Prisma.DatasetEntryCreateManyInput[] = [];
+
+      let i = 0;
+      for (const loggedCall of shuffledLoggedCalls) {
         const inputMessages = (
           loggedCall.modelResponse?.reqPayload as unknown as CompletionCreateParams
         ).messages;
@@ -147,23 +173,34 @@ export const datasetEntriesRouter = createTRPCRouter({
           };
         }
 
-        creationTransactions.push(
-          prisma.datasetEntry.create({
-            data: {
-              datasetId,
-              loggedCallId: loggedCall.id,
-              input: inputMessages as unknown as Prisma.InputJsonValue,
-              output: output as unknown as Prisma.InputJsonValue,
-              inputTokens: loggedCall.modelResponse?.inputTokens || 0,
-              outputTokens: loggedCall.modelResponse?.outputTokens || 0,
-              type: Math.random() < trainingRatio ? "TRAIN" : "TEST",
-            },
-          }),
-        );
+        datasetEntriesToCreate.push({
+          datasetId,
+          loggedCallId: loggedCall.id,
+          input: inputMessages as unknown as Prisma.InputJsonValue,
+          output: output as unknown as Prisma.InputJsonValue,
+          inputTokens: loggedCall.modelResponse?.inputTokens || 0,
+          outputTokens: loggedCall.modelResponse?.outputTokens || 0,
+          type: i < numTrainingToAdd ? "TRAIN" : "TEST",
+        });
+        i++;
       }
 
       // Ensure dataset and dataset entries are created atomically
-      await prisma.$transaction(creationTransactions);
+      await prisma.$transaction([
+        prisma.dataset.upsert({
+          where: { id: datasetId },
+          update: {},
+          create: {
+            id: datasetId,
+            projectId: input.newDatasetParams?.projectId ?? "",
+            name: input.newDatasetParams?.name ?? "",
+            trainingRatio,
+          },
+        }),
+        prisma.datasetEntry.createMany({
+          data: shuffle(datasetEntriesToCreate),
+        }),
+      ]);
 
       return success(datasetId);
     }),

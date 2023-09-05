@@ -57,8 +57,6 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
 
-  const numEntries = datasetEntries?.matchingEntryIds.length || 0;
-
   const [selectedBaseModel, setSelectedBaseModel] = useState(SUPPORTED_BASE_MODELS[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
 
@@ -75,7 +73,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const createFineTuneMutation = api.fineTunes.create.useMutation();
 
   const [createFineTune, creationInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId || !modelSlug || !selectedBaseModel || !dataset || !numEntries) return;
+    if (!selectedProjectId || !modelSlug || !selectedBaseModel || !dataset) return;
     await createFineTuneMutation.mutateAsync({
       slug: modelSlug,
       baseModel: selectedBaseModel,
@@ -85,7 +83,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     await utils.fineTunes.list.invalidate();
     await router.push({ pathname: "/fine-tunes" });
     disclosure.onClose();
-  }, [createFineTuneMutation, selectedProjectId, modelSlug, selectedBaseModel, numEntries]);
+  }, [createFineTuneMutation, selectedProjectId, modelSlug, selectedBaseModel]);
 
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
@@ -101,8 +99,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              We'll train on {100 * (dataset?.trainingRatio ?? 0.8)}% of the <b>{numEntries}</b>{" "}
-              entries in this dataset.
+              We'll train on <b>{datasetEntries?.trainingCount}</b> and test on{" "}
+              <b>{datasetEntries?.testingCount}</b> entries in this dataset.
             </Text>
             <VStack>
               <HStack spacing={2} w="full">

@@ -22,3 +22,6 @@ ADD COLUMN     "type" "DatasetEntryType" NOT NULL;
 
 -- CreateIndex
 CREATE INDEX "DatasetEntry_datasetId_createdAt_id_idx" ON "DatasetEntry"("datasetId", "createdAt", "id");
+
+-- CreateIndex
+CREATE INDEX "DatasetEntry_datasetId_type_idx" ON "DatasetEntry"("datasetId", "type");

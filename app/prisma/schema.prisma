@@ -216,6 +216,7 @@ model DatasetEntry {
     updatedAt DateTime @updatedAt
 
     @@index([datasetId, createdAt, id])
+    @@index([datasetId, type])
 }
 
 model Project {
