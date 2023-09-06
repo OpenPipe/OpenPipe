@@ -20,6 +20,7 @@ export const parseableToFunctionCall = (str: string) => {
   } catch {
     return false;
   }
+  console.log("remove me");
 
   // Check if the parsedJSON is an object and not null
   if (typeof parsedJSON !== "object" || parsedJSON === null) {
