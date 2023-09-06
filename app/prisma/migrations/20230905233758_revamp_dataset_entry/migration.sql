@@ -14,10 +14,10 @@ ALTER TABLE "Dataset" ADD COLUMN     "trainingRatio" DOUBLE PRECISION NOT NULL D
 
 -- AlterTable
 ALTER TABLE "DatasetEntry" ADD COLUMN     "input" JSONB NOT NULL DEFAULT '[]',
-ADD COLUMN     "inputTokens" INTEGER NOT NULL,
+ADD COLUMN     "inputTokens" INTEGER NOT NULL DEFAULT 0,
 ADD COLUMN     "output" JSONB,
-ADD COLUMN     "outputTokens" INTEGER NOT NULL,
-ADD COLUMN     "type" "DatasetEntryType" NOT NULL;
+ADD COLUMN     "outputTokens" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "type" "DatasetEntryType" NOT NULL DEFAULT 'TRAIN';
 
 -- CreateIndex
 CREATE INDEX "DatasetEntry_datasetId_createdAt_id_idx" ON "DatasetEntry"("datasetId", "createdAt", "id");
