@@ -199,8 +199,8 @@ enum DatasetEntryType {
 model DatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    loggedCallId String @db.Uuid
-    loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
+    loggedCallId String? @db.Uuid
+    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
     input        Json  @default("[]")
     output       Json?

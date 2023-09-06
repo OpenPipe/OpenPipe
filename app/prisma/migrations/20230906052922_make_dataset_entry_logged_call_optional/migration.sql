@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "DatasetEntry" ALTER COLUMN "loggedCallId" DROP NOT NULL,
+ALTER COLUMN "inputTokens" DROP DEFAULT,
+ALTER COLUMN "outputTokens" DROP DEFAULT,
+ALTER COLUMN "type" DROP DEFAULT;

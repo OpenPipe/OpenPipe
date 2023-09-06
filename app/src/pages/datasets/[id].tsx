@@ -25,6 +25,7 @@ import DatasetEntryPaginator from "~/components/datasets/DatasetEntryPaginator";
 import { useAppStore } from "~/state/store";
 import FineTuneButton from "~/components/datasets/FineTuneButton";
 import ExperimentButton from "~/components/datasets/ExperimentButton";
+import ImportDataButton from "~/components/datasets/ImportDataButton";
 
 export default function Dataset() {
   const utils = api.useContext();
@@ -101,6 +102,7 @@ export default function Dataset() {
             <HStack w="full" justifyContent="flex-end">
               <FineTuneButton />
               <ExperimentButton />
+              <ImportDataButton />
             </HStack>
             <DatasetEntriesTable />
             <DatasetEntryPaginator />

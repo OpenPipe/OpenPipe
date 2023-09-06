@@ -22,7 +22,6 @@ import { useRouter } from "next/router";
 
 import { useDataset, useDatasetEntries, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
-import { useAppStore } from "~/state/store";
 import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { FiChevronDown } from "react-icons/fi";
@@ -53,7 +52,6 @@ const FineTuneButton = () => {
 export default FineTuneButton;
 
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
 
@@ -73,7 +71,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const createFineTuneMutation = api.fineTunes.create.useMutation();
 
   const [createFineTune, creationInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId || !modelSlug || !selectedBaseModel || !dataset) return;
+    if (!modelSlug || !selectedBaseModel || !dataset) return;
     await createFineTuneMutation.mutateAsync({
       slug: modelSlug,
       baseModel: selectedBaseModel,
@@ -83,7 +81,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     await utils.fineTunes.list.invalidate();
     await router.push({ pathname: "/fine-tunes" });
     disclosure.onClose();
-  }, [createFineTuneMutation, selectedProjectId, modelSlug, selectedBaseModel]);
+  }, [createFineTuneMutation, modelSlug, selectedBaseModel]);
 
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
