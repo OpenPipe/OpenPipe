@@ -125,10 +125,6 @@ export const datasetEntriesRouter = createTRPCRouter({
         return error("No loggedCallIds or jsonl provided");
       }
 
-      const startingTime = Date.now();
-
-      console.log("1", 0);
-
       let trainingRows: TrainingRow[];
 
       if (input.loggedCallIds) {
@@ -171,15 +167,12 @@ export const datasetEntriesRouter = createTRPCRouter({
           };
         });
       } else {
-        console.log("2", Date.now() - startingTime);
         trainingRows = JSON.parse(input.jsonl as string) as TrainingRow[];
         const validationError = validateTrainingRows(trainingRows);
         if (validationError) {
           return error(`Invalid JSONL: ${validationError}`);
         }
       }
-
-      console.log("3", Date.now() - startingTime);
 
       const [existingTrainingCount, existingTestingCount] = await prisma.$transaction([
         prisma.datasetEntry.count({
@@ -195,8 +188,6 @@ export const datasetEntriesRouter = createTRPCRouter({
           },
         }),
       ]);
-
-      console.log("4", Date.now() - startingTime);
 
       const newTotalEntries = existingTrainingCount + existingTestingCount + trainingRows.length;
       const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
@@ -229,8 +220,6 @@ export const datasetEntriesRouter = createTRPCRouter({
         });
       }
 
-      console.log("5", Date.now() - startingTime);
-
       // Ensure dataset and dataset entries are created atomically
       await prisma.$transaction([
         prisma.dataset.upsert({
@@ -247,8 +236,6 @@ export const datasetEntriesRouter = createTRPCRouter({
           data: datasetEntriesToCreate,
         }),
       ]);
-
-      console.log("6", Date.now() - startingTime);
 
       return success(datasetId);
     }),
