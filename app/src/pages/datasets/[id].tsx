@@ -10,9 +10,10 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import Link from "next/link";
-
 import { useState, useEffect } from "react";
 import { AiOutlineDatabase } from "react-icons/ai";
+
+import { env } from "~/env.mjs";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
@@ -126,7 +127,7 @@ export default function Dataset() {
               <FineTuneButton />
               <ImportDataButton />
               <ExperimentButton />
-              <DownloadButton />
+              {/* <DownloadButton /> */}
               <DeleteButton />
             </HStack>
             <DatasetEntriesTable />

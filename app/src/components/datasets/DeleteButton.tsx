@@ -55,11 +55,17 @@ const DeleteDatasetEntriesModal = ({ disclosure }: { disclosure: UseDisclosureRe
 
   const [deleteRows, deletionInProgress] = useHandledAsyncCallback(async () => {
     if (!dataset?.id || !selectedIds.size) return;
-    const response = await deleteRowsMutation.mutateAsync({
-      ids: Array.from(selectedIds),
-    });
 
-    if (maybeReportError(response)) return;
+    // divide selectedIds into chunks of 15000 to reduce request size
+    const chunkSize = 15000;
+    const idsArray = Array.from(selectedIds);
+    for (let i = 0; i < idsArray.length; i += chunkSize) {
+      const response = await deleteRowsMutation.mutateAsync({
+        ids: idsArray.slice(i, i + chunkSize),
+      });
+
+      if (maybeReportError(response)) return;
+    }
 
     await utils.datasetEntries.list.invalidate();
     disclosure.onClose();
