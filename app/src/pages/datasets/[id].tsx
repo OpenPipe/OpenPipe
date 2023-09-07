@@ -13,7 +13,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { AiOutlineDatabase } from "react-icons/ai";
 
-import { env } from "~/env.mjs";
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
@@ -27,7 +26,7 @@ import { useAppStore } from "~/state/store";
 import FineTuneButton from "~/components/datasets/FineTuneButton";
 import ExperimentButton from "~/components/datasets/ExperimentButton";
 import ImportDataButton from "~/components/datasets/ImportDataButton";
-import DownloadButton from "~/components/datasets/DownloadButton";
+// import DownloadButton from "~/components/datasets/DownloadButton";
 import DeleteButton from "~/components/datasets/DeleteButton";
 import FileUploadCard from "~/components/datasets/FileUploadCard";
 
