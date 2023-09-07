@@ -136,7 +136,12 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
   }, [dataset, trainingRows, triggerFileDownloadMutation, file, utils]);
 
   return (
-    <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
+    <Modal
+      size={{ base: "xl", md: "2xl" }}
+      closeOnOverlayClick={false}
+      closeOnEsc={false}
+      {...disclosure}
+    >
       <ModalOverlay />
       <ModalContent w={1200}>
         <ModalHeader>
@@ -144,7 +149,7 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
             <Text>Upload Training Logs</Text>
           </HStack>
         </ModalHeader>
-        <ModalCloseButton />
+        {!sendingInProgress && <ModalCloseButton />}
         <ModalBody maxW="unset" p={8}>
           <Box w="full" aspectRatio={1.5}>
             {validationError && (
@@ -231,23 +236,30 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                     </>
                   )}
                 </VStack>
-                <Text
-                  as="span"
-                  textDecor="underline"
-                  color="gray.500"
-                  _hover={{ color: "orange.400" }}
-                  cursor="pointer"
-                  onClick={resetState}
-                >
-                  Change file
-                </Text>
+                {!sendingInProgress && (
+                  <Text
+                    as="span"
+                    textDecor="underline"
+                    color="gray.500"
+                    _hover={{ color: "orange.400" }}
+                    cursor="pointer"
+                    onClick={resetState}
+                  >
+                    Change file
+                  </Text>
+                )}
               </VStack>
             )}
           </Box>
         </ModalBody>
         <ModalFooter>
           <HStack>
-            <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
+            <Button
+              colorScheme="gray"
+              isDisabled={sendingInProgress}
+              onClick={disclosure.onClose}
+              minW={24}
+            >
               Cancel
             </Button>
             <Button
