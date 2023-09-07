@@ -15,8 +15,14 @@ export const validateTrainingRows = (rows: unknown): string | null => {
   if (!Array.isArray(rows)) return "training data is not an array";
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i] as TrainingRow;
-    const error = validateTrainingRow(row);
-    if (error) return `row ${i}: ${error}`;
+    let errorMessage: string | null = null;
+    try {
+      errorMessage = validateTrainingRow(row);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      errorMessage = error.message;
+    }
+    if (errorMessage) return `row ${i + 1}: ${errorMessage}`;
   }
 
   return null;
@@ -39,7 +45,7 @@ const validateTrainingRow = (row: TrainingRow): string | null => {
     return "input contains item with function_call but no name";
 
   //   Validate output
-  if (row.output !== undefined) {
+  if (row.output) {
     if (typeof row.output !== "object") return "output is not an object";
     if (!row.output.content && !row.output.function_call)
       return "output contains no content or function_call";

@@ -18,17 +18,13 @@ import {
 } from "@chakra-ui/react";
 import { AiOutlineCloudUpload, AiOutlineFile } from "react-icons/ai";
 
-import { useDataset, useDatasetEntries, useHandledAsyncCallback } from "~/utils/hooks";
+import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import ActionButton from "../ActionButton";
 import { validateTrainingRows, type TrainingRow, parseJSONL } from "./validateTrainingRows";
 import pluralize from "pluralize";
 
 const ImportDataButton = () => {
-  const datasetEntries = useDatasetEntries().data;
-
-  const numEntries = datasetEntries?.matchingEntryIds.length || 0;
-
   const disclosure = useDisclosure();
 
   return (
@@ -38,7 +34,6 @@ const ImportDataButton = () => {
         label="Import Data"
         icon={AiOutlineCloudUpload}
         iconBoxSize={4}
-        isDisabled={numEntries === 0}
         requireBeta
       />
       <ImportDataModal disclosure={disclosure} />
@@ -110,6 +105,7 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
 
   const [sendJSONL, sendingInProgress] = useHandledAsyncCallback(async () => {
     if (!dataset || !trainingRows) return;
+
     await sendJSONLMutation.mutateAsync({
       datasetId: dataset.id,
       jsonl: JSON.stringify(trainingRows),

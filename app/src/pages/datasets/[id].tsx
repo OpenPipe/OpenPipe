@@ -26,6 +26,8 @@ import { useAppStore } from "~/state/store";
 import FineTuneButton from "~/components/datasets/FineTuneButton";
 import ExperimentButton from "~/components/datasets/ExperimentButton";
 import ImportDataButton from "~/components/datasets/ImportDataButton";
+import DownloadButton from "~/components/datasets/ExportButton";
+import DeleteButton from "~/components/datasets/DeleteButton";
 
 export default function Dataset() {
   const utils = api.useContext();
@@ -101,8 +103,10 @@ export default function Dataset() {
           <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
             <HStack w="full" justifyContent="flex-end">
               <FineTuneButton />
-              <ExperimentButton />
               <ImportDataButton />
+              <ExperimentButton />
+              <DownloadButton />
+              <DeleteButton />
             </HStack>
             <DatasetEntriesTable />
             <DatasetEntryPaginator />

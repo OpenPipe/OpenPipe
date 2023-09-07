@@ -8,6 +8,7 @@ import {
 } from "openai/resources/chat";
 import { TRPCError } from "@trpc/server";
 import { shuffle } from "lodash-es";
+import archiver from "archiver";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -15,6 +16,9 @@ import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessCo
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { type TrainingRow, validateTrainingRows } from "~/components/datasets/validateTrainingRows";
+import hashObject from "~/server/utils/hashObject";
+import { type JsonValue } from "type-fest";
+import { WritableStreamBuffer } from "stream-buffers";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -121,6 +125,10 @@ export const datasetEntriesRouter = createTRPCRouter({
         return error("No loggedCallIds or jsonl provided");
       }
 
+      const startingTime = Date.now();
+
+      console.log("1", 0);
+
       let trainingRows: TrainingRow[];
 
       if (input.loggedCallIds) {
@@ -156,11 +164,6 @@ export const datasetEntriesRouter = createTRPCRouter({
             | undefined;
           if (resp && resp.choices?.[0]) {
             output = resp.choices[0].message;
-          } else {
-            output = {
-              role: "assistant",
-              content: "",
-            };
           }
           return {
             input: inputMessages as unknown as CreateChatCompletionRequestMessage[],
@@ -168,12 +171,15 @@ export const datasetEntriesRouter = createTRPCRouter({
           };
         });
       } else {
+        console.log("2", Date.now() - startingTime);
         trainingRows = JSON.parse(input.jsonl as string) as TrainingRow[];
         const validationError = validateTrainingRows(trainingRows);
         if (validationError) {
           return error(`Invalid JSONL: ${validationError}`);
         }
       }
+
+      console.log("3", Date.now() - startingTime);
 
       const [existingTrainingCount, existingTestingCount] = await prisma.$transaction([
         prisma.datasetEntry.count({
@@ -189,6 +195,8 @@ export const datasetEntriesRouter = createTRPCRouter({
           },
         }),
       ]);
+
+      console.log("4", Date.now() - startingTime);
 
       const newTotalEntries = existingTrainingCount + existingTestingCount + trainingRows.length;
       const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
@@ -208,7 +216,10 @@ export const datasetEntriesRouter = createTRPCRouter({
         datasetEntriesToCreate.push({
           datasetId: datasetId,
           input: row.input as unknown as Prisma.InputJsonValue,
-          output: row.output as unknown as Prisma.InputJsonValue,
+          output: (row.output as unknown as Prisma.InputJsonValue) ?? {
+            role: "assistant",
+            content: "",
+          },
           inputTokens: countOpenAIChatTokens(
             "gpt-4-0613",
             row.input as unknown as CreateChatCompletionRequestMessage[],
@@ -217,6 +228,8 @@ export const datasetEntriesRouter = createTRPCRouter({
           type: typesToAssign.pop() as "TRAIN" | "TEST",
         });
       }
+
+      console.log("5", Date.now() - startingTime);
 
       // Ensure dataset and dataset entries are created atomically
       await prisma.$transaction([
@@ -234,6 +247,8 @@ export const datasetEntriesRouter = createTRPCRouter({
           data: datasetEntriesToCreate,
         }),
       ]);
+
+      console.log("6", Date.now() - startingTime);
 
       return success(datasetId);
     }),
@@ -326,5 +341,69 @@ export const datasetEntriesRouter = createTRPCRouter({
       });
 
       return success("Dataset entries deleted");
+    }),
+
+  export: protectedProcedure
+    .input(
+      z.object({
+        datasetId: z.string(),
+        datasetEntryIds: z.string().array(),
+        testingSplit: z.number(),
+        removeDuplicates: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: { id: input.datasetId },
+      });
+      await requireCanViewProject(projectId, ctx);
+
+      const datasetEntries = await ctx.prisma.datasetEntry.findMany({
+        where: {
+          id: {
+            in: input.datasetEntryIds,
+          },
+        },
+      });
+
+      let rows: TrainingRow[] = datasetEntries.map((entry) => ({
+        input: entry.input as unknown as CreateChatCompletionRequestMessage[],
+        output: entry.output as unknown as CreateChatCompletionRequestMessage,
+      }));
+
+      if (input.removeDuplicates) {
+        const deduplicatedRows = [];
+        const rowHashSet = new Set<string>();
+        for (const row of rows) {
+          const rowHash = hashObject(row as unknown as JsonValue);
+          if (!rowHashSet.has(rowHash)) {
+            rowHashSet.add(rowHash);
+            deduplicatedRows.push(row);
+          }
+        }
+        rows = deduplicatedRows;
+      }
+
+      const splitIndex = Math.floor((rows.length * input.testingSplit) / 100);
+
+      const testingData = rows.slice(0, splitIndex);
+      const trainingData = rows.slice(splitIndex);
+
+      // Convert arrays to JSONL format
+      const trainingDataJSONL = trainingData.map((item) => JSON.stringify(item)).join("\n");
+      const testingDataJSONL = testingData.map((item) => JSON.stringify(item)).join("\n");
+
+      const output = new WritableStreamBuffer();
+      const archive = archiver("zip");
+
+      archive.pipe(output);
+      archive.append(trainingDataJSONL, { name: "train.jsonl" });
+      archive.append(testingDataJSONL, { name: "test.jsonl" });
+      await archive.finalize();
+
+      // Convert buffer to base64
+      const base64 = output.getContents().toString("base64");
+
+      return base64;
     }),
 });
