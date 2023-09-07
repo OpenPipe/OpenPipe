@@ -48,11 +48,18 @@ const FileUploadCard = ({ fileUpload }: { fileUpload: FileUpload }) => {
           </HStack>
         </HStack>
 
-        <Text alignSelf="center" fontSize="xs">
-          {errorMessage ? errorMessage : `${status} (${progress}%)`}
-        </Text>
-
-        <Progress w="full" value={progress} borderRadius={2} />
+        {errorMessage ? (
+          <Text alignSelf="center" pt={2}>
+            {errorMessage}
+          </Text>
+        ) : (
+          <>
+            <Text alignSelf="center" fontSize="xs">
+              {status} ({progress}%)
+            </Text>
+            <Progress w="full" value={progress} borderRadius={2} />
+          </>
+        )}
       </VStack>
     </Card>
   );

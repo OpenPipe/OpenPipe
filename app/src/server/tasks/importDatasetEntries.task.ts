@@ -38,9 +38,27 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
       },
     });
 
-    const jsonlStr = await downloadBlobToString(datasetFileUpload.blobName);
-    const trainingRows = parseJSONL(jsonlStr) as TrainingRow[];
-    const validationError = validateTrainingRows(trainingRows);
+    const onBlobDownloadProgress = async (progress: number) => {
+      await prisma.datasetFileUpload.update({
+        where: { id: datasetFileUploadId },
+        data: {
+          progress: 5 + Math.floor((progress / datasetFileUpload.fileSize) * 25),
+        },
+      });
+    };
+
+    const jsonlStr = await downloadBlobToString(datasetFileUpload.blobName, onBlobDownloadProgress);
+
+    let trainingRows: TrainingRow[] = [];
+    let validationError: string | null = null;
+    try {
+      trainingRows = parseJSONL(jsonlStr) as TrainingRow[];
+      validationError = validateTrainingRows(trainingRows);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      validationError = e.message;
+    }
+
     if (validationError) {
       await prisma.datasetFileUpload.update({
         where: { id: datasetFileUploadId },

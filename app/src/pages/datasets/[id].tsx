@@ -26,7 +26,7 @@ import { useAppStore } from "~/state/store";
 import FineTuneButton from "~/components/datasets/FineTuneButton";
 import ExperimentButton from "~/components/datasets/ExperimentButton";
 import ImportDataButton from "~/components/datasets/ImportDataButton";
-import DownloadButton from "~/components/datasets/ExportButton";
+import DownloadButton from "~/components/datasets/DownloadButton";
 import DeleteButton from "~/components/datasets/DeleteButton";
 import FileUploadCard from "~/components/datasets/FileUploadCard";
 

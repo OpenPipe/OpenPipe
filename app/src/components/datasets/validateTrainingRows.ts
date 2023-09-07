@@ -5,11 +5,23 @@ export type TrainingRow = {
   output?: CreateChatCompletionRequestMessage;
 };
 
-export const parseJSONL = (jsonlString: string): unknown[] =>
-  jsonlString
-    .trim()
-    .split("\n")
-    .map((line) => JSON.parse(line) as unknown);
+export const parseJSONL = (jsonlString: string): unknown[] => {
+  const lines = jsonlString.trim().split("\n");
+
+  let lineNumber = 0;
+  const parsedLines = [];
+
+  try {
+    for (const line of lines) {
+      lineNumber++;
+      parsedLines.push(JSON.parse(line));
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (e: any) {
+    throw new Error(`Error parsing line ${lineNumber}: ${e.message as string}`);
+  }
+  return parsedLines;
+};
 
 export const validateTrainingRows = (rows: unknown): string | null => {
   if (!Array.isArray(rows)) return "training data is not an array";

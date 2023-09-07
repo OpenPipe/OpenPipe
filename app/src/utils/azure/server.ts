@@ -44,7 +44,11 @@ export const generateServiceClientUrl = () => {
   };
 };
 
-export async function downloadBlobToString(blobName: string) {
+export async function downloadBlobToString(
+  blobName: string,
+  onProgress?: (progress: number) => Promise<void>,
+  chunkInterval?: number,
+) {
   const blobClient = containerClient.getBlobClient(blobName);
 
   const downloadResponse = await blobClient.download();
@@ -53,19 +57,38 @@ export async function downloadBlobToString(blobName: string) {
   if (!downloadResponse.readableStreamBody)
     throw Error("downloadResponse.readableStreamBody not found");
 
-  const downloaded = await streamToBuffer(downloadResponse.readableStreamBody);
+  const downloaded = await streamToBuffer(
+    downloadResponse.readableStreamBody,
+    onProgress,
+    chunkInterval,
+  );
   return downloaded.toString();
 }
 
-async function streamToBuffer(readableStream: NodeJS.ReadableStream): Promise<Buffer> {
+async function streamToBuffer(
+  readableStream: NodeJS.ReadableStream,
+  onProgress?: (progress: number) => Promise<void>,
+  chunkInterval = 1048576, // send progress every 1MB
+): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = [];
+    let bytesDownloaded = 0;
+    let lastReportedByteCount = 0;
+
     readableStream.on("data", (data: ArrayBuffer) => {
       chunks.push(data instanceof Buffer ? data : Buffer.from(data));
+      bytesDownloaded += data.byteLength;
+
+      if (onProgress && bytesDownloaded - lastReportedByteCount >= chunkInterval) {
+        void onProgress(bytesDownloaded); // progress in Bytes
+        lastReportedByteCount = bytesDownloaded;
+      }
     });
+
     readableStream.on("end", () => {
       resolve(Buffer.concat(chunks));
     });
+
     readableStream.on("error", reject);
   });
 }
