@@ -78,13 +78,13 @@ const FileUploadRow = ({ fileUpload }: { fileUpload: FileUpload }) => {
   const hideFileUploadsMutation = api.datasets.hideFileUploads.useMutation();
   const [hideFileUpload, hidingInProgress] = useHandledAsyncCallback(async () => {
     await hideFileUploadsMutation.mutateAsync({ fileUploadIds: [id] });
+    await utils.datasets.listFileUploads.invalidate();
   }, [id, hideFileUploadsMutation, utils]);
 
-  const [refreshDatasetEntries] = useHandledAsyncCallback(async () => {
-    await hideFileUploadsMutation.mutateAsync({ fileUploadIds: [id] });
-    await utils.datasets.listFileUploads.invalidate();
-    await utils.datasetEntries.list.invalidate();
-  }, [id, hideFileUploadsMutation, utils]);
+  useEffect(() => {
+    // Invalidate dataset entries list when upload is processed
+    if (status === "COMPLETE") void utils.datasetEntries.list.invalidate();
+  }, [status, utils]);
 
   return (
     <VStack w="full" alignItems="flex-start" p={4} borderBottomWidth={1}>
@@ -93,25 +93,16 @@ const FileUploadRow = ({ fileUpload }: { fileUpload: FileUpload }) => {
           <Text fontWeight="bold">{fileName}</Text>
           <Text fontSize="xs">({formatFileSize(fileSize, 2)})</Text>
         </VStack>
-
-        <HStack spacing={0}>
-          {status === "COMPLETE" ? (
-            <Button variant="ghost" onClick={refreshDatasetEntries} color="orange.400" size="xs">
-              Refresh Table
-            </Button>
-          ) : (
-            <IconButton
-              aria-label="Hide file upload"
-              as={BsX}
-              boxSize={6}
-              minW={0}
-              variant="ghost"
-              isLoading={hidingInProgress}
-              onClick={hideFileUpload}
-              cursor="pointer"
-            />
-          )}
-        </HStack>
+        <Button
+          aria-label="Hide file upload"
+          minW={0}
+          variant="ghost"
+          isLoading={hidingInProgress}
+          onClick={hideFileUpload}
+          size="xs"
+        >
+          HIDE
+        </Button>
       </HStack>
 
       {errorMessage ? (
@@ -135,7 +126,7 @@ const getStatusText = (status: FileUpload["status"]) => {
     case "PENDING":
       return "Pending";
     case "DOWNLOADING":
-      return "Downloading to Server";
+      return "Loading Data";
     case "PROCESSING":
       return "Processing";
     case "SAVING":
