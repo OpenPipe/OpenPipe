@@ -26,7 +26,7 @@ const FileUploadsCard = () => {
   const utils = api.useContext();
 
   const hideFileUploadsMutation = api.datasets.hideFileUploads.useMutation();
-  const [hideAllFileUploads, hidingInProgress] = useHandledAsyncCallback(async () => {
+  const [hideAllFileUploads] = useHandledAsyncCallback(async () => {
     if (!fileUploads.data?.length) return;
     await hideFileUploadsMutation.mutateAsync({
       fileUploadIds: fileUploads.data.map((upload) => upload.id),
