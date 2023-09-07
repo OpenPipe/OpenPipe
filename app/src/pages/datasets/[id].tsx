@@ -10,9 +10,9 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import Link from "next/link";
-
 import { useState, useEffect } from "react";
 import { AiOutlineDatabase } from "react-icons/ai";
+
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
@@ -25,6 +25,10 @@ import DatasetEntryPaginator from "~/components/datasets/DatasetEntryPaginator";
 import { useAppStore } from "~/state/store";
 import FineTuneButton from "~/components/datasets/FineTuneButton";
 import ExperimentButton from "~/components/datasets/ExperimentButton";
+import UploadDataButton from "~/components/datasets/UploadDataButton";
+// import DownloadButton from "~/components/datasets/DownloadButton";
+import DeleteButton from "~/components/datasets/DeleteButton";
+import FileUploadsCard from "~/components/datasets/FileUploadsCard";
 
 export default function Dataset() {
   const utils = api.useContext();
@@ -100,12 +104,16 @@ export default function Dataset() {
           <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
             <HStack w="full" justifyContent="flex-end">
               <FineTuneButton />
+              <UploadDataButton />
               <ExperimentButton />
+              {/* <DownloadButton /> */}
+              <DeleteButton />
             </HStack>
             <DatasetEntriesTable />
             <DatasetEntryPaginator />
           </VStack>
         </VStack>
+        <FileUploadsCard />
       </AppShell>
       <DatasetConfigurationDrawer disclosure={drawerDisclosure} />
     </>

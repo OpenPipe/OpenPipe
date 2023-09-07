@@ -26,6 +26,9 @@ export const env = createEnv({
     SMTP_PORT: z.string().default("placeholder"),
     SMTP_LOGIN: z.string().default("placeholder"),
     SMTP_PASSWORD: z.string().default("placeholder"),
+    AZURE_STORAGE_ACCOUNT_NAME: z.string().default("placeholder"),
+    AZURE_STORAGE_ACCOUNT_KEY: z.string().default("placeholder"),
+    AZURE_STORAGE_CONTAINER_NAME: z.string().default("placeholder"),
     WORKER_CONCURRENCY: z
       .string()
       .default("10")
@@ -72,6 +75,9 @@ export const env = createEnv({
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_LOGIN: process.env.SMTP_LOGIN,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    AZURE_STORAGE_ACCOUNT_NAME: process.env.AZURE_STORAGE_ACCOUNT_NAME,
+    AZURE_STORAGE_ACCOUNT_KEY: process.env.AZURE_STORAGE_ACCOUNT_KEY,
+    AZURE_STORAGE_CONTAINER_NAME: process.env.AZURE_STORAGE_CONTAINER_NAME,
     WORKER_CONCURRENCY: process.env.WORKER_CONCURRENCY,
     WORKER_MAX_POOL_SIZE: process.env.WORKER_MAX_POOL_SIZE,
   },

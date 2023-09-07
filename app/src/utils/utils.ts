@@ -20,7 +20,6 @@ export const parseableToFunctionCall = (str: string) => {
   } catch {
     return false;
   }
-  console.log("remove me");
 
   // Check if the parsedJSON is an object and not null
   if (typeof parsedJSON !== "object" || parsedJSON === null) {
@@ -52,4 +51,19 @@ export const parseableToFunctionCall = (str: string) => {
   }
 
   return true;
+};
+
+export const formatFileSize = (bytes: number, decimals = 2) => {
+  if (bytes === 0) return "0 Bytes";
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+
+  for (const size of sizes) {
+    if (bytes < k) return `${parseFloat(bytes.toFixed(dm))} ${size}`;
+    bytes /= k;
+  }
+
+  return "> 1024 TB";
 };
