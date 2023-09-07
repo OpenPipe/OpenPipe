@@ -135,7 +135,7 @@ const getStatusText = (status: FileUpload["status"]) => {
     case "PENDING":
       return "Pending";
     case "DOWNLOADING":
-      return "Downloading to Server";
+      return "Loading Data";
     case "PROCESSING":
       return "Processing";
     case "SAVING":
