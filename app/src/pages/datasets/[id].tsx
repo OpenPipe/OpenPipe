@@ -28,6 +28,7 @@ import ExperimentButton from "~/components/datasets/ExperimentButton";
 import ImportDataButton from "~/components/datasets/ImportDataButton";
 import DownloadButton from "~/components/datasets/ExportButton";
 import DeleteButton from "~/components/datasets/DeleteButton";
+import FileUploadCard from "~/components/datasets/FileUploadCard";
 
 export default function Dataset() {
   const utils = api.useContext();
@@ -39,6 +40,19 @@ export default function Dataset() {
   useEffect(() => {
     setName(dataset.data?.name || "");
   }, [dataset.data?.name]);
+
+  const [fileUploadsRefetchInterval, setFileUploadsRefetchInterval] = useState<number>(500);
+  const fileUploads = api.datasets.listFileUploads.useQuery(
+    { datasetId: dataset.data?.id as string },
+    { enabled: !!dataset.data?.id, refetchInterval: fileUploadsRefetchInterval },
+  );
+  useEffect(() => {
+    if (fileUploads?.data?.some((fu) => fu.status !== "COMPLETE" && fu.status !== "ERROR")) {
+      setFileUploadsRefetchInterval(500);
+    } else {
+      setFileUploadsRefetchInterval(0);
+    }
+  }, [fileUploads]);
 
   useEffect(() => {
     useAppStore.getState().sharedArgumentsEditor.loadMonaco().catch(console.error);
@@ -101,6 +115,13 @@ export default function Dataset() {
             <DatasetHeaderButtons openDrawer={drawerDisclosure.onOpen} />
           </PageHeaderContainer>
           <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
+            <HStack w="full">
+              <VStack w="full">
+                {fileUploads?.data?.map((upload) => (
+                  <FileUploadCard key={upload.id} fileUpload={upload} />
+                ))}
+              </VStack>
+            </HStack>
             <HStack w="full" justifyContent="flex-end">
               <FineTuneButton />
               <ImportDataButton />

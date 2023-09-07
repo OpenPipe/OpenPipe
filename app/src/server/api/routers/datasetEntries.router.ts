@@ -1,4 +1,3 @@
-import { type Prisma } from "@prisma/client";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -7,18 +6,18 @@ import {
   type CreateChatCompletionRequestMessage,
 } from "openai/resources/chat";
 import { TRPCError } from "@trpc/server";
-import { shuffle } from "lodash-es";
 import archiver from "archiver";
+import { WritableStreamBuffer } from "stream-buffers";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
-import { type TrainingRow, validateTrainingRows } from "~/components/datasets/validateTrainingRows";
+import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
 import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
-import { WritableStreamBuffer } from "stream-buffers";
+import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -100,7 +99,6 @@ export const datasetEntriesRouter = createTRPCRouter({
           })
           .optional(),
         loggedCallIds: z.string().array().optional(),
-        jsonl: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -121,104 +119,48 @@ export const datasetEntriesRouter = createTRPCRouter({
         return error("No datasetId or newDatasetParams provided");
       }
 
-      if (!input.loggedCallIds && !input.jsonl) {
-        return error("No loggedCallIds or jsonl provided");
+      if (!input.loggedCallIds) {
+        return error("No loggedCallIds provided");
       }
 
-      let trainingRows: TrainingRow[];
-
-      if (input.loggedCallIds) {
-        const loggedCalls = await prisma.loggedCall.findMany({
-          where: {
-            id: {
-              in: input.loggedCallIds,
-            },
-            modelResponse: {
-              isNot: null,
+      const loggedCalls = await prisma.loggedCall.findMany({
+        where: {
+          id: {
+            in: input.loggedCallIds,
+          },
+          modelResponse: {
+            isNot: null,
+          },
+        },
+        include: {
+          modelResponse: {
+            select: {
+              reqPayload: true,
+              respPayload: true,
+              inputTokens: true,
+              outputTokens: true,
             },
           },
-          include: {
-            modelResponse: {
-              select: {
-                reqPayload: true,
-                respPayload: true,
-                inputTokens: true,
-                outputTokens: true,
-              },
-            },
-          },
-          orderBy: { createdAt: "desc" },
-        });
+        },
+        orderBy: { createdAt: "desc" },
+      });
 
-        trainingRows = loggedCalls.map((loggedCall) => {
-          const inputMessages = (
-            loggedCall.modelResponse?.reqPayload as unknown as CompletionCreateParams
-          ).messages;
-          let output: ChatCompletion.Choice.Message | undefined = undefined;
-          const resp = loggedCall.modelResponse?.respPayload as unknown as
-            | ChatCompletion
-            | undefined;
-          if (resp && resp.choices?.[0]) {
-            output = resp.choices[0].message;
-          }
-          return {
-            input: inputMessages as unknown as CreateChatCompletionRequestMessage[],
-            output: output as unknown as CreateChatCompletionRequestMessage,
-          };
-        });
-      } else {
-        trainingRows = JSON.parse(input.jsonl as string) as TrainingRow[];
-        const validationError = validateTrainingRows(trainingRows);
-        if (validationError) {
-          return error(`Invalid JSONL: ${validationError}`);
+      const trainingRows = loggedCalls.map((loggedCall) => {
+        const inputMessages = (
+          loggedCall.modelResponse?.reqPayload as unknown as CompletionCreateParams
+        ).messages;
+        let output: ChatCompletion.Choice.Message | undefined = undefined;
+        const resp = loggedCall.modelResponse?.respPayload as unknown as ChatCompletion | undefined;
+        if (resp && resp.choices?.[0]) {
+          output = resp.choices[0].message;
         }
-      }
+        return {
+          input: inputMessages as unknown as CreateChatCompletionRequestMessage[],
+          output: output as unknown as CreateChatCompletionRequestMessage,
+        };
+      });
 
-      const [existingTrainingCount, existingTestingCount] = await prisma.$transaction([
-        prisma.datasetEntry.count({
-          where: {
-            datasetId,
-            type: "TRAIN",
-          },
-        }),
-        prisma.datasetEntry.count({
-          where: {
-            datasetId,
-            type: "TEST",
-          },
-        }),
-      ]);
-
-      const newTotalEntries = existingTrainingCount + existingTestingCount + trainingRows.length;
-      const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
-      const numTestingToAdd = trainingRows.length - numTrainingToAdd;
-      const typesToAssign = shuffle([
-        ...Array(numTrainingToAdd).fill("TRAIN"),
-        ...Array(numTestingToAdd).fill("TEST"),
-      ]);
-      const datasetEntriesToCreate: Prisma.DatasetEntryCreateManyInput[] = [];
-      for (const row of trainingRows) {
-        let outputTokens = 0;
-        if (row.output) {
-          outputTokens = countOpenAIChatTokens("gpt-4-0613", [
-            row.output as unknown as ChatCompletion.Choice.Message,
-          ]);
-        }
-        datasetEntriesToCreate.push({
-          datasetId: datasetId,
-          input: row.input as unknown as Prisma.InputJsonValue,
-          output: (row.output as unknown as Prisma.InputJsonValue) ?? {
-            role: "assistant",
-            content: "",
-          },
-          inputTokens: countOpenAIChatTokens(
-            "gpt-4-0613",
-            row.input as unknown as CreateChatCompletionRequestMessage[],
-          ),
-          outputTokens,
-          type: typesToAssign.pop() as "TRAIN" | "TEST",
-        });
-      }
+      const datasetEntriesToCreate = await formatEntriesFromTrainingRows(datasetId, trainingRows);
 
       // Ensure dataset and dataset entries are created atomically
       await prisma.$transaction([
@@ -239,7 +181,6 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       return success(datasetId);
     }),
-
   update: protectedProcedure
     .input(
       z.object({

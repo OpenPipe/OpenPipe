@@ -1,5 +1,7 @@
 import { type ChatCompletion } from "openai/resources/chat";
 import { GPTTokens } from "gpt-tokens";
+import llamaTokenizer from "llama-tokenizer-js";
+
 import { type SupportedModel } from "~/modelProviders/openai-ChatCompletion";
 
 interface GPTTokensMessageItem {
@@ -21,4 +23,12 @@ export const countOpenAIChatTokens = (
     model,
     messages: reformattedMessages as unknown as GPTTokensMessageItem[],
   }).usedTokens;
+};
+
+export const countLlamaChatTokens = (messages: ChatCompletion.Choice.Message[]) => {
+  const stringToTokenize = messages
+    .map((message) => message.content || JSON.stringify(message.function_call))
+    .join("\n");
+  const tokens = llamaTokenizer.encode(stringToTokenize);
+  return tokens.length;
 };

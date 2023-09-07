@@ -176,12 +176,41 @@ model OutputEvaluation {
     @@unique([modelResponseId, evaluationId])
 }
 
+
+enum DatasetFileUploadStatus {
+    PENDING
+    DOWNLOADING
+    PROCESSING
+    SAVING
+    COMPLETE
+    ERROR
+}
+
+model DatasetFileUpload {
+    id String @id @default(uuid()) @db.Uuid
+
+    datasetId String   @db.Uuid
+    dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+    blobName  String
+    fileName String
+    fileSize Int
+    progress Int @default(0) // Percentage
+    status   DatasetFileUploadStatus @default(PENDING)
+    uploadedAt DateTime
+    visible  Boolean @default(true)
+    errorMessage String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
 model Dataset {
     id String @id @default(uuid()) @db.Uuid
 
     name                String
     datasetEntries      DatasetEntry[]
     fineTunes           FineTune[]
+    datasetFileUploads  DatasetFileUpload[]
     trainingRatio  Float @default(0.8)
 
     projectId String  @db.Uuid

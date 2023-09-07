@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -16,13 +16,15 @@ import {
   useDisclosure,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
+import pluralize from "pluralize";
 import { AiOutlineCloudUpload, AiOutlineFile } from "react-icons/ai";
 
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import ActionButton from "../ActionButton";
 import { validateTrainingRows, type TrainingRow, parseJSONL } from "./validateTrainingRows";
-import pluralize from "pluralize";
+import { uploadDatasetEntryFile } from "~/utils/azure/website";
+import { formatFileSize } from "~/utils/utils";
 
 const ImportDataButton = () => {
   const disclosure = useDisclosure();
@@ -48,6 +50,7 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
 
   const [validationError, setValidationError] = useState<string | null>(null);
   const [trainingRows, setTrainingRows] = useState<TrainingRow[] | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -67,6 +70,14 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
   };
 
   const processFile = (file: File) => {
+    setFile(file);
+
+    // skip reading if file is larger than 10MB
+    if (file.size > 10000000) {
+      setTrainingRows(null);
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       const content = e.target?.result as string;
@@ -83,7 +94,6 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
         setTrainingRows(parsedJSONL);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
-        console.log("e is", e);
         setValidationError("Unable to parse JSONL file: " + (e.message as string));
         setTrainingRows(null);
         return;
@@ -92,28 +102,38 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     reader.readAsText(file);
   };
 
+  const resetState = useCallback(() => {
+    setValidationError(null);
+    setTrainingRows(null);
+    setFile(null);
+  }, [setValidationError, setTrainingRows, setFile]);
+
   useEffect(() => {
     if (disclosure.isOpen) {
-      setTrainingRows(null);
-      setValidationError(null);
+      resetState();
     }
-  }, [disclosure.isOpen]);
+  }, [disclosure.isOpen, resetState]);
+
+  const triggerFileDownloadMutation = api.datasets.triggerFileDownload.useMutation();
 
   const utils = api.useContext();
 
-  const sendJSONLMutation = api.datasetEntries.create.useMutation();
-
   const [sendJSONL, sendingInProgress] = useHandledAsyncCallback(async () => {
-    if (!dataset || !trainingRows) return;
+    if (!dataset || !file) return;
 
-    await sendJSONLMutation.mutateAsync({
+    const blobName = await uploadDatasetEntryFile(file);
+
+    await triggerFileDownloadMutation.mutateAsync({
       datasetId: dataset.id,
-      jsonl: JSON.stringify(trainingRows),
+      blobName,
+      fileName: file.name,
+      fileSize: file.size,
     });
 
-    await utils.datasetEntries.list.invalidate();
+    await utils.datasets.listFileUploads.invalidate();
+
     disclosure.onClose();
-  }, [dataset, trainingRows, sendJSONLMutation]);
+  }, [dataset, trainingRows, triggerFileDownloadMutation, file, utils]);
 
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
@@ -127,7 +147,28 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
         <ModalCloseButton />
         <ModalBody maxW="unset" p={8}>
           <Box w="full" aspectRatio={1.5}>
-            {!trainingRows && !validationError && (
+            {validationError && (
+              <VStack w="full" h="full" justifyContent="center" spacing={8}>
+                <Icon as={AiOutlineFile} boxSize={24} color="gray.300" />
+                <VStack w="full">
+                  <Text fontSize={32} color="gray.500" fontWeight="bold">
+                    Error
+                  </Text>
+                  <Text color="gray.500">{validationError}</Text>
+                </VStack>
+                <Text
+                  as="span"
+                  textDecor="underline"
+                  color="gray.500"
+                  _hover={{ color: "orange.400" }}
+                  cursor="pointer"
+                  onClick={resetState}
+                >
+                  Try again
+                </Text>
+              </VStack>
+            )}
+            {!validationError && !file && (
               <VStack
                 w="full"
                 h="full"
@@ -167,38 +208,28 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                 </Text>
               </VStack>
             )}
-            {validationError && (
-              <VStack w="full" h="full" justifyContent="center" spacing={8}>
-                <Icon as={AiOutlineFile} boxSize={24} color="gray.300" />
-                <VStack w="full">
-                  <Text fontSize={32} color="gray.500" fontWeight="bold">
-                    Error
-                  </Text>
-                  <Text color="gray.500">{validationError}</Text>
-                </VStack>
-                <Text
-                  as="span"
-                  textDecor="underline"
-                  color="gray.500"
-                  _hover={{ color: "orange.400" }}
-                  cursor="pointer"
-                  onClick={() => setValidationError(null)}
-                >
-                  Try again
-                </Text>
-              </VStack>
-            )}
-            {trainingRows && !validationError && (
+            {!validationError && file && (
               <VStack w="full" h="full" justifyContent="center" spacing={8}>
                 <JsonFileIcon />
                 <VStack w="full">
-                  <Text fontSize={32} color="gray.500" fontWeight="bold">
-                    Success
-                  </Text>
-                  <Text color="gray.500">
-                    We'll upload <b>{trainingRows.length}</b>{" "}
-                    {pluralize("row", trainingRows.length)} into <b>{dataset?.name}</b>.{" "}
-                  </Text>
+                  {trainingRows ? (
+                    <>
+                      <Text fontSize={32} color="gray.500" fontWeight="bold">
+                        Success
+                      </Text>
+                      <Text color="gray.500">
+                        We'll upload <b>{trainingRows.length}</b>{" "}
+                        {pluralize("row", trainingRows.length)} into <b>{dataset?.name}</b>.{" "}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text fontSize={32} color="gray.500" fontWeight="bold">
+                        {file.name}
+                      </Text>
+                      <Text color="gray.500">{formatFileSize(file.size)}</Text>
+                    </>
+                  )}
                 </VStack>
                 <Text
                   as="span"
@@ -206,7 +237,7 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                   color="gray.500"
                   _hover={{ color: "orange.400" }}
                   cursor="pointer"
-                  onClick={() => setTrainingRows(null)}
+                  onClick={resetState}
                 >
                   Change file
                 </Text>
@@ -224,7 +255,7 @@ const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               onClick={sendJSONL}
               isLoading={sendingInProgress}
               minW={24}
-              isDisabled={!trainingRows || !!validationError}
+              isDisabled={!file || !!validationError}
             >
               Upload
             </Button>

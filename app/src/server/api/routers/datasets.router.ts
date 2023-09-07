@@ -1,8 +1,11 @@
 import { z } from "zod";
+
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { success } from "~/utils/errorHandling/standardResponses";
+import { generateServiceClientUrl } from "~/utils/azure/server";
+import { queueImportDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -93,5 +96,74 @@ export const datasetsRouter = createTRPCRouter({
       });
 
       return success("Dataset deleted");
+    }),
+  getServiceClientUrl: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      // The user must at least be authenticated to get a SAS token
+      await requireCanModifyProject(input.projectId, ctx);
+      return generateServiceClientUrl();
+    }),
+  triggerFileDownload: protectedProcedure
+    .input(
+      z.object({
+        datasetId: z.string(),
+        blobName: z.string(),
+        fileName: z.string(),
+        fileSize: z.number(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: { id: input.datasetId },
+      });
+      await requireCanViewProject(projectId, ctx);
+
+      const { id } = await prisma.datasetFileUpload.create({
+        data: {
+          datasetId: input.datasetId,
+          blobName: input.blobName,
+          status: "PENDING",
+          fileName: input.fileName,
+          fileSize: input.fileSize,
+          uploadedAt: new Date(),
+        },
+      });
+
+      await queueImportDatasetEntries(id);
+    }),
+  listFileUploads: protectedProcedure
+    .input(z.object({ datasetId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: { id: input.datasetId },
+      });
+      await requireCanViewProject(projectId, ctx);
+
+      return await prisma.datasetFileUpload.findMany({
+        where: {
+          datasetId: input.datasetId,
+          visible: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }),
+  hideFileUpload: protectedProcedure
+    .input(z.object({ fileUploadId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const { datasetId } = await prisma.datasetFileUpload.findUniqueOrThrow({
+        where: { id: input.fileUploadId },
+      });
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: { id: datasetId },
+      });
+      await requireCanModifyProject(projectId, ctx);
+
+      await prisma.datasetFileUpload.update({
+        where: { id: input.fileUploadId },
+        data: {
+          visible: false,
+        },
+      });
     }),
 });

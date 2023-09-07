@@ -19,7 +19,9 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"]
-    }
+    },
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "types": ["llama-tokenizer-js", "node"]
   },
   "include": [
     ".eslintrc.cjs",
