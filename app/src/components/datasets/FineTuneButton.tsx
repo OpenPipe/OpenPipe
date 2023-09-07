@@ -24,7 +24,7 @@ import { useDataset, useDatasetEntries, useHandledAsyncCallback } from "~/utils/
 import { api } from "~/utils/api";
 import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
-import { FiChevronDown } from "react-icons/fi";
+// import { FiChevronDown } from "react-icons/fi";
 
 const SUPPORTED_BASE_MODELS = ["llama2-7b", "llama2-13b", "llama2-70b", "gpt-3.5-turbo"];
 
@@ -131,12 +131,12 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 />
               </HStack>
             </VStack>
-            <Button variant="unstyled" color="blue.600">
+            {/* <Button variant="unstyled" color="blue.600">
               <HStack>
                 <Text>Advanced Options</Text>
                 <Icon as={FiChevronDown} />
               </HStack>
-            </Button>
+            </Button> */}
           </VStack>
         </ModalBody>
         <ModalFooter>
