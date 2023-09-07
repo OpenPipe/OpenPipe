@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  VStack,
-  HStack,
-  Button,
-  Text,
-  Progress,
-  IconButton,
-  Portal,
-  Spinner,
-} from "@chakra-ui/react";
+import { VStack, HStack, Button, Text, Progress, IconButton, Portal } from "@chakra-ui/react";
 import { BsX } from "react-icons/bs";
 
 import { type RouterOutputs, api } from "~/utils/api";
@@ -63,7 +54,7 @@ const FileUploadsCard = () => {
           <Text fontWeight="bold">Uploads</Text>
           <IconButton
             aria-label="Close uploads"
-            as={hidingInProgress ? Spinner : BsX}
+            as={BsX}
             boxSize={6}
             minW={0}
             variant="ghost"
