@@ -106,7 +106,7 @@ const FileUploadRow = ({ fileUpload }: { fileUpload: FileUpload }) => {
       </HStack>
 
       {errorMessage ? (
-        <Text alignSelf="center" pt={2}>
+        <Text alignSelf="center" pt={2} color="red" fontSize="xs">
           {errorMessage}
         </Text>
       ) : (
