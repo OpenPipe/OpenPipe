@@ -91,6 +91,7 @@ const FileUploadRow = ({ fileUpload }: { fileUpload: FileUpload }) => {
 
   const [refreshDatasetEntries] = useHandledAsyncCallback(async () => {
     await hideFileUploadsMutation.mutateAsync({ fileUploadIds: [id] });
+    await utils.datasets.listFileUploads.invalidate();
     await utils.datasetEntries.list.invalidate();
   }, [id, hideFileUploadsMutation, utils]);
 
@@ -129,11 +130,28 @@ const FileUploadRow = ({ fileUpload }: { fileUpload: FileUpload }) => {
       ) : (
         <>
           <Text alignSelf="center" fontSize="xs">
-            {status}
+            {getStatusText(status)}
           </Text>
           <Progress w="full" value={progress} borderRadius={2} />
         </>
       )}
     </VStack>
   );
+};
+
+const getStatusText = (status: FileUpload["status"]) => {
+  switch (status) {
+    case "PENDING":
+      return "Pending";
+    case "DOWNLOADING":
+      return "Downloading to Server";
+    case "PROCESSING":
+      return "Processing";
+    case "SAVING":
+      return "Saving";
+    case "COMPLETE":
+      return "Complete";
+    case "ERROR":
+      return "Error";
+  }
 };
