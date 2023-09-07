@@ -8,9 +8,9 @@ const replicate = new Replicate({
 });
 
 const modelIds: Record<ReplicateLlama2Input["model"], string> = {
-  "7b-chat": "d24902e3fa9b698cc208b5e63136c4e26e828659a9f09827ca6ec5bb83014381",
-  "13b-chat": "9dff94b1bed5af738655d4a7cbcdcde2bd503aa85c94334fe1f42af7f3dd5ee3",
-  "70b-chat": "2c1608e18606fad2812020dc541930f2d0495ce32eee50074220b87300bc16e1",
+  "7b-chat": "658b64a1e83d7caaba4ef10d5ee9c12c40770003f45852f05c2564962f921d8e",
+  "13b-chat": "7457c09004773f9f9710f7eb3b270287ffcebcfb23a13c8ec30cfb98f6bff9b2",
+  "70b-chat": "4dfd64cc207097970659087cf5670e3c1fbe02f83aa0f751e079cfba72ca790a",
 };
 
 export async function getCompletion(
