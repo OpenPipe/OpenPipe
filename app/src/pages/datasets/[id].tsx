@@ -24,7 +24,7 @@ import DatasetEntriesTable from "~/components/datasets/DatasetEntriesTable/Datas
 import DatasetEntryPaginator from "~/components/datasets/DatasetEntryPaginator";
 import { useAppStore } from "~/state/store";
 import FineTuneButton from "~/components/datasets/FineTuneButton";
-import ExperimentButton from "~/components/datasets/ExperimentButton";
+// import ExperimentButton from "~/components/datasets/ExperimentButton";
 import UploadDataButton from "~/components/datasets/UploadDataButton";
 // import DownloadButton from "~/components/datasets/DownloadButton";
 import DeleteButton from "~/components/datasets/DeleteButton";
@@ -105,7 +105,7 @@ export default function Dataset() {
             <HStack w="full" justifyContent="flex-end">
               <FineTuneButton />
               <UploadDataButton />
-              <ExperimentButton />
+              {/* <ExperimentButton /> */}
               {/* <DownloadButton /> */}
               <DeleteButton />
             </HStack>
