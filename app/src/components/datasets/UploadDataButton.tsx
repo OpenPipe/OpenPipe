@@ -26,26 +26,26 @@ import { validateTrainingRows, type TrainingRow, parseJSONL } from "./validateTr
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";
 
-const ImportDataButton = () => {
+const UploadDataButton = () => {
   const disclosure = useDisclosure();
 
   return (
     <>
       <ActionButton
         onClick={disclosure.onOpen}
-        label="Import Data"
+        label="Upload Data"
         icon={AiOutlineCloudUpload}
         iconBoxSize={4}
         requireBeta
       />
-      <ImportDataModal disclosure={disclosure} />
+      <UploadDataModal disclosure={disclosure} />
     </>
   );
 };
 
-export default ImportDataButton;
+export default UploadDataButton;
 
-const ImportDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
+const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
 
   const [validationError, setValidationError] = useState<string | null>(null);

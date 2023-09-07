@@ -104,6 +104,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
         data: {
           errorMessage: `Error formatting rows: ${e.message as string}`,
           status: "ERROR",
+          visible: true,
         },
       });
       return;
@@ -128,6 +129,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
       data: {
         status: "COMPLETE",
         progress: 100,
+        visible: true,
       },
     });
   },

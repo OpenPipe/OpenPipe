@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
-import { success } from "~/utils/errorHandling/standardResponses";
+import { error, success } from "~/utils/errorHandling/standardResponses";
 import { generateServiceClientUrl } from "~/utils/azure/server";
 import { queueImportDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
 
@@ -148,19 +148,33 @@ export const datasetsRouter = createTRPCRouter({
         orderBy: { createdAt: "desc" },
       });
     }),
-  hideFileUpload: protectedProcedure
-    .input(z.object({ fileUploadId: z.string() }))
+  hideFileUploads: protectedProcedure
+    .input(z.object({ fileUploadIds: z.string().array() }))
     .mutation(async ({ input, ctx }) => {
-      const { datasetId } = await prisma.datasetFileUpload.findUniqueOrThrow({
-        where: { id: input.fileUploadId },
-      });
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
-        where: { id: datasetId },
+      if (!input.fileUploadIds.length) return error("No file upload ids provided");
+
+      const {
+        dataset: { projectId, id: datasetId },
+      } = await prisma.datasetFileUpload.findUniqueOrThrow({
+        where: { id: input.fileUploadIds[0] },
+        select: {
+          dataset: {
+            select: {
+              id: true,
+              projectId: true,
+            },
+          },
+        },
       });
       await requireCanModifyProject(projectId, ctx);
 
-      await prisma.datasetFileUpload.update({
-        where: { id: input.fileUploadId },
+      await prisma.datasetFileUpload.updateMany({
+        where: {
+          id: {
+            in: input.fileUploadIds,
+          },
+          datasetId,
+        },
         data: {
           visible: false,
         },
