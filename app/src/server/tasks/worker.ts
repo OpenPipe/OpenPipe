@@ -5,10 +5,11 @@ import "../../../sentry.server.config";
 import { env } from "~/env.mjs";
 import { queryModel } from "./queryModel.task";
 import { runNewEval } from "./runNewEval.task";
+import { importDatasetEntries } from "./importDatasetEntries.task";
 
 console.log("Starting worker");
 
-const registeredTasks = [queryModel, runNewEval];
+const registeredTasks = [queryModel, runNewEval, importDatasetEntries];
 
 const taskList = registeredTasks.reduce((acc, task) => {
   acc[task.task.identifier] = task.task.handler;

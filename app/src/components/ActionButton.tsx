@@ -7,12 +7,14 @@ import { BetaModal } from "./BetaModal";
 
 const ActionButton = ({
   icon,
+  iconBoxSize = 3.5,
   label,
   requireBeta = false,
   onClick,
   ...buttonProps
 }: {
   icon: IconType;
+  iconBoxSize?: number;
   label: string;
   requireBeta?: boolean;
   onClick?: () => void;
@@ -39,7 +41,9 @@ const ActionButton = ({
         {...buttonProps}
       >
         <HStack spacing={1}>
-          {icon && <Icon as={icon} color={requireBeta ? "orange.400" : undefined} />}
+          {icon && (
+            <Icon as={icon} boxSize={iconBoxSize} color={requireBeta ? "orange.400" : undefined} />
+          )}
           <Text display={{ base: "none", md: "flex" }}>{label}</Text>
         </HStack>
       </Button>

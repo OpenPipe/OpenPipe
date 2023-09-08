@@ -1,0 +1,19 @@
+---
+title: "Import Data - Beta"
+sidebarTitle: "Import Data"
+description: "
+Import external data to kickstart your fine-tuning process. Use the OpenAI chat fine-tuning format."
+---
+
+Upload a JSONL file populated with an array of OpenAI messages as input, and a single message as output.
+
+<Frame>![](/images/features/importing-data.png)</Frame>
+
+Compatible with both typical content messages and function calls. Input arrays must contain one or more messages.
+
+```jsonl
+...
+{"input":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Sweden?"}],"output":{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Stockholm\"}"}}}
+{"input":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Tasmania?"}],"output":{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Hobart\"}"}}}
+...
+```
