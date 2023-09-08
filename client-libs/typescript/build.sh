@@ -24,4 +24,4 @@ rm -rf /tmp/openpipe-build-dist/node_modules
 mv /tmp/openpipe-build-dist dist
 
 # build to .js files
-(cd dist && npm exec tsc -- --noEmit false)
+(cd dist && pnpm rollup -c)
