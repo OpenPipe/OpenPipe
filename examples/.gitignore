@@ -3,3 +3,4 @@ models/
 data/
 wandb/
 cache/
+.ipynb_checkpoints/
