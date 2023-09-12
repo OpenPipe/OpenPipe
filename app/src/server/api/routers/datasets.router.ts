@@ -57,7 +57,7 @@ export const datasetsRouter = createTRPCRouter({
         },
       });
 
-      return success(dataset);
+      return success(dataset.id);
     }),
 
   update: protectedProcedure
