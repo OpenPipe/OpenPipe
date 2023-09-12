@@ -1,6 +1,6 @@
 {
   "name": "openpipe-dev",
-  "version": "0.3.5",
+  "version": "0.3.7",
   "type": "module",
   "description": "Metrics and auto-evaluation for LLM calls",
   "scripts": {
@@ -11,16 +11,20 @@
   "publishConfig": {
     "name": "openpipe",
     "access": "public",
-    "main": "./dist/index.cjs.js",
-    "module": "./dist/index.esm.js",
+    "main": "./index.cjs.js",
+    "module": "./index.esm.js",
     "exports": {
       ".": {
-        "import": "./dist/index.esm.js",
-        "require": "./dist/index.cjs.js"
+        "import": "./index.esm.js",
+        "require": "./index.cjs.js"
       },
       "./openai": {
-        "import": "./dist/openai.esm.js",
-        "require": "./dist/openai.cjs.js"
+        "import": "./openai.esm.js",
+        "require": "./openai.cjs.js"
+      },
+      "./openai/mergeChunks": {
+        "import": "./openai/mergeChunks.esm.js",
+        "require": "./openai/mergeChunks.cjs.js"
       }
     }
   },

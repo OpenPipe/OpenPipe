@@ -1,0 +1,19 @@
+{
+  "version": "v1",
+  "packages": {
+    "openpipe": {
+      "signature": "e466062cfae9b768e8ad1e1f6528dafd",
+      "file": true,
+      "replaced": "^0.3.0"
+    },
+    "openpipe-yalc": {
+      "signature": "89c3085f73617461174c1fa6bcfc3654",
+      "file": true
+    },
+    "openpipe-dev": {
+      "signature": "95bba290fb67f6b055980c4eb5ae061e",
+      "file": true,
+      "replaced": "workspace:^"
+    }
+  }
+}
