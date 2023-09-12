@@ -50,3 +50,4 @@ src/server/utils/openaiCustomConfig.json
 
 # yalc
 .yalc
+yalc.lock

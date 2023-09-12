@@ -1,10 +1,11 @@
 {
   "name": "openpipe-dev",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "type": "module",
   "description": "Metrics and auto-evaluation for LLM calls",
   "scripts": {
     "build": "./build.sh",
+    "build-update": "./build.sh && ./update-app.sh",
     "test": "vitest"
   },
   "main": "./src/index.ts",
@@ -12,18 +13,19 @@
     "name": "openpipe",
     "access": "public",
     "main": "./index.cjs.js",
-    "module": "./index.esm.js",
+    "module": "./index.js",
+    "types": "./index.d.ts",
     "exports": {
       ".": {
-        "import": "./index.esm.js",
+        "import": "./index.js",
         "require": "./index.cjs.js"
       },
       "./openai": {
-        "import": "./openai.esm.js",
+        "import": "./openai.js",
         "require": "./openai.cjs.js"
       },
       "./openai/mergeChunks": {
-        "import": "./openai/mergeChunks.esm.js",
+        "import": "./openai/mergeChunks.js",
         "require": "./openai/mergeChunks.cjs.js"
       }
     }
@@ -49,6 +51,7 @@
     "rollup": "^3.28.1",
     "rollup-plugin-typescript2": "^0.35.0",
     "tslib": "^2.6.2",
+    "tsup": "^7.2.0",
     "tsx": "^3.12.7",
     "typescript": "^5.0.4",
     "vitest": "^0.33.0"
