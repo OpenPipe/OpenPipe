@@ -10,7 +10,6 @@ const config: Options = {
   entry: [
     "src/index.ts", // Main entry
     "src/openai.ts", // 'openai' sub-module
-    "src/openai/index.test.ts", // 'openai' sub-module
     "src/openai/mergeChunks.ts", // 'openai/mergeChunks' sub-module
     "src/openai/streaming.ts", // 'openai/streaming' sub-module
   ],
