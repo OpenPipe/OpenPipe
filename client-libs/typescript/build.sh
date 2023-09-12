@@ -9,6 +9,9 @@ npx tsup
 # copy the package.json file to /dist
 cp package.json dist
 
+# copy the README.md file to /dist
+cp README.md dist
+
 python3 -c "
 import json
 
