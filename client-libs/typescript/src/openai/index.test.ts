@@ -1,12 +1,12 @@
 import dotenv from "dotenv";
 import { expect, test } from "vitest";
-import OpenAI from ".";
+import OpenAI from "../openai";
 import {
   ChatCompletion,
   CompletionCreateParams,
   CreateChatCompletionRequestMessage,
 } from "openai-beta/resources/chat/completions";
-import { OPClient } from "../codegen";
+import { OPClient } from "../../codegen";
 import mergeChunks from "./mergeChunks";
 import assert from "assert";
 

@@ -7,10 +7,10 @@ import {
   CompletionCreateParams,
 } from "openai-beta/resources/chat/completions";
 
-import { WrappedStream } from "./streaming";
+import { WrappedStream } from "./openai/streaming";
 import { DefaultService, OPClient } from "../codegen";
 import { Stream } from "openai-beta/streaming";
-import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags } from "../shared";
+import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags } from "./shared";
 
 export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig };
 export default class OpenAI extends openai.OpenAI {

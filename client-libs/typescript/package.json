@@ -1,16 +1,34 @@
 {
   "name": "openpipe-dev",
-  "version": "0.3.5",
+  "version": "0.4.0-beta.3",
   "type": "module",
   "description": "Metrics and auto-evaluation for LLM calls",
   "scripts": {
     "build": "./build.sh",
+    "build-update": "./build.sh && ./update-app.sh",
     "test": "vitest"
   },
-  "main": "./index.ts",
+  "main": "./src/index.ts",
   "publishConfig": {
+    "name": "openpipe",
     "access": "public",
-    "main": "./index.js"
+    "main": "./index.cjs",
+    "module": "./index.js",
+    "types": "./index.d.ts",
+    "exports": {
+      ".": {
+        "import": "./index.js",
+        "require": "./index.cjs"
+      },
+      "./openai": {
+        "import": "./openai.js",
+        "require": "./openai.cjs"
+      },
+      "./openai/mergeChunks": {
+        "import": "./openai/mergeChunks.js",
+        "require": "./openai/mergeChunks.cjs"
+      }
+    }
   },
   "keywords": [],
   "author": "",
@@ -24,10 +42,16 @@
     "openai-legacy": "npm:openai@3.3.0"
   },
   "devDependencies": {
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.1",
     "@types/lodash-es": "^4.17.8",
     "@types/node": "^20.4.8",
     "@types/node-fetch": "^2.6.4",
     "dotenv": "^16.3.1",
+    "rollup": "^3.28.1",
+    "rollup-plugin-typescript2": "^0.35.0",
+    "tslib": "^2.6.2",
+    "tsup": "^7.2.0",
     "tsx": "^3.12.7",
     "typescript": "^5.0.4",
     "vitest": "^0.33.0"

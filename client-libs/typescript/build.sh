@@ -1,27 +1,28 @@
 #!/usr/bin/env bash
 
-# Adapted from https://github.com/openai/openai-node/blob/master/build
-
 set -exuo pipefail
 
-rm -rf dist /tmp/openpipe-build-dist
+rm -rf dist
 
-mkdir /tmp/openpipe-build-dist
+npx tsup
 
-cp -rp * /tmp/openpipe-build-dist
+# copy the package.json file to /dist
+cp package.json dist
 
-# Rename package name in package.json
+# copy the README.md file to /dist
+cp README.md dist
+
 python3 -c "
 import json
-with open('/tmp/openpipe-build-dist/package.json', 'r') as f:
-    data = json.load(f)
+
+# Load the package.json file
+with open('dist/package.json', 'r') as file:
+    data = json.load(file)
+
+# Change the names
 data['name'] = 'openpipe'
-with open('/tmp/openpipe-build-dist/package.json', 'w') as f:
-    json.dump(data, f, indent=4)
+
+# Write the changes back to the package.json file
+with open('dist/package.json', 'w') as file:
+    json.dump(data, file, indent=2)
 "
-
-rm -rf /tmp/openpipe-build-dist/node_modules
-mv /tmp/openpipe-build-dist dist
-
-# build to .js files
-(cd dist && npm exec tsc -- --noEmit false)

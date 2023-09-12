@@ -47,3 +47,7 @@ yarn-error.log*
 
 # custom openai intialization
 src/server/utils/openaiCustomConfig.json
+
+# yalc
+.yalc
+yalc.lock
