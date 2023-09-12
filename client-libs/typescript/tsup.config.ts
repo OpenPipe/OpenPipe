@@ -1,7 +1,7 @@
 import { Options } from "tsup";
 
 const config: Options = {
-  splitting: true, // Enable code splitting
+  splitting: false, // Disable code splitting
   sourcemap: true, // Include sourcemaps
   target: "es2020", // Target ES2020 syntax for modern environments
   dts: true, // Generate declaration files
