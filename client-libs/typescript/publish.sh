@@ -6,4 +6,4 @@ set -exuo pipefail
 
 ./build.sh
 
-(cd dist && pnpm publish --access public)
+(cd dist && pnpm publish --access public --tag beta --no-git-checks)

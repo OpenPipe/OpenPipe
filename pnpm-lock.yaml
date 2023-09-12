@@ -183,8 +183,8 @@ importers:
         specifier: 4.0.0-beta.7
         version: 4.0.0-beta.7(encoding@0.1.13)
       openpipe:
-        specifier: file:.yalc/openpipe
-        version: file:app/.yalc/openpipe
+        specifier: 0.4.0-beta.1
+        version: 0.4.0-beta.1
       openpipe-dev:
         specifier: workspace:^
         version: link:../client-libs/typescript
@@ -7796,6 +7796,19 @@ packages:
       oidc-token-hash: 5.0.3
     dev: false
 
+  /openpipe@0.4.0-beta.1:
+    resolution: {integrity: sha512-FeE+pL+D+p6DYBTM6ka1rJT85UOIQkylK+r695uYeN9UDd/ePC1FrZBQhVb241MadoftNydlJvaHxPZe7LwHwQ==}
+    dependencies:
+      encoding: 0.1.13
+      form-data: 4.0.0
+      lodash-es: 4.17.21
+      node-fetch: 2.6.12(encoding@0.1.13)
+      openai-beta: /openai@4.0.0-beta.7(encoding@0.1.13)
+      openai-legacy: /openai@3.3.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /optionator@0.9.3:
     resolution: {integrity: sha512-JjCoypp+jKn1ttEFExxhetCKeJt9zhAgAve5FXHixTvFDW/5aEktX9bufBKLRRMdU7bNtpLfcGu94B3cdEJgjg==}
     engines: {node: '>= 0.8.0'}
@@ -10306,18 +10319,4 @@ packages:
       immer: 10.0.2
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
-    dev: false
-
-  file:app/.yalc/openpipe:
-    resolution: {directory: app/.yalc/openpipe, type: directory}
-    name: openpipe
-    dependencies:
-      encoding: 0.1.13
-      form-data: 4.0.0
-      lodash-es: 4.17.21
-      node-fetch: 2.6.12(encoding@0.1.13)
-      openai-beta: /openai@4.0.0-beta.7(encoding@0.1.13)
-      openai-legacy: /openai@3.3.0
-    transitivePeerDependencies:
-      - debug
     dev: false
