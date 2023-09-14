@@ -84,6 +84,7 @@ export async function getCompletion(
         console.log("error querying the model", e);
         throw e;
       }
+      console.log("resp", resp);
       finalCompletion = resp.choices[0]?.text || "";
       if (!finalCompletion) {
         return {
@@ -166,7 +167,7 @@ export async function getCompletion(
 const templatePrompt = (input: CompletionCreateParams) => {
   const { messages } = input;
 
-  return JSON.stringify(messages);
+  return `### Instruction:\n${JSON.stringify(messages)}\n### Response:`;
 };
 
 const STARTING_TEXT = '{"role":"assistant","content":"';
