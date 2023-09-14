@@ -75,6 +75,49 @@
         }
       }
     },
+    "/completions": {
+      "post": {
+        "operationId": "completions",
+        "description": "Create completion for a prompt",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reqPayload": {
+                    "description": "JSON-encoded request payload"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "JSON-encoded response payload"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
     "/report": {
       "post": {
         "operationId": "report",

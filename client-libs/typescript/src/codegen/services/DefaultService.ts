@@ -45,6 +45,28 @@ export class DefaultService {
     }
 
     /**
+     * Create completion for a prompt
+     * @param requestBody
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public completions(
+        requestBody: {
+            /**
+             * JSON-encoded request payload
+             */
+            reqPayload?: any;
+        },
+    ): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/completions',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+
+    /**
      * Report an API call
      * @param requestBody
      * @returns any Successful response

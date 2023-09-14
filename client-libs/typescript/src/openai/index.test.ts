@@ -6,7 +6,7 @@ import {
   CompletionCreateParams,
   CreateChatCompletionRequestMessage,
 } from "openai-beta/resources/chat/completions";
-import { OPClient } from "../../codegen";
+import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import assert from "assert";
 

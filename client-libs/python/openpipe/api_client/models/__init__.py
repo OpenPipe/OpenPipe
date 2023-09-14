@@ -3,6 +3,7 @@
 from .check_cache_json_body import CheckCacheJsonBody
 from .check_cache_json_body_tags import CheckCacheJsonBodyTags
 from .check_cache_response_200 import CheckCacheResponse200
+from .completions_json_body import CompletionsJsonBody
 from .local_testing_only_get_latest_logged_call_response_200 import LocalTestingOnlyGetLatestLoggedCallResponse200
 from .local_testing_only_get_latest_logged_call_response_200_model_response import (
     LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse,
@@ -20,6 +21,7 @@ __all__ = (
     "CheckCacheJsonBody",
     "CheckCacheJsonBodyTags",
     "CheckCacheResponse200",
+    "CompletionsJsonBody",
     "LocalTestingOnlyGetLatestLoggedCallResponse200",
     "LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse",
     "LocalTestingOnlyGetLatestLoggedCallResponse200Tags",

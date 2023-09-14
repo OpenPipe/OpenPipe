@@ -26,3 +26,5 @@ data['name'] = 'openpipe'
 with open('dist/package.json', 'w') as file:
     json.dump(data, file, indent=2)
 "
+
+(cd dist && yalc publish)
