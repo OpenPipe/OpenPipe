@@ -89,7 +89,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     options?: Core.RequestOptions,
   ): Promise<Core.APIResponse<ChatCompletion | Stream<ChatCompletionChunk>>> {
     let resp;
-    if (DEFAULT_MODELS.includes(body.model)) {
+    if (DEFAULT_MODELS.includes(body.model) || body.model.startsWith("ft:gpt-3.5-turbo")) {
       resp = body.stream ? super.create(body, options) : super.create(body, options);
     } else {
       resp = this.opClient?.default.completions({
