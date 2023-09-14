@@ -40,6 +40,7 @@ export async function getCompletion(
 
   const completionParams = {
     prompt: templatedPrompt,
+    max_tokens: 4096,
     ...rest,
   };
 
