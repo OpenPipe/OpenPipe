@@ -72,24 +72,30 @@ export async function getCompletion(
         };
       }
     } else {
-      // const resp = await openai.completions.create(
-      //   { ...completionParams, stream: false },
-      //   {
-      //     maxRetries: 0,
-      //   },
-      // );
-      // finalCompletion = resp.choices[0]?.text || "";
-      // if (!finalCompletion) {
-      //   return {
-      //     type: "error",
-      //     message: "Failed to return a completion",
-      //     autoRetry: false,
-      //   };
-      // }
+      let resp;
+      try {
+        resp = await openai.completions.create(
+          { ...completionParams, stream: false },
+          {
+            maxRetries: 0,
+          },
+        );
+      } catch (e) {
+        console.log("error querying the model", e);
+        throw e;
+      }
+      finalCompletion = resp.choices[0]?.text || "";
+      if (!finalCompletion) {
+        return {
+          type: "error",
+          message: "Failed to return a completion",
+          autoRetry: false,
+        };
+      }
     }
     const timeToComplete = Date.now() - start;
 
-    finalCompletion = '{"role":"assistant","content":"{\\"available_credit\\":507700}"}';
+    // finalCompletion = '{"role":"assistant","content":"{\\"available_credit\\":507700}"}';
 
     let parsedCompletion;
     try {
