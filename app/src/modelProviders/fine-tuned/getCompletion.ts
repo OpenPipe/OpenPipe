@@ -97,8 +97,6 @@ export async function getCompletion(
     }
     const timeToComplete = Date.now() - start;
 
-    // finalCompletion = '{"role":"assistant","content":"{\\"available_credit\\":507700}"}';
-
     let parsedCompletion;
     try {
       parsedCompletion = JSON.parse(finalCompletion);
