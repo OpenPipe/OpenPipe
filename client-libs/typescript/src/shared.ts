@@ -1,6 +1,6 @@
 import pkg from "../package.json";
 
-import { DefaultService } from "../codegen";
+import { DefaultService } from "./codegen";
 
 export type OpenPipeConfig = {
   apiKey?: string;

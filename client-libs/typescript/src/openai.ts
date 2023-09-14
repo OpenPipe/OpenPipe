@@ -8,9 +8,23 @@ import {
 } from "openai-beta/resources/chat/completions";
 
 import { WrappedStream } from "./openai/streaming";
-import { DefaultService, OPClient } from "../codegen";
+import { DefaultService, OPClient } from "./codegen";
 import { Stream } from "openai-beta/streaming";
 import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags } from "./shared";
+
+const DEFAULT_MODELS = [
+  "gpt-4",
+  "gpt-4-0314",
+  "gpt-4-0613",
+  "gpt-4-32k",
+  "gpt-4-32k-0314",
+  "gpt-4-32k-0613",
+  "gpt-3.5-turbo",
+  "gpt-3.5-turbo-16k",
+  "gpt-3.5-turbo-0301",
+  "gpt-3.5-turbo-0613",
+  "gpt-3.5-turbo-16k-0613",
+];
 
 export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig };
 export default class OpenAI extends openai.OpenAI {
@@ -62,6 +76,30 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     }
   }
 
+  _create(
+    body: CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
+    options?: Core.RequestOptions,
+  ): Promise<Core.APIResponse<ChatCompletion>>;
+  _create(
+    body: CompletionCreateParams.CreateChatCompletionRequestStreaming,
+    options?: Core.RequestOptions,
+  ): Promise<Core.APIResponse<Stream<ChatCompletionChunk>>>;
+  _create(
+    body: CompletionCreateParams,
+    options?: Core.RequestOptions,
+  ): Promise<Core.APIResponse<ChatCompletion | Stream<ChatCompletionChunk>>> {
+    let resp;
+    if (DEFAULT_MODELS.includes(body.model) || body.model.startsWith("ft:gpt-3.5-turbo")) {
+      resp = body.stream ? super.create(body, options) : super.create(body, options);
+    } else {
+      resp = this.opClient?.default.completions({
+        reqPayload: body,
+      }) as Promise<Core.APIResponse<ChatCompletion>>;
+    }
+
+    return resp;
+  }
+
   create(
     body: CompletionCreateParams.CreateChatCompletionRequestNonStreaming & OpenPipeArgs,
     options?: Core.RequestOptions,
@@ -111,23 +149,30 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
 
     try {
       if (body.stream) {
-        const stream = await super.create(body, options);
-        const wrappedStream = new WrappedStream(stream, (response) =>
-          this._report({
-            requestedAt,
-            receivedAt: Date.now(),
-            reqPayload: body,
-            respPayload: response,
-            statusCode: 200,
-            tags: getTags(openpipe),
-          }),
-        );
+        const stream = await this._create(body, options);
+        let wrappedStream;
+        try {
+          wrappedStream = new WrappedStream(stream, (response) =>
+            this._report({
+              requestedAt,
+              receivedAt: Date.now(),
+              reqPayload: body,
+              respPayload: response,
+              statusCode: 200,
+              tags: getTags(openpipe),
+            }),
+          );
+        } catch (e) {
+          console.error("OpenPipe: error creating wrapped stream");
+          console.error(e);
+          throw e;
+        }
 
         // Do some logging of each chunk here
 
         return wrappedStream;
       } else {
-        const response = await super.create(body, options);
+        const response = await this._create(body, options);
 
         reportingFinished = this._report({
           requestedAt,

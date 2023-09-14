@@ -10,6 +10,8 @@ import {
   type CompletionCreateParams,
 } from "openai/resources/chat/completions";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
+import { TRPCError } from "@trpc/server";
+import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -79,6 +81,69 @@ export const v1ApiRouter = createOpenApiRouter({
       return {
         respPayload: existingResponse.respPayload,
       };
+    }),
+
+  completions: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/completions",
+        description: "Create completion for a prompt",
+        protect: true,
+      },
+    })
+    .input(
+      z.object({
+        reqPayload: z.unknown().describe("JSON-encoded request payload"),
+      }),
+    )
+    .output(z.unknown().describe("JSON-encoded response payload"))
+    .mutation(async ({ input, ctx }) => {
+      const { key } = ctx;
+      const reqPayload = await reqValidator.spa(input.reqPayload);
+
+      if (!reqPayload.success) {
+        throw new TRPCError({
+          message: "The request payload must contain a valid model and messages",
+          code: "BAD_REQUEST",
+        });
+      }
+
+      const modelSlug = reqPayload.data.model;
+      const fineTune = await prisma.fineTune.findUnique({
+        where: { slug: modelSlug },
+      });
+      if (!fineTune) {
+        throw new TRPCError({ message: "The model does not exist", code: "NOT_FOUND" });
+      }
+      if (fineTune.projectId !== key.projectId) {
+        throw new TRPCError({
+          message: "The model does not belong to this project",
+          code: "FORBIDDEN",
+        });
+      }
+      if (!fineTune.inferenceUrl) {
+        throw new TRPCError({
+          message: "The model is not set up for inference",
+          code: "BAD_REQUEST",
+        });
+      }
+
+      const completion = await getCompletion(
+        reqPayload.data,
+        null,
+        modelSlug,
+        fineTune.inferenceUrl,
+      );
+
+      if (completion.type === "error") {
+        throw new TRPCError({
+          message: completion.message,
+          code: "BAD_REQUEST",
+        });
+      }
+
+      return completion.value;
     }),
 
   report: openApiProtectedProc

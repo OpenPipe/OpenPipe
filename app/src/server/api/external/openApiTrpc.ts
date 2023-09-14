@@ -1,6 +1,7 @@
 import type { ApiKey, Project } from "@prisma/client";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { type NextApiResponse } from "next/types";
 import superjson from "superjson";
 import { type OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
@@ -12,6 +13,7 @@ type CreateContextOptions = {
         project: Project;
       })
     | null;
+  res: NextApiResponse;
 };
 
 /**
@@ -27,6 +29,7 @@ type CreateContextOptions = {
 export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     key: opts.key,
+    res: opts.res,
   };
 };
 
@@ -48,6 +51,7 @@ export const createOpenApiContext = async (opts: CreateNextContextOptions) => {
 
   return createInnerTRPCContext({
     key,
+    res,
   });
 };
 
