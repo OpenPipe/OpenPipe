@@ -85,9 +85,10 @@ These are sample experiments users have created that show how OpenPipe works. Fe
 5. Install the dependencies: `cd openpipe && pnpm install`
 6. Create a `.env` file (`cp .env.example .env`) and enter your `OPENAI_API_KEY`.
 7. Update `DATABASE_URL` if necessary to point to your Postgres instance and run `pnpm prisma migrate dev` to create the database.
-8. Create a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app) and update the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` values. (Note: a PR to make auth optional when running locally would be a great contribution!)
-9. Start the app: `pnpm dev`.
-10. Navigate to [http://localhost:3000](http://localhost:3000)
+8. Create a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app), set the callback URL to `<your local instance>/api/auth/callback/github`, e.g. `http://localhost:3000/api/auth/callback/github`.
+9. Update the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` values from the Github OAuth app (Note: a PR to make auth optional when running locally would be a great contribution!).
+10. Start the app: `pnpm dev`.
+11. Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Testing Locally
 
