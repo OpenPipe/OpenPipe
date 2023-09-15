@@ -117,7 +117,9 @@ export interface FineTune {
   id: string;
   slug: string;
   baseModel: string;
-  status: Generated<"AWAITING_DEPLOYMENT" | "DEPLOYED" | "DEPLOYING" | "ERROR" | "PENDING" | "TRAINING">;
+  status: Generated<
+    "AWAITING_DEPLOYMENT" | "DEPLOYED" | "DEPLOYING" | "ERROR" | "PENDING" | "TRAINING"
+  >;
   trainingStartedAt: Timestamp | null;
   trainingFinishedAt: Timestamp | null;
   deploymentStartedAt: Timestamp | null;
