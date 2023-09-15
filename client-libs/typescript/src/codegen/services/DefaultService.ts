@@ -50,7 +50,7 @@ export class DefaultService {
      * @returns any Successful response
      * @throws ApiError
      */
-    public completions(
+    public createChatCompletion(
         requestBody: {
             /**
              * JSON-encoded request payload
@@ -60,7 +60,7 @@ export class DefaultService {
     ): CancelablePromise<any> {
         return this.httpRequest.request({
             method: 'POST',
-            url: '/completions',
+            url: '/chat/completions',
             body: requestBody,
             mediaType: 'application/json',
         });

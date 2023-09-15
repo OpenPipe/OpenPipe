@@ -75,9 +75,9 @@
         }
       }
     },
-    "/completions": {
+    "/chat/completions": {
       "post": {
-        "operationId": "completions",
+        "operationId": "createChatCompletion",
         "description": "Create completion for a prompt",
         "security": [
           {
