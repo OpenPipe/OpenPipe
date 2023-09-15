@@ -12,20 +12,6 @@ import { DefaultService, OPClient } from "./codegen";
 import { Stream } from "openai-beta/streaming";
 import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags } from "./shared";
 
-const DEFAULT_MODELS = [
-  "gpt-4",
-  "gpt-4-0314",
-  "gpt-4-0613",
-  "gpt-4-32k",
-  "gpt-4-32k-0314",
-  "gpt-4-32k-0613",
-  "gpt-3.5-turbo",
-  "gpt-3.5-turbo-16k",
-  "gpt-3.5-turbo-0301",
-  "gpt-3.5-turbo-0613",
-  "gpt-3.5-turbo-16k-0613",
-];
-
 export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig };
 export default class OpenAI extends openai.OpenAI {
   public opClient?: OPClient;
@@ -89,12 +75,12 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     options?: Core.RequestOptions,
   ): Promise<Core.APIResponse<ChatCompletion | Stream<ChatCompletionChunk>>> {
     let resp;
-    if (DEFAULT_MODELS.includes(body.model) || body.model.startsWith("ft:gpt-3.5-turbo")) {
-      resp = body.stream ? super.create(body, options) : super.create(body, options);
-    } else {
+    if (body.model.startsWith("openpipe:")) {
       resp = this.opClient?.default.completions({
         reqPayload: body,
       }) as Promise<Core.APIResponse<ChatCompletion>>;
+    } else {
+      resp = body.stream ? super.create(body, options) : super.create(body, options);
     }
 
     return resp;

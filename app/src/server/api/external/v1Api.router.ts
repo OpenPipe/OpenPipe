@@ -109,9 +109,21 @@ export const v1ApiRouter = createOpenApiRouter({
         });
       }
 
-      const modelSlug = reqPayload.data.model;
+      const modelName = reqPayload.data.model;
+      const modelSlug = modelName.replace("openpipe:", "");
       const fineTune = await prisma.fineTune.findUnique({
         where: { slug: modelSlug },
+        include: {
+          dataset: {
+            select: {
+              pruningRules: {
+                select: {
+                  textToMatch: true,
+                },
+              },
+            },
+          },
+        },
       });
       if (!fineTune) {
         throw new TRPCError({ message: "The model does not exist", code: "NOT_FOUND" });
@@ -134,6 +146,7 @@ export const v1ApiRouter = createOpenApiRouter({
         null,
         modelSlug,
         fineTune.inferenceUrl,
+        fineTune.dataset.pruningRules.map((rule) => rule.textToMatch),
       );
 
       if (completion.type === "error") {

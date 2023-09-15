@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { isArray, isString } from "lodash-es";
 import OpenAI, { APIError } from "openai";
 import { v4 as uuidv4 } from "uuid";
@@ -18,11 +17,12 @@ export async function getCompletion(
   onStream: ((partialOutput: ChatCompletionChunk) => void) | null,
   modelSlug: string,
   inferenceURL: string,
+  stringsToPrune: string[],
 ): Promise<CompletionResponse<ChatCompletion>> {
   const { messages, ...rest } = input;
   const id = uuidv4();
 
-  const templatedPrompt = templatePrompt(input);
+  const templatedPrompt = templatePrompt(input, stringsToPrune);
 
   if (!templatedPrompt) {
     return {
@@ -145,7 +145,8 @@ export async function getCompletion(
         ? rawMessage
         : isArray(rawMessage)
         ? rawMessage.map((m) => m.toString()).join("\n")
-        : (rawMessage as any).toString();
+        : // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+          (rawMessage as any).toString();
       return {
         type: "error",
         message,
@@ -163,10 +164,15 @@ export async function getCompletion(
   }
 }
 
-const templatePrompt = (input: CompletionCreateParams) => {
+const templatePrompt = (input: CompletionCreateParams, stringsToPrune: string[]) => {
   const { messages } = input;
 
-  return `### Instruction:\n${JSON.stringify(messages)}\n### Response:`;
+  let stringifedMessages = JSON.stringify(messages);
+  for (const stringToPrune of stringsToPrune) {
+    stringifedMessages = stringifedMessages.replaceAll(stringToPrune, "");
+  }
+
+  return `### Instruction:\n${stringifedMessages}\n### Response:`;
 };
 
 const STARTING_TEXT = '{"role":"assistant","content":"';

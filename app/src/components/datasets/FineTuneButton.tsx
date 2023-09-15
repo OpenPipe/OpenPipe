@@ -15,6 +15,8 @@ import {
   useDisclosure,
   type UseDisclosureReturn,
   Input,
+  InputGroup,
+  InputLeftAddon,
 } from "@chakra-ui/react";
 import { AiTwotoneThunderbolt } from "react-icons/ai";
 import humanId from "human-id";
@@ -105,19 +107,21 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 <Text fontWeight="bold" w={36}>
                   Model ID:
                 </Text>
-                <Input
-                  value={modelSlug}
-                  onChange={(e) => setModelSlug(e.target.value)}
-                  w={48}
-                  placeholder="unique-id"
-                  onKeyDown={(e) => {
-                    // If the user types anything other than a-z, A-Z, or 0-9, replace it with -
-                    if (!/[a-zA-Z0-9]/.test(e.key)) {
-                      e.preventDefault();
-                      setModelSlug((s) => s && `${s}-`);
-                    }
-                  }}
-                />
+                <InputGroup w={72}>
+                  <InputLeftAddon px={2}>openpipe:</InputLeftAddon>
+                  <Input
+                    value={modelSlug}
+                    onChange={(e) => setModelSlug(e.target.value)}
+                    placeholder="unique-id"
+                    onKeyDown={(e) => {
+                      // If the user types anything other than a-z, A-Z, or 0-9, replace it with -
+                      if (!/[a-zA-Z0-9]/.test(e.key)) {
+                        e.preventDefault();
+                        setModelSlug((s) => s && `${s}-`);
+                      }
+                    }}
+                  />
+                </InputGroup>
               </HStack>
               <HStack spacing={2}>
                 <Text fontWeight="bold" w={36}>
@@ -127,7 +131,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   options={SUPPORTED_BASE_MODELS}
                   selectedOption={selectedBaseModel}
                   onSelect={(option) => setSelectedBaseModel(option)}
-                  inputGroupProps={{ w: 48 }}
+                  inputGroupProps={{ w: 72 }}
                 />
               </HStack>
             </VStack>
