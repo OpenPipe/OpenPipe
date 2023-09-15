@@ -12,7 +12,7 @@ export const DatasetHeaderButtons = ({ openDrawer }: { openDrawer: () => void })
       <Button variant={{ base: "solid", md: "ghost" }} onClick={openDrawer}>
         <HStack>
           <Icon as={BsGearFill} />
-          <Text>Configure</Text>
+          <Text>Settings</Text>
         </HStack>
       </Button>
     </HStack>

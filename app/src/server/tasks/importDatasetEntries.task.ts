@@ -8,6 +8,7 @@ import {
   parseJSONL,
 } from "~/components/datasets/validateTrainingRows";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
+import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
 
 export type ImportDatasetEntriesJob = {
   datasetFileUploadId: string;
@@ -123,6 +124,12 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
     await prisma.datasetEntry.createMany({
       data: datasetEntriesToCreate,
     });
+
+    await updatePruningRuleMatches(
+      datasetFileUpload.datasetId,
+      new Date(0),
+      datasetEntriesToCreate.map((entry) => entry.id),
+    );
 
     await prisma.datasetFileUpload.update({
       where: { id: datasetFileUploadId },

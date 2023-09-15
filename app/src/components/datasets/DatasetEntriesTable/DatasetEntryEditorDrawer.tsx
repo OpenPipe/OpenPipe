@@ -121,6 +121,7 @@ export default function DatasetDentryEditorDrawer({
                           newInputMessages.splice(i, 1);
                           setInputMessagesToSave(newInputMessages);
                         }}
+                        ruleMatches={datasetEntry?.matchedRules}
                       />
                     </>
                   );

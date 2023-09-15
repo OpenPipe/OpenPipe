@@ -118,6 +118,31 @@ export const requireCanModifyExperiment = async (experimentId: string, ctx: TRPC
   }
 };
 
+export const requireCanModifyPruningRule = async (pruningRuleId: string, ctx: TRPCContext) => {
+  ctx.markAccessControlRun();
+
+  const userId = ctx.session?.user.id;
+  if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  const pruningRule = await prisma.pruningRule.findFirst({
+    where: {
+      id: pruningRuleId,
+      dataset: {
+        project: {
+          projectUsers: {
+            some: {
+              role: { in: [ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
+              userId,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!pruningRule) throw new TRPCError({ code: "UNAUTHORIZED" });
+};
+
 export const requireIsAdmin = async (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 

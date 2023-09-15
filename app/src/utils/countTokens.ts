@@ -25,10 +25,14 @@ export const countOpenAIChatTokens = (
   }).usedTokens;
 };
 
-export const countLlamaChatTokens = (messages: ChatCompletion.Choice.Message[]) => {
+export const countLlamaChatTokensInMessages = (messages: ChatCompletion.Choice.Message[]) => {
   const stringToTokenize = messages
     .map((message) => message.content || JSON.stringify(message.function_call))
     .join("\n");
+  return countLlamaChatTokens(stringToTokenize);
+};
+
+export const countLlamaChatTokens = (stringToTokenize: string) => {
   const tokens = llamaTokenizer.encode(stringToTokenize);
   return tokens.length;
 };

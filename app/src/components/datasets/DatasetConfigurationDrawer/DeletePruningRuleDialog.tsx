@@ -9,44 +9,45 @@ import {
   AlertDialogFooter,
   Button,
 } from "@chakra-ui/react";
-import { api } from "~/utils/api";
 
-import { useHandledAsyncCallback } from "~/utils/hooks";
+import { api, type RouterOutputs } from "~/utils/api";
+import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 
-const DeleteDatasetDialog = ({
-  datasetId,
-  onDelete,
+const DeletePruningRuleDialog = ({
+  rule,
   disclosure,
 }: {
-  datasetId?: string;
-  onDelete?: () => void;
+  rule: RouterOutputs["pruningRules"]["list"][0];
   disclosure: UseDisclosureReturn;
 }) => {
+  const dataset = useDataset().data;
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const mutation = api.datasets.delete.useMutation();
+  const mutation = api.pruningRules.delete.useMutation();
   const utils = api.useContext();
 
   const [onDeleteConfirm, deletionInProgress] = useHandledAsyncCallback(async () => {
-    if (!datasetId) return;
-    await mutation.mutateAsync({ id: datasetId });
-    await utils.datasets.list.invalidate();
-    onDelete?.();
+    if (!rule) return;
+    await mutation.mutateAsync({ id: rule.id });
+
+    await utils.datasetEntries.list.invalidate({ datasetId: dataset?.id });
+    await utils.pruningRules.list.invalidate();
 
     disclosure.onClose();
-  }, [mutation, datasetId, disclosure.onClose]);
+  }, [mutation, rule, disclosure.onClose, dataset?.id, utils]);
 
   return (
     <AlertDialog leastDestructiveRef={cancelRef} {...disclosure}>
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Delete Dataset
+            Delete Pruning Rule
           </AlertDialogHeader>
 
           <AlertDialogBody>
-            If you delete this dataset all the associated dataset entries will be deleted as well.
-            Are you sure?
+            Are you sure you want to delete the following pruning rule? It currently has{" "}
+            <b>{rule._count.matches}</b> matches and removes approximately{" "}
+            <b>{rule.tokensInText}</b> tokens from each matching dataset entry.
           </AlertDialogBody>
 
           <AlertDialogFooter>
@@ -68,4 +69,4 @@ const DeleteDatasetDialog = ({
   );
 };
 
-export default DeleteDatasetDialog;
+export default DeletePruningRuleDialog;
