@@ -26,12 +26,12 @@ export const updatePruningRuleMatches = async (datasetId: string, createdAtCutof
 
     // For each rule to update, find all the dataset entries with matching prompts, after previous rules have been applied
     for (let j = 0; j < i; j++) {
-      prunedInput = sql`REPLACE(${prunedInput}, ${allPruningRules[j]?.textToMatch}, '')`;
+      prunedInput = sql`REPLACE(${prunedInput}, ${escapeReplaceString(
+        allPruningRules[j]?.textToMatch,
+      )}, '')`;
     }
 
-    console.log("rule number", i, "prunedInput", prunedInput);
-
-    const ruleTextToMatch = allPruningRules[i]?.textToMatch ?? "";
+    const ruleTextToMatch = escapeLikeString(allPruningRules[i]?.textToMatch);
 
     // Insert PruningRuleMatch entries based on a select statement
     await kysely
@@ -55,3 +55,11 @@ export const updatePruningRuleMatches = async (datasetId: string, createdAtCutof
       .execute();
   }
 };
+
+function escapeReplaceString(input: string | undefined) {
+  return (input || "").replaceAll("\\", "\\").replaceAll("\n", "\\n").replaceAll('"', '\\"');
+}
+
+function escapeLikeString(input: string | undefined) {
+  return (input || "").replaceAll("\\", "\\\\").replaceAll("\n", "\\\\n").replaceAll('"', '\\\\"');
+}

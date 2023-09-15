@@ -31,12 +31,14 @@ export default function DatasetConfigurationDrawer({
           <Heading size="md">Dataset Settings</Heading>
         </DrawerHeader>
         <DrawerBody h="full" pb={4} bgColor="orange.50">
-          <VStack h="full" w="full" justifyContent="space-between">
-            <VStack w="full" alignItems="flex-start" spacing={16}>
+          <VStack minH="full" w="full" justifyContent="space-between">
+            <VStack w="full" alignItems="flex-start">
               <Text>
                 These settings will only affect the <b>{dataset?.name}</b> dataset.
               </Text>
-              <PruningRulesEditor />
+              <VStack w="full" alignItems="flex-start" py={16}>
+                <PruningRulesEditor />
+              </VStack>
             </VStack>
             <DeleteDatasetButton closeDrawer={disclosure.onClose} />
           </VStack>

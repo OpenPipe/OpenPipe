@@ -67,7 +67,12 @@ const EditablePruningRule = ({ index, rule }: { index: number; rule: PruningRule
           </HStack>
           {editedTextToMatch !== rule.textToMatch && (
             <HStack>
-              <Button onClick={() => setEditedTextToMatch(rule.textToMatch)}>Reset</Button>
+              <Button
+                isDisabled={updatingRule}
+                onClick={() => setEditedTextToMatch(rule.textToMatch)}
+              >
+                Reset
+              </Button>
               <Button colorScheme="orange" isLoading={updatingRule} onClick={updateRule}>
                 Save
               </Button>
