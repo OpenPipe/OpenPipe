@@ -20,6 +20,6 @@ it("gets a reasonable completion", async () => {
     ],
   };
 
-  const completion = await getCompletion(inputData, endpoint);
+  const completion = await getCompletion(inputData, endpoint, []);
   console.log(completion.choices[0]?.message?.content);
 });
