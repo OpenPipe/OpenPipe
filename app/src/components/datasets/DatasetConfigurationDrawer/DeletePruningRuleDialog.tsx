@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 
 import { api, type RouterOutputs } from "~/utils/api";
-import { useHandledAsyncCallback } from "~/utils/hooks";
+import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 
 const DeletePruningRuleDialog = ({
   rule,
@@ -20,6 +20,7 @@ const DeletePruningRuleDialog = ({
   rule: RouterOutputs["pruningRules"]["list"][0];
   disclosure: UseDisclosureReturn;
 }) => {
+  const dataset = useDataset().data;
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const mutation = api.pruningRules.delete.useMutation();
@@ -28,10 +29,12 @@ const DeletePruningRuleDialog = ({
   const [onDeleteConfirm, deletionInProgress] = useHandledAsyncCallback(async () => {
     if (!rule) return;
     await mutation.mutateAsync({ id: rule.id });
+
+    await utils.datasetEntries.list.invalidate({ datasetId: dataset?.id });
     await utils.pruningRules.list.invalidate();
 
     disclosure.onClose();
-  }, [mutation, rule, disclosure.onClose]);
+  }, [mutation, rule, disclosure.onClose, dataset?.id, utils]);
 
   return (
     <AlertDialog leastDestructiveRef={cancelRef} {...disclosure}>
