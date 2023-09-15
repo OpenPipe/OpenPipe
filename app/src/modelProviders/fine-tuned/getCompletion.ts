@@ -3,6 +3,7 @@ import { type ChatCompletion, type CompletionCreateParams } from "openai/resourc
 import { v4 as uuidv4 } from "uuid";
 
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
+import { escapeString } from "~/utils/pruningRules";
 
 export async function getCompletion(
   input: CompletionCreateParams,
@@ -81,12 +82,12 @@ export async function getCompletion(
   };
 }
 
-const templatePrompt = (input: CompletionCreateParams, stringsToPrune: string[]) => {
+export const templatePrompt = (input: CompletionCreateParams, stringsToPrune: string[]) => {
   const { messages } = input;
 
   let stringifedMessages = JSON.stringify(messages);
   for (const stringToPrune of stringsToPrune) {
-    stringifedMessages = stringifedMessages.replaceAll(stringToPrune, "");
+    stringifedMessages = stringifedMessages.replaceAll(escapeString(stringToPrune), "");
   }
 
   return `### Instruction:\n${stringifedMessages}\n### Response:`;
