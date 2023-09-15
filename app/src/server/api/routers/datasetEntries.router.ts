@@ -91,6 +91,16 @@ export const datasetEntriesRouter = createTRPCRouter({
       where: { id: input.id },
       include: {
         dataset: true,
+        matchedRules: {
+          select: {
+            pruningRule: {
+              select: {
+                textToMatch: true,
+                tokensInText: true,
+              },
+            },
+          },
+        },
       },
     });
 

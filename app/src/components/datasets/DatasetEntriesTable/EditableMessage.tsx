@@ -1,7 +1,21 @@
-import { VStack, HStack, Tooltip, IconButton, Icon } from "@chakra-ui/react";
+import { useMemo, useState } from "react";
+import {
+  VStack,
+  HStack,
+  Tooltip,
+  IconButton,
+  Icon,
+  Box,
+  Collapse,
+  Button,
+  Text,
+} from "@chakra-ui/react";
 import { type CreateChatCompletionRequestMessage } from "openai/resources/chat";
 import { BsX } from "react-icons/bs";
+import DiffViewer, { DiffMethod } from "react-diff-viewer";
+import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
+import { type RouterOutputs } from "~/utils/api";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import InputDropdown from "~/components/InputDropdown";
 import { parseableToFunctionCall } from "~/utils/utils";
@@ -15,17 +29,46 @@ const EditableMessage = ({
   onEdit,
   onDelete,
   isOutput,
+  ruleMatches = [],
 }: {
   message: CreateChatCompletionRequestMessage | null;
   onEdit: (message: CreateChatCompletionRequestMessage) => void;
   onDelete?: () => void;
   isOutput?: boolean;
+  ruleMatches?: RouterOutputs["datasetEntries"]["get"]["matchedRules"];
 }) => {
   const { role = "assistant", content = "", function_call } = message || {};
 
   const currentOutputOption: (typeof OUTPUT_OPTIONS)[number] = function_call
     ? "func_call"
     : "plaintext";
+
+  const [showDiff, setShowDiff] = useState(false);
+
+  const stringifiedMessageContent = useMemo(() => {
+    if (!message) return "";
+    if (message.function_call) {
+      return JSON.stringify(message.function_call, null, 2);
+    } else {
+      return message.content || "";
+    }
+  }, [message]);
+
+  const [prunedMessageContent, savedTokens] = useMemo(() => {
+    if (!stringifiedMessageContent) return ["", 0];
+    let messageContent = stringifiedMessageContent;
+    let savedTokens = 0;
+    ruleMatches.forEach((match) => {
+      const prevMessageContentLength = messageContent.length;
+      messageContent = messageContent.replaceAll(match.pruningRule.textToMatch, "");
+      // Hacky way to calculate how many tokens were saved with this particular rule
+      savedTokens +=
+        ((prevMessageContentLength - messageContent.length) /
+          match.pruningRule.textToMatch.length) *
+        match.pruningRule.tokensInText;
+    });
+    return [messageContent, savedTokens];
+  }, [stringifiedMessageContent, ruleMatches]);
 
   return (
     <VStack w="full">
@@ -97,6 +140,36 @@ const EditableMessage = ({
           onChange={(e) => onEdit({ role, content: e.target.value })}
           bgColor="white"
         />
+      )}
+      {!isOutput && stringifiedMessageContent !== prunedMessageContent && (
+        <VStack w="full" alignItems="flex-start">
+          <Button variant="unstyled" color="blue.600" onClick={() => setShowDiff(!showDiff)}>
+            <HStack>
+              <Text>Show Pruned Diff ({savedTokens} tokens saved)</Text>
+              <Icon as={showDiff ? FiChevronUp : FiChevronDown} />
+            </HStack>
+          </Button>
+          <Collapse in={showDiff} unmountOnExit={true}>
+            <Box w="full">
+              <DiffViewer
+                styles={{
+                  diffContainer: {
+                    fontSize: 12,
+                    width: "100%",
+                  },
+                }}
+                oldValue={stringifiedMessageContent}
+                newValue={prunedMessageContent}
+                splitView={false}
+                hideLineNumbers
+                disableWordDiff={true}
+                compareMethod={DiffMethod.CHARS}
+                // renderContent={highlightSyntax}
+                showDiffOnly={false}
+              />
+            </Box>
+          </Collapse>
+        </VStack>
       )}
     </VStack>
   );
