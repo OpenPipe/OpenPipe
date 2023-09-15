@@ -83,11 +83,11 @@ export const v1ApiRouter = createOpenApiRouter({
       };
     }),
 
-  completions: openApiProtectedProc
+  createChatCompletion: openApiProtectedProc
     .meta({
       openapi: {
         method: "POST",
-        path: "/completions",
+        path: "/chat/completions",
         description: "Create completion for a prompt",
         protect: true,
       },
@@ -109,9 +109,8 @@ export const v1ApiRouter = createOpenApiRouter({
         });
       }
 
-      const modelSlug = reqPayload.data.model;
       const fineTune = await prisma.fineTune.findUnique({
-        where: { slug: modelSlug },
+        where: { slug: reqPayload.data.model },
       });
       if (!fineTune) {
         throw new TRPCError({ message: "The model does not exist", code: "NOT_FOUND" });
@@ -129,21 +128,17 @@ export const v1ApiRouter = createOpenApiRouter({
         });
       }
 
-      const completion = await getCompletion(
-        reqPayload.data,
-        null,
-        modelSlug,
-        fineTune.inferenceUrl,
-      );
-
-      if (completion.type === "error") {
+      let completion: ChatCompletion;
+      try {
+        completion = await getCompletion(reqPayload.data, fineTune.inferenceUrl);
+      } catch (error: unknown) {
         throw new TRPCError({
-          message: completion.message,
+          message: `Failed to get completion: ${(error as Error).message}`,
           code: "BAD_REQUEST",
         });
       }
 
-      return completion.value;
+      return completion;
     }),
 
   report: openApiProtectedProc
