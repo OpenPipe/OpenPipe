@@ -76,7 +76,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
   ): Promise<Core.APIResponse<ChatCompletion | Stream<ChatCompletionChunk>>> {
     let resp;
     if (body.model.startsWith("openpipe:")) {
-      resp = this.opClient?.default.completions({
+      resp = this.opClient?.default.createChatCompletion({
         reqPayload: body,
       }) as Promise<Core.APIResponse<ChatCompletion>>;
     } else {
