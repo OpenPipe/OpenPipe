@@ -83,11 +83,11 @@ export const v1ApiRouter = createOpenApiRouter({
       };
     }),
 
-  completions: openApiProtectedProc
+  createChatCompletion: openApiProtectedProc
     .meta({
       openapi: {
         method: "POST",
-        path: "/completions",
+        path: "/chat/completions",
         description: "Create completion for a prompt",
         protect: true,
       },
@@ -109,8 +109,7 @@ export const v1ApiRouter = createOpenApiRouter({
         });
       }
 
-      const modelName = reqPayload.data.model;
-      const modelSlug = modelName.replace("openpipe:", "");
+      const modelSlug = reqPayload.data.model.replace("openpipe:", "");
       const fineTune = await prisma.fineTune.findUnique({
         where: { slug: modelSlug },
         include: {
@@ -141,22 +140,21 @@ export const v1ApiRouter = createOpenApiRouter({
         });
       }
 
-      const completion = await getCompletion(
-        reqPayload.data,
-        null,
-        modelSlug,
-        fineTune.inferenceUrl,
-        fineTune.dataset.pruningRules.map((rule) => rule.textToMatch),
-      );
-
-      if (completion.type === "error") {
+      let completion: ChatCompletion;
+      try {
+        completion = await getCompletion(
+          reqPayload.data,
+          fineTune.inferenceUrl,
+          fineTune.dataset.pruningRules.map((rule) => rule.textToMatch),
+        );
+      } catch (error: unknown) {
         throw new TRPCError({
-          message: completion.message,
+          message: `Failed to get completion: ${(error as Error).message}`,
           code: "BAD_REQUEST",
         });
       }
 
-      return completion.value;
+      return completion;
     }),
 
   report: openApiProtectedProc
