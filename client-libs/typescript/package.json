@@ -2,7 +2,7 @@
   "name": "openpipe-dev",
   "version": "0.4.1",
   "type": "module",
-  "description": "Metrics and auto-evaluation for LLM calls",
+  "description": "LLM metrics and inference",
   "scripts": {
     "build": "./build.sh",
     "build-update": "./build.sh && ./update-app.sh",
