@@ -1,6 +1,6 @@
 {
   "name": "openpipe-dev",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "description": "Metrics and auto-evaluation for LLM calls",
   "scripts": {
