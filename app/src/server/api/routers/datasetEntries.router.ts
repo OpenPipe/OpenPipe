@@ -13,11 +13,12 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
-import { countOpenAIChatTokens } from "~/utils/countTokens";
+import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
 import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
+import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -207,6 +208,12 @@ export const datasetEntriesRouter = createTRPCRouter({
         }),
       ]);
 
+      await updatePruningRuleMatches(
+        datasetId,
+        new Date(0),
+        datasetEntriesToCreate.map((entry) => entry.id),
+      );
+
       return success(datasetId);
     }),
   update: protectedProcedure
@@ -238,8 +245,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       let inputTokens = undefined;
       if (input.updates.input) {
         parsedInput = JSON.parse(input.updates.input);
-        inputTokens = countOpenAIChatTokens(
-          "gpt-4-0613",
+        inputTokens = countLlamaChatTokensInMessages(
           parsedInput as unknown as CreateChatCompletionRequestMessage[],
         );
       }
@@ -249,7 +255,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       // The client might send "null" as a string, so we need to check for that
       if (input.updates.output && input.updates.output !== "null") {
         parsedOutput = JSON.parse(input.updates.output);
-        outputTokens = countOpenAIChatTokens("gpt-4-0613", [
+        outputTokens = countLlamaChatTokensInMessages([
           parsedOutput as unknown as ChatCompletion.Choice.Message,
         ]);
       }
@@ -264,6 +270,8 @@ export const datasetEntriesRouter = createTRPCRouter({
           outputTokens,
         },
       });
+
+      await updatePruningRuleMatches(dataset.id, new Date(0), [input.id]);
 
       return success("Dataset entry updated");
     }),
@@ -295,6 +303,8 @@ export const datasetEntriesRouter = createTRPCRouter({
           datasetId: dataset?.id,
         },
       });
+
+      await updatePruningRuleMatches(dataset.id, new Date(0), input.ids);
 
       return success("Dataset entries deleted");
     }),

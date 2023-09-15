@@ -1,8 +1,12 @@
-import { sql, type RawBuilder } from "kysely";
+import { sql, type RawBuilder, type Expression, type SqlBool } from "kysely";
 
 import { prisma, kysely } from "~/server/db";
 
-export const updatePruningRuleMatches = async (datasetId: string, createdAtCutoff: Date) => {
+export const updatePruningRuleMatches = async (
+  datasetId: string,
+  createdAtCutoff: Date,
+  datasetEntryIds?: string[],
+) => {
   const allPruningRules = await prisma.pruningRule.findMany({
     where: {
       datasetId,
@@ -10,14 +14,26 @@ export const updatePruningRuleMatches = async (datasetId: string, createdAtCutof
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
 
+  // If there are more than 1000 dataset entries, the IN operator will be inefficient or fail
+  if (datasetEntryIds && datasetEntryIds.length > 1000) datasetEntryIds = undefined;
+
   const pruningRulesToUpdate = allPruningRules.filter((pr) => pr.createdAt >= createdAtCutoff);
   const numOmittedRules = allPruningRules.length - pruningRulesToUpdate.length;
 
   await prisma.pruningRuleMatch.deleteMany({
     where: {
-      pruningRuleId: {
-        in: pruningRulesToUpdate.map((pr) => pr.id),
-      },
+      AND: [
+        {
+          pruningRuleId: {
+            in: pruningRulesToUpdate.map((pr) => pr.id),
+          },
+        },
+        {
+          datasetEntryId: {
+            in: datasetEntryIds,
+          },
+        },
+      ],
     },
   });
 
@@ -40,12 +56,16 @@ export const updatePruningRuleMatches = async (datasetId: string, createdAtCutof
       .expression((eb) =>
         eb
           .selectFrom("DatasetEntry")
-          .where((eb) =>
-            eb.and([
+          .where((eb) => {
+            const andArr: Expression<SqlBool>[] = [
               eb(`DatasetEntry.datasetId`, "=", datasetId),
               sql`${prunedInput} LIKE ${"%" + ruleTextToMatch + "%"}`,
-            ]),
-          )
+            ];
+            if (datasetEntryIds) {
+              andArr.unshift(eb(`DatasetEntry.id`, "in", datasetEntryIds));
+            }
+            return eb.and(andArr);
+          })
           .select(() => [
             sql`uuid_generate_v4()`.as("id"),
             sql`${allPruningRules[i]?.id}`.as("pruningRuleId"),

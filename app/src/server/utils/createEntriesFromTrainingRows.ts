@@ -4,10 +4,13 @@ import {
   type CreateChatCompletionRequestMessage,
   type ChatCompletion,
 } from "openai/resources/chat";
+import { v4 as uuidv4 } from "uuid";
 
 import { prisma } from "~/server/db";
 import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
+
+type CreateManyInput = Omit<Prisma.DatasetEntryCreateManyInput, "id"> & { id: string };
 
 export const formatEntriesFromTrainingRows = async (
   datasetId: string,
@@ -40,7 +43,7 @@ export const formatEntriesFromTrainingRows = async (
     ...Array(numTrainingToAdd).fill("TRAIN"),
     ...Array(numTestingToAdd).fill("TEST"),
   ]);
-  const datasetEntriesToCreate: Prisma.DatasetEntryCreateManyInput[] = [];
+  const datasetEntriesToCreate: CreateManyInput[] = [];
   let i = 0;
   for (const row of trainingRows) {
     // console.log(row);
@@ -53,6 +56,7 @@ export const formatEntriesFromTrainingRows = async (
     }
     // console.log("outputTokens", outputTokens);
     datasetEntriesToCreate.push({
+      id: uuidv4(),
       datasetId: datasetId,
       input: row.input as unknown as Prisma.InputJsonValue,
       output: (row.output as unknown as Prisma.InputJsonValue) ?? {
