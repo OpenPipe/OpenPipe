@@ -7,7 +7,7 @@ import {
 
 import { prisma } from "~/server/db";
 import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
-import { countLlamaChatTokens } from "~/utils/countTokens";
+import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
 
 export const formatEntriesFromTrainingRows = async (
   datasetId: string,
@@ -47,7 +47,9 @@ export const formatEntriesFromTrainingRows = async (
     if (updateCallback && i % updateFrequency === 0) await updateCallback(i);
     let outputTokens = 0;
     if (row.output) {
-      outputTokens = countLlamaChatTokens([row.output as unknown as ChatCompletion.Choice.Message]);
+      outputTokens = countLlamaChatTokensInMessages([
+        row.output as unknown as ChatCompletion.Choice.Message,
+      ]);
     }
     // console.log("outputTokens", outputTokens);
     datasetEntriesToCreate.push({
@@ -57,7 +59,7 @@ export const formatEntriesFromTrainingRows = async (
         role: "assistant",
         content: "",
       },
-      inputTokens: countLlamaChatTokens(
+      inputTokens: countLlamaChatTokensInMessages(
         row.input as unknown as CreateChatCompletionRequestMessage[],
       ),
       outputTokens,

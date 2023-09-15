@@ -9,7 +9,7 @@ import {
 } from "openai/resources/chat";
 
 import { type CompletionResponse } from "../types";
-import { countLlamaChatTokens } from "~/utils/countTokens";
+import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
 
 const ENABLE_STREAMING = false;
 
@@ -108,8 +108,8 @@ export async function getCompletion(
       };
     }
 
-    const promptTokens = countLlamaChatTokens(messages);
-    const completionTokens = countLlamaChatTokens([
+    const promptTokens = countLlamaChatTokensInMessages(messages);
+    const completionTokens = countLlamaChatTokensInMessages([
       parsedCompletion as ChatCompletion.Choice.Message,
     ]);
 

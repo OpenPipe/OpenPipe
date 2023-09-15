@@ -18,8 +18,6 @@ export type JsonPrimitive = boolean | null | number | string;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
-export type Numeric = ColumnType<string, string | number, string | number>;
-
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface _PrismaMigrations {
@@ -64,13 +62,33 @@ export interface Dataset {
   projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  trainingRatio: Generated<number>;
 }
 
 export interface DatasetEntry {
   id: string;
-  input: string;
-  output: string | null;
   datasetId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+  loggedCallId: string | null;
+  input: Generated<Json>;
+  inputTokens: number;
+  output: Json | null;
+  outputTokens: number;
+  type: "TEST" | "TRAIN";
+}
+
+export interface DatasetFileUpload {
+  id: string;
+  datasetId: string;
+  blobName: string;
+  fileName: string;
+  fileSize: number;
+  progress: Generated<number>;
+  status: Generated<"COMPLETE" | "DOWNLOADING" | "ERROR" | "PENDING" | "PROCESSING" | "SAVING">;
+  uploadedAt: Timestamp;
+  visible: Generated<boolean>;
+  errorMessage: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
 }
@@ -92,6 +110,23 @@ export interface Experiment {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   projectId: string;
+  slug: Generated<string>;
+}
+
+export interface FineTune {
+  id: string;
+  slug: string;
+  baseModel: string;
+  status: Generated<"AWAITING_DEPLOYMENT" | "DEPLOYED" | "DEPLOYING" | "ERROR" | "PENDING" | "TRAINING">;
+  trainingStartedAt: Timestamp | null;
+  trainingFinishedAt: Timestamp | null;
+  deploymentStartedAt: Timestamp | null;
+  deploymentFinishedAt: Timestamp | null;
+  datasetId: string;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+  inferenceUrl: string | null;
 }
 
 export interface GraphileWorkerJobQueues {
@@ -156,7 +191,7 @@ export interface LoggedCallModelResponse {
   outputTokens: number | null;
   finishReason: string | null;
   completionId: string | null;
-  cost: Numeric | null;
+  cost: number | null;
   originalLoggedCallId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
@@ -228,6 +263,21 @@ export interface PromptVariant {
   model: string;
   promptConstructorVersion: number;
   modelProvider: string;
+}
+
+export interface PruningRule {
+  id: string;
+  textToMatch: string;
+  tokensInText: number;
+  datasetId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface PruningRuleMatch {
+  id: string;
+  pruningRuleId: string;
+  datasetEntryId: string;
 }
 
 export interface ScenarioVariantCell {
@@ -311,8 +361,10 @@ export interface DB {
   ApiKey: ApiKey;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
+  DatasetFileUpload: DatasetFileUpload;
   Evaluation: Evaluation;
   Experiment: Experiment;
+  FineTune: FineTune;
   "graphile_worker.job_queues": GraphileWorkerJobQueues;
   "graphile_worker.jobs": GraphileWorkerJobs;
   "graphile_worker.known_crontabs": GraphileWorkerKnownCrontabs;
@@ -325,6 +377,8 @@ export interface DB {
   Project: Project;
   ProjectUser: ProjectUser;
   PromptVariant: PromptVariant;
+  PruningRule: PruningRule;
+  PruningRuleMatch: PruningRuleMatch;
   ScenarioVariantCell: ScenarioVariantCell;
   Session: Session;
   TemplateVariable: TemplateVariable;

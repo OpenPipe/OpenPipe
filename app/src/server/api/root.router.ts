@@ -11,6 +11,7 @@ import { dashboardRouter } from "./routers/dashboard.router";
 import { loggedCallsRouter } from "./routers/loggedCalls.router";
 import { datasetsRouter } from "./routers/datasets.router";
 import { datasetEntriesRouter } from "./routers/datasetEntries.router";
+import { pruningRulesRouter } from "./routers/pruningRules.router";
 import { fineTunesRouter } from "./routers/fineTunes.router";
 import { usersRouter } from "./routers/users.router";
 import { adminJobsRouter } from "./routers/adminJobs.router";
@@ -33,6 +34,7 @@ export const appRouter = createTRPCRouter({
   loggedCalls: loggedCallsRouter,
   datasets: datasetsRouter,
   datasetEntries: datasetEntriesRouter,
+  pruningRules: pruningRulesRouter,
   fineTunes: fineTunesRouter,
   users: usersRouter,
   adminJobs: adminJobsRouter,

@@ -231,6 +231,15 @@ export const useFineTunes = () => {
   );
 };
 
+export const usePruningRules = () => {
+  const selectedDataset = useDataset().data;
+
+  return api.pruningRules.list.useQuery(
+    { datasetId: selectedDataset?.id ?? "" },
+    { enabled: !!selectedDataset?.id },
+  );
+};
+
 export const useIsClientRehydrated = () => {
   const isRehydrated = useAppStore((state) => state.isRehydrated);
   const [isMounted, setIsMounted] = useState(false);
