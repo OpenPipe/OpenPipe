@@ -35,6 +35,17 @@ export const datasetEntriesRouter = createTRPCRouter({
           where: {
             datasetId: datasetId,
           },
+          include: {
+            matchedRules: {
+              select: {
+                pruningRule: {
+                  select: {
+                    tokensInText: true,
+                  },
+                },
+              },
+            },
+          },
           orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           skip: (page - 1) * pageSize,
           take: pageSize,
@@ -61,8 +72,15 @@ export const datasetEntriesRouter = createTRPCRouter({
         }),
       ]);
 
+      const entriesWithUpdatedInputTokens = entries.map((entry) => ({
+        ...entry,
+        inputTokens:
+          entry.inputTokens -
+          entry.matchedRules.reduce((acc, match) => acc + match.pruningRule.tokensInText, 0),
+      }));
+
       return {
-        entries,
+        entries: entriesWithUpdatedInputTokens,
         matchingEntryIds: matchingEntries.map((entry) => entry.id),
         trainingCount,
         testingCount,
