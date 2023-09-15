@@ -141,7 +141,7 @@ const EditableMessage = ({
           bgColor="white"
         />
       )}
-      {!isOutput && stringifiedMessageContent !== prunedMessageContent && (
+      {!isOutput && savedTokens && (
         <VStack w="full" alignItems="flex-start">
           <Button variant="unstyled" color="blue.600" onClick={() => setShowDiff(!showDiff)}>
             <HStack>
@@ -162,9 +162,7 @@ const EditableMessage = ({
                 newValue={prunedMessageContent}
                 splitView={false}
                 hideLineNumbers
-                disableWordDiff={true}
                 compareMethod={DiffMethod.CHARS}
-                // renderContent={highlightSyntax}
                 showDiffOnly={false}
               />
             </Box>
