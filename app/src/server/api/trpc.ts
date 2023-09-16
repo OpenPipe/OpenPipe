@@ -27,6 +27,7 @@ import { capturePath } from "~/utils/analytics/serverAnalytics";
 
 type CreateContextOptions = {
   session: Session | null;
+  cookies: Partial<{ [key: string]: string }>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -45,6 +46,7 @@ const noOp = () => {};
 export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     session: opts.session,
+    cookies: opts.cookies,
     prisma,
     markAccessControlRun: noOp,
   };
@@ -64,6 +66,7 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
 
   return createInnerTRPCContext({
     session,
+    cookies: req.cookies,
   });
 };
 
