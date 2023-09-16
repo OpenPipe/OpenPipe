@@ -2,7 +2,7 @@
 import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
-import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
+import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { escapeString } from "~/utils/pruningRules";
 
 export async function getCompletion(
@@ -50,17 +50,10 @@ export async function getCompletion(
     throw new Error(`Unexpected response format from model: ${JSON.stringify(respText)}`);
   }
 
-  let parsedCompletion;
-  try {
-    parsedCompletion = JSON.parse(finalCompletion);
-  } catch (error: unknown) {
-    throw new Error(`Failed to parse completion: ${finalCompletion}\n${(error as Error).message}`);
-  }
-
   const promptTokens = countLlamaChatTokensInMessages(messages);
-  const completionTokens = countLlamaChatTokensInMessages([
-    parsedCompletion as ChatCompletion.Choice.Message,
-  ]);
+  const completionTokens = countLlamaChatTokens(finalCompletion);
+
+  const completionMessage = parseCompletionMessage(finalCompletion);
 
   return {
     id,
@@ -70,7 +63,7 @@ export async function getCompletion(
     choices: [
       {
         index: 0,
-        message: parsedCompletion,
+        message: completionMessage,
         finish_reason: "stop",
       },
     ],
@@ -91,6 +84,23 @@ export const templatePrompt = (input: CompletionCreateParams, stringsToPrune: st
   }
 
   return `### Instruction:\n${stringifedMessages}\n### Response:`;
+};
+
+const FUNCTION_CALL_TAG = "<|function_call|>";
+const FUNCTION_ARGS_TAG = "<|function_args|>";
+
+const parseCompletionMessage = (finalCompletion: string): ChatCompletion.Choice.Message => {
+  const message: ChatCompletion.Choice.Message = {
+    role: "assistant",
+  };
+  if (finalCompletion.includes(FUNCTION_CALL_TAG)) {
+    const functionName = finalCompletion.split(FUNCTION_CALL_TAG)[1]?.split(FUNCTION_ARGS_TAG)[0];
+    const functionArgs = finalCompletion.split(FUNCTION_ARGS_TAG)[1];
+    message.function_call = { name: functionName, arguments: functionArgs };
+  } else {
+    message.content = finalCompletion;
+  }
+  return message;
 };
 
 // const STARTING_TEXT = '{"role":"assistant","content":"';
