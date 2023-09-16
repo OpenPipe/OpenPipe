@@ -5,13 +5,13 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.completions_json_body import CompletionsJsonBody
+from ...models.create_chat_completion_json_body import CreateChatCompletionJsonBody
 from ...types import Response
 
 
 def _get_kwargs(
     *,
-    json_body: CompletionsJsonBody,
+    json_body: CreateChatCompletionJsonBody,
 ) -> Dict[str, Any]:
     pass
 
@@ -19,7 +19,7 @@ def _get_kwargs(
 
     return {
         "method": "post",
-        "url": "/completions",
+        "url": "/chat/completions",
         "json": json_json_body,
     }
 
@@ -45,12 +45,12 @@ def _build_response(*, client: Union[AuthenticatedClient, Client], response: htt
 def sync_detailed(
     *,
     client: AuthenticatedClient,
-    json_body: CompletionsJsonBody,
+    json_body: CreateChatCompletionJsonBody,
 ) -> Response[Any]:
     """Create completion for a prompt
 
     Args:
-        json_body (CompletionsJsonBody):
+        json_body (CreateChatCompletionJsonBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -74,12 +74,12 @@ def sync_detailed(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
-    json_body: CompletionsJsonBody,
+    json_body: CreateChatCompletionJsonBody,
 ) -> Response[Any]:
     """Create completion for a prompt
 
     Args:
-        json_body (CompletionsJsonBody):
+        json_body (CreateChatCompletionJsonBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

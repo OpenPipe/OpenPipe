@@ -1,6 +1,7 @@
 import { sql, type RawBuilder, type Expression, type SqlBool } from "kysely";
 
 import { prisma, kysely } from "~/server/db";
+import { escapeString, escapeLikeString } from "~/utils/pruningRules";
 
 export const updatePruningRuleMatches = async (
   datasetId: string,
@@ -42,7 +43,7 @@ export const updatePruningRuleMatches = async (
 
     // For each rule to update, find all the dataset entries with matching prompts, after previous rules have been applied
     for (let j = 0; j < i; j++) {
-      prunedInput = sql`REPLACE(${prunedInput}, ${escapeReplaceString(
+      prunedInput = sql`REPLACE(${prunedInput}, ${escapeString(
         allPruningRules[j]?.textToMatch,
       )}, '')`;
     }
@@ -75,11 +76,3 @@ export const updatePruningRuleMatches = async (
       .execute();
   }
 };
-
-function escapeReplaceString(input: string | undefined) {
-  return (input || "").replaceAll("\\", "\\").replaceAll("\n", "\\n").replaceAll('"', '\\"');
-}
-
-function escapeLikeString(input: string | undefined) {
-  return (input || "").replaceAll("\\", "\\\\").replaceAll("\n", "\\\\n").replaceAll('"', '\\\\"');
-}

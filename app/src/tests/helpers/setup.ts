@@ -5,7 +5,7 @@ import { kysely } from "~/server/db";
 
 // Reset all Prisma data
 const resetDb = async () => {
-  await sql`truncate "Experiment" cascade;`.execute(kysely);
+  await sql`truncate "Project" cascade;`.execute(kysely);
 };
 
 beforeEach(async () => {

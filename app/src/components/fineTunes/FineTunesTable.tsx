@@ -27,7 +27,7 @@ const FineTunesTable = ({}) => {
             {fineTunes.map((fineTune) => {
               return (
                 <Tr key={fineTune.id}>
-                  <Td>{fineTune.slug}</Td>
+                  <Td>openpipe:{fineTune.slug}</Td>
                   <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
                   <Td>{fineTune.baseModel}</Td>
                   <Td>{fineTune.dataset._count.datasetEntries}</Td>

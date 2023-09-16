@@ -28,7 +28,13 @@ const PruningRuleCreator = ({ index }: { index: number }) => {
 
   if (!showEditor) {
     return (
-      <Button variant="outline" colorScheme="orange" w="full" onClick={() => setShowEditor(true)}>
+      <Button
+        variant="outline"
+        color="gray.500"
+        _hover={{ bgColor: "orange.100" }}
+        w="full"
+        onClick={() => setShowEditor(true)}
+      >
         Add New Rule
       </Button>
     );

@@ -51,6 +51,8 @@ const createProject = async (datasetId: string) => {
   });
 };
 
+const datasetId = uuidv4();
+
 const createDatasetEntry = async (
   datasetId: string,
   input: CreateChatCompletionRequestMessage[],
@@ -78,7 +80,6 @@ const createPruningRule = async (datasetId: string, textToMatch: string) => {
 };
 
 it("matches basic string", async () => {
-  const datasetId = uuidv4();
   await createProject(datasetId);
   // Create experiments concurrently
   const [_, rule] = await Promise.all([
@@ -99,7 +100,6 @@ it("matches basic string", async () => {
 });
 
 it("matches string with newline", async () => {
-  const datasetId = uuidv4();
   await createProject(datasetId);
   // Create experiments concurrently
   const [_, rule] = await Promise.all([

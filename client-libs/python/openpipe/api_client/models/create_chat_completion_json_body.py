@@ -4,11 +4,11 @@ from attrs import define
 
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="CompletionsJsonBody")
+T = TypeVar("T", bound="CreateChatCompletionJsonBody")
 
 
 @define
-class CompletionsJsonBody:
+class CreateChatCompletionJsonBody:
     """
     Attributes:
         req_payload (Union[Unset, Any]): JSON-encoded request payload
@@ -31,8 +31,8 @@ class CompletionsJsonBody:
         d = src_dict.copy()
         req_payload = d.pop("reqPayload", UNSET)
 
-        completions_json_body = cls(
+        create_chat_completion_json_body = cls(
             req_payload=req_payload,
         )
 
-        return completions_json_body
+        return create_chat_completion_json_body
