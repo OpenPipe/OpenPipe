@@ -4,7 +4,8 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "~/server/db";
 import { hashRequest } from "~/server/utils/hashObject";
-import modelProvider from "~/modelProviders/openai-ChatCompletion";
+import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
+import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
 import {
   type ChatCompletion,
   type CompletionCreateParams,
@@ -196,11 +197,14 @@ export const v1ApiRouter = createOpenApiRouter({
       let usage;
       let model;
       if (reqPayload.success) {
+        model = reqPayload.data.model;
+        const modelProvider = model.startsWith("openpipe:")
+          ? fineTunedModelProvider
+          : openaAIModelProvider;
         usage = modelProvider.getUsage(
           input.reqPayload as CompletionCreateParams,
           respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
         );
-        model = reqPayload.data.model;
       }
 
       await prisma.$transaction([
