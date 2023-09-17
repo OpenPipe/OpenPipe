@@ -60,6 +60,7 @@ export type ModelProvider<SupportedModels extends string, InputSchema, OutputSch
   getUsage: (
     input: InputSchema,
     output?: OutputSchema,
+    opts?: Record<string, unknown>,
   ) => { gpuRuntime?: number; inputTokens?: number; outputTokens?: number; cost?: number } | null;
 
   // This is just a convenience for type inference, don't use it at runtime

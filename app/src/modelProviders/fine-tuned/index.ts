@@ -28,7 +28,7 @@ const modelProvider: FineTunedModelProvider = {
   inputSchema: inputSchema as JSONSchema4,
   canStream: false,
   getCompletion: getExperimentsCompletion,
-  getUsage: (input, output) => {
+  getUsage: (input, output, opts) => {
     const model = modelProvider.getModel(input);
     if (!model) return null;
 
@@ -46,7 +46,8 @@ const modelProvider: FineTunedModelProvider = {
     }
 
     let cost = undefined;
-    const baseModelPrice = baseModelPrices[model];
+    const baseModel = opts?.baseModel as string | undefined;
+    const baseModelPrice = baseModel ? baseModelPrices[baseModel] : undefined;
     if (baseModelPrice) {
       const { promptTokenPrice, completionTokenPrice } = baseModelPrice;
       cost = inputTokens * promptTokenPrice + outputTokens * completionTokenPrice;
