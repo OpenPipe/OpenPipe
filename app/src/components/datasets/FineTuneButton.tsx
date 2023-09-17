@@ -26,9 +26,9 @@ import { useDataset, useDatasetEntries, useHandledAsyncCallback } from "~/utils/
 import { api } from "~/utils/api";
 import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
-// import { FiChevronDown } from "react-icons/fi";
 
-const SUPPORTED_BASE_MODELS = ["llama2-7b", "llama2-13b", "llama2-70b", "gpt-3.5-turbo"];
+const SUPPORTED_BASE_MODELS = ["llama2-7b", "llama2-13b", "llama2-70b", "gpt-3.5-turbo"] as const;
+type SupportedBaseModel = (typeof SUPPORTED_BASE_MODELS)[number];
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -57,7 +57,9 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
 
-  const [selectedBaseModel, setSelectedBaseModel] = useState(SUPPORTED_BASE_MODELS[0]);
+  const [selectedBaseModel, setSelectedBaseModel] = useState<SupportedBaseModel>(
+    SUPPORTED_BASE_MODELS[0],
+  );
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
 
   useEffect(() => {

@@ -4,6 +4,56 @@ import { v4 as uuidv4 } from "uuid";
 
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { escapeString } from "~/utils/pruningRules";
+import { type CompletionResponse } from "../types";
+import { prisma } from "~/server/db";
+
+export async function getExperimentsCompletion(
+  input: CompletionCreateParams,
+  _onStream: ((partialOutput: ChatCompletion) => void) | null,
+): Promise<CompletionResponse<ChatCompletion>> {
+  try {
+    const start = Date.now();
+    const modelSlug = input.model.replace("openpipe:", "");
+    const fineTune = await prisma.fineTune.findUnique({
+      where: { slug: modelSlug },
+      include: {
+        dataset: {
+          select: {
+            pruningRules: {
+              select: {
+                textToMatch: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!fineTune) {
+      throw new Error("The model does not exist");
+    }
+    if (!fineTune.inferenceUrl) {
+      throw new Error("The model is not set up for inference");
+    }
+
+    const completion = await getCompletion(
+      input,
+      fineTune.inferenceUrl,
+      fineTune.dataset.pruningRules.map((rule) => rule.textToMatch),
+    );
+    return {
+      type: "success",
+      value: completion,
+      timeToComplete: Date.now() - start,
+      statusCode: 200,
+    };
+  } catch (e) {
+    return {
+      type: "error",
+      message: (e as Error).message,
+      autoRetry: false,
+    };
+  }
+}
 
 export async function getCompletion(
   input: CompletionCreateParams,

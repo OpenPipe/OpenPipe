@@ -183,8 +183,8 @@ importers:
         specifier: 4.0.0-beta.7
         version: 4.0.0-beta.7(encoding@0.1.13)
       openpipe:
-        specifier: 0.4.0-beta.1
-        version: 0.4.0-beta.1
+        specifier: 0.4.1
+        version: 0.4.1
       openpipe-dev:
         specifier: workspace:^
         version: link:../client-libs/typescript
@@ -7796,8 +7796,8 @@ packages:
       oidc-token-hash: 5.0.3
     dev: false
 
-  /openpipe@0.4.0-beta.1:
-    resolution: {integrity: sha512-FeE+pL+D+p6DYBTM6ka1rJT85UOIQkylK+r695uYeN9UDd/ePC1FrZBQhVb241MadoftNydlJvaHxPZe7LwHwQ==}
+  /openpipe@0.4.1:
+    resolution: {integrity: sha512-obMzUsK2/ZGbP/pTzDsqTY9LsEtlZdDTUVFPz35FjnslbGfPdI9w8y/lGI9Hk5Rr+w80Sp7h2jKe8Ohe8omE9w==}
     dependencies:
       encoding: 0.1.13
       form-data: 4.0.0
