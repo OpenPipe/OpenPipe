@@ -198,13 +198,22 @@ export const v1ApiRouter = createOpenApiRouter({
       let model;
       if (reqPayload.success) {
         model = reqPayload.data.model;
-        const modelProvider = model.startsWith("openpipe:")
-          ? fineTunedModelProvider
-          : openaAIModelProvider;
-        usage = modelProvider.getUsage(
-          input.reqPayload as CompletionCreateParams,
-          respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
-        );
+        if (model.startsWith("openpipe:")) {
+          const fineTune = await prisma.fineTune.findUnique({
+            where: { slug: model.replace("openpipe:", "") },
+            select: { baseModel: true },
+          });
+          usage = fineTunedModelProvider.getUsage(
+            input.reqPayload as CompletionCreateParams,
+            respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
+            { baseModel: fineTune?.baseModel },
+          );
+        } else {
+          usage = openaAIModelProvider.getUsage(
+            input.reqPayload as CompletionCreateParams,
+            respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
+          );
+        }
       }
 
       await prisma.$transaction([

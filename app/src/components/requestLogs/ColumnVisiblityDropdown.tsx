@@ -51,6 +51,10 @@ const ColumnVisiblityDropdown = () => {
         key: StaticColumnKeys.OUTPUT_TOKENS,
       },
       {
+        label: "Cost",
+        key: StaticColumnKeys.COST,
+      },
+      {
         label: "Status Code",
         key: StaticColumnKeys.STATUS_CODE,
       },
