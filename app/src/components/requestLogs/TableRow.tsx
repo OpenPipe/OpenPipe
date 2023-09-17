@@ -69,6 +69,7 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
         {visibleColumns.has(StaticColumnKeys.DURATION) && <Th isNumeric>Duration</Th>}
         {visibleColumns.has(StaticColumnKeys.INPUT_TOKENS) && <Th isNumeric>Input tokens</Th>}
         {visibleColumns.has(StaticColumnKeys.OUTPUT_TOKENS) && <Th isNumeric>Output tokens</Th>}
+        {visibleColumns.has(StaticColumnKeys.COST) && <Th isNumeric>Cost</Th>}
         {visibleColumns.has(StaticColumnKeys.STATUS_CODE) && <Th isNumeric>Status</Th>}
       </Tr>
     </Thead>
@@ -163,6 +164,15 @@ export const TableRow = ({
         )}
         {visibleColumns.has(StaticColumnKeys.OUTPUT_TOKENS) && (
           <Td isNumeric>{loggedCall.modelResponse?.outputTokens}</Td>
+        )}
+        {visibleColumns.has(StaticColumnKeys.COST) && (
+          <Td isNumeric>
+            {loggedCall.modelResponse?.cost && (
+              <Tooltip label={`$${loggedCall.modelResponse.cost.toFixed(6)}`}>
+                <Text>${loggedCall.modelResponse.cost.toFixed(3)}</Text>
+              </Tooltip>
+            )}
+          </Td>
         )}
         {visibleColumns.has(StaticColumnKeys.STATUS_CODE) && (
           <Td sx={{ color: isError ? "red.500" : "green.500", fontWeight: "semibold" }} isNumeric>

@@ -10,6 +10,7 @@ export enum StaticColumnKeys {
   DURATION = "duration",
   INPUT_TOKENS = "inputTokens",
   OUTPUT_TOKENS = "outputTokens",
+  COST = "cost",
   STATUS_CODE = "statusCode",
 }
 
