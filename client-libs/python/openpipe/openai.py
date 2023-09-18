@@ -1,4 +1,5 @@
 import openai as original_openai
+import litellm
 from openai.openai_object import OpenAIObject
 import time
 import inspect
@@ -29,7 +30,7 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
         requested_at = int(time.time() * 1000)
 
         try:
-            chat_completion = original_openai.ChatCompletion.create(*args, **kwargs)
+            chat_completion = litellm.completion(*args, **kwargs)
 
             if inspect.isgenerator(chat_completion):
 
@@ -115,7 +116,7 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
         requested_at = int(time.time() * 1000)
 
         try:
-            chat_completion = await original_openai.ChatCompletion.acreate(
+            chat_completion = await litellm.acompletion(
                 *args, **kwargs
             )
 
