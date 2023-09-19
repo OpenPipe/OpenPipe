@@ -128,7 +128,7 @@ export interface FineTune {
   projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  inferenceUrl: string | null;
+  inferenceUrls: Generated<string[] | null>;
 }
 
 export interface GraphileWorkerJobQueues {

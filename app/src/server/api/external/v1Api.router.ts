@@ -134,7 +134,7 @@ export const v1ApiRouter = createOpenApiRouter({
           code: "FORBIDDEN",
         });
       }
-      if (!fineTune.inferenceUrl) {
+      if (!fineTune.inferenceUrls.length) {
         throw new TRPCError({
           message: "The model is not set up for inference",
           code: "BAD_REQUEST",
@@ -145,7 +145,7 @@ export const v1ApiRouter = createOpenApiRouter({
       try {
         completion = await getCompletion(
           reqPayload.data,
-          fineTune.inferenceUrl,
+          fineTune.inferenceUrls,
           fineTune.dataset.pruningRules.map((rule) => rule.textToMatch),
         );
       } catch (error: unknown) {
