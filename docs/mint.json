@@ -44,6 +44,7 @@
         "features/importing-data",
         "features/exporting-data",
         "features/fine-tuning",
+        "features/running-inference",
         "features/experiments"
       ]
     },
