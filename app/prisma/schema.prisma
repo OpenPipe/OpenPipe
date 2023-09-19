@@ -522,7 +522,7 @@ model FineTune {
     trainingFinishedAt   DateTime?
     deploymentStartedAt  DateTime?
     deploymentFinishedAt DateTime?
-    inferenceUrl         String?
+    inferenceUrls        String[] @default([])
 
     datasetId String   @db.Uuid
     dataset    Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)

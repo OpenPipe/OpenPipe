@@ -31,13 +31,13 @@ export async function getExperimentsCompletion(
     if (!fineTune) {
       throw new Error("The model does not exist");
     }
-    if (!fineTune.inferenceUrl) {
+    if (!fineTune.inferenceUrls.length) {
       throw new Error("The model is not set up for inference");
     }
 
     const completion = await getCompletion(
       input,
-      fineTune.inferenceUrl,
+      fineTune.inferenceUrls,
       fineTune.dataset.pruningRules.map((rule) => rule.textToMatch),
     );
     return {
@@ -57,7 +57,7 @@ export async function getExperimentsCompletion(
 
 export async function getCompletion(
   input: CompletionCreateParams,
-  inferenceURL: string,
+  inferenceURLs: string[],
   stringsToPrune: string[],
 ): Promise<ChatCompletion> {
   const { messages, ...rest } = input;
@@ -85,10 +85,7 @@ export async function getCompletion(
 
   let resp;
   try {
-    resp = await fetch(inferenceURL, {
-      body: JSON.stringify(completionParams),
-      method: "POST",
-    });
+    resp = await sendRequestWithBackup(inferenceURLs, completionParams);
   } catch (e) {
     throw new Error("Failed to query the model");
   }
@@ -134,6 +131,36 @@ export const templatePrompt = (input: CompletionCreateParams, stringsToPrune: st
   }
 
   return `### Instruction:\n${stringifedMessages}\n### Response:`;
+};
+
+const sendRequestWithBackup = async (
+  inferenceUrls: string[],
+  completionParams: Record<string, unknown>,
+) => {
+  // choose random index from inferenceUrls
+  const initialIndex = Math.floor(Math.random() * inferenceUrls.length);
+  let resp;
+  try {
+    resp = await sendRequest(inferenceUrls[initialIndex] as string, completionParams);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (e: any) {
+    // if the error is EHOSTUNREACH, try the next url in the list
+    if (e.cause.code === "EHOSTUNREACH") {
+      console.log("retrying with backup url");
+      const backupIndex = initialIndex + 1 - inferenceUrls.length;
+      resp = await sendRequest(inferenceUrls[backupIndex] as string, completionParams);
+    } else {
+      throw e;
+    }
+  }
+  return resp;
+};
+
+const sendRequest = async (url: string, completionParams: Record<string, unknown>) => {
+  return await fetch(url, {
+    body: JSON.stringify(completionParams),
+    method: "POST",
+  });
 };
 
 const FUNCTION_CALL_TAG = "<|function_call|>";
