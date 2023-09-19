@@ -20,7 +20,11 @@ export const adminUsersRouter = createTRPCRouter({
         throw new Error("User not found");
       }
 
+      console.log("impersonate");
+      console.log("cookies", ctx?.cookies);
+      console.log(ctx?.cookies["next-auth.session-token"]);
       const sessionToken = ctx?.cookies["next-auth.session-token"];
+      console.log("sessionToken", sessionToken);
 
       await prisma.session.update({
         where: {
