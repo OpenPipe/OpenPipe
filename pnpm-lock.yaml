@@ -180,11 +180,11 @@ importers:
         specifier: ^6.9.4
         version: 6.9.4
       openai:
-        specifier: 4.0.0-beta.7
-        version: 4.0.0-beta.7(encoding@0.1.13)
+        specifier: 4.8.0
+        version: 4.8.0(encoding@0.1.13)
       openpipe:
-        specifier: 0.4.1
-        version: 0.4.1
+        specifier: 0.4.2
+        version: 0.4.2
       openpipe-dev:
         specifier: workspace:^
         version: link:../client-libs/typescript
@@ -7729,21 +7729,6 @@ packages:
       - debug
     dev: false
 
-  /openai@4.0.0-beta.7(encoding@0.1.13):
-    resolution: {integrity: sha512-jHjwvpMuGkNxiQ3erwLZsOvPEhcVrMtwtfNeYmGCjhbdB+oStVw/7pIhIPkualu8rlhLwgMR7awknIaN3IQcOA==}
-    dependencies:
-      '@types/node': 18.16.0
-      '@types/node-fetch': 2.6.4
-      abort-controller: 3.0.0
-      agentkeepalive: 4.5.0
-      digest-fetch: 1.3.0
-      form-data-encoder: 1.7.2
-      formdata-node: 4.4.1
-      node-fetch: 2.6.12(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
   /openai@4.8.0(encoding@0.1.13):
     resolution: {integrity: sha512-CnLZvHi2x4pIoGAWCaj3jHi1a6NA4oFBL6mJDSXkIR5A/wv6lven7uL2gxMevjGBLA7OqYqis3Z2PMluiGauVw==}
     hasBin: true
@@ -7809,14 +7794,13 @@ packages:
       oidc-token-hash: 5.0.3
     dev: false
 
-  /openpipe@0.4.1:
-    resolution: {integrity: sha512-obMzUsK2/ZGbP/pTzDsqTY9LsEtlZdDTUVFPz35FjnslbGfPdI9w8y/lGI9Hk5Rr+w80Sp7h2jKe8Ohe8omE9w==}
+  /openpipe@0.4.2:
+    resolution: {integrity: sha512-7CijsroevEFPwJ0S17ayQfDysyf829khflg5Gf9jxuGpUja6JSX5yAXGzy3Mo3DRWdEWS5iI+9av4ddyt47cCw==}
     dependencies:
       encoding: 0.1.13
       form-data: 4.0.0
-      lodash-es: 4.17.21
       node-fetch: 2.6.12(encoding@0.1.13)
-      openai-beta: /openai@4.0.0-beta.7(encoding@0.1.13)
+      openai: 4.8.0(encoding@0.1.13)
       openai-legacy: /openai@3.3.0
     transitivePeerDependencies:
       - debug

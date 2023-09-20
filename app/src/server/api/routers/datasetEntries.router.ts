@@ -2,8 +2,8 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import {
   type ChatCompletion,
-  type CompletionCreateParams,
-  type CreateChatCompletionRequestMessage,
+  type ChatCompletionCreateParams,
+  type ChatCompletionMessageParam,
 } from "openai/resources/chat";
 import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
@@ -176,16 +176,16 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const trainingRows = loggedCalls.map((loggedCall) => {
         const inputMessages = (
-          loggedCall.modelResponse?.reqPayload as unknown as CompletionCreateParams
+          loggedCall.modelResponse?.reqPayload as unknown as ChatCompletionCreateParams
         ).messages;
-        let output: ChatCompletion.Choice.Message | undefined = undefined;
+        let output: ChatCompletionMessageParam | undefined = undefined;
         const resp = loggedCall.modelResponse?.respPayload as unknown as ChatCompletion | undefined;
         if (resp && resp.choices?.[0]) {
           output = resp.choices[0].message;
         }
         return {
-          input: inputMessages as unknown as CreateChatCompletionRequestMessage[],
-          output: output as unknown as CreateChatCompletionRequestMessage,
+          input: inputMessages as unknown as ChatCompletionMessageParam[],
+          output: output as unknown as ChatCompletionMessageParam,
         };
       });
 
@@ -246,7 +246,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (input.updates.input) {
         parsedInput = JSON.parse(input.updates.input);
         inputTokens = countLlamaChatTokensInMessages(
-          parsedInput as unknown as CreateChatCompletionRequestMessage[],
+          parsedInput as unknown as ChatCompletionMessageParam[],
         );
       }
 
@@ -256,7 +256,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (input.updates.output && input.updates.output !== "null") {
         parsedOutput = JSON.parse(input.updates.output);
         outputTokens = countLlamaChatTokensInMessages([
-          parsedOutput as unknown as ChatCompletion.Choice.Message,
+          parsedOutput as unknown as ChatCompletionMessageParam,
         ]);
       }
 
@@ -333,8 +333,8 @@ export const datasetEntriesRouter = createTRPCRouter({
       });
 
       let rows: TrainingRow[] = datasetEntries.map((entry) => ({
-        input: entry.input as unknown as CreateChatCompletionRequestMessage[],
-        output: entry.output as unknown as CreateChatCompletionRequestMessage,
+        input: entry.input as unknown as ChatCompletionMessageParam[],
+        output: entry.output as unknown as ChatCompletionMessageParam,
       }));
 
       if (input.removeDuplicates) {
