@@ -1,5 +1,5 @@
-import { ChatCompletion, ChatCompletionChunk } from "openai-beta/resources/chat";
-import { Stream } from "openai-beta/streaming";
+import type { ChatCompletion, ChatCompletionChunk } from "openai/resources/chat";
+import { Stream } from "openai/streaming";
 import { OpenPipeMeta } from "../shared";
 import mergeChunks from "./mergeChunks";
 
@@ -10,6 +10,7 @@ export class WrappedStream extends Stream<ChatCompletionChunk> {
   private report: (response: unknown) => Promise<void>;
 
   constructor(stream: Stream<ChatCompletionChunk>, report: (response: unknown) => Promise<void>) {
+    // @ts-expect-error - This is a private property but we need to access it
     super(stream.response, stream.controller);
     this.report = report;
 

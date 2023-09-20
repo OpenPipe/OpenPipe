@@ -390,15 +390,12 @@ importers:
       form-data:
         specifier: ^4.0.0
         version: 4.0.0
-      lodash-es:
-        specifier: ^4.17.21
-        version: 4.17.21
       node-fetch:
         specifier: ^2.6.12
         version: 2.6.12(encoding@0.1.13)
-      openai-beta:
-        specifier: npm:openai@4.0.0-beta.7
-        version: /openai@4.0.0-beta.7(encoding@0.1.13)
+      openai:
+        specifier: ^4.8.0
+        version: 4.8.0(encoding@0.1.13)
       openai-legacy:
         specifier: npm:openai@3.3.0
         version: /openai@3.3.0
@@ -7734,6 +7731,22 @@ packages:
 
   /openai@4.0.0-beta.7(encoding@0.1.13):
     resolution: {integrity: sha512-jHjwvpMuGkNxiQ3erwLZsOvPEhcVrMtwtfNeYmGCjhbdB+oStVw/7pIhIPkualu8rlhLwgMR7awknIaN3IQcOA==}
+    dependencies:
+      '@types/node': 18.16.0
+      '@types/node-fetch': 2.6.4
+      abort-controller: 3.0.0
+      agentkeepalive: 4.5.0
+      digest-fetch: 1.3.0
+      form-data-encoder: 1.7.2
+      formdata-node: 4.4.1
+      node-fetch: 2.6.12(encoding@0.1.13)
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /openai@4.8.0(encoding@0.1.13):
+    resolution: {integrity: sha512-CnLZvHi2x4pIoGAWCaj3jHi1a6NA4oFBL6mJDSXkIR5A/wv6lven7uL2gxMevjGBLA7OqYqis3Z2PMluiGauVw==}
+    hasBin: true
     dependencies:
       '@types/node': 18.16.0
       '@types/node-fetch': 2.6.4

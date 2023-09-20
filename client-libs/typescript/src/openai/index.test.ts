@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 import { expect, test } from "vitest";
 import OpenAI from "../openai";
-import {
+import type {
   ChatCompletion,
   CompletionCreateParams,
   CreateChatCompletionRequestMessage,
-} from "openai-beta/resources/chat/completions";
+} from "openai/resources/chat/completions";
 import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import assert from "assert";
@@ -84,7 +84,7 @@ test("bad call streaming", async () => {
     await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
     expect(lastLogged?.modelResponse?.errorMessage).toEqual(
-      "The model `gpt-3.5-turbo-blaster` does not exist",
+      "404 The model `gpt-3.5-turbo-blaster` does not exist",
     );
     expect(lastLogged?.modelResponse?.statusCode).toEqual(404);
   }
@@ -103,7 +103,7 @@ test("bad call", async () => {
     await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
     expect(lastLogged?.modelResponse?.errorMessage).toEqual(
-      "The model `gpt-3.5-turbo-buster` does not exist",
+      "404 The model `gpt-3.5-turbo-buster` does not exist",
     );
     expect(lastLogged?.modelResponse?.statusCode).toEqual(404);
   }
