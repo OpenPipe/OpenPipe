@@ -2,12 +2,12 @@
 title: "Running Inference"
 ---
 
-Once your fine-tuned model is deployed, use the OpenPipe SDK to get inference from it.
+Once your fine-tuned model is deployed, you're ready to start running inference.
 
-First, make sure you've set up the SDK properly. See the [OpenPipe SDK](/getting-started/openpipe-sdk) section for more details. Once you've installed the SDK and set the right
-`OPENPIPE_API_KEY` in your environment variables, you're almost done.
+First, make sure you've set up the SDK properly. See the [OpenPipe SDK](/getting-started/openpipe-sdk) section for more details. Once the SDK is installed and you've added the right
+`OPENPIPE_API_KEY` to your environment variables, you're almost done.
 
-The last step is to update the model name that you're querying to match the ID of your new fine-tuned model.
+The last step is to update the model that you're querying to match the ID of your new fine-tuned model.
 
 <Tabs>
   <Tab title="Python">
@@ -26,11 +26,15 @@ completion = openai.ChatCompletion.create(
 
 ```typescript
 const completion = await openai.chat.completions.create({
-  messages: [{ role: "user", content: "Count to 10" }],
   // model: "gpt-3.5-turbo", - original model
   model: "openpipe:your-fine-tuned-model-id",
+  messages: [{ role: "user", content: "Count to 10" }],
 });
 ```
 
   </Tab>
 </Tabs>
+
+Queries to your fine-tuned models will now be shown in the Request Logs panel.
+
+<Frame>![](/images/features/running-inference-logs.png)</Frame>
