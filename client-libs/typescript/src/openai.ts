@@ -1,15 +1,18 @@
-import * as openai from "openai-beta";
-import * as Core from "openai-beta/core";
-import { readEnv, type RequestOptions } from "openai-beta/core";
-import {
+import * as openai from "openai";
+import * as Core from "openai/core";
+import { readEnv, type RequestOptions } from "openai/core";
+import type {
   ChatCompletion,
   ChatCompletionChunk,
-  CompletionCreateParams,
-} from "openai-beta/resources/chat/completions";
+  ChatCompletionCreateParams,
+  ChatCompletionCreateParamsBase,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
+} from "openai/resources/chat/completions";
 
 import { WrappedStream } from "./openai/streaming";
 import { DefaultService, OPClient } from "./codegen";
-import { Stream } from "openai-beta/streaming";
+import type { Stream } from "openai/streaming";
 import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags } from "./shared";
 
 export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig };
@@ -63,22 +66,24 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
   }
 
   _create(
-    body: CompletionCreateParams.CreateChatCompletionRequestNonStreaming,
+    body: ChatCompletionCreateParamsNonStreaming,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<ChatCompletion>>;
+  ): Core.APIPromise<ChatCompletion>;
   _create(
-    body: CompletionCreateParams.CreateChatCompletionRequestStreaming,
+    body: ChatCompletionCreateParamsStreaming,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<Stream<ChatCompletionChunk>>>;
+  ): Core.APIPromise<Stream<ChatCompletionChunk>>;
   _create(
-    body: CompletionCreateParams,
+    body: ChatCompletionCreateParams,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<ChatCompletion | Stream<ChatCompletionChunk>>> {
+  ): Core.APIPromise<ChatCompletion | Stream<ChatCompletionChunk>> {
     let resp;
     if (body.model.startsWith("openpipe:")) {
+      // @ts-expect-error looks like OpenAI has added more client functionality
+      // we'll need to match. For now, we'll just ignore the type error.
       resp = this.opClient?.default.createChatCompletion({
         reqPayload: body,
-      }) as Promise<Core.APIResponse<ChatCompletion>>;
+      }) as Core.APIPromise<ChatCompletion>;
     } else {
       resp = body.stream ? super.create(body, options) : super.create(body, options);
     }
@@ -86,18 +91,24 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     return resp;
   }
 
+  // @ts-expect-error It doesn't like the fact that I added a `Promise<>`
+  // wrapper but I actually think the types are correct here.
   create(
-    body: CompletionCreateParams.CreateChatCompletionRequestNonStreaming & OpenPipeArgs,
+    body: ChatCompletionCreateParamsNonStreaming & OpenPipeArgs,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<ChatCompletion & { openpipe: OpenPipeMeta }>>;
+  ): Core.APIPromise<ChatCompletion & { openpipe: OpenPipeMeta }>;
   create(
-    body: CompletionCreateParams.CreateChatCompletionRequestStreaming & OpenPipeArgs,
+    body: ChatCompletionCreateParamsStreaming & OpenPipeArgs,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<WrappedStream>>;
+  ): Core.APIPromise<WrappedStream>;
+  create(
+    body: ChatCompletionCreateParamsBase & OpenPipeArgs,
+    options?: Core.RequestOptions,
+  ): Core.APIPromise<Stream<ChatCompletionChunk> | ChatCompletion>;
   async create(
-    { openpipe, ...body }: CompletionCreateParams & OpenPipeArgs,
+    { openpipe, ...body }: ChatCompletionCreateParams & OpenPipeArgs,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<(ChatCompletion & { openpipe: OpenPipeMeta }) | WrappedStream>> {
+  ): Promise<Core.APIPromise<(ChatCompletion & { openpipe: OpenPipeMeta }) | WrappedStream>> {
     const requestedAt = Date.now();
     let reportingFinished: OpenPipeMeta["reportingFinished"] = Promise.resolve();
     let cacheRequested = openpipe?.cache ?? false;

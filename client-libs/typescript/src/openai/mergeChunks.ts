@@ -1,5 +1,15 @@
-import { ChatCompletion, ChatCompletionChunk } from "openai-beta/resources/chat";
-import { omit } from "lodash-es";
+import type { ChatCompletion, ChatCompletionChunk } from "openai/resources/chat";
+
+const omit = <T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  ...keys: K[]
+): Omit<T, K> => {
+  const ret = { ...obj };
+  for (const key of keys) {
+    delete ret[key];
+  }
+  return ret;
+};
 
 export default function mergeChunks(
   base: ChatCompletion | null,
@@ -18,14 +28,14 @@ export default function mergeChunks(
 
       if (choice.delta?.content)
         baseChoice.message.content =
-          ((baseChoice.message.content as string) ?? "") + (choice.delta.content ?? "");
+          (baseChoice.message.content ?? "") + (choice.delta.content ?? "");
       if (choice.delta?.function_call) {
-        const fnCall = baseChoice.message.function_call ?? {};
-        fnCall.name =
-          ((fnCall.name as string) ?? "") + ((choice.delta.function_call.name as string) ?? "");
-        fnCall.arguments =
-          ((fnCall.arguments as string) ?? "") +
-          ((choice.delta.function_call.arguments as string) ?? "");
+        const fnCall = baseChoice.message.function_call ?? {
+          name: "",
+          arguments: "",
+        };
+        fnCall.name = fnCall.name + (choice.delta.function_call.name ?? "");
+        fnCall.arguments = fnCall.arguments + (choice.delta.function_call.arguments ?? "");
       }
     } else {
       // @ts-expect-error the types are correctly telling us that finish_reason

@@ -22,6 +22,9 @@ with open('dist/package.json', 'r') as file:
 # Change the names
 data['name'] = 'openpipe'
 
+# Copy all keys from publishConfig to root
+data.update(data['publishConfig'])
+
 # Write the changes back to the package.json file
 with open('dist/package.json', 'w') as file:
     json.dump(data, file, indent=2)
