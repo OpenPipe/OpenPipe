@@ -1,4 +1,4 @@
-import { type CompletionCreateParams } from "openai/resources/chat";
+import { type ChatCompletionCreateParams } from "openai/resources/chat";
 import { prisma } from "../../db";
 import { openai } from "../../utils/openai";
 import { pick } from "lodash-es";
@@ -41,7 +41,7 @@ export const autogenerateScenarioValues = async (
 
   if (!experiment || !(variables?.length > 0) || !prompt) return {};
 
-  const messages: CompletionCreateParams.CreateChatCompletionRequestNonStreaming["messages"] = [
+  const messages: ChatCompletionCreateParams.ChatCompletionCreateParamsNonStreaming["messages"] = [
     {
       role: "system",
       content:

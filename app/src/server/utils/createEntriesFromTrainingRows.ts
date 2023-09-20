@@ -1,9 +1,6 @@
 import { type Prisma } from "@prisma/client";
 import { shuffle } from "lodash-es";
-import {
-  type CreateChatCompletionRequestMessage,
-  type ChatCompletion,
-} from "openai/resources/chat";
+import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
 import { prisma } from "~/server/db";
@@ -51,7 +48,7 @@ export const formatEntriesFromTrainingRows = async (
     let outputTokens = 0;
     if (row.output) {
       outputTokens = countLlamaChatTokensInMessages([
-        row.output as unknown as ChatCompletion.Choice.Message,
+        row.output as unknown as ChatCompletionMessageParam,
       ]);
     }
     // console.log("outputTokens", outputTokens);
@@ -64,7 +61,7 @@ export const formatEntriesFromTrainingRows = async (
         content: "",
       },
       inputTokens: countLlamaChatTokensInMessages(
-        row.input as unknown as CreateChatCompletionRequestMessage[],
+        row.input as unknown as ChatCompletionMessageParam[],
       ),
       outputTokens,
       type: typesToAssign.pop() as "TRAIN" | "TEST",

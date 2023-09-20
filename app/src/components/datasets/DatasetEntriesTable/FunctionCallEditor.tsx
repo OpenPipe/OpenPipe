@@ -1,6 +1,6 @@
 import { useRef, useMemo, useEffect } from "react";
 import { VStack, HStack, Text, Input, Box } from "@chakra-ui/react";
-import { type CreateChatCompletionRequestMessage } from "openai/resources/chat";
+import { type ChatCompletionMessage } from "openai/resources/chat";
 
 import { useAppStore } from "~/state/store";
 import { type CreatedEditor } from "~/state/sharedVariantEditor.slice";
@@ -9,8 +9,8 @@ const FunctionCallEditor = ({
   function_call,
   onEdit,
 }: {
-  function_call: CreateChatCompletionRequestMessage.FunctionCall;
-  onEdit: (function_call: CreateChatCompletionRequestMessage.FunctionCall) => void;
+  function_call: ChatCompletionMessage.FunctionCall;
+  onEdit: (function_call: ChatCompletionMessage.FunctionCall) => void;
 }) => {
   const monaco = useAppStore.use.sharedArgumentsEditor.monaco();
   const editorRef = useRef<CreatedEditor | null>(null);

@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
+import {
+  type ChatCompletion,
+  type ChatCompletionMessage,
+  type ChatCompletionCreateParams,
+} from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
@@ -8,7 +12,7 @@ import { type CompletionResponse } from "../types";
 import { prisma } from "~/server/db";
 
 export async function getExperimentsCompletion(
-  input: CompletionCreateParams,
+  input: ChatCompletionCreateParams,
   _onStream: ((partialOutput: ChatCompletion) => void) | null,
 ): Promise<CompletionResponse<ChatCompletion>> {
   try {
@@ -56,7 +60,7 @@ export async function getExperimentsCompletion(
 }
 
 export async function getCompletion(
-  input: CompletionCreateParams,
+  input: ChatCompletionCreateParams,
   inferenceURLs: string[],
   stringsToPrune: string[],
 ): Promise<ChatCompletion> {
@@ -122,7 +126,7 @@ export async function getCompletion(
   };
 }
 
-export const templatePrompt = (input: CompletionCreateParams, stringsToPrune: string[]) => {
+export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
   const { messages } = input;
 
   let stringifedMessages = JSON.stringify(messages);
@@ -166,14 +170,15 @@ const sendRequest = async (url: string, completionParams: Record<string, unknown
 const FUNCTION_CALL_TAG = "<|function_call|>";
 const FUNCTION_ARGS_TAG = "<|function_args|>";
 
-const parseCompletionMessage = (finalCompletion: string): ChatCompletion.Choice.Message => {
-  const message: ChatCompletion.Choice.Message = {
+const parseCompletionMessage = (finalCompletion: string): ChatCompletionMessage => {
+  const message: ChatCompletionMessage = {
     role: "assistant",
+    content: null,
   };
   if (finalCompletion.includes(FUNCTION_CALL_TAG)) {
     const functionName = finalCompletion.split(FUNCTION_CALL_TAG)[1]?.split(FUNCTION_ARGS_TAG)[0];
     const functionArgs = finalCompletion.split(FUNCTION_ARGS_TAG)[1];
-    message.function_call = { name: functionName, arguments: functionArgs };
+    message.function_call = { name: functionName as string, arguments: functionArgs ?? "" };
   } else {
     message.content = finalCompletion;
   }
