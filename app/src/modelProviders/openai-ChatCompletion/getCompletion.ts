@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { isArray, isString } from "lodash-es";
 import { APIError } from "openai";
-import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
+import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import mergeChunks from "openpipe/openai/mergeChunks";
 import { openai } from "~/server/utils/openai";
 import { type CompletionResponse } from "../types";
 
 export async function getCompletion(
-  input: CompletionCreateParams,
+  input: ChatCompletionCreateParams,
   onStream: ((partialOutput: ChatCompletion) => void) | null,
 ): Promise<CompletionResponse<ChatCompletion>> {
   const start = Date.now();

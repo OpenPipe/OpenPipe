@@ -12,3 +12,25 @@ export const capturePath = (session: Session, path: string) => {
   if (!session.user || !posthogServerClient) return;
   posthogServerClient?.capture({ distinctId: session.user.id, event: path });
 };
+
+export const captureFineTuneUsage = (
+  projectId: string,
+  model?: string,
+  statusCode?: number,
+  inputTokens?: number,
+  outputTokens?: number,
+  cost?: number,
+) => {
+  if (!posthogServerClient) return;
+  posthogServerClient?.capture({
+    distinctId: projectId,
+    event: "fine-tune-usage",
+    properties: {
+      model,
+      statusCode,
+      inputTokens,
+      outputTokens,
+      cost,
+    },
+  });
+};

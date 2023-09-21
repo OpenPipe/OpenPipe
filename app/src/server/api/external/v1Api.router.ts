@@ -8,11 +8,12 @@ import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCom
 import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
 import {
   type ChatCompletion,
-  type CompletionCreateParams,
+  type ChatCompletionCreateParams,
 } from "openai/resources/chat/completions";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { TRPCError } from "@trpc/server";
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
+import { captureFineTuneUsage } from "~/utils/analytics/serverAnalytics";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -201,16 +202,24 @@ export const v1ApiRouter = createOpenApiRouter({
         if (model.startsWith("openpipe:")) {
           const fineTune = await prisma.fineTune.findUnique({
             where: { slug: model.replace("openpipe:", "") },
-            select: { baseModel: true },
           });
           usage = fineTunedModelProvider.getUsage(
-            input.reqPayload as CompletionCreateParams,
+            input.reqPayload as ChatCompletionCreateParams,
             respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
             { baseModel: fineTune?.baseModel },
           );
+
+          captureFineTuneUsage(
+            ctx.key.projectId,
+            model,
+            input.statusCode,
+            usage?.inputTokens,
+            usage?.outputTokens,
+            usage?.cost,
+          );
         } else {
           usage = openaAIModelProvider.getUsage(
-            input.reqPayload as CompletionCreateParams,
+            input.reqPayload as ChatCompletionCreateParams,
             respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
           );
         }
