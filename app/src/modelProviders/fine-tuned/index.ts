@@ -1,13 +1,17 @@
 import { type JSONSchema4 } from "json-schema";
 import { type ModelProvider } from "../types";
 import inputSchema from "../openai-ChatCompletion/codegen/input.schema.json";
-import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
+import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { getExperimentsCompletion } from "./getCompletion";
 import frontendModelProvider from "./frontend";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { truthyFilter } from "~/utils/utils";
 
-export type FineTunedModelProvider = ModelProvider<string, CompletionCreateParams, ChatCompletion>;
+export type FineTunedModelProvider = ModelProvider<
+  string,
+  ChatCompletionCreateParams,
+  ChatCompletion
+>;
 
 const baseModelPrices: Record<string, { promptTokenPrice: number; completionTokenPrice: number }> =
   {

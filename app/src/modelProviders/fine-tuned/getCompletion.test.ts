@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { it, expect } from "vitest";
 import { getCompletion, templatePrompt } from "./getCompletion";
-import { type CompletionCreateParams } from "openai/resources/chat";
+import { type ChatCompletionCreateParams } from "openai/resources/chat";
 import { escapeString } from "~/utils/pruningRules";
 
 it("gets a reasonable completion", async () => {
@@ -11,7 +11,7 @@ it("gets a reasonable completion", async () => {
     throw new Error("Missing GET_COMPLETION_TEST_ENDPOINT");
   }
 
-  const inputData: CompletionCreateParams = {
+  const inputData: ChatCompletionCreateParams = {
     model: "test-model",
     messages: [
       {
@@ -26,7 +26,7 @@ it("gets a reasonable completion", async () => {
 });
 
 it("correctly templates the prompt", () => {
-  const input: CompletionCreateParams = {
+  const input: ChatCompletionCreateParams = {
     model: "test-model",
     messages: [
       {

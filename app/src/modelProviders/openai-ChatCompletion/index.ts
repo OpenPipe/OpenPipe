@@ -1,7 +1,7 @@
 import { type JSONSchema4 } from "json-schema";
 import { type ModelProvider } from "../types";
 import inputSchema from "./codegen/input.schema.json";
-import { type ChatCompletion, type CompletionCreateParams } from "openai/resources/chat";
+import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { getCompletion } from "./getCompletion";
 import frontendModelProvider from "./frontend";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
@@ -18,7 +18,7 @@ export type SupportedModel = (typeof supportedModels)[number];
 
 export type OpenaiChatModelProvider = ModelProvider<
   SupportedModel,
-  CompletionCreateParams,
+  ChatCompletionCreateParams,
   ChatCompletion
 >;
 
