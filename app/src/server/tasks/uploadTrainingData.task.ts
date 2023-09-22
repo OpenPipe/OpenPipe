@@ -48,9 +48,7 @@ export const uploadTrainingData = defineTask<UploadTrainingDataJob>(
     })) as unknown as TrainingRow[];
 
     const stringsToPrune = fineTune.dataset.pruningRules.map((rule) => rule.textToMatch);
-    console.log("before formatting");
     const formattedRows = trainingEntries.map((entry) => formatTrainingRow(entry, stringsToPrune));
-    console.log("after formatting");
 
     const jsonlStr = formattedRows.map((row) => JSON.stringify(row)).join("\n");
 
