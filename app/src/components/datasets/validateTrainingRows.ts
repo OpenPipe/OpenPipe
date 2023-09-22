@@ -1,8 +1,8 @@
-import { type CreateChatCompletionRequestMessage } from "openai/resources/chat";
+import { type ChatCompletionMessageParam } from "openai/resources/chat";
 
 export type TrainingRow = {
-  input: CreateChatCompletionRequestMessage[];
-  output?: CreateChatCompletionRequestMessage;
+  input: ChatCompletionMessageParam[];
+  output?: ChatCompletionMessageParam;
 };
 
 export const parseJSONL = (jsonlString: string): unknown[] => {

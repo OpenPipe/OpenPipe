@@ -15,7 +15,7 @@ import {
   Divider,
   Icon,
 } from "@chakra-ui/react";
-import { type CreateChatCompletionRequestMessage } from "openai/resources/chat";
+import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { BsPlus } from "react-icons/bs";
 import { type DatasetEntryType } from "@prisma/client";
 
@@ -36,19 +36,18 @@ export default function DatasetDentryEditorDrawer({
   const datasetEntry = useDatasetEntry(datasetEntryId).data;
 
   const savedInputMessages = useMemo(
-    () => datasetEntry?.input as unknown as CreateChatCompletionRequestMessage[],
+    () => datasetEntry?.input as unknown as ChatCompletionMessageParam[],
     [datasetEntry],
   );
   const savedOutputMessage = useMemo(
-    () => datasetEntry?.output as unknown as CreateChatCompletionRequestMessage,
+    () => datasetEntry?.output as unknown as ChatCompletionMessageParam,
     [datasetEntry],
   );
 
-  const [inputMessagesToSave, setInputMessagesToSave] = useState<
-    CreateChatCompletionRequestMessage[]
-  >([]);
-  const [outputMessageToSave, setOutputMessageToSave] =
-    useState<CreateChatCompletionRequestMessage | null>(null);
+  const [inputMessagesToSave, setInputMessagesToSave] = useState<ChatCompletionMessageParam[]>([]);
+  const [outputMessageToSave, setOutputMessageToSave] = useState<ChatCompletionMessageParam | null>(
+    null,
+  );
 
   useEffect(() => {
     if (savedInputMessages) {
