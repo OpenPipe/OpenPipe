@@ -10,14 +10,13 @@ import {
   Spinner,
   IconButton,
 } from "@chakra-ui/react";
-import { BsFillTrashFill, BsGear, BsStars } from "react-icons/bs";
+import { BsFillTrashFill, BsGear } from "react-icons/bs";
 import { FaRegClone } from "react-icons/fa";
 import { RiExchangeFundsFill } from "react-icons/ri";
 
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useVisibleScenarioIds } from "~/utils/hooks";
 import { type PromptVariant } from "../types";
-import { RefinePromptModal } from "../../RefinePromptModal/RefinePromptModal";
 import { ChangeModelModal } from "../../ChangeModelModal/ChangeModelModal";
 
 export default function VariantHeaderMenuButton({
@@ -54,7 +53,6 @@ export default function VariantHeaderMenuButton({
   }, [hideMutation, variant.id]);
 
   const [changeModelModalOpen, setChangeModelModalOpen] = useState(false);
-  const [refinePromptModalOpen, setRefinePromptModalOpen] = useState(false);
 
   return (
     <>
@@ -76,12 +74,6 @@ export default function VariantHeaderMenuButton({
           >
             Change Model
           </MenuItem>
-          <MenuItem
-            icon={<Icon as={BsStars} boxSize={5} />}
-            onClick={() => setRefinePromptModalOpen(true)}
-          >
-            Refine
-          </MenuItem>
           {canHide && (
             <>
               <MenuDivider />
@@ -99,9 +91,6 @@ export default function VariantHeaderMenuButton({
       </Menu>
       {changeModelModalOpen && (
         <ChangeModelModal variant={variant} onClose={() => setChangeModelModalOpen(false)} />
-      )}
-      {refinePromptModalOpen && (
-        <RefinePromptModal variant={variant} onClose={() => setRefinePromptModalOpen(false)} />
       )}
     </>
   );

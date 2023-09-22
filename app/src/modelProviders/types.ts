@@ -1,5 +1,4 @@
 import { type JSONSchema4 } from "json-schema";
-import { type IconType } from "react-icons";
 import { type JsonValue } from "type-fest";
 import { z } from "zod";
 import { type OpenpipeChatInput } from "./openpipe-chat";
@@ -30,12 +29,9 @@ export type Model = {
 
 export type ProviderModel = { provider: z.infer<typeof ZodSupportedProvider>; model: string };
 
-export type RefinementAction = { icon?: IconType; description: string; instructions: string };
-
 export type FrontendModelProvider<SupportedModels extends string, OutputSchema> = {
   name: string;
   models: Record<SupportedModels, Model>;
-  refinementActions?: Record<string, RefinementAction>;
 
   normalizeOutput: (output: OutputSchema) => NormalizedOutput;
 };

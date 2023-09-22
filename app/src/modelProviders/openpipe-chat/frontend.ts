@@ -1,6 +1,5 @@
 import { type OpenpipeChatOutput, type SupportedModel } from ".";
 import { type FrontendModelProvider } from "../types";
-import { refinementActions } from "./refinementActions";
 import {
   templateOpenOrcaPrompt,
   templateAlpacaInstructPrompt,
@@ -89,8 +88,6 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, OpenpipeChatO
       templatePrompt: templateInstructionInputResponsePrompt,
     },
   },
-
-  refinementActions,
 
   normalizeOutput: (output) => ({ type: "text", value: output }),
 };

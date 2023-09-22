@@ -1,7 +1,6 @@
 import { type Completion } from "@anthropic-ai/sdk/resources";
 import { type SupportedModel } from ".";
 import { type FrontendModelProvider } from "../types";
-import { refinementActions } from "./refinementActions";
 
 const frontendModelProvider: FrontendModelProvider<SupportedModel, Completion> = {
   name: "Replicate Llama2",
@@ -28,8 +27,6 @@ const frontendModelProvider: FrontendModelProvider<SupportedModel, Completion> =
       apiDocsUrl: "https://docs.anthropic.com/claude/reference/complete_post",
     },
   },
-
-  refinementActions,
 
   normalizeOutput: (output) => {
     return {
