@@ -7,6 +7,7 @@ import {
   StorageSharedKeyCredential,
   SASProtocol,
 } from "@azure/storage-blob";
+import { v4 as uuidv4 } from "uuid";
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
 if (!accountName) throw Error("Azure Storage accountName not found");
@@ -41,6 +42,15 @@ export const generateServiceClientUrl = () => {
     serviceClientUrl: `https://${accountName}.blob.core.windows.net?${sasToken}`,
     containerName,
   };
+};
+
+export const uploadTrainingDataFile = async (contents: string) => {
+  const blobName = `${inverseDatePrefix()}-${uuidv4()}-training.jsonl`;
+  const blobClient = containerClient.getBlockBlobClient(blobName);
+
+  await blobClient.upload(contents, contents.length);
+
+  return blobName;
 };
 
 export async function downloadBlobToString(
@@ -91,3 +101,8 @@ async function streamToBuffer(
     readableStream.on("error", reject);
   });
 }
+
+// Ensure blobs are sorted by date in descending order
+const inverseDatePrefix = () => {
+  return new Date(2070, 0, 1).getTime() - new Date().getTime();
+};

@@ -126,15 +126,23 @@ export async function getCompletion(
   };
 }
 
-export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
-  const { messages } = input;
-
+export const formatInputMessages = (
+  messages: ChatCompletionMessage[],
+  stringsToPrune: string[],
+) => {
   let stringifedMessages = JSON.stringify(messages);
   for (const stringToPrune of stringsToPrune) {
     stringifedMessages = stringifedMessages.replaceAll(escapeString(stringToPrune), "");
   }
+  return stringifedMessages;
+};
 
-  return `### Instruction:\n${stringifedMessages}\n### Response:`;
+export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
+  const { messages } = input;
+
+  const formattedInput = formatInputMessages(messages, stringsToPrune);
+
+  return `### Instruction:\n${formattedInput}\n### Response:`;
 };
 
 const sendRequestWithBackup = async (
@@ -167,15 +175,15 @@ const sendRequest = async (url: string, completionParams: Record<string, unknown
   });
 };
 
-const FUNCTION_CALL_TAG = "<|function_call|>";
-const FUNCTION_ARGS_TAG = "<|function_args|>";
+export const FUNCTION_CALL_TAG = "<function>";
+export const FUNCTION_ARGS_TAG = "<arguments>";
 
 const parseCompletionMessage = (finalCompletion: string): ChatCompletionMessage => {
   const message: ChatCompletionMessage = {
     role: "assistant",
     content: null,
   };
-  if (finalCompletion.includes(FUNCTION_CALL_TAG)) {
+  if (finalCompletion.startsWith(FUNCTION_CALL_TAG)) {
     const functionName = finalCompletion.split(FUNCTION_CALL_TAG)[1]?.split(FUNCTION_ARGS_TAG)[0];
     const functionArgs = finalCompletion.split(FUNCTION_ARGS_TAG)[1];
     message.function_call = { name: functionName as string, arguments: functionArgs ?? "" };

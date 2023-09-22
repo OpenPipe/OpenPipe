@@ -89,7 +89,7 @@ export default function DatasetDentryEditorDrawer({
     <Drawer isOpen={!!datasetEntryId} onClose={clearDatasetEntryId} placement="right" size="md">
       <DrawerOverlay />
       <DrawerContent>
-        <DrawerCloseButton pt={6} />
+        <DrawerCloseButton mt={3} />
         <DrawerHeader bgColor="orange.50">
           <HStack w="full" justifyContent="space-between" pr={8}>
             <Heading size="md">Dataset Entry</Heading>

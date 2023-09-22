@@ -6,10 +6,11 @@ import { env } from "~/env.mjs";
 import { queryModel } from "./queryModel.task";
 import { runNewEval } from "./runNewEval.task";
 import { importDatasetEntries } from "./importDatasetEntries.task";
+import { uploadTrainingData } from "./uploadTrainingData.task";
 
 console.log("Starting worker");
 
-const registeredTasks = [queryModel, runNewEval, importDatasetEntries];
+const registeredTasks = [queryModel, runNewEval, importDatasetEntries, uploadTrainingData];
 
 const taskList = registeredTasks.reduce((acc, task) => {
   acc[task.task.identifier] = task.task.handler;

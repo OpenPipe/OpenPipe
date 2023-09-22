@@ -1,4 +1,3 @@
-import { type DatasetFileUpload } from "@prisma/client";
 import { prisma } from "~/server/db";
 import defineTask from "./defineTask";
 import { downloadBlobToString } from "~/utils/azure/server";
@@ -79,8 +78,6 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
       },
     });
 
-    const updatePromises: Promise<DatasetFileUpload>[] = [];
-
     const updateCallback = async (progress: number) => {
       await prisma.datasetFileUpload.update({
         where: { id: datasetFileUploadId },
@@ -110,8 +107,6 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
       });
       return;
     }
-
-    await Promise.all(updatePromises);
 
     await prisma.datasetFileUpload.update({
       where: { id: datasetFileUploadId },

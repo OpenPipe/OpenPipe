@@ -6,7 +6,7 @@ import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
 
 const FineTunesTable = ({}) => {
-  const { data } = useFineTunes();
+  const { data } = useFineTunes(10000);
 
   const fineTunes = data?.fineTunes || [];
 
