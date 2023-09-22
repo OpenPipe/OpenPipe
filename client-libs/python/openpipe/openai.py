@@ -123,29 +123,34 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
 
                 async def _gen():
                     assembled_completion = None
-                    async for chunk in chat_completion:
-                        assembled_completion = merge_openai_chunks(
-                            assembled_completion, chunk
-                        )
-                        cache_status = (
-                            "MISS"
-                            if _should_check_cache(openpipe_options, kwargs)
-                            else "SKIP"
-                        )
-                        chunk.openpipe = openpipe_meta(cache_status=cache_status)
-
-                        yield chunk
-
-                    received_at = int(time.time() * 1000)
-
-                    await report_async(
-                        openpipe_options=openpipe_options,
-                        requested_at=requested_at,
-                        received_at=received_at,
-                        req_payload=kwargs,
-                        resp_payload=assembled_completion,
-                        status_code=200,
-                    )
+                    try:
+                        async for chunk in chat_completion:
+                            assembled_completion = merge_openai_chunks(
+                                assembled_completion, chunk
+                            )
+                            cache_status = (
+                                "MISS"
+                                if _should_check_cache(openpipe_options, kwargs)
+                                else "SKIP"
+                            )
+                            chunk.openpipe = openpipe_meta(cache_status=cache_status)
+                            yield chunk
+                    finally:
+                        try:
+                            # This block will always execute when the generator exits.
+                            # This ensures that cleanup and reporting operations are performed regardless of how the generator terminates.
+                            received_at = int(time.time() * 1000)
+                            await report_async(
+                                openpipe_options=openpipe_options,
+                                requested_at=requested_at,
+                                received_at=received_at,
+                                req_payload=kwargs,
+                                resp_payload=assembled_completion,
+                                status_code=200,
+                            )
+                        except Exception as e:
+                            # Ignore any errors that occur while reporting
+                            pass
 
                 return _gen()
             else:
