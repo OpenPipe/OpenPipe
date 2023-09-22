@@ -7,7 +7,6 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
-import { escapeString } from "~/utils/pruningRules";
 import { type CompletionResponse } from "../types";
 import { prisma } from "~/server/db";
 
@@ -126,15 +125,27 @@ export async function getCompletion(
   };
 }
 
+export const formatInputMessages = (
+  messages: ChatCompletionMessage[],
+  stringsToPrune: string[],
+) => {
+  for (const stringToPrune of stringsToPrune) {
+    for (const message of messages) {
+      if (message.content) {
+        message.content = message.content.replaceAll(stringToPrune, "");
+      }
+    }
+  }
+  messages = messages.filter((message) => message.content !== "" || message.function_call);
+  return JSON.stringify(messages);
+};
+
 export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
   const { messages } = input;
 
-  let stringifedMessages = JSON.stringify(messages);
-  for (const stringToPrune of stringsToPrune) {
-    stringifedMessages = stringifedMessages.replaceAll(escapeString(stringToPrune), "");
-  }
+  const formattedInput = formatInputMessages(messages, stringsToPrune);
 
-  return `### Instruction:\n${stringifedMessages}\n### Response:`;
+  return `### Instruction:\n${formattedInput}\n### Response:`;
 };
 
 const sendRequestWithBackup = async (
@@ -167,15 +178,15 @@ const sendRequest = async (url: string, completionParams: Record<string, unknown
   });
 };
 
-const FUNCTION_CALL_TAG = "<|function_call|>";
-const FUNCTION_ARGS_TAG = "<|function_args|>";
+export const FUNCTION_CALL_TAG = "<function>";
+export const FUNCTION_ARGS_TAG = "<arguments>";
 
 const parseCompletionMessage = (finalCompletion: string): ChatCompletionMessage => {
   const message: ChatCompletionMessage = {
     role: "assistant",
     content: null,
   };
-  if (finalCompletion.includes(FUNCTION_CALL_TAG)) {
+  if (finalCompletion.startsWith(FUNCTION_CALL_TAG)) {
     const functionName = finalCompletion.split(FUNCTION_CALL_TAG)[1]?.split(FUNCTION_ARGS_TAG)[0];
     const functionArgs = finalCompletion.split(FUNCTION_ARGS_TAG)[1];
     message.function_call = { name: functionName as string, arguments: functionArgs ?? "" };

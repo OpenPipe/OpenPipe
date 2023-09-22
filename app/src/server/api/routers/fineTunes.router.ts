@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { queueUploadTrainingData } from "~/server/tasks/uploadTrainingData.task";
 import { requireCanViewProject, requireCanModifyProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 
@@ -76,7 +77,7 @@ export const fineTunesRouter = createTRPCRouter({
         return error("A fine tune with that slug already exists");
       }
 
-      await prisma.fineTune.create({
+      const fineTune = await prisma.fineTune.create({
         data: {
           projectId,
           slug: input.slug,
@@ -84,6 +85,8 @@ export const fineTunesRouter = createTRPCRouter({
           datasetId: input.datasetId,
         },
       });
+      if (!fineTune) return error("Error creating fine tune");
+      await queueUploadTrainingData(fineTune.id);
 
       return success();
     }),

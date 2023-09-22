@@ -1,12 +1,12 @@
 import { expect, it } from "vitest";
 import { type Prisma } from "@prisma/client";
-import { type CreateChatCompletionRequestMessage } from "openai/resources/chat";
+import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
 import { prisma } from "~/server/db";
 import { updatePruningRuleMatches } from "./updatePruningRuleMatches";
 
-const input1: CreateChatCompletionRequestMessage[] = [
+const input1: ChatCompletionMessageParam[] = [
   {
     role: "system",
     content:
@@ -53,10 +53,7 @@ const createProject = async (datasetId: string) => {
 
 const datasetId = uuidv4();
 
-const createDatasetEntry = async (
-  datasetId: string,
-  input: CreateChatCompletionRequestMessage[],
-) => {
+const createDatasetEntry = async (datasetId: string, input: ChatCompletionMessageParam[]) => {
   return await prisma.datasetEntry.create({
     data: {
       input: input as unknown as Prisma.InputJsonValue,

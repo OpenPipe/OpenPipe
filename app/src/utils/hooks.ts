@@ -221,13 +221,13 @@ export const useTagNames = () => {
   );
 };
 
-export const useFineTunes = () => {
+export const useFineTunes = (refetchInterval?: number) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
 
   return api.fineTunes.list.useQuery(
     { projectId: selectedProjectId ?? "", page, pageSize },
-    { enabled: !!selectedProjectId },
+    { enabled: !!selectedProjectId, refetchInterval },
   );
 };
 

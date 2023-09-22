@@ -10,7 +10,7 @@ import {
   Button,
   Text,
 } from "@chakra-ui/react";
-import { type CreateChatCompletionRequestMessage } from "openai/resources/chat";
+import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { BsX } from "react-icons/bs";
 import DiffViewer, { DiffMethod } from "react-diff-viewer";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
@@ -31,8 +31,8 @@ const EditableMessage = ({
   isOutput,
   ruleMatches = [],
 }: {
-  message: CreateChatCompletionRequestMessage | null;
-  onEdit: (message: CreateChatCompletionRequestMessage) => void;
+  message: ChatCompletionMessageParam | null;
+  onEdit: (message: ChatCompletionMessageParam) => void;
   onDelete?: () => void;
   isOutput?: boolean;
   ruleMatches?: RouterOutputs["datasetEntries"]["get"]["matchedRules"];
@@ -93,7 +93,7 @@ const EditableMessage = ({
               options={OUTPUT_OPTIONS}
               selectedOption={currentOutputOption}
               onSelect={(option) => {
-                const updatedMessage: CreateChatCompletionRequestMessage = {
+                const updatedMessage: ChatCompletionMessageParam = {
                   role,
                   content: null,
                   function_call: undefined,

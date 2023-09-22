@@ -504,6 +504,7 @@ model VerificationToken {
 }
 
 enum FineTuneStatus {
+    UPLOADING_DATASET
     PENDING
     TRAINING
     AWAITING_DEPLOYMENT
@@ -515,14 +516,16 @@ enum FineTuneStatus {
 model FineTune {
     id String @id @default(uuid()) @db.Uuid
 
-    slug      String @unique
-    baseModel String
-    status    FineTuneStatus @default(PENDING)
-    trainingStartedAt    DateTime?
-    trainingFinishedAt   DateTime?
-    deploymentStartedAt  DateTime?
-    deploymentFinishedAt DateTime?
-    inferenceUrls        String[] @default([])
+    slug                    String @unique
+    baseModel               String
+    status                  FineTuneStatus @default(PENDING)
+    errorMessage            String?
+    trainingBlobName        String?
+    trainingStartedAt       DateTime?
+    trainingFinishedAt      DateTime?
+    deploymentStartedAt     DateTime?
+    deploymentFinishedAt    DateTime?
+    inferenceUrls           String[] @default([])
 
     datasetId String   @db.Uuid
     dataset    Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)

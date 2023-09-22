@@ -1,4 +1,4 @@
-import { type Helpers, type Task, makeWorkerUtils, TaskSpec } from "graphile-worker";
+import { type Helpers, type Task, makeWorkerUtils, type TaskSpec } from "graphile-worker";
 import { env } from "~/env.mjs";
 
 let workerUtilsPromise: ReturnType<typeof makeWorkerUtils> | null = null;
