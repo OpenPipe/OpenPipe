@@ -7,7 +7,6 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
-import { escapeString } from "~/utils/pruningRules";
 import { type CompletionResponse } from "../types";
 import { prisma } from "~/server/db";
 
@@ -130,11 +129,15 @@ export const formatInputMessages = (
   messages: ChatCompletionMessage[],
   stringsToPrune: string[],
 ) => {
-  let stringifedMessages = JSON.stringify(messages);
   for (const stringToPrune of stringsToPrune) {
-    stringifedMessages = stringifedMessages.replaceAll(escapeString(stringToPrune), "");
+    for (const message of messages) {
+      if (message.content) {
+        message.content = message.content.replaceAll(stringToPrune, "");
+      }
+    }
   }
-  return stringifedMessages;
+  messages = messages.filter((message) => message.content !== "" || message.function_call);
+  return JSON.stringify(messages);
 };
 
 export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
