@@ -22,7 +22,7 @@ import { type ProviderModel } from "~/modelProviders/types";
 import { api } from "~/utils/api";
 import { useExperiment, useHandledAsyncCallback } from "~/utils/hooks";
 import { lookupModel, modelLabel } from "~/utils/utils";
-import CompareFunctions from "../RefinePromptModal/CompareFunctions";
+import CompareFunctions from "./CompareFunctions";
 import { ModelSearch } from "./ModelSearch";
 import { ModelStatsCard } from "./ModelStatsCard";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
