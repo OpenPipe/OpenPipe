@@ -5,7 +5,7 @@ import path from "path";
 import { execSync } from "child_process";
 
 const scriptPath = import.meta.url.replace("file://", "");
-const dockerClientPath = path.join(path.dirname(scriptPath), "../../../../docker-client");
+const dockerClientPath = path.join(path.dirname(scriptPath), "../../../../trainer");
 
 const schemaPath = path.join(dockerClientPath, "openapi.json");
 

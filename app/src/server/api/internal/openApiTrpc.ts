@@ -9,13 +9,13 @@ import { env } from "~/env.mjs";
 export const createOpenApiContext = (opts: CreateNextContextOptions) => {
   const { req } = opts;
 
-  const dockerSecret = req.headers.authorization?.split(" ")[1] as string | null;
+  const authenticatedSystemKey = req.headers.authorization?.split(" ")[1] as string | null;
 
-  if (!dockerSecret) {
+  if (!authenticatedSystemKey) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Missing Docker Secret" });
   }
 
-  if (dockerSecret !== env.DOCKER_SECRET) {
+  if (authenticatedSystemKey !== env.AUTHENTICATED_SYSTEM_KEY) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Docker Secret" });
   }
 
