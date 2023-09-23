@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "OpenPipe Docker API",
-    "description": "The private API for docker containers to query OpenPipe",
+    "title": "OpenPipe Internal API",
+    "description": "The internal API for trainer containers to query OpenPipe",
     "version": "0.0.1"
   },
   "servers": [

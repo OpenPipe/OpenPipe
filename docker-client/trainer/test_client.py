@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 import pytest
 import os
-from docker_client.shared import configured_client
-from docker_client.api_client.api.default import get_training_info
+from trainer.shared import configured_client
+from trainer.api_client.api.default import get_training_info
 
 load_dotenv()
 

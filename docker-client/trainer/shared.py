@@ -1,4 +1,4 @@
-from docker_client.api_client.client import AuthenticatedClient
+from trainer.api_client.client import AuthenticatedClient
 import os
 
 configured_client = AuthenticatedClient(

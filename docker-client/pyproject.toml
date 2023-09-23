@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "docker_client"
+name = "trainer"
 version = "0.1.0"
 description = ""
 authors = ["David Corbitt <davidlcorbitt@gmail.com>"]
 readme = "README.md"
-packages = [{include = "docker_client"}]
+packages = [{include = "trainer"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"

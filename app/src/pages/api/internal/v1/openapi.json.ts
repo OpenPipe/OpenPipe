@@ -3,8 +3,8 @@ import { generateOpenApiDocument } from "trpc-openapi";
 import { v1ApiRouter } from "~/server/api/internal/v1Api.router";
 
 export const openApiDocument = generateOpenApiDocument(v1ApiRouter, {
-  title: "OpenPipe Docker API",
-  description: "The private API for docker containers to query OpenPipe",
+  title: "OpenPipe Internal API",
+  description: "The internal API for trainer containers to query OpenPipe",
   version: "0.0.1",
   baseUrl: "https://app.openpipe.ai/api/internal/v1",
 });

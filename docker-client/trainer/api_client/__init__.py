@@ -1,4 +1,4 @@
-""" A client library for accessing OpenPipe Docker API """
+""" A client library for accessing OpenPipe Internal API """
 from .client import AuthenticatedClient, Client
 
 __all__ = (
