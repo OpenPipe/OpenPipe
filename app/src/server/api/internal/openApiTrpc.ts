@@ -42,4 +42,4 @@ const t = initTRPC
 
 export const createOpenApiRouter = t.router;
 
-export const openApiPublicProc = t.procedure;
+export const openApiProtectedProc = t.procedure;

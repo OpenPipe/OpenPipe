@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { prisma } from "~/server/db";
-import { createOpenApiRouter, openApiPublicProc } from "./openApiTrpc";
+import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { TRPCError } from "@trpc/server";
 import { generateBlobDownloadUrl } from "~/utils/azure/server";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
@@ -8,7 +8,7 @@ import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
 
 export const v1ApiRouter = createOpenApiRouter({
-  getTrainingInfo: openApiPublicProc
+  getTrainingInfo: openApiProtectedProc
     .meta({
       openapi: {
         method: "GET",
