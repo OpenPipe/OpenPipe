@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "docker_client"
+version = "0.1.0"
+description = ""
+authors = ["David Corbitt <davidlcorbitt@gmail.com>"]
+readme = "README.md"
+packages = [{include = "docker_client"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+openapi-python-client = "^0.15.0"
+black = "^23.7.0"
+isort = "^5.12.0"
+autoflake = "^2.2.0"
+pytest = "^7.4.0"
+python-dotenv = "^1.0.0"
+pytest-asyncio = "^0.21.1"
+pytest-watch = "^4.2.0"
+pytest-testmon = "^2.0.12"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

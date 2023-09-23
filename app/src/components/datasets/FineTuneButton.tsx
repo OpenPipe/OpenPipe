@@ -21,14 +21,13 @@ import {
 import { AiTwotoneThunderbolt } from "react-icons/ai";
 import humanId from "human-id";
 import { useRouter } from "next/router";
+import { type BaseModel } from "@prisma/client";
 
 import { useDataset, useDatasetEntries, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
-
-const SUPPORTED_BASE_MODELS = ["llama2-7b", "llama2-13b", "llama2-70b", "gpt-3.5-turbo"] as const;
-type SupportedBaseModel = (typeof SUPPORTED_BASE_MODELS)[number];
+import { SUPPORTED_BASE_MODELS, displayBaseModel } from "~/utils/baseModels";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -57,14 +56,14 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
 
-  const [selectedBaseModel, setSelectedBaseModel] = useState<SupportedBaseModel>(
-    SUPPORTED_BASE_MODELS[0],
+  const [selectedBaseModel, setSelectedBaseModel] = useState<BaseModel>(
+    SUPPORTED_BASE_MODELS[0] as BaseModel,
   );
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
 
   useEffect(() => {
     if (disclosure.isOpen) {
-      setSelectedBaseModel(SUPPORTED_BASE_MODELS[0]);
+      setSelectedBaseModel(SUPPORTED_BASE_MODELS[0] as BaseModel);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
     }
   }, [disclosure.isOpen]);
@@ -131,6 +130,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 </Text>
                 <InputDropdown
                   options={SUPPORTED_BASE_MODELS}
+                  getDisplayLabel={(option) => displayBaseModel(option)}
                   selectedOption={selectedBaseModel}
                   onSelect={(option) => setSelectedBaseModel(option)}
                   inputGroupProps={{ w: 72 }}

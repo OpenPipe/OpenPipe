@@ -8,6 +8,7 @@ export const env = createEnv({
    */
   server: {
     DATABASE_URL: z.string().url(),
+    DOCKER_SECRET: z.string(),
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     RESTRICT_PRISMA_LOGS: z
       .string()
@@ -57,6 +58,7 @@ export const env = createEnv({
    */
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
+    DOCKER_SECRET: process.env.DOCKER_SECRET,
     NODE_ENV: process.env.NODE_ENV,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     RESTRICT_PRISMA_LOGS: process.env.RESTRICT_PRISMA_LOGS,

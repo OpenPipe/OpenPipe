@@ -4,7 +4,10 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { queueUploadTrainingData } from "~/server/tasks/uploadTrainingData.task";
 import { requireCanViewProject, requireCanModifyProject } from "~/utils/accessControl";
+import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
+
+const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
 
 export const fineTunesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -56,7 +59,7 @@ export const fineTunesRouter = createTRPCRouter({
       z.object({
         datasetId: z.string(),
         slug: z.string(),
-        baseModel: z.string(),
+        baseModel: BaseModelEnum,
       }),
     )
     .mutation(async ({ input, ctx }) => {

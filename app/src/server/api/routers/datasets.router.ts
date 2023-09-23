@@ -4,8 +4,9 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
-import { generateServiceClientUrl } from "~/utils/azure/server";
+import { generateBlobUploadUrl } from "~/utils/azure/server";
 import { queueImportDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
+import { env } from "~/env.mjs";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -100,9 +101,12 @@ export const datasetsRouter = createTRPCRouter({
   getServiceClientUrl: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ input, ctx }) => {
-      // The user must at least be authenticated to get a SAS token
       await requireCanModifyProject(input.projectId, ctx);
-      return generateServiceClientUrl();
+      const serviceClientUrl = generateBlobUploadUrl();
+      return {
+        serviceClientUrl,
+        containerName: env.AZURE_STORAGE_CONTAINER_NAME,
+      };
     }),
   triggerFileDownload: protectedProcedure
     .input(
