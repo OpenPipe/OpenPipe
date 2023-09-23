@@ -1,0 +1,118 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OpenPipe Internal API",
+    "description": "The internal API for trainer containers to query OpenPipe",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://app.openpipe.ai/api/internal/v1"
+    }
+  ],
+  "paths": {
+    "/training-info": {
+      "get": {
+        "operationId": "getTrainingInfo",
+        "description": "Get info necessary to train a model",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fineTuneId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "trainingBlobDownloadUrl": {
+                      "type": "string"
+                    },
+                    "baseModel": {
+                      "type": "string",
+                      "enum": [
+                        "LLAMA2_7b",
+                        "LLAMA2_13b",
+                        "LLAMA2_70b",
+                        "GPT_3_5_TURBO"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "trainingBlobDownloadUrl",
+                    "baseModel"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "Authorization": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "responses": {
+      "error": {
+        "description": "Error response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "issues": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "message",
+                "code"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

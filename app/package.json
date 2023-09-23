@@ -17,6 +17,7 @@
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "TZ=UTC next start",
+    "codegen:internalClient": "tsx src/server/scripts/internal-client-codegen.ts",
     "codegen:clients": "tsx src/server/scripts/client-codegen.ts",
     "codegen:db": "prisma generate && kysely-codegen --dialect postgres --out-file src/server/db.types.ts",
     "seed": "tsx prisma/seed.ts",

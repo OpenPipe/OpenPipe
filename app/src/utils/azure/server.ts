@@ -8,12 +8,13 @@ import {
   SASProtocol,
 } from "@azure/storage-blob";
 import { v4 as uuidv4 } from "uuid";
+import { env } from "~/env.mjs";
 
-const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+const accountName = env.AZURE_STORAGE_ACCOUNT_NAME;
 if (!accountName) throw Error("Azure Storage accountName not found");
-const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
+const accountKey = env.AZURE_STORAGE_ACCOUNT_KEY;
 if (!accountKey) throw Error("Azure Storage accountKey not found");
-const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME;
+const containerName = env.AZURE_STORAGE_CONTAINER_NAME;
 if (!containerName) throw Error("Azure Storage containerName not found");
 
 const sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
@@ -25,23 +26,27 @@ const blobServiceClient = new BlobServiceClient(
 
 const containerClient = blobServiceClient.getContainerClient(containerName);
 
-export const generateServiceClientUrl = () => {
+export const generateBlobUploadUrl = () =>
+  `https://${accountName}.blob.core.windows.net?${generateSasToken("w")}`;
+
+export const generateBlobDownloadUrl = (blobName: string) =>
+  `https://${accountName}.blob.core.windows.net/${containerName}/${blobName}?${generateSasToken(
+    "r",
+  )}`;
+
+export const generateSasToken = (permissions: string) => {
   const sasOptions = {
     services: AccountSASServices.parse("b").toString(), // blobs
     resourceTypes: AccountSASResourceTypes.parse("sco").toString(), // service, container, object
-    permissions: AccountSASPermissions.parse("w"), // write permissions
+    permissions: AccountSASPermissions.parse(permissions), // write permissions
     protocol: SASProtocol.Https,
     startsOn: new Date(),
     expiresOn: new Date(new Date().valueOf() + 10 * 60 * 1000), // 10 minutes
   };
-  let sasToken = generateAccountSASQueryParameters(sasOptions, sharedKeyCredential).toString();
+  const sasToken = generateAccountSASQueryParameters(sasOptions, sharedKeyCredential).toString();
 
   // remove leading "?"
-  sasToken = sasToken[0] === "?" ? sasToken.substring(1) : sasToken;
-  return {
-    serviceClientUrl: `https://${accountName}.blob.core.windows.net?${sasToken}`,
-    containerName,
-  };
+  return sasToken.startsWith("?") ? sasToken.substring(1) : sasToken;
 };
 
 export const uploadTrainingDataFile = async (contents: string) => {

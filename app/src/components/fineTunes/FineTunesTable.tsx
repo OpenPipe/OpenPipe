@@ -4,6 +4,7 @@ import { type FineTuneStatus } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
+import { displayBaseModel } from "~/utils/baseModels";
 
 const FineTunesTable = ({}) => {
   const { data } = useFineTunes(10000);
@@ -29,7 +30,7 @@ const FineTunesTable = ({}) => {
                 <Tr key={fineTune.id}>
                   <Td>openpipe:{fineTune.slug}</Td>
                   <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
-                  <Td>{fineTune.baseModel}</Td>
+                  <Td>{displayBaseModel(fineTune.baseModel)}</Td>
                   <Td>{fineTune.dataset._count.datasetEntries}</Td>
                   <Td fontSize="sm" fontWeight="bold">
                     <Text color={getStatusColor(fineTune.status)}>{fineTune.status}</Text>
