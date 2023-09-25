@@ -316,20 +316,6 @@ model ProjectUser {
     @@unique([projectId, userId])
 }
 
-model WorldChampEntrant {
-    id String @id @default(uuid()) @db.Uuid
-
-    userId String @db.Uuid
-    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    approved Boolean @default(false)
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@unique([userId])
-}
-
 model LoggedCall {
     id String @id @default(uuid()) @db.Uuid
 
@@ -472,7 +458,6 @@ model User {
     sessions            Session[]
     projectUsers        ProjectUser[]
     projects            Project[]
-    worldChampEntrant   WorldChampEntrant?
     sentUserInvitations UserInvitation[]
 
     createdAt DateTime @default(now())

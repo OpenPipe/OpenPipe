@@ -116,9 +116,14 @@ export interface Experiment {
 export interface FineTune {
   id: string;
   slug: string;
-  baseModel: string;
   status: Generated<
-    "AWAITING_DEPLOYMENT" | "DEPLOYED" | "DEPLOYING" | "ERROR" | "PENDING" | "TRAINING"
+    | "AWAITING_DEPLOYMENT"
+    | "DEPLOYED"
+    | "DEPLOYING"
+    | "ERROR"
+    | "PENDING"
+    | "TRAINING"
+    | "UPLOADING_DATASET"
   >;
   trainingStartedAt: Timestamp | null;
   trainingFinishedAt: Timestamp | null;
@@ -129,6 +134,9 @@ export interface FineTune {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   inferenceUrls: Generated<string[] | null>;
+  errorMessage: string | null;
+  trainingBlobName: string | null;
+  baseModel: Generated<"GPT_3_5_TURBO" | "LLAMA2_13b" | "LLAMA2_70b" | "LLAMA2_7b">;
 }
 
 export interface GraphileWorkerJobQueues {
@@ -349,14 +357,6 @@ export interface VerificationToken {
   expires: Timestamp;
 }
 
-export interface WorldChampEntrant {
-  id: string;
-  userId: string;
-  approved: Generated<boolean>;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-}
-
 export interface DB {
   _prisma_migrations: _PrismaMigrations;
   Account: Account;
@@ -388,5 +388,4 @@ export interface DB {
   User: User;
   UserInvitation: UserInvitation;
   VerificationToken: VerificationToken;
-  WorldChampEntrant: WorldChampEntrant;
 }

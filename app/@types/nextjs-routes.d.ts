@@ -31,9 +31,7 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>
     | StaticRoute<"/project/settings">
     | StaticRoute<"/request-logs">
-    | StaticRoute<"/sentry-example-page">
-    | StaticRoute<"/world-champs">
-    | StaticRoute<"/world-champs/signup">;
+    | StaticRoute<"/sentry-example-page">;
 
   interface StaticRoute<Pathname> {
     pathname: Pathname;
