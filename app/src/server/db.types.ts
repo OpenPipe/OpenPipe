@@ -120,7 +120,15 @@ export interface Experiment {
 export interface FineTune {
   id: string;
   slug: string;
-  status: Generated<"AWAITING_DEPLOYMENT" | "DEPLOYED" | "DEPLOYING" | "ERROR" | "PENDING" | "TRAINING" | "UPLOADING_DATASET">;
+  status: Generated<
+    | "AWAITING_DEPLOYMENT"
+    | "DEPLOYED"
+    | "DEPLOYING"
+    | "ERROR"
+    | "PENDING"
+    | "TRAINING"
+    | "UPLOADING_DATASET"
+  >;
   trainingStartedAt: Timestamp | null;
   trainingFinishedAt: Timestamp | null;
   deploymentStartedAt: Timestamp | null;
