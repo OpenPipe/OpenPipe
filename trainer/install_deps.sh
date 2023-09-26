@@ -14,6 +14,7 @@ echo "Activating venv..."
 source .venv/bin/activate
 
 echo "Installing dependencies..."
+pip install packaging==23.1 wheel==0.41.2 setuptools==68.2.2 torch==2.0.1
 pip install -r requirements.txt
 
 if [ ! -d ".axolotl" ]; then

@@ -86,7 +86,7 @@ export const queueUploadTrainingData = async (fineTuneId: string) => {
 };
 
 const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {
-  const instructions = formatInputMessages(row.input, stringsToPrune);
+  const instruction = formatInputMessages(row.input, stringsToPrune);
   let output: string;
   if (row.output?.function_call) {
     output = FUNCTION_CALL_TAG + row.output.function_call.name;
@@ -96,5 +96,5 @@ const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {
   } else {
     output = row.output?.content ?? "";
   }
-  return { instructions, output };
+  return { instruction, output };
 };

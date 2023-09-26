@@ -9,17 +9,19 @@ import yaml
 from transformers import HfArgumentParser
 
 
-def train(base_model, num_epochs):
+def train(base_model, num_epochs, training_file, model_id):
+    lora_dir = "/tmp/trained-model"
+    
     config = {
         "base_model": base_model,
-        "base_model_config": "meta-llama/Llama-2-7b-hf",
+        "base_model_config": base_model,
         "model_type": "LlamaForCausalLM",
         "tokenizer_type": "LlamaTokenizer",
         "is_llama_derived_model": True,
         "load_in_8bit": True,
         "strict": False,
         "datasets": [
-            {"path": "/workspace/train.jsonl", "type": "alpaca_instruct.load_no_prompt"}
+            {"path": training_file, "type": "alpaca_instruct.load_no_prompt"}
         ],
         "val_set_size": 0.05,
         "output_dir": lora_dir,

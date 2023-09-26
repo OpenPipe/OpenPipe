@@ -8,10 +8,26 @@ report_progress() {
     echo "--------------------------------------------"
 }
 
+# Function to parse the connection string and set variables
+parse_connection_string() {
+    TEMP_URL=${PROD_DATABASE_URL#postgres://}
+    USERNAME=$(echo $TEMP_URL | cut -d':' -f1)
+    PASSWORD=$(echo $TEMP_URL | cut -d':' -f2 | cut -d'@' -f1)
+    HOST=$(echo $TEMP_URL | cut -d'@' -f2 | cut -d'/' -f1)
+    DB_NAME=$(echo $TEMP_URL | cut -d'/' -f2 | cut -d'?' -f1)
+}
+
 # Function to dump the production database
 dump_prod_db() {
     report_progress "Dumping production database..."
-    pg_dump -v -Fc "${PROD_DATABASE_URL}" > /tmp/openpipe-prod.dump
+    
+    # Set the password as an environment variable
+    export PGPASSWORD="$PASSWORD"
+    
+    pg_dump -v -Fc -h "$HOST" -U "$USERNAME" -d "$DB_NAME" > /tmp/openpipe-prod.dump
+    
+    # Unset the password environment variable
+    unset PGPASSWORD
 }
 
 # Function to terminate connections to the dev database
@@ -49,6 +65,7 @@ trap cleanup EXIT
 
 # Main execution
 source .env
+parse_connection_string
 dump_prod_db
 terminate_dev_connections
 drop_dev_db
