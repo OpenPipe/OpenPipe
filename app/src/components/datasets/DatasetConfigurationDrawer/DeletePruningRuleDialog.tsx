@@ -46,8 +46,8 @@ const DeletePruningRuleDialog = ({
 
           <AlertDialogBody>
             Are you sure you want to delete the following pruning rule? It currently has{" "}
-            <b>{rule._count.matches}</b> matches and removes approximately{" "}
-            <b>{rule.tokensInText}</b> tokens from each matching dataset entry.
+            <b>{rule.numMatches}</b> matches and removes approximately <b>{rule.tokensInText}</b>{" "}
+            tokens from each matching dataset entry.
           </AlertDialogBody>
 
           <AlertDialogFooter>
