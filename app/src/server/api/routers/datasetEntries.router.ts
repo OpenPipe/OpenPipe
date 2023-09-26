@@ -269,6 +269,13 @@ export const datasetEntriesRouter = createTRPCRouter({
         data: {
           outdated: true,
         },
+        include: {
+          matchedRules: {
+            select: {
+              pruningRuleId: true,
+            },
+          },
+        },
       });
 
       const newEntry = await prisma.datasetEntry.create({
@@ -282,6 +289,11 @@ export const datasetEntriesRouter = createTRPCRouter({
           sortKey: prevEntry.sortKey,
           authoringUserId: ctx.session?.user.id,
           persistentId: prevEntry.persistentId,
+          matchedRules: {
+            create: prevEntry.matchedRules.map((match) => ({
+              pruningRuleId: match.pruningRuleId,
+            })),
+          },
         },
       });
 
