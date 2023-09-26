@@ -51,6 +51,7 @@ export const formatEntriesFromTrainingRows = async (
         row.output as unknown as ChatCompletionMessageParam,
       ]);
     }
+    const persistentId = uuidv4();
     // console.log("outputTokens", outputTokens);
     datasetEntriesToCreate.push({
       id: uuidv4(),
@@ -65,6 +66,8 @@ export const formatEntriesFromTrainingRows = async (
       ),
       outputTokens,
       type: typesToAssign.pop() as "TRAIN" | "TEST",
+      sortKey: `${Date.now()}-${persistentId}`,
+      persistentId,
     });
     i++;
   }

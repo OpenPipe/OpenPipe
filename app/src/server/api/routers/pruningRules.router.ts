@@ -56,6 +56,8 @@ export const pruningRulesRouter = createTRPCRouter({
         },
       });
 
+      if (!datasetId) return;
+
       await updatePruningRuleMatches(datasetId, createdAt);
     }),
   create: protectedProcedure
@@ -77,6 +79,8 @@ export const pruningRulesRouter = createTRPCRouter({
         },
       });
 
+      if (!datasetId) return;
+
       await updatePruningRuleMatches(datasetId, createdAt);
     }),
   delete: protectedProcedure
@@ -89,6 +93,8 @@ export const pruningRulesRouter = createTRPCRouter({
           id: input.id,
         },
       });
+
+      if (!datasetId) return;
 
       await updatePruningRuleMatches(datasetId, createdAt);
     }),

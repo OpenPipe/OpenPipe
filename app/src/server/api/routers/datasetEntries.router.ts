@@ -35,6 +35,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         prisma.datasetEntry.findMany({
           where: {
             datasetId: datasetId,
+            outdated: false,
           },
           include: {
             matchedRules: {
@@ -47,13 +48,14 @@ export const datasetEntriesRouter = createTRPCRouter({
               },
             },
           },
-          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          orderBy: { sortKey: "desc" },
           skip: (page - 1) * pageSize,
           take: pageSize,
         }),
         prisma.datasetEntry.findMany({
           where: {
             datasetId: datasetId,
+            outdated: false,
           },
           select: {
             id: true,
@@ -62,12 +64,14 @@ export const datasetEntriesRouter = createTRPCRouter({
         prisma.datasetEntry.count({
           where: {
             datasetId: datasetId,
+            outdated: false,
             type: "TRAIN",
           },
         }),
         prisma.datasetEntry.count({
           where: {
             datasetId: datasetId,
+            outdated: false,
             type: "TEST",
           },
         }),
@@ -260,20 +264,30 @@ export const datasetEntriesRouter = createTRPCRouter({
         ]);
       }
 
-      await prisma.datasetEntry.update({
+      const prevEntry = await prisma.datasetEntry.update({
         where: { id: input.id },
         data: {
-          type: input.updates.type,
-          input: parsedInput,
-          output: parsedOutput,
-          inputTokens,
-          outputTokens,
+          outdated: true,
         },
       });
 
-      await updatePruningRuleMatches(dataset.id, new Date(0), [input.id]);
+      const newEntry = await prisma.datasetEntry.create({
+        data: {
+          input: parsedInput ?? prevEntry.input,
+          output: parsedOutput ?? prevEntry.output,
+          inputTokens: inputTokens ?? prevEntry.inputTokens,
+          outputTokens: outputTokens ?? prevEntry.outputTokens,
+          type: input.updates.type ?? prevEntry.type,
+          datasetId: prevEntry.datasetId,
+          sortKey: prevEntry.sortKey,
+          authoringUserId: ctx.session?.user.id,
+          persistentId: prevEntry.persistentId,
+        },
+      });
 
-      return success("Dataset entry updated");
+      await updatePruningRuleMatches(dataset.id, new Date(0), [newEntry.id]);
+
+      return success(newEntry.id);
     }),
 
   delete: protectedProcedure

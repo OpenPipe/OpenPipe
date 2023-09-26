@@ -28,13 +28,10 @@ export const fineTunesRouter = createTRPCRouter({
           projectId,
         },
         include: {
-          dataset: {
-            include: {
-              _count: {
-                select: {
-                  datasetEntries: true,
-                },
-              },
+          _count: {
+            select: {
+              trainingEntries: true,
+              pruningRules: true,
             },
           },
         },
@@ -87,8 +84,58 @@ export const fineTunesRouter = createTRPCRouter({
           baseModel: input.baseModel,
           datasetId: input.datasetId,
         },
+        include: {
+          dataset: {
+            include: {
+              datasetEntries: {
+                select: {
+                  id: true,
+                  type: true,
+                },
+                where: {
+                  outdated: false,
+                  type: "TRAIN",
+                },
+              },
+              pruningRules: {
+                select: {
+                  id: true,
+                  textToMatch: true,
+                  tokensInText: true,
+                  matches: true,
+                },
+              },
+            },
+          },
+        },
       });
       if (!fineTune) return error("Error creating fine tune");
+
+      await prisma.fineTuneTrainingEntry.createMany({
+        data: fineTune.dataset.datasetEntries.map((datasetEntry) => ({
+          fineTuneId: fineTune.id,
+          datasetEntryId: datasetEntry.id,
+        })),
+      });
+
+      // Can't use createMany because of the matches
+      await prisma.$transaction(
+        fineTune.dataset.pruningRules.map((rule) =>
+          prisma.pruningRule.create({
+            data: {
+              fineTuneId: fineTune.id,
+              textToMatch: rule.textToMatch,
+              tokensInText: rule.tokensInText,
+              matches: {
+                create: rule.matches.map((match) => ({
+                  datasetEntryId: match.datasetEntryId,
+                })),
+              },
+            },
+          }),
+        ),
+      );
+
       await queueUploadTrainingData(fineTune.id);
 
       return success();
