@@ -1,11 +1,11 @@
 import { Button, HStack, Icon, Text } from "@chakra-ui/react";
-import { useDataset } from "~/utils/hooks";
+import { useFineTune } from "~/utils/hooks";
 import { BsGearFill } from "react-icons/bs";
 
-export const DatasetHeaderButtons = ({ openDrawer }: { openDrawer: () => void }) => {
-  const dataset = useDataset();
+export const FineTuneHeaderButtons = ({ openDrawer }: { openDrawer: () => void }) => {
+  const fineTune = useFineTune();
 
-  if (!dataset.data) return null;
+  if (!fineTune.data) return null;
 
   return (
     <HStack spacing={0} mt={{ base: 2, md: 0 }}>

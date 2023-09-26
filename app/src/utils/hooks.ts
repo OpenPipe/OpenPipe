@@ -231,6 +231,16 @@ export const useFineTunes = (refetchInterval?: number) => {
   );
 };
 
+export const useFineTune = () => {
+  const router = useRouter();
+  const fineTune = api.fineTunes.get.useQuery(
+    { id: router.query.id as string },
+    { enabled: !!router.query.id },
+  );
+
+  return fineTune;
+};
+
 export const usePruningRules = () => {
   const selectedDataset = useDataset().data;
 

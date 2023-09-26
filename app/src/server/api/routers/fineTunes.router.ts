@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -50,6 +51,38 @@ export const fineTunesRouter = createTRPCRouter({
         fineTunes,
         count,
       };
+    }),
+  get: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const fineTune = await prisma.fineTune.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          trainingEntries: {
+            select: {
+              id: true,
+              datasetEntry: {
+                select: {
+                  id: true,
+                  input: true,
+                  output: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!fineTune) throw new TRPCError({ code: "NOT_FOUND", message: "Fine tune not found" });
+      await requireCanViewProject(fineTune.projectId, ctx);
+
+      return fineTune;
     }),
   create: protectedProcedure
     .input(
@@ -139,5 +172,64 @@ export const fineTunesRouter = createTRPCRouter({
       await queueUploadTrainingData(fineTune.id);
 
       return success();
+    }),
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        slug: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const fineTune = await prisma.fineTune.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (!fineTune) return error("Fine tune not found");
+      await requireCanModifyProject(fineTune.projectId, ctx);
+
+      const existingFineTune = await prisma.fineTune.findFirst({
+        where: {
+          slug: input.slug,
+        },
+      });
+
+      if (existingFineTune) return error("A fine tune with that slug already exists");
+
+      await prisma.fineTune.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          slug: input.slug,
+        },
+      });
+
+      return success("Fine tune updated");
+    }),
+  delete: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const fineTune = await prisma.fineTune.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (!fineTune) return error("Fine tune not found");
+      await requireCanModifyProject(fineTune.projectId, ctx);
+
+      await prisma.fineTune.delete({
+        where: {
+          id: input.id,
+        },
+      });
+      return success("Fine tune deleted");
     }),
 });
