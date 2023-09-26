@@ -18,7 +18,7 @@ export default function DatasetEntriesTable() {
               datasetEntries?.map((entry) => {
                 return (
                   <TableRow
-                    key={entry.id}
+                    key={entry.persistentId}
                     datasetEntry={entry}
                     onToggle={() => {
                       if (entry.id === expandedDatasetEntryId) {
@@ -39,7 +39,7 @@ export default function DatasetEntriesTable() {
       </Card>
       <DatasetEntryEditorDrawer
         datasetEntryId={expandedDatasetEntryId}
-        clearDatasetEntryId={() => setExpandedDatasetEntryId(null)}
+        setDatasetEntryId={setExpandedDatasetEntryId}
       />
     </>
   );

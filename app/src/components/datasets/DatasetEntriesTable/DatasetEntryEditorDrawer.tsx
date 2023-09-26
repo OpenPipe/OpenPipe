@@ -23,13 +23,14 @@ import { api } from "~/utils/api";
 import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EditableMessage from "./EditableMessage";
 import EntryTypeDropdown from "./EntryTypeDropdown";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
-export default function DatasetDentryEditorDrawer({
+export default function DatasetEntryEditorDrawer({
   datasetEntryId,
-  clearDatasetEntryId,
+  setDatasetEntryId,
 }: {
   datasetEntryId: string | null;
-  clearDatasetEntryId: () => void;
+  setDatasetEntryId: (id: string | null) => void;
 }) {
   const utils = api.useContext();
 
@@ -59,34 +60,48 @@ export default function DatasetDentryEditorDrawer({
   const updateMutation = api.datasetEntries.update.useMutation();
   const [onSave, savingInProgress] = useHandledAsyncCallback(async () => {
     if (!datasetEntryId || !inputMessagesToSave) return;
-    await updateMutation.mutateAsync({
+    const resp = await updateMutation.mutateAsync({
       id: datasetEntryId,
       updates: {
         input: JSON.stringify(inputMessagesToSave),
         output: JSON.stringify(outputMessageToSave),
       },
     });
+    if (maybeReportError(resp)) return;
     await utils.datasetEntries.list.invalidate();
-    await utils.datasetEntries.get.invalidate({ id: datasetEntryId });
-  }, [updateMutation, datasetEntryId, inputMessagesToSave, outputMessageToSave, utils]);
+    setDatasetEntryId(resp.payload);
+  }, [
+    updateMutation,
+    datasetEntryId,
+    setDatasetEntryId,
+    inputMessagesToSave,
+    outputMessageToSave,
+    utils,
+  ]);
 
   const [onUpdateType] = useHandledAsyncCallback(
     async (type: DatasetEntryType) => {
       if (!datasetEntryId) return;
-      await updateMutation.mutateAsync({
+      const resp = await updateMutation.mutateAsync({
         id: datasetEntryId,
         updates: {
           type,
         },
       });
+      if (maybeReportError(resp)) return;
       await utils.datasetEntries.list.invalidate();
-      await utils.datasetEntries.get.invalidate({ id: datasetEntryId });
+      setDatasetEntryId(resp.payload);
     },
-    [updateMutation, datasetEntryId, utils],
+    [updateMutation, datasetEntryId, setDatasetEntryId, utils],
   );
 
   return (
-    <Drawer isOpen={!!datasetEntryId} onClose={clearDatasetEntryId} placement="right" size="md">
+    <Drawer
+      isOpen={!!datasetEntryId}
+      onClose={() => setDatasetEntryId(null)}
+      placement="right"
+      size="md"
+    >
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton mt={3} />

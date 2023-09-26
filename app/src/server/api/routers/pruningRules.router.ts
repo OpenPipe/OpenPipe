@@ -26,9 +26,14 @@ export const pruningRulesRouter = createTRPCRouter({
               id: true,
               textToMatch: true,
               tokensInText: true,
-              _count: {
+              matches: {
                 select: {
-                  matches: true,
+                  id: true,
+                },
+                where: {
+                  datasetEntry: {
+                    outdated: false,
+                  },
                 },
               },
             },
@@ -39,7 +44,13 @@ export const pruningRulesRouter = createTRPCRouter({
       const { projectId, pruningRules } = dataset;
       await requireCanViewProject(projectId, ctx);
 
-      return pruningRules;
+      return pruningRules.map((rule) => {
+        const { matches, ...rest } = rule;
+        return {
+          ...rest,
+          numMatches: matches.length,
+        };
+      });
     }),
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ textToMatch: z.string() }) }))
@@ -55,6 +66,8 @@ export const pruningRulesRouter = createTRPCRouter({
           tokensInText: countLlamaChatTokens(input.updates.textToMatch),
         },
       });
+
+      if (!datasetId) return;
 
       await updatePruningRuleMatches(datasetId, createdAt);
     }),
@@ -77,6 +90,8 @@ export const pruningRulesRouter = createTRPCRouter({
         },
       });
 
+      if (!datasetId) return;
+
       await updatePruningRuleMatches(datasetId, createdAt);
     }),
   delete: protectedProcedure
@@ -89,6 +104,8 @@ export const pruningRulesRouter = createTRPCRouter({
           id: input.id,
         },
       });
+
+      if (!datasetId) return;
 
       await updatePruningRuleMatches(datasetId, createdAt);
     }),

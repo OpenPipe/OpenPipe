@@ -19,14 +19,19 @@ export const uploadTrainingData = defineTask<UploadTrainingDataJob>(
     const fineTune = await prisma.fineTune.findUnique({
       where: { id: fineTuneId },
       select: {
-        dataset: {
+        trainingEntries: {
           select: {
-            id: true,
-            pruningRules: {
+            datasetEntry: {
               select: {
-                textToMatch: true,
+                input: true,
+                output: true,
               },
             },
+          },
+        },
+        pruningRules: {
+          select: {
+            textToMatch: true,
           },
         },
       },
@@ -42,12 +47,12 @@ export const uploadTrainingData = defineTask<UploadTrainingDataJob>(
       return;
     }
 
-    const trainingEntries = (await prisma.datasetEntry.findMany({
-      where: { datasetId: fineTune.dataset.id, type: "TRAIN" },
-      select: { input: true, output: true },
+    const trainingEntries: TrainingRow[] = fineTune.trainingEntries.map((entry) => ({
+      input: entry.datasetEntry.input,
+      output: entry.datasetEntry.output,
     })) as unknown as TrainingRow[];
 
-    const stringsToPrune = fineTune.dataset.pruningRules.map((rule) => rule.textToMatch);
+    const stringsToPrune = fineTune.pruningRules.map((rule) => rule.textToMatch);
     const formattedRows = trainingEntries.map((entry) => formatTrainingRow(entry, stringsToPrune));
 
     const jsonlStr = formattedRows.map((row) => JSON.stringify(row)).join("\n");

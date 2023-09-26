@@ -221,6 +221,21 @@ model Dataset {
     updatedAt DateTime @updatedAt
 }
 
+model FineTuneTrainingEntry {
+    id String @id @default(uuid()) @db.Uuid
+
+    datasetEntryId String     @db.Uuid
+    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+
+    fineTuneId String   @db.Uuid
+    fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([fineTuneId, createdAt, id])
+}
+
 enum DatasetEntryType {
     TRAIN
     TEST
@@ -238,6 +253,14 @@ model DatasetEntry {
     outputTokens Int
     matchedRules PruningRuleMatch[]
     type DatasetEntryType
+    outdated Boolean @default(false)
+    sortKey  String // Used to sort entries in the UI
+    persistentId String  @default(uuid()) @db.Uuid
+
+    fineTuneTrainingEntries FineTuneTrainingEntry[]
+
+    authoringUserId String? @db.Uuid // The user who created this version of the entry (if any)
+    authoringUser   User?   @relation(fields: [authoringUserId], references: [id])
 
     datasetId String   @db.Uuid
     dataset   Dataset? @relation(fields: [datasetId], references: [id], onDelete: Cascade)
@@ -245,8 +268,8 @@ model DatasetEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@index([datasetId, createdAt, id])
-    @@index([datasetId, type])
+    @@index([datasetId, outdated, sortKey])
+    @@index([datasetId, outdated, type])
 }
 
 model PruningRule {
@@ -256,8 +279,11 @@ model PruningRule {
     tokensInText Int
     matches      PruningRuleMatch[]
 
-    datasetId String  @db.Uuid
-    dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+    datasetId String?  @db.Uuid
+    dataset   Dataset? @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+    fineTuneId String?   @db.Uuid
+    fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -459,6 +485,7 @@ model User {
     projectUsers        ProjectUser[]
     projects            Project[]
     sentUserInvitations UserInvitation[]
+    authoredDatasetEntries DatasetEntry[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
@@ -519,9 +546,12 @@ model FineTune {
     deploymentFinishedAt    DateTime?
     inferenceUrls           String[] @default([])
 
+    trainingEntries FineTuneTrainingEntry[]
+    pruningRules    PruningRule[]
+
     datasetId String   @db.Uuid
     dataset    Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-
+    
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 

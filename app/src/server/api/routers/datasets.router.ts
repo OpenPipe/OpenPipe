@@ -26,18 +26,34 @@ export const datasetsRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      return await prisma.dataset.findMany({
+      const datasets = await prisma.dataset.findMany({
         where: {
           projectId: input.projectId,
         },
-        include: {
-          _count: {
-            select: {
-              datasetEntries: true,
-            },
-          },
-        },
         orderBy: { createdAt: "desc" },
+      });
+
+      const datasetEntryCounts = await prisma.datasetEntry.groupBy({
+        by: ["datasetId"],
+        where: {
+          datasetId: {
+            in: datasets.map((dataset) => dataset.id),
+          },
+          outdated: false,
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      return datasets.map((dataset) => {
+        const datasetEntryCount = datasetEntryCounts.find(
+          (datasetEntryCount) => datasetEntryCount.datasetId === dataset.id,
+        );
+        return {
+          ...dataset,
+          datasetEntryCount: datasetEntryCount?._count?.id ?? 0,
+        };
       });
     }),
 

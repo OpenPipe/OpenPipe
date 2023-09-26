@@ -63,7 +63,7 @@ const EditablePruningRule = ({ index, rule }: { index: number; rule: PruningRule
               {rule.tokensInText} tokens
             </Text>
             <Text fontSize="xs" fontWeight="bold">
-              {rule._count.matches} matches
+              {rule.numMatches} matches
             </Text>
           </HStack>
           {editedTextToMatch !== rule.textToMatch && (

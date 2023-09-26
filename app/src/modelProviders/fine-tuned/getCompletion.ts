@@ -20,13 +20,9 @@ export async function getExperimentsCompletion(
     const fineTune = await prisma.fineTune.findUnique({
       where: { slug: modelSlug },
       include: {
-        dataset: {
+        pruningRules: {
           select: {
-            pruningRules: {
-              select: {
-                textToMatch: true,
-              },
-            },
+            textToMatch: true,
           },
         },
       },
@@ -41,7 +37,7 @@ export async function getExperimentsCompletion(
     const completion = await getCompletion(
       input,
       fineTune.inferenceUrls,
-      fineTune.dataset.pruningRules.map((rule) => rule.textToMatch),
+      fineTune.pruningRules.map((rule) => rule.textToMatch),
     );
     return {
       type: "success",

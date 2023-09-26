@@ -76,6 +76,10 @@ export interface DatasetEntry {
   output: Json | null;
   outputTokens: number;
   type: "TEST" | "TRAIN";
+  authoringUserId: string | null;
+  outdated: Generated<boolean>;
+  sortKey: string;
+  persistentId: string;
 }
 
 export interface DatasetFileUpload {
@@ -137,6 +141,14 @@ export interface FineTune {
   errorMessage: string | null;
   trainingBlobName: string | null;
   baseModel: Generated<"GPT_3_5_TURBO" | "LLAMA2_13b" | "LLAMA2_70b" | "LLAMA2_7b">;
+}
+
+export interface FineTuneTrainingEntry {
+  id: string;
+  datasetEntryId: string;
+  fineTuneId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
 }
 
 export interface GraphileWorkerJobQueues {
@@ -279,9 +291,10 @@ export interface PruningRule {
   id: string;
   textToMatch: string;
   tokensInText: number;
-  datasetId: string;
+  datasetId: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  fineTuneId: string | null;
 }
 
 export interface PruningRuleMatch {
@@ -367,6 +380,7 @@ export interface DB {
   Evaluation: Evaluation;
   Experiment: Experiment;
   FineTune: FineTune;
+  FineTuneTrainingEntry: FineTuneTrainingEntry;
   "graphile_worker.job_queues": GraphileWorkerJobQueues;
   "graphile_worker.jobs": GraphileWorkerJobs;
   "graphile_worker.known_crontabs": GraphileWorkerKnownCrontabs;
