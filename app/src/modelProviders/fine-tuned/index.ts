@@ -1,7 +1,9 @@
 import { type JSONSchema4 } from "json-schema";
+import { type BaseModel } from "@prisma/client";
+import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
+
 import { type ModelProvider } from "../types";
 import inputSchema from "../openai-ChatCompletion/codegen/input.schema.json";
-import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { getExperimentsCompletion } from "./getCompletion";
 import frontendModelProvider from "./frontend";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
@@ -13,17 +15,24 @@ export type FineTunedModelProvider = ModelProvider<
   ChatCompletion
 >;
 
-const baseModelPrices: Record<string, { promptTokenPrice: number; completionTokenPrice: number }> =
-  {
-    "llama2-7b": {
-      promptTokenPrice: 0.0000012,
-      completionTokenPrice: 0.0000016,
-    },
-    "llama2-13b": {
-      promptTokenPrice: 0.0000024,
-      completionTokenPrice: 0.0000032,
-    },
-  };
+const baseModelPrices: Record<
+  BaseModel,
+  { promptTokenPrice: number; completionTokenPrice: number } | undefined
+> = {
+  LLAMA2_7b: {
+    promptTokenPrice: 0.0000012,
+    completionTokenPrice: 0.0000016,
+  },
+  LLAMA2_13b: {
+    promptTokenPrice: 0.0000024,
+    completionTokenPrice: 0.0000032,
+  },
+  LLAMA2_70b: undefined,
+  GPT_3_5_TURBO: {
+    promptTokenPrice: 0.000008,
+    completionTokenPrice: 0.000012,
+  },
+};
 
 const modelProvider: FineTunedModelProvider = {
   getModel: (input) => {
@@ -50,7 +59,7 @@ const modelProvider: FineTunedModelProvider = {
     }
 
     let cost = undefined;
-    const baseModel = opts?.baseModel as string | undefined;
+    const baseModel = opts?.baseModel as BaseModel | undefined;
     const baseModelPrice = baseModel ? baseModelPrices[baseModel] : undefined;
     if (baseModelPrice) {
       const { promptTokenPrice, completionTokenPrice } = baseModelPrice;
