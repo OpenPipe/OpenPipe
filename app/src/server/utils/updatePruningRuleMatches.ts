@@ -60,6 +60,7 @@ export const updatePruningRuleMatches = async (
           .where((eb) => {
             const andArr: Expression<SqlBool>[] = [
               eb(`DatasetEntry.datasetId`, "=", datasetId),
+              eb(`DatasetEntry.outdated`, "=", false),
               sql`${prunedInput} LIKE ${"%" + ruleTextToMatch + "%"}`,
             ];
             if (datasetEntryIds) {
