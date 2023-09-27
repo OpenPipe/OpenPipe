@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, forwardRef } from "react";
 
 import { Button, VStack, HStack, Text, Divider, Box } from "@chakra-ui/react";
 import General from "./General/General";
+import TrainingData from "./TrainingData/TrainingData";
 
 const tabs = [
   {
@@ -54,8 +55,9 @@ const ContentTabs = () => {
         />
       </HStack>
       <Divider />
-      <HStack pt={8} maxW="800" w="full" h="full" alignSelf="center">
+      <HStack pt={8} w="full" h="full" alignSelf="center">
         {activeTabKey === "general" && <General />}
+        {activeTabKey === "training-data" && <TrainingData />}
       </HStack>
     </VStack>
   );

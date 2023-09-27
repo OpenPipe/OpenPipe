@@ -11,14 +11,16 @@ const General = () => {
 
   if (!fineTune) return null;
 
-  const { baseModel, trainingEntries, pruningRules, createdAt } = fineTune;
+  const {
+    baseModel,
+    _count: { trainingEntries: numTrainingEntries },
+    pruningRules,
+    createdAt,
+  } = fineTune;
 
   return (
     <VStack w="full" h="full" justifyContent="space-between">
       <VStack w="full" alignItems="flex-start" spacing={4}>
-        <Text fontSize="xl" fontWeight="bold" pb={2}>
-          General Settings
-        </Text>
         <ContentCard>
           <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
             <Text fontWeight="bold" pb={4}>
@@ -26,19 +28,19 @@ const General = () => {
             </Text>
             <HStack>
               <Text w={180}>Base Model:</Text>
-              <Text>{displayBaseModel(baseModel)}</Text>
+              <Text color="gray.500">{displayBaseModel(baseModel)}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Training Dataset Size:</Text>
-              <Text>{trainingEntries.length}</Text>
+              <Text color="gray.500">{numTrainingEntries}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Pruning Rules:</Text>
-              <Text>{pruningRules.length}</Text>
+              <Text color="gray.500">{pruningRules.length}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Created At:</Text>
-              <Text>{dayjs(createdAt).format("MMMM D h:mm A")}</Text>
+              <Text color="gray.500">{dayjs(createdAt).format("MMMM D h:mm A")}</Text>
             </HStack>
           </VStack>
         </ContentCard>

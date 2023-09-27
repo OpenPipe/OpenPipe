@@ -64,8 +64,8 @@ const UpdateFineTuneSlugDialog = ({
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
-                Don't forget to update your code to use the new ID. Any future requests labeled with
-                the current model ID will fail.
+                Any future requests labeled with the current model ID will fail, so don't forget to
+                update your code to use the new ID.
               </Text>
               <VStack>
                 <HStack w="full">

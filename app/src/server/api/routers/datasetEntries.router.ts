@@ -91,6 +91,54 @@ export const datasetEntriesRouter = createTRPCRouter({
         testingCount,
       };
     }),
+  listTrainingEntries: protectedProcedure
+    .input(z.object({ fineTuneId: z.string(), page: z.number(), pageSize: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const { fineTuneId, page, pageSize } = input;
+
+      const fineTune = await prisma.fineTune.findUnique({
+        where: {
+          id: fineTuneId,
+        },
+      });
+
+      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
+      await requireCanViewProject(fineTune.projectId, ctx);
+
+      const entries = await prisma.fineTuneTrainingEntry.findMany({
+        where: {
+          fineTuneId: fineTuneId,
+        },
+        include: {
+          datasetEntry: {
+            select: {
+              input: true,
+              output: true,
+              inputTokens: true,
+              outputTokens: true,
+            },
+          },
+        },
+        orderBy: {
+          datasetEntry: {
+            sortKey: "desc",
+          },
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      });
+
+      const count = await prisma.fineTuneTrainingEntry.count({
+        where: {
+          fineTuneId: fineTuneId,
+        },
+      });
+
+      return {
+        entries,
+        count,
+      };
+    }),
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     const entry = await prisma.datasetEntry.findUniqueOrThrow({
       where: { id: input.id },

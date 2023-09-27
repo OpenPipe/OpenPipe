@@ -15,12 +15,10 @@ export const fineTunesRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        page: z.number(),
-        pageSize: z.number(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { projectId, page, pageSize } = input;
+      const { projectId } = input;
 
       await requireCanViewProject(projectId, ctx);
 
@@ -37,8 +35,6 @@ export const fineTunesRouter = createTRPCRouter({
           },
         },
         orderBy: { createdAt: "asc" },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
       });
 
       const count = await prisma.fineTune.count({
@@ -64,22 +60,15 @@ export const fineTunesRouter = createTRPCRouter({
           id: input.id,
         },
         include: {
-          trainingEntries: {
-            select: {
-              id: true,
-              datasetEntry: {
-                select: {
-                  id: true,
-                  input: true,
-                  output: true,
-                },
-              },
-            },
-          },
           pruningRules: {
             select: {
               textToMatch: true,
               tokensInText: true,
+            },
+          },
+          _count: {
+            select: {
+              trainingEntries: true,
             },
           },
         },
