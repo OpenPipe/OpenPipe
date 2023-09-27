@@ -5,6 +5,8 @@ import { type NextApiResponse } from "next/types";
 import superjson from "superjson";
 import { type OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
+import * as Sentry from "@sentry/nextjs";
+
 import { prisma } from "~/server/db";
 
 type CreateContextOptions = {
@@ -75,7 +77,13 @@ const t = initTRPC
 
 export const createOpenApiRouter = t.router;
 
-export const openApiPublicProc = t.procedure;
+const sentryMiddleware = t.middleware(
+  Sentry.Handlers.trpcMiddleware({
+    attachRpcInput: true,
+  }),
+);
+
+export const openApiPublicProc = t.procedure.use(sentryMiddleware);
 
 /** Reusable middleware that enforces users are logged in before running the procedure. */
 const enforceApiKey = t.middleware(async ({ ctx, next }) => {
@@ -96,4 +104,4 @@ const enforceApiKey = t.middleware(async ({ ctx, next }) => {
  *
  * @see https://trpc.io/docs/procedures
  */
-export const openApiProtectedProc = t.procedure.use(enforceApiKey);
+export const openApiProtectedProc = t.procedure.use(sentryMiddleware.unstable_pipe(enforceApiKey));

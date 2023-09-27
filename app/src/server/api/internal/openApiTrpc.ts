@@ -3,6 +3,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { type OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
+import * as Sentry from "@sentry/nextjs";
 
 import { env } from "~/env.mjs";
 
@@ -42,4 +43,10 @@ const t = initTRPC
 
 export const createOpenApiRouter = t.router;
 
-export const openApiProtectedProc = t.procedure;
+const sentryMiddleware = t.middleware(
+  Sentry.Handlers.trpcMiddleware({
+    attachRpcInput: true,
+  }),
+);
+
+export const openApiProtectedProc = t.procedure.use(sentryMiddleware);
