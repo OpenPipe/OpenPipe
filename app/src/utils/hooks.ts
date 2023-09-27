@@ -191,6 +191,27 @@ export const useDatasetEntry = (entryId: string | null) => {
   return api.datasetEntries.get.useQuery({ id: entryId as string }, { enabled: !!entryId });
 };
 
+export const useTrainingEntries = () => {
+  const fineTune = useFineTune().data;
+  const { page, pageSize } = usePageParams();
+
+  const { data, isLoading, ...rest } = api.datasetEntries.listTrainingEntries.useQuery(
+    { fineTuneId: fineTune?.id ?? "", page, pageSize },
+    { enabled: !!fineTune?.id },
+  );
+
+  const [stableData, setStableData] = useState(data);
+
+  useEffect(() => {
+    // Prevent annoying flashes while logs are loading from the server
+    if (!isLoading) {
+      setStableData(data);
+    }
+  }, [data, isLoading]);
+
+  return { data: stableData, isLoading, ...rest };
+};
+
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
@@ -223,12 +244,21 @@ export const useTagNames = () => {
 
 export const useFineTunes = (refetchInterval?: number) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
-  const { page, pageSize } = usePageParams();
 
   return api.fineTunes.list.useQuery(
-    { projectId: selectedProjectId ?? "", page, pageSize },
+    { projectId: selectedProjectId ?? "" },
     { enabled: !!selectedProjectId, refetchInterval },
   );
+};
+
+export const useFineTune = () => {
+  const router = useRouter();
+  const fineTune = api.fineTunes.get.useQuery(
+    { id: router.query.id as string },
+    { enabled: !!router.query.id },
+  );
+
+  return fineTune;
 };
 
 export const usePruningRules = () => {

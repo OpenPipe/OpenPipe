@@ -5,7 +5,7 @@ import { BsGearFill } from "react-icons/bs";
 export const DatasetHeaderButtons = ({ openDrawer }: { openDrawer: () => void }) => {
   const dataset = useDataset();
 
-  if (dataset.isLoading) return null;
+  if (!dataset.data) return null;
 
   return (
     <HStack spacing={0} mt={{ base: 2, md: 0 }}>

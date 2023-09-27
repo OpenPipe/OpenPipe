@@ -1,6 +1,7 @@
 import { Card, Table, Thead, Tr, Th, Tbody, Td, VStack, Icon, Text } from "@chakra-ui/react";
 import { FaTable } from "react-icons/fa";
 import { type FineTuneStatus } from "@prisma/client";
+import Link from "next/link";
 
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
@@ -29,7 +30,11 @@ const FineTunesTable = ({}) => {
             {fineTunes.map((fineTune) => {
               return (
                 <Tr key={fineTune.id}>
-                  <Td>openpipe:{fineTune.slug}</Td>
+                  <Td>
+                    <Link href={{ pathname: "/fine-tunes/[id]", query: { id: fineTune.id } }}>
+                      <Text color="blue.600">openpipe:{fineTune.slug}</Text>
+                    </Link>
+                  </Td>
                   <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
                   <Td>{displayBaseModel(fineTune.baseModel)}</Td>
                   <Td>{fineTune._count.trainingEntries}</Td>

@@ -26,6 +26,7 @@ declare module "nextjs-routes" {
     | StaticRoute<"/datasets">
     | DynamicRoute<"/experiments/[experimentSlug]", { "experimentSlug": string }>
     | StaticRoute<"/experiments">
+    | DynamicRoute<"/fine-tunes/[id]", { "id": string }>
     | StaticRoute<"/fine-tunes">
     | StaticRoute<"/">
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>

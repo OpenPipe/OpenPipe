@@ -28,6 +28,7 @@ import { api } from "~/utils/api";
 import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { SUPPORTED_BASE_MODELS, displayBaseModel } from "~/utils/baseModels";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -75,11 +76,12 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const [createFineTune, creationInProgress] = useHandledAsyncCallback(async () => {
     if (!modelSlug || !selectedBaseModel || !dataset) return;
-    await createFineTuneMutation.mutateAsync({
+    const resp = await createFineTuneMutation.mutateAsync({
       slug: modelSlug,
       baseModel: selectedBaseModel,
       datasetId: dataset.id,
     });
+    if (maybeReportError(resp)) return;
 
     await utils.fineTunes.list.invalidate();
     await router.push({ pathname: "/fine-tunes" });
