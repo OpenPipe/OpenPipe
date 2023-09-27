@@ -1,7 +1,7 @@
 import { VStack, HStack, Text } from "@chakra-ui/react";
 import { displayBaseModel } from "~/utils/baseModels";
 import { useFineTune } from "~/utils/hooks";
-import ContentCard from "./ContentCard";
+import ContentCard from "../ContentCard";
 import FineTuneSlugEditor from "./FineTuneSlugEditor";
 import dayjs from "~/utils/dayjs";
 import DeleteFineTuneButton from "./DeleteFineTuneButton";

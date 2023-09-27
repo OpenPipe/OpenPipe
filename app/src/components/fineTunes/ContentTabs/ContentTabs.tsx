@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, forwardRef } from "react";
 
 import { Button, VStack, HStack, Text, Divider, Box } from "@chakra-ui/react";
-import General from "./General";
+import General from "./General/General";
 
 const tabs = [
   {
