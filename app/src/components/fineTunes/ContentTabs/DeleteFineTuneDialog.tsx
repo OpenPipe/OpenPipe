@@ -59,8 +59,7 @@ const DeleteFineTuneDialog = ({
               <Text>
                 If you delete this fine-tuned model any future request to{" "}
                 <b>openpipe:{fineTuneSlug}</b> will fail. If you are sure that you want to delete
-                this model, please type the ID of the fine-tuned model below. This action cannot be
-                undone.
+                this model, please type its ID below. This action cannot be undone.
               </Text>
               <Box bgColor="orange.100" w="full" p={2} borderRadius={4}>
                 <Text fontFamily="inconsolata">openpipe:{fineTuneSlug}</Text>

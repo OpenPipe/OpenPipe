@@ -76,6 +76,12 @@ export const fineTunesRouter = createTRPCRouter({
               },
             },
           },
+          pruningRules: {
+            select: {
+              textToMatch: true,
+              tokensInText: true,
+            },
+          },
         },
       });
 

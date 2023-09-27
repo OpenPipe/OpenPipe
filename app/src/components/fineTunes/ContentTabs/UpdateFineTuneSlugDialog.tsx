@@ -9,6 +9,7 @@ import {
   AlertDialogFooter,
   Button,
   VStack,
+  HStack,
   Text,
   Box,
   Input,
@@ -63,10 +64,24 @@ const UpdateFineTuneSlugDialog = ({
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
-                After you make this change, any requests to the current model ID will fail. Don't
-                forget to update your code to use <b>openpipe:{newFineTuneSlug}</b>.
+                Don't forget to update your code to use the new ID. Any future requests labeled with
+                the current model ID will fail.
               </Text>
-              <Text>To confirm this change, please type the current ID below.</Text>
+              <VStack>
+                <HStack w="full">
+                  <Text as="b" w={24}>
+                    Current ID:
+                  </Text>
+                  <Text>openpipe:{previousFineTuneSlug}</Text>
+                </HStack>
+                <HStack w="full">
+                  <Text as="b" w={24}>
+                    New ID:
+                  </Text>
+                  <Text>openpipe:{newFineTuneSlug}</Text>
+                </HStack>
+              </VStack>
+              <Text>To confirm this change, please type the model's existing ID below.</Text>
               <Box bgColor="orange.100" w="full" p={2} borderRadius={4}>
                 <Text fontFamily="inconsolata">openpipe:{previousFineTuneSlug}</Text>
               </Box>

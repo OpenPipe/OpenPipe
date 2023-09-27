@@ -5,7 +5,7 @@ import { BsTrash } from "react-icons/bs";
 import { useHandledAsyncCallback, useFineTune } from "~/utils/hooks";
 import DeleteFineTuneDialog from "./DeleteFineTuneDialog";
 
-const DeleteFineTuneButton = ({ closeDrawer }: { closeDrawer: () => void }) => {
+const DeleteFineTuneButton = () => {
   const fineTune = useFineTune();
   const router = useRouter();
 
@@ -13,8 +13,7 @@ const DeleteFineTuneButton = ({ closeDrawer }: { closeDrawer: () => void }) => {
 
   const [onDelete] = useHandledAsyncCallback(async () => {
     await router.push({ pathname: "/fine-tunes" });
-    closeDrawer();
-  }, [router, closeDrawer]);
+  }, [router]);
 
   if (!fineTune.data) return null;
 
@@ -22,15 +21,9 @@ const DeleteFineTuneButton = ({ closeDrawer }: { closeDrawer: () => void }) => {
 
   return (
     <>
-      <Button
-        size="sm"
-        variant="ghost"
-        colorScheme="red"
-        fontWeight="normal"
-        onClick={disclosure.onOpen}
-      >
+      <Button size="sm" colorScheme="red" fontWeight="normal" onClick={disclosure.onOpen}>
         <Icon as={BsTrash} boxSize={4} />
-        <Text ml={2}>Delete Model</Text>
+        <Text ml={2}>Delete Fine Tune</Text>
       </Button>
 
       {id && slug && (
