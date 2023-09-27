@@ -1,6 +1,8 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type GetServerSidePropsContext } from "next";
 import { getServerSession, type NextAuthOptions, type DefaultSession } from "next-auth";
+import * as Sentry from "@sentry/nextjs";
+
 import { prisma } from "~/server/db";
 import GitHubModule from "next-auth/providers/github";
 import { env } from "~/env.mjs";
@@ -47,6 +49,14 @@ export const authOptions: NextAuthOptions = {
         id: user.id,
       },
     }),
+  },
+  events: {
+    signIn({ user }) {
+      Sentry.setUser({ id: user.id });
+    },
+    signOut() {
+      Sentry.setUser(null);
+    },
   },
   adapter: PrismaAdapter(prisma),
   providers: [
