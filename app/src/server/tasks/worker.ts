@@ -7,10 +7,17 @@ import { queryModel } from "./queryModel.task";
 import { runNewEval } from "./runNewEval.task";
 import { importDatasetEntries } from "./importDatasetEntries.task";
 import { uploadTrainingData } from "./uploadTrainingData.task";
+import { getTestResult } from "./getTestResult.task";
 
 console.log("Starting worker");
 
-const registeredTasks = [queryModel, runNewEval, importDatasetEntries, uploadTrainingData];
+const registeredTasks = [
+  queryModel,
+  runNewEval,
+  importDatasetEntries,
+  uploadTrainingData,
+  getTestResult,
+];
 
 const taskList = registeredTasks.reduce((acc, task) => {
   acc[task.task.identifier] = task.task.handler;

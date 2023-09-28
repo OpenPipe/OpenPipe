@@ -257,7 +257,8 @@ model DatasetEntry {
     sortKey  String // Used to sort entries in the UI
     persistentId String  @default(uuid()) @db.Uuid
 
-    fineTuneTrainingEntries FineTuneTrainingEntry[]
+    fineTuneTrainingEntries     FineTuneTrainingEntry[]
+    fineTuneTestDatasetEntries  FineTuneTestingEntry[]
 
     authoringUserId String? @db.Uuid // The user who created this version of the entry (if any)
     authoringUser   User?   @relation(fields: [authoringUserId], references: [id])
@@ -546,8 +547,9 @@ model FineTune {
     deploymentFinishedAt    DateTime?
     inferenceUrls           String[] @default([])
 
-    trainingEntries FineTuneTrainingEntry[]
-    pruningRules    PruningRule[]
+    trainingEntries     FineTuneTrainingEntry[]
+    testingEntries      FineTuneTestingEntry[]
+    pruningRules        PruningRule[]
 
     datasetId String   @db.Uuid
     dataset    Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
@@ -557,4 +559,40 @@ model FineTune {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+model FineTuneTestingEntry {
+    id String @id @default(uuid()) @db.Uuid
+
+    inputTokens  Int
+
+    responseId        String? @db.Uuid
+    response          FineTuneResponse? @relation(fields: [responseId], references: [id])
+
+    fineTuneId String     @db.Uuid
+    fineTune   FineTune   @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+
+    datasetEntryId String     @db.Uuid
+    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([fineTuneId, datasetEntryId])
+}
+
+model FineTuneResponse {
+    id String @id @default(uuid()) @db.Uuid
+
+    cacheKey     String?
+    outputTokens Int?
+    output       Json?
+    errorMessage String?
+
+    fineTuneTestingEntries FineTuneTestingEntry[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([cacheKey])
 }
