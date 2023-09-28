@@ -47,6 +47,7 @@ if (env.NEXT_PUBLIC_SENTRY_DSN) {
   config = withSentryConfig(
     config,
     {
+      authToken: env.SENTRY_AUTH_TOKEN,
       silent: true,
       org: "openpipe",
       project: "openpipe",
