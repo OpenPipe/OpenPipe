@@ -19,6 +19,7 @@ import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { queueGetTestResult } from "~/server/tasks/getTestResult.task";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -402,6 +403,18 @@ export const datasetEntriesRouter = createTRPCRouter({
       });
 
       await updatePruningRuleMatches(dataset.id, new Date(0), [newEntry.id]);
+
+      if (newEntry.type === "TEST") {
+        const fineTunes = await prisma.fineTune.findMany({
+          where: {
+            datasetId: dataset.id,
+            status: "DEPLOYED",
+          },
+        });
+        for (const fineTune of fineTunes) {
+          await queueGetTestResult(fineTune.id, newEntry.id);
+        }
+      }
 
       return success(newEntry.id);
     }),
