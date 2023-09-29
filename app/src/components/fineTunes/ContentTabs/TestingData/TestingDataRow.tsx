@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Td, Thead, Tr, Text, Collapse, VStack } from "@chakra-ui/react";
+import { Th, Td, Thead, Tr, Text, VStack } from "@chakra-ui/react";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 
 import { type RouterOutputs } from "~/utils/api";
@@ -8,9 +7,9 @@ export const TableHeader = () => {
   return (
     <Thead>
       <Tr>
-        <Td w="30%">Input</Td>
-        <Td w="35%">Original Output</Td>
-        <Td>Generated Output</Td>
+        <Th w="30%">Input</Th>
+        <Th w="35%">Original Output</Th>
+        <Th>Fine-Tuned Model Output</Th>
       </Tr>
     </Thead>
   );
@@ -19,92 +18,64 @@ export const TableHeader = () => {
 type TestingEntry = RouterOutputs["datasetEntries"]["listTestingEntries"]["entries"][number];
 
 const TestingDataRow = ({
+  prunedInput,
   output,
-  outputTokens,
-  datasetEntry: {
-    input: originalInput,
-    inputTokens: originalInputTokens,
-    output: originalOutput,
-    outputTokens: originalOutputTokens,
-  },
+  datasetEntry: { output: originalOutput },
   errorMessage,
 }: {
+  prunedInput: TestingEntry["prunedInput"];
   output: TestingEntry["output"];
   outputTokens: number | null;
   datasetEntry: TestingEntry["datasetEntry"];
   errorMessage?: string;
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const noOfLines = isExpanded ? undefined : 4;
-
-  let outputHeaderElement = <Text color="gray.500">Pending</Text>;
-  if (errorMessage) {
-    outputHeaderElement = <Text>Error</Text>;
-  } else if (outputTokens !== null) {
-    outputHeaderElement = <Text>{outputTokens} tokens</Text>;
-  }
-
   return (
-    <>
-      <Tr
-        onClick={() => setIsExpanded(!isExpanded)}
-        alignItems="flex-start"
-        cursor="pointer"
-        _hover={{ bgColor: "gray.50" }}
+    <Tr
+      alignItems="flex-start"
+      sx={{
+        td: { verticalAlign: "top" },
+      }}
+    >
+      <Td>
+        <FormattedInput prunedInput={prunedInput} />
+      </Td>
+      <Td
         sx={{
-          td: { borderBottom: "none" },
+          borderLeft: "1px solid",
+          borderRight: "1px solid",
+          borderColor: "gray.100",
         }}
       >
-        <Td>{originalInputTokens} tokens</Td>
-        <Td>{originalOutputTokens} tokens</Td>
-        <Td>{outputHeaderElement}</Td>
-      </Tr>
-      <Tr sx={{ td: { verticalAlign: "top" } }}>
-        <Td py={isExpanded ? 4 : 0}>
-          <Collapse in={isExpanded}>
-            <Text
-              noOfLines={noOfLines}
-              h="full"
-              whiteSpace="pre-wrap"
-              p={4}
-              bgColor="orange.50"
-              borderRadius={4}
-            >
-              {JSON.stringify(originalInput, null, 4)}
-            </Text>
-          </Collapse>
-        </Td>
-        <Td py={isExpanded ? 4 : 0}>
-          <Collapse in={isExpanded}>
-            <Text
-              noOfLines={noOfLines}
-              h="full"
-              whiteSpace="pre-wrap"
-              p={4}
-              bgColor="orange.50"
-              borderRadius={4}
-            >
-              <FormattedOutput output={originalOutput} />
-            </Text>
-          </Collapse>
-        </Td>
-        <Td py={isExpanded ? 4 : 0}>
-          <Collapse in={isExpanded}>
-            <Text
-              noOfLines={noOfLines}
-              h="full"
-              whiteSpace="pre-wrap"
-              p={4}
-              bgColor="orange.50"
-              borderRadius={4}
-            >
-              <FormattedOutput output={output} errorMessage={errorMessage} />
-            </Text>
-          </Collapse>
-        </Td>
-      </Tr>
-    </>
+        <FormattedOutput output={originalOutput} />
+      </Td>
+      <Td>
+        <FormattedOutput output={output} errorMessage={errorMessage} />
+      </Td>
+    </Tr>
+  );
+};
+
+const FormattedInput = ({ prunedInput }: { prunedInput: TestingEntry["prunedInput"] }) => {
+  let parsedInput = null;
+  try {
+    parsedInput = JSON.parse(prunedInput) as unknown as ChatCompletionMessage[];
+  } catch (e) {
+    // ignore
+  }
+
+  if (!parsedInput) return <Text>{prunedInput}</Text>;
+
+  return (
+    <VStack alignItems="flex-start" spacing={8}>
+      {parsedInput.map((message, index) => (
+        <VStack key={index} alignItems="flex-start" w="full">
+          <Text fontWeight="bold" color="gray.500">
+            {message.role}
+          </Text>
+          <FormattedMessage message={message} />
+        </VStack>
+      ))}
+    </VStack>
   );
 };
 
@@ -122,6 +93,10 @@ const FormattedOutput = ({
   if (!output) return <Text color="gray.500">Pending</Text>;
 
   const message = output as unknown as ChatCompletionMessage;
+  return <FormattedMessage message={message} />;
+};
+
+const FormattedMessage = ({ message }: { message: ChatCompletionMessage }) => {
   if (message.function_call) {
     // return JSON.parse(message.function_call)
     const { name, arguments: args } = message.function_call;
@@ -143,7 +118,6 @@ const FormattedOutput = ({
       </VStack>
     );
   }
-  console.log(message.content);
   return <Text>{message.content}</Text>;
 };
 
