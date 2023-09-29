@@ -3,7 +3,7 @@ import { type JsonValue } from "type-fest";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "~/server/db";
-import { hashRequest } from "~/server/utils/hashObject";
+import { hashRequest } from "~/utils/hashObject";
 import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
 import {

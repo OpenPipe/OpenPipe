@@ -24,6 +24,7 @@ import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EditableMessage from "./EditableMessage";
 import EntryTypeDropdown from "./EntryTypeDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { hashObjectFast } from "~/utils/hashObject";
 
 export default function DatasetEntryEditorDrawer({
   datasetEntryId,
@@ -34,7 +35,7 @@ export default function DatasetEntryEditorDrawer({
 }) {
   const utils = api.useContext();
 
-  const datasetEntry = useDatasetEntry(datasetEntryId).data;
+  const { data: datasetEntry, isLoading } = useDatasetEntry(datasetEntryId);
 
   const savedInputMessages = useMemo(
     () => datasetEntry?.input as unknown as ChatCompletionMessageParam[],
@@ -56,6 +57,15 @@ export default function DatasetEntryEditorDrawer({
       setOutputMessageToSave(savedOutputMessage);
     }
   }, [savedInputMessages, savedOutputMessage]);
+
+  const initialHash = useMemo(
+    () => hashObjectFast({ input: datasetEntry?.input, output: datasetEntry?.output }),
+    [datasetEntry],
+  );
+  const updatedHash = useMemo(
+    () => hashObjectFast({ input: inputMessagesToSave, output: outputMessageToSave }),
+    [inputMessagesToSave, outputMessageToSave],
+  );
 
   const updateMutation = api.datasetEntries.update.useMutation();
   const [onSave, savingInProgress] = useHandledAsyncCallback(async () => {
@@ -171,6 +181,7 @@ export default function DatasetEntryEditorDrawer({
         <DrawerFooter bgColor="orange.50">
           <HStack>
             <Button
+              isDisabled={isLoading || initialHash === updatedHash}
               onClick={() => {
                 setInputMessagesToSave(savedInputMessages);
                 setOutputMessageToSave(savedOutputMessage);
@@ -178,7 +189,12 @@ export default function DatasetEntryEditorDrawer({
             >
               Reset
             </Button>
-            <Button isLoading={savingInProgress} onClick={onSave} colorScheme="orange">
+            <Button
+              isLoading={savingInProgress}
+              isDisabled={isLoading || initialHash === updatedHash}
+              onClick={onSave}
+              colorScheme="orange"
+            >
               Save
             </Button>
           </HStack>

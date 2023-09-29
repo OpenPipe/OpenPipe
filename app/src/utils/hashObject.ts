@@ -42,3 +42,18 @@ export default function hashObject(obj: JsonValue): string {
   hash.update(str);
   return hash.digest("hex");
 }
+
+function fastHash(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char; // Left shift and add the character code
+    hash |= 0; // Convert to a 32-bit integer
+  }
+  return hash;
+}
+
+export function hashObjectFast(obj: object) {
+  const str = JSON.stringify(obj);
+  return fastHash(str);
+}

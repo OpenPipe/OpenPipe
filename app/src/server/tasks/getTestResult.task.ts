@@ -4,7 +4,7 @@ import { type ChatCompletionMessage } from "openai/resources/chat";
 import { APIError } from "openai/error";
 
 import { prisma } from "~/server/db";
-import hashObject from "../utils/hashObject";
+import hashObject from "~/utils/hashObject";
 import defineTask from "./defineTask";
 import { pruneInputMessages, getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
