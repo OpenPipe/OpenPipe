@@ -23,8 +23,12 @@ const existingFineTune = await prisma.fineTune.findUnique({
 });
 
 if (existingFineTune) {
-  console.log("FineTune already exists");
-  process.exit(0);
+  await prisma.fineTune.delete({
+    where: { id: fineTuneId },
+  });
+  await prisma.dataset.delete({
+    where: { id: existingFineTune.datasetId },
+  });
 }
 
 const dataset = await prisma.dataset.create({
@@ -48,7 +52,21 @@ await prisma.datasetEntry.create({
     inputTokens: 10,
     output: { role: "assistant", content: "Hobart" },
     outputTokens: 1,
-    type: "TEST",
+    type: "TRAIN",
+    sortKey: "1",
+  },
+});
+await prisma.datasetEntry.create({
+  data: {
+    datasetId: dataset.id,
+    input: [
+      { role: "system", content: "You are a helpful assistant" },
+      { role: "user", content: "What is the capitol of Latvia?" },
+    ],
+    inputTokens: 10,
+    output: { role: "assistant", content: "Riga" },
+    outputTokens: 1,
+    type: "TRAIN",
     sortKey: "1",
   },
 });
