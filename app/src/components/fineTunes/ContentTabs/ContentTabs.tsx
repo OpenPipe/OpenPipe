@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, forwardRef } from "react";
-
 import { Button, VStack, HStack, Text, Divider, Box } from "@chakra-ui/react";
+
 import General from "./General/General";
 import TrainingData from "./TrainingData/TrainingData";
+import TestingData from "./TestingData/TestingData";
+import { useRouter } from "next/router";
 
 const tabs = [
   {
@@ -13,12 +15,30 @@ const tabs = [
     key: "training-data",
     title: "Training Data",
   },
+  {
+    key: "testing-data",
+    title: "Testing Data",
+  },
 ] as const;
 
 const ContentTabs = () => {
-  const [activeTabKey, setActiveTabKey] = useState<(typeof tabs)[number]["key"]>(tabs[0].key);
   const [borderPosition, setBorderPosition] = useState({ left: "0", width: "0" });
   const headersRef = useRef<{ [key: string]: HTMLButtonElement }>({});
+
+  const router = useRouter();
+  const activeTabParam = router.query.tab as string;
+  const activeTabKey = (activeTabParam as (typeof tabs)[number]["key"]) || "general";
+
+  const setActiveTab = (newTabKey: string) => {
+    void router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: newTabKey },
+      },
+      undefined,
+      { shallow: true },
+    );
+  };
 
   useEffect(() => {
     const activeTab = headersRef.current[activeTabKey];
@@ -38,7 +58,7 @@ const ContentTabs = () => {
             key={tab.key}
             title={tab.title}
             isSelected={activeTabKey === tab.key}
-            onClick={() => setActiveTabKey(tab.key)}
+            onClick={() => setActiveTab(tab.key)}
             ref={(el) => {
               if (el) headersRef.current[tab.key] = el;
             }}
@@ -58,6 +78,7 @@ const ContentTabs = () => {
       <HStack pt={8} w="full" h="full" alignSelf="center">
         {activeTabKey === "general" && <General />}
         {activeTabKey === "training-data" && <TrainingData />}
+        {activeTabKey === "testing-data" && <TestingData />}
       </HStack>
     </VStack>
   );

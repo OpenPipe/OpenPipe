@@ -564,10 +564,12 @@ model FineTune {
 model FineTuneTestingEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    inputTokens  Int
-
-    responseId        String? @db.Uuid
-    response          FineTuneResponse? @relation(fields: [responseId], references: [id])
+    cacheKey            String?
+    prunedInputTokens   Int
+    prunedInput         String
+    outputTokens        Int?
+    output              Json?
+    errorMessage        String?
 
     fineTuneId String     @db.Uuid
     fineTune   FineTune   @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
@@ -579,20 +581,5 @@ model FineTuneTestingEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([fineTuneId, datasetEntryId])
-}
-
-model FineTuneResponse {
-    id String @id @default(uuid()) @db.Uuid
-
-    cacheKey     String?
-    outputTokens Int?
-    output       Json?
-    errorMessage String?
-
-    fineTuneTestingEntries FineTuneTestingEntry[]
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
     @@index([cacheKey])
 }

@@ -1,24 +1,34 @@
-import { VStack, Text, Table, Tbody } from "@chakra-ui/react";
+import { VStack, HStack, Text, Table, Tbody } from "@chakra-ui/react";
+import Link from "next/link";
 
-import { useTrainingEntries } from "~/utils/hooks";
+import { useFineTune, useTrainingEntries } from "~/utils/hooks";
 import ContentCard from "../ContentCard";
 import TrainingDataRow, { TableHeader } from "./TrainingDataRow";
 import TrainingDataPaginator from "./TrainingDataPaginator";
 
 const TrainingData = () => {
-  const fineTune = useTrainingEntries().data;
+  const fineTune = useFineTune().data;
+  const trainingEntries = useTrainingEntries().data;
 
-  if (!fineTune) return null;
+  if (!fineTune || !trainingEntries) return null;
 
-  const { entries, count } = fineTune;
+  const { entries, count } = trainingEntries;
 
   return (
     <VStack w="full" h="full" justifyContent="space-between">
       <VStack w="full" alignItems="flex-start" spacing={4}>
         <ContentCard>
-          <Text fontWeight="bold" pb={2}>
-            Training Data ({count} rows)
-          </Text>
+          <HStack w="full" justifyContent="space-between">
+            <Text fontWeight="bold" pb={2}>
+              Training Data ({count} rows)
+            </Text>
+            <Link href={{ pathname: "/datasets/[id]", query: { id: fineTune.datasetId } }}>
+              <Text color="blue.600" px={2}>
+                View Dataset
+              </Text>
+            </Link>
+          </HStack>
+
           <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
             <Table>
               <TableHeader />

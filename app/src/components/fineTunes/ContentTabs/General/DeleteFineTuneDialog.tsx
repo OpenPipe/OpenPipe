@@ -51,13 +51,13 @@ const DeleteFineTuneDialog = ({
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Delete Fine-Tune
+            Delete Fine Tune
           </AlertDialogHeader>
 
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
-                If you delete this fine-tuned model any future request to{" "}
+                If you delete this fine-tuned model any future requests to{" "}
                 <b>openpipe:{fineTuneSlug}</b> will fail. If you are sure that you want to delete
                 this model, please type its ID below. This action cannot be undone.
               </Text>

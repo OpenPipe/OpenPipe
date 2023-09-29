@@ -21,25 +21,25 @@ const Paginator = ({ count, ...props }: { count: number; condense?: boolean } & 
   const updatePageSize = useCallback(
     (newPageSize: number) => {
       const newPage = Math.floor(((page - 1) * pageSize) / newPageSize) + 1;
-      setPageParams({ page: newPage, pageSize: newPageSize }, "replace");
+      setPageParams({ page: newPage, pageSize: newPageSize });
     },
     [page, pageSize, setPageParams],
   );
 
   const nextPage = () => {
     if (page < lastPage) {
-      setPageParams({ page: page + 1 }, "replace");
+      setPageParams({ page: page + 1 });
     }
   };
 
   const prevPage = () => {
     if (page > 1) {
-      setPageParams({ page: page - 1 }, "replace");
+      setPageParams({ page: page - 1 });
     }
   };
 
-  const goToLastPage = () => setPageParams({ page: lastPage }, "replace");
-  const goToFirstPage = () => setPageParams({ page: 1 }, "replace");
+  const goToLastPage = () => setPageParams({ page: lastPage });
+  const goToFirstPage = () => setPageParams({ page: 1 });
 
   const isMobile = useBreakpointValue({ base: true, md: false });
   const condense = isMobile || props.condense;

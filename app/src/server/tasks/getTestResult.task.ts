@@ -1,11 +1,12 @@
 import { type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 import { type ChatCompletionMessage } from "openai/resources/chat";
+import { APIError } from "openai/error";
 
 import { prisma } from "~/server/db";
 import hashObject from "../utils/hashObject";
 import defineTask from "./defineTask";
-import { formatInputMessages, getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
+import { pruneInputMessages, getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 
 export type GetTestResultJob = {
@@ -45,41 +46,49 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
 
   if (!fineTune || !datasetEntry) return;
 
-  let testEntry = await prisma.fineTuneTestingEntry.findUnique({
+  const existingTestEntry = await prisma.fineTuneTestingEntry.findUnique({
     where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
   });
 
   const stringsToPrune = fineTune.pruningRules.map((rule) => rule.textToMatch);
 
-  if (!testEntry) {
-    testEntry = await prisma.fineTuneTestingEntry.create({
+  if (existingTestEntry?.output) return;
+
+  let prunedInput = existingTestEntry?.prunedInput;
+
+  if (!existingTestEntry) {
+    prunedInput = pruneInputMessages(
+      datasetEntry.input as unknown as ChatCompletionMessage[],
+      stringsToPrune,
+    );
+    await prisma.fineTuneTestingEntry.create({
       data: {
         fineTuneId,
         datasetEntryId,
-        inputTokens: countLlamaChatTokens(
-          formatInputMessages(
-            datasetEntry.input as unknown as ChatCompletionMessage[],
-            stringsToPrune,
-          ),
-        ),
+        prunedInputTokens: countLlamaChatTokens(prunedInput),
+        prunedInput: prunedInput,
       },
     });
   }
 
   const cacheKey = hashObject({
     fineTuneId,
-    input: datasetEntry.input,
+    input: prunedInput,
   } as JsonValue);
 
-  const existingResponse = await prisma.fineTuneResponse.findFirst({
-    where: { cacheKey },
+  const matchingTestEntry = await prisma.fineTuneTestingEntry.findFirst({
+    where: {
+      cacheKey,
+    },
   });
 
-  if (existingResponse) {
+  if (matchingTestEntry?.output) {
     await prisma.fineTuneTestingEntry.update({
-      where: { id: testEntry.id },
+      where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
       data: {
-        responseId: existingResponse.id,
+        output: matchingTestEntry.output,
+        outputTokens: matchingTestEntry.outputTokens,
+        errorMessage: null,
       },
     });
     return;
@@ -87,7 +96,6 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
 
   let shouldRetry = false;
   let completion;
-  let newResponse;
   try {
     completion = await getCompletion(
       {
@@ -99,31 +107,29 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
     );
     const completionMessage = completion.choices[0]?.message;
     if (!completionMessage) throw new Error("No completion returned");
-    newResponse = await prisma.fineTuneResponse.create({
+    const outputTokens = countLlamaChatTokensInMessages([completionMessage]);
+    await prisma.fineTuneTestingEntry.update({
+      where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
       data: {
         cacheKey,
         output: completionMessage as unknown as Prisma.InputJsonValue,
-        outputTokens: countLlamaChatTokensInMessages([completionMessage]),
+        outputTokens,
+        errorMessage: null,
       },
     });
   } catch (e) {
-    console.log("this error is", e);
-    newResponse = await prisma.fineTuneResponse.create({
+    if (e instanceof APIError) {
+      shouldRetry = e.status === 429 && numPreviousTries < MAX_AUTO_RETRIES;
+    }
+    await prisma.fineTuneTestingEntry.update({
+      where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
       data: {
         errorMessage: (e as Error).message,
       },
     });
-    shouldRetry = true;
   }
 
-  await prisma.fineTuneTestingEntry.update({
-    where: { id: testEntry.id },
-    data: {
-      responseId: newResponse.id,
-    },
-  });
-
-  if (shouldRetry && numPreviousTries < MAX_AUTO_RETRIES) {
+  if (shouldRetry) {
     const delay = calculateDelay(numPreviousTries);
     const retryTime = new Date(Date.now() + delay);
     await getTestResult.enqueue(
@@ -132,17 +138,11 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
         datasetEntryId,
         numPreviousTries: numPreviousTries + 1,
       },
-      { runAt: retryTime, jobKey: formatJobKey(fineTuneId, datasetEntryId), priority: 3 },
+      { runAt: retryTime, priority: 3 },
     );
   }
 });
 
 export const queueGetTestResult = async (fineTuneId: string, datasetEntryId: string) => {
-  await getTestResult.enqueue(
-    { fineTuneId, datasetEntryId, numPreviousTries: 0 },
-    { jobKey: formatJobKey(fineTuneId, datasetEntryId) },
-  );
+  await getTestResult.enqueue({ fineTuneId, datasetEntryId, numPreviousTries: 0 });
 };
-
-const formatJobKey = (fineTuneId: string, datasetEntryId: string) =>
-  `${fineTuneId}-${datasetEntryId}`;

@@ -5,6 +5,7 @@ import ContentCard from "../ContentCard";
 import FineTuneSlugEditor from "./FineTuneSlugEditor";
 import dayjs from "~/utils/dayjs";
 import DeleteFineTuneButton from "./DeleteFineTuneButton";
+import { getStatusColor } from "../../FineTunesTable";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -41,6 +42,12 @@ const General = () => {
             <HStack>
               <Text w={180}>Created At:</Text>
               <Text color="gray.500">{dayjs(createdAt).format("MMMM D h:mm A")}</Text>
+            </HStack>
+            <HStack>
+              <Text w={180}>Status:</Text>
+              <Text fontWeight="bold" color={getStatusColor(fineTune.status)}>
+                {fineTune.status}
+              </Text>
             </HStack>
           </VStack>
         </ContentCard>

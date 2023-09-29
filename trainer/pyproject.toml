@@ -6,6 +6,9 @@ authors = ["David Corbitt <davidlcorbitt@gmail.com>"]
 readme = "README.md"
 packages = [{include = "trainer"}]
 
+[tool.poetry.scripts]
+test = "pytest-watch --runner 'pytest -rP -m focus'"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 

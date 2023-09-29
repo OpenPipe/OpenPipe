@@ -105,34 +105,90 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
       await requireCanViewProject(fineTune.projectId, ctx);
 
-      const entries = await prisma.fineTuneTrainingEntry.findMany({
-        where: {
-          fineTuneId: fineTuneId,
-        },
-        include: {
-          datasetEntry: {
-            select: {
-              input: true,
-              output: true,
-              inputTokens: true,
-              outputTokens: true,
+      const [entries, count] = await prisma.$transaction([
+        prisma.fineTuneTrainingEntry.findMany({
+          where: {
+            fineTuneId: fineTuneId,
+          },
+          include: {
+            datasetEntry: {
+              select: {
+                input: true,
+                output: true,
+                inputTokens: true,
+                outputTokens: true,
+              },
             },
           },
-        },
-        orderBy: {
-          datasetEntry: {
-            sortKey: "desc",
+          orderBy: {
+            datasetEntry: {
+              sortKey: "desc",
+            },
           },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.fineTuneTrainingEntry.count({
+          where: {
+            fineTuneId: fineTuneId,
+          },
+        }),
+      ]);
+
+      return {
+        entries,
+        count,
+      };
+    }),
+  listTestingEntries: protectedProcedure
+    .input(z.object({ fineTuneId: z.string(), page: z.number(), pageSize: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const { fineTuneId, page, pageSize } = input;
+
+      const fineTune = await prisma.fineTune.findUnique({
+        where: {
+          id: fineTuneId,
         },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
       });
 
-      const count = await prisma.fineTuneTrainingEntry.count({
-        where: {
-          fineTuneId: fineTuneId,
-        },
-      });
+      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
+      await requireCanViewProject(fineTune.projectId, ctx);
+
+      const [entries, count] = await prisma.$transaction([
+        prisma.fineTuneTestingEntry.findMany({
+          where: {
+            fineTuneId: fineTuneId,
+            datasetEntry: {
+              outdated: false,
+            },
+          },
+          include: {
+            datasetEntry: {
+              select: {
+                input: true,
+                output: true,
+                inputTokens: true,
+                outputTokens: true,
+              },
+            },
+          },
+          orderBy: {
+            datasetEntry: {
+              sortKey: "desc",
+            },
+          },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.fineTuneTestingEntry.count({
+          where: {
+            fineTuneId: fineTuneId,
+            datasetEntry: {
+              outdated: false,
+            },
+          },
+        }),
+      ]);
 
       return {
         entries,

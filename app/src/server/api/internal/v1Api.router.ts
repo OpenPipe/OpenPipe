@@ -6,6 +6,9 @@ import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { generateBlobDownloadUrl } from "~/utils/azure/server";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 import { queueGetTestResult } from "~/server/tasks/getTestResult.task";
+import { pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
+import { countLlamaChatTokens } from "~/utils/countTokens";
+import { ChatCompletionMessage } from "openai/resources/chat";
 
 const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
 
@@ -91,9 +94,32 @@ export const v1ApiRouter = createOpenApiRouter({
       });
 
       if (input.status === "DEPLOYED") {
+        const pruningRules = await prisma.pruningRule.findMany({
+          where: { fineTuneId: fineTune.id },
+          select: { textToMatch: true },
+        });
+        const stringsToPrune = pruningRules.map((rule) => rule.textToMatch);
         const datasetEntries = await prisma.datasetEntry.findMany({
           where: { datasetId: fineTune.datasetId, outdated: false, type: "TEST" },
-          select: { id: true },
+          select: { id: true, input: true },
+          orderBy: { sortKey: "desc" },
+        });
+        // create fineTuneTestEntry for each dataset entry
+        await prisma.fineTuneTestingEntry.createMany({
+          data: datasetEntries.map((entry) => {
+            const prunedInput = pruneInputMessages(
+              entry.input as unknown as ChatCompletionMessage[],
+              stringsToPrune,
+            );
+            const prunedInputTokens = countLlamaChatTokens(prunedInput);
+            return {
+              fineTuneId: fineTune.id,
+              datasetEntryId: entry.id,
+              prunedInputTokens,
+              prunedInput,
+            };
+          }),
+          skipDuplicates: true,
         });
         for (const entry of datasetEntries) {
           await queueGetTestResult(fineTune.id, entry.id);

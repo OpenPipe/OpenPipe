@@ -5,6 +5,7 @@ import {
   type ChatCompletionCreateParams,
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
+import { APIError } from "openai/error";
 
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { type CompletionResponse } from "../types";
@@ -88,7 +89,17 @@ export async function getCompletion(
   } catch (e) {
     throw new Error("Failed to query the model");
   }
-  const respText = (await resp.json()) as { text: [string, ...string[]] };
+  let respText;
+  try {
+    respText = (await resp.json()) as { text: [string, ...string[]] };
+  } catch (e) {
+    throw new APIError(
+      429,
+      undefined,
+      "Too many requests caused badly formatted output",
+      undefined,
+    );
+  }
 
   const finalCompletion = respText.text[0].split("### Response:")[1]?.trim();
 
@@ -121,10 +132,7 @@ export async function getCompletion(
   };
 }
 
-export const formatInputMessages = (
-  messages: ChatCompletionMessage[],
-  stringsToPrune: string[],
-) => {
+export const pruneInputMessages = (messages: ChatCompletionMessage[], stringsToPrune: string[]) => {
   for (const stringToPrune of stringsToPrune) {
     for (const message of messages) {
       if (message.content) {
@@ -139,7 +147,7 @@ export const formatInputMessages = (
 export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
   const { messages } = input;
 
-  const formattedInput = formatInputMessages(messages, stringsToPrune);
+  const formattedInput = pruneInputMessages(messages, stringsToPrune);
 
   return `### Instruction:\n${formattedInput}\n### Response:`;
 };
@@ -148,6 +156,7 @@ const sendRequestWithBackup = async (
   inferenceUrls: string[],
   completionParams: Record<string, unknown>,
 ) => {
+  if (!inferenceUrls.length) throw new Error("No inference urls are available for this model");
   // choose random index from inferenceUrls
   const initialIndex = Math.floor(Math.random() * inferenceUrls.length);
   let resp;

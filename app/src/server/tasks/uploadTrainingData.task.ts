@@ -5,7 +5,7 @@ import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
 import {
   FUNCTION_ARGS_TAG,
   FUNCTION_CALL_TAG,
-  formatInputMessages,
+  pruneInputMessages,
 } from "~/modelProviders/fine-tuned/getCompletion";
 
 export type UploadTrainingDataJob = {
@@ -36,16 +36,7 @@ export const uploadTrainingData = defineTask<UploadTrainingDataJob>(
         },
       },
     });
-    if (!fineTune) {
-      await prisma.fineTune.update({
-        where: { id: fineTuneId },
-        data: {
-          errorMessage: "FineTune not found",
-          status: "ERROR",
-        },
-      });
-      return;
-    }
+    if (!fineTune) return;
 
     const trainingEntries: TrainingRow[] = fineTune.trainingEntries.map((entry) => ({
       input: entry.datasetEntry.input,
@@ -86,7 +77,7 @@ export const queueUploadTrainingData = async (fineTuneId: string) => {
 };
 
 const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {
-  const instructions = formatInputMessages(row.input, stringsToPrune);
+  const instructions = pruneInputMessages(row.input, stringsToPrune);
   let output: string;
   if (row.output?.function_call) {
     output = FUNCTION_CALL_TAG + row.output.function_call.name;

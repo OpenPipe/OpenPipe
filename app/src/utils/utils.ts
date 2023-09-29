@@ -67,3 +67,8 @@ export const formatFileSize = (bytes: number, decimals = 2) => {
 
   return "> 1024 TB";
 };
+
+export const ensureDefaultExport = <T>(module: T) => {
+  const defaultExport = module as unknown as { default: T };
+  return defaultExport.default ?? module;
+};
