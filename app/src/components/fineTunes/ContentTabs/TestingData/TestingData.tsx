@@ -26,13 +26,15 @@ const TestingData = () => {
 
   const { entries, count } = testingEntries;
 
+  const isDeployed = fineTune.status === "DEPLOYED";
+
   return (
     <VStack w="full" h="full" justifyContent="space-between">
       <VStack w="full" alignItems="flex-start" spacing={4}>
         <ContentCard px={0} pb={0}>
           <HStack w="full" justifyContent="space-between" px={4}>
             <Text fontWeight="bold" pb={2}>
-              Testing Data ({count} rows)
+              Test Output ({count} rows)
             </Text>
             <Link href={{ pathname: "/datasets/[id]", query: { id: fineTune.datasetId } }}>
               <Text color="blue.600" px={2}>
@@ -40,22 +42,30 @@ const TestingData = () => {
               </Text>
             </Link>
           </HStack>
-          <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
-            <Table>
-              <TableHeader />
-              <Tbody>
-                {entries.map((entry) => (
-                  <TestingDataRow
-                    key={entry.id}
-                    prunedInput={entry.prunedInput}
-                    output={entry.output}
-                    outputTokens={entry.outputTokens}
-                    datasetEntry={entry.datasetEntry}
-                  />
-                ))}
-              </Tbody>
-            </Table>
-          </VStack>
+          {isDeployed ? (
+            <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
+              <Table>
+                <TableHeader />
+                <Tbody>
+                  {entries.map((entry) => (
+                    <TestingDataRow
+                      key={entry.id}
+                      prunedInput={entry.prunedInput}
+                      output={entry.output}
+                      outputTokens={entry.outputTokens}
+                      datasetEntry={entry.datasetEntry}
+                    />
+                  ))}
+                </Tbody>
+              </Table>
+            </VStack>
+          ) : (
+            <VStack>
+              <Text color="gray.500" textAlign="center" w="full" p={4}>
+                Test output will be displayed here after your model is deployed.
+              </Text>
+            </VStack>
+          )}
         </ContentCard>
       </VStack>
       <TestingDataPaginator py={8} />

@@ -16,8 +16,8 @@ const tabs = [
     title: "Training Data",
   },
   {
-    key: "testing-data",
-    title: "Testing Data",
+    key: "test-output",
+    title: "Test Output",
   },
 ] as const;
 
@@ -78,7 +78,7 @@ const ContentTabs = () => {
       <HStack pt={8} w="full" h="full" alignSelf="center">
         {activeTabKey === "general" && <General />}
         {activeTabKey === "training-data" && <TrainingData />}
-        {activeTabKey === "testing-data" && <TestingData />}
+        {activeTabKey === "test-output" && <TestingData />}
       </HStack>
     </VStack>
   );
