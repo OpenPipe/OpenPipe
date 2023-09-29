@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "trainer"
+version = "0.1.0"
+description = ""
+authors = ["Kyle Corbitt <kyle@openpipe.ai>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+modal = "^0.53.3665"
+python-dotenv = "^1.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+openapi-python-client = "^0.15.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

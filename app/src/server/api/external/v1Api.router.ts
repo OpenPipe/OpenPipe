@@ -14,6 +14,7 @@ import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { TRPCError } from "@trpc/server";
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { captureFineTuneUsage } from "~/utils/analytics/serverAnalytics";
+import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -115,13 +116,9 @@ export const v1ApiRouter = createOpenApiRouter({
       const fineTune = await prisma.fineTune.findUnique({
         where: { slug: modelSlug },
         include: {
-          dataset: {
+          pruningRules: {
             select: {
-              pruningRules: {
-                select: {
-                  textToMatch: true,
-                },
-              },
+              textToMatch: true,
             },
           },
         },
@@ -135,28 +132,40 @@ export const v1ApiRouter = createOpenApiRouter({
           code: "FORBIDDEN",
         });
       }
-      if (!fineTune.inferenceUrls.length) {
-        throw new TRPCError({
-          message: "The model is not set up for inference",
-          code: "BAD_REQUEST",
-        });
-      }
 
-      let completion: ChatCompletion;
       try {
-        completion = await getCompletion(
-          reqPayload.data,
-          fineTune.inferenceUrls,
-          fineTune.dataset.pruningRules.map((rule) => rule.textToMatch),
-        );
+        if (fineTune.pipelineVersion === 1) {
+          if (!fineTune.inferenceUrls.length) {
+            throw new TRPCError({
+              message: "The model is not set up for inference",
+              code: "BAD_REQUEST",
+            });
+          }
+
+          return await getCompletion(
+            reqPayload.data,
+            fineTune.inferenceUrls,
+            fineTune.pruningRules.map((rule) => rule.textToMatch),
+          );
+        } else if (fineTune.pipelineVersion === 2) {
+          if (!fineTune.modalDeployId) {
+            throw new TRPCError({
+              message: "The model is not set up for inference",
+              code: "BAD_REQUEST",
+            });
+          }
+          return await getCompletion2(
+            reqPayload.data,
+            fineTune.modalDeployId,
+            fineTune.pruningRules.map((rule) => rule.textToMatch),
+          );
+        }
       } catch (error: unknown) {
         throw new TRPCError({
           message: `Failed to get completion: ${(error as Error).message}`,
           code: "BAD_REQUEST",
         });
       }
-
-      return completion;
     }),
 
   report: openApiProtectedProc

@@ -38,6 +38,9 @@ export const env = createEnv({
       .string()
       .default("10")
       .transform((val) => parseInt(val)),
+    LOCAL_HOST_PUBLIC_URL: z.string().optional(),
+    MODAL_TOKEN_ID: z.string().optional(),
+    MODAL_TOKEN_SECRET: z.string().optional(),
   },
 
   /**
@@ -82,6 +85,9 @@ export const env = createEnv({
     AZURE_STORAGE_CONTAINER_NAME: process.env.AZURE_STORAGE_CONTAINER_NAME,
     WORKER_CONCURRENCY: process.env.WORKER_CONCURRENCY,
     WORKER_MAX_POOL_SIZE: process.env.WORKER_MAX_POOL_SIZE,
+    LOCAL_HOST_PUBLIC_URL: process.env.LOCAL_HOST_PUBLIC_URL,
+    MODAL_TOKEN_ID: process.env.MODAL_TOKEN_ID,
+    MODAL_TOKEN_SECRET: process.env.MODAL_TOKEN_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

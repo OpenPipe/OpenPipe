@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { it, expect } from "vitest";
 import { getCompletion, templatePrompt } from "./getCompletion";
 import { type ChatCompletionCreateParams } from "openai/resources/chat";

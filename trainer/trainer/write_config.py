@@ -1,7 +1,10 @@
 import yaml
 
-def write_config(config_path, base_model, num_epochs, training_file, model_id, out_path):
-      config = {
+
+def write_config(
+    config_path, base_model, num_epochs, training_file, model_id, out_path
+):
+    config = {
         "base_model": base_model,
         "base_model_config": base_model,
         "model_type": "LlamaForCausalLM",
@@ -9,9 +12,8 @@ def write_config(config_path, base_model, num_epochs, training_file, model_id, o
         "is_llama_derived_model": True,
         "load_in_8bit": True,
         "strict": False,
-        "datasets": [
-            {"path": training_file, "type": "alpaca_instruct.load_no_prompt"}
-        ],
+        "datasets": [{"path": training_file, "type": "alpaca_instruct.load_no_prompt"}],
+        "dataset_processes": 8,
         "val_set_size": 0.05,
         "output_dir": out_path,
         "sequence_len": 4096,
@@ -45,8 +47,8 @@ def write_config(config_path, base_model, num_epochs, training_file, model_id, o
             "eos_token": "</s>",
             "unk_token": "<unk>",
         },
-        "save_safetensors": True
-      }
+        "save_safetensors": True,
+    }
 
-      print("Saving config")
-      yaml.dump(config, open(config_path, "w"))
+    print("Saving config")
+    yaml.dump(config, open(config_path, "w"))

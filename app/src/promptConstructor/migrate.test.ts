@@ -1,4 +1,3 @@
-import "dotenv/config";
 import dedent from "dedent";
 import { expect, test } from "vitest";
 import { migrate1to2, migrate2to3 } from "./migrate";
