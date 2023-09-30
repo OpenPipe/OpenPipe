@@ -16,6 +16,7 @@ export const uploadTrainingData = defineTask<UploadTrainingDataJob>(
   "uploadTrainingData",
   async (task) => {
     const { fineTuneId } = task;
+    console.log("uploadTrainingData", { fineTuneId, sample_tag: "sample_value" });
     const fineTune = await prisma.fineTune.findUnique({
       where: { id: fineTuneId },
       select: {
