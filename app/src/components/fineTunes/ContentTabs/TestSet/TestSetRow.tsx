@@ -40,13 +40,7 @@ const TestSetRow = ({
       <Td>
         <FormattedInput prunedInput={prunedInput} />
       </Td>
-      <Td
-        sx={{
-          borderLeft: "1px solid",
-          borderRight: "1px solid",
-          borderColor: "gray.100",
-        }}
-      >
+      <Td borderLeft="1px solid" borderRight="1px solid" borderColor="gray.100">
         <FormattedOutput output={originalOutput} />
       </Td>
       <Td>
