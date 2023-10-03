@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -12,6 +13,7 @@ import {
   requireIsProjectAdmin,
   requireNothing,
 } from "~/utils/accessControl";
+import { success } from "~/utils/errorHandling/standardResponses";
 
 export const projectsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -74,23 +76,68 @@ export const projectsRouter = createTRPCRouter({
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
+    const { apiKeys, ...rest } = proj;
+
+    const openAiApiKey = apiKeys.find((apiKey) => apiKey.provider === "OPENAI")?.apiKey ?? null;
+    const condensedOpenAIKey = openAiApiKey
+      ? openAiApiKey.slice(0, 5) + "..." + openAiApiKey.slice(-5)
+      : null;
+
     return {
-      ...proj,
+      ...rest,
       role: userRole?.role ?? null,
+      openpipeApiKey: apiKeys.find((apiKey) => apiKey.provider === "OPENPIPE")?.apiKey ?? null,
+      condensedOpenAIKey,
     };
   }),
   update: protectedProcedure
-    .input(z.object({ id: z.string(), updates: z.object({ name: z.string() }) }))
+    .input(
+      z.object({
+        id: z.string(),
+        updates: z.object({
+          name: z.string().optional(),
+          openaiApiKey: z.string().nullable().optional(),
+        }),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       await requireCanModifyProject(input.id, ctx);
-      return await prisma.project.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          name: input.updates.name,
-        },
-      });
+      if (input.updates.name) {
+        await prisma.project.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            name: input.updates.name,
+          },
+        });
+      }
+      if (input.updates.openaiApiKey !== undefined) {
+        const transactionActions: Prisma.PrismaPromise<unknown>[] = [
+          // Delete the existing API key
+          prisma.apiKey.deleteMany({
+            where: {
+              projectId: input.id,
+              provider: "OPENAI",
+            },
+          }),
+        ];
+        // Create a new API key if the user has provided one
+        if (input.updates.openaiApiKey !== null) {
+          transactionActions.push(
+            prisma.apiKey.create({
+              data: {
+                name: "OpenAI API Key",
+                projectId: input.id,
+                apiKey: input.updates.openaiApiKey,
+                provider: "OPENAI",
+              },
+            }),
+          );
+        }
+        await prisma.$transaction(transactionActions);
+      }
+      return success("Project updated");
     }),
   create: protectedProcedure
     .input(z.object({ name: z.string() }))
