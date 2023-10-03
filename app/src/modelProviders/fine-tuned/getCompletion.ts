@@ -5,7 +5,6 @@ import {
   type ChatCompletionCreateParams,
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
-import { APIError } from "openai/error";
 
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { type CompletionResponse } from "../types";

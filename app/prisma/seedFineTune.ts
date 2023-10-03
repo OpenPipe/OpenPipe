@@ -80,5 +80,6 @@ await prisma.fineTune.create({
     projectId: project.id,
     datasetId: dataset.id,
     inferenceUrls: process.env.FINE_TUNE_INFERENCE_URL ? [process.env.FINE_TUNE_INFERENCE_URL] : [],
+    pipelineVersion: 1,
   },
 });
