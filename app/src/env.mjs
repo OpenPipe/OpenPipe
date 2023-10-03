@@ -38,8 +38,6 @@ export const env = createEnv({
       .default("10")
       .transform((val) => parseInt(val)),
     LOCAL_HOST_PUBLIC_URL: z.string().optional(),
-    MODAL_TOKEN_ID: z.string().optional(),
-    MODAL_TOKEN_SECRET: z.string().optional(),
     MODAL_ENVIRONMENT: z.string().default("dev"),
     MODAL_USE_LOCAL_DEPLOYMENTS: z
       .string()
@@ -90,8 +88,6 @@ export const env = createEnv({
     WORKER_CONCURRENCY: process.env.WORKER_CONCURRENCY,
     WORKER_MAX_POOL_SIZE: process.env.WORKER_MAX_POOL_SIZE,
     LOCAL_HOST_PUBLIC_URL: process.env.LOCAL_HOST_PUBLIC_URL,
-    MODAL_TOKEN_ID: process.env.MODAL_TOKEN_ID,
-    MODAL_TOKEN_SECRET: process.env.MODAL_TOKEN_SECRET,
     MODAL_ENVIRONMENT: process.env.MODAL_ENVIRONMENT,
     MODAL_USE_LOCAL_DEPLOYMENTS: process.env.MODAL_USE_LOCAL_DEPLOYMENTS,
   },
