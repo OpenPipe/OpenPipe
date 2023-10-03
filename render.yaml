@@ -2,7 +2,7 @@ databases:
   - name: querykey-prod
     databaseName: querykey_prod
     user: querykey
-    plan: standard
+    plan: "pro plus"
 
 services:
   - type: web

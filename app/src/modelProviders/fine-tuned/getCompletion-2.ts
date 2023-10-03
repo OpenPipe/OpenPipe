@@ -34,8 +34,6 @@ export async function getCompletion2(
     n: rest.n ?? 1,
   });
 
-  console.log("resp", resp);
-
   return {
     id,
     object: "chat.completion",
@@ -78,12 +76,7 @@ const formatAssistantMessage = (finalCompletion: string): ChatCompletionMessage 
     content: null,
   };
 
-  console.log(
-    "finalCompletion",
-    `"${finalCompletion}"`,
-    finalCompletion.startsWith(FUNCTION_CALL_TAG),
-  );
-  if (finalCompletion.startsWith(FUNCTION_CALL_TAG)) {
+  if (finalCompletion.trim().startsWith(FUNCTION_CALL_TAG)) {
     const functionName = finalCompletion.split(FUNCTION_CALL_TAG)[1]?.split(FUNCTION_ARGS_TAG)[0];
     const functionArgs = finalCompletion.split(FUNCTION_ARGS_TAG)[1];
     message.function_call = { name: functionName as string, arguments: functionArgs ?? "" };
