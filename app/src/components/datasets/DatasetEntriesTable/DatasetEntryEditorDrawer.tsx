@@ -18,13 +18,13 @@ import {
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { BsPlus } from "react-icons/bs";
 import { type DatasetEntryType } from "@prisma/client";
+import { isEqual } from "lodash-es";
 
 import { api } from "~/utils/api";
 import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EditableMessage from "./EditableMessage";
 import EntryTypeDropdown from "./EntryTypeDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { hashObjectFast } from "~/utils/hashObject";
 
 export default function DatasetEntryEditorDrawer({
   datasetEntryId,
@@ -58,13 +58,11 @@ export default function DatasetEntryEditorDrawer({
     }
   }, [savedInputMessages, savedOutputMessage]);
 
-  const initialHash = useMemo(
-    () => hashObjectFast({ input: datasetEntry?.input, output: datasetEntry?.output }),
-    [datasetEntry],
-  );
-  const updatedHash = useMemo(
-    () => hashObjectFast({ input: inputMessagesToSave, output: outputMessageToSave }),
-    [inputMessagesToSave, outputMessageToSave],
+  const hasUpdates = useMemo(
+    () =>
+      !isEqual(datasetEntry?.input, inputMessagesToSave) ||
+      !isEqual(datasetEntry?.output, outputMessageToSave),
+    [datasetEntry, inputMessagesToSave, outputMessageToSave],
   );
 
   const updateMutation = api.datasetEntries.update.useMutation();
@@ -181,7 +179,7 @@ export default function DatasetEntryEditorDrawer({
         <DrawerFooter bgColor="orange.50">
           <HStack>
             <Button
-              isDisabled={isLoading || initialHash === updatedHash}
+              isDisabled={isLoading || !hasUpdates}
               onClick={() => {
                 setInputMessagesToSave(savedInputMessages);
                 setOutputMessageToSave(savedOutputMessage);
@@ -191,7 +189,7 @@ export default function DatasetEntryEditorDrawer({
             </Button>
             <Button
               isLoading={savingInProgress}
-              isDisabled={isLoading || initialHash === updatedHash}
+              isDisabled={isLoading || !hasUpdates}
               onClick={onSave}
               colorScheme="orange"
             >

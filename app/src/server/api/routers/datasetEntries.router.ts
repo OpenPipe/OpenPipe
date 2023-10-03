@@ -15,7 +15,7 @@ import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessCo
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
-import hashObject from "~/utils/hashObject";
+import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";

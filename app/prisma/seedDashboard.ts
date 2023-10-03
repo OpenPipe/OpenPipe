@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { type Prisma } from "@prisma/client";
 
 import { prisma } from "~/server/db";
-import { hashRequest } from "~/utils/hashObject";
+import { hashRequest } from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 
 const MODEL_RESPONSE_TEMPLATES: {

@@ -10,7 +10,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { comparators, defaultFilterableFields } from "~/state/logFiltersSlice";
 import { requireCanViewProject } from "~/utils/accessControl";
-import hashObject from "~/utils/hashObject";
+import hashObject from "~/server/utils/hashObject";
 
 // create comparator type based off of comparators
 const comparatorToSqlExpression = (comparator: (typeof comparators)[number], value: string) => {
