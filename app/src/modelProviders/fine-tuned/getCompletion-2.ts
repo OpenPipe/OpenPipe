@@ -6,6 +6,7 @@ import {
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 import { runInference } from "~/utils/modal";
+import { pruneInputMessages } from "./getCompletion";
 
 export async function getCompletion2(
   huggingFaceModelId: string,
@@ -15,8 +16,8 @@ export async function getCompletion2(
   const { messages, ...rest } = input;
   const id = uuidv4();
 
-  const formattedInput = formatInputMessages(messages, stringsToPrune);
-  const templatedPrompt = `### Instruction:\n${formattedInput}\n### Response:\n`;
+  const prunedInput = pruneInputMessages(messages, stringsToPrune);
+  const templatedPrompt = `### Instruction:\n${prunedInput}\n### Response:\n`;
 
   if (!templatedPrompt) {
     throw new Error("Failed to generate prompt");
@@ -51,21 +52,6 @@ export async function getCompletion2(
     },
   };
 }
-
-export const formatInputMessages = (
-  messages: ChatCompletionMessage[],
-  stringsToPrune: string[],
-) => {
-  for (const stringToPrune of stringsToPrune) {
-    for (const message of messages) {
-      if (message.content) {
-        message.content = message.content.replaceAll(stringToPrune, "");
-      }
-    }
-  }
-  messages = messages.filter((message) => message.content !== "" || message.function_call);
-  return JSON.stringify(messages);
-};
 
 const FUNCTION_CALL_TAG = "<function>";
 const FUNCTION_ARGS_TAG = "<arguments>";

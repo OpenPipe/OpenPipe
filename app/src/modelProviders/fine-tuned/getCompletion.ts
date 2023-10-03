@@ -121,6 +121,15 @@ export async function getCompletion(
   };
 }
 
+export const getStringsToPrune = async (fineTuneId: string) => {
+  const pruningRules = await prisma.pruningRule.findMany({
+    where: { fineTuneId },
+    select: { textToMatch: true },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  });
+  return pruningRules.map((rule) => rule.textToMatch);
+};
+
 export const pruneInputMessages = (messages: ChatCompletionMessage[], stringsToPrune: string[]) => {
   for (const stringToPrune of stringsToPrune) {
     for (const message of messages) {
@@ -189,27 +198,3 @@ const parseCompletionMessage = (finalCompletion: string): ChatCompletionMessage 
   }
   return message;
 };
-
-// const STARTING_TEXT = '{"role":"assistant","content":"';
-
-// const deriveChoice = (finalCompletion: string, part: OpenAI.Completions.Completion) => {
-//   const choice: OpenAI.Chat.Completions.ChatCompletionChunk.Choice = {
-//     index: 0,
-//     delta: {},
-//     finish_reason: null,
-//   };
-//   const newText = part.choices[0]?.text;
-//   const combinedOutput = finalCompletion + (newText ?? "");
-//   const alreadyContainedStartingText = finalCompletion.includes(STARTING_TEXT);
-//   const containsStartingText = combinedOutput.includes(STARTING_TEXT);
-
-//   if (!alreadyContainedStartingText && containsStartingText) {
-//     choice["delta"]["role"] = "assistant";
-//   }
-
-//   if (containsStartingText && newText) {
-//     choice["delta"]["content"] = newText;
-//   }
-
-//   return choice;
-// };

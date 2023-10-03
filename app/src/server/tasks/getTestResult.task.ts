@@ -6,7 +6,11 @@ import { APIError } from "openai/error";
 import { prisma } from "~/server/db";
 import hashObject from "~/utils/hashObject";
 import defineTask from "./defineTask";
-import { pruneInputMessages, getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
+import {
+  pruneInputMessages,
+  getCompletion,
+  getStringsToPrune,
+} from "~/modelProviders/fine-tuned/getCompletion";
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 
@@ -32,13 +36,6 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
   const [fineTune, datasetEntry] = await prisma.$transaction([
     prisma.fineTune.findUnique({
       where: { id: fineTuneId },
-      include: {
-        pruningRules: {
-          select: {
-            textToMatch: true,
-          },
-        },
-      },
     }),
     prisma.datasetEntry.findUnique({
       where: { id: datasetEntryId },
@@ -51,12 +48,11 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
     where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
   });
 
-  const stringsToPrune = fineTune.pruningRules.map((rule) => rule.textToMatch);
-
   if (existingTestEntry?.output) return;
 
   let prunedInput = existingTestEntry?.prunedInput;
 
+  const stringsToPrune = await getStringsToPrune(fineTune.id);
   if (!existingTestEntry) {
     prunedInput = pruneInputMessages(
       datasetEntry.input as unknown as ChatCompletionMessage[],
@@ -124,11 +120,7 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
         });
         return;
       }
-      completion = await getCompletion2(
-        fineTune.huggingFaceModelId,
-        input,
-        fineTune.pruningRules.map((rule) => rule.textToMatch),
-      );
+      completion = await getCompletion2(fineTune.huggingFaceModelId, input, stringsToPrune);
     } else {
       await prisma.fineTuneTestingEntry.update({
         where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },

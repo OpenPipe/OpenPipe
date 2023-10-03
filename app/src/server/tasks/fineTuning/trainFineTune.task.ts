@@ -5,6 +5,7 @@ import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
 import {
   FUNCTION_ARGS_TAG,
   FUNCTION_CALL_TAG,
+  getStringsToPrune,
   pruneInputMessages,
 } from "~/modelProviders/fine-tuned/getCompletion";
 import { env } from "~/env.mjs";
@@ -29,11 +30,6 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
           },
         },
       },
-      pruningRules: {
-        select: {
-          textToMatch: true,
-        },
-      },
     },
   });
   if (!fineTune) return;
@@ -50,7 +46,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
     output: entry.datasetEntry.output,
   })) as unknown as TrainingRow[];
 
-  const stringsToPrune = fineTune.pruningRules.map((rule) => rule.textToMatch);
+  const stringsToPrune = await getStringsToPrune(fineTune.id);
   const formattedRows = trainingEntries.map((entry) => formatTrainingRow(entry, stringsToPrune));
 
   const jsonlStr = formattedRows.map((row) => JSON.stringify(row)).join("\n");

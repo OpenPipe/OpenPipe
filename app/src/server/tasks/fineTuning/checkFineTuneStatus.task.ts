@@ -3,7 +3,7 @@ import { type ChatCompletionMessage } from "openai/resources/chat";
 import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { trainingStatus } from "~/utils/modal";
-import { pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
+import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { countLlamaChatTokens } from "~/utils/countTokens";
 import { queueGetTestResult } from "../getTestResult.task";
 
@@ -31,11 +31,7 @@ const runOnce = async () => {
             where: { id: job.id },
           });
           if (!fineTune) return;
-          const pruningRules = await prisma.pruningRule.findMany({
-            where: { fineTuneId: fineTune.id },
-            select: { textToMatch: true },
-          });
-          const stringsToPrune = pruningRules.map((rule) => rule.textToMatch);
+          const stringsToPrune = await getStringsToPrune(fineTune.id);
           const datasetEntries = await prisma.datasetEntry.findMany({
             where: { datasetId: fineTune.datasetId, outdated: false, type: "TEST" },
             select: { id: true, input: true },
