@@ -8,6 +8,7 @@ import hashObject from "~/utils/hashObject";
 import defineTask from "./defineTask";
 import { pruneInputMessages, getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
+import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 
 export type GetTestResultJob = {
   fineTuneId: string;
@@ -96,15 +97,48 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
 
   let shouldRetry = false;
   let completion;
+  const input = {
+    model: `openpipe:${fineTune.slug}`,
+    messages: datasetEntry.input as unknown as ChatCompletionMessage[],
+  };
   try {
-    completion = await getCompletion(
-      {
-        model: `openpipe:${fineTune.slug}`,
-        messages: datasetEntry.input as unknown as ChatCompletionMessage[],
-      },
-      fineTune.inferenceUrls,
-      stringsToPrune,
-    );
+    if (fineTune.pipelineVersion === 0) {
+      if (!fineTune.inferenceUrls.length) {
+        await prisma.fineTuneTestingEntry.update({
+          where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+          data: {
+            errorMessage: "The model is not set up for inference",
+          },
+        });
+        return;
+      }
+
+      completion = await getCompletion(input, fineTune.inferenceUrls, stringsToPrune);
+    } else if (fineTune.pipelineVersion === 1) {
+      if (!fineTune.huggingFaceModelId) {
+        await prisma.fineTuneTestingEntry.update({
+          where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+          data: {
+            errorMessage: "The model is not set up for inference",
+          },
+        });
+        return;
+      }
+      completion = await getCompletion2(
+        fineTune.huggingFaceModelId,
+        input,
+        fineTune.pruningRules.map((rule) => rule.textToMatch),
+      );
+    } else {
+      await prisma.fineTuneTestingEntry.update({
+        where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+        data: {
+          errorMessage: "The model is not set up for inference",
+        },
+      });
+      return;
+    }
+
     const completionMessage = completion.choices[0]?.message;
     if (!completionMessage) throw new Error("No completion returned");
     const outputTokens = countLlamaChatTokensInMessages([completionMessage]);

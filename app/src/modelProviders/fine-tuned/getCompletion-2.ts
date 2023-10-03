@@ -43,7 +43,7 @@ export async function getCompletion2(
     model: input.model,
     choices: resp.choices.map((choice, i) => ({
       index: i,
-      message: formatAssistantMessage(choice.text),
+      message: formatAssistantMessage(choice.text.trim()),
       finish_reason: choice.finish_reason,
     })),
     usage: {
