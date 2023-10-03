@@ -18,7 +18,7 @@ export const TableHeader = () => {
 
 type TestingEntry = RouterOutputs["datasetEntries"]["listTestingEntries"]["entries"][number];
 
-const TestingDataRow = ({
+const TestSetRow = ({
   prunedInput,
   output,
   datasetEntry: { output: originalOutput },
@@ -137,4 +137,4 @@ const FormattedMessage = ({ message }: { message: ChatCompletionMessage }) => {
   return <Text>{message.content}</Text>;
 };
 
-export default TestingDataRow;
+export default TestSetRow;

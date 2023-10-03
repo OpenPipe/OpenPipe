@@ -3,7 +3,7 @@ import { Button, VStack, HStack, Text, Divider, Box } from "@chakra-ui/react";
 
 import General from "./General/General";
 import TrainingData from "./TrainingData/TrainingData";
-import TestingData from "./TestingData/TestingData";
+import TestSet from "./TestSet/TestSet";
 import { useRouter } from "next/router";
 
 const tabs = [
@@ -16,8 +16,8 @@ const tabs = [
     title: "Training Data",
   },
   {
-    key: "test-output",
-    title: "Test Output",
+    key: "test-set",
+    title: "Test Set",
   },
 ] as const;
 
@@ -76,9 +76,9 @@ const ContentTabs = () => {
       </HStack>
       <Divider />
       <HStack pt={8} w="full" h="full" alignSelf="center">
-        {activeTabKey === "general" && <General />}
+        {(!activeTabKey || activeTabKey === "general") && <General />}
         {activeTabKey === "training-data" && <TrainingData />}
-        {activeTabKey === "test-output" && <TestingData />}
+        {activeTabKey === "test-set" && <TestSet />}
       </HStack>
     </VStack>
   );

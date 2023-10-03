@@ -4,11 +4,11 @@ import Link from "next/link";
 
 import { useFineTune, useTestingEntries } from "~/utils/hooks";
 import ContentCard from "../ContentCard";
-import TestingDataRow, { TableHeader } from "./TestingDataRow";
-import TestingDataPaginator from "./TestingDataPaginator";
+import TestSetRow, { TableHeader } from "./TestSetRow";
+import TestSetPaginator from "./TestSetPaginator";
 import { useState } from "react";
 
-const TestingData = () => {
+const TestSet = () => {
   const fineTune = useFineTune().data;
 
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -48,7 +48,7 @@ const TestingData = () => {
                 <TableHeader />
                 <Tbody>
                   {entries.map((entry) => (
-                    <TestingDataRow
+                    <TestSetRow
                       key={entry.id}
                       prunedInput={entry.prunedInput}
                       output={entry.output}
@@ -68,9 +68,9 @@ const TestingData = () => {
           )}
         </ContentCard>
       </VStack>
-      <TestingDataPaginator py={8} />
+      <TestSetPaginator py={8} />
     </VStack>
   );
 };
 
-export default TestingData;
+export default TestSet;
