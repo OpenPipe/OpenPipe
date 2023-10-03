@@ -89,17 +89,7 @@ export async function getCompletion(
   } catch (e) {
     throw new Error("Failed to query the model");
   }
-  let respText;
-  try {
-    respText = (await resp.json()) as { text: [string, ...string[]] };
-  } catch (e) {
-    throw new APIError(
-      429,
-      undefined,
-      "Too many requests caused badly formatted output",
-      undefined,
-    );
-  }
+  const respText = (await resp.json()) as { text: [string, ...string[]] };
 
   const finalCompletion = respText.text[0].split("### Response:")[1]?.trim();
 
@@ -147,9 +137,9 @@ export const pruneInputMessages = (messages: ChatCompletionMessage[], stringsToP
 export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
   const { messages } = input;
 
-  const formattedInput = pruneInputMessages(messages, stringsToPrune);
+  const prunedInput = pruneInputMessages(messages, stringsToPrune);
 
-  return `### Instruction:\n${formattedInput}\n### Response:`;
+  return `### Instruction:\n${prunedInput}\n### Response:`;
 };
 
 const sendRequestWithBackup = async (
