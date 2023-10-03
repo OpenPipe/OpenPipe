@@ -176,7 +176,6 @@ model OutputEvaluation {
     @@unique([modelResponseId, evaluationId])
 }
 
-
 enum DatasetFileUploadStatus {
     PENDING
     DOWNLOADING
@@ -189,15 +188,15 @@ enum DatasetFileUploadStatus {
 model DatasetFileUpload {
     id String @id @default(uuid()) @db.Uuid
 
-    datasetId String   @db.Uuid
-    dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-    blobName  String
-    fileName String
-    fileSize Int
-    progress Int @default(0) // Percentage
-    status   DatasetFileUploadStatus @default(PENDING)
-    uploadedAt DateTime
-    visible  Boolean @default(true)
+    datasetId    String                  @db.Uuid
+    dataset      Dataset                 @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+    blobName     String
+    fileName     String
+    fileSize     Int
+    progress     Int                     @default(0) // Percentage
+    status       DatasetFileUploadStatus @default(PENDING)
+    uploadedAt   DateTime
+    visible      Boolean                 @default(true)
     errorMessage String?
 
     createdAt DateTime @default(now())
@@ -207,12 +206,12 @@ model DatasetFileUpload {
 model Dataset {
     id String @id @default(uuid()) @db.Uuid
 
-    name                String
-    datasetEntries      DatasetEntry[]
-    fineTunes           FineTune[]
-    datasetFileUploads  DatasetFileUpload[]
-    pruningRules        PruningRule[]
-    trainingRatio  Float @default(0.8)
+    name               String
+    datasetEntries     DatasetEntry[]
+    fineTunes          FineTune[]
+    datasetFileUploads DatasetFileUpload[]
+    pruningRules       PruningRule[]
+    trainingRatio      Float               @default(0.8)
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -224,7 +223,7 @@ model Dataset {
 model FineTuneTrainingEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    datasetEntryId String     @db.Uuid
+    datasetEntryId String       @db.Uuid
     datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
     fineTuneId String   @db.Uuid
@@ -244,18 +243,18 @@ enum DatasetEntryType {
 model DatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    loggedCallId String? @db.Uuid
+    loggedCallId String?     @db.Uuid
     loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
-    input        Json  @default("[]")
+    input        Json               @default("[]")
     output       Json?
     inputTokens  Int
     outputTokens Int
     matchedRules PruningRuleMatch[]
-    type DatasetEntryType
-    outdated Boolean @default(false)
-    sortKey  String // Used to sort entries in the UI
-    persistentId String  @default(uuid()) @db.Uuid
+    type         DatasetEntryType
+    outdated     Boolean            @default(false)
+    sortKey      String // Used to sort entries in the UI
+    persistentId String             @default(uuid()) @db.Uuid
 
     fineTuneTrainingEntries     FineTuneTrainingEntry[]
     fineTuneTestDatasetEntries  FineTuneTestingEntry[]
@@ -289,15 +288,15 @@ model PruningRule {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@index ([datasetId, createdAt, id])
+    @@index([datasetId, createdAt, id])
 }
 
 model PruningRuleMatch {
-    id           String       @id @default(uuid()) @db.Uuid
-    pruningRuleId String      @db.Uuid
-    pruningRule   PruningRule @relation(fields: [pruningRuleId], references: [id], onDelete: Cascade)
-    datasetEntryId String     @db.Uuid
-    datasetEntry  DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+    id             String       @id @default(uuid()) @db.Uuid
+    pruningRuleId  String       @db.Uuid
+    pruningRule    PruningRule  @relation(fields: [pruningRuleId], references: [id], onDelete: Cascade)
+    datasetEntryId String       @db.Uuid
+    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
     @@unique([pruningRuleId, datasetEntryId])
 }
@@ -363,9 +362,9 @@ model LoggedCall {
     projectId String   @db.Uuid
     project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    model           String?
-    tags            LoggedCallTag[]
-    datasetEntries  DatasetEntry[]
+    model          String?
+    tags           LoggedCallTag[]
+    datasetEntries DatasetEntry[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -427,11 +426,17 @@ model LoggedCallTag {
     @@index([projectId, name, value])
 }
 
+enum ApiKeyProvider {
+    OPENPIPE
+    OPENAI
+}
+
 model ApiKey {
     id String @id @default(uuid()) @db.Uuid
 
     name   String
     apiKey String @unique
+    provider ApiKeyProvider @default(OPENPIPE)
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -481,11 +486,11 @@ model User {
 
     role UserRole @default(USER)
 
-    accounts            Account[]
-    sessions            Session[]
-    projectUsers        ProjectUser[]
-    projects            Project[]
-    sentUserInvitations UserInvitation[]
+    accounts               Account[]
+    sessions               Session[]
+    projectUsers           ProjectUser[]
+    projects               Project[]
+    sentUserInvitations    UserInvitation[]
     authoredDatasetEntries DatasetEntry[]
 
     createdAt DateTime @default(now())
@@ -517,11 +522,9 @@ model VerificationToken {
 }
 
 enum FineTuneStatus {
-    UPLOADING_DATASET
     PENDING
+    TRANSFERRING_TRAINING_DATA
     TRAINING
-    AWAITING_DEPLOYMENT
-    DEPLOYING
     DEPLOYED
     ERROR
 }
@@ -536,29 +539,36 @@ enum BaseModel {
 model FineTune {
     id String @id @default(uuid()) @db.Uuid
 
-    slug                    String @unique
-    baseModel               BaseModel @default(LLAMA2_7b)
-    status                  FineTuneStatus @default(PENDING)
-    errorMessage            String?
-    trainingBlobName        String?
-    trainingStartedAt       DateTime?
-    trainingFinishedAt      DateTime?
-    deploymentStartedAt     DateTime?
-    deploymentFinishedAt    DateTime?
-    inferenceUrls           String[] @default([])
+    slug                 String         @unique
+    baseModel            BaseModel      @default(LLAMA2_7b)
+    status               FineTuneStatus @default(PENDING)
+    errorMessage         String?
+    trainingBlobName     String?
+    trainingStartedAt    DateTime?
+    trainingFinishedAt   DateTime?
+    deploymentStartedAt  DateTime?
+    deploymentFinishedAt DateTime?
+    inferenceUrls        String[]       @default([])
 
     trainingEntries     FineTuneTrainingEntry[]
     testingEntries      FineTuneTestingEntry[]
     pruningRules        PruningRule[]
 
-    datasetId String   @db.Uuid
-    dataset    Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-    
+    datasetId String  @db.Uuid
+    dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    // Keep a GPU instance running for this fine-tune at all times. Expensive.
+    keepWarm Boolean @default(false)
+
+    modalTrainingJobId String?
+    huggingFaceModelId String?
+    pipelineVersion    Int
 }
 
 model FineTuneTestingEntry {

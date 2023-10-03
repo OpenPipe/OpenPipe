@@ -29,30 +29,28 @@ export const v1ApiRouter = createOpenApiRouter({
     )
     .output(
       z.object({
-        trainingBlobDownloadUrl: z.string(),
+        trainingDataUrl: z.string(),
+        huggingFaceModelId: z.string(),
         baseModel: BaseModelEnum,
       }),
     )
     .mutation(async ({ input }) => {
       const fineTune = await prisma.fineTune.findUnique({
         where: { id: input.fineTuneId },
-        select: {
-          trainingBlobName: true,
-          baseModel: true,
-        },
       });
 
       if (!fineTune)
         throw new TRPCError({ code: "NOT_FOUND", message: "Unable to find matching FineTune" });
 
-      if (!fineTune.trainingBlobName || !fineTune.baseModel)
+      if (!fineTune.trainingBlobName || !fineTune.baseModel || !fineTune.huggingFaceModelId)
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
-          message: "trainingBlobName or baseModel not set",
+          message: "missing precondition",
         });
 
       return {
-        trainingBlobDownloadUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),
+        trainingDataUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),
+        huggingFaceModelId: fineTune.huggingFaceModelId,
         baseModel: fineTune.baseModel as typeof BaseModelEnum._type,
       };
     }),

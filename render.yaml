@@ -24,6 +24,11 @@ services:
       # liveness and the liveness check fails.
       - key: PORT
         value: 10000
+    scaling:
+      minInstances: 1
+      maxInstances: 10
+      targetMemoryPercent: 60 # optional if targetCPUPercent is set (valid: 1-90)
+      targetCPUPercent: 60 # optional if targetMemory is set (valid: 1-90)
 
   - type: web
     name: querykey-prod-wss

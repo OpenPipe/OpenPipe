@@ -16,11 +16,11 @@ export const createOpenApiContext = (opts: CreateNextContextOptions) => {
   const authenticatedSystemKey = req.headers.authorization?.split(" ")[1] as string | null;
 
   if (!authenticatedSystemKey) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Missing Docker Secret" });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Missing System Key" });
   }
 
   if (authenticatedSystemKey !== env.AUTHENTICATED_SYSTEM_KEY) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Docker Secret" });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid System Key" });
   }
 
   return {};
