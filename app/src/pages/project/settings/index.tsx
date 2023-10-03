@@ -25,15 +25,11 @@ import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectD
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import MemberTable from "~/components/projectSettings/MemberTable";
 import { InviteMemberModal } from "~/components/projectSettings/InviteMemberModal";
+import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
 
 export default function Settings() {
   const utils = api.useContext();
   const { data: selectedProject } = useSelectedProject();
-
-  const apiKey =
-    selectedProject?.apiKeys?.length && selectedProject?.apiKeys[0]
-      ? selectedProject?.apiKeys[0].apiKey
-      : "";
 
   const updateMutation = api.projects.update.useMutation();
   const [onSaveName] = useHandledAsyncCallback(async () => {
@@ -153,14 +149,24 @@ export default function Settings() {
                 your code.
               </Text>
             </VStack>
-            <CopiableCode code={apiKey} />
+            <CopiableCode code={selectedProject?.openpipeApiKey ?? ""} />
+            <Divider />
+            <VStack alignItems="flex-start">
+              <Subtitle>OpenAI API Key</Subtitle>
+              <Text fontSize="sm">
+                Add your OpenAI API key to fine-tune GPT-3.5 Turbo models through OpenPipe. This key
+                is not necessary to use OpenPipe with OpenAI base models such as GPT-4 or GPT-3.5
+                Turbo or fine-tuned Llama2 models.
+              </Text>
+            </VStack>
+            <OpenaiApiKeyDisplay />
             <Divider />
             {selectedProject?.personalProjectUserId ? (
               <VStack alignItems="flex-start">
                 <Subtitle>Personal Project</Subtitle>
                 <Text fontSize="sm">
-                  This project is {selectedProject?.personalProjectUser?.name}'s personal project.
-                  It cannot be deleted.
+                  This is {selectedProject?.personalProjectUser?.name}'s personal project. It cannot
+                  be deleted.
                 </Text>
               </VStack>
             ) : (
