@@ -1,5 +1,6 @@
 import { Th, Td, Thead, Tr, Text, VStack } from "@chakra-ui/react";
 import { type ChatCompletionMessage } from "openai/resources/chat";
+import SyntaxHighlighter from "react-syntax-highlighter";
 
 import { type RouterOutputs } from "~/utils/api";
 
@@ -107,11 +108,26 @@ const FormattedMessage = ({ message }: { message: ChatCompletionMessage }) => {
       // ignore
     }
     return (
-      <VStack alignItems="flex-start">
+      <VStack alignItems="flex-start" whiteSpace="pre-wrap">
         <Text fontWeight="bold">{name}</Text>
         {args &&
           (parsedArgs ? (
-            <Text>{JSON.stringify(JSON.parse(args), null, 4)}</Text>
+            <SyntaxHighlighter
+              customStyle={{
+                overflowX: "unset",
+                width: "100%",
+                flex: 1,
+                backgroundColor: "#f0f0f0",
+              }}
+              language="json"
+              // style={docco}
+              lineProps={{
+                style: { wordBreak: "break-all", whiteSpace: "pre-wrap" },
+              }}
+              wrapLines
+            >
+              {JSON.stringify(JSON.parse(args), null, 4)}
+            </SyntaxHighlighter>
           ) : (
             <Text>{args}</Text>
           ))}
