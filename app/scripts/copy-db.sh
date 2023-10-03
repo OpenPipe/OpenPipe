@@ -11,7 +11,7 @@ report_progress() {
 # Function to parse the connection string and set variables
 parse_connection_string() {
     TEMP_URL=${PROD_DATABASE_URL#postgres://}
-    USERNAME=$(echo $TEMP_URL | cut -d':' -f1)
+    DB_USERNAME=$(echo $TEMP_URL | cut -d':' -f1)
     PASSWORD=$(echo $TEMP_URL | cut -d':' -f2 | cut -d'@' -f1)
     HOST=$(echo $TEMP_URL | cut -d'@' -f2 | cut -d'/' -f1)
     DB_NAME=$(echo $TEMP_URL | cut -d'/' -f2 | cut -d'?' -f1)
@@ -33,7 +33,7 @@ dump_prod_db() {
     # Set the password as an environment variable
     export PGPASSWORD="$PASSWORD"
     
-    pg_dump -v -Fc -h "$HOST" -U "$USERNAME" -d "$DB_NAME" > /tmp/openpipe-prod.dump
+    pg_dump -v -Fc -h "$HOST" -U "$DB_USERNAME" -d "$DB_NAME" > /tmp/openpipe-prod.dump
     
     # Unset the password environment variable
     unset PGPASSWORD
