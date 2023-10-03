@@ -1,4 +1,3 @@
-import { $ } from "execa";
 import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { uploadTrainingDataFile } from "~/utils/azure/server";
@@ -9,27 +8,17 @@ import {
   formatInputMessages,
 } from "~/modelProviders/fine-tuned/getCompletion";
 import { env } from "~/env.mjs";
-import { deployFineTuneTask, trainerDirectory } from "./deployFineTune.task";
+import { startTraining } from "~/utils/modal";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
 };
 
-export async function trainModel(fineTuneId: string): Promise<void> {
-  const baseUrl = (env.LOCAL_HOST_PUBLIC_URL ?? env.NEXT_PUBLIC_HOST) + "/api/internal/v1";
-  const apiKey = env.AUTHENTICATED_SYSTEM_KEY;
-
-  await $({
-    stdio: "inherit",
-    cwd: trainerDirectory,
-  })`poetry run modal run trainer/entrypoint.py --fine-tune-id=${fineTuneId} --api-key=${apiKey} --base-url=${baseUrl}`;
-}
-
 export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async (task) => {
   const { fineTuneId } = task;
   const fineTune = await prisma.fineTune.findUnique({
     where: { id: fineTuneId },
-    select: {
+    include: {
       trainingEntries: {
         select: {
           datasetEntry: {
@@ -52,7 +41,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
   await prisma.fineTune.update({
     where: { id: fineTuneId },
     data: {
-      status: "TRANSFERING_TRAINING_DATA",
+      status: "TRANSFERRING_TRAINING_DATA",
     },
   });
 
@@ -80,16 +69,44 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
     },
   });
 
-  await trainModel(fineTuneId);
+  // When we kick off a training job the trainer needs to be able to report its
+  // progress somewhere, and since the trainer will be running remotely on Modal
+  // the callback URL needs to be a publicly available host.
+  const callbackBaseUrl = (env.LOCAL_HOST_PUBLIC_URL ?? env.NEXT_PUBLIC_HOST) + "/api/internal/v1";
 
-  await prisma.fineTune.update({
-    where: { id: fineTuneId },
-    data: {
-      status: "AWAITING_DEPLOYMENT",
-    },
-  });
-
-  await deployFineTuneTask.enqueue({ fineTuneId });
+  console.log("going to start training");
+  try {
+    const resp = await startTraining({
+      fine_tune_id: fineTuneId,
+      base_url: callbackBaseUrl,
+    });
+    await prisma.fineTune.update({
+      where: { id: fineTuneId },
+      data: {
+        status: "TRAINING",
+        trainingStartedAt: new Date(),
+        modalTrainingJobId: resp.call_id,
+      },
+    });
+  } catch (e) {
+    console.error("Failed to start training", e);
+    await prisma.fineTune.update({
+      where: { id: fineTuneId },
+      data: {
+        status: "ERROR",
+      },
+    });
+  }
+  // const resp = await fetch(startTraining, {
+  //   method: "POST",
+  //   body: JSON.stringify({
+  //     fine_tune_id: fineTune.id,
+  //     base_url: callbackBaseUrl,
+  //   }),
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  // });
 });
 
 const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {

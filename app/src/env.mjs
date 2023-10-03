@@ -12,7 +12,6 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     RESTRICT_PRISMA_LOGS: z
       .string()
-      .optional()
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
     GITHUB_CLIENT_ID: z.string().min(1),
@@ -41,6 +40,11 @@ export const env = createEnv({
     LOCAL_HOST_PUBLIC_URL: z.string().optional(),
     MODAL_TOKEN_ID: z.string().optional(),
     MODAL_TOKEN_SECRET: z.string().optional(),
+    MODAL_ENVIRONMENT: z.string().default("dev"),
+    MODAL_USE_LOCAL_DEPLOYMENTS: z
+      .string()
+      .default("false")
+      .transform((val) => val.toLowerCase() === "true"),
   },
 
   /**
@@ -88,6 +92,8 @@ export const env = createEnv({
     LOCAL_HOST_PUBLIC_URL: process.env.LOCAL_HOST_PUBLIC_URL,
     MODAL_TOKEN_ID: process.env.MODAL_TOKEN_ID,
     MODAL_TOKEN_SECRET: process.env.MODAL_TOKEN_SECRET,
+    MODAL_ENVIRONMENT: process.env.MODAL_ENVIRONMENT,
+    MODAL_USE_LOCAL_DEPLOYMENTS: process.env.MODAL_USE_LOCAL_DEPLOYMENTS,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

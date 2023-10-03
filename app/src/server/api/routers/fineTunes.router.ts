@@ -111,7 +111,7 @@ export const fineTunesRouter = createTRPCRouter({
           slug: input.slug,
           baseModel: input.baseModel,
           datasetId: input.datasetId,
-          pipelineVersion: 2,
+          pipelineVersion: 1,
         },
         include: {
           dataset: {

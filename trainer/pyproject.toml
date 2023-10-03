@@ -2,7 +2,7 @@
 name = "trainer"
 version = "0.1.0"
 description = ""
-authors = ["Kyle Corbitt <kyle@openpipe.ai>"]
+authors = ["Kyle Corbitt <kyle@openpipe.ai>", "David Corbitt <davidlcorbitt@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

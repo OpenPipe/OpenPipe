@@ -1,4 +1,4 @@
-import { type TaskList, run } from "graphile-worker";
+import { type TaskList, run, parseCronItems } from "graphile-worker";
 import "dotenv/config";
 import "../../../sentry.server.config";
 
@@ -7,8 +7,8 @@ import { queryModel } from "./queryModel.task";
 import { runNewEval } from "./runNewEval.task";
 import { importDatasetEntries } from "./importDatasetEntries.task";
 import { trainFineTune } from "./fineTuning/trainFineTune.task";
-import { deployFineTuneTask } from "./fineTuning/deployFineTune.task";
-import defineTask from "./defineTask";
+import type defineTask from "./defineTask";
+import { checkFineTuneStatus } from "./fineTuning/checkFineTuneStatus.task";
 
 console.log("Starting worker");
 
@@ -17,7 +17,7 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   runNewEval,
   importDatasetEntries,
   trainFineTune,
-  deployFineTuneTask,
+  checkFineTuneStatus,
 ];
 
 const taskList = registeredTasks.reduce((acc, task) => {
@@ -34,6 +34,17 @@ const runner = await run({
   noHandleSignals: false,
   pollInterval: 1000,
   taskList,
+  parsedCronItems: parseCronItems([
+    {
+      task: checkFineTuneStatus.task.identifier,
+      // run once a minute for now
+      pattern: "* * * * *",
+      identifier: checkFineTuneStatus.task.identifier,
+      options: {
+        backfillPeriod: 1000 * 60,
+      },
+    },
+  ]),
 });
 
 console.log("Worker successfully started");

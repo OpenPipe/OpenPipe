@@ -12,6 +12,7 @@ from peft import PeftModel
 import shutil
 import torch
 import logging
+import os
 
 logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -20,11 +21,13 @@ logging.basicConfig(
 )
 
 
-def do_train(fine_tune_id: str, base_url: str, api_key: str):
+def do_train(fine_tune_id: str, base_url: str, model_cache_dir: str):
     logging.info(f"Beginning training process for model {fine_tune_id}")
 
     training_info_resp = get_training_info.sync_detailed(
-        client=AuthenticatedClient(base_url=base_url, token=api_key),
+        client=AuthenticatedClient(
+            base_url=base_url, token=os.environ["AUTHENTICATED_SYSTEM_KEY"]
+        ),
         fine_tune_id=fine_tune_id,
     )
 
@@ -59,7 +62,9 @@ def do_train(fine_tune_id: str, base_url: str, api_key: str):
 
     config_path = "/tmp/training-config.yaml"
     lora_model_path = "/tmp/trained-model"
-    merged_model_path = "/tmp/merged-model"
+    merged_model_path = f"{model_cache_dir}/{training_info.hugging_face_model_id}"
+
+    os.makedirs(merged_model_path, exist_ok=True)
 
     # Clear the lora_model_path and merged_model_path directories
     shutil.rmtree(lora_model_path, ignore_errors=True)
@@ -92,14 +97,17 @@ def do_train(fine_tune_id: str, base_url: str, api_key: str):
     # All this persisting and reloading shouldn't be necessary, but for some reason
     # if I skip it the model doesn't load when we pull it from HuggingFace. Need to
     # debug.
+    logging.info(f"Saving the final model to {merged_model_path}")
     model.save_pretrained(merged_model_path)
 
-    logging.info("Reloading the merged model")
+    tokenizer = AutoTokenizer.from_pretrained(lora_model_path)
+    tokenizer.save_pretrained(merged_model_path)
+
+    logging.info("Reloading the final model")
     model = AutoModelForCausalLM.from_pretrained(merged_model_path)
 
     logging.info("Pushing model to HuggingFace")
     model.push_to_hub(training_info.hugging_face_model_id, private=True)
 
     logging.info("Pushing tokenizer to HuggingFace")
-    tokenizer = AutoTokenizer.from_pretrained(lora_model_path)
     tokenizer.push_to_hub(training_info.hugging_face_model_id, private=True)

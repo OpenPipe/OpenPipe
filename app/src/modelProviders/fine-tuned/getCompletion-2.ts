@@ -6,32 +6,11 @@ import {
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-
-// Keep in sync with inference_server/api.py
-type ModalInput = {
-  prompt: string;
-  n?: number;
-  max_tokens?: number;
-  temperature?: number;
-};
-
-const outputSchema = z.object({
-  id: z.string(),
-  choices: z.array(
-    z.object({
-      text: z.string(),
-      finish_reason: z.enum(["stop", "length"]),
-    }),
-  ),
-  usage: z.object({
-    prompt_tokens: z.number(),
-    completion_tokens: z.number(),
-  }),
-});
+import { runInference } from "~/utils/modal";
 
 export async function getCompletion2(
+  huggingFaceModelId: string,
   input: ChatCompletionCreateParams,
-  modalDeployId: string,
   stringsToPrune: string[],
 ): Promise<ChatCompletion> {
   const { messages, ...rest } = input;
@@ -44,38 +23,34 @@ export async function getCompletion2(
     throw new Error("Failed to generate prompt");
   }
 
-  const modalInput: ModalInput = {
-    prompt: templatedPrompt,
-    max_tokens: rest.max_tokens,
-    temperature: rest.temperature ?? 0,
-    n: rest.n ?? 1,
-  };
-
   if (input.stream) {
     throw new Error("Streaming is not yet supported");
   }
 
-  const resp = await fetch(`https://openpipe--${modalDeployId}.modal.run`, {
-    method: "POST",
-    body: JSON.stringify(modalInput),
+  const resp = await runInference({
+    model: huggingFaceModelId,
+    prompt: templatedPrompt,
+    max_tokens: rest.max_tokens,
+    temperature: rest.temperature ?? 0,
+    n: rest.n ?? 1,
   });
 
-  const parsedResponse = outputSchema.parse(await resp.json());
+  console.log("resp", resp);
 
   return {
     id,
     object: "chat.completion",
     created: Date.now(),
     model: input.model,
-    choices: parsedResponse.choices.map((choice, i) => ({
+    choices: resp.choices.map((choice, i) => ({
       index: i,
       message: formatAssistantMessage(choice.text),
       finish_reason: choice.finish_reason,
     })),
     usage: {
-      prompt_tokens: parsedResponse.usage.prompt_tokens,
-      completion_tokens: parsedResponse.usage.completion_tokens,
-      total_tokens: parsedResponse.usage.prompt_tokens + parsedResponse.usage.completion_tokens,
+      prompt_tokens: resp.usage.prompt_tokens,
+      completion_tokens: resp.usage.completion_tokens,
+      total_tokens: resp.usage.prompt_tokens + resp.usage.completion_tokens,
     },
   };
 }

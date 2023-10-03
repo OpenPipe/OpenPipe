@@ -123,6 +123,7 @@ export const v1ApiRouter = createOpenApiRouter({
           },
         },
       });
+
       if (!fineTune) {
         throw new TRPCError({ message: "The model does not exist", code: "NOT_FOUND" });
       }
@@ -134,7 +135,7 @@ export const v1ApiRouter = createOpenApiRouter({
       }
 
       try {
-        if (fineTune.pipelineVersion === 1) {
+        if (fineTune.pipelineVersion === 0) {
           if (!fineTune.inferenceUrls.length) {
             throw new TRPCError({
               message: "The model is not set up for inference",
@@ -147,20 +148,26 @@ export const v1ApiRouter = createOpenApiRouter({
             fineTune.inferenceUrls,
             fineTune.pruningRules.map((rule) => rule.textToMatch),
           );
-        } else if (fineTune.pipelineVersion === 2) {
-          if (!fineTune.modalDeployId) {
+        } else if (fineTune.pipelineVersion === 1) {
+          if (!fineTune.huggingFaceModelId) {
             throw new TRPCError({
               message: "The model is not set up for inference",
               code: "BAD_REQUEST",
             });
           }
           return await getCompletion2(
+            fineTune.huggingFaceModelId,
             reqPayload.data,
-            fineTune.modalDeployId,
             fineTune.pruningRules.map((rule) => rule.textToMatch),
           );
+        } else {
+          throw new TRPCError({
+            message: "The model is not set up for inference",
+            code: "BAD_REQUEST",
+          });
         }
       } catch (error: unknown) {
+        console.error(error);
         throw new TRPCError({
           message: `Failed to get completion: ${(error as Error).message}`,
           code: "BAD_REQUEST",

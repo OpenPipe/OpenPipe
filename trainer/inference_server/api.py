@@ -13,6 +13,7 @@ class Usage(BaseModel):
 
 
 class Input(BaseModel):
+    model: str
     prompt: str
     n: int = Field(1, alias="n")
     max_tokens: int = Field(4096, alias="max_tokens")

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import * as recast from "recast";
 import { type ASTNode } from "ast-types";
 import { fileURLToPath } from "url";

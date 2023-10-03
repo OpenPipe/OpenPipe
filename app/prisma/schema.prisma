@@ -516,10 +516,8 @@ model VerificationToken {
 
 enum FineTuneStatus {
     PENDING
-    TRANSFERING_TRAINING_DATA
+    TRANSFERRING_TRAINING_DATA
     TRAINING
-    AWAITING_DEPLOYMENT
-    DEPLOYING
     DEPLOYED
     ERROR
 }
@@ -557,10 +555,10 @@ model FineTune {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    modalDeployId            String?
-    modalMinGpus             Int     @default(0)
-    modalRequestsPerInstance Int     @default(40)
+    // Keep a GPU instance running for this fine-tune at all times. Expensive.
+    keepWarm Boolean @default(false)
 
+    modalTrainingJobId String?
     huggingFaceModelId String?
     pipelineVersion    Int
 }
