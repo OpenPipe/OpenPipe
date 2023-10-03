@@ -12,7 +12,7 @@ import {
 } from "openai/resources/chat/completions";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { TRPCError } from "@trpc/server";
-import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
+import { getCompletion, getStringsToPrune } from "~/modelProviders/fine-tuned/getCompletion";
 import { captureFineTuneUsage } from "~/utils/analytics/serverAnalytics";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 
@@ -115,13 +115,6 @@ export const v1ApiRouter = createOpenApiRouter({
       const modelSlug = reqPayload.data.model.replace("openpipe:", "");
       const fineTune = await prisma.fineTune.findUnique({
         where: { slug: modelSlug },
-        include: {
-          pruningRules: {
-            select: {
-              textToMatch: true,
-            },
-          },
-        },
       });
 
       if (!fineTune) {
@@ -135,6 +128,7 @@ export const v1ApiRouter = createOpenApiRouter({
       }
 
       try {
+        const stringsToPrune = await getStringsToPrune(fineTune.id);
         if (fineTune.pipelineVersion === 0) {
           if (!fineTune.inferenceUrls.length) {
             throw new TRPCError({
@@ -143,11 +137,7 @@ export const v1ApiRouter = createOpenApiRouter({
             });
           }
 
-          return await getCompletion(
-            reqPayload.data,
-            fineTune.inferenceUrls,
-            fineTune.pruningRules.map((rule) => rule.textToMatch),
-          );
+          return await getCompletion(reqPayload.data, fineTune.inferenceUrls, stringsToPrune);
         } else if (fineTune.pipelineVersion === 1) {
           if (!fineTune.huggingFaceModelId) {
             throw new TRPCError({
@@ -155,11 +145,7 @@ export const v1ApiRouter = createOpenApiRouter({
               code: "BAD_REQUEST",
             });
           }
-          return await getCompletion2(
-            fineTune.huggingFaceModelId,
-            reqPayload.data,
-            fineTune.pruningRules.map((rule) => rule.textToMatch),
-          );
+          return await getCompletion2(fineTune.huggingFaceModelId, reqPayload.data, stringsToPrune);
         } else {
           throw new TRPCError({
             message: "The model is not set up for inference",

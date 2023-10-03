@@ -19,13 +19,6 @@ export async function getExperimentsCompletion(
     const modelSlug = input.model.replace("openpipe:", "");
     const fineTune = await prisma.fineTune.findUnique({
       where: { slug: modelSlug },
-      include: {
-        pruningRules: {
-          select: {
-            textToMatch: true,
-          },
-        },
-      },
     });
     if (!fineTune) {
       throw new Error("The model does not exist");
@@ -37,7 +30,7 @@ export async function getExperimentsCompletion(
     const completion = await getCompletion(
       input,
       fineTune.inferenceUrls,
-      fineTune.pruningRules.map((rule) => rule.textToMatch),
+      await getStringsToPrune(fineTune.id),
     );
     return {
       type: "success",
