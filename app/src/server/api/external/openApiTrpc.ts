@@ -5,9 +5,12 @@ import { type NextApiResponse } from "next/types";
 import superjson from "superjson";
 import { type OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
-import * as Sentry from "@sentry/nextjs";
+import * as SentryModule from "@sentry/nextjs";
 
 import { prisma } from "~/server/db";
+import { ensureDefaultExport } from "~/utils/utils";
+
+const Sentry = ensureDefaultExport(SentryModule);
 
 type CreateContextOptions = {
   key:

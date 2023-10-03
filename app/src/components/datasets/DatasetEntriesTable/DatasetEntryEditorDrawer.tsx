@@ -18,6 +18,7 @@ import {
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { BsPlus } from "react-icons/bs";
 import { type DatasetEntryType } from "@prisma/client";
+import { isEqual } from "lodash-es";
 
 import { api } from "~/utils/api";
 import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
@@ -34,7 +35,7 @@ export default function DatasetEntryEditorDrawer({
 }) {
   const utils = api.useContext();
 
-  const datasetEntry = useDatasetEntry(datasetEntryId).data;
+  const { data: datasetEntry, isLoading } = useDatasetEntry(datasetEntryId);
 
   const savedInputMessages = useMemo(
     () => datasetEntry?.input as unknown as ChatCompletionMessageParam[],
@@ -56,6 +57,13 @@ export default function DatasetEntryEditorDrawer({
       setOutputMessageToSave(savedOutputMessage);
     }
   }, [savedInputMessages, savedOutputMessage]);
+
+  const hasUpdates = useMemo(
+    () =>
+      !isEqual(datasetEntry?.input, inputMessagesToSave) ||
+      !isEqual(datasetEntry?.output, outputMessageToSave),
+    [datasetEntry, inputMessagesToSave, outputMessageToSave],
+  );
 
   const updateMutation = api.datasetEntries.update.useMutation();
   const [onSave, savingInProgress] = useHandledAsyncCallback(async () => {
@@ -171,6 +179,7 @@ export default function DatasetEntryEditorDrawer({
         <DrawerFooter bgColor="orange.50">
           <HStack>
             <Button
+              isDisabled={isLoading || !hasUpdates}
               onClick={() => {
                 setInputMessagesToSave(savedInputMessages);
                 setOutputMessageToSave(savedOutputMessage);
@@ -178,7 +187,12 @@ export default function DatasetEntryEditorDrawer({
             >
               Reset
             </Button>
-            <Button isLoading={savingInProgress} onClick={onSave} colorScheme="orange">
+            <Button
+              isLoading={savingInProgress}
+              isDisabled={isLoading || !hasUpdates}
+              onClick={onSave}
+              colorScheme="orange"
+            >
               Save
             </Button>
           </HStack>

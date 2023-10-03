@@ -1,10 +1,11 @@
 import { type Prisma } from "@prisma/client";
 import { type JsonValue, type JsonObject } from "type-fest";
+
 import modelProviders from "~/modelProviders/modelProviders";
 import { prisma } from "~/server/db";
 import { wsConnection } from "~/utils/wsConnection";
 import { runEvalsForOutput } from "../utils/evaluations";
-import hashObject from "../utils/hashObject";
+import hashObject from "~/server/utils/hashObject";
 import defineTask from "./defineTask";
 import parsePromptConstructor from "~/promptConstructor/parse";
 

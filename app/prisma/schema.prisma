@@ -256,7 +256,8 @@ model DatasetEntry {
     sortKey      String // Used to sort entries in the UI
     persistentId String             @default(uuid()) @db.Uuid
 
-    fineTuneTrainingEntries FineTuneTrainingEntry[]
+    fineTuneTrainingEntries    FineTuneTrainingEntry[]
+    fineTuneTestDatasetEntries FineTuneTestingEntry[]
 
     authoringUserId String? @db.Uuid // The user who created this version of the entry (if any)
     authoringUser   User?   @relation(fields: [authoringUserId], references: [id])
@@ -433,8 +434,8 @@ enum ApiKeyProvider {
 model ApiKey {
     id String @id @default(uuid()) @db.Uuid
 
-    name   String
-    apiKey String @unique
+    name     String
+    apiKey   String         @unique
     provider ApiKeyProvider @default(OPENPIPE)
 
     projectId String  @db.Uuid
@@ -550,6 +551,7 @@ model FineTune {
     inferenceUrls        String[]       @default([])
 
     trainingEntries FineTuneTrainingEntry[]
+    testingEntries  FineTuneTestingEntry[]
     pruningRules    PruningRule[]
 
     datasetId String  @db.Uuid
@@ -567,4 +569,27 @@ model FineTune {
     modalTrainingJobId String?
     huggingFaceModelId String?
     pipelineVersion    Int
+}
+
+model FineTuneTestingEntry {
+    id String @id @default(uuid()) @db.Uuid
+
+    cacheKey          String?
+    prunedInputTokens Int
+    prunedInput       String
+    outputTokens      Int?
+    output            Json?
+    errorMessage      String?
+
+    fineTuneId String   @db.Uuid
+    fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+
+    datasetEntryId String       @db.Uuid
+    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([fineTuneId, datasetEntryId])
+    @@index([cacheKey])
 }

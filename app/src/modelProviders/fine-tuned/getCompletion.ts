@@ -19,13 +19,6 @@ export async function getExperimentsCompletion(
     const modelSlug = input.model.replace("openpipe:", "");
     const fineTune = await prisma.fineTune.findUnique({
       where: { slug: modelSlug },
-      include: {
-        pruningRules: {
-          select: {
-            textToMatch: true,
-          },
-        },
-      },
     });
     if (!fineTune) {
       throw new Error("The model does not exist");
@@ -37,7 +30,7 @@ export async function getExperimentsCompletion(
     const completion = await getCompletion(
       input,
       fineTune.inferenceUrls,
-      fineTune.pruningRules.map((rule) => rule.textToMatch),
+      await getStringsToPrune(fineTune.id),
     );
     return {
       type: "success",
@@ -121,10 +114,16 @@ export async function getCompletion(
   };
 }
 
-export const formatInputMessages = (
-  messages: ChatCompletionMessage[],
-  stringsToPrune: string[],
-) => {
+export const getStringsToPrune = async (fineTuneId: string) => {
+  const pruningRules = await prisma.pruningRule.findMany({
+    where: { fineTuneId },
+    select: { textToMatch: true },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  });
+  return pruningRules.map((rule) => rule.textToMatch);
+};
+
+export const pruneInputMessages = (messages: ChatCompletionMessage[], stringsToPrune: string[]) => {
   for (const stringToPrune of stringsToPrune) {
     for (const message of messages) {
       if (message.content) {
@@ -139,15 +138,16 @@ export const formatInputMessages = (
 export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
   const { messages } = input;
 
-  const formattedInput = formatInputMessages(messages, stringsToPrune);
+  const prunedInput = pruneInputMessages(messages, stringsToPrune);
 
-  return `### Instruction:\n${formattedInput}\n### Response:`;
+  return `### Instruction:\n${prunedInput}\n### Response:`;
 };
 
 const sendRequestWithBackup = async (
   inferenceUrls: string[],
   completionParams: Record<string, unknown>,
 ) => {
+  if (!inferenceUrls.length) throw new Error("No inference urls are available for this model");
   // choose random index from inferenceUrls
   const initialIndex = Math.floor(Math.random() * inferenceUrls.length);
   let resp;
@@ -191,27 +191,3 @@ const parseCompletionMessage = (finalCompletion: string): ChatCompletionMessage 
   }
   return message;
 };
-
-// const STARTING_TEXT = '{"role":"assistant","content":"';
-
-// const deriveChoice = (finalCompletion: string, part: OpenAI.Completions.Completion) => {
-//   const choice: OpenAI.Chat.Completions.ChatCompletionChunk.Choice = {
-//     index: 0,
-//     delta: {},
-//     finish_reason: null,
-//   };
-//   const newText = part.choices[0]?.text;
-//   const combinedOutput = finalCompletion + (newText ?? "");
-//   const alreadyContainedStartingText = finalCompletion.includes(STARTING_TEXT);
-//   const containsStartingText = combinedOutput.includes(STARTING_TEXT);
-
-//   if (!alreadyContainedStartingText && containsStartingText) {
-//     choice["delta"]["role"] = "assistant";
-//   }
-
-//   if (containsStartingText && newText) {
-//     choice["delta"]["content"] = newText;
-//   }
-
-//   return choice;
-// };

@@ -1,7 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import { type JsonObject } from "type-fest";
-import hashObject from "./hashObject";
+
+import hashObject from "~/server/utils/hashObject";
 import { omit } from "lodash-es";
 import { queueQueryModel } from "../tasks/queryModel.task";
 import parsePromptConstructor from "~/promptConstructor/parse";

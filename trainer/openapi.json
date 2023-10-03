@@ -38,7 +38,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "trainingBlobDownloadUrl": {
+                    "trainingDataUrl": {
+                      "type": "string"
+                    },
+                    "huggingFaceModelId": {
                       "type": "string"
                     },
                     "baseModel": {
@@ -52,7 +55,8 @@
                     }
                   },
                   "required": [
-                    "trainingBlobDownloadUrl",
+                    "trainingDataUrl",
+                    "huggingFaceModelId",
                     "baseModel"
                   ],
                   "additionalProperties": false

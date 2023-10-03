@@ -41,7 +41,7 @@ const DatasetsTable = ({}) => {
         <VStack py={8}>
           <Icon as={FaTable} boxSize={16} color="gray.300" />
           <Text color="gray.400" fontSize="lg" fontWeight="bold">
-            No Datasets Found. Create your first dataset.
+            No datasets found. Create your first dataset.
           </Text>
         </VStack>
       )}

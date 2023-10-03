@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
+import { type Query } from "nextjs-routes";
 import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
+
 import { api } from "~/utils/api";
-import { NumberParam, useQueryParams } from "use-query-params";
 import { useAppStore } from "~/state/store";
 
 export const useExperiments = () => {
@@ -105,14 +106,36 @@ export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | un
 };
 
 export const usePageParams = () => {
-  const [pageParams, setPageParams] = useQueryParams({
-    page: NumberParam,
-    pageSize: NumberParam,
-  });
+  const router = useRouter();
 
-  const { page, pageSize } = pageParams;
+  const page = parseInt(router.query.page as string, 10) || 1;
+  const pageSize = parseInt(router.query.pageSize as string, 10) || 10;
 
-  return { page: page || 1, pageSize: pageSize || 10, setPageParams };
+  const setPageParams = (newPageParams: { page?: number; pageSize?: number }) => {
+    const updatedQuery = {
+      ...router.query,
+      ...newPageParams,
+    };
+
+    if (!newPageParams.page) {
+      delete updatedQuery.page;
+    }
+
+    if (!newPageParams.pageSize) {
+      delete updatedQuery.pageSize;
+    }
+
+    void router.push(
+      {
+        pathname: router.pathname,
+        query: updatedQuery as Query,
+      },
+      undefined,
+      { shallow: true },
+    );
+  };
+
+  return { page, pageSize, setPageParams };
 };
 
 export const useScenarios = () => {
@@ -198,6 +221,27 @@ export const useTrainingEntries = () => {
   const { data, isLoading, ...rest } = api.datasetEntries.listTrainingEntries.useQuery(
     { fineTuneId: fineTune?.id ?? "", page, pageSize },
     { enabled: !!fineTune?.id },
+  );
+
+  const [stableData, setStableData] = useState(data);
+
+  useEffect(() => {
+    // Prevent annoying flashes while logs are loading from the server
+    if (!isLoading) {
+      setStableData(data);
+    }
+  }, [data, isLoading]);
+
+  return { data: stableData, isLoading, ...rest };
+};
+
+export const useTestingEntries = (refetchInterval?: number) => {
+  const fineTune = useFineTune().data;
+  const { page, pageSize } = usePageParams();
+
+  const { data, isLoading, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
+    { fineTuneId: fineTune?.id ?? "", page, pageSize },
+    { enabled: !!fineTune?.id, refetchInterval },
   );
 
   const [stableData, setStableData] = useState(data);

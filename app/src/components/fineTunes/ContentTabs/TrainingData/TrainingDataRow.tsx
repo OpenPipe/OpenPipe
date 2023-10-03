@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Td, Thead, Tr, Text, Collapse } from "@chakra-ui/react";
+import { Th, Td, Thead, Tr, Text, Collapse } from "@chakra-ui/react";
 
 import { type RouterOutputs } from "~/utils/api";
 
@@ -7,8 +7,8 @@ export const TableHeader = () => {
   return (
     <Thead>
       <Tr>
-        <Td w="60%">Input</Td>
-        <Td>Output</Td>
+        <Th w="60%">Input</Th>
+        <Th>Output</Th>
       </Tr>
     </Thead>
   );

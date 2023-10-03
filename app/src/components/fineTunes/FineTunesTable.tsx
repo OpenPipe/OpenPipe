@@ -61,7 +61,7 @@ const FineTunesTable = ({}) => {
 
 export default FineTunesTable;
 
-const getStatusColor = (status: FineTuneStatus) => {
+export const getStatusColor = (status: FineTuneStatus) => {
   switch (status) {
     case "DEPLOYED":
       return "green.500";
