@@ -5,7 +5,7 @@ import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
 import {
   FUNCTION_ARGS_TAG,
   FUNCTION_CALL_TAG,
-  formatInputMessages,
+  pruneInputMessages,
 } from "~/modelProviders/fine-tuned/getCompletion";
 import { env } from "~/env.mjs";
 import { startTraining } from "~/utils/modal";
@@ -100,7 +100,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
 });
 
 const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {
-  const instruction = formatInputMessages(row.input, stringsToPrune);
+  const instruction = pruneInputMessages(row.input, stringsToPrune);
   let output: string;
   if (row.output?.function_call) {
     output = FUNCTION_CALL_TAG + row.output.function_call.name;
