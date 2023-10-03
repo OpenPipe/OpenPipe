@@ -5,7 +5,6 @@ import {
   type ChatCompletionCreateParams,
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 import { runInference } from "~/utils/modal";
 
 export async function getCompletion2(

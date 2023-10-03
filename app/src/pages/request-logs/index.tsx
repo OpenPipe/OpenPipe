@@ -1,29 +1,38 @@
 import { useState } from "react";
-import { Text, VStack, Divider, HStack, Box } from "@chakra-ui/react";
+import { Text, VStack, Divider, HStack, Box, IconButton, Icon } from "@chakra-ui/react";
+import { BiRefresh } from "react-icons/bi";
+import { FiFilter } from "react-icons/fi";
 
 import AppShell from "~/components/nav/AppShell";
 import LoggedCallTable from "~/components/requestLogs/LoggedCallsTable";
 import LoggedCallsPaginator from "~/components/requestLogs/LoggedCallsPaginator";
 import ActionButton from "~/components/ActionButton";
-import { useAppStore } from "~/state/store";
-import { FiFilter } from "react-icons/fi";
 import LogFilters from "~/components/requestLogs/LogFilters/LogFilters";
 import ColumnVisiblityDropdown from "~/components/requestLogs/ColumnVisiblityDropdown";
 import ExportButton from "~/components/requestLogs/ExportButton";
 import AddToDatasetButton from "~/components/requestLogs/AddToDatasetButton";
+import { api } from "~/utils/api";
 
 export default function LoggedCalls() {
-  const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
-
   const [filtersShown, setFiltersShown] = useState(true);
+
+  const utils = api.useContext();
 
   return (
     <AppShell title="Request Logs" requireAuth>
       <Box h="100vh" overflowY="scroll">
         <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
-          <Text fontSize="2xl" fontWeight="bold">
-            Request Logs
-          </Text>
+          <HStack>
+            <Text fontSize="2xl" fontWeight="bold">
+              Request Logs
+            </Text>
+            <IconButton
+              aria-label="Refresh logs"
+              variant="ghost"
+              icon={<Icon as={BiRefresh} boxSize={8} />}
+              onClick={() => void utils.loggedCalls.list.invalidate()}
+            />
+          </HStack>
           <Divider />
           <HStack w="full" justifyContent="flex-end">
             <AddToDatasetButton />
