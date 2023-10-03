@@ -97,16 +97,6 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
       },
     });
   }
-  // const resp = await fetch(startTraining, {
-  //   method: "POST",
-  //   body: JSON.stringify({
-  //     fine_tune_id: fineTune.id,
-  //     base_url: callbackBaseUrl,
-  //   }),
-  //   headers: {
-  //     "Content-Type": "application/json",
-  //   },
-  // });
 });
 
 const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {

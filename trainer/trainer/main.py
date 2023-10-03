@@ -1,6 +1,7 @@
 import modal
 from pydantic import BaseModel
 import fastapi
+import logging
 
 image = (
     modal.Image.from_registry(
@@ -39,6 +40,7 @@ def train(fine_tune_id: str, base_url: str):
     do_train(fine_tune_id, base_url, "/models")
 
     # Save the model to the cache volume
+    logging.info("Persisting model cache")
     stub.volume.commit()
 
     return {"status": "done"}

@@ -17,7 +17,7 @@ export async function getCompletion2(
   const id = uuidv4();
 
   const formattedInput = formatInputMessages(messages, stringsToPrune);
-  const templatedPrompt = `### Instruction:\n${formattedInput}\n### Response:`;
+  const templatedPrompt = `### Instruction:\n${formattedInput}\n### Response:\n`;
 
   if (!templatedPrompt) {
     throw new Error("Failed to generate prompt");
@@ -78,6 +78,12 @@ const formatAssistantMessage = (finalCompletion: string): ChatCompletionMessage 
     role: "assistant",
     content: null,
   };
+
+  console.log(
+    "finalCompletion",
+    `"${finalCompletion}"`,
+    finalCompletion.startsWith(FUNCTION_CALL_TAG),
+  );
   if (finalCompletion.startsWith(FUNCTION_CALL_TAG)) {
     const functionName = finalCompletion.split(FUNCTION_CALL_TAG)[1]?.split(FUNCTION_ARGS_TAG)[0];
     const functionArgs = finalCompletion.split(FUNCTION_ARGS_TAG)[1];

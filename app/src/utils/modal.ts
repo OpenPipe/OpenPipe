@@ -74,8 +74,5 @@ export const runInference = async (args: ModalInput) => {
     },
   });
 
-  const json = await resp.json();
-
-  console.log("GOT JSON", json);
-  return outputSchema.parse(json);
+  return outputSchema.parse(await resp.json());
 };
