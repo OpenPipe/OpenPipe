@@ -5,6 +5,7 @@ const config = defineConfig({
   test: {
     ...configDefaults, // Extending Vitest's default options
     setupFiles: ["./src/tests/helpers/setup.ts"],
+    globalSetup: ["./src/tests/helpers/globalSetup.ts"],
 
     // Unfortunately using threads seems to cause issues with isolated-vm
     threads: false,

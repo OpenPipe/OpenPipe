@@ -8,10 +8,35 @@ report_progress() {
     echo "--------------------------------------------"
 }
 
+# Function to parse the connection string and set variables
+parse_connection_string() {
+    TEMP_URL=${PROD_DATABASE_URL#postgres://}
+    USERNAME=$(echo $TEMP_URL | cut -d':' -f1)
+    PASSWORD=$(echo $TEMP_URL | cut -d':' -f2 | cut -d'@' -f1)
+    HOST=$(echo $TEMP_URL | cut -d'@' -f2 | cut -d'/' -f1)
+    DB_NAME=$(echo $TEMP_URL | cut -d'/' -f2 | cut -d'?' -f1)
+}
+
+# Function to check whether to dump the prod DB
+should_dump_prod_db() {
+    if [ ! -f "/tmp/openpipe-prod.db" ] || [ "$FORCE_DUMP" = "true" ]; then
+        return 0  # Should dump the prod DB
+    else
+        return 1  # Should not dump the prod DB
+    fi
+}
+
 # Function to dump the production database
 dump_prod_db() {
     report_progress "Dumping production database..."
-    pg_dump -v -Fc "${PROD_DATABASE_URL}" > /tmp/openpipe-prod.dump
+    
+    # Set the password as an environment variable
+    export PGPASSWORD="$PASSWORD"
+    
+    pg_dump -v -Fc -h "$HOST" -U "$USERNAME" -d "$DB_NAME" > /tmp/openpipe-prod.dump
+    
+    # Unset the password environment variable
+    unset PGPASSWORD
 }
 
 # Function to terminate connections to the dev database
@@ -38,18 +63,25 @@ restore_to_dev_db() {
     pg_restore -v --no-owner --no-privileges -d openpipe-dev /tmp/openpipe-prod.dump
 }
 
-# Function to clean up the dump file
-cleanup() {
-    report_progress "Cleaning up dump file..."
-    rm -f /tmp/openpipe-prod.dump
-}
-
-# Trap to ensure cleanup happens on exit
-trap cleanup EXIT
-
 # Main execution
+
+# Check for --force-dump flag
+if [[ "$@" == *"--force-dump"* ]]; then
+    FORCE_DUMP="true"
+else
+    FORCE_DUMP="false"
+fi
+
 source .env
-dump_prod_db
+parse_connection_string
+
+# Conditional check for dumping the prod DB
+if should_dump_prod_db; then
+    dump_prod_db
+else
+    report_progress "Skipping production database dump."
+fi
+
 terminate_dev_connections
 drop_dev_db
 create_dev_db

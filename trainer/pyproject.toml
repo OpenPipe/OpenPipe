@@ -2,23 +2,18 @@
 name = "trainer"
 version = "0.1.0"
 description = ""
-authors = ["David Corbitt <davidlcorbitt@gmail.com>"]
+authors = ["Kyle Corbitt <kyle@openpipe.ai>", "David Corbitt <davidlcorbitt@gmail.com>"]
 readme = "README.md"
-packages = [{include = "trainer"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
+modal = "^0.53.3665"
+python-dotenv = "^1.0.0"
+
 
 [tool.poetry.group.dev.dependencies]
-openapi-python-client = "^0.15.0"
-black = "^23.7.0"
-isort = "^5.12.0"
-autoflake = "^2.2.0"
-pytest = "^7.4.0"
-python-dotenv = "^1.0.0"
-pytest-asyncio = "^0.21.1"
-pytest-watch = "^4.2.0"
-pytest-testmon = "^2.0.12"
+black = "^23.9.1"
+openapi-python-client = "^0.15.2"
 
 [build-system]
 requires = ["poetry-core"]

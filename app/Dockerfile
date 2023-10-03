@@ -8,9 +8,9 @@ FROM base as deps
 
 WORKDIR /code
 
-COPY app/prisma app/package.json ./app/
-COPY client-libs/typescript/package.json ./client-libs/typescript/
-COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY app/prisma app/package.json /code/app/
+COPY client-libs/typescript/package.json /code/client-libs/typescript/
+COPY pnpm-lock.yaml pnpm-workspace.yaml /code/
 
 RUN cd app && pnpm install --frozen-lockfile
 
