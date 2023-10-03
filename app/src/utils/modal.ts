@@ -74,5 +74,12 @@ export const runInference = async (args: ModalInput) => {
     },
   });
 
-  return outputSchema.parse(await resp.json());
+  const json = await resp.json();
+  const output = outputSchema.safeParse(json);
+  if (output.success) {
+    return output.data;
+  } else {
+    console.error("Failed to parse output from modal. JSON: ", json, "Error:", output.error);
+    throw new Error("Failed to parse output from modal");
+  }
 };
