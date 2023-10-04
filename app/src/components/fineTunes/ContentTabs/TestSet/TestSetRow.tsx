@@ -116,7 +116,7 @@ const FormattedMessage = ({
       <VStack alignItems="flex-start" whiteSpace="pre-wrap">
         <HStack justifyContent="space-between" w="full">
           <Text fontWeight="bold">{name}</Text>
-          {score && <ColoredPercent value={score} />}
+          {score !== null && score !== undefined && <ColoredPercent value={score} />}
         </HStack>
         {args &&
           (parsedArgs ? (
