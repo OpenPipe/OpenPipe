@@ -7,7 +7,7 @@ import { type JsonValue } from "type-fest";
 import { shuffle } from "lodash-es";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { kysely, prisma } from "~/server/db";
+import { kysely } from "~/server/db";
 import { comparators, defaultFilterableFields } from "~/state/logFiltersSlice";
 import { requireCanViewProject } from "~/utils/accessControl";
 import hashObject from "~/server/utils/hashObject";
@@ -170,18 +170,13 @@ export const loggedCallsRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      const tags = await prisma.loggedCallTag.findMany({
-        distinct: ["name"],
-        where: {
-          projectId: input.projectId,
-        },
-        select: {
-          name: true,
-        },
-        orderBy: {
-          name: "asc",
-        },
-      });
+      const tags = await kysely
+        .selectFrom("LoggedCallTag")
+        .select("name")
+        .distinct()
+        .where("projectId", "=", input.projectId)
+        .orderBy("name")
+        .execute();
 
       return tags.map((tag) => tag.name);
     }),
