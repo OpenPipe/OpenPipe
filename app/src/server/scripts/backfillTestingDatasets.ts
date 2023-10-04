@@ -25,6 +25,9 @@ const fineTune = await prisma.fineTune.findUnique({
             outdated: false,
             type: "TEST",
           },
+          orderBy: {
+            sortKey: "desc",
+          },
         },
       },
     },
@@ -38,7 +41,7 @@ if (!fineTune) {
 let numEntries = 0;
 
 for (const entry of fineTune.dataset.datasetEntries) {
-  await queueGetTestResult(fineTune.id, entry.id);
+  await queueGetTestResult(fineTune.id, entry.id, true);
   numEntries++;
 }
 

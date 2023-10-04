@@ -13,10 +13,12 @@ import {
 } from "~/modelProviders/fine-tuned/getCompletion";
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
+import { calculateEntryScore } from "../utils/calculateEntryScore";
 
 export type GetTestResultJob = {
   fineTuneId: string;
   datasetEntryId: string;
+  skipCache: boolean;
   numPreviousTries: number;
 };
 
@@ -31,7 +33,7 @@ function calculateDelay(numPreviousTries: number): number {
 }
 
 export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async (task) => {
-  const { fineTuneId, datasetEntryId, numPreviousTries } = task;
+  const { fineTuneId, datasetEntryId, skipCache, numPreviousTries } = task;
 
   const [fineTune, datasetEntry] = await prisma.$transaction([
     prisma.fineTune.findUnique({
@@ -48,7 +50,7 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
     where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
   });
 
-  if (existingTestEntry?.output) return;
+  if (existingTestEntry?.output && !skipCache) return;
 
   let prunedInput = existingTestEntry?.prunedInput;
 
@@ -73,22 +75,24 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
     input: prunedInput,
   } as JsonValue);
 
-  const matchingTestEntry = await prisma.fineTuneTestingEntry.findFirst({
-    where: {
-      cacheKey,
-    },
-  });
-
-  if (matchingTestEntry?.output) {
-    await prisma.fineTuneTestingEntry.update({
-      where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
-      data: {
-        output: matchingTestEntry.output,
-        outputTokens: matchingTestEntry.outputTokens,
-        errorMessage: null,
+  if (!skipCache) {
+    const matchingTestEntry = await prisma.fineTuneTestingEntry.findFirst({
+      where: {
+        cacheKey,
       },
     });
-    return;
+
+    if (matchingTestEntry?.output) {
+      await prisma.fineTuneTestingEntry.update({
+        where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+        data: {
+          output: matchingTestEntry.output,
+          outputTokens: matchingTestEntry.outputTokens,
+          errorMessage: null,
+        },
+      });
+      return;
+    }
   }
 
   let shouldRetry = false;
@@ -133,6 +137,11 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
 
     const completionMessage = completion.choices[0]?.message;
     if (!completionMessage) throw new Error("No completion returned");
+    let score;
+    const originalOutput = datasetEntry.output as unknown as ChatCompletionMessage;
+    if (originalOutput.function_call) {
+      score = calculateEntryScore(originalOutput.function_call, completionMessage.function_call);
+    }
     const outputTokens = countLlamaChatTokensInMessages([completionMessage]);
     await prisma.fineTuneTestingEntry.update({
       where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
@@ -140,6 +149,7 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
         cacheKey,
         output: completionMessage as unknown as Prisma.InputJsonValue,
         outputTokens,
+        score,
         errorMessage: null,
       },
     });
@@ -162,6 +172,7 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
       {
         fineTuneId,
         datasetEntryId,
+        skipCache,
         numPreviousTries: numPreviousTries + 1,
       },
       { runAt: retryTime, priority: 3 },
@@ -169,6 +180,13 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
   }
 });
 
-export const queueGetTestResult = async (fineTuneId: string, datasetEntryId: string) => {
-  await getTestResult.enqueue({ fineTuneId, datasetEntryId, numPreviousTries: 0 });
+export const queueGetTestResult = async (
+  fineTuneId: string,
+  datasetEntryId: string,
+  skipCache = false,
+) => {
+  await getTestResult.enqueue(
+    { fineTuneId, datasetEntryId, skipCache, numPreviousTries: 0 },
+    { priority: 5 },
+  );
 };

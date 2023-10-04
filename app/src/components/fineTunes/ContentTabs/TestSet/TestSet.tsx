@@ -7,6 +7,7 @@ import ContentCard from "../ContentCard";
 import TestSetRow, { TableHeader } from "./TestSetRow";
 import TestSetPaginator from "./TestSetPaginator";
 import { useState } from "react";
+import ColoredPercent from "~/components/ColoredPercent";
 
 const TestSet = () => {
   const fineTune = useFineTune().data;
@@ -24,7 +25,7 @@ const TestSet = () => {
 
   if (!fineTune || !testingEntries) return null;
 
-  const { entries, count } = testingEntries;
+  const { entries, count, averageScore } = testingEntries;
 
   const isDeployed = fineTune.status === "DEPLOYED";
 
@@ -33,9 +34,10 @@ const TestSet = () => {
       <VStack w="full" alignItems="flex-start" spacing={4}>
         <ContentCard px={0} pb={0}>
           <HStack w="full" justifyContent="space-between" px={4}>
-            <Text fontWeight="bold" pb={2}>
-              Test Output ({count} rows)
-            </Text>
+            <HStack pb={2}>
+              <Text fontWeight="bold">Test Output ({count} rows)</Text>
+              {averageScore && <ColoredPercent value={averageScore} />}
+            </HStack>
             <Link href={{ pathname: "/datasets/[id]", query: { id: fineTune.datasetId } }}>
               <Text color="blue.600" px={2}>
                 View Dataset
@@ -54,6 +56,7 @@ const TestSet = () => {
                       output={entry.output}
                       outputTokens={entry.outputTokens}
                       datasetEntry={entry.datasetEntry}
+                      score={entry.score}
                     />
                   ))}
                 </Tbody>

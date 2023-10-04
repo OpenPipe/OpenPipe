@@ -1,6 +1,7 @@
-import { Th, Td, Thead, Tr, Text, VStack } from "@chakra-ui/react";
+import { Th, Td, Thead, Tr, Text, VStack, HStack } from "@chakra-ui/react";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import SyntaxHighlighter from "react-syntax-highlighter";
+import ColoredPercent from "~/components/ColoredPercent";
 
 import { type RouterOutputs } from "~/utils/api";
 
@@ -22,12 +23,14 @@ const TestSetRow = ({
   prunedInput,
   output,
   datasetEntry: { output: originalOutput },
+  score,
   errorMessage,
 }: {
   prunedInput: TestingEntry["prunedInput"];
   output: TestingEntry["output"];
   outputTokens: number | null;
   datasetEntry: TestingEntry["datasetEntry"];
+  score: number | null;
   errorMessage?: string;
 }) => {
   return (
@@ -44,7 +47,7 @@ const TestSetRow = ({
         <FormattedOutput output={originalOutput} />
       </Td>
       <Td>
-        <FormattedOutput output={output} errorMessage={errorMessage} />
+        <FormattedOutput output={output} errorMessage={errorMessage} score={score} />
       </Td>
     </Tr>
   );
@@ -76,9 +79,11 @@ const FormattedInput = ({ prunedInput }: { prunedInput: TestingEntry["prunedInpu
 
 const FormattedOutput = ({
   output,
+  score,
   errorMessage,
 }: {
   output: TestingEntry["output"];
+  score?: number | null;
   errorMessage?: string | null;
 }) => {
   if (errorMessage) {
@@ -88,10 +93,16 @@ const FormattedOutput = ({
   if (!output) return <Text color="gray.500">Pending</Text>;
 
   const message = output as unknown as ChatCompletionMessage;
-  return <FormattedMessage message={message} />;
+  return <FormattedMessage message={message} score={score} />;
 };
 
-const FormattedMessage = ({ message }: { message: ChatCompletionMessage }) => {
+const FormattedMessage = ({
+  message,
+  score,
+}: {
+  message: ChatCompletionMessage;
+  score?: number | null;
+}) => {
   if (message.function_call) {
     // return JSON.parse(message.function_call)
     const { name, arguments: args } = message.function_call;
@@ -103,7 +114,10 @@ const FormattedMessage = ({ message }: { message: ChatCompletionMessage }) => {
     }
     return (
       <VStack alignItems="flex-start" whiteSpace="pre-wrap">
-        <Text fontWeight="bold">{name}</Text>
+        <HStack justifyContent="space-between" w="full">
+          <Text fontWeight="bold">{name}</Text>
+          {score && <ColoredPercent value={score} />}
+        </HStack>
         {args &&
           (parsedArgs ? (
             <SyntaxHighlighter

@@ -1,11 +1,12 @@
-import { HStack, Icon, Text, useToken } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import { HStack, Icon, Text } from "@chakra-ui/react";
+import { BsCurrencyDollar } from "react-icons/bs";
+
 import { type PromptVariant } from "./types";
 import { cellPadding } from "./constants";
 import { api } from "~/utils/api";
-import chroma from "chroma-js";
-import { BsCurrencyDollar } from "react-icons/bs";
 import { CostTooltip } from "../tooltip/CostTooltip";
-import { useEffect, useState } from "react";
+import ColoredPercent from "../ColoredPercent";
 
 export default function VariantStats(props: { variant: PromptVariant }) {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -34,14 +35,6 @@ export default function VariantStats(props: { variant: PromptVariant }) {
     [data.awaitingCompletions, data.awaitingEvals],
   );
 
-  const [passColor, neutralColor, failColor] = useToken("colors", [
-    "green.500",
-    "gray.500",
-    "red.500",
-  ]);
-
-  const scale = chroma.scale([failColor, neutralColor, passColor]).domain([0, 0.5, 1]);
-
   const showNumFinished = data.scenarioCount > 0 && data.scenarioCount !== data.finishedCount;
 
   return (
@@ -63,9 +56,7 @@ export default function VariantStats(props: { variant: PromptVariant }) {
           return (
             <HStack key={result.id}>
               <Text>{result.label}</Text>
-              <Text color={scale(passedFrac).hex()} fontWeight="bold">
-                {(passedFrac * 100).toFixed(1)}%
-              </Text>
+              <ColoredPercent value={passedFrac} />
             </HStack>
           );
         })}
