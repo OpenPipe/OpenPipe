@@ -26,12 +26,16 @@ export const calculateEntryScore = (
   try {
     parsedGeneratedArgs = JSON.parse(generatedFunctionCall.arguments);
   } catch (e) {
-    return 0.5;
+    return 0;
   }
-  if (!parsedGeneratedArgs) return 0.5;
-  const numOriginalArgs = Object.keys(parsedOriginalArgs).length;
-  const numMatchingArgs = Object.keys(parsedOriginalArgs).filter(
-    (key) => parsedOriginalArgs?.[key] === parsedGeneratedArgs?.[key],
-  ).length;
-  return 0.5 + (numMatchingArgs / numOriginalArgs) * 0.5;
+  if (!parsedGeneratedArgs) return 0;
+  try {
+    const numOriginalArgs = Object.keys(parsedOriginalArgs).length;
+    const numMatchingArgs = Object.keys(parsedOriginalArgs).filter(
+      (key) => parsedOriginalArgs?.[key] === parsedGeneratedArgs?.[key],
+    ).length;
+    return 0.5 + (numMatchingArgs / numOriginalArgs) * 0.5;
+  } catch (e) {
+    return 0;
+  }
 };
