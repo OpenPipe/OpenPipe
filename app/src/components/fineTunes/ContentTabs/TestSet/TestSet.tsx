@@ -44,7 +44,7 @@ const TestSet = () => {
           </HStack>
           {isDeployed ? (
             <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
-              <Table>
+              <Table sx={{ td: { borderColor: "gray.100" } }}>
                 <TableHeader />
                 <Tbody>
                   {entries.map((entry) => (
