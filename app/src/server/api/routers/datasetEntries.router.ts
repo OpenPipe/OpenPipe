@@ -155,7 +155,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
       await requireCanViewProject(fineTune.projectId, ctx);
 
-      const [entries, count] = await prisma.$transaction([
+      const [entries, count, averageScore] = await prisma.$transaction([
         prisma.fineTuneTestingEntry.findMany({
           where: {
             fineTuneId: fineTuneId,
@@ -189,11 +189,23 @@ export const datasetEntriesRouter = createTRPCRouter({
             },
           },
         }),
+        prisma.fineTuneTestingEntry.aggregate({
+          where: {
+            fineTuneId: fineTuneId,
+            datasetEntry: {
+              outdated: false,
+            },
+          },
+          _avg: {
+            score: true,
+          },
+        }),
       ]);
 
       return {
         entries,
         count,
+        averageScore: averageScore._avg.score,
       };
     }),
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
