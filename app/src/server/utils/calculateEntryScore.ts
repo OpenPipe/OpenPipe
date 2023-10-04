@@ -2,7 +2,7 @@ import { type ChatCompletionMessage } from "openai/resources/chat";
 
 // If function names don't match, return 0
 // If function names match and there are no args, return 1
-// If function names match and there are args, return .5 + (num matching args / num args) * .5
+// If function names match and there are args, return (num matching args / num args)
 export const calculateEntryScore = (
   originalFunctionCall: ChatCompletionMessage["function_call"],
   generatedFunctionCall: ChatCompletionMessage["function_call"],
@@ -34,7 +34,7 @@ export const calculateEntryScore = (
     const numMatchingArgs = Object.keys(parsedOriginalArgs).filter(
       (key) => parsedOriginalArgs?.[key] === parsedGeneratedArgs?.[key],
     ).length;
-    return 0.5 + (numMatchingArgs / numOriginalArgs) * 0.5;
+    return numMatchingArgs / numOriginalArgs;
   } catch (e) {
     return 0;
   }
