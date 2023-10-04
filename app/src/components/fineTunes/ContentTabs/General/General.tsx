@@ -43,11 +43,14 @@ const General = () => {
               <Text w={180}>Created At:</Text>
               <Text color="gray.500">{dayjs(createdAt).format("MMMM D h:mm A")}</Text>
             </HStack>
-            <HStack>
+            <HStack alignItems="flex-start">
               <Text w={180}>Status:</Text>
-              <Text fontWeight="bold" color={getStatusColor(fineTune.status)}>
-                {fineTune.status}
-              </Text>
+              <VStack alignItems="flex-start">
+                <Text fontWeight="bold" color={getStatusColor(fineTune.status)}>
+                  {fineTune.status}
+                </Text>
+                {fineTune.errorMessage && <Text color="gray.500">{fineTune.errorMessage}</Text>}
+              </VStack>
             </HStack>
           </VStack>
         </ContentCard>

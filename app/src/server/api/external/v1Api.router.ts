@@ -139,13 +139,7 @@ export const v1ApiRouter = createOpenApiRouter({
 
           return await getCompletion(reqPayload.data, fineTune.inferenceUrls, stringsToPrune);
         } else if (fineTune.pipelineVersion === 1) {
-          if (!fineTune.huggingFaceModelId) {
-            throw new TRPCError({
-              message: "The model is not set up for inference",
-              code: "BAD_REQUEST",
-            });
-          }
-          return await getCompletion2(fineTune.huggingFaceModelId, reqPayload.data, stringsToPrune);
+          return await getCompletion2(fineTune, reqPayload.data, stringsToPrune);
         } else {
           throw new TRPCError({
             message: "The model is not set up for inference",

@@ -6,7 +6,7 @@ import {
   FUNCTION_ARGS_TAG,
   FUNCTION_CALL_TAG,
   getStringsToPrune,
-  pruneInputMessages,
+  pruneInputMessagesStringified,
 } from "~/modelProviders/fine-tuned/getCompletion";
 import { env } from "~/env.mjs";
 import { startTraining } from "~/utils/modal";
@@ -96,7 +96,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
 });
 
 const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {
-  const instruction = pruneInputMessages(row.input, stringsToPrune);
+  const instruction = pruneInputMessagesStringified(row.input, stringsToPrune);
   let output: string;
   if (row.output?.function_call) {
     output = FUNCTION_CALL_TAG + row.output.function_call.name;

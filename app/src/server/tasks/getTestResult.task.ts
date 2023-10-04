@@ -7,7 +7,7 @@ import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
 import defineTask from "./defineTask";
 import {
-  pruneInputMessages,
+  pruneInputMessagesStringified,
   getCompletion,
   getStringsToPrune,
 } from "~/modelProviders/fine-tuned/getCompletion";
@@ -56,7 +56,7 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
 
   const stringsToPrune = await getStringsToPrune(fineTune.id);
   if (!existingTestEntry) {
-    prunedInput = pruneInputMessages(
+    prunedInput = pruneInputMessagesStringified(
       datasetEntry.input as unknown as ChatCompletionMessage[],
       stringsToPrune,
     );
@@ -115,16 +115,7 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
 
       completion = await getCompletion(input, fineTune.inferenceUrls, stringsToPrune);
     } else if (fineTune.pipelineVersion === 1) {
-      if (!fineTune.huggingFaceModelId) {
-        await prisma.fineTuneTestingEntry.update({
-          where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
-          data: {
-            errorMessage: "The model is not set up for inference",
-          },
-        });
-        return;
-      }
-      completion = await getCompletion2(fineTune.huggingFaceModelId, input, stringsToPrune);
+      completion = await getCompletion2(fineTune, input, stringsToPrune);
     } else {
       await prisma.fineTuneTestingEntry.update({
         where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
