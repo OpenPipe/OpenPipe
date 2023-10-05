@@ -16,6 +16,6 @@ export const displayBaseModel = (baseModel: BaseModel) => {
     case "LLAMA2_70b":
       return "llama2-70b";
     case "GPT_3_5_TURBO":
-      return "gpt3-5-turbo";
+      return "gpt-3.5-turbo";
   }
 };
