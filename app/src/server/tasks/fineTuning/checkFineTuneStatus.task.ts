@@ -28,8 +28,6 @@ const runOnce = async () => {
           });
           if (!fineTune) return;
 
-          await startTestJobs(fineTune);
-
           await prisma.fineTune.update({
             where: { id: job.id },
             data: {
@@ -37,6 +35,8 @@ const runOnce = async () => {
               status: "DEPLOYED",
             },
           });
+
+          await startTestJobs(fineTune);
         } else if (resp.status === "error") {
           await prisma.fineTune.update({
             where: { id: job.id },
