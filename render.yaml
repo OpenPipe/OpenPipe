@@ -10,6 +10,7 @@ services:
     runtime: docker
     dockerfilePath: ./app/Dockerfile
     dockerContext: .
+    healthCheckPath: /api/healthcheck
     plan: pro
     domains:
       - app.openpipe.ai
