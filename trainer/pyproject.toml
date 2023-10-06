@@ -17,6 +17,7 @@ python-dotenv = "^1.0.0"
 [tool.poetry.group.dev.dependencies]
 black = "^23.9.1"
 openapi-python-client = "^0.15.2"
+huggingface-hub = "0.17.3"
 
 [build-system]
 requires = ["poetry-core"]

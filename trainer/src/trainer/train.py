@@ -1,8 +1,9 @@
-from .api_client.api.default import get_training_info
-from .api_client.models.get_training_info_response_200_base_model import (
+from ..api_client.api.default import get_training_info
+from ..api_client.models.get_training_info_response_200_base_model import (
     GetTrainingInfoResponse200BaseModel as BaseModel,
 )
-from .api_client.client import AuthenticatedClient
+from ..api_client.client import AuthenticatedClient
+from ..shared import model_cache_dir
 
 from .write_config import write_config
 from axolotl.cli.train import do_cli as do_train_cli
@@ -21,7 +22,7 @@ logging.basicConfig(
 )
 
 
-def do_train(fine_tune_id: str, base_url: str, model_cache_dir: str):
+def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     logging.info(f"Beginning training process for model {fine_tune_id}")
 
     training_info_resp = get_training_info.sync_detailed(
@@ -62,7 +63,7 @@ def do_train(fine_tune_id: str, base_url: str, model_cache_dir: str):
 
     config_path = "/tmp/training-config.yaml"
     lora_model_path = "/tmp/trained-model"
-    merged_model_path = f"{model_cache_dir}/{training_info.hugging_face_model_id}"
+    merged_model_path = model_cache_dir(training_info.hugging_face_model_id, model_dir)
 
     os.makedirs(merged_model_path, exist_ok=True)
 
@@ -94,20 +95,8 @@ def do_train(fine_tune_id: str, base_url: str, model_cache_dir: str):
     logging.info("Merging the model")
     model = model.merge_and_unload()
 
-    # All this persisting and reloading shouldn't be necessary, but for some reason
-    # if I skip it the model doesn't load when we pull it from HuggingFace. Need to
-    # debug.
     logging.info(f"Saving the final model to {merged_model_path}")
     model.save_pretrained(merged_model_path)
 
     tokenizer = AutoTokenizer.from_pretrained(lora_model_path)
     tokenizer.save_pretrained(merged_model_path)
-
-    logging.info("Reloading the final model")
-    model = AutoModelForCausalLM.from_pretrained(merged_model_path)
-
-    logging.info("Pushing model to HuggingFace")
-    model.push_to_hub(training_info.hugging_face_model_id, private=True)
-
-    logging.info("Pushing tokenizer to HuggingFace")
-    tokenizer.push_to_hub(training_info.hugging_face_model_id, private=True)
