@@ -30,10 +30,15 @@ export const getTags = (args: OpenPipeArgs["openpipe"]): Record<string, string> 
   "$sdk.version": pkg.version,
 });
 
-export const withTimeout = <T>(promise: Promise<T>, timeout: number): Promise<T> => {
+export const withTimeout = <T>(
+  promise: Promise<T>,
+  timeout: number,
+  onTimedOut?: () => void,
+): Promise<T> => {
   return new Promise((resolve, reject) => {
     // Set up the timeout
     const timeoutId = setTimeout(() => {
+      onTimedOut?.();
       reject(new APIConnectionTimeoutError({ message: "Request timed out" }));
     }, timeout);
 
