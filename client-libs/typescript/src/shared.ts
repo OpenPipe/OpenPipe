@@ -1,3 +1,4 @@
+import { APIConnectionTimeoutError } from "openai/error";
 import pkg from "../package.json";
 
 import { DefaultService } from "./codegen";
@@ -28,3 +29,22 @@ export const getTags = (args: OpenPipeArgs["openpipe"]): Record<string, string> 
   $sdk: "typescript",
   "$sdk.version": pkg.version,
 });
+
+export const withTimeout = <T>(promise: Promise<T>, timeout: number): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    // Set up the timeout
+    const timeoutId = setTimeout(() => {
+      reject(new APIConnectionTimeoutError({ message: "Request timed out" }));
+    }, timeout);
+
+    promise
+      .then((result) => {
+        clearTimeout(timeoutId);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
+};
