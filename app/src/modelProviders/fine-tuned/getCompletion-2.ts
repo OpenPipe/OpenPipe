@@ -11,13 +11,14 @@ import { type FineTune } from "@prisma/client";
 import { runInference } from "~/utils/modal";
 import { pruneInputMessages, pruneInputMessagesStringified } from "./getCompletion";
 import { prisma } from "~/server/db";
+import { env } from "~/env.mjs";
 
 export async function getCompletion2(
   fineTune: FineTune,
   input: ChatCompletionCreateParams,
   stringsToPrune: string[],
 ): Promise<ChatCompletion> {
-  if (fineTune.baseModel === "GPT_3_5_TURBO") {
+  if (fineTune.baseModel === "GPT_3_5_TURBO" || true) {
     return getOpenaiCompletion(fineTune, input, stringsToPrune);
   } else {
     return getLlamaCompletion(fineTune, input, stringsToPrune);
@@ -33,17 +34,21 @@ async function getOpenaiCompletion(
 
   if (!fineTune.openaiModelId) throw new Error("No OpenAI model ID found");
 
-  const apiKeys = await prisma.apiKey.findMany({
-    where: { projectId: fineTune.projectId },
-  });
+  const isOpenai = fineTune.baseModel === "GPT_3_5_TURBO";
 
-  const openaiApiKey = apiKeys.find((key) => key.provider === "OPENAI")?.apiKey;
+  const apiKey = !isOpenai
+    ? env.ANYSCALE_API_KEY
+    : (
+        await prisma.apiKey.findMany({
+          where: { projectId: fineTune.projectId },
+        })
+      ).find((key) => key.provider === "OPENAI")?.apiKey;
 
-  if (!openaiApiKey) {
-    throw new Error("No OpenAI API key found");
+  if (!apiKey) {
+    throw new Error("No API key found");
   }
 
-  const openai = new OpenAI({ apiKey: openaiApiKey });
+  const openai = new OpenAI({ apiKey, baseURL: isOpenai ? undefined : env.ANYSCALE_API_BASE });
 
   const prunedInput = pruneInputMessages(messages, stringsToPrune);
 

@@ -8,6 +8,7 @@ import {
   type OpenaiTrainingRow,
 } from "~/components/datasets/validateTrainingRows";
 import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
+import { env } from "~/env.mjs";
 
 export type TrainOpenaiFineTuneJob = {
   fineTuneId: string;
@@ -39,14 +40,19 @@ export const trainOpenaiFineTune = defineTask<TrainOpenaiFineTuneJob>(
     });
     if (!fineTune) return;
 
-    const openaiApiKey = fineTune.project.apiKeys.find((key) => key.provider === "OPENAI")?.apiKey;
+    const isOpenai = fineTune.baseModel === "GPT_3_5_TURBO";
+    const apiKey = !isOpenai
+      ? env.ANYSCALE_API_KEY
+      : fineTune.project.apiKeys.find((key) => key.provider === "OPENAI")?.apiKey;
 
-    if (!openaiApiKey) {
+    const baseURL = isOpenai ? undefined : env.ANYSCALE_API_BASE;
+
+    if (!apiKey) {
       await prisma.fineTune.update({
         where: { id: fineTuneId },
         data: {
           status: "ERROR",
-          errorMessage: "No OpenAI API key found",
+          errorMessage: "No API key found",
         },
       });
       return;
@@ -73,7 +79,13 @@ export const trainOpenaiFineTune = defineTask<TrainOpenaiFineTuneJob>(
 
     const jsonlStr = trainingEntries.map((row) => JSON.stringify(row)).join("\n");
 
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+    console.log("api key", apiKey);
+    console.log("base url", baseURL);
+
+    const openai = new OpenAI({
+      apiKey,
+      baseURL,
+    });
 
     // write jsonlStr to temp file using fs
     const tempDirPath = `/tmp/${fineTuneId}`;
@@ -102,7 +114,7 @@ export const trainOpenaiFineTune = defineTask<TrainOpenaiFineTuneJob>(
 
       const fineTuneJob = await openai.fineTuning.jobs.create({
         training_file: trainingFile.id,
-        model: "gpt-3.5-turbo",
+        model: isOpenai ? "gpt-3.5-turbo" : "meta-llama/Llama-2-7b-chat-hf",
       });
 
       await prisma.fineTune.update({

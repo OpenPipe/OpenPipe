@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
+// import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { trainOpenaiFineTune } from "~/server/tasks/fineTuning/trainOpenaiFineTune.task";
 import { requireCanViewProject, requireCanModifyProject } from "~/utils/accessControl";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
@@ -168,7 +168,8 @@ export const fineTunesRouter = createTRPCRouter({
       if (fineTune.baseModel === "GPT_3_5_TURBO") {
         await trainOpenaiFineTune.enqueue({ fineTuneId: fineTune.id });
       } else {
-        await trainFineTune.enqueue({ fineTuneId: fineTune.id });
+        // await trainFineTune.enqueue({ fineTuneId: fineTune.id });
+        await trainOpenaiFineTune.enqueue({ fineTuneId: fineTune.id });
       }
 
       return success();

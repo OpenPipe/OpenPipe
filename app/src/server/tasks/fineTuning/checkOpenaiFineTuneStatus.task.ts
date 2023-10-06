@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { startTestJobs } from "~/server/utils/startTestJobs";
+import { env } from "~/env.mjs";
 
 const runOnce = async () => {
   const trainingOpenaiFineTunes = await prisma.fineTune.findMany({
@@ -29,8 +30,10 @@ const runOnce = async () => {
         throw new Error("No openaiTrainingJobId");
       }
       try {
-        const openaiApiKey = fineTune.project.apiKeys.find((key) => key.provider === "OPENAI")
-          ?.apiKey;
+        const isOpenai = fineTune.baseModel === "GPT_3_5_TURBO";
+        const openaiApiKey = !isOpenai
+          ? env.ANYSCALE_API_KEY
+          : fineTune.project.apiKeys.find((key) => key.provider === "OPENAI")?.apiKey;
 
         if (!openaiApiKey) {
           await prisma.fineTune.update({
@@ -43,7 +46,10 @@ const runOnce = async () => {
           return;
         }
 
-        const openai = new OpenAI({ apiKey: openaiApiKey });
+        const openai = new OpenAI({
+          apiKey: openaiApiKey,
+          baseURL: isOpenai ? undefined : env.ANYSCALE_API_BASE,
+        });
 
         const resp = await openai.fineTuning.jobs.retrieve(fineTune.openaiTrainingJobId);
 
