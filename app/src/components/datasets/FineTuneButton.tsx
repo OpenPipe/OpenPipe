@@ -17,13 +17,20 @@ import {
   Input,
   InputGroup,
   InputLeftAddon,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import { AiTwotoneThunderbolt } from "react-icons/ai";
 import humanId from "human-id";
 import { useRouter } from "next/router";
 import { type BaseModel } from "@prisma/client";
+import Link from "next/link";
 
-import { useDataset, useDatasetEntries, useHandledAsyncCallback } from "~/utils/hooks";
+import {
+  useDataset,
+  useDatasetEntries,
+  useHandledAsyncCallback,
+  useSelectedProject,
+} from "~/utils/hooks";
 import { api } from "~/utils/api";
 import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
@@ -56,11 +63,15 @@ export default FineTuneButton;
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
+  const selectedProject = useSelectedProject().data;
 
   const [selectedBaseModel, setSelectedBaseModel] = useState<BaseModel>(
     SUPPORTED_BASE_MODELS[0] as BaseModel,
   );
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
+
+  const needsMissingOpenaiKey =
+    !selectedProject?.condensedOpenAIKey && selectedBaseModel === "GPT_3_5_TURBO";
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -139,12 +150,15 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 />
               </HStack>
             </VStack>
-            {/* <Button variant="unstyled" color="blue.600">
-              <HStack>
-                <Text>Advanced Options</Text>
-                <Icon as={FiChevronDown} />
-              </HStack>
-            </Button> */}
+            {needsMissingOpenaiKey && (
+              <Text>
+                To train this model, add your OpenAI API key on the{" "}
+                <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                  <Text as="span">project settings</Text>
+                </ChakraLink>{" "}
+                page.
+              </Text>
+            )}
           </VStack>
         </ModalBody>
         <ModalFooter>
@@ -157,7 +171,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
               onClick={createFineTune}
               isLoading={creationInProgress}
               minW={24}
-              isDisabled={!modelSlug}
+              isDisabled={!modelSlug || needsMissingOpenaiKey}
             >
               Start Training
             </Button>
