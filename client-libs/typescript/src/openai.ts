@@ -89,9 +89,8 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
       const opClientPromise = this.opClient.default.createChatCompletion({
         reqPayload: body,
       });
-      resp = withTimeout(
-        opClientPromise,
-        options?.timeout ?? this.openaiClient.timeout,
+      resp = withTimeout(opClientPromise, options?.timeout ?? this.openaiClient.timeout, () =>
+        opClientPromise.cancel(),
       ) as Core.APIPromise<ChatCompletion>;
     } else {
       resp = body.stream ? super.create(body, options) : super.create(body, options);
