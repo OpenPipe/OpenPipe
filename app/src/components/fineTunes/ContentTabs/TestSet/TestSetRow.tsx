@@ -37,7 +37,7 @@ const TestSetRow = ({
     <Tr
       alignItems="flex-start"
       sx={{
-        td: { verticalAlign: "top" },
+        td: { verticalAlign: "top", wordBreak: "break-word" },
       }}
     >
       <Td>

@@ -1,22 +1,74 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+import OpenAI from "openai";
 import {
   type ChatCompletion,
   type ChatCompletionMessage,
   type ChatCompletionCreateParams,
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
+import { type FineTune } from "@prisma/client";
+
 import { runInference } from "~/utils/modal";
-import { pruneInputMessages } from "./getCompletion";
+import { pruneInputMessages, pruneInputMessagesStringified } from "./getCompletion";
+import { prisma } from "~/server/db";
 
 export async function getCompletion2(
-  huggingFaceModelId: string,
+  fineTune: FineTune,
+  input: ChatCompletionCreateParams,
+  stringsToPrune: string[],
+): Promise<ChatCompletion> {
+  if (fineTune.baseModel === "GPT_3_5_TURBO") {
+    return getOpenaiCompletion(fineTune, input, stringsToPrune);
+  } else {
+    return getLlamaCompletion(fineTune, input, stringsToPrune);
+  }
+}
+
+async function getOpenaiCompletion(
+  fineTune: FineTune,
+  input: ChatCompletionCreateParams,
+  stringsToPrune: string[],
+): Promise<ChatCompletion> {
+  const { messages, ...rest } = input;
+
+  if (!fineTune.openaiModelId) throw new Error("No OpenAI model ID found");
+
+  const apiKeys = await prisma.apiKey.findMany({
+    where: { projectId: fineTune.projectId },
+  });
+
+  const openaiApiKey = apiKeys.find((key) => key.provider === "OPENAI")?.apiKey;
+
+  if (!openaiApiKey) {
+    throw new Error("No OpenAI API key found");
+  }
+
+  const openai = new OpenAI({ apiKey: openaiApiKey });
+
+  const prunedInput = pruneInputMessages(messages, stringsToPrune);
+
+  const resp = await openai.chat.completions.create({
+    ...rest,
+    model: fineTune.openaiModelId,
+    messages: prunedInput,
+    stream: false,
+  });
+
+  return {
+    ...resp,
+    model: input.model,
+  };
+}
+
+async function getLlamaCompletion(
+  fineTune: FineTune,
   input: ChatCompletionCreateParams,
   stringsToPrune: string[],
 ): Promise<ChatCompletion> {
   const { messages, ...rest } = input;
   const id = uuidv4();
 
-  const prunedInput = pruneInputMessages(messages, stringsToPrune);
+  const prunedInput = pruneInputMessagesStringified(messages, stringsToPrune);
   const templatedPrompt = `### Instruction:\n${prunedInput}\n### Response:\n`;
 
   if (!templatedPrompt) {
@@ -27,8 +79,12 @@ export async function getCompletion2(
     throw new Error("Streaming is not yet supported");
   }
 
+  if (!fineTune.huggingFaceModelId) {
+    throw new Error("Model is not set up for inference");
+  }
+
   const resp = await runInference({
-    model: huggingFaceModelId,
+    model: fineTune.huggingFaceModelId,
     prompt: templatedPrompt,
     max_tokens: rest.max_tokens,
     temperature: rest.temperature ?? 0,

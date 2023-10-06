@@ -132,13 +132,18 @@ export const pruneInputMessages = (messages: ChatCompletionMessage[], stringsToP
     }
   }
   messages = messages.filter((message) => message.content !== "" || message.function_call);
-  return JSON.stringify(messages);
+  return messages;
 };
+
+export const pruneInputMessagesStringified = (
+  messages: ChatCompletionMessage[],
+  stringsToPrune: string[],
+) => JSON.stringify(pruneInputMessages(messages, stringsToPrune));
 
 export const templatePrompt = (input: ChatCompletionCreateParams, stringsToPrune: string[]) => {
   const { messages } = input;
 
-  const prunedInput = pruneInputMessages(messages, stringsToPrune);
+  const prunedInput = pruneInputMessagesStringified(messages, stringsToPrune);
 
   return `### Instruction:\n${prunedInput}\n### Response:`;
 };

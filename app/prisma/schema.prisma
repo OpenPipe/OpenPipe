@@ -566,9 +566,11 @@ model FineTune {
     // Keep a GPU instance running for this fine-tune at all times. Expensive.
     keepWarm Boolean @default(false)
 
-    modalTrainingJobId String?
-    huggingFaceModelId String?
-    pipelineVersion    Int
+    modalTrainingJobId  String?
+    huggingFaceModelId  String?
+    openaiTrainingJobId String?
+    openaiModelId       String?
+    pipelineVersion     Int
 }
 
 model FineTuneTestingEntry {

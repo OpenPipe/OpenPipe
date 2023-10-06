@@ -7,7 +7,9 @@ import { queryModel } from "./queryModel.task";
 import { runNewEval } from "./runNewEval.task";
 import { importDatasetEntries } from "./importDatasetEntries.task";
 import { trainFineTune } from "./fineTuning/trainFineTune.task";
+import { trainOpenaiFineTune } from "./fineTuning/trainOpenaiFineTune.task";
 import { checkFineTuneStatus } from "./fineTuning/checkFineTuneStatus.task";
+import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatus.task";
 import { getTestResult } from "./getTestResult.task";
 import type defineTask from "./defineTask";
 
@@ -18,7 +20,9 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   runNewEval,
   importDatasetEntries,
   trainFineTune,
+  trainOpenaiFineTune,
   checkFineTuneStatus,
+  checkOpenaiFineTuneStatus,
   getTestResult,
 ];
 
@@ -42,6 +46,15 @@ const runner = await run({
       // run once a minute for now
       pattern: "* * * * *",
       identifier: checkFineTuneStatus.task.identifier,
+      options: {
+        backfillPeriod: 1000 * 60,
+      },
+    },
+    {
+      task: checkOpenaiFineTuneStatus.task.identifier,
+      // run once a minute for now
+      pattern: "* * * * *",
+      identifier: checkOpenaiFineTuneStatus.task.identifier,
       options: {
         backfillPeriod: 1000 * 60,
       },

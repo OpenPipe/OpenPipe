@@ -5,6 +5,11 @@ export type TrainingRow = {
   output?: ChatCompletionMessageParam;
 };
 
+export type ContentChatCompletionMessage = Omit<ChatCompletionMessageParam, "function_call">;
+export type OpenaiTrainingRow = {
+  messages: ContentChatCompletionMessage[];
+};
+
 export const parseJSONL = (jsonlString: string): unknown[] => {
   const lines = jsonlString.trim().split("\n");
 
