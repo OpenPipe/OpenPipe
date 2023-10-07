@@ -1,7 +1,7 @@
 import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
-import { trainingStatus } from "~/utils/modal";
 import { startTestJobs } from "~/server/utils/startTestJobs";
+import { trainerv1 } from "~/server/modal-rpc/clients";
 
 const runOnce = async () => {
   const trainingJobs = await prisma.fineTune.findMany({
@@ -21,12 +21,18 @@ const runOnce = async () => {
         throw new Error("No modalTrainingJobId");
       }
       try {
-        const resp = await trainingStatus({ callId: job.modalTrainingJobId });
+        const resp = await trainerv1.default.trainingStatus(job.modalTrainingJobId);
         if (resp.status === "done") {
           const fineTune = await prisma.fineTune.findUnique({
             where: { id: job.id },
           });
           if (!fineTune) return;
+          if (fineTune.huggingFaceModelId) {
+            // this kicks off the upload of the model weights and returns almost immediately.
+            // We currently don't check whether the weights actually uploaded, probably should
+            // add that at some point!
+            await trainerv1.default.persistModelWeights(fineTune.huggingFaceModelId);
+          }
 
           await prisma.fineTune.update({
             where: { id: job.id },

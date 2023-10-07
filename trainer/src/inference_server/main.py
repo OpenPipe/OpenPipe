@@ -7,6 +7,7 @@ from .api import (
     Usage,
 )
 from typing import Union
+from ..shared import model_cache_dir
 import os
 
 image = (
@@ -71,7 +72,7 @@ def cache_model_weights(hf_model_id: str, cache_dir: str):
 )
 class Model:
     def __init__(self, huggingface_model_id: str):
-        model_dir = f"/models/{huggingface_model_id}"
+        model_dir = model_cache_dir(huggingface_model_id, "/models")
         cache_model_weights(huggingface_model_id, model_dir)
 
         logging.info(f"Loading model from volume {model_dir}")
@@ -118,6 +119,8 @@ class Model:
         return output
 
 
+# TODO: convert this to a FastAPI endpoint like the trainer so we can codegen a
+# client with nice types.
 @stub.function(timeout=1 * 60 * 60, allow_concurrent_inputs=500)
 @modal.web_endpoint(method="POST", label=APP_NAME)
 async def generate(request: Input) -> Output:

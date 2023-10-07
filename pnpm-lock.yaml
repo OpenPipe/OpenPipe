@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.5.8
-        version: 0.5.8
+        version: 0.5.8(encoding@0.1.13)
       '@apidevtools/json-schema-ref-parser':
         specifier: ^10.1.0
         version: 10.1.0
@@ -19,7 +19,7 @@ importers:
         version: 3.3.0
       '@azure/storage-blob':
         specifier: 12.15.0
-        version: 12.15.0
+        version: 12.15.0(encoding@0.1.13)
       '@babel/standalone':
         specifier: ^7.22.9
         version: 7.22.9
@@ -61,7 +61,7 @@ importers:
         version: 3.3.1
       '@sentry/nextjs':
         specifier: ^7.61.0
-        version: 7.61.0(next@13.4.2)(react@18.2.0)(webpack@5.88.2)
+        version: 7.61.0(encoding@0.1.13)(next@13.4.2)(react@18.2.0)(webpack@5.88.2)
       '@t3-oss/env-nextjs':
         specifier: ^0.3.1
         version: 0.3.1(typescript@5.0.4)(zod@3.21.4)
@@ -113,12 +113,18 @@ importers:
       dotenv:
         specifier: ^16.3.1
         version: 16.3.1
+      encoding:
+        specifier: ^0.1.13
+        version: 0.1.13
       execa:
         specifier: ^8.0.1
         version: 8.0.1
       express:
         specifier: ^4.18.2
         version: 4.18.2
+      form-data:
+        specifier: ^4.0.0
+        version: 4.0.0
       framer-motion:
         specifier: ^10.12.17
         version: 10.12.17(react-dom@18.2.0)(react@18.2.0)
@@ -472,7 +478,7 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.19
 
-  /@anthropic-ai/sdk@0.5.8:
+  /@anthropic-ai/sdk@0.5.8(encoding@0.1.13):
     resolution: {integrity: sha512-iHenjcE2Q/az6VZiP1DueOSvKNRmxsly6Rx2yjJBoy7OBYVFGVjEdgs2mPQHtTX0ibKAR7tPq6F6MQbKDPWcKg==}
     dependencies:
       '@types/node': 18.16.0
@@ -538,7 +544,7 @@ packages:
       - supports-color
     dev: false
 
-  /@azure/core-http@3.0.3:
+  /@azure/core-http@3.0.3(encoding@0.1.13):
     resolution: {integrity: sha512-QMib3wXotJMFhHgmJBPUF9YsyErw34H0XDFQd9CauH7TPB+RGcyl9Ayy7iURtJB04ngXhE6YwrQsWDXlSLrilg==}
     engines: {node: '>=14.0.0'}
     dependencies:
@@ -669,12 +675,12 @@ packages:
       uuid: 8.3.2
     dev: false
 
-  /@azure/storage-blob@12.15.0:
+  /@azure/storage-blob@12.15.0(encoding@0.1.13):
     resolution: {integrity: sha512-e7JBKLOFi0QVJqqLzrjx1eL3je3/Ug2IQj24cTM9b85CsnnFjLGeGjJVIjbGGZaytewiCEG7r3lRwQX7fKj0/w==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
-      '@azure/core-http': 3.0.3
+      '@azure/core-http': 3.0.3(encoding@0.1.13)
       '@azure/core-lro': 2.5.4
       '@azure/core-paging': 1.5.0
       '@azure/core-tracing': 1.0.0-preview.13
@@ -2985,7 +2991,7 @@ packages:
       tslib: 2.6.1
     dev: false
 
-  /@sentry/cli@1.75.2:
+  /@sentry/cli@1.75.2(encoding@0.1.13):
     resolution: {integrity: sha512-CG0CKH4VCKWzEaegouWfCLQt9SFN+AieFESCatJ7zSuJmzF05ywpMusjxqRul6lMwfUhRKjGKOzcRJ1jLsfTBw==}
     engines: {node: '>= 8'}
     hasBin: true
@@ -3021,7 +3027,7 @@ packages:
       tslib: 2.6.1
     dev: false
 
-  /@sentry/nextjs@7.61.0(next@13.4.2)(react@18.2.0)(webpack@5.88.2):
+  /@sentry/nextjs@7.61.0(encoding@0.1.13)(next@13.4.2)(react@18.2.0)(webpack@5.88.2):
     resolution: {integrity: sha512-zSEcAITqVmJpR4hhah1jUyCzm/hjlq9vjmO6BmTnQjr84OgOdeKJGWtRdktXId+9zzHdCOehs/JPtmO7y+yG6Q==}
     engines: {node: '>=8'}
     peerDependencies:
@@ -3039,7 +3045,7 @@ packages:
       '@sentry/react': 7.61.0(react@18.2.0)
       '@sentry/types': 7.61.0
       '@sentry/utils': 7.61.0
-      '@sentry/webpack-plugin': 1.20.0
+      '@sentry/webpack-plugin': 1.20.0(encoding@0.1.13)
       chalk: 3.0.0
       next: 13.4.2(@babel/core@7.22.10)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
@@ -3104,11 +3110,11 @@ packages:
       tslib: 2.6.1
     dev: false
 
-  /@sentry/webpack-plugin@1.20.0:
+  /@sentry/webpack-plugin@1.20.0(encoding@0.1.13):
     resolution: {integrity: sha512-Ssj1mJVFsfU6vMCOM2d+h+KQR7QHSfeIP16t4l20Uq/neqWXZUQ2yvQfe4S3BjdbJXz/X4Rw8Hfy1Sd0ocunYw==}
     engines: {node: '>= 8'}
     dependencies:
-      '@sentry/cli': 1.75.2
+      '@sentry/cli': 1.75.2(encoding@0.1.13)
       webpack-sources: 3.2.3
     transitivePeerDependencies:
       - encoding
@@ -6889,7 +6895,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 20.4.10
+      '@types/node': 18.16.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
 

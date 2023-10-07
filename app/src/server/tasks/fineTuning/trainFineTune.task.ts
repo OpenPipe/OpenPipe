@@ -9,7 +9,7 @@ import {
   pruneInputMessagesStringified,
 } from "~/modelProviders/fine-tuned/getCompletion";
 import { env } from "~/env.mjs";
-import { startTraining } from "~/utils/modal";
+import { trainerv1 } from "~/server/modal-rpc/clients";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
@@ -72,10 +72,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
 
   console.log("going to start training");
   try {
-    const resp = await startTraining({
-      fine_tune_id: fineTuneId,
-      base_url: callbackBaseUrl,
-    });
+    const resp = await trainerv1.default.startTraining(fineTuneId, callbackBaseUrl);
     await prisma.fineTune.update({
       where: { id: fineTuneId },
       data: {
