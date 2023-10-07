@@ -45,7 +45,7 @@ const UpdateOpenaiApiKeyModal = ({ disclosure }: { disclosure: UseDisclosureRetu
   }, [updateProjectMutation, selectedProject?.id, apiKey, disclosure.onClose]);
 
   return (
-    <Modal {...disclosure}>
+    <Modal size={{ base: "lg", md: "xl" }} {...disclosure}>
       <ModalOverlay />
       <ModalContent w={1200}>
         <ModalHeader>

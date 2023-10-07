@@ -25,7 +25,7 @@ import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
 import IconLink from "./IconLink";
 import { BetaModal } from "../BetaModal";
-import { useAppStore } from "~/state/store";
+import { useIsMissingBetaAccess } from "~/utils/hooks";
 
 const Divider = () => <Box h="1px" bgColor="gray.300" w="full" />;
 
@@ -187,8 +187,7 @@ export default function AppShell({
     }
   }, [requireAuth, user, authLoading]);
 
-  const flags = useAppStore((s) => s.featureFlags.featureFlags);
-  const flagsLoaded = useAppStore((s) => s.featureFlags.flagsLoaded);
+  const isMissingBetaAccess = useIsMissingBetaAccess();
 
   return (
     <>
@@ -201,7 +200,7 @@ export default function AppShell({
           {children}
         </Box>
       </Flex>
-      <BetaModal isOpen={!!requireBeta && flagsLoaded && !flags.betaAccess} onClose={router.back} />
+      <BetaModal isOpen={!!requireBeta && isMissingBetaAccess} onClose={router.back} />
     </>
   );
 }

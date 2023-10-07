@@ -17,13 +17,22 @@ import {
   Input,
   InputGroup,
   InputLeftAddon,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import { AiTwotoneThunderbolt } from "react-icons/ai";
 import humanId from "human-id";
 import { useRouter } from "next/router";
 import { type BaseModel } from "@prisma/client";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 
-import { useDataset, useDatasetEntries, useHandledAsyncCallback } from "~/utils/hooks";
+import {
+  useDataset,
+  useDatasetEntries,
+  useHandledAsyncCallback,
+  useIsMissingBetaAccess,
+  useSelectedProject,
+} from "~/utils/hooks";
 import { api } from "~/utils/api";
 import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
@@ -44,7 +53,6 @@ const FineTuneButton = () => {
         label="Fine Tune"
         icon={AiTwotoneThunderbolt}
         isDisabled={numEntries === 0}
-        requireBeta
       />
       <FineTuneModal disclosure={disclosure} />
     </>
@@ -56,11 +64,22 @@ export default FineTuneButton;
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
+  const selectedProject = useSelectedProject().data;
+
+  const session = useSession();
+  const isMissingBetaAccess = useIsMissingBetaAccess();
 
   const [selectedBaseModel, setSelectedBaseModel] = useState<BaseModel>(
     SUPPORTED_BASE_MODELS[0] as BaseModel,
   );
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
+
+  const needsMissingOpenaiKey =
+    !selectedProject?.condensedOpenAIKey && selectedBaseModel === "GPT_3_5_TURBO";
+
+  const needsMissingBetaAccess = selectedBaseModel !== "GPT_3_5_TURBO" && isMissingBetaAccess;
+
+  const email = session.data?.user.email ?? "";
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -139,12 +158,29 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 />
               </HStack>
             </VStack>
-            {/* <Button variant="unstyled" color="blue.600">
-              <HStack>
-                <Text>Advanced Options</Text>
-                <Icon as={FiChevronDown} />
-              </HStack>
-            </Button> */}
+            {needsMissingOpenaiKey && (
+              <Text>
+                To train this model, add your OpenAI API key on the{" "}
+                <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                  <Text as="span">project settings</Text>
+                </ChakraLink>{" "}
+                page.
+              </Text>
+            )}
+            {needsMissingBetaAccess && (
+              <Text>
+                LLama2 fine-tuning is currently in beta. To receive early access to beta-only
+                features,{" "}
+                <ChakraLink
+                  href="https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc#email=${email}"
+                  target="_blank"
+                  color="blue.600"
+                >
+                  join the waitlist
+                </ChakraLink>
+                . You'll receive an email at <b>{email}</b> when you're approved.
+              </Text>
+            )}
           </VStack>
         </ModalBody>
         <ModalFooter>
@@ -153,11 +189,11 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
               Cancel
             </Button>
             <Button
-              colorScheme="blue"
+              colorScheme="orange"
               onClick={createFineTune}
               isLoading={creationInProgress}
               minW={24}
-              isDisabled={!modelSlug}
+              isDisabled={!modelSlug || needsMissingOpenaiKey || needsMissingBetaAccess}
             >
               Start Training
             </Button>
