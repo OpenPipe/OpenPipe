@@ -28,6 +28,8 @@ export type State = {
   isRehydrated: boolean;
   api: APIClient | null;
   setApi: (api: APIClient) => void;
+  betaBannerDismissed: boolean;
+  dismissBetaBanner: () => void;
   sharedVariantEditor: SharedVariantEditorSlice;
   sharedArgumentsEditor: SharedArgumentsEditorSlice;
   selectedProjectId: string | null;
@@ -52,6 +54,11 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
       setApi: (api) =>
         set((state) => {
           state.api = api;
+        }),
+      betaBannerDismissed: false,
+      dismissBetaBanner: () =>
+        set((state) => {
+          state.betaBannerDismissed = true;
         }),
       sharedVariantEditor: createVariantEditorSlice(set, get, ...rest),
       sharedArgumentsEditor: createArgumentsEditorSlice(set, get, ...rest),

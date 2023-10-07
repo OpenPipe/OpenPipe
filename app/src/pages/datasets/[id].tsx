@@ -29,6 +29,7 @@ import UploadDataButton from "~/components/datasets/UploadDataButton";
 // import DownloadButton from "~/components/datasets/DownloadButton";
 import DeleteButton from "~/components/datasets/DeleteButton";
 import FileUploadsCard from "~/components/datasets/FileUploadsCard";
+import BetaBanner from "~/components/BetaBanner";
 
 export default function Dataset() {
   const utils = api.useContext();
@@ -70,6 +71,7 @@ export default function Dataset() {
     <>
       <AppShell title={dataset.data?.name}>
         <VStack h="full" overflowY="scroll">
+          <BetaBanner />
           <PageHeaderContainer>
             <Breadcrumb>
               <BreadcrumbItem>

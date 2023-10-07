@@ -11,6 +11,7 @@ export const persistOptions: PersistOptions<State, PersistedState> = {
   partialize: (state) => ({
     selectedProjectId: state.selectedProjectId,
     columnVisibility: pick(state.columnVisibility, ["visibleColumns"]),
+    betaBannerDismissed: state.betaBannerDismissed,
   }),
   merge: (saved, state) => merge(state, saved),
   storage: {
