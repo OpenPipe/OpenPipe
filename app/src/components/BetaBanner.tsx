@@ -25,6 +25,7 @@ const BetaBanner = () => {
       borderColor="gray.300"
       py={2}
       px={8}
+      display={{ base: "none", md: "flex" }}
     >
       <HStack>
         <Icon as={BsStars} color="orange.400" />
