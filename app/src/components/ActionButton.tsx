@@ -1,9 +1,9 @@
 import { useState } from "react";
-
 import { Button, HStack, type ButtonProps, Icon, Text } from "@chakra-ui/react";
 import { type IconType } from "react-icons";
-import { useAppStore } from "~/state/store";
+
 import { BetaModal } from "./BetaModal";
+import { useIsMissingBetaAccess } from "~/utils/hooks";
 
 const ActionButton = ({
   icon,
@@ -19,12 +19,11 @@ const ActionButton = ({
   requireBeta?: boolean;
   onClick?: () => void;
 } & ButtonProps) => {
-  const flags = useAppStore((s) => s.featureFlags.featureFlags);
-  const flagsLoaded = useAppStore((s) => s.featureFlags.flagsLoaded);
+  const isMissingBetaAccess = useIsMissingBetaAccess();
 
   const [betaModalOpen, setBetaModalOpen] = useState(false);
 
-  const isBetaBlocked = requireBeta && flagsLoaded && !flags.betaAccess;
+  const isBetaBlocked = requireBeta && isMissingBetaAccess;
   return (
     <>
       <Button
@@ -41,9 +40,7 @@ const ActionButton = ({
         {...buttonProps}
       >
         <HStack spacing={1}>
-          {icon && (
-            <Icon as={icon} boxSize={iconBoxSize} color={requireBeta ? "orange.400" : undefined} />
-          )}
+          {icon && <Icon as={icon} boxSize={iconBoxSize} color="orange.400" />}
           <Text display={{ base: "none", md: "flex" }}>{label}</Text>
         </HStack>
       </Button>

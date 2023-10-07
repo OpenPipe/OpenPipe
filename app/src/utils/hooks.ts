@@ -105,6 +105,14 @@ export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | un
   return [ref, dimensions];
 };
 
+export const useIsMissingBetaAccess = () => {
+  const flags = useAppStore((s) => s.featureFlags.featureFlags);
+  const flagsLoaded = useAppStore((s) => s.featureFlags.flagsLoaded);
+
+  // If the flags haven't loaded yet, we can't say for sure that the user doesn't have beta access
+  return flagsLoaded && !flags?.betaAccess;
+};
+
 export const usePageParams = () => {
   const router = useRouter();
 

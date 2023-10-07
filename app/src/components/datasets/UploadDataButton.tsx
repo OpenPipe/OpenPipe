@@ -36,7 +36,6 @@ const UploadDataButton = () => {
         label="Upload Data"
         icon={AiOutlineCloudUpload}
         iconBoxSize={4}
-        requireBeta
       />
       <UploadDataModal disclosure={disclosure} />
     </>

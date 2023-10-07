@@ -40,7 +40,6 @@ const AddToDatasetButton = () => {
         label="Add to Dataset"
         icon={FiPlusSquare}
         isDisabled={selectedLogIds.size === 0}
-        requireBeta
       />
       <AddToDatasetModal disclosure={disclosure} />
     </>
