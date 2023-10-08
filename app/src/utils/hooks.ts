@@ -125,14 +125,6 @@ export const usePageParams = () => {
       ...newPageParams,
     };
 
-    if (!newPageParams.page) {
-      delete updatedQuery.page;
-    }
-
-    if (!newPageParams.pageSize) {
-      delete updatedQuery.pageSize;
-    }
-
     void router.push(
       {
         pathname: router.pathname,
