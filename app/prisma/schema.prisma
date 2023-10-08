@@ -435,7 +435,7 @@ model ApiKey {
     id String @id @default(uuid()) @db.Uuid
 
     name     String
-    apiKey   String         @unique
+    apiKey   String
     provider ApiKeyProvider @default(OPENPIPE)
 
     projectId String  @db.Uuid
@@ -443,6 +443,9 @@ model ApiKey {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@unique([projectId, apiKey])
+    @@index([apiKey])
 }
 
 model Account {
