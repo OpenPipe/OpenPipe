@@ -46,7 +46,7 @@ export const createOpenApiContext = async (opts: CreateNextContextOptions) => {
   if (!apiKey) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  const key = await prisma.apiKey.findUnique({
+  const key = await prisma.apiKey.findFirst({
     where: { apiKey },
     include: { project: true },
   });

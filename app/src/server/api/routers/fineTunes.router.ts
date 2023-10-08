@@ -6,6 +6,7 @@ import { prisma } from "~/server/db";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { trainOpenaiFineTune } from "~/server/tasks/fineTuning/trainOpenaiFineTune.task";
 import { requireCanViewProject, requireCanModifyProject } from "~/utils/accessControl";
+import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 
@@ -140,6 +141,8 @@ export const fineTunesRouter = createTRPCRouter({
         },
       });
       if (!fineTune) return error("Error creating fine tune");
+
+      captureFineTuneCreation(ctx.session, input.datasetId, input.slug, input.baseModel);
 
       await prisma.fineTuneTrainingEntry.createMany({
         data: fineTune.dataset.datasetEntries.map((datasetEntry) => ({

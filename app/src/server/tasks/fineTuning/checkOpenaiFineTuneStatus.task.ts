@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { startTestJobs } from "~/server/utils/startTestJobs";
+import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 
 const runOnce = async () => {
   const trainingOpenaiFineTunes = await prisma.fineTune.findMany({
@@ -55,6 +56,7 @@ const runOnce = async () => {
               status: "DEPLOYED",
             },
           });
+          captureFineTuneTrainingFinished(fineTune.slug, true);
           await startTestJobs(fineTune);
         } else if (resp.status === "failed") {
           await prisma.fineTune.update({
@@ -65,6 +67,7 @@ const runOnce = async () => {
               errorMessage: "Failed to train model",
             },
           });
+          captureFineTuneTrainingFinished(fineTune.slug, false);
         }
       } catch (e) {
         console.error(`Failed to check training status for model ${fineTune.id}`, e);

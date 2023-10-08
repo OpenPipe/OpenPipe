@@ -2,6 +2,7 @@ import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { startTestJobs } from "~/server/utils/startTestJobs";
 import { trainerv1 } from "~/server/modal-rpc/clients";
+import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 
 const runOnce = async () => {
   const trainingJobs = await prisma.fineTune.findMany({
@@ -42,7 +43,9 @@ const runOnce = async () => {
             },
           });
 
-          await startTestJobs(fineTune);
+          captureFineTuneTrainingFinished(job.slug, true);
+
+          await startTestJobs(job);
         } else if (resp.status === "error") {
           await prisma.fineTune.update({
             where: { id: job.id },
@@ -52,6 +55,7 @@ const runOnce = async () => {
               errorMessage: "Training job failed",
             },
           });
+          captureFineTuneTrainingFinished(job.slug, false);
         }
       } catch (e) {
         console.error(`Failed to check training status for model ${job.id}`, e);
