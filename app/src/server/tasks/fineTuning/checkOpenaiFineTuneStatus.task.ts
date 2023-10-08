@@ -56,7 +56,7 @@ const runOnce = async () => {
               status: "DEPLOYED",
             },
           });
-          captureFineTuneTrainingFinished(fineTune.slug, true);
+          captureFineTuneTrainingFinished(fineTune.projectId, fineTune.slug, true);
           await startTestJobs(fineTune);
         } else if (resp.status === "failed") {
           await prisma.fineTune.update({
@@ -67,7 +67,7 @@ const runOnce = async () => {
               errorMessage: "Failed to train model",
             },
           });
-          captureFineTuneTrainingFinished(fineTune.slug, false);
+          captureFineTuneTrainingFinished(fineTune.projectId, fineTune.slug, false);
         }
       } catch (e) {
         console.error(`Failed to check training status for model ${fineTune.id}`, e);

@@ -37,6 +37,7 @@ export const captureFineTuneUsage = (
 
 export const captureFineTuneCreation = (
   session: Session,
+  projectId: string,
   datasetId: string,
   slug: string,
   baseModel: string,
@@ -45,19 +46,25 @@ export const captureFineTuneCreation = (
     distinctId: session.user.id,
     event: "fine-tune-created",
     properties: {
-      datasetId: datasetId,
-      slug: slug,
-      baseModel: baseModel,
+      projectId,
+      datasetId,
+      slug,
+      baseModel,
     },
   });
 };
 
-export const captureFineTuneTrainingFinished = (slug: string, success: boolean) => {
+export const captureFineTuneTrainingFinished = (
+  projectId: string,
+  slug: string,
+  success: boolean,
+) => {
   posthogServerClient?.capture({
-    distinctId: slug,
+    distinctId: projectId,
     event: "fine-tune-training-finished",
     properties: {
-      success: success,
+      slug,
+      success,
     },
   });
 };

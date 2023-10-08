@@ -43,11 +43,11 @@ const runOnce = async () => {
             },
           });
 
-          captureFineTuneTrainingFinished(job.slug, true);
+          captureFineTuneTrainingFinished(fineTune.projectId, job.slug, true);
 
           await startTestJobs(job);
         } else if (resp.status === "error") {
-          await prisma.fineTune.update({
+          const fineTune = await prisma.fineTune.update({
             where: { id: job.id },
             data: {
               trainingFinishedAt: new Date(),
@@ -55,7 +55,7 @@ const runOnce = async () => {
               errorMessage: "Training job failed",
             },
           });
-          captureFineTuneTrainingFinished(job.slug, false);
+          captureFineTuneTrainingFinished(fineTune.projectId, job.slug, false);
         }
       } catch (e) {
         console.error(`Failed to check training status for model ${job.id}`, e);
