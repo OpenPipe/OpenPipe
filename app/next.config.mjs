@@ -38,6 +38,10 @@ let config = {
   },
 
   transpilePackages: ["openpipe"],
+
+  experimental: {
+    instrumentationHook: true,
+  },
 };
 
 config = nextRoutes()(config);
