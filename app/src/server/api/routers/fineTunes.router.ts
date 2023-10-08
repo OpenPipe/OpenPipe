@@ -142,7 +142,13 @@ export const fineTunesRouter = createTRPCRouter({
       });
       if (!fineTune) return error("Error creating fine tune");
 
-      captureFineTuneCreation(ctx.session, input.datasetId, input.slug, input.baseModel);
+      captureFineTuneCreation(
+        ctx.session,
+        fineTune.projectId,
+        input.datasetId,
+        input.slug,
+        input.baseModel,
+      );
 
       await prisma.fineTuneTrainingEntry.createMany({
         data: fineTune.dataset.datasetEntries.map((datasetEntry) => ({
