@@ -26,17 +26,20 @@ const project =
   }));
 
 if (env.OPENPIPE_API_KEY) {
-  await prisma.apiKey.upsert({
+  const existingApiKey = await prisma.apiKey.findFirst({
     where: {
       apiKey: env.OPENPIPE_API_KEY,
     },
-    create: {
-      projectId: project.id,
-      name: "Default API Key",
-      apiKey: env.OPENPIPE_API_KEY,
-    },
-    update: {},
   });
+  if (!existingApiKey) {
+    await prisma.apiKey.create({
+      data: {
+        projectId: project.id,
+        name: "Default API Key",
+        apiKey: env.OPENPIPE_API_KEY,
+      },
+    });
+  }
 }
 
 await prisma.experiment.deleteMany({
