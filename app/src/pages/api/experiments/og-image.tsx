@@ -2,7 +2,7 @@ import { ImageResponse } from "@vercel/og";
 import { type NextApiRequest, type NextApiResponse } from "next";
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 const inconsolataRegularFontP = fetch(
