@@ -69,9 +69,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const session = useSession();
   const isMissingBetaAccess = useIsMissingBetaAccess();
 
-  const [selectedBaseModel, setSelectedBaseModel] = useState<BaseModel>(
-    SUPPORTED_BASE_MODELS[0] as BaseModel,
-  );
+  const [selectedBaseModel, setSelectedBaseModel] = useState<BaseModel>(SUPPORTED_BASE_MODELS[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
 
   const needsMissingOpenaiKey =
@@ -83,7 +81,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   useEffect(() => {
     if (disclosure.isOpen) {
-      setSelectedBaseModel(SUPPORTED_BASE_MODELS[0] as BaseModel);
+      setSelectedBaseModel(SUPPORTED_BASE_MODELS[0]);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
     }
   }, [disclosure.isOpen]);

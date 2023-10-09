@@ -19,6 +19,10 @@ const baseModelPrices: Record<
   BaseModel,
   { promptTokenPrice: number; completionTokenPrice: number } | undefined
 > = {
+  MISTRAL_7b: {
+    promptTokenPrice: 0.0000012,
+    completionTokenPrice: 0.0000016,
+  },
   LLAMA2_7b: {
     promptTokenPrice: 0.0000012,
     completionTokenPrice: 0.0000016,
@@ -27,7 +31,6 @@ const baseModelPrices: Record<
     promptTokenPrice: 0.0000024,
     completionTokenPrice: 0.0000032,
   },
-  LLAMA2_70b: undefined,
   GPT_3_5_TURBO: {
     promptTokenPrice: 0.000008,
     completionTokenPrice: 0.000012,

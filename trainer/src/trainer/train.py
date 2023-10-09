@@ -41,6 +41,7 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     model_map = {
         BaseModel.LLAMA2_7B: "meta-llama/Llama-2-7b-hf",
         BaseModel.LLAMA2_13B: "meta-llama/Llama-2-13b-hf",
+        BaseModel.MISTRAL_7B: "mistralai/Mistral-7B-v0.1",
     }
 
     base_model = model_map[training_info.base_model]

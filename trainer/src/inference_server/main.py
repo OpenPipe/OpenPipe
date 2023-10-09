@@ -15,7 +15,12 @@ image = (
         "nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04",
         add_python="3.10",
     )
-    .pip_install("vllm==0.2.0", "huggingface-hub==0.17.3", "hf-transfer~=0.1")
+    .pip_install(
+        "vllm==0.2.0",
+        "huggingface-hub==0.17.3",
+        "hf-transfer~=0.1",
+        "transformers==4.34.0",
+    )
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
 )
 

@@ -54,6 +54,7 @@ export interface ApiKey {
   projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  provider: Generated<"OPENAI" | "OPENPIPE">;
 }
 
 export interface Dataset {
@@ -120,15 +121,7 @@ export interface Experiment {
 export interface FineTune {
   id: string;
   slug: string;
-  status: Generated<
-    | "AWAITING_DEPLOYMENT"
-    | "DEPLOYED"
-    | "DEPLOYING"
-    | "ERROR"
-    | "PENDING"
-    | "TRAINING"
-    | "UPLOADING_DATASET"
-  >;
+  status: Generated<"DEPLOYED" | "ERROR" | "PENDING" | "TRAINING" | "TRANSFERRING_TRAINING_DATA">;
   trainingStartedAt: Timestamp | null;
   trainingFinishedAt: Timestamp | null;
   deploymentStartedAt: Timestamp | null;
@@ -140,7 +133,28 @@ export interface FineTune {
   inferenceUrls: Generated<string[] | null>;
   errorMessage: string | null;
   trainingBlobName: string | null;
-  baseModel: Generated<"GPT_3_5_TURBO" | "LLAMA2_13b" | "LLAMA2_70b" | "LLAMA2_7b">;
+  baseModel: "GPT_3_5_TURBO" | "LLAMA2_13b" | "LLAMA2_7b" | "MISTRAL_7b";
+  huggingFaceModelId: string | null;
+  keepWarm: Generated<boolean>;
+  pipelineVersion: number;
+  modalTrainingJobId: string | null;
+  openaiModelId: string | null;
+  openaiTrainingJobId: string | null;
+}
+
+export interface FineTuneTestingEntry {
+  id: string;
+  cacheKey: string | null;
+  prunedInputTokens: number;
+  prunedInput: string;
+  outputTokens: number | null;
+  output: Json | null;
+  errorMessage: string | null;
+  fineTuneId: string;
+  datasetEntryId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+  score: number | null;
 }
 
 export interface FineTuneTrainingEntry {
@@ -380,6 +394,7 @@ export interface DB {
   Evaluation: Evaluation;
   Experiment: Experiment;
   FineTune: FineTune;
+  FineTuneTestingEntry: FineTuneTestingEntry;
   FineTuneTrainingEntry: FineTuneTrainingEntry;
   "graphile_worker.job_queues": GraphileWorkerJobQueues;
   "graphile_worker.jobs": GraphileWorkerJobs;

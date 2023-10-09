@@ -533,9 +533,10 @@ enum FineTuneStatus {
 }
 
 enum BaseModel {
+    MISTRAL_7b
     LLAMA2_7b
     LLAMA2_13b
-    LLAMA2_70b
+    // LLAMA2_70b
     GPT_3_5_TURBO
 }
 
@@ -543,7 +544,7 @@ model FineTune {
     id String @id @default(uuid()) @db.Uuid
 
     slug                 String         @unique
-    baseModel            BaseModel      @default(LLAMA2_7b)
+    baseModel            BaseModel
     status               FineTuneStatus @default(PENDING)
     errorMessage         String?
     trainingBlobName     String?

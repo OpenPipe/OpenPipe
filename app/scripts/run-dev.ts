@@ -20,12 +20,13 @@ try {
     $$`pnpm worker --watch`,
   ];
 
-  if (process.env.MODAL_USE_LOCAL_DEPLOYMENTS) {
-    processes.push(
-      $$({ cwd: "../trainer" })`poetry run modal serve src/trainer/main.py`,
-      $$({ cwd: "../trainer" })`poetry run modal serve src/inference_server/main.py`,
-    );
-  }
+  // These sometimes seem to fail which interrupts long-running training jobs. Better to run them out of process at least for now.
+  // if (process.env.MODAL_USE_LOCAL_DEPLOYMENTS) {
+  //   processes.push(
+  //     $$({ cwd: "../trainer" })`poetry run modal serve src/trainer/main.py`,
+  //     $$({ cwd: "../trainer" })`poetry run modal serve src/inference_server/main.py`,
+  //   );
+  // }
 
   tunnel.on("close", () => {
     console.log("Local tunnel closed");
