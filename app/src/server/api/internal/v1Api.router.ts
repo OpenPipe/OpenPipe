@@ -6,8 +6,6 @@ import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { generateBlobDownloadUrl } from "~/utils/azure/server";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 
-const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
-
 export const v1ApiRouter = createOpenApiRouter({
   getTrainingInfo: openApiProtectedProc
     .meta({
@@ -27,7 +25,7 @@ export const v1ApiRouter = createOpenApiRouter({
       z.object({
         trainingDataUrl: z.string(),
         huggingFaceModelId: z.string(),
-        baseModel: BaseModelEnum,
+        baseModel: z.enum(SUPPORTED_BASE_MODELS),
       }),
     )
     .mutation(async ({ input }) => {
@@ -47,7 +45,7 @@ export const v1ApiRouter = createOpenApiRouter({
       return {
         trainingDataUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),
         huggingFaceModelId: fineTune.huggingFaceModelId,
-        baseModel: fineTune.baseModel as typeof BaseModelEnum._type,
+        baseModel: fineTune.baseModel,
       };
     }),
 });

@@ -12,8 +12,8 @@ image = (
     )
     .apt_install("git")
     .run_commands(
-        "git clone https://github.com/OpenPipe/axolotl.git /axolotl",
-        "cd /axolotl && git checkout a005c1b > /dev/null 2>&1",
+        "git clone https://github.com/OpenAccess-AI-Collective/axolotl.git /axolotl",
+        "cd /axolotl && git checkout 77c84e0 > /dev/null 2>&1",
         "pip install -e /axolotl",
     )
     .pip_install(
@@ -24,6 +24,7 @@ image = (
         "huggingface-hub==0.17.3",
     )
 )
+
 
 APP_NAME = "trainer-v1"
 

@@ -10,9 +10,7 @@ const runOnce = async () => {
       status: {
         in: ["TRAINING"],
       },
-      modalTrainingJobId: {
-        not: null,
-      },
+      modalTrainingJobId: { not: null },
     },
   });
 
