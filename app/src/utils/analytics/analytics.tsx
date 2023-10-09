@@ -2,6 +2,7 @@
 import { useSession } from "next-auth/react";
 import React, { type ReactNode, useEffect } from "react";
 import { PostHogProvider, useActiveFeatureFlags } from "posthog-js/react";
+import * as Sentry from "@sentry/browser";
 
 import posthog from "posthog-js";
 import { env } from "~/env.mjs";
@@ -11,7 +12,7 @@ import { useAppStore } from "~/state/store";
 // Make sure we're in the browser
 const inBrowser = typeof window !== "undefined";
 
-export const PosthogAppProvider = ({ children }: { children: ReactNode }) => {
+export const FrontendAnalyticsProvider = ({ children }: { children: ReactNode }) => {
   const session = useSession().data;
   const router = useRouter();
 
@@ -42,6 +43,15 @@ export const PosthogAppProvider = ({ children }: { children: ReactNode }) => {
       posthog.identify(session.user.id, {
         name: session.user.name,
         email: session.user.email,
+      });
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (env.NEXT_PUBLIC_SENTRY_DSN && inBrowser) {
+      Sentry.setUser({
+        id: session?.user?.id,
+        email: session?.user?.email ?? undefined,
       });
     }
   }, [session]);

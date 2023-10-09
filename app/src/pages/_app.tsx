@@ -8,7 +8,7 @@ import { ChakraThemeProvider } from "~/theme/ChakraThemeProvider";
 import { SyncAppStore } from "~/state/sync";
 import NextAdapterApp from "next-query-params/app";
 import { QueryParamProvider } from "use-query-params";
-import { PosthogAppProvider } from "~/utils/analytics/posthog";
+import { FrontendAnalyticsProvider } from "~/utils/analytics/analytics";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -34,7 +34,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <meta name="twitter:image" content="/og.png" />
       </Head>
       <SessionProvider session={session}>
-        <PosthogAppProvider>
+        <FrontendAnalyticsProvider>
           <SyncAppStore />
           <Favicon />
           <ChakraThemeProvider>
@@ -42,7 +42,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
               <Component {...pageProps} />
             </QueryParamProvider>
           </ChakraThemeProvider>
-        </PosthogAppProvider>
+        </FrontendAnalyticsProvider>
       </SessionProvider>
     </>
   );
