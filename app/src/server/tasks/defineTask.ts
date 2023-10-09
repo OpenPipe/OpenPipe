@@ -17,14 +17,14 @@ function defineTask<TPayload>(
   taskHandler: (payload: TPayload, helpers: Helpers) => Promise<void>,
 ) {
   const enqueue = async (payload: TPayload, spec?: TaskSpec) => {
-    console.log("Enqueuing task", taskIdentifier, payload);
+    // console.log("Enqueuing task", taskIdentifier, payload);
 
     const utils = await workerUtils();
     return await utils.addJob(taskIdentifier, payload, spec);
   };
 
   const handler = (payload: TPayload, helpers: Helpers) => {
-    helpers.logger.info(`Running task ${taskIdentifier} with payload: ${JSON.stringify(payload)}`);
+    helpers.logger.debug(`Running task ${taskIdentifier} with payload: ${JSON.stringify(payload)}`);
     return taskHandler(payload, helpers);
   };
 
