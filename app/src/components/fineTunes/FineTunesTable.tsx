@@ -44,7 +44,6 @@ const FineTunesTable = ({}) => {
                   <Td>
                     <ColoredPercent value={fineTune.averageScore} />
                   </Td>
-                  {/* <Td>{fineTune._count.pruningRules}</Td> */}
                   <Td fontSize="sm" fontWeight="bold">
                     <Text color={getStatusColor(fineTune.status)}>{fineTune.status}</Text>
                   </Td>

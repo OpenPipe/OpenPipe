@@ -21,7 +21,7 @@ const DeleteFineTuneButton = () => {
 
   return (
     <>
-      <Button size="sm" colorScheme="red" fontWeight="normal" onClick={disclosure.onOpen}>
+      <Button size="sm" colorScheme="red" variant="outline" onClick={disclosure.onOpen}>
         <Icon as={BsTrash} boxSize={4} />
         <Text ml={2}>Delete Fine Tune</Text>
       </Button>

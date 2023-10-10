@@ -7,7 +7,6 @@ import { queryModel } from "./queryModel.task";
 import { runNewEval } from "./runNewEval.task";
 import { importDatasetEntries } from "./importDatasetEntries.task";
 import { trainFineTune } from "./fineTuning/trainFineTune.task";
-import { trainOpenaiFineTune } from "./fineTuning/trainOpenaiFineTune.task";
 import { checkFineTuneStatus } from "./fineTuning/checkFineTuneStatus.task";
 import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatus.task";
 import { getTestResult } from "./getTestResult.task";
@@ -24,7 +23,6 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   runNewEval,
   importDatasetEntries,
   trainFineTune,
-  trainOpenaiFineTune,
   checkFineTuneStatus,
   checkOpenaiFineTuneStatus,
   getTestResult,

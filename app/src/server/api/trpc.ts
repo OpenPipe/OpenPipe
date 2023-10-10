@@ -143,7 +143,8 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next, path }) => {
       },
     },
   });
-  if (!accessControlRun)
+
+  if (resp.ok && !accessControlRun)
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message:
