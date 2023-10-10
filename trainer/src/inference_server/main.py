@@ -63,9 +63,10 @@ def cache_model_weights(hf_model_id: str, cache_dir: str):
         snapshot_download(
             hf_model_id, local_dir=cache_dir, local_dir_use_symlinks=False
         )
+        logging.info("Committing model to volume.")
         stub.volume.commit()
 
-        logging.info("Model downloaded.")
+        logging.info("Model committed.")
 
 
 @stub.cls(

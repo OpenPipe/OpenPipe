@@ -1,4 +1,4 @@
-import { VStack, HStack, Text, Divider } from "@chakra-ui/react";
+import { VStack, HStack, Text } from "@chakra-ui/react";
 import AppShell from "~/components/nav/AppShell";
 import DatasetsTable from "~/components/datasets/DatasetsTable";
 import NewDatasetButton from "~/components/datasets/NewDatasetButton";
@@ -13,7 +13,6 @@ export default function DatasetsPage() {
           </Text>
           <NewDatasetButton />
         </HStack>
-        <Divider />
         <DatasetsTable />
       </VStack>
     </AppShell>

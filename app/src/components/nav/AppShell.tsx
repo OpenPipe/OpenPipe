@@ -10,6 +10,7 @@ import {
   Link as ChakraLink,
   Flex,
   useBreakpointValue,
+  Tooltip,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import Link from "next/link";
@@ -115,24 +116,9 @@ const NavSidebar = () => {
           </NavSidebarOption>
         )}
       </VStack>
-      <HStack
-        w="full"
-        px={{ base: 3, md: 4 }}
-        py={{ base: 0, md: 1 }}
-        as={ChakraLink}
-        justifyContent="start"
-        href="https://docs.openpipe.ai"
-        target="_blank"
-        color="gray.500"
-        spacing={1}
-      >
-        <Icon as={FaReadme} boxSize={4} mr={2} />
-        <Text fontWeight="bold" fontSize="sm" display={{ base: "none", md: "flex" }}>
-          Open Documentation
-        </Text>
-      </HStack>
+
       <Divider />
-      <VStack spacing={0} align="center">
+      <HStack spacing={0} align="center" justify="center">
         <ChakraLink
           href="https://github.com/openpipe/openpipe"
           target="_blank"
@@ -142,7 +128,18 @@ const NavSidebar = () => {
         >
           <Icon as={BsGithub} boxSize={6} />
         </ChakraLink>
-      </VStack>
+        <Tooltip label="View Documentation" aria-label="View Documentation">
+          <ChakraLink
+            href="https://docs.openpipe.ai"
+            target="_blank"
+            color="gray.500"
+            _hover={{ color: "gray.800" }}
+            p={2}
+          >
+            <Icon as={FaReadme} boxSize={6} />
+          </ChakraLink>
+        </Tooltip>
+      </HStack>
     </VStack>
   );
 };

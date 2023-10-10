@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, VStack, Divider, HStack, Box, IconButton, Icon } from "@chakra-ui/react";
+import { Text, VStack, HStack, Box, IconButton, Icon } from "@chakra-ui/react";
 import { BiRefresh } from "react-icons/bi";
 import { FiFilter } from "react-icons/fi";
 
@@ -29,11 +29,10 @@ export default function LoggedCalls() {
             <IconButton
               aria-label="Refresh logs"
               variant="ghost"
-              icon={<Icon as={BiRefresh} boxSize={8} />}
+              icon={<Icon as={BiRefresh} boxSize={8} color="gray.400" />}
               onClick={() => void utils.loggedCalls.list.invalidate()}
             />
           </HStack>
-          <Divider />
           <HStack w="full" justifyContent="flex-end">
             <AddToDatasetButton />
             <ExportButton />
