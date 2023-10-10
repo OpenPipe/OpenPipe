@@ -239,7 +239,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
   const fineTune = useFineTune().data;
   const { page, pageSize } = usePageParams();
 
-  const { data, isLoading, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
+  const { data, isLoading, ...rest } = api.fineTunes.listTestingEntries.useQuery(
     { fineTuneId: fineTune?.id ?? "", page, pageSize },
     { enabled: !!fineTune?.id, refetchInterval },
   );

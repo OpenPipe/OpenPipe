@@ -1,4 +1,4 @@
-import { Text, VStack, Divider } from "@chakra-ui/react";
+import { Text, VStack } from "@chakra-ui/react";
 import BetaBanner from "~/components/BetaBanner";
 import FineTunesTable from "~/components/fineTunes/FineTunesTable";
 
@@ -12,7 +12,6 @@ export default function FineTunes() {
         <Text fontSize="2xl" fontWeight="bold">
           Fine Tunes
         </Text>
-        <Divider />
         <FineTunesTable />
       </VStack>
     </AppShell>

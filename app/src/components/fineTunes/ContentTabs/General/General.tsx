@@ -6,18 +6,12 @@ import FineTuneSlugEditor from "./FineTuneSlugEditor";
 import dayjs from "~/utils/dayjs";
 import DeleteFineTuneButton from "./DeleteFineTuneButton";
 import { getStatusColor } from "../../FineTunesTable";
+import ColoredPercent from "~/components/ColoredPercent";
 
 const General = () => {
   const fineTune = useFineTune().data;
 
   if (!fineTune) return null;
-
-  const {
-    baseModel,
-    _count: { trainingEntries: numTrainingEntries },
-    pruningRules,
-    createdAt,
-  } = fineTune;
 
   return (
     <VStack w="full" h="full" justifyContent="space-between">
@@ -29,19 +23,27 @@ const General = () => {
             </Text>
             <HStack>
               <Text w={180}>Base Model:</Text>
-              <Text color="gray.500">{displayBaseModel(baseModel)}</Text>
+              <Text color="gray.500">{displayBaseModel(fineTune.baseModel)}</Text>
             </HStack>
             <HStack>
-              <Text w={180}>Training Dataset Size:</Text>
-              <Text color="gray.500">{numTrainingEntries}</Text>
+              <Text w={180}>Training Set Size:</Text>
+              <Text color="gray.500">{fineTune.numTrainingEntries.toLocaleString()}</Text>
+            </HStack>
+            <HStack>
+              <Text w={180}>Test Set Size:</Text>
+              <Text color="gray.500">{fineTune.numTestingEntries.toLocaleString()}</Text>
+            </HStack>
+            <HStack>
+              <Text w={180}>Test Set Accuracy:</Text>
+              <ColoredPercent value={fineTune.averageScore} />
             </HStack>
             <HStack>
               <Text w={180}>Pruning Rules:</Text>
-              <Text color="gray.500">{pruningRules.length}</Text>
+              <Text color="gray.500">{fineTune.numPruningRules}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Created At:</Text>
-              <Text color="gray.500">{dayjs(createdAt).format("MMMM D h:mm A")}</Text>
+              <Text color="gray.500">{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Text>
             </HStack>
             <HStack alignItems="flex-start">
               <Text w={180}>Status:</Text>

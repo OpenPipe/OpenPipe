@@ -6,9 +6,11 @@ import dayjs from "~/utils/dayjs";
 import { useDatasets } from "~/utils/hooks";
 
 const DatasetsTable = ({}) => {
-  const { data } = useDatasets();
+  const query = useDatasets();
 
-  const datasets = data || [];
+  const datasets = query.data || [];
+
+  if (query.isLoading) return null;
 
   return (
     <Card width="100%" overflowX="auto">

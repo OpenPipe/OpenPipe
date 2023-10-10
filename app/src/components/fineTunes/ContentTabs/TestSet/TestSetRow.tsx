@@ -17,7 +17,7 @@ export const TableHeader = () => {
   );
 };
 
-type TestingEntry = RouterOutputs["datasetEntries"]["listTestingEntries"]["entries"][number];
+type TestingEntry = RouterOutputs["fineTunes"]["listTestingEntries"]["entries"][number];
 
 const TestSetRow = ({
   prunedInput,

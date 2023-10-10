@@ -6,11 +6,14 @@ import Link from "next/link";
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
 import { displayBaseModel } from "~/utils/baseModels";
+import ColoredPercent from "../ColoredPercent";
 
 const FineTunesTable = ({}) => {
-  const { data } = useFineTunes(10000);
+  const query = useFineTunes(10000);
 
-  const fineTunes = data?.fineTunes || [];
+  const fineTunes = query.data?.fineTunes || [];
+
+  if (query.isLoading) return null;
 
   return (
     <Card width="100%" overflowX="auto">
@@ -22,7 +25,7 @@ const FineTunesTable = ({}) => {
               <Th>Created At</Th>
               <Th>Base Model</Th>
               <Th>Training Size</Th>
-              <Th>Pruning Rules</Th>
+              <Th>Accuracy</Th>
               <Th>Status</Th>
             </Tr>
           </Thead>
@@ -37,8 +40,11 @@ const FineTunesTable = ({}) => {
                   </Td>
                   <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
                   <Td>{displayBaseModel(fineTune.baseModel)}</Td>
-                  <Td>{fineTune._count.trainingEntries}</Td>
-                  <Td>{fineTune._count.pruningRules}</Td>
+                  <Td>{fineTune.numTrainingEntries.toLocaleString()}</Td>
+                  <Td>
+                    <ColoredPercent value={fineTune.averageScore} />
+                  </Td>
+                  {/* <Td>{fineTune._count.pruningRules}</Td> */}
                   <Td fontSize="sm" fontWeight="bold">
                     <Text color={getStatusColor(fineTune.status)}>{fineTune.status}</Text>
                   </Td>

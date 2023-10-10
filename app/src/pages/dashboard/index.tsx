@@ -14,7 +14,6 @@ import {
   Tbody,
   Tr,
   Td,
-  Divider,
 } from "@chakra-ui/react";
 import { Ban, DollarSign, Hash } from "lucide-react";
 
@@ -38,7 +37,6 @@ export default function Dashboard() {
         <Text fontSize="2xl" fontWeight="bold">
           Dashboard
         </Text>
-        <Divider />
         <VStack margin="auto" spacing={4} align="stretch" w="full">
           <HStack gap={4} align="start">
             <Card flex={1}>
