@@ -7,7 +7,6 @@ export type RunNewEvalJob = {
 
 // When a new eval is created, we want to run it on all existing outputs, but return the new eval first
 export const runNewEval = defineTask<RunNewEvalJob>("runNewEval", async (task) => {
-  console.log("RUNNING TASK", task);
   const { experimentId } = task;
   await runAllEvals(experimentId);
 });

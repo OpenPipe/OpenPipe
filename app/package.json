@@ -29,7 +29,6 @@
     "@apidevtools/json-schema-ref-parser": "^10.1.0",
     "@azure/identity": "^3.3.0",
     "@azure/storage-blob": "12.15.0",
-    "@babel/standalone": "^7.22.9",
     "@chakra-ui/anatomy": "^2.2.0",
     "@chakra-ui/next-js": "^2.1.4",
     "@chakra-ui/react": "^2.7.1",

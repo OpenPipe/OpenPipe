@@ -20,9 +20,6 @@ importers:
       '@azure/storage-blob':
         specifier: 12.15.0
         version: 12.15.0(encoding@0.1.13)
-      '@babel/standalone':
-        specifier: ^7.22.9
-        version: 7.22.9
       '@chakra-ui/anatomy':
         specifier: ^2.2.0
         version: 2.2.0
@@ -839,11 +836,6 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
-
-  /@babel/standalone@7.22.9:
-    resolution: {integrity: sha512-RRUFpN2WiHaczMqIhmy7VoruvSw+c3NSq6BczondQ6elJXtKzr9cAWWsWWZvtZ/rYFQpoQlch5VxQe4aWTt8LA==}
-    engines: {node: '>=6.9.0'}
-    dev: false
 
   /@babel/template@7.22.5:
     resolution: {integrity: sha512-X7yV7eiwAxdj9k94NEylvbVHLiVG1nvzCV2EAowhxLTwODV1jl9UzZ48leOC0sH7OnuHrIkllaBgneUykIcZaw==}
