@@ -5,7 +5,6 @@ import { sql } from "kysely";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
-import { trainOpenaiFineTune } from "~/server/tasks/fineTuning/trainOpenaiFineTune.task";
 import { requireCanViewProject, requireCanModifyProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
@@ -37,14 +36,9 @@ export const fineTunesRouter = createTRPCRouter({
           sql<number>`(select avg("score") from "FineTuneTestingEntry" where "fineTuneId" = ft.id)`.as(
             "averageScore",
           ),
-          // sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
-          //   "numPruningRules",
-          // ),
         ])
-        .orderBy("ft.createdAt", "asc")
+        .orderBy("ft.createdAt", "desc")
         .execute();
-
-      console.log(fineTunes.map((ft) => ft.averageScore));
 
       const count = await prisma.fineTune.count({
         where: {
@@ -72,7 +66,7 @@ export const fineTunesRouter = createTRPCRouter({
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "FineTuneTestingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "type" = 'TEST' and not outdated)::int`.as(
             "numTestingEntries",
           ),
           sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
@@ -82,7 +76,9 @@ export const fineTunesRouter = createTRPCRouter({
             "averageScore",
           ),
         ])
-        .executeTakeFirstOrThrow();
+        .executeTakeFirst();
+
+      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
 
       await requireCanViewProject(fineTune.projectId, ctx);
 
@@ -181,11 +177,29 @@ export const fineTunesRouter = createTRPCRouter({
           }),
         ),
       );
-      if (fineTune.baseModel === "GPT_3_5_TURBO") {
-        await trainOpenaiFineTune.enqueue({ fineTuneId: fineTune.id });
-      } else {
-        await trainFineTune.enqueue({ fineTuneId: fineTune.id });
-      }
+      await trainFineTune.enqueue({ fineTuneId: fineTune.id });
+
+      return success();
+    }),
+  restartTraining: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const fineTune = await prisma.fineTune.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!fineTune) return error("Fine tune not found");
+      await requireCanModifyProject(fineTune.projectId, ctx);
+
+      await prisma.fineTune.update({
+        where: { id: input.id },
+        data: {
+          status: "PENDING",
+          errorMessage: null,
+        },
+      });
+
+      await trainFineTune.enqueue({ fineTuneId: fineTune.id });
 
       return success();
     }),
@@ -262,13 +276,11 @@ export const fineTunesRouter = createTRPCRouter({
       if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
       await requireCanViewProject(fineTune.projectId, ctx);
 
-      const [entries, countFinished, count, averageScore] = await prisma.$transaction([
+      const [entries, count, countFinished, averageScore] = await prisma.$transaction([
         prisma.fineTuneTestingEntry.findMany({
           where: {
             fineTuneId: fineTuneId,
-            datasetEntry: {
-              outdated: false,
-            },
+            datasetEntry: { outdated: false },
           },
           include: {
             datasetEntry: {
@@ -317,7 +329,7 @@ export const fineTunesRouter = createTRPCRouter({
       return {
         entries,
         count,
-        countFinished: countFinished,
+        countFinished,
         averageScore: averageScore._avg.score,
       };
     }),
