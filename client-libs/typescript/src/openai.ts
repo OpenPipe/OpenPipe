@@ -64,9 +64,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     try {
       this.opClient ? await this.opClient.default.report(args) : Promise.resolve();
     } catch (e) {
-      console.error(
-        "OpenPipe: we ran into an error when trying to report usage data back to our servers. Don't worry, your completion still went through as intended and we've logged this on our side for further review.",
-      );
+      // Ignore errors with reporting
     }
   }
 
