@@ -1,59 +1,59 @@
-import { spawn } from "child_process";
+import { $, ExecaChildProcess } from "execa";
 import localtunnel from "localtunnel";
-
-// Function to start a subprocess and return its instance
-const startSubprocess = (command: string, args: string[], env: NodeJS.ProcessEnv) => {
-  const subprocess = spawn(command, args, {
-    stdio: "inherit",
-    env: { ...process.env, ...env },
-  });
-
-  subprocess.on("error", (error) => {
-    console.error(`Error starting subprocess: ${error.message}`);
-  });
-
-  subprocess.on("exit", (code, signal) => {
-    if (code !== null) {
-      console.log(`Subprocess exited with code ${code}`);
-    } else if (signal !== null) {
-      console.log(`Subprocess was killed with signal ${signal}`);
-    }
-  });
-
-  return subprocess;
-};
+import "dotenv/config";
 
 try {
-  // Create localtunnel
   const tunnel = await localtunnel({ port: 3000 });
 
-  // Environment variable to be injected
   const env = {
     LOCAL_HOST_PUBLIC_URL: tunnel.url,
     NODE_ENV: "development",
   } as const;
 
-  // Log the public URL
   console.log(`Local tunnel established at ${tunnel.url}`);
 
-  // Start subprocesses
-  const nextDev = startSubprocess("pnpm", ["dev:next"], env);
-  const wss = startSubprocess("pnpm", ["dev:wss"], env);
-  const worker = startSubprocess("pnpm", ["worker", "--watch"], env);
+  const $$ = $({ stdio: "inherit", env: { ...process.env, ...env } });
 
-  // Handle tunnel close and errors
+  const processes: ExecaChildProcess[] = [
+    $$`pnpm dev:next`,
+    $$`pnpm dev:wss`,
+    $$`pnpm worker --watch`,
+  ];
+
+  // These sometimes seem to fail which interrupts long-running training jobs. Better to run them out of process at least for now.
+  // if (process.env.MODAL_USE_LOCAL_DEPLOYMENTS) {
+  //   processes.push(
+  //     $$({ cwd: "../trainer" })`poetry run modal serve src/trainer/main.py`,
+  //     $$({ cwd: "../trainer" })`poetry run modal serve src/inference_server/main.py`,
+  //   );
+  // }
+
   tunnel.on("close", () => {
     console.log("Local tunnel closed");
-    nextDev.kill();
-    wss.kill();
-    worker.kill();
   });
 
   tunnel.on("error", (error) => {
     console.error(`Tunnel error: ${(error as Error).message}`);
-    nextDev.kill();
-    wss.kill();
-    worker.kill();
+  });
+
+  const promises = processes.map((proc) => {
+    return new Promise<void>((_, reject) => {
+      proc
+        .on("exit", (code) => {
+          if (code !== 0) {
+            reject(new Error(`Process exited with code ${code?.toString() ?? "unknown"}`));
+          }
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  });
+
+  await Promise.race(promises).catch((error) => {
+    // Terminate all processes
+    processes.forEach((proc) => proc.kill());
+    console.error(`An error occurred: ${(error as Error).message}`);
   });
 } catch (error) {
   console.error(`Failed to start local tunnel: ${(error as Error).message}`);

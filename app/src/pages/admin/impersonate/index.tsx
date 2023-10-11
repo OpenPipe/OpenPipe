@@ -1,7 +1,7 @@
 import { Card, HStack, Image, Text } from "@chakra-ui/react";
 import AsyncSelect from "react-select/async";
 import AppShell from "~/components/nav/AppShell";
-import { RouterOutputs, api } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 
 export default function Impersonate() {

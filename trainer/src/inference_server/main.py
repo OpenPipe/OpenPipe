@@ -7,6 +7,7 @@ from .api import (
     Usage,
 )
 from typing import Union
+from ..shared import model_cache_dir
 import os
 
 image = (
@@ -14,7 +15,12 @@ image = (
         "nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04",
         add_python="3.10",
     )
-    .pip_install("vllm==0.2.0", "huggingface-hub==0.17.3", "hf-transfer~=0.1")
+    .pip_install(
+        "vllm==0.2.0",
+        "huggingface-hub==0.17.3",
+        "hf-transfer~=0.1",
+        "transformers==4.34.0",
+    )
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
 )
 
@@ -57,9 +63,10 @@ def cache_model_weights(hf_model_id: str, cache_dir: str):
         snapshot_download(
             hf_model_id, local_dir=cache_dir, local_dir_use_symlinks=False
         )
+        logging.info("Committing model to volume.")
         stub.volume.commit()
 
-        logging.info("Model downloaded.")
+        logging.info("Model committed.")
 
 
 @stub.cls(
@@ -71,7 +78,7 @@ def cache_model_weights(hf_model_id: str, cache_dir: str):
 )
 class Model:
     def __init__(self, huggingface_model_id: str):
-        model_dir = f"/models/{huggingface_model_id}"
+        model_dir = model_cache_dir(huggingface_model_id, "/models")
         cache_model_weights(huggingface_model_id, model_dir)
 
         logging.info(f"Loading model from volume {model_dir}")
@@ -118,6 +125,8 @@ class Model:
         return output
 
 
+# TODO: convert this to a FastAPI endpoint like the trainer so we can codegen a
+# client with nice types.
 @stub.function(timeout=1 * 60 * 60, allow_concurrent_inputs=500)
 @modal.web_endpoint(method="POST", label=APP_NAME)
 async def generate(request: Input) -> Output:

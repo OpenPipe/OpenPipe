@@ -72,9 +72,13 @@ export const authOptions: NextAuthOptions = {
  *
  * @see https://next-auth.js.org/configuration/nextjs
  */
-export const getServerAuthSession = (ctx: {
+export const getServerAuthSession = async (ctx: {
   req: GetServerSidePropsContext["req"];
   res: GetServerSidePropsContext["res"];
 }) => {
-  return getServerSession(ctx.req, ctx.res, authOptions);
+  const session = await getServerSession(ctx.req, ctx.res, authOptions);
+  if (session?.user?.id) {
+    Sentry.setUser({ id: session?.user?.id, email: session?.user?.email ?? undefined });
+  }
+  return session;
 };

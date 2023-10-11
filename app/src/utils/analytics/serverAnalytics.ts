@@ -34,3 +34,37 @@ export const captureFineTuneUsage = (
     },
   });
 };
+
+export const captureFineTuneCreation = (
+  session: Session,
+  projectId: string,
+  datasetId: string,
+  slug: string,
+  baseModel: string,
+) => {
+  posthogServerClient?.capture({
+    distinctId: session.user.id,
+    event: "fine-tune-created",
+    properties: {
+      projectId,
+      datasetId,
+      slug,
+      baseModel,
+    },
+  });
+};
+
+export const captureFineTuneTrainingFinished = (
+  projectId: string,
+  slug: string,
+  success: boolean,
+) => {
+  posthogServerClient?.capture({
+    distinctId: projectId,
+    event: "fine-tune-training-finished",
+    properties: {
+      slug,
+      success,
+    },
+  });
+};

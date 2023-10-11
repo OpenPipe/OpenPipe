@@ -1,7 +1,6 @@
 import { type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 import { type ChatCompletionMessage } from "openai/resources/chat";
-import { APIError } from "openai/error";
 
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
@@ -19,21 +18,10 @@ export type GetTestResultJob = {
   fineTuneId: string;
   datasetEntryId: string;
   skipCache: boolean;
-  numPreviousTries: number;
 };
 
-const MAX_AUTO_RETRIES = 50;
-const MIN_DELAY = 500; // milliseconds
-const MAX_DELAY = 15000; // milliseconds
-
-function calculateDelay(numPreviousTries: number): number {
-  const baseDelay = Math.min(MAX_DELAY, MIN_DELAY * Math.pow(2, numPreviousTries));
-  const jitter = Math.random() * baseDelay;
-  return baseDelay + jitter;
-}
-
 export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async (task) => {
-  const { fineTuneId, datasetEntryId, skipCache, numPreviousTries } = task;
+  const { fineTuneId, datasetEntryId, skipCache } = task;
 
   const [fineTune, datasetEntry] = await prisma.$transaction([
     prisma.fineTune.findUnique({
@@ -95,7 +83,6 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
     }
   }
 
-  let shouldRetry = false;
   let completion;
   const input = {
     model: `openpipe:${fineTune.slug}`,
@@ -145,29 +132,13 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
       },
     });
   } catch (e) {
-    if (e instanceof APIError) {
-      shouldRetry = e.status === 429 && numPreviousTries < MAX_AUTO_RETRIES;
-    }
     await prisma.fineTuneTestingEntry.update({
       where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
       data: {
         errorMessage: (e as Error).message,
       },
     });
-  }
-
-  if (shouldRetry) {
-    const delay = calculateDelay(numPreviousTries);
-    const retryTime = new Date(Date.now() + delay);
-    await getTestResult.enqueue(
-      {
-        fineTuneId,
-        datasetEntryId,
-        skipCache,
-        numPreviousTries: numPreviousTries + 1,
-      },
-      { runAt: retryTime, priority: 3 },
-    );
+    throw e;
   }
 });
 
@@ -177,7 +148,7 @@ export const queueGetTestResult = async (
   skipCache = false,
 ) => {
   await getTestResult.enqueue(
-    { fineTuneId, datasetEntryId, skipCache, numPreviousTries: 0 },
-    { priority: 5 },
+    { fineTuneId, datasetEntryId, skipCache },
+    { priority: 5, maxAttempts: 10 },
   );
 };

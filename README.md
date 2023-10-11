@@ -38,7 +38,8 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
  * <b>Fine-Tune (Beta)</b>
    * Easy integration with OpenPipe's SDK in both Python and JS.
    * Swiftly query logs using intuitive built-in filters.
-   * Export data in multiple training formats, including Alpaca and ChatGPT, with deduplication.
+   * Prune large chunks of duplicate text like system prompts.
+   * Fine-tune GPT 3.5 and Llama 2 models, host on-platform or download the weights.
    
 <img src="https://github.com/openpipe/openpipe/assets/41524992/eaa8b92d-4536-4f63-bbef-4b0b1a60f6b5" alt="fine-tune demo">
 

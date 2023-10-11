@@ -9,14 +9,28 @@ import {
   pruneInputMessagesStringified,
 } from "~/modelProviders/fine-tuned/getCompletion";
 import { env } from "~/env.mjs";
-import { startTraining } from "~/utils/modal";
+import { trainerv1 } from "~/server/modal-rpc/clients";
+import { trainOpenaiFineTune } from "./trainOpenaiFineTune";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
 };
 
 export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async (task) => {
-  const { fineTuneId } = task;
+  const fineTune = await prisma.fineTune.findUnique({
+    where: { id: task.fineTuneId },
+  });
+
+  if (!fineTune) return;
+
+  if (fineTune.baseModel === "GPT_3_5_TURBO") {
+    await trainOpenaiFineTune(fineTune.id);
+  } else {
+    await trainModalFineTune(fineTune.id);
+  }
+});
+
+const trainModalFineTune = async (fineTuneId: string) => {
   const fineTune = await prisma.fineTune.findUnique({
     where: { id: fineTuneId },
     include: {
@@ -72,10 +86,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
 
   console.log("going to start training");
   try {
-    const resp = await startTraining({
-      fine_tune_id: fineTuneId,
-      base_url: callbackBaseUrl,
-    });
+    const resp = await trainerv1.default.startTraining(fineTuneId, callbackBaseUrl);
     await prisma.fineTune.update({
       where: { id: fineTuneId },
       data: {
@@ -93,7 +104,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async
       },
     });
   }
-});
+};
 
 const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {
   const instruction = pruneInputMessagesStringified(row.input, stringsToPrune);

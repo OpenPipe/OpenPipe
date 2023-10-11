@@ -8,10 +8,10 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { type FineTune } from "@prisma/client";
 
-import { runInference } from "~/utils/modal";
 import { pruneInputMessages, pruneInputMessagesStringified } from "./getCompletion";
 import { prisma } from "~/server/db";
 import { env } from "~/env.mjs";
+import { runInference } from "~/server/modal-rpc/clients";
 
 export async function getCompletion2(
   fineTune: FineTune,

@@ -1,6 +1,6 @@
 {
   "name": "openpipe-dev",
-  "version": "0.4.3",
+  "version": "0.4.6",
   "type": "module",
   "description": "LLM metrics and inference",
   "scripts": {

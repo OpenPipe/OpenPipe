@@ -105,6 +105,14 @@ export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | un
   return [ref, dimensions];
 };
 
+export const useIsMissingBetaAccess = () => {
+  const flags = useAppStore((s) => s.featureFlags.featureFlags);
+  const flagsLoaded = useAppStore((s) => s.featureFlags.flagsLoaded);
+
+  // If the flags haven't loaded yet, we can't say for sure that the user doesn't have beta access
+  return flagsLoaded && !flags?.betaAccess;
+};
+
 export const usePageParams = () => {
   const router = useRouter();
 
@@ -116,14 +124,6 @@ export const usePageParams = () => {
       ...router.query,
       ...newPageParams,
     };
-
-    if (!newPageParams.page) {
-      delete updatedQuery.page;
-    }
-
-    if (!newPageParams.pageSize) {
-      delete updatedQuery.pageSize;
-    }
 
     void router.push(
       {
@@ -239,7 +239,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
   const fineTune = useFineTune().data;
   const { page, pageSize } = usePageParams();
 
-  const { data, isLoading, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
+  const { data, isLoading, ...rest } = api.fineTunes.listTestingEntries.useQuery(
     { fineTuneId: fineTune?.id ?? "", page, pageSize },
     { enabled: !!fineTune?.id, refetchInterval },
   );

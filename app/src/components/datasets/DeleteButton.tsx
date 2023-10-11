@@ -35,7 +35,6 @@ const DeleteButton = () => {
         label="Delete"
         icon={BsTrash}
         isDisabled={selectedIds.size === 0}
-        requireBeta
       />
       <DeleteDatasetEntriesModal disclosure={disclosure} />
     </>

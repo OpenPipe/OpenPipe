@@ -1,20 +1,15 @@
-import { type BaseModel } from "@prisma/client";
+import { BaseModel } from "@prisma/client";
 
-export const SUPPORTED_BASE_MODELS = [
-  "LLAMA2_7b",
-  "LLAMA2_13b",
-  "LLAMA2_70b",
-  "GPT_3_5_TURBO",
-] as const;
+export const SUPPORTED_BASE_MODELS = Object.values(BaseModel) as [BaseModel, ...BaseModel[]];
 
 export const displayBaseModel = (baseModel: BaseModel) => {
   switch (baseModel) {
+    case "MISTRAL_7b":
+      return "mistral-7b";
     case "LLAMA2_7b":
       return "llama2-7b";
     case "LLAMA2_13b":
       return "llama2-13b";
-    case "LLAMA2_70b":
-      return "llama2-70b";
     case "GPT_3_5_TURBO":
       return "gpt-3.5-turbo";
   }

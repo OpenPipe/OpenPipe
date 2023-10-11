@@ -1,7 +1,8 @@
 import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
-import { trainingStatus } from "~/utils/modal";
 import { startTestJobs } from "~/server/utils/startTestJobs";
+import { trainerv1 } from "~/server/modal-rpc/clients";
+import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 
 const runOnce = async () => {
   const trainingJobs = await prisma.fineTune.findMany({
@@ -9,9 +10,7 @@ const runOnce = async () => {
       status: {
         in: ["TRAINING"],
       },
-      modalTrainingJobId: {
-        not: null,
-      },
+      modalTrainingJobId: { not: null },
     },
   });
 
@@ -21,12 +20,18 @@ const runOnce = async () => {
         throw new Error("No modalTrainingJobId");
       }
       try {
-        const resp = await trainingStatus({ callId: job.modalTrainingJobId });
+        const resp = await trainerv1.default.trainingStatus(job.modalTrainingJobId);
         if (resp.status === "done") {
           const fineTune = await prisma.fineTune.findUnique({
             where: { id: job.id },
           });
           if (!fineTune) return;
+          if (fineTune.huggingFaceModelId) {
+            // this kicks off the upload of the model weights and returns almost immediately.
+            // We currently don't check whether the weights actually uploaded, probably should
+            // add that at some point!
+            await trainerv1.default.persistModelWeights(fineTune.huggingFaceModelId);
+          }
 
           await prisma.fineTune.update({
             where: { id: job.id },
@@ -36,9 +41,11 @@ const runOnce = async () => {
             },
           });
 
-          await startTestJobs(fineTune);
+          captureFineTuneTrainingFinished(fineTune.projectId, job.slug, true);
+
+          await startTestJobs(job);
         } else if (resp.status === "error") {
-          await prisma.fineTune.update({
+          const fineTune = await prisma.fineTune.update({
             where: { id: job.id },
             data: {
               trainingFinishedAt: new Date(),
@@ -46,6 +53,7 @@ const runOnce = async () => {
               errorMessage: "Training job failed",
             },
           });
+          captureFineTuneTrainingFinished(fineTune.projectId, job.slug, false);
         }
       } catch (e) {
         console.error(`Failed to check training status for model ${job.id}`, e);

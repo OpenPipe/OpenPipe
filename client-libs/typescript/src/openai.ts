@@ -13,7 +13,7 @@ import type {
 import { WrappedStream } from "./openai/streaming";
 import { DefaultService, OPClient } from "./codegen";
 import type { Stream } from "openai/streaming";
-import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags } from "./shared";
+import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags, withTimeout } from "./shared";
 
 export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig };
 export default class OpenAI extends openai.OpenAI {
@@ -50,10 +50,13 @@ class WrappedChat extends openai.OpenAI.Chat {
 }
 
 class WrappedCompletions extends openai.OpenAI.Chat.Completions {
+  // keep a reference to the original client so we can read options from it
+  openaiClient: openai.OpenAI;
   opClient?: OPClient;
 
   constructor(client: openai.OpenAI, opClient?: OPClient) {
     super(client);
+    this.openaiClient = client;
     this.opClient = opClient;
   }
 
@@ -61,9 +64,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     try {
       this.opClient ? await this.opClient.default.report(args) : Promise.resolve();
     } catch (e) {
-      console.error(
-        "OpenPipe: we ran into an error when trying to report usage data back to our servers. Don't worry, your completion still went through as intended and we've logged this on our side for further review.",
-      );
+      // Ignore errors with reporting
     }
   }
 
@@ -79,13 +80,16 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     body: ChatCompletionCreateParams,
     options?: Core.RequestOptions,
   ): Core.APIPromise<ChatCompletion | Stream<ChatCompletionChunk>> {
-    let resp;
+    let resp: Core.APIPromise<ChatCompletion | Stream<ChatCompletionChunk>>;
+
     if (body.model.startsWith("openpipe:")) {
-      // @ts-expect-error looks like OpenAI has added more client functionality
-      // we'll need to match. For now, we'll just ignore the type error.
-      resp = this.opClient?.default.createChatCompletion({
+      if (!this.opClient) throw new Error("OpenPipe client not set");
+      const opClientPromise = this.opClient.default.createChatCompletion({
         reqPayload: body,
-      }) as Core.APIPromise<ChatCompletion>;
+      });
+      resp = withTimeout(opClientPromise, options?.timeout ?? this.openaiClient.timeout, () =>
+        opClientPromise.cancel(),
+      ) as Core.APIPromise<ChatCompletion>;
     } else {
       resp = body.stream ? super.create(body, options) : super.create(body, options);
     }
