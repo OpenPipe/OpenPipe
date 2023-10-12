@@ -149,8 +149,5 @@ export const queueGetTestResult = async (
   datasetEntryId: string,
   skipCache = false,
 ) => {
-  await getTestResult.enqueue(
-    { fineTuneId, datasetEntryId, skipCache },
-    { priority: 5, maxAttempts: 10 },
-  );
+  await getTestResult.enqueue({ fineTuneId, datasetEntryId, skipCache }, { priority: 5 });
 };

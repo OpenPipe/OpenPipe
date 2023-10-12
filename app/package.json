@@ -14,6 +14,7 @@
     "dev:wss": "pnpm tsx --watch src/wss-server.ts",
     "worker": "NODE_ENV='development' pnpm tsx --watch src/server/tasks/worker.ts",
     "dev": "tsx scripts/run-dev.ts",
+    "dev:tunnel": "tsx scripts/dev-tunnel.ts",
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "TZ=UTC next start",
