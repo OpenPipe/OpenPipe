@@ -17,18 +17,21 @@ export type TrainFineTuneJob = {
   fineTuneId: string;
 };
 
-export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async (task) => {
-  const fineTune = await prisma.fineTune.findUnique({
-    where: { id: task.fineTuneId },
-  });
+export const trainFineTune = defineTask<TrainFineTuneJob>({
+  id: "trainFineTune",
+  handler: async (task) => {
+    const fineTune = await prisma.fineTune.findUnique({
+      where: { id: task.fineTuneId },
+    });
 
-  if (!fineTune) return;
+    if (!fineTune) return;
 
-  if (fineTune.baseModel === "GPT_3_5_TURBO") {
-    await trainOpenaiFineTune(fineTune.id);
-  } else {
-    await trainModalFineTune(fineTune.id);
-  }
+    if (fineTune.baseModel === "GPT_3_5_TURBO") {
+      await trainOpenaiFineTune(fineTune.id);
+    } else {
+      await trainModalFineTune(fineTune.id);
+    }
+  },
 });
 
 const trainModalFineTune = async (fineTuneId: string) => {

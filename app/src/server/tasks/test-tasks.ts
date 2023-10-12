@@ -9,11 +9,14 @@ import "../../../sentry.server.config";
 export type TestTask = { i: number };
 
 // When a new eval is created, we want to run it on all existing outputs, but return the new eval first
-export const testTask = defineTask<TestTask>("testTask", (task) => {
-  console.log("ran task ", task.i);
+export const testTask = defineTask<TestTask>({
+  id: "testTask",
+  handler: (task) => {
+    console.log("ran task ", task.i);
 
-  void new Promise((_resolve, reject) => setTimeout(reject, 500));
-  return Promise.resolve();
+    void new Promise((_resolve, reject) => setTimeout(reject, 500));
+    return Promise.resolve();
+  },
 });
 
 const registeredTasks = [testTask];

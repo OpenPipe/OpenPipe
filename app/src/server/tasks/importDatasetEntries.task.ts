@@ -13,9 +13,9 @@ export type ImportDatasetEntriesJob = {
   datasetFileUploadId: string;
 };
 
-export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
-  "importDatasetEntries",
-  async (task) => {
+export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
+  id: "importDatasetEntries",
+  handler: async (task) => {
     const { datasetFileUploadId } = task;
     const datasetFileUpload = await prisma.datasetFileUpload.findUnique({
       where: { id: datasetFileUploadId },
@@ -136,20 +136,15 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
       },
     });
   },
-);
-
-export const queueImportDatasetEntries = async (datasetFileUploadId: string) => {
-  await Promise.all([
-    prisma.datasetFileUpload.update({
+  beforeEnqueue: async (task) => {
+    await prisma.datasetFileUpload.update({
       where: {
-        id: datasetFileUploadId,
+        id: task.datasetFileUploadId,
       },
       data: {
         errorMessage: null,
         status: "PENDING",
       },
-    }),
-
-    importDatasetEntries.enqueue({ datasetFileUploadId }),
-  ]);
-};
+    });
+  },
+});

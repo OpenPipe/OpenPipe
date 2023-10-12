@@ -1,5 +1,5 @@
 import { prisma } from "~/server/db";
-import { queueGetTestResult } from "../tasks/getTestResult.task";
+import { getTestResult } from "../tasks/getTestResult.task";
 
 if (!process.argv[2]) {
   console.error("please provide a fineTuneId");
@@ -41,7 +41,11 @@ if (!fineTune) {
 let numEntries = 0;
 
 for (const entry of fineTune.dataset.datasetEntries) {
-  await queueGetTestResult(fineTune.id, entry.id, true);
+  await getTestResult.enqueue({
+    fineTuneId: fineTune.id,
+    datasetEntryId: entry.id,
+    skipCache: true,
+  });
   numEntries++;
 }
 

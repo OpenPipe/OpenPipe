@@ -6,12 +6,13 @@ export type RunNewEvalJob = {
 };
 
 // When a new eval is created, we want to run it on all existing outputs, but return the new eval first
-export const runNewEval = defineTask<RunNewEvalJob>("runNewEval", async (task) => {
-  const { experimentId } = task;
-  await runAllEvals(experimentId);
+export const runNewEval = defineTask<RunNewEvalJob>({
+  id: "runNewEval",
+  handler: async (task) => {
+    const { experimentId } = task;
+    await runAllEvals(experimentId);
+  },
+  specDefaults: {
+    priority: 4,
+  },
 });
-
-export const queueRunNewEval = async (experimentId: string) => {
-  // Evals are lower priority than completions
-  await runNewEval.enqueue({ experimentId }, { priority: 4 });
-};

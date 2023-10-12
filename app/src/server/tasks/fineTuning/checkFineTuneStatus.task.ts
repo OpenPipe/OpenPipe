@@ -63,6 +63,9 @@ const runOnce = async () => {
   );
 };
 
-export const checkFineTuneStatus = defineTask("checkFineTuneStatus", async () => {
-  await runOnce();
+export const checkFineTuneStatus = defineTask({
+  id: "checkFineTuneStatus",
+  handler: async () => {
+    await runOnce();
+  },
 });

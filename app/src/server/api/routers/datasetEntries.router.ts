@@ -15,7 +15,7 @@ import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
-import { queueGetTestResult } from "~/server/tasks/getTestResult.task";
+import { getTestResult } from "~/server/tasks/getTestResult.task";
 import { validatedChatInput, validatedChatOutput } from "~/modelProviders/fine-tuned/utils";
 import { truthyFilter } from "~/utils/utils";
 
@@ -362,7 +362,7 @@ export const datasetEntriesRouter = createTRPCRouter({
           },
         });
         for (const fineTune of fineTunes) {
-          await queueGetTestResult(fineTune.id, newEntry.id);
+          await getTestResult.enqueue({ fineTuneId: fineTune.id, datasetEntryId: newEntry.id });
         }
       }
 
