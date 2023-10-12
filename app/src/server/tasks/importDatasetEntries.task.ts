@@ -20,11 +20,6 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>(
     const datasetFileUpload = await prisma.datasetFileUpload.findUnique({
       where: { id: datasetFileUploadId },
     });
-    console.log("importDatasetEntries - test logs", {
-      datasetFileUploadId,
-      datasetId: datasetFileUpload?.datasetId,
-      sample_tag: "sample_value",
-    });
 
     if (!datasetFileUpload) {
       await prisma.datasetFileUpload.update({

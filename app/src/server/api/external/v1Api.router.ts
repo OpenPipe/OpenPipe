@@ -128,7 +128,6 @@ export const v1ApiRouter = createOpenApiRouter({
       }
 
       try {
-        const stringsToPrune = await getStringsToPrune(fineTune.id);
         if (fineTune.pipelineVersion === 0) {
           if (!fineTune.inferenceUrls.length) {
             throw new TRPCError({
@@ -136,10 +135,11 @@ export const v1ApiRouter = createOpenApiRouter({
               code: "BAD_REQUEST",
             });
           }
+          const stringsToPrune = await getStringsToPrune(fineTune.id);
 
           return await getCompletion(reqPayload.data, fineTune.inferenceUrls, stringsToPrune);
-        } else if (fineTune.pipelineVersion === 1) {
-          return await getCompletion2(fineTune, reqPayload.data, stringsToPrune);
+        } else if (fineTune.pipelineVersion >= 1 && fineTune.pipelineVersion <= 2) {
+          return await getCompletion2(fineTune, reqPayload.data);
         } else {
           throw new TRPCError({
             message: "The model is not set up for inference",

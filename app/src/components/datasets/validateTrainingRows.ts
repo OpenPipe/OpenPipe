@@ -1,7 +1,7 @@
-import { type ChatCompletionMessageParam } from "openai/resources/chat";
+import type { ChatCompletionCreateParams, ChatCompletionMessageParam } from "openai/resources/chat";
 
 export type TrainingRow = {
-  input: ChatCompletionMessageParam[];
+  input: Pick<ChatCompletionCreateParams, "messages" | "function_call" | "functions">;
   output?: ChatCompletionMessageParam;
 };
 
@@ -49,16 +49,17 @@ const validateTrainingRow = (row: TrainingRow): string | null => {
   if (!row) return "empty row";
   if (!row.input) return "missing input";
 
+  const messages = row.input.messages;
   //   Validate input
-  if (!Array.isArray(row.input)) return "input is not an array";
-  if ((row.input as unknown[]).some((x) => typeof x !== "object"))
+  if (!Array.isArray(messages)) return "messages are not an array";
+  if ((messages as unknown[]).some((x) => typeof x !== "object"))
     return "input contains invalid item";
-  if (row.input.some((x) => !x)) return "input contains empty item";
-  if (row.input.some((x) => !x.content && !x.function_call))
+  if (messages.some((x) => !x)) return "input contains empty item";
+  if (messages.some((x) => !x.content && !x.function_call))
     return "input contains item with no content or function_call";
-  if (row.input.some((x) => x.function_call && !x.function_call.arguments))
+  if (messages.some((x) => x.function_call && !x.function_call.arguments))
     return "input contains item with function_call but no arguments";
-  if (row.input.some((x) => x.function_call && !x.function_call.name))
+  if (messages.some((x) => x.function_call && !x.function_call.name))
     return "input contains item with function_call but no name";
 
   //   Validate output

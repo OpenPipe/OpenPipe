@@ -1,4 +1,4 @@
-import { PrismaClient, DatasetEntryType, Prisma } from "@prisma/client";
+import { PrismaClient, DatasetEntryType } from "@prisma/client";
 import yargs from "yargs/yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -70,7 +70,7 @@ await Promise.all(
   shuffledWords.map((word, index) => {
     const entryType = Math.random() < 0.9 ? DatasetEntryType.TRAIN : DatasetEntryType.TEST;
 
-    const input = [{ role: "system", content: `the first letter of '${word}' is` }];
+    const messages = [{ role: "system", content: `the first letter of '${word}' is` }];
     const output = {
       role: "assistant",
       content: null,
@@ -79,7 +79,7 @@ await Promise.all(
 
     return prisma.datasetEntry.create({
       data: {
-        input,
+        messages,
         output,
         inputTokens: 0,
         outputTokens: 0,

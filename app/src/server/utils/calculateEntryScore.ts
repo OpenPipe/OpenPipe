@@ -31,6 +31,10 @@ export const calculateEntryScore = (
   if (!parsedGeneratedArgs) return 0;
   try {
     const numOriginalArgs = Object.keys(parsedOriginalArgs).length;
+
+    // If there are no args, then congrats, we matched them.
+    if (numOriginalArgs === 0) return 1;
+
     const numMatchingArgs = Object.keys(parsedOriginalArgs).filter(
       (key) => parsedOriginalArgs?.[key] === parsedGeneratedArgs?.[key],
     ).length;

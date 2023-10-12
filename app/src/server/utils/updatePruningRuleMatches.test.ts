@@ -53,10 +53,10 @@ const createProject = async (datasetId: string) => {
 
 const datasetId = uuidv4();
 
-const createDatasetEntry = async (datasetId: string, input: ChatCompletionMessageParam[]) => {
+const createDatasetEntry = async (datasetId: string, messages: ChatCompletionMessageParam[]) => {
   return await prisma.datasetEntry.create({
     data: {
-      input: input as unknown as Prisma.InputJsonValue,
+      messages: messages as unknown as Prisma.InputJsonValue,
       output: {},
       inputTokens: 0,
       outputTokens: 0,

@@ -10,6 +10,7 @@ import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { Prisma } from "@prisma/client";
+import { CURRENT_PIPELINE_VERSION } from "~/modelProviders/fine-tuned/utils";
 
 const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
 
@@ -116,7 +117,7 @@ export const fineTunesRouter = createTRPCRouter({
           slug: input.slug,
           baseModel: input.baseModel,
           datasetId: input.datasetId,
-          pipelineVersion: 1,
+          pipelineVersion: CURRENT_PIPELINE_VERSION,
         },
         include: {
           dataset: {
@@ -285,7 +286,7 @@ export const fineTunesRouter = createTRPCRouter({
           include: {
             datasetEntry: {
               select: {
-                input: true,
+                messages: true,
                 output: true,
                 inputTokens: true,
                 outputTokens: true,

@@ -13,6 +13,7 @@ import {
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
+import { validatedChatInput } from "~/modelProviders/fine-tuned/utils";
 
 export type GetTestResultJob = {
   fineTuneId: string;
@@ -40,27 +41,28 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
 
   if (existingTestEntry?.output && !skipCache) return;
 
-  let prunedInput = existingTestEntry?.prunedInput;
+  let prunedMessages = existingTestEntry?.prunedInput;
 
   const stringsToPrune = await getStringsToPrune(fineTune.id);
   if (!existingTestEntry) {
-    prunedInput = pruneInputMessagesStringified(
-      datasetEntry.input as unknown as ChatCompletionMessage[],
+    prunedMessages = pruneInputMessagesStringified(
+      datasetEntry.messages as unknown as ChatCompletionMessage[],
       stringsToPrune,
     );
     await prisma.fineTuneTestingEntry.create({
       data: {
         fineTuneId,
         datasetEntryId,
-        prunedInputTokens: countLlamaChatTokens(prunedInput),
-        prunedInput: prunedInput,
+        prunedInput: prunedMessages,
+        // TODO: need to count tokens based on the full input, not just messages
+        prunedInputTokens: countLlamaChatTokens(prunedMessages),
       },
     });
   }
 
   const cacheKey = hashObject({
     fineTuneId,
-    input: prunedInput,
+    input: prunedMessages,
   } as JsonValue);
 
   if (!skipCache) {
@@ -86,7 +88,7 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
   let completion;
   const input = {
     model: `openpipe:${fineTune.slug}`,
-    messages: datasetEntry.input as unknown as ChatCompletionMessage[],
+    ...validatedChatInput(datasetEntry),
   };
   try {
     if (fineTune.pipelineVersion === 0) {
@@ -101,8 +103,8 @@ export const getTestResult = defineTask<GetTestResultJob>("getTestResult", async
       }
 
       completion = await getCompletion(input, fineTune.inferenceUrls, stringsToPrune);
-    } else if (fineTune.pipelineVersion === 1) {
-      completion = await getCompletion2(fineTune, input, stringsToPrune);
+    } else if (fineTune.pipelineVersion === 1 || fineTune.pipelineVersion === 2) {
+      completion = await getCompletion2(fineTune, input);
     } else {
       await prisma.fineTuneTestingEntry.update({
         where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },

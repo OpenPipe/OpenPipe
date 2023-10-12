@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Th, Td, Thead, Tr, Text, Collapse } from "@chakra-ui/react";
 
 import { type RouterOutputs } from "~/utils/api";
+import { validatedChatInput } from "~/modelProviders/fine-tuned/utils";
 
 export const TableHeader = () => {
   return (
@@ -15,7 +16,7 @@ export const TableHeader = () => {
 };
 
 const TrainingDataRow = ({
-  datasetEntry: { input, inputTokens, output, outputTokens },
+  datasetEntry: entry,
 }: {
   datasetEntry: RouterOutputs["datasetEntries"]["listTrainingEntries"]["entries"][number]["datasetEntry"];
 }) => {
@@ -34,8 +35,8 @@ const TrainingDataRow = ({
           td: { borderBottom: "none" },
         }}
       >
-        <Td>{inputTokens} tokens</Td>
-        <Td>{outputTokens} tokens</Td>
+        <Td>{entry.inputTokens} tokens</Td>
+        <Td>{entry.outputTokens} tokens</Td>
       </Tr>
       <Tr sx={{ td: { verticalAlign: "top" } }}>
         <Td py={isExpanded ? 4 : 0}>
@@ -48,7 +49,7 @@ const TrainingDataRow = ({
               bgColor="orange.50"
               borderRadius={4}
             >
-              {JSON.stringify(input, null, 4)}
+              {JSON.stringify(validatedChatInput(entry), null, 4)}
             </Text>
           </Collapse>
         </Td>
@@ -62,7 +63,7 @@ const TrainingDataRow = ({
               bgColor="orange.50"
               borderRadius={4}
             >
-              {JSON.stringify(output, null, 4)}
+              {JSON.stringify(entry.output, null, 4)}
             </Text>
           </Collapse>
         </Td>

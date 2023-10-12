@@ -1,36 +1,35 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import OpenAI from "openai";
-import {
-  type ChatCompletion,
-  type ChatCompletionMessage,
-  type ChatCompletionCreateParams,
-} from "openai/resources/chat";
+import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 import { type FineTune } from "@prisma/client";
 
-import { pruneInputMessages, pruneInputMessagesStringified } from "./getCompletion";
+import { getStringsToPrune, pruneInputMessages } from "./getCompletion";
 import { prisma } from "~/server/db";
 import { runInference } from "~/server/modal-rpc/clients";
+import { omit } from "lodash-es";
+import { deserializeChatOutput, serializeChatInput } from "./utils";
 
 export async function getCompletion2(
   fineTune: FineTune,
   input: ChatCompletionCreateParams,
-  stringsToPrune: string[],
 ): Promise<ChatCompletion> {
+  const stringsToPrune = await getStringsToPrune(fineTune.id);
+
+  const prunedMessages = pruneInputMessages(input.messages, stringsToPrune);
+  const prunedInput = { messages: prunedMessages, ...omit(input, "messages") };
+
   if (fineTune.baseModel === "GPT_3_5_TURBO") {
-    return getOpenaiCompletion(fineTune, input, stringsToPrune);
+    return getOpenaiCompletion(fineTune, prunedInput);
   } else {
-    return getLlamaCompletion(fineTune, input, stringsToPrune);
+    return getModalCompletion(fineTune, prunedInput);
   }
 }
 
 async function getOpenaiCompletion(
   fineTune: FineTune,
   input: ChatCompletionCreateParams,
-  stringsToPrune: string[],
 ): Promise<ChatCompletion> {
-  const { messages, ...rest } = input;
-
   if (!fineTune.openaiModelId) throw new Error("No OpenAI model ID found");
 
   const apiKeys = await prisma.apiKey.findMany({
@@ -45,12 +44,9 @@ async function getOpenaiCompletion(
 
   const openai = new OpenAI({ apiKey: openaiApiKey });
 
-  const prunedInput = pruneInputMessages(messages, stringsToPrune);
-
   const resp = await openai.chat.completions.create({
-    ...rest,
+    ...input,
     model: fineTune.openaiModelId,
-    messages: prunedInput,
     stream: false,
   });
 
@@ -60,20 +56,14 @@ async function getOpenaiCompletion(
   };
 }
 
-async function getLlamaCompletion(
+async function getModalCompletion(
   fineTune: FineTune,
   input: ChatCompletionCreateParams,
-  stringsToPrune: string[],
 ): Promise<ChatCompletion> {
-  const { messages, ...rest } = input;
   const id = uuidv4();
 
-  const prunedInput = pruneInputMessagesStringified(messages, stringsToPrune);
-  const templatedPrompt = `### Instruction:\n${prunedInput}\n### Response:\n`;
-
-  if (!templatedPrompt) {
-    throw new Error("Failed to generate prompt");
-  }
+  const serializedInput = serializeChatInput(input, fineTune);
+  const templatedPrompt = `### Instruction:\n${serializedInput}\n### Response:\n`;
 
   if (input.stream) {
     throw new Error("Streaming is not yet supported");
@@ -86,9 +76,9 @@ async function getLlamaCompletion(
   const resp = await runInference({
     model: fineTune.huggingFaceModelId,
     prompt: templatedPrompt,
-    max_tokens: rest.max_tokens,
-    temperature: rest.temperature ?? 0,
-    n: rest.n ?? 1,
+    max_tokens: input.max_tokens,
+    temperature: input.temperature ?? 0,
+    n: input.n ?? 1,
   });
 
   return {
@@ -98,7 +88,7 @@ async function getLlamaCompletion(
     model: input.model,
     choices: resp.choices.map((choice, i) => ({
       index: i,
-      message: formatAssistantMessage(choice.text.trim()),
+      message: deserializeChatOutput(choice.text.trim()),
       finish_reason: choice.finish_reason,
     })),
     usage: {
@@ -108,22 +98,3 @@ async function getLlamaCompletion(
     },
   };
 }
-
-const FUNCTION_CALL_TAG = "<function>";
-const FUNCTION_ARGS_TAG = "<arguments>";
-
-const formatAssistantMessage = (finalCompletion: string): ChatCompletionMessage => {
-  const message: ChatCompletionMessage = {
-    role: "assistant",
-    content: null,
-  };
-
-  if (finalCompletion.trim().startsWith(FUNCTION_CALL_TAG)) {
-    const functionName = finalCompletion.split(FUNCTION_CALL_TAG)[1]?.split(FUNCTION_ARGS_TAG)[0];
-    const functionArgs = finalCompletion.split(FUNCTION_ARGS_TAG)[1];
-    message.function_call = { name: functionName as string, arguments: functionArgs ?? "" };
-  } else {
-    message.content = finalCompletion;
-  }
-  return message;
-};

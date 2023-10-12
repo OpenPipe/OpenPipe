@@ -22,7 +22,9 @@
     "codegen:db": "prisma generate && kysely-codegen --dialect postgres --out-file src/server/db.types.ts",
     "seed": "tsx prisma/seed.ts",
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'",
-    "test": "pnpm vitest"
+    "test": "pnpm vitest",
+    "repl": "tsx --require scripts/repl.ts",
+    "repl:watch": "tsx --watch scripts/repl.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.5.8",
