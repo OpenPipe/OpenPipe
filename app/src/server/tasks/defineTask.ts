@@ -34,6 +34,11 @@ function defineTask<TPayload>(
   };
 
   return {
+    runNow: async (payload: TPayload) => {
+      const utils = await workerUtils();
+
+      return taskHandler(payload, utils);
+    },
     enqueue,
     task,
   };

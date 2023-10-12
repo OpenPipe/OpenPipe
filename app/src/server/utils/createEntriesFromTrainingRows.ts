@@ -41,9 +41,9 @@ export const formatEntriesFromTrainingRows = async (
     ...Array(numTestingToAdd).fill("TEST"),
   ]);
   const datasetEntriesToCreate: CreateManyInput[] = [];
+  const batchDate = Date.now();
   let i = 0;
   for (const row of trainingRows) {
-    // console.log(row);
     if (updateCallback && i % updateFrequency === 0) await updateCallback(i);
     let outputTokens = 0;
     if (row.output) {
@@ -56,17 +56,20 @@ export const formatEntriesFromTrainingRows = async (
     datasetEntriesToCreate.push({
       id: uuidv4(),
       datasetId: datasetId,
-      input: row.input as unknown as Prisma.InputJsonValue,
+      messages: row.input.messages as object[],
+      function_call: row.input.function_call as object,
+      functions: row.input.functions as object[],
       output: (row.output as unknown as Prisma.InputJsonValue) ?? {
         role: "assistant",
         content: "",
       },
+      // TODO: need to count tokens based on the full input, not just messages
       inputTokens: countLlamaChatTokensInMessages(
-        row.input as unknown as ChatCompletionMessageParam[],
+        row.input.messages as unknown as ChatCompletionMessageParam[],
       ),
       outputTokens,
       type: typesToAssign.pop() as "TRAIN" | "TEST",
-      sortKey: `${Date.now()}-${persistentId}`,
+      sortKey: `${batchDate}-${persistentId}`,
       persistentId,
     });
     i++;

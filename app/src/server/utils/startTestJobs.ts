@@ -10,14 +10,14 @@ export const startTestJobs = async (fineTune: FineTune) => {
   const stringsToPrune = await getStringsToPrune(fineTune.id);
   const datasetEntries = await prisma.datasetEntry.findMany({
     where: { datasetId: fineTune.datasetId, outdated: false, type: "TEST" },
-    select: { id: true, input: true },
+    select: { id: true, messages: true },
     orderBy: { sortKey: "desc" },
   });
   // create fineTuneTestEntry for each dataset entry
   await prisma.fineTuneTestingEntry.createMany({
     data: datasetEntries.map((entry) => {
       const prunedInput = pruneInputMessages(
-        entry.input as unknown as ChatCompletionMessage[],
+        entry.messages as unknown as ChatCompletionMessage[],
         stringsToPrune,
       );
       let prunedInputTokens;
