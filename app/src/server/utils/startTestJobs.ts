@@ -4,7 +4,7 @@ import { type ChatCompletionMessage } from "openai/resources/chat";
 import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "../db";
 import { countLlamaChatTokens, countOpenAIChatTokens } from "~/utils/countTokens";
-import { queueGetTestResult } from "../tasks/getTestResult.task";
+import { evaluateTestSetEntry } from "../tasks/evaluateTestSetEntry.task";
 
 export const startTestJobs = async (fineTune: FineTune) => {
   const stringsToPrune = await getStringsToPrune(fineTune.id);
@@ -36,6 +36,6 @@ export const startTestJobs = async (fineTune: FineTune) => {
     skipDuplicates: true,
   });
   for (const entry of datasetEntries) {
-    await queueGetTestResult(fineTune.id, entry.id);
+    await evaluateTestSetEntry.enqueue({ fineTuneId: fineTune.id, datasetEntryId: entry.id });
   }
 };

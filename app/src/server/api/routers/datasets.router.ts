@@ -5,7 +5,7 @@ import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { generateBlobUploadUrl } from "~/utils/azure/server";
-import { queueImportDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
+import { importDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
 import { env } from "~/env.mjs";
 
 export const datasetsRouter = createTRPCRouter({
@@ -150,7 +150,7 @@ export const datasetsRouter = createTRPCRouter({
         },
       });
 
-      await queueImportDatasetEntries(id);
+      await importDatasetEntries.enqueue({ datasetFileUploadId: id });
     }),
   listFileUploads: protectedProcedure
     .input(z.object({ datasetId: z.string() }))
