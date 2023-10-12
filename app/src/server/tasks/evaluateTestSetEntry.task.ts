@@ -15,14 +15,14 @@ import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { validatedChatInput } from "~/modelProviders/fine-tuned/utils";
 
-export type GetTestResultJob = {
+export type EvaluateTestSetEntryJob = {
   fineTuneId: string;
   datasetEntryId: string;
   skipCache?: boolean;
 };
 
-export const getTestResult = defineTask<GetTestResultJob>({
-  id: "getTestResult",
+export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
+  id: "evaluateTestSetEntry",
   handler: async (task) => {
     const { fineTuneId, datasetEntryId, skipCache } = task;
 
