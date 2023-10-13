@@ -55,8 +55,14 @@ const FineTunesTable = ({}) => {
       ) : (
         <VStack py={8}>
           <Icon as={FaTable} boxSize={16} color="gray.300" />
-          <Text color="gray.400" fontSize="lg" fontWeight="bold">
-            No Fine Tunes Found
+          <Text color="gray.500" textAlign="center" w="full" p={4}>
+            This project has no fine-tuned models. Start with a dataset in the{" "}
+            <Link href="/datasets">
+              <Text as="span" color="blue.600">
+                Datasets
+              </Text>
+            </Link>{" "}
+            tab.
           </Text>
         </VStack>
       )}

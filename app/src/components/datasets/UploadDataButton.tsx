@@ -13,11 +13,13 @@ import {
   Text,
   Button,
   Box,
+  Link as ChakraLink,
   useDisclosure,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
 import pluralize from "pluralize";
 import { AiOutlineCloudUpload, AiOutlineFile } from "react-icons/ai";
+import { FaReadme } from "react-icons/fa";
 
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
@@ -252,24 +254,37 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
           </Box>
         </ModalBody>
         <ModalFooter>
-          <HStack>
-            <Button
-              colorScheme="gray"
-              isDisabled={sendingInProgress}
-              onClick={disclosure.onClose}
-              minW={24}
+          <HStack w="full" justifyContent="space-between">
+            <HStack
+              as={ChakraLink}
+              href="https://docs.openpipe.ai/features/importing-data"
+              target="_blank"
+              color="gray.500"
+              _hover={{ color: "gray.800" }}
             >
-              Cancel
-            </Button>
-            <Button
-              colorScheme="orange"
-              onClick={sendJSONL}
-              isLoading={sendingInProgress}
-              minW={24}
-              isDisabled={!file || !!validationError}
-            >
-              Upload
-            </Button>
+              <Icon as={FaReadme} boxSize={4} />
+              <Text pb={1}>View Documentation</Text>
+            </HStack>
+
+            <HStack>
+              <Button
+                colorScheme="gray"
+                isDisabled={sendingInProgress}
+                onClick={disclosure.onClose}
+                minW={24}
+              >
+                Cancel
+              </Button>
+              <Button
+                colorScheme="orange"
+                onClick={sendJSONL}
+                isLoading={sendingInProgress}
+                minW={24}
+                isDisabled={!file || !!validationError}
+              >
+                Upload
+              </Button>
+            </HStack>
           </HStack>
         </ModalFooter>
       </ModalContent>
