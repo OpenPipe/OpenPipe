@@ -38,7 +38,7 @@ export default function DatasetEntryEditorDrawer({
   const { data: datasetEntry, isLoading } = useDatasetEntry(datasetEntryId);
 
   const savedInputMessages = useMemo(
-    () => datasetEntry?.input as unknown as ChatCompletionMessageParam[],
+    () => datasetEntry?.messages as unknown as ChatCompletionMessageParam[],
     [datasetEntry],
   );
   const savedOutputMessage = useMemo(
@@ -60,7 +60,7 @@ export default function DatasetEntryEditorDrawer({
 
   const hasUpdates = useMemo(
     () =>
-      !isEqual(datasetEntry?.input, inputMessagesToSave) ||
+      !isEqual(datasetEntry?.messages, inputMessagesToSave) ||
       !isEqual(datasetEntry?.output, outputMessageToSave),
     [datasetEntry, inputMessagesToSave, outputMessageToSave],
   );

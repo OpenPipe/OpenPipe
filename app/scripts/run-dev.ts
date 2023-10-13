@@ -1,60 +1,54 @@
-import { $, ExecaChildProcess } from "execa";
-import localtunnel from "localtunnel";
+import { $, type ExecaChildProcess } from "execa";
 import "dotenv/config";
+import HumanIdModule from "human-id";
 
-try {
-  const tunnel = await localtunnel({ port: 3000 });
+import { ensureDefaultExport } from "~/utils/utils";
 
-  const env = {
-    LOCAL_HOST_PUBLIC_URL: tunnel.url,
-    NODE_ENV: "development",
-  } as const;
+const humanId = ensureDefaultExport(HumanIdModule);
 
-  console.log(`Local tunnel established at ${tunnel.url}`);
+const tunnelSubdomain =
+  process.env.LOCAL_HOST_SUBDOMAIN ?? humanId({ separator: "-", capitalize: false });
 
-  const $$ = $({ stdio: "inherit", env: { ...process.env, ...env } });
+const tunnelUrl = `https://${tunnelSubdomain}.loca.lt`;
 
-  const processes: ExecaChildProcess[] = [
-    $$`pnpm dev:next`,
-    $$`pnpm dev:wss`,
-    $$`pnpm worker --watch`,
-  ];
+const env = {
+  LOCAL_HOST_PUBLIC_URL: tunnelUrl,
+  NODE_ENV: "development",
+} as const;
 
-  // These sometimes seem to fail which interrupts long-running training jobs. Better to run them out of process at least for now.
-  // if (process.env.MODAL_USE_LOCAL_DEPLOYMENTS) {
-  //   processes.push(
-  //     $$({ cwd: "../trainer" })`poetry run modal serve src/trainer/main.py`,
-  //     $$({ cwd: "../trainer" })`poetry run modal serve src/inference_server/main.py`,
-  //   );
-  // }
+const $$ = $({ stdio: "inherit", env: { ...process.env, ...env } });
 
-  tunnel.on("close", () => {
-    console.log("Local tunnel closed");
+const processes: ExecaChildProcess[] = [
+  $$`pnpm dev:tunnel`,
+  $$`pnpm dev:next`,
+  $$`pnpm dev:wss`,
+  $$`pnpm worker --watch`,
+];
+
+// These sometimes seem to fail which interrupts long-running training jobs. Better to run them out of process at least for now.
+// if (process.env.MODAL_USE_LOCAL_DEPLOYMENTS) {
+//   processes.push(
+//     $$({ cwd: "../trainer" })`poetry run modal serve src/trainer/main.py`,
+//     $$({ cwd: "../trainer" })`poetry run modal serve src/inference_server/main.py`,
+//   );
+// }
+
+const promises = processes.map((proc) => {
+  return new Promise<void>((_, reject) => {
+    proc
+      .on("exit", (code) => {
+        if (code !== 0) {
+          reject(new Error(`Process exited with code ${code?.toString() ?? "unknown"}`));
+        }
+      })
+      .catch((error) => {
+        reject(error);
+      });
   });
+});
 
-  tunnel.on("error", (error) => {
-    console.error(`Tunnel error: ${(error as Error).message}`);
-  });
-
-  const promises = processes.map((proc) => {
-    return new Promise<void>((_, reject) => {
-      proc
-        .on("exit", (code) => {
-          if (code !== 0) {
-            reject(new Error(`Process exited with code ${code?.toString() ?? "unknown"}`));
-          }
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
-  });
-
-  await Promise.race(promises).catch((error) => {
-    // Terminate all processes
-    processes.forEach((proc) => proc.kill());
-    console.error(`An error occurred: ${(error as Error).message}`);
-  });
-} catch (error) {
-  console.error(`Failed to start local tunnel: ${(error as Error).message}`);
-}
+await Promise.race(promises).catch((error) => {
+  // Terminate all processes
+  processes.forEach((proc) => proc.kill());
+  console.error(`An error occurred: ${(error as Error).message}`);
+});

@@ -1,33 +1,37 @@
-import { prisma } from "~/server/db";
-import defineTask from "../defineTask";
-import { uploadTrainingDataFile } from "~/utils/azure/server";
-import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
-import {
-  FUNCTION_ARGS_TAG,
-  FUNCTION_CALL_TAG,
-  getStringsToPrune,
-  pruneInputMessagesStringified,
-} from "~/modelProviders/fine-tuned/getCompletion";
 import { env } from "~/env.mjs";
+import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
+import {
+  CURRENT_PIPELINE_VERSION,
+  serializeChatInput,
+  serializeChatOutput,
+  validatedChatInput,
+  validatedChatOutput,
+} from "~/modelProviders/fine-tuned/utils";
+import { prisma } from "~/server/db";
 import { trainerv1 } from "~/server/modal-rpc/clients";
+import { uploadTrainingDataFile } from "~/utils/azure/server";
+import defineTask from "../defineTask";
 import { trainOpenaiFineTune } from "./trainOpenaiFineTune";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
 };
 
-export const trainFineTune = defineTask<TrainFineTuneJob>("trainFineTune", async (task) => {
-  const fineTune = await prisma.fineTune.findUnique({
-    where: { id: task.fineTuneId },
-  });
+export const trainFineTune = defineTask<TrainFineTuneJob>({
+  id: "trainFineTune",
+  handler: async (task) => {
+    const fineTune = await prisma.fineTune.findUnique({
+      where: { id: task.fineTuneId },
+    });
 
-  if (!fineTune) return;
+    if (!fineTune) return;
 
-  if (fineTune.baseModel === "GPT_3_5_TURBO") {
-    await trainOpenaiFineTune(fineTune.id);
-  } else {
-    await trainModalFineTune(fineTune.id);
-  }
+    if (fineTune.baseModel === "GPT_3_5_TURBO") {
+      await trainOpenaiFineTune(fineTune.id);
+    } else {
+      await trainModalFineTune(fineTune.id);
+    }
+  },
 });
 
 const trainModalFineTune = async (fineTuneId: string) => {
@@ -38,7 +42,9 @@ const trainModalFineTune = async (fineTuneId: string) => {
         select: {
           datasetEntry: {
             select: {
-              input: true,
+              messages: true,
+              function_call: true,
+              functions: true,
               output: true,
             },
           },
@@ -55,15 +61,23 @@ const trainModalFineTune = async (fineTuneId: string) => {
     },
   });
 
-  const trainingEntries: TrainingRow[] = fineTune.trainingEntries.map((entry) => ({
-    input: entry.datasetEntry.input,
-    output: entry.datasetEntry.output,
-  })) as unknown as TrainingRow[];
-
   const stringsToPrune = await getStringsToPrune(fineTune.id);
-  const formattedRows = trainingEntries.map((entry) => formatTrainingRow(entry, stringsToPrune));
 
-  const jsonlStr = formattedRows.map((row) => JSON.stringify(row)).join("\n");
+  const trainingRows = fineTune.trainingEntries.map((entry) => {
+    const inputs = validatedChatInput(entry.datasetEntry);
+    return {
+      instruction: serializeChatInput(
+        {
+          messages: pruneInputMessages(inputs.messages, stringsToPrune),
+          function_call: inputs.function_call,
+        },
+        { pipelineVersion: CURRENT_PIPELINE_VERSION },
+      ),
+      output: serializeChatOutput(validatedChatOutput(entry.datasetEntry.output)),
+    };
+  });
+
+  const jsonlStr = trainingRows.map((row) => JSON.stringify(row)).join("\n");
 
   const blobName = await uploadTrainingDataFile(jsonlStr);
 
@@ -84,7 +98,6 @@ const trainModalFineTune = async (fineTuneId: string) => {
   // the callback URL needs to be a publicly available host.
   const callbackBaseUrl = (env.LOCAL_HOST_PUBLIC_URL ?? env.NEXT_PUBLIC_HOST) + "/api/internal/v1";
 
-  console.log("going to start training");
   try {
     const resp = await trainerv1.default.startTraining(fineTuneId, callbackBaseUrl);
     await prisma.fineTune.update({
@@ -104,18 +117,4 @@ const trainModalFineTune = async (fineTuneId: string) => {
       },
     });
   }
-};
-
-const formatTrainingRow = (row: TrainingRow, stringsToPrune: string[]) => {
-  const instruction = pruneInputMessagesStringified(row.input, stringsToPrune);
-  let output: string;
-  if (row.output?.function_call) {
-    output = FUNCTION_CALL_TAG + row.output.function_call.name;
-    if (row.output.function_call.arguments) {
-      output += FUNCTION_ARGS_TAG + row.output.function_call.arguments;
-    }
-  } else {
-    output = row.output?.content ?? "";
-  }
-  return { instruction, output };
 };

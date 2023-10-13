@@ -17,7 +17,7 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
         select: {
           datasetEntry: {
             select: {
-              input: true,
+              messages: true,
               output: true,
             },
           },
@@ -62,7 +62,7 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
   const trainingEntries = fineTune.trainingEntries.map((entry) => ({
     messages: [
       ...pruneInputMessages(
-        entry.datasetEntry.input as unknown as ContentChatCompletionMessage[],
+        entry.datasetEntry.messages as unknown as ContentChatCompletionMessage[],
         stringsToPrune,
       ),
       entry.datasetEntry.output,

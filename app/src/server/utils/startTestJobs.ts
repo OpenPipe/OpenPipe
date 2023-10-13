@@ -4,20 +4,20 @@ import { type ChatCompletionMessage } from "openai/resources/chat";
 import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "../db";
 import { countLlamaChatTokens, countOpenAIChatTokens } from "~/utils/countTokens";
-import { queueGetTestResult } from "../tasks/getTestResult.task";
+import { evaluateTestSetEntry } from "../tasks/evaluateTestSetEntry.task";
 
 export const startTestJobs = async (fineTune: FineTune) => {
   const stringsToPrune = await getStringsToPrune(fineTune.id);
   const datasetEntries = await prisma.datasetEntry.findMany({
     where: { datasetId: fineTune.datasetId, outdated: false, type: "TEST" },
-    select: { id: true, input: true },
+    select: { id: true, messages: true },
     orderBy: { sortKey: "desc" },
   });
   // create fineTuneTestEntry for each dataset entry
   await prisma.fineTuneTestingEntry.createMany({
     data: datasetEntries.map((entry) => {
       const prunedInput = pruneInputMessages(
-        entry.input as unknown as ChatCompletionMessage[],
+        entry.messages as unknown as ChatCompletionMessage[],
         stringsToPrune,
       );
       let prunedInputTokens;
@@ -36,6 +36,6 @@ export const startTestJobs = async (fineTune: FineTune) => {
     skipDuplicates: true,
   });
   for (const entry of datasetEntries) {
-    await queueGetTestResult(fineTune.id, entry.id);
+    await evaluateTestSetEntry.enqueue({ fineTuneId: fineTune.id, datasetEntryId: entry.id });
   }
 };

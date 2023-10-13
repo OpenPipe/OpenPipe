@@ -6,7 +6,7 @@ import { type RouterOutputs, api } from "~/utils/api";
 
 const fieldsToShow: (keyof RouterOutputs["adminJobs"]["list"][0])[] = [
   "id",
-  "queue_name",
+  "task_identifier",
   "payload",
   "priority",
   "attempts",

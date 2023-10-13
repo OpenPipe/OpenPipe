@@ -91,7 +91,7 @@ base_mistral_config = {
 def write_config(
     config_path, base_model, num_epochs, training_file, model_id, out_path
 ):
-    if "llama2" in base_model:
+    if "Llama-2" in base_model:
         config = base_llama2_config
     elif "mistral" in base_model:
         config = base_mistral_config

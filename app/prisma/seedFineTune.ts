@@ -45,7 +45,7 @@ const dataset = await prisma.dataset.create({
 await prisma.datasetEntry.create({
   data: {
     datasetId: dataset.id,
-    input: [
+    messages: [
       { role: "system", content: "You are a helpful assistant" },
       { role: "user", content: "What is the capitol of Tasmania?" },
     ],
@@ -59,7 +59,7 @@ await prisma.datasetEntry.create({
 await prisma.datasetEntry.create({
   data: {
     datasetId: dataset.id,
-    input: [
+    messages: [
       { role: "system", content: "You are a helpful assistant" },
       { role: "user", content: "What is the capitol of Latvia?" },
     ],

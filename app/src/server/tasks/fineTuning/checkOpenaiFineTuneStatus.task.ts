@@ -83,6 +83,9 @@ const runOnce = async () => {
   );
 };
 
-export const checkOpenaiFineTuneStatus = defineTask("checkOpenaiFineTuneStatus", async () => {
-  await runOnce();
+export const checkOpenaiFineTuneStatus = defineTask({
+  id: "checkOpenaiFineTuneStatus",
+  handler: async () => {
+    await runOnce();
+  },
 });

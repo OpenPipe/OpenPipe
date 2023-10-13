@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   Box,
   Heading,
@@ -18,23 +19,26 @@ import dayjs from "~/utils/dayjs";
 import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "../FormattedJson";
 import { useAppStore } from "~/state/store";
-import { useIsClientRehydrated, useLoggedCalls, useTagNames } from "~/utils/hooks";
-import { useMemo } from "react";
+import {
+  useIsClientRehydrated,
+  useLoggedCalls,
+  useTotalNumLogsSelected,
+  useTagNames,
+} from "~/utils/hooks";
 import { StaticColumnKeys } from "~/state/columnVisiblitySlice";
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
 export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
-  const matchingLogIds = useLoggedCalls().data?.matchingLogIds;
-  const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
-  const addAll = useAppStore((s) => s.selectedLogs.addSelectedLogIds);
-  const clearAll = useAppStore((s) => s.selectedLogs.clearSelectedLogIds);
-  const allSelected = useMemo(() => {
-    if (!matchingLogIds || !matchingLogIds.length) return false;
-    return matchingLogIds.every((id) => selectedLogIds.has(id));
-  }, [selectedLogIds, matchingLogIds]);
+  const matchingCount = useLoggedCalls().data?.count;
+  const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
+  const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
+  const toggleAllSelected = useAppStore((s) => s.selectedLogs.toggleAllSelected);
   const tagNames = useTagNames().data;
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
+
+  const totalNumLogsSelected = useTotalNumLogsSelected();
+
   const isClientRehydrated = useIsClientRehydrated();
   if (!isClientRehydrated) return null;
 
@@ -45,14 +49,12 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
           <Th pr={0}>
             <HStack minW={16}>
               <Checkbox
-                isChecked={allSelected}
-                onChange={() => {
-                  allSelected ? clearAll() : addAll(matchingLogIds || []);
-                }}
+                isChecked={defaultToSelected && !deselectedLogIds.size && totalNumLogsSelected > 0}
+                onChange={toggleAllSelected}
               />
               <Text>
-                ({selectedLogIds.size ? `${selectedLogIds.size}/` : ""}
-                {matchingLogIds?.length || 0})
+                ({totalNumLogsSelected ? `${totalNumLogsSelected}/` : ""}
+                {matchingCount ?? 0})
               </Text>
             </HStack>
           </Th>
@@ -91,7 +93,11 @@ export const TableRow = ({
   const requestedAt = dayjs(loggedCall.requestedAt).format("MMMM D h:mm A");
   const fullTime = dayjs(loggedCall.requestedAt).toString();
 
-  const isChecked = useAppStore((s) => s.selectedLogs.selectedLogIds.has(loggedCall.id));
+  const isChecked = useAppStore(
+    (s) =>
+      (s.selectedLogs.defaultToSelected && !s.selectedLogs.deselectedLogIds.has(loggedCall.id)) ||
+      s.selectedLogs.selectedLogIds.has(loggedCall.id),
+  );
   const toggleChecked = useAppStore((s) => s.selectedLogs.toggleSelectedLogId);
 
   const tagNames = useTagNames().data;
@@ -117,7 +123,11 @@ export const TableRow = ({
       >
         {showOptions && (
           <Td>
-            <Checkbox isChecked={isChecked} onChange={() => toggleChecked(loggedCall.id)} />
+            <Checkbox
+              isChecked={isChecked}
+              onChange={() => toggleChecked(loggedCall.id)}
+              _hover={{ borderColor: "gray.300" }}
+            />
           </Td>
         )}
         {visibleColumns.has(StaticColumnKeys.SENT_AT) && (

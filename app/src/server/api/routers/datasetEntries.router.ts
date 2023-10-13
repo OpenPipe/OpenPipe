@@ -1,13 +1,10 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import {
-  type ChatCompletion,
-  type ChatCompletionCreateParams,
-  type ChatCompletionMessageParam,
-} from "openai/resources/chat";
+import { type ChatCompletion, type ChatCompletionMessageParam } from "openai/resources/chat";
 import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
+import { shuffle } from "lodash-es";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -19,7 +16,10 @@ import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
-import { queueGetTestResult } from "~/server/tasks/getTestResult.task";
+import { evaluateTestSetEntry } from "~/server/tasks/evaluateTestSetEntry.task";
+import { validatedChatInput, validatedChatOutput } from "~/modelProviders/fine-tuned/utils";
+import { truthyFilter } from "~/utils/utils";
+import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/constructFiltersQuery";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -114,7 +114,9 @@ export const datasetEntriesRouter = createTRPCRouter({
           include: {
             datasetEntry: {
               select: {
-                input: true,
+                messages: true,
+                function_call: true,
+                functions: true,
                 output: true,
                 inputTokens: true,
                 outputTokens: true,
@@ -181,35 +183,53 @@ export const datasetEntriesRouter = createTRPCRouter({
             name: z.string(),
           })
           .optional(),
-        loggedCallIds: z.string().array().optional(),
+        filters: logFiltersSchema,
+        defaultToSelected: z.boolean(),
+        selectedLogIds: z.string().array(),
+        deselectedLogIds: z.string().array(),
+        sampleSize: z.number(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      let projectId: string;
       let datasetId: string;
       let trainingRatio = 0.8;
       if (input.datasetId) {
         datasetId = input.datasetId;
-        const { projectId, trainingRatio: datasetTrainingRatio } =
-          await prisma.dataset.findUniqueOrThrow({
-            where: { id: input.datasetId },
-          });
-        trainingRatio = datasetTrainingRatio;
-        await requireCanModifyProject(projectId, ctx);
+        const dataset = await prisma.dataset.findUniqueOrThrow({
+          where: { id: input.datasetId },
+        });
+        trainingRatio = dataset.trainingRatio;
+        projectId = dataset.projectId;
       } else if (input.newDatasetParams) {
-        await requireCanModifyProject(input.newDatasetParams.projectId, ctx);
+        projectId = input.newDatasetParams.projectId;
         datasetId = uuidv4();
       } else {
         return error("No datasetId or newDatasetParams provided");
       }
 
-      if (!input.loggedCallIds) {
-        return error("No loggedCallIds provided");
+      await requireCanModifyProject(projectId, ctx);
+
+      const baseQuery = constructFiltersQuery(input.filters, projectId, {
+        defaultToSelected: input.defaultToSelected,
+        selectedLogIds: input.selectedLogIds,
+        deselectedLogIds: input.deselectedLogIds,
+      });
+
+      const loggedCallIds = (await baseQuery.select(["lc.id"]).execute()).map((row) => row.id);
+
+      if (!loggedCallIds.length) {
+        return error("No matching request logs");
       }
+
+      // randomly sample from the logged calls
+      const shuffledLoggedCallIds = shuffle(loggedCallIds);
+      const sampledLoggedCallIds = shuffledLoggedCallIds.slice(0, input.sampleSize);
 
       const loggedCalls = await prisma.loggedCall.findMany({
         where: {
           id: {
-            in: input.loggedCallIds,
+            in: sampledLoggedCallIds,
           },
           modelResponse: {
             isNot: null,
@@ -228,20 +248,23 @@ export const datasetEntriesRouter = createTRPCRouter({
         orderBy: { createdAt: "desc" },
       });
 
-      const trainingRows = loggedCalls.map((loggedCall) => {
-        const inputMessages = (
-          loggedCall.modelResponse?.reqPayload as unknown as ChatCompletionCreateParams
-        ).messages;
-        let output: ChatCompletionMessageParam | undefined = undefined;
-        const resp = loggedCall.modelResponse?.respPayload as unknown as ChatCompletion | undefined;
-        if (resp && resp.choices?.[0]) {
-          output = resp.choices[0].message;
-        }
-        return {
-          input: inputMessages as unknown as ChatCompletionMessageParam[],
-          output: output as unknown as ChatCompletionMessageParam,
-        };
-      });
+      const trainingRows = loggedCalls
+        .map((loggedCall) => {
+          const input = validatedChatInput(
+            loggedCall.modelResponse?.reqPayload as { messages: unknown },
+          );
+          let output: ChatCompletionMessageParam;
+          const resp = loggedCall.modelResponse?.respPayload as unknown as
+            | ChatCompletion
+            | undefined;
+          if (resp && resp.choices?.[0]) {
+            output = resp.choices[0].message;
+          } else {
+            return null;
+          }
+          return { input, output };
+        })
+        .filter(truthyFilter);
 
       const datasetEntriesToCreate = await formatEntriesFromTrainingRows(datasetId, trainingRows);
 
@@ -330,7 +353,9 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const newEntry = await prisma.datasetEntry.create({
         data: {
-          input: parsedInput ?? prevEntry.input,
+          messages: parsedInput ?? prevEntry.messages,
+          functions: parsedInput ?? prevEntry.functions,
+          function_call: parsedInput ?? prevEntry.function_call,
           output: parsedOutput ?? prevEntry.output,
           inputTokens: inputTokens ?? prevEntry.inputTokens,
           outputTokens: outputTokens ?? prevEntry.outputTokens,
@@ -357,7 +382,10 @@ export const datasetEntriesRouter = createTRPCRouter({
           },
         });
         for (const fineTune of fineTunes) {
-          await queueGetTestResult(fineTune.id, newEntry.id);
+          await evaluateTestSetEntry.enqueue({
+            fineTuneId: fineTune.id,
+            datasetEntryId: newEntry.id,
+          });
         }
       }
 
@@ -421,8 +449,8 @@ export const datasetEntriesRouter = createTRPCRouter({
       });
 
       let rows: TrainingRow[] = datasetEntries.map((entry) => ({
-        input: entry.input as unknown as ChatCompletionMessageParam[],
-        output: entry.output as unknown as ChatCompletionMessageParam,
+        input: validatedChatInput(entry),
+        output: validatedChatOutput(entry.output),
       }));
 
       if (input.removeDuplicates) {

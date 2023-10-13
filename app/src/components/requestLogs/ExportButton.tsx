@@ -25,7 +25,7 @@ import {
 } from "@chakra-ui/react";
 import { BiExport } from "react-icons/bi";
 
-import { useHandledAsyncCallback } from "~/utils/hooks";
+import { useHandledAsyncCallback, useTotalNumLogsSelected } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "../ActionButton";
@@ -36,7 +36,7 @@ import InfoCircle from "../InfoCircle";
 const SUPPORTED_EXPORT_FORMATS = ["alpaca-finetune", "openai-fine-tune", "unformatted"];
 
 const ExportButton = () => {
-  const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
+  const totalNumLogsSelected = useTotalNumLogsSelected();
 
   const disclosure = useDisclosure();
 
@@ -46,7 +46,7 @@ const ExportButton = () => {
         onClick={disclosure.onOpen}
         label="Export"
         icon={BiExport}
-        isDisabled={selectedLogIds.size === 0}
+        isDisabled={!totalNumLogsSelected}
         requireBeta
       />
       <ExportLogsModal disclosure={disclosure} />
@@ -58,8 +58,12 @@ export default ExportButton;
 
 const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const filters = useAppStore((s) => s.logFilters.filters);
+  const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
-  const clearSelectedLogIds = useAppStore((s) => s.selectedLogs.clearSelectedLogIds);
+  const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
+  const resetLogSelection = useAppStore((s) => s.selectedLogs.resetLogSelection);
+  const totalNumLogsSelected = useTotalNumLogsSelected();
 
   const [selectedExportFormat, setSelectedExportFormat] = useState(SUPPORTED_EXPORT_FORMATS[0]);
   const [testingSplit, setTestingSplit] = useState(10);
@@ -77,11 +81,13 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
   const exportLogsMutation = api.loggedCalls.export.useMutation();
 
   const [exportLogs, exportInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId || !selectedLogIds.size || !testingSplit || !selectedExportFormat)
-      return;
+    if (!selectedProjectId || !selectedExportFormat) return;
     const response = await exportLogsMutation.mutateAsync({
       projectId: selectedProjectId,
-      loggedCallIds: Array.from(selectedLogIds),
+      filters,
+      defaultToSelected,
+      selectedLogIds: Array.from(selectedLogIds),
+      deselectedLogIds: Array.from(deselectedLogIds),
       testingSplit,
       selectedExportFormat,
       removeDuplicates,
@@ -99,11 +105,15 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     document.body.removeChild(a);
 
     disclosure.onClose();
-    clearSelectedLogIds();
+    resetLogSelection();
   }, [
     exportLogsMutation,
     selectedProjectId,
+    filters,
+    defaultToSelected,
     selectedLogIds,
+    deselectedLogIds,
+    resetLogSelection,
     testingSplit,
     selectedExportFormat,
     removeDuplicates,
@@ -123,7 +133,7 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              We'll export the <b>{selectedLogIds.size}</b> logs you have selected in the format of
+              We'll export the <b>{totalNumLogsSelected}</b> logs you have selected in the format of
               your choice.
             </Text>
             <VStack alignItems="flex-start" spacing={4}>
@@ -154,7 +164,7 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                   <NumberInput
                     defaultValue={10}
                     onChange={(_, num) => setTestingSplit(num)}
-                    min={1}
+                    min={0}
                     max={100}
                     w={48}
                   >

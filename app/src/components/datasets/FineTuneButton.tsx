@@ -119,8 +119,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              We'll train on <b>{datasetEntries?.trainingCount}</b> and test on{" "}
-              <b>{datasetEntries?.testingCount}</b> entries in this dataset.
+              We'll train on <b>{datasetEntries?.trainingCount.toLocaleString()}</b> and test on{" "}
+              <b>{datasetEntries?.testingCount.toLocaleString()}</b> entries in this dataset.
             </Text>
             <VStack>
               <HStack spacing={2} w="full">
