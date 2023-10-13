@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { type Expression, type SqlBool, sql, type RawBuilder } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
@@ -8,28 +7,9 @@ import { shuffle } from "lodash-es";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
-import { comparators, defaultFilterableFields } from "~/state/logFiltersSlice";
 import { requireCanViewProject } from "~/utils/accessControl";
 import hashObject from "~/server/utils/hashObject";
-
-// create comparator type based off of comparators
-const comparatorToSqlExpression = (comparator: (typeof comparators)[number], value: string) => {
-  return (reference: RawBuilder<unknown>): Expression<SqlBool> => {
-    switch (comparator) {
-      case "=":
-        return sql`${reference} = ${value}`;
-      case "!=":
-        // Handle NULL values
-        return sql`${reference} IS DISTINCT FROM ${value}`;
-      case "CONTAINS":
-        return sql`${reference} LIKE ${"%" + value + "%"}`;
-      case "NOT_CONTAINS":
-        return sql`(${reference} NOT LIKE ${"%" + value + "%"} OR ${reference} IS NULL)`;
-      default:
-        throw new Error("Unknown comparator");
-    }
-  };
-};
+import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/constructFiltersQuery";
 
 export const loggedCallsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -38,13 +18,7 @@ export const loggedCallsRouter = createTRPCRouter({
         projectId: z.string(),
         page: z.number(),
         pageSize: z.number(),
-        filters: z.array(
-          z.object({
-            field: z.string(),
-            comparator: z.enum(comparators),
-            value: z.string(),
-          }),
-        ),
+        filters: logFiltersSchema,
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -52,58 +26,9 @@ export const loggedCallsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = kysely
-        .selectFrom("LoggedCall as lc")
-        .leftJoin("LoggedCallModelResponse as lcmr", "lc.id", "lcmr.originalLoggedCallId")
-        .where((eb) => {
-          const wheres: Expression<SqlBool>[] = [eb("lc.projectId", "=", projectId)];
+      const baseQuery = constructFiltersQuery(input.filters, projectId);
 
-          for (const filter of input.filters) {
-            if (!filter.value) continue;
-            const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
-
-            if (filter.field === "Request") {
-              wheres.push(filterExpression(sql.raw(`lcmr."reqPayload"::text`)));
-            }
-            if (filter.field === "Response") {
-              wheres.push(filterExpression(sql.raw(`lcmr."respPayload"::text`)));
-            }
-            if (filter.field === "Model") {
-              wheres.push(filterExpression(sql.raw(`lc."model"`)));
-            }
-            if (filter.field === "Status Code") {
-              wheres.push(filterExpression(sql.raw(`lcmr."statusCode"::text`)));
-            }
-          }
-
-          return eb.and(wheres);
-        });
-
-      const tagFilters = input.filters.filter(
-        (filter) =>
-          !defaultFilterableFields.includes(
-            filter.field as (typeof defaultFilterableFields)[number],
-          ),
-      );
-
-      let updatedBaseQuery = baseQuery;
-
-      for (let i = 0; i < tagFilters.length; i++) {
-        const filter = tagFilters[i];
-        if (!filter?.value) continue;
-        const tableAlias = `lct${i}`;
-        const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
-
-        updatedBaseQuery = updatedBaseQuery
-          .leftJoin(`LoggedCallTag as ${tableAlias}`, (join) =>
-            join
-              .onRef("lc.id", "=", `${tableAlias}.loggedCallId`)
-              .on(`${tableAlias}.name`, "=", filter.field),
-          )
-          .where(filterExpression(sql.raw(`${tableAlias}.value`))) as unknown as typeof baseQuery;
-      }
-
-      const rawCalls = await updatedBaseQuery
+      const rawCalls = await baseQuery
         .select((eb) => [
           "lc.id as id",
           "lc.requestedAt as requestedAt",
@@ -159,11 +84,11 @@ export const loggedCallsRouter = createTRPCRouter({
         };
       });
 
-      const matchingLogIds = await updatedBaseQuery.select(["lc.id"]).execute();
+      const matchingLogIds = await baseQuery.select(["lc.id"]).execute();
 
       const count = matchingLogIds.length;
 
-      return { calls, count, matchingLogIds: matchingLogIds.map((log) => log.id) };
+      return { calls, count };
     }),
   getTagNames: protectedProcedure
     .input(z.object({ projectId: z.string() }))
@@ -184,7 +109,10 @@ export const loggedCallsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        loggedCallIds: z.string().array(),
+        filters: logFiltersSchema,
+        defaultToSelected: z.boolean(),
+        selectedLogIds: z.string().array(),
+        deselectedLogIds: z.string().array(),
         testingSplit: z.number(),
         selectedExportFormat: z.string(),
         removeDuplicates: z.boolean(),
@@ -193,16 +121,16 @@ export const loggedCallsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      // Fetch the real data using Prisma
-      const loggedCallsFromDb = await ctx.prisma.loggedCallModelResponse.findMany({
-        where: {
-          originalLoggedCall: {
-            projectId: input.projectId,
-            id: { in: input.loggedCallIds },
-          },
-          statusCode: 200,
-        },
+      const baseQuery = constructFiltersQuery(input.filters, input.projectId, {
+        defaultToSelected: input.defaultToSelected,
+        selectedLogIds: input.selectedLogIds,
+        deselectedLogIds: input.deselectedLogIds,
       });
+
+      const loggedCallsFromDb = await baseQuery
+        .select(["lcmr.reqPayload as reqPayload", "lcmr.respPayload as respPayload"])
+        .orderBy("lc.requestedAt", "desc")
+        .execute();
 
       // Convert the database data into the desired format
       let formattedLoggedCalls: { instruction: JsonValue[]; output: JsonValue }[] =
