@@ -16,7 +16,7 @@ export type LogFiltersSlice = {
   addFilter: (filter: LogFilter) => void;
   updateFilter: (filter: LogFilter) => void;
   deleteFilter: (id: string) => void;
-  clearSelectedLogIds: () => void;
+  clearFilters: () => void;
 };
 
 export const createLogFiltersSlice: SliceCreator<LogFiltersSlice> = (set, get) => ({
@@ -35,7 +35,7 @@ export const createLogFiltersSlice: SliceCreator<LogFiltersSlice> = (set, get) =
       const index = state.logFilters.filters.findIndex((f) => f.id === id);
       state.logFilters.filters.splice(index, 1);
     }),
-  clearSelectedLogIds: () =>
+  clearFilters: () =>
     set((state) => {
       state.logFilters.filters = [];
     }),
