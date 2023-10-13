@@ -132,8 +132,6 @@ export const loggedCallsRouter = createTRPCRouter({
         .orderBy("lc.requestedAt", "desc")
         .execute();
 
-      console.log("num logged calls", loggedCallsFromDb.length);
-
       // Convert the database data into the desired format
       let formattedLoggedCalls: { instruction: JsonValue[]; output: JsonValue }[] =
         loggedCallsFromDb.map((call) => ({
@@ -142,8 +140,6 @@ export const loggedCallsRouter = createTRPCRouter({
           output: (call.respPayload as unknown as { choices: { message: unknown }[] }).choices[0]
             ?.message as JsonValue,
         }));
-
-      console.log("num logged calls after formatting", formattedLoggedCalls.length);
 
       if (input.removeDuplicates) {
         const deduplicatedLoggedCalls = [];
@@ -157,8 +153,6 @@ export const loggedCallsRouter = createTRPCRouter({
         }
         formattedLoggedCalls = deduplicatedLoggedCalls;
       }
-
-      console.log("num logged calls after deduplication", formattedLoggedCalls.length);
 
       // Remove duplicate messages from instructions
       const instructionMessageHashMap = new Map<string, number>();
