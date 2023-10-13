@@ -1,6 +1,10 @@
-import { $, ExecaChildProcess } from "execa";
+import { $, type ExecaChildProcess } from "execa";
 import "dotenv/config";
-import humanId from "human-id";
+import HumanIdModule from "human-id";
+
+import { ensureDefaultExport } from "~/utils/utils";
+
+const humanId = ensureDefaultExport(HumanIdModule);
 
 const tunnelSubdomain =
   process.env.LOCAL_HOST_SUBDOMAIN ?? humanId({ separator: "-", capitalize: false });
