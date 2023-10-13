@@ -33,6 +33,11 @@ const comparatorToSqlExpression = (comparator: (typeof comparators)[number], val
 export const constructFiltersQuery = (
   filters: z.infer<typeof logFiltersSchema>,
   projectId: string,
+  selectionParams?: {
+    defaultToSelected: boolean;
+    selectedLogIds: string[];
+    deselectedLogIds: string[];
+  },
 ) => {
   const baseQuery = kysely
     .selectFrom("LoggedCall as lc")
@@ -82,5 +87,19 @@ export const constructFiltersQuery = (
       )
       .where(filterExpression(sql.raw(`${tableAlias}.value`))) as unknown as typeof baseQuery;
   }
+
+  if (selectionParams) {
+    if (selectionParams.defaultToSelected && selectionParams.deselectedLogIds.length) {
+      updatedBaseQuery = updatedBaseQuery.where(({ eb, not }) =>
+        not(eb("lc.id", "in", selectionParams.deselectedLogIds)),
+      );
+    } else if (!selectionParams.defaultToSelected && selectionParams.selectedLogIds.length) {
+      updatedBaseQuery = updatedBaseQuery.where((eb) =>
+        eb("lc.id", "in", selectionParams.selectedLogIds),
+      );
+    }
+    updatedBaseQuery = updatedBaseQuery.where((eb) => eb("lcmr.statusCode", "=", 200));
+  }
+
   return updatedBaseQuery;
 };

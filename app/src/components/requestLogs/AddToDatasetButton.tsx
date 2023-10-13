@@ -29,8 +29,7 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useRouter } from "next/router";
 
 const AddToDatasetButton = () => {
-  const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
-  const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
+  const totalNumLogsSelected = useTotalNumLogsSelected();
 
   const disclosure = useDisclosure();
 
@@ -40,7 +39,7 @@ const AddToDatasetButton = () => {
         onClick={disclosure.onOpen}
         label="Add to Dataset"
         icon={FiPlusSquare}
-        isDisabled={selectedLogIds.size === 0 && !defaultToSelected}
+        isDisabled={!totalNumLogsSelected}
       />
       <AddToDatasetModal disclosure={disclosure} />
     </>

@@ -3,9 +3,9 @@ import { type State, type SliceCreator } from "./store";
 export type SelectedLogsSlice = {
   matchingLogsCount: number;
   setMatchingLogsCount: (count: number) => void;
+  defaultToSelected: boolean;
   selectedLogIds: Set<string>;
   deselectedLogIds: Set<string>;
-  defaultToSelected: boolean;
   toggleSelectedLogId: (id: string) => void;
   toggleAllSelected: () => void;
   resetLogSelection: () => void;
@@ -17,9 +17,9 @@ export const createSelectedLogsSlice: SliceCreator<SelectedLogsSlice> = (set) =>
     set((state) => {
       state.selectedLogs.matchingLogsCount = count;
     }),
+  defaultToSelected: false,
   selectedLogIds: new Set(),
   deselectedLogIds: new Set(),
-  defaultToSelected: false,
   toggleSelectedLogId: (id: string) =>
     set((state) => {
       if (state.selectedLogs.defaultToSelected) {

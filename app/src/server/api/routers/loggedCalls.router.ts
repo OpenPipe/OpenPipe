@@ -109,7 +109,10 @@ export const loggedCallsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        loggedCallIds: z.string().array(),
+        filters: logFiltersSchema,
+        defaultToSelected: z.boolean(),
+        selectedLogIds: z.string().array(),
+        deselectedLogIds: z.string().array(),
         testingSplit: z.number(),
         selectedExportFormat: z.string(),
         removeDuplicates: z.boolean(),
@@ -118,16 +121,18 @@ export const loggedCallsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      // Fetch the real data using Prisma
-      const loggedCallsFromDb = await ctx.prisma.loggedCallModelResponse.findMany({
-        where: {
-          originalLoggedCall: {
-            projectId: input.projectId,
-            id: { in: input.loggedCallIds },
-          },
-          statusCode: 200,
-        },
+      const baseQuery = constructFiltersQuery(input.filters, input.projectId, {
+        defaultToSelected: input.defaultToSelected,
+        selectedLogIds: input.selectedLogIds,
+        deselectedLogIds: input.deselectedLogIds,
       });
+
+      const loggedCallsFromDb = await baseQuery
+        .select(["lcmr.reqPayload as reqPayload", "lcmr.respPayload as respPayload"])
+        .orderBy("lc.requestedAt", "desc")
+        .execute();
+
+      console.log("num logged calls", loggedCallsFromDb.length);
 
       // Convert the database data into the desired format
       let formattedLoggedCalls: { instruction: JsonValue[]; output: JsonValue }[] =
@@ -137,6 +142,8 @@ export const loggedCallsRouter = createTRPCRouter({
           output: (call.respPayload as unknown as { choices: { message: unknown }[] }).choices[0]
             ?.message as JsonValue,
         }));
+
+      console.log("num logged calls after formatting", formattedLoggedCalls.length);
 
       if (input.removeDuplicates) {
         const deduplicatedLoggedCalls = [];
@@ -150,6 +157,8 @@ export const loggedCallsRouter = createTRPCRouter({
         }
         formattedLoggedCalls = deduplicatedLoggedCalls;
       }
+
+      console.log("num logged calls after deduplication", formattedLoggedCalls.length);
 
       // Remove duplicate messages from instructions
       const instructionMessageHashMap = new Map<string, number>();

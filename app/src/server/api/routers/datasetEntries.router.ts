@@ -183,10 +183,10 @@ export const datasetEntriesRouter = createTRPCRouter({
             name: z.string(),
           })
           .optional(),
+        filters: logFiltersSchema,
+        defaultToSelected: z.boolean(),
         selectedLogIds: z.string().array(),
         deselectedLogIds: z.string().array(),
-        defaultToSelected: z.boolean(),
-        filters: logFiltersSchema,
         sampleSize: z.number(),
       }),
     )
@@ -210,16 +210,11 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(projectId, ctx);
 
-      let baseQuery = constructFiltersQuery(input.filters, projectId);
-
-      if (input.defaultToSelected && input.deselectedLogIds.length) {
-        baseQuery = baseQuery.where(({ eb, not }) =>
-          not(eb("lc.id", "in", input.deselectedLogIds)),
-        );
-      } else if (!input.defaultToSelected && input.selectedLogIds.length) {
-        baseQuery = baseQuery.where((eb) => eb("lc.id", "in", input.selectedLogIds));
-      }
-      baseQuery = baseQuery.where((eb) => eb("lcmr.statusCode", "=", 200));
+      const baseQuery = constructFiltersQuery(input.filters, projectId, {
+        defaultToSelected: input.defaultToSelected,
+        selectedLogIds: input.selectedLogIds,
+        deselectedLogIds: input.deselectedLogIds,
+      });
 
       const loggedCallIds = (await baseQuery.select(["lc.id"]).execute()).map((row) => row.id);
 
