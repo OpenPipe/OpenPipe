@@ -59,13 +59,7 @@ export const createSelectedLogsSlice: SliceCreator<SelectedLogsSlice> = (set) =>
         if (state.selectedLogs.selectedLogIds.size) state.selectedLogs.selectedLogIds = new Set();
       }
     }),
-  resetLogSelection: () =>
-    set((state) => {
-      console.log("being executed");
-      state.selectedLogs.defaultToSelected = false;
-      state.selectedLogs.selectedLogIds = new Set();
-      state.selectedLogs.deselectedLogIds = new Set();
-    }),
+  resetLogSelection: () => set(resetLogSelection),
 });
 
 export const resetLogSelection = (state: State) => {
