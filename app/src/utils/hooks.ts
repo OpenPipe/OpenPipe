@@ -260,6 +260,7 @@ export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
   const filters = useAppStore((state) => state.logFilters.filters);
+  const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
   const { data, isLoading, ...rest } = api.loggedCalls.list.useQuery(
     { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? filters : [] },
@@ -272,10 +273,24 @@ export const useLoggedCalls = (applyFilters = true) => {
     // Prevent annoying flashes while logs are loading from the server
     if (!isLoading) {
       setStableData(data);
+      setMatchingLogsCount(data?.count ?? 0);
     }
-  }, [data, isLoading]);
+  }, [data, isLoading, setMatchingLogsCount]);
 
   return { data: stableData, isLoading, ...rest };
+};
+
+export const useTotalNumLogsSelected = () => {
+  const matchingCount = useAppStore((state) => state.selectedLogs.matchingLogsCount);
+  const defaultToSelected = useAppStore((state) => state.selectedLogs.defaultToSelected);
+  const selectedLogIds = useAppStore((state) => state.selectedLogs.selectedLogIds);
+  const deselectedLogIds = useAppStore((state) => state.selectedLogs.deselectedLogIds);
+
+  if (!matchingCount) return 0;
+  if (defaultToSelected) {
+    return matchingCount - deselectedLogIds.size;
+  }
+  return selectedLogIds.size;
 };
 
 export const useTagNames = () => {

@@ -37,6 +37,7 @@ const SUPPORTED_EXPORT_FORMATS = ["alpaca-finetune", "openai-fine-tune", "unform
 
 const ExportButton = () => {
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
+  const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
 
   const disclosure = useDisclosure();
 
@@ -46,7 +47,7 @@ const ExportButton = () => {
         onClick={disclosure.onOpen}
         label="Export"
         icon={BiExport}
-        isDisabled={selectedLogIds.size === 0}
+        isDisabled={selectedLogIds.size === 0 && !defaultToSelected}
         requireBeta
       />
       <ExportLogsModal disclosure={disclosure} />
@@ -59,7 +60,7 @@ export default ExportButton;
 const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
-  const clearSelectedLogIds = useAppStore((s) => s.selectedLogs.clearSelectedLogIds);
+  const resetLogSelection = useAppStore((s) => s.selectedLogs.resetLogSelection);
 
   const [selectedExportFormat, setSelectedExportFormat] = useState(SUPPORTED_EXPORT_FORMATS[0]);
   const [testingSplit, setTestingSplit] = useState(10);
@@ -99,11 +100,12 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     document.body.removeChild(a);
 
     disclosure.onClose();
-    clearSelectedLogIds();
+    resetLogSelection();
   }, [
     exportLogsMutation,
     selectedProjectId,
     selectedLogIds,
+    resetLogSelection,
     testingSplit,
     selectedExportFormat,
     removeDuplicates,

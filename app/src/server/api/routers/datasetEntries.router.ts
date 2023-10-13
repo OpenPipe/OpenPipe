@@ -4,6 +4,7 @@ import { type ChatCompletion, type ChatCompletionMessageParam } from "openai/res
 import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
+import { shuffle } from "lodash-es";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -18,6 +19,7 @@ import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatche
 import { evaluateTestSetEntry } from "~/server/tasks/evaluateTestSetEntry.task";
 import { validatedChatInput, validatedChatOutput } from "~/modelProviders/fine-tuned/utils";
 import { truthyFilter } from "~/utils/utils";
+import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/constructFiltersQuery";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -181,35 +183,58 @@ export const datasetEntriesRouter = createTRPCRouter({
             name: z.string(),
           })
           .optional(),
-        loggedCallIds: z.string().array().optional(),
+        selectedLogIds: z.string().array(),
+        deselectedLogIds: z.string().array(),
+        defaultToSelected: z.boolean(),
+        filters: logFiltersSchema,
+        sampleSize: z.number(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      let projectId: string;
       let datasetId: string;
       let trainingRatio = 0.8;
       if (input.datasetId) {
         datasetId = input.datasetId;
-        const { projectId, trainingRatio: datasetTrainingRatio } =
-          await prisma.dataset.findUniqueOrThrow({
-            where: { id: input.datasetId },
-          });
-        trainingRatio = datasetTrainingRatio;
-        await requireCanModifyProject(projectId, ctx);
+        const dataset = await prisma.dataset.findUniqueOrThrow({
+          where: { id: input.datasetId },
+        });
+        trainingRatio = dataset.trainingRatio;
+        projectId = dataset.projectId;
       } else if (input.newDatasetParams) {
-        await requireCanModifyProject(input.newDatasetParams.projectId, ctx);
+        projectId = input.newDatasetParams.projectId;
         datasetId = uuidv4();
       } else {
         return error("No datasetId or newDatasetParams provided");
       }
 
-      if (!input.loggedCallIds) {
-        return error("No loggedCallIds provided");
+      await requireCanModifyProject(projectId, ctx);
+
+      let baseQuery = constructFiltersQuery(input.filters, projectId);
+
+      if (input.defaultToSelected && input.deselectedLogIds.length) {
+        baseQuery = baseQuery.where(({ eb, not }) =>
+          not(eb("lc.id", "in", input.deselectedLogIds)),
+        );
+      } else if (!input.defaultToSelected && input.selectedLogIds.length) {
+        baseQuery = baseQuery.where((eb) => eb("lc.id", "in", input.selectedLogIds));
       }
+      baseQuery = baseQuery.where((eb) => eb("lcmr.statusCode", "=", 200));
+
+      const loggedCallIds = (await baseQuery.select(["lc.id"]).execute()).map((row) => row.id);
+
+      if (!loggedCallIds.length) {
+        return error("No matching request logs");
+      }
+
+      // randomly sample from the logged calls
+      const shuffledLoggedCallIds = shuffle(loggedCallIds);
+      const sampledLoggedCallIds = shuffledLoggedCallIds.slice(0, input.sampleSize);
 
       const loggedCalls = await prisma.loggedCall.findMany({
         where: {
           id: {
-            in: input.loggedCallIds,
+            in: sampledLoggedCallIds,
           },
           modelResponse: {
             isNot: null,
