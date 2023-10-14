@@ -144,8 +144,8 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              Of the <b>{totalNumLogsSelected}</b> you have selected, <b>{sampleSize}</b> randomly
-              chosen logs will be added to{" "}
+              Of the <b>{totalNumLogsSelected.toLocaleString()}</b> you have selected,{" "}
+              <b>{sampleSize.toLocaleString()}</b> randomly chosen logs will be added to{" "}
               {createNewDataset ? "your new dataset" : <b>{selectedDatasetOption?.label}</b>}.
             </Text>
             <VStack alignItems="flex-start" spacing={4}>
@@ -211,7 +211,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
             </VStack>
             {sampleSizeInvalid && (
               <Text color="red.500">
-                Sample size must be less than or equal to <b>{maxSampleSize}</b>.
+                Sample size must be less than or equal to <b>{maxSampleSize.toLocaleString()}</b>.
               </Text>
             )}
           </VStack>

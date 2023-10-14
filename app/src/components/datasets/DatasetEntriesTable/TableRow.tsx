@@ -84,8 +84,8 @@ export const TableRow = ({
           </Box>
         </Tooltip>
       </Td>
-      <Td isNumeric>{datasetEntry.inputTokens}</Td>
-      <Td isNumeric>{datasetEntry.outputTokens}</Td>
+      <Td isNumeric>{datasetEntry.inputTokens.toLocaleString()}</Td>
+      <Td isNumeric>{datasetEntry.outputTokens.toLocaleString()}</Td>
       <Td isNumeric>{datasetEntry.type}</Td>
     </Tr>
   );
