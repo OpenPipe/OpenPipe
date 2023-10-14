@@ -17,12 +17,12 @@ const TestSet = () => {
   const entries = useTestingEntries(refetchInterval).data;
 
   useEffect(() => {
-    if (entries?.entries.find((entry) => !entry.output && !entry.errorMessage)) {
+    if (!entries?.count || !entries?.countFinished || entries?.countFinished < entries?.count) {
       setRefetchInterval(5000);
     } else {
       setRefetchInterval(0);
     }
-  }, [entries?.entries]);
+  }, [entries?.count, entries?.countFinished, entries?.entries]);
 
   if (!fineTune || !entries) return null;
 

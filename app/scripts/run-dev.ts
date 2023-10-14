@@ -1,4 +1,4 @@
-import { $, type ExecaChildProcess } from "execa";
+import { execa, type ExecaChildProcess } from "execa";
 import "dotenv/config";
 import HumanIdModule from "human-id";
 
@@ -16,33 +16,30 @@ const env = {
   NODE_ENV: "development",
 } as const;
 
-const $$ = $({ stdio: "inherit", env: { ...process.env, ...env } });
+const commands = ["pnpm dev:tunnel", "pnpm dev:next", "pnpm dev:wss", "pnpm worker --watch"];
 
-const processes: ExecaChildProcess[] = [
-  $$`pnpm dev:tunnel`,
-  $$`pnpm dev:next`,
-  $$`pnpm dev:wss`,
-  $$`pnpm worker --watch`,
-];
+const processes: ExecaChildProcess[] = commands.map((command) => {
+  const [cmd, ...args] = command.split(" ");
+  if (!cmd) throw new Error(`Failed to parse command "${command}"`);
+  return execa(cmd, args, { stdio: "inherit", env: { ...process.env, ...env } });
+});
 
-// These sometimes seem to fail which interrupts long-running training jobs. Better to run them out of process at least for now.
-// if (process.env.MODAL_USE_LOCAL_DEPLOYMENTS) {
-//   processes.push(
-//     $$({ cwd: "../trainer" })`poetry run modal serve src/trainer/main.py`,
-//     $$({ cwd: "../trainer" })`poetry run modal serve src/inference_server/main.py`,
-//   );
-// }
-
-const promises = processes.map((proc) => {
+const promises = processes.map((proc, index) => {
   return new Promise<void>((_, reject) => {
     proc
       .on("exit", (code) => {
         if (code !== 0) {
-          reject(new Error(`Process exited with code ${code?.toString() ?? "unknown"}`));
+          reject(
+            new Error(
+              `Process "${commands[index] ?? index}" exited with code ${
+                code?.toString() ?? "unknown"
+              }`,
+            ),
+          );
         }
       })
       .catch((error) => {
-        reject(error);
+        reject(new Error(`Error in "${commands[index] ?? index}": ${(error as Error).message}`));
       });
   });
 });
