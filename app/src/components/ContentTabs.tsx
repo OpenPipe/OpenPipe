@@ -1,33 +1,19 @@
 import { useState, useRef, useEffect, forwardRef } from "react";
 import { Button, VStack, HStack, Text, Divider, Box } from "@chakra-ui/react";
 
-import General from "./General/General";
-import TrainingData from "./TrainingData/TrainingData";
-import TestSet from "./TestSet/TestSet";
 import { useRouter } from "next/router";
 
-const tabs = [
-  {
-    key: "general",
-    title: "General",
-  },
-  {
-    key: "training-data",
-    title: "Training Data",
-  },
-  {
-    key: "test-set",
-    title: "Test Set",
-  },
-] as const;
-
-const ContentTabs = () => {
+const ContentTabs = ({
+  tabs,
+}: {
+  tabs: { key: string; title: string; component: React.ReactElement }[];
+}) => {
   const [borderPosition, setBorderPosition] = useState({ left: "0", width: "0" });
   const headersRef = useRef<{ [key: string]: HTMLButtonElement }>({});
 
   const router = useRouter();
   const activeTabParam = router.query.tab as string;
-  const activeTabKey = (activeTabParam as (typeof tabs)[number]["key"]) || "general";
+  const activeTabKey = activeTabParam || tabs[0]?.key || "";
 
   const setActiveTab = (newTabKey: string) => {
     void router.push(
@@ -76,9 +62,7 @@ const ContentTabs = () => {
       </HStack>
       <Divider />
       <HStack pt={8} w="full" h="full" alignSelf="center">
-        {(!activeTabKey || activeTabKey === "general") && <General />}
-        {activeTabKey === "training-data" && <TrainingData />}
-        {activeTabKey === "test-set" && <TestSet />}
+        {tabs.find((tab) => tab.key === activeTabKey)?.component}
       </HStack>
     </VStack>
   );
@@ -91,7 +75,7 @@ const TabHeader = forwardRef(
       isSelected,
       onClick,
     }: {
-      title: (typeof tabs)[number]["title"];
+      title: string;
       isSelected: boolean;
       onClick: () => void;
     },

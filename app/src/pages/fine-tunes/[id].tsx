@@ -6,7 +6,7 @@ import AppShell from "~/components/nav/AppShell";
 import { useFineTune } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import ContentTabs from "~/components/fineTunes/ContentTabs/ContentTabs";
+import FineTuneContentTabs from "~/components/fineTunes/FineTuneContentTabs/FineTuneContentTabs";
 
 export default function FineTune() {
   const fineTune = useFineTune();
@@ -46,7 +46,7 @@ export default function FineTune() {
           </Breadcrumb>
         </PageHeaderContainer>
         <VStack w="full" h="full" px={8} alignItems="flex-start" spacing={4}>
-          <ContentTabs />
+          <FineTuneContentTabs />
         </VStack>
       </VStack>
     </AppShell>
