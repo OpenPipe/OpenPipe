@@ -16,8 +16,6 @@ const env = {
   NODE_ENV: "development",
 } as const;
 
-// const $$ = $({ stdio: "inherit", env: { ...process.env, ...env } });
-
 const commands = ["pnpm dev:tunnel", "pnpm dev:next", "pnpm dev:wss", "pnpm worker --watch"];
 
 const processes: ExecaChildProcess[] = commands.map((command) => {
