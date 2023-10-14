@@ -28,9 +28,9 @@ import { AiOutlineDownload } from "react-icons/ai";
 import { useHandledAsyncCallback, useDataset } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import ActionButton from "../ActionButton";
+import ActionButton from "~/components/ActionButton";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
-import InfoCircle from "../InfoCircle";
+import InfoCircle from "~/components/InfoCircle";
 
 const ExportButton = () => {
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);

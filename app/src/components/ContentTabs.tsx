@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect, forwardRef } from "react";
-import { Button, VStack, HStack, Text, Divider, Box } from "@chakra-ui/react";
+import { Button, VStack, HStack, Text, Divider, Box, type StackProps } from "@chakra-ui/react";
 
 import { useRouter } from "next/router";
 
 const ContentTabs = ({
   tabs,
+  ...props
 }: {
   tabs: { key: string; title: string; component: React.ReactElement }[];
-}) => {
+} & StackProps) => {
   const [borderPosition, setBorderPosition] = useState({ left: "0", width: "0" });
   const headersRef = useRef<{ [key: string]: HTMLButtonElement }>({});
 
@@ -37,7 +38,7 @@ const ContentTabs = ({
   }, [activeTabKey]);
 
   return (
-    <VStack w="full" h="full" alignItems="flex-start" spacing={0}>
+    <VStack w="full" h="full" alignItems="flex-start" spacing={0} {...props}>
       <HStack position="relative">
         {tabs.map((tab) => (
           <TabHeader
@@ -61,9 +62,9 @@ const ContentTabs = ({
         />
       </HStack>
       <Divider />
-      <HStack pt={8} w="full" h="full" alignSelf="center">
+      <Box w="full" h="full" pt={8}>
         {tabs.find((tab) => tab.key === activeTabKey)?.component}
-      </HStack>
+      </Box>
     </VStack>
   );
 };

@@ -34,8 +34,8 @@ import {
   useSelectedProject,
 } from "~/utils/hooks";
 import { api } from "~/utils/api";
-import ActionButton from "../ActionButton";
-import InputDropdown from "../InputDropdown";
+import ActionButton from "~/components/ActionButton";
+import InputDropdown from "~/components/InputDropdown";
 import { SUPPORTED_BASE_MODELS, displayBaseModel } from "~/utils/baseModels";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 

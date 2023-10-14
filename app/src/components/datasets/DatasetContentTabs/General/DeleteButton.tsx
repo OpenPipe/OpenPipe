@@ -19,7 +19,7 @@ import { BsTrash } from "react-icons/bs";
 import { useHandledAsyncCallback, useDataset } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import ActionButton from "../ActionButton";
+import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import pluralize from "pluralize";
 

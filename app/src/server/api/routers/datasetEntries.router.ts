@@ -11,7 +11,7 @@ import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
-import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
+import { type TrainingRow } from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
 import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";

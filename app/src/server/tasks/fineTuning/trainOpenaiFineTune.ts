@@ -4,7 +4,7 @@ import OpenAI from "openai";
 import {
   type ContentChatCompletionMessage,
   type OpenaiTrainingRow,
-} from "~/components/datasets/validateTrainingRows";
+} from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
 import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "~/server/db";
 

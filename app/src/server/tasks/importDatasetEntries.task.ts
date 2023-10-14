@@ -5,7 +5,7 @@ import {
   type TrainingRow,
   validateTrainingRows,
   parseJSONL,
-} from "~/components/datasets/validateTrainingRows";
+} from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
 import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
 

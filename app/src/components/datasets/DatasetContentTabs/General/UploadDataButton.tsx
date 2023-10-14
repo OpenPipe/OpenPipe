@@ -23,7 +23,7 @@ import { FaReadme } from "react-icons/fa";
 
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
-import ActionButton from "../ActionButton";
+import ActionButton from "~/components/ActionButton";
 import { validateTrainingRows, type TrainingRow, parseJSONL } from "./validateTrainingRows";
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";

@@ -1,7 +1,7 @@
 import { RiFlaskLine } from "react-icons/ri";
 
 import { useAppStore } from "~/state/store";
-import ActionButton from "../ActionButton";
+import ActionButton from "~/components/ActionButton";
 
 const ExperimentButton = () => {
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
