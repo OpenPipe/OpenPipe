@@ -2,9 +2,13 @@ import openai as original_openai
 from openai.openai_object import OpenAIObject
 import time
 import inspect
+import json
 
 from openpipe.merge_openai_chunks import merge_openai_chunks
 from openpipe.openpipe_meta import openpipe_meta
+from openpipe.api_client.api.default import (
+    create_chat_completion
+)
 
 from .shared import (
     _should_check_cache,
@@ -12,6 +16,7 @@ from .shared import (
     maybe_check_cache_async,
     report_async,
     report,
+    configured_client,
 )
 
 
@@ -27,9 +32,22 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
             return OpenAIObject.construct_from(cached_response, api_key=None)
 
         requested_at = int(time.time() * 1000)
+        model = kwargs.get("model", '')
 
         try:
-            chat_completion = original_openai.ChatCompletion.create(*args, **kwargs)
+            if model.startswith("openpipe:"):
+                print("CLIENT")
+                print(configured_client)
+                response = create_chat_completion.sync_detailed(
+                    client=configured_client,
+                    json_body=create_chat_completion.CreateChatCompletionJsonBody(
+                        req_payload=kwargs,
+                    ),
+                )
+                chat_completion = OpenAIObject.construct_from(json.loads(response.content), api_key=None)
+                print(chat_completion)
+            else:
+                chat_completion = original_openai.ChatCompletion.create(*args, **kwargs)
 
             if inspect.isgenerator(chat_completion):
 
