@@ -1,6 +1,8 @@
-import { Text, VStack, HStack, GridItem } from "@chakra-ui/react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { Text, VStack, HStack, GridItem, Box, Button, Icon } from "@chakra-ui/react";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import SyntaxHighlighter from "react-syntax-highlighter";
+import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { type RouterOutputs } from "~/utils/api";
@@ -54,56 +56,138 @@ const EvaluationRow = ({
       },
   );
 
-  const sharedProps = {
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-  };
+  const [maxOutputHeight, setMaxOutputHeight] = useState(0);
+  const onHeightUpdated = useCallback(
+    (height: number) => {
+      if (height > maxOutputHeight) {
+        setMaxOutputHeight(height);
+      }
+    },
+    [maxOutputHeight, setMaxOutputHeight],
+  );
 
   return (
     <>
-      <GridItem {...sharedProps} borderLeftWidth={0}>
-        <FormattedInput messages={messages} />
-      </GridItem>
-      <GridItem {...sharedProps}>
-        <FormattedOutput output={output} />
-      </GridItem>
+      <FormattedInputGridItem messages={messages} maxOutputHeight={maxOutputHeight} />
+      <FormattedOutputGridItem output={output} onHeightUpdated={onHeightUpdated} />
       {orderedFineTuneEntries.map((entry) => (
-        <GridItem key={entry.fineTuneId} {...sharedProps}>
-          <FormattedOutput
-            output={entry.output}
-            errorMessage={entry.errorMessage}
-            score={entry.score}
-          />
-        </GridItem>
+        <FormattedOutputGridItem
+          key={entry.fineTuneId}
+          output={entry.output}
+          errorMessage={entry.errorMessage}
+          score={entry.score}
+          onHeightUpdated={onHeightUpdated}
+        />
       ))}
     </>
   );
 };
 
-const FormattedInput = ({ messages }: { messages: TestingEntry["messages"] }) => {
+const VERTICAL_PADDING = 32;
+const FormattedInputGridItem = ({
+  messages,
+  maxOutputHeight,
+}: {
+  messages: TestingEntry["messages"];
+  maxOutputHeight: number;
+}) => {
+  const inputRef = useRef<HTMLDivElement>(null);
+  const [innerContentHeight, setInnerContentHeight] = useState(0);
+  useLayoutEffect(() => {
+    if (inputRef.current) {
+      setInnerContentHeight(inputRef.current.getBoundingClientRect().height);
+    }
+  }, [maxOutputHeight]);
+
+  const [isExpanded, setIsExpanded] = useState(false);
+  const expandable = innerContentHeight > maxOutputHeight + VERTICAL_PADDING;
+
   return (
-    <VStack alignItems="flex-start" spacing={8}>
-      {(messages as unknown as ChatCompletionMessage[]).map((message, index) => (
-        <VStack key={index} alignItems="flex-start" w="full">
-          <Text fontWeight="bold" color="gray.500">
-            {message.role}
-          </Text>
-          <FormattedMessage message={message} />
+    <GridItem
+      position="relative"
+      borderTopWidth={1}
+      h={isExpanded || !expandable ? innerContentHeight + 52 : maxOutputHeight + VERTICAL_PADDING}
+      overflow="hidden"
+      transition="height 0.5s ease-in-out"
+    >
+      <VStack ref={inputRef} alignItems="flex-start" spacing={8}>
+        {(messages as unknown as ChatCompletionMessage[]).map((message, index) => (
+          <VStack key={index} alignItems="flex-start" w="full">
+            <Text fontWeight="bold" color="gray.500">
+              {message.role}
+            </Text>
+            <FormattedMessage message={message} />
+          </VStack>
+        ))}
+      </VStack>
+      {expandable && (
+        <VStack position="absolute" bottom={0} w="full" spacing={0}>
+          {!isExpanded && (
+            <Box
+              w="full"
+              h={16}
+              background="linear-gradient(to bottom, transparent, white)"
+              pointerEvents="none"
+            />
+          )}
+          <HStack w="full" h={6} alignItems="flex-end" justifyContent="center" bgColor="white">
+            <Button
+              variant="link"
+              colorScheme="blue"
+              py={2}
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? (
+                <HStack spacing={0}>
+                  <Text>Show less</Text>
+                  <Icon as={FiChevronUp} mt={1} boxSize={5} />
+                </HStack>
+              ) : (
+                <HStack spacing={0}>
+                  <Text>Show more</Text>
+                  <Icon as={FiChevronDown} mt={1} boxSize={5} />
+                </HStack>
+              )}
+            </Button>
+          </HStack>
         </VStack>
-      ))}
-    </VStack>
+      )}
+    </GridItem>
   );
 };
 
-const FormattedOutput = ({
-  output,
-  score,
-  errorMessage,
-}: {
+type FormattedOutputProps = {
   output: TestingEntry["output"];
   score?: number | null;
   errorMessage?: string | null;
-}) => {
+};
+
+const FormattedOutputGridItem = ({
+  output,
+  score,
+  errorMessage,
+  onHeightUpdated,
+}: FormattedOutputProps & { onHeightUpdated: (height: number) => void }) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (ref.current) {
+      const height = ref.current.getBoundingClientRect().height;
+      if (height > 0) {
+        onHeightUpdated(height);
+      }
+    }
+  });
+  return (
+    <GridItem borderTopWidth={1} borderLeftWidth={1}>
+      <Box ref={ref}>
+        <FormattedOutput output={output} score={score} errorMessage={errorMessage} />
+      </Box>
+    </GridItem>
+  );
+};
+
+const FormattedOutput = ({ output, score, errorMessage }: FormattedOutputProps) => {
   if (errorMessage) {
     return <Text color="red.500">{errorMessage}</Text>;
   }
