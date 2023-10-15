@@ -133,7 +133,7 @@ const FormattedInputGridItem = ({
           <HStack w="full" h={6} alignItems="flex-end" justifyContent="center" bgColor="white">
             <Button
               variant="link"
-              colorScheme="blue"
+              colorScheme="gray"
               py={2}
               onClick={() => setIsExpanded(!isExpanded)}
             >
