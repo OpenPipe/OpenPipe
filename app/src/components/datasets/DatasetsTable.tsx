@@ -20,7 +20,7 @@ const DatasetsTable = ({}) => {
             <Tr>
               <Th>Name</Th>
               <Th>Created At</Th>
-              <Th>Trained Models</Th>
+              <Th>Models</Th>
               <Th>Size</Th>
             </Tr>
           </Thead>
