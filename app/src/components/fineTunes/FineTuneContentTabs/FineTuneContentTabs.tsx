@@ -1,6 +1,5 @@
 import General from "./General/General";
 import TrainingData from "./TrainingData/TrainingData";
-import TestSet from "./TestSet/TestSet";
 import ContentTabs from "~/components/ContentTabs";
 
 const tabs = [
@@ -13,11 +12,6 @@ const tabs = [
     key: "training-data",
     title: "Training Data",
     component: <TrainingData />,
-  },
-  {
-    key: "test-set",
-    title: "Test Set",
-    component: <TestSet />,
   },
 ];
 

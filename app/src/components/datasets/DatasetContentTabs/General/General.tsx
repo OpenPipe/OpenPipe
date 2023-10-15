@@ -8,7 +8,7 @@ import DatasetEntryPaginator from "./DatasetEntryPaginator";
 
 const General = () => {
   return (
-    <VStack pb={8} alignItems="flex-start" spacing={4} w="full">
+    <VStack pb={8} px={8} alignItems="flex-start" spacing={4} w="full">
       <HStack w="full" justifyContent="flex-end">
         <FineTuneButton />
         <UploadDataButton />

@@ -488,4 +488,64 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       return base64;
     }),
+  listTestingEntries: protectedProcedure
+    .input(z.object({ datasetId: z.string(), page: z.number(), pageSize: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const { datasetId, page, pageSize } = input;
+
+      const dataset = await prisma.dataset.findUnique({
+        where: {
+          id: datasetId,
+        },
+      });
+
+      if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
+      await requireCanViewProject(dataset.projectId, ctx);
+
+      const [entries, count, deployedFineTunes] = await prisma.$transaction([
+        prisma.datasetEntry.findMany({
+          where: {
+            datasetId,
+            outdated: false,
+          },
+          include: {
+            fineTuneTestDatasetEntries: {
+              select: {
+                fineTuneId: true,
+                output: true,
+                score: true,
+                errorMessage: true,
+              },
+            },
+          },
+          orderBy: {
+            sortKey: "desc",
+          },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.datasetEntry.count({
+          where: {
+            datasetId,
+            outdated: false,
+            type: "TEST",
+          },
+        }),
+        prisma.fineTune.findMany({
+          where: {
+            datasetId,
+            status: "DEPLOYED",
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+      ]);
+
+      const pageIncomplete = !!entries.find((entry) =>
+        entry.fineTuneTestDatasetEntries.find((entry) => !entry.output),
+      );
+
+      return { entries, count, pageIncomplete, deployedFineTunes };
+    }),
 });

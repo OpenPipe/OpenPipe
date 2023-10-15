@@ -138,6 +138,38 @@ export const usePageParams = () => {
   return { page, pageSize, setPageParams };
 };
 
+export const useHiddenEvaluationColumns = () => {
+  const router = useRouter();
+
+  // Split the "hidden" query by commas to get the array of strings.
+  const hiddenColumns =
+    typeof router.query.hidden === "string" ? router.query.hidden.split(",") : [];
+
+  const setHiddenColumns = (newHiddenValues: string[]) => {
+    // Form the updated query.
+    const updatedQuery = {
+      ...router.query,
+      hidden: newHiddenValues.join(","),
+    };
+
+    // If newHiddenValues is empty, we want to remove the "hidden" query param entirely.
+    if (newHiddenValues.length === 0) {
+      delete (updatedQuery as { [key: string]: unknown }).hidden;
+    }
+
+    void router.push(
+      {
+        pathname: router.pathname,
+        query: updatedQuery,
+      },
+      undefined,
+      { shallow: true },
+    );
+  };
+
+  return { hiddenColumns, setHiddenColumns };
+};
+
 export const useScenarios = () => {
   const experiment = useExperiment();
   const { page, pageSize } = usePageParams();
@@ -236,24 +268,20 @@ export const useTrainingEntries = () => {
 };
 
 export const useTestingEntries = (refetchInterval?: number) => {
-  const fineTune = useFineTune().data;
+  const dataset = useDataset().data;
   const { page, pageSize } = usePageParams();
 
-  const { data, isLoading, ...rest } = api.fineTunes.listTestingEntries.useQuery(
-    { fineTuneId: fineTune?.id ?? "", page, pageSize },
-    { enabled: !!fineTune?.id, refetchInterval },
+  return api.datasetEntries.listTestingEntries.useQuery(
+    { datasetId: dataset?.id || "", page, pageSize },
+    { enabled: !!dataset?.id, refetchInterval },
   );
+};
 
-  const [stableData, setStableData] = useState(data);
-
-  useEffect(() => {
-    // Prevent annoying flashes while logs are loading from the server
-    if (!isLoading) {
-      setStableData(data);
-    }
-  }, [data, isLoading]);
-
-  return { data: stableData, isLoading, ...rest };
+export const useFineTuneTestingStats = (fineTuneId?: string, refetchInterval?: number) => {
+  return api.fineTunes.testingStats.useQuery(
+    { fineTuneId: fineTuneId ?? "" },
+    { enabled: !!fineTuneId, refetchInterval },
+  );
 };
 
 export const useLoggedCalls = (applyFilters = true) => {
@@ -298,6 +326,15 @@ export const useTagNames = () => {
   return api.loggedCalls.getTagNames.useQuery(
     { projectId: selectedProjectId ?? "" },
     { enabled: !!selectedProjectId },
+  );
+};
+
+export const useDatasetFineTunes = () => {
+  const dataset = useDataset().data;
+
+  return api.fineTunes.listForDataset.useQuery(
+    { datasetId: dataset?.id ?? "" },
+    { enabled: !!dataset?.id },
   );
 };
 

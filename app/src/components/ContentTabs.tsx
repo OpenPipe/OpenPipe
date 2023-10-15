@@ -5,9 +5,11 @@ import { useRouter } from "next/router";
 
 const ContentTabs = ({
   tabs,
+  headerProps,
   ...props
 }: {
   tabs: { key: string; title: string; component: React.ReactElement }[];
+  headerProps?: StackProps;
 } & StackProps) => {
   const [borderPosition, setBorderPosition] = useState({ left: "0", width: "0" });
   const headersRef = useRef<{ [key: string]: HTMLButtonElement }>({});
@@ -38,31 +40,33 @@ const ContentTabs = ({
   }, [activeTabKey]);
 
   return (
-    <VStack w="full" h="full" alignItems="flex-start" spacing={0} {...props}>
-      <HStack position="relative">
-        {tabs.map((tab) => (
-          <TabHeader
-            key={tab.key}
-            title={tab.title}
-            isSelected={activeTabKey === tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            ref={(el) => {
-              if (el) headersRef.current[tab.key] = el;
-            }}
+    <VStack w="full" h="full" {...props}>
+      <VStack w="full" alignItems="flex-start" spacing={0} {...headerProps}>
+        <HStack position="relative">
+          {tabs.map((tab) => (
+            <TabHeader
+              key={tab.key}
+              title={tab.title}
+              isSelected={activeTabKey === tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              ref={(el) => {
+                if (el) headersRef.current[tab.key] = el;
+              }}
+            />
+          ))}
+          <Box
+            position="absolute"
+            bottom="0"
+            left={borderPosition.left}
+            w={borderPosition.width}
+            h="2px"
+            bg="blue.500"
+            transition="all 0.3s"
           />
-        ))}
-        <Box
-          position="absolute"
-          bottom="0"
-          left={borderPosition.left}
-          w={borderPosition.width}
-          h="2px"
-          bg="blue.500"
-          transition="all 0.3s"
-        />
-      </HStack>
-      <Divider />
-      <Box w="full" h="full" pt={8}>
+        </HStack>
+        <Divider />
+      </VStack>
+      <Box w="full" pt={8}>
         {tabs.find((tab) => tab.key === activeTabKey)?.component}
       </Box>
     </VStack>
