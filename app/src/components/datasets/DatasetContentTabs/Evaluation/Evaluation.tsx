@@ -5,7 +5,7 @@ import EvaluationTable from "./EvaluationTable/EvaluationTable";
 const Evaluation = () => {
   return (
     <VStack h="full">
-      <Box w="100%" overflowX="auto" flex={1} id="box">
+      <Box w="full" flex={1} id="box">
         <EvaluationTable />
       </Box>
     </VStack>
