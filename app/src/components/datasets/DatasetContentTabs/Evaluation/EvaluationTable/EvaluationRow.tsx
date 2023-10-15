@@ -1,12 +1,10 @@
-import { Text, VStack, HStack, Tooltip, Box, Icon, GridItem } from "@chakra-ui/react";
-import Link from "next/link";
+import { Text, VStack, HStack, GridItem } from "@chakra-ui/react";
 import { type ChatCompletionMessage } from "openai/resources/chat";
-import { BsQuestionCircle } from "react-icons/bs";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { type RouterOutputs } from "~/utils/api";
-import { useFineTuneTestingStats, useTestingEntries } from "~/utils/hooks";
+import FineTuneHeading from "./FineTuneHeading";
 
 export const TableHeader = ({ visibleFineTuneIds }: { visibleFineTuneIds: string[] }) => {
   const sharedProps = {
@@ -30,57 +28,6 @@ export const TableHeader = ({ visibleFineTuneIds }: { visibleFineTuneIds: string
         </GridItem>
       ))}
     </>
-  );
-};
-
-const FineTuneHeading = ({ fineTuneId }: { fineTuneId: string }) => {
-  const stats = useFineTuneTestingStats(fineTuneId).data;
-  const entries = useTestingEntries().data;
-
-  if (!stats || !entries) return <GridItem />;
-
-  return (
-    <VStack alignItems="flex-start">
-      <Text
-        as={Link}
-        href={{ pathname: "/fine-tunes/[id]", query: { id: fineTuneId } }}
-        _hover={{ textDecoration: "underline" }}
-        fontWeight="bold"
-        color="gray.500"
-      >
-        {stats.slug}
-      </Text>
-
-      <HStack>
-        {stats.averageScore && (
-          <>
-            <ColoredPercent value={stats.averageScore} />
-            <Tooltip
-              label={
-                <>
-                  <Text>
-                    % of fields from the ground truth that are exactly matched in the model's
-                    output.
-                  </Text>
-                  <Text>We'll let you customize this calculation in the future.</Text>
-                </>
-              }
-              aria-label="Help about accuracy"
-            >
-              <Box lineHeight={0}>
-                <Icon as={BsQuestionCircle} color="gray.600" boxSize={4} />
-              </Box>
-            </Tooltip>
-          </>
-        )}
-
-        {stats.countFinished < entries.count && (
-          <Text>
-            {stats.countFinished}/{entries.count}
-          </Text>
-        )}
-      </HStack>
-    </VStack>
   );
 };
 

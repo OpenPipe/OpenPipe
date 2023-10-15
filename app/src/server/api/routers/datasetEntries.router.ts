@@ -507,6 +507,7 @@ export const datasetEntriesRouter = createTRPCRouter({
           where: {
             datasetId,
             outdated: false,
+            type: "TEST",
           },
           include: {
             fineTuneTestDatasetEntries: {
