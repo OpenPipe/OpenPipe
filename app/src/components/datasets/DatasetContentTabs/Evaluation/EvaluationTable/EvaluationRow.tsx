@@ -14,6 +14,8 @@ export const TableHeader = ({ visibleFineTuneIds }: { visibleFineTuneIds: string
     top: 0,
     bgColor: "white",
     borderBottomWidth: 1,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
   };
   return (
     <>
