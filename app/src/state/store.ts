@@ -19,7 +19,7 @@ import {
   createSelectedDatasetEntriesSlice,
 } from "./selectedDatasetEntriesSlice";
 import { type LogFiltersSlice, createLogFiltersSlice } from "./logFiltersSlice";
-import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisiblitySlice";
+import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisibilitySlice";
 import { type FeatureFlagsSlice, createFeatureFlagsSlice } from "./featureFlags";
 
 enableMapSet();

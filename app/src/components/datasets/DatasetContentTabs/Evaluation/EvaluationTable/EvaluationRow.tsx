@@ -8,7 +8,13 @@ import ColoredPercent from "~/components/ColoredPercent";
 import { type RouterOutputs } from "~/utils/api";
 import FineTuneHeading from "./FineTuneHeading";
 
-export const TableHeader = ({ visibleFineTuneIds }: { visibleFineTuneIds: string[] }) => {
+export const TableHeader = ({
+  showOriginalOutput,
+  visibleFineTuneIds,
+}: {
+  showOriginalOutput: boolean;
+  visibleFineTuneIds: string[];
+}) => {
   const sharedProps = {
     position: "sticky",
     top: 0,
@@ -24,11 +30,13 @@ export const TableHeader = ({ visibleFineTuneIds }: { visibleFineTuneIds: string
           Input
         </Text>
       </GridItem>
-      <GridItem sx={sharedProps} borderLeftWidth={1}>
-        <Text fontWeight="bold" color="gray.500">
-          Original Output
-        </Text>
-      </GridItem>
+      {showOriginalOutput && (
+        <GridItem sx={sharedProps} borderLeftWidth={1}>
+          <Text fontWeight="bold" color="gray.500">
+            Original Output
+          </Text>
+        </GridItem>
+      )}
       {visibleFineTuneIds.map((fineTuneId) => (
         <GridItem key={fineTuneId} sx={sharedProps} borderLeftWidth={1}>
           <FineTuneHeading fineTuneId={fineTuneId} />
@@ -44,11 +52,13 @@ const EvaluationRow = ({
   messages,
   output,
   fineTuneEntries,
+  showOriginalOutput,
   visibleFineTuneIds,
 }: {
   messages: TestingEntry["messages"];
   output: TestingEntry["output"];
   fineTuneEntries: TestingEntry["fineTuneTestDatasetEntries"];
+  showOriginalOutput: boolean;
   visibleFineTuneIds: string[];
 }) => {
   const orderedFineTuneEntries = visibleFineTuneIds.map(
@@ -74,7 +84,9 @@ const EvaluationRow = ({
   return (
     <>
       <FormattedInputGridItem messages={messages} maxOutputHeight={maxOutputHeight} />
-      <FormattedOutputGridItem output={output} onHeightUpdated={onHeightUpdated} />
+      {showOriginalOutput && (
+        <FormattedOutputGridItem output={output} onHeightUpdated={onHeightUpdated} />
+      )}
       {orderedFineTuneEntries.map((entry) => (
         <FormattedOutputGridItem
           key={entry.fineTuneId}

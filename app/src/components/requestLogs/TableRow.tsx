@@ -25,7 +25,7 @@ import {
   useTotalNumLogsSelected,
   useTagNames,
 } from "~/utils/hooks";
-import { StaticColumnKeys } from "~/state/columnVisiblitySlice";
+import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 

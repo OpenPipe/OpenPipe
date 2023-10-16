@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { VStack, Card, Grid, HStack } from "@chakra-ui/react";
 
-import { useHiddenEvaluationColumns, useTestingEntries } from "~/utils/hooks";
+import { useVisibleEvaluationColumns, useTestingEntries } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
 import EvaluationPaginator from "./EvaluationPaginator";
+import { ORIGINAL_OUTPUT_COLUMN_KEY } from "../ColumnVisibilityDropDown";
 
 const EvaluationTable = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -14,14 +15,23 @@ const EvaluationTable = () => {
     [entries?.pageIncomplete],
   );
 
-  const { hiddenColumns } = useHiddenEvaluationColumns();
+  const { visibleColumns } = useVisibleEvaluationColumns();
 
-  const visibleFineTuneIds = useMemo(() => {
-    if (!entries?.deployedFineTunes) return [];
-    return entries.deployedFineTunes
-      .filter((ft) => !hiddenColumns.includes(ft.slug))
-      .map((ft) => ft.id);
-  }, [entries?.deployedFineTunes, hiddenColumns]);
+  const [showOriginalOutput, visibleFineTuneIds] = useMemo(() => {
+    const showOriginalOutput =
+      !visibleColumns.length || visibleColumns.includes(ORIGINAL_OUTPUT_COLUMN_KEY);
+    const combinedColumnIds: string[] = [];
+
+    if (!entries?.deployedFineTunes) return [showOriginalOutput, combinedColumnIds];
+
+    return [
+      showOriginalOutput,
+      entries.deployedFineTunes
+        .filter((ft) => !visibleColumns.length || visibleColumns.includes(ft.slug))
+        .map((ft) => ft.id),
+    ];
+  }, [entries?.deployedFineTunes, visibleColumns]);
+  const numOutputColumns = visibleFineTuneIds.length + (showOriginalOutput ? 1 : 0);
 
   if (!entries) return null;
 
@@ -32,9 +42,7 @@ const EvaluationTable = () => {
           <Grid
             display="grid"
             gridTemplateColumns={
-              visibleFineTuneIds.length
-                ? `550px repeat(${visibleFineTuneIds.length + 1}, minmax(480px, 1fr))`
-                : `minmax(480px, 2fr) minmax(320px, 1fr)`
+              numOutputColumns ? `550px repeat(${numOutputColumns}, minmax(480px, 1fr))` : `1fr`
             }
             sx={{
               "> *": {
@@ -43,13 +51,17 @@ const EvaluationTable = () => {
               },
             }}
           >
-            <TableHeader visibleFineTuneIds={visibleFineTuneIds} />
+            <TableHeader
+              showOriginalOutput={showOriginalOutput}
+              visibleFineTuneIds={visibleFineTuneIds}
+            />
             {entries.entries.map((entry) => (
               <EvaluationRow
                 key={entry.id}
                 messages={entry.messages}
                 output={entry.output}
                 fineTuneEntries={entry.fineTuneTestDatasetEntries}
+                showOriginalOutput={showOriginalOutput}
                 visibleFineTuneIds={visibleFineTuneIds}
               />
             ))}

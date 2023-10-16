@@ -16,10 +16,10 @@ import { useMemo } from "react";
 
 import { useIsClientRehydrated, useTagNames } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
-import { StaticColumnKeys } from "~/state/columnVisiblitySlice";
+import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import ActionButton from "../ActionButton";
 
-const ColumnVisiblityDropdown = () => {
+const ColumnVisibilityDropdown = () => {
   const tagNames = useTagNames().data;
 
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
@@ -28,7 +28,7 @@ const ColumnVisiblityDropdown = () => {
 
   const popover = useDisclosure();
 
-  const columnVisiblityOptions = useMemo(() => {
+  const columnVisibilityOptions = useMemo(() => {
     const options: { label: string; key: string }[] = [
       {
         label: "Sent At",
@@ -88,7 +88,7 @@ const ColumnVisiblityDropdown = () => {
       </PopoverTrigger>
       <PopoverContent boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);" minW={0} w="auto">
         <VStack spacing={0} maxH={400} overflowY="auto">
-          {columnVisiblityOptions?.map((option, index) => (
+          {columnVisibilityOptions?.map((option, index) => (
             <HStack
               key={index}
               as={Button}
@@ -118,4 +118,4 @@ const ColumnVisiblityDropdown = () => {
   );
 };
 
-export default ColumnVisiblityDropdown;
+export default ColumnVisibilityDropdown;

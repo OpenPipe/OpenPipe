@@ -138,23 +138,25 @@ export const usePageParams = () => {
   return { page, pageSize, setPageParams };
 };
 
-export const useHiddenEvaluationColumns = () => {
+export const useVisibleEvaluationColumns = () => {
   const router = useRouter();
 
-  // Split the "hidden" query by commas to get the array of strings.
-  const hiddenColumns =
-    typeof router.query.hidden === "string" ? router.query.hidden.split(",") : [];
+  // Split the "compare" query by commas to get the array of strings.
+  const visibleColumns =
+    typeof router.query.compare === "string"
+      ? router.query.compare.split(",").filter((col) => !!col)
+      : [];
 
-  const setHiddenColumns = (newHiddenValues: string[]) => {
+  const setVisibleColumns = (newVisibleValues: string[]) => {
     // Form the updated query.
     const updatedQuery = {
       ...router.query,
-      hidden: newHiddenValues.join(","),
+      compare: newVisibleValues.join(","),
     };
 
-    // If newHiddenValues is empty, we want to remove the "hidden" query param entirely.
-    if (newHiddenValues.length === 0) {
-      delete (updatedQuery as { [key: string]: unknown }).hidden;
+    // If newVisibleValues is empty, we want to remove the "compare" query param entirely.
+    if (newVisibleValues.length === 0) {
+      delete (updatedQuery as { [key: string]: unknown }).compare;
     }
 
     void router.push(
@@ -167,7 +169,7 @@ export const useHiddenEvaluationColumns = () => {
     );
   };
 
-  return { hiddenColumns, setHiddenColumns };
+  return { visibleColumns, setVisibleColumns };
 };
 
 export const useScenarios = () => {
