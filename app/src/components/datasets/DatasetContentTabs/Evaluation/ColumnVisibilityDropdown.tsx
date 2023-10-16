@@ -87,7 +87,7 @@ const ColumnVisibilityDropdown = () => {
       <PopoverTrigger>
         <Box>
           <ActionButton
-            label={`Output Columns (${numVisibleColumns}/${columnVisibilityOptions.length})`}
+            label={`Show Models (${numVisibleColumns}/${columnVisibilityOptions.length})`}
             icon={BsToggles}
           />
         </Box>
