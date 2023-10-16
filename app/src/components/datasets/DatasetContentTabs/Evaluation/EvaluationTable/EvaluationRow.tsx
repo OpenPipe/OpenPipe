@@ -10,22 +10,25 @@ import FineTuneHeading from "./FineTuneHeading";
 
 export const TableHeader = ({ visibleFineTuneIds }: { visibleFineTuneIds: string[] }) => {
   const sharedProps = {
-    borderLeftWidth: 1,
+    position: "sticky",
+    top: 0,
+    bgColor: "white",
+    borderBottomWidth: 1,
   };
   return (
     <>
-      <GridItem borderLeftWidth={0}>
+      <GridItem sx={sharedProps} bgColor="white" zIndex={1}>
         <Text fontWeight="bold" color="gray.500">
           Input
         </Text>
       </GridItem>
-      <GridItem {...sharedProps}>
+      <GridItem sx={sharedProps} borderLeftWidth={1}>
         <Text fontWeight="bold" color="gray.500">
           Original Output
         </Text>
       </GridItem>
       {visibleFineTuneIds.map((fineTuneId) => (
-        <GridItem key={fineTuneId} {...sharedProps}>
+        <GridItem key={fineTuneId} sx={sharedProps} borderLeftWidth={1}>
           <FineTuneHeading fineTuneId={fineTuneId} />
         </GridItem>
       ))}

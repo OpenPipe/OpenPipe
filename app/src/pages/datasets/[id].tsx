@@ -6,7 +6,6 @@ import {
   Icon,
   Input,
   VStack,
-  Box,
   useDisclosure,
 } from "@chakra-ui/react";
 import Link from "next/link";
