@@ -97,22 +97,25 @@ export const v1ApiRouter = createOpenApiRouter({
     })
     .input(
       z.object({
-        reqPayload: z.unknown().describe("JSON-encoded request payload"),
+        reqPayload: z.object({
+          model: z.string(),
+          messages: z.array(z.any()),
+          function_call: z
+            .union([z.literal("none"), z.literal("auto"), z.object({ name: z.string() })])
+            .optional(),
+          functions: z.array(z.any()).optional(),
+          n: z.number().optional(),
+          max_tokens: z.number().optional(),
+          temperature: z.number().optional(),
+          stream: z.boolean().optional(),
+        }),
       }),
     )
     .output(z.unknown().describe("JSON-encoded response payload"))
     .mutation(async ({ input, ctx }) => {
       const { key } = ctx;
-      const reqPayload = await reqValidator.spa(input.reqPayload);
 
-      if (!reqPayload.success) {
-        throw new TRPCError({
-          message: "The request payload must contain a valid model and messages",
-          code: "BAD_REQUEST",
-        });
-      }
-
-      const modelSlug = reqPayload.data.model.replace("openpipe:", "");
+      const modelSlug = input.reqPayload.model.replace("openpipe:", "");
       const fineTune = await prisma.fineTune.findUnique({
         where: { slug: modelSlug },
       });
@@ -137,9 +140,9 @@ export const v1ApiRouter = createOpenApiRouter({
           }
           const stringsToPrune = await getStringsToPrune(fineTune.id);
 
-          return await getCompletion(reqPayload.data, fineTune.inferenceUrls, stringsToPrune);
+          return await getCompletion(input.reqPayload, fineTune.inferenceUrls, stringsToPrune);
         } else if (fineTune.pipelineVersion >= 1 && fineTune.pipelineVersion <= 2) {
-          return await getCompletion2(fineTune, reqPayload.data);
+          return await getCompletion2(fineTune, input.reqPayload);
         } else {
           throw new TRPCError({
             message: "The model is not set up for inference",
