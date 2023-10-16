@@ -5,6 +5,7 @@ import Models from "./Models/Models";
 import Settings from "./Settings/Settings";
 
 export const DATASET_GENERAL_TAB_KEY = "general";
+export const DATASET_EVALUATION_TAB_KEY = "evaluate";
 
 const tabs = [
   {
@@ -18,7 +19,7 @@ const tabs = [
     component: <Models />,
   },
   {
-    key: "evaluate",
+    key: DATASET_EVALUATION_TAB_KEY,
     title: "Evaluate",
     component: <Evaluation />,
   },

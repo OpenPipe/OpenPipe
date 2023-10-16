@@ -9,6 +9,7 @@ import dayjs from "~/utils/dayjs";
 
 import { useDatasetFineTunes } from "~/utils/hooks";
 import { DATASET_GENERAL_TAB_KEY } from "../DatasetContentTabs";
+import ViewEvaluationButton from "../Evaluation/ViewEvaluationButton";
 
 const Models = () => {
   const fineTunes = useDatasetFineTunes().data;
@@ -58,8 +59,11 @@ const Models = () => {
               <Text color="gray.500">{fineTune.numTestingEntries.toLocaleString()}</Text>
             </HStack>
             <HStack>
-              <Text w={180}>Test Set Accuracy</Text>
+              <Text w={180}>Test Set Performance</Text>
               <ColoredPercent value={fineTune.averageScore} />
+              {fineTune.status === "DEPLOYED" && (
+                <ViewEvaluationButton datasetId={fineTune.datasetId} />
+              )}
             </HStack>
             <HStack>
               <Text w={180}>Pruning Rules</Text>

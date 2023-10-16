@@ -7,6 +7,7 @@ import dayjs from "~/utils/dayjs";
 import { getStatusColor } from "../../FineTunesTable";
 import ColoredPercent from "~/components/ColoredPercent";
 import { api } from "~/utils/api";
+import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -43,8 +44,11 @@ const General = () => {
               <Text color="gray.500">{fineTune.numTestingEntries.toLocaleString()}</Text>
             </HStack>
             <HStack>
-              <Text w={180}>Test Set Accuracy</Text>
+              <Text w={180}>Test Set Performance</Text>
               <ColoredPercent value={fineTune.averageScore} />
+              {fineTune.status === "DEPLOYED" && (
+                <ViewEvaluationButton datasetId={fineTune.datasetId} />
+              )}
             </HStack>
             <HStack>
               <Text w={180}>Pruning Rules</Text>
