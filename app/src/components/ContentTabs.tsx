@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, forwardRef } from "react";
 import { Button, VStack, HStack, Text, Divider, Box, type StackProps } from "@chakra-ui/react";
 
-import { useRouter } from "next/router";
+import { useRouter, type NextRouter } from "next/router";
 
 const ContentTabs = ({
   tabs,
@@ -17,17 +17,6 @@ const ContentTabs = ({
   const router = useRouter();
   const activeTabParam = router.query.tab as string;
   const activeTabKey = activeTabParam || tabs[0]?.key || "";
-
-  const setActiveTab = (newTabKey: string) => {
-    void router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: newTabKey },
-      },
-      undefined,
-      { shallow: true },
-    );
-  };
 
   useEffect(() => {
     const activeTab = headersRef.current[activeTabKey];
@@ -48,7 +37,7 @@ const ContentTabs = ({
               key={tab.key}
               title={tab.title}
               isSelected={activeTabKey === tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => setActiveTab(tab.key, router)}
               ref={(el) => {
                 if (el) headersRef.current[tab.key] = el;
               }}
@@ -97,3 +86,14 @@ const TabHeader = forwardRef(
 TabHeader.displayName = "TabHeader";
 
 export default ContentTabs;
+
+export const setActiveTab = (newTabKey: string, router: NextRouter) => {
+  void router.push(
+    {
+      pathname: router.pathname,
+      query: { ...router.query, tab: newTabKey },
+    },
+    undefined,
+    { shallow: true },
+  );
+};

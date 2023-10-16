@@ -14,12 +14,9 @@ import {
 import { BiCheck } from "react-icons/bi";
 import { BsToggles } from "react-icons/bs";
 
-import {
-  useIsClientRehydrated,
-  useTestingEntries,
-  useVisibleEvaluationColumns,
-} from "~/utils/hooks";
+import { useIsClientRehydrated, useTestingEntries } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
+import { useVisibleEvaluationColumns } from "./useVisibleEvaluationColumns";
 
 export const EMPTY_OUTPUT_COLUMNS_KEY = "empty";
 export const ORIGINAL_OUTPUT_COLUMN_KEY = "original";
@@ -79,8 +76,6 @@ const ColumnVisibilityDropdown = () => {
   const numVisibleColumns = visibleColumns.includes(EMPTY_OUTPUT_COLUMNS_KEY)
     ? 0
     : visibleColumns.length || columnVisibilityOptions.length;
-
-  console.log("visibleColumns", visibleColumns);
 
   return (
     <Popover

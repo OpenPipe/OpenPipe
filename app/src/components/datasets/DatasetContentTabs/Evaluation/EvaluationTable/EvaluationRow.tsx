@@ -6,7 +6,7 @@ import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { type RouterOutputs } from "~/utils/api";
-import FineTuneHeading from "./FineTuneHeading";
+import FineTuneHeader from "./FineTuneHeader";
 
 export const TableHeader = ({
   showOriginalOutput,
@@ -39,7 +39,7 @@ export const TableHeader = ({
       )}
       {visibleFineTuneIds.map((fineTuneId) => (
         <GridItem key={fineTuneId} sx={sharedProps} borderLeftWidth={1}>
-          <FineTuneHeading fineTuneId={fineTuneId} />
+          <FineTuneHeader fineTuneId={fineTuneId} />
         </GridItem>
       ))}
     </>

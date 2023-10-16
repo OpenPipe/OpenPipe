@@ -1,7 +1,7 @@
 import { VStack, Box } from "@chakra-ui/react";
 
 import EvaluationTable from "./EvaluationTable/EvaluationTable";
-import ColumnVisibilityDropdown from "./ColumnVisibilityDropDown";
+import ColumnVisibilityDropdown from "./ColumnVisibilityDropdown";
 
 const Evaluation = () => {
   return (

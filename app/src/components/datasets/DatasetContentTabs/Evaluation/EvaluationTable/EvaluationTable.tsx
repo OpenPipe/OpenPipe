@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { VStack, Card, Grid, HStack } from "@chakra-ui/react";
 
-import { useVisibleEvaluationColumns, useTestingEntries } from "~/utils/hooks";
+import { useTestingEntries } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
 import EvaluationPaginator from "./EvaluationPaginator";
-import { ORIGINAL_OUTPUT_COLUMN_KEY } from "../ColumnVisibilityDropDown";
+import { ORIGINAL_OUTPUT_COLUMN_KEY } from "../ColumnVisibilityDropdown";
+import { useVisibleEvaluationColumns } from "../useVisibleEvaluationColumns";
 
 const EvaluationTable = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);

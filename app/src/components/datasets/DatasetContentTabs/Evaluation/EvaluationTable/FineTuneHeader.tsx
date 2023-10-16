@@ -6,7 +6,7 @@ import { BsQuestionCircle } from "react-icons/bs";
 import ColoredPercent from "~/components/ColoredPercent";
 import { useFineTuneTestingStats, useTestingEntries } from "~/utils/hooks";
 
-const FineTuneHeading = ({ fineTuneId }: { fineTuneId: string }) => {
+const FineTuneHeader = ({ fineTuneId }: { fineTuneId: string }) => {
   const [refetchInterval, setRefetchInterval] = useState(0);
   const stats = useFineTuneTestingStats(fineTuneId, refetchInterval).data;
   const entries = useTestingEntries().data;
@@ -66,4 +66,4 @@ const FineTuneHeading = ({ fineTuneId }: { fineTuneId: string }) => {
   );
 };
 
-export default FineTuneHeading;
+export default FineTuneHeader;
