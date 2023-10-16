@@ -3,11 +3,11 @@ import General from "./General/General";
 import Evaluation from "./Evaluation/Evaluation";
 import Models from "./Models/Models";
 
-export const GENERAL_TAB_KEY = "general";
+export const DATASET_GENERAL_TAB_KEY = "general";
 
 const tabs = [
   {
-    key: GENERAL_TAB_KEY,
+    key: DATASET_GENERAL_TAB_KEY,
     title: "General",
     component: <General />,
   },

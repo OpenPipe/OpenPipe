@@ -88,11 +88,9 @@ TabHeader.displayName = "TabHeader";
 export default ContentTabs;
 
 export const setActiveTab = (newTabKey: string, router: NextRouter) => {
+  const datasetId = router.query.id as string; // extract dataset id from the router
   void router.push(
-    {
-      pathname: router.pathname,
-      query: { ...router.query, tab: newTabKey },
-    },
+    { pathname: "/datasets/[id]/[tab]", query: { id: datasetId, tab: newTabKey } },
     undefined,
     { shallow: true },
   );

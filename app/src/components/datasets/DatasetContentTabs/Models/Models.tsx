@@ -8,7 +8,7 @@ import { displayBaseModel } from "~/utils/baseModels";
 import dayjs from "~/utils/dayjs";
 
 import { useDatasetFineTunes } from "~/utils/hooks";
-import { GENERAL_TAB_KEY } from "../DatasetContentTabs";
+import { DATASET_GENERAL_TAB_KEY } from "../DatasetContentTabs";
 
 const Models = () => {
   const fineTunes = useDatasetFineTunes().data;
@@ -22,7 +22,7 @@ const Models = () => {
         <Button
           variant="link"
           _hover={{ textDecor: "underline" }}
-          onClick={() => setActiveTab(GENERAL_TAB_KEY, router)}
+          onClick={() => setActiveTab(DATASET_GENERAL_TAB_KEY, router)}
         >
           General
         </Button>{" "}
