@@ -40,7 +40,7 @@ const ContentTabs = ({
   }, [activeTabKey]);
 
   return (
-    <VStack w="full" h="full" {...props}>
+    <VStack w="full" flex={1} {...props}>
       <VStack w="full" alignItems="flex-start" spacing={0} {...headerProps}>
         <HStack position="relative">
           {tabs.map((tab) => (

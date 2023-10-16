@@ -6,6 +6,7 @@ import {
   Icon,
   Input,
   VStack,
+  Box,
   useDisclosure,
 } from "@chakra-ui/react";
 import Link from "next/link";
@@ -63,7 +64,7 @@ export default function Dataset() {
   return (
     <>
       <AppShell title={dataset.data?.name}>
-        <VStack h="full" overflowY="scroll">
+        <VStack h="full">
           <BetaBanner />
           <PageHeaderContainer>
             <Breadcrumb>

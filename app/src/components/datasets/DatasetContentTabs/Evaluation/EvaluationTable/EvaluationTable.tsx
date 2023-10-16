@@ -28,7 +28,7 @@ const EvaluationTable = () => {
   return (
     <VStack w="full" h="full" justifyContent="space-between" px={8}>
       <HStack w="full">
-        <Card id="card" flex={1} minW="fit-content" variant="outline">
+        <Card flex={1} minW="fit-content" variant="outline">
           <Grid
             display="grid"
             gridTemplateColumns={
