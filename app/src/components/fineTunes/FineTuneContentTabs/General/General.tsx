@@ -1,7 +1,7 @@
 import { VStack, HStack, Text, Button, Heading } from "@chakra-ui/react";
 import { displayBaseModel } from "~/utils/baseModels";
 import { useFineTune, useHandledAsyncCallback } from "~/utils/hooks";
-import ContentCard from "../ContentCard";
+import ContentCard from "~/components/ContentCard";
 import FineTuneDangerZone from "./FineTuneDangerZone";
 import dayjs from "~/utils/dayjs";
 import { getStatusColor } from "../../FineTunesTable";

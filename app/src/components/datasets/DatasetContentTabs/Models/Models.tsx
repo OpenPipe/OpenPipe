@@ -32,7 +32,7 @@ const Models = () => {
   }
 
   return (
-    <VStack alignItems="flex-start" w="full" px={8} spacing={4}>
+    <VStack alignItems="flex-start" w="full" px={8} spacing={4} pb={8}>
       {fineTunes?.map((fineTune) => (
         <Card key={fineTune.id} w="full">
           <VStack alignItems="flex-start" p={4}>

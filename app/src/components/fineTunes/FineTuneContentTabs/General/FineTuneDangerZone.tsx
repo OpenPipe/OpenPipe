@@ -13,8 +13,8 @@ import {
 
 import { useFineTune } from "~/utils/hooks";
 import UpdateFineTuneSlugDialog from "./UpdateFineTuneSlugDialog";
-import ContentCard from "../ContentCard";
 import DeleteFineTuneButton from "./DeleteFineTuneButton";
+import ContentCard from "~/components/ContentCard";
 
 const FineTuneDangerZone = () => {
   const fineTune = useFineTune().data;

@@ -17,8 +17,6 @@ import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import DatasetConfigurationDrawer from "~/components/datasets/DatasetConfigurationDrawer/DatasetConfigurationDrawer";
-import { DatasetHeaderButtons } from "~/components/datasets/DatasetHeaderButtons";
 import { useAppStore } from "~/state/store";
 import BetaBanner from "~/components/BetaBanner";
 import FileUploadsCard from "~/components/datasets/FileUploadsCard";
@@ -61,46 +59,42 @@ export default function Dataset() {
   }
 
   return (
-    <>
-      <AppShell title={dataset.data?.name}>
-        <VStack h="full">
-          <BetaBanner />
-          <PageHeaderContainer>
-            <Breadcrumb>
-              <BreadcrumbItem>
-                <ProjectBreadcrumbContents projectName={dataset.data?.project?.name} />
-              </BreadcrumbItem>
-              <BreadcrumbItem>
-                <Link href="/datasets">
-                  <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
-                    <Icon as={AiOutlineDatabase} boxSize={4} mr={2} /> Datasets
-                  </Flex>
-                </Link>
-              </BreadcrumbItem>
-              <BreadcrumbItem isCurrentPage>
-                <Input
-                  size="sm"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onBlur={onSaveName}
-                  borderWidth={1}
-                  borderColor="transparent"
-                  fontSize={16}
-                  px={0}
-                  minW={{ base: 100, lg: 300 }}
-                  flex={1}
-                  _hover={{ borderColor: "gray.300" }}
-                  _focus={{ borderColor: "blue.500", outline: "none" }}
-                />
-              </BreadcrumbItem>
-            </Breadcrumb>
-            <DatasetHeaderButtons openDrawer={drawerDisclosure.onOpen} />
-          </PageHeaderContainer>
-          <DatasetContentTabs />
-        </VStack>
-        <FileUploadsCard />
-      </AppShell>
-      <DatasetConfigurationDrawer disclosure={drawerDisclosure} />
-    </>
+    <AppShell title={dataset.data?.name}>
+      <VStack h="full">
+        <BetaBanner />
+        <PageHeaderContainer>
+          <Breadcrumb>
+            <BreadcrumbItem>
+              <ProjectBreadcrumbContents projectName={dataset.data?.project?.name} />
+            </BreadcrumbItem>
+            <BreadcrumbItem>
+              <Link href="/datasets">
+                <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
+                  <Icon as={AiOutlineDatabase} boxSize={4} mr={2} /> Datasets
+                </Flex>
+              </Link>
+            </BreadcrumbItem>
+            <BreadcrumbItem isCurrentPage>
+              <Input
+                size="sm"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onBlur={onSaveName}
+                borderWidth={1}
+                borderColor="transparent"
+                fontSize={16}
+                px={0}
+                minW={{ base: 100, lg: 300 }}
+                flex={1}
+                _hover={{ borderColor: "gray.300" }}
+                _focus={{ borderColor: "blue.500", outline: "none" }}
+              />
+            </BreadcrumbItem>
+          </Breadcrumb>
+        </PageHeaderContainer>
+        <DatasetContentTabs />
+      </VStack>
+      <FileUploadsCard />
+    </AppShell>
   );
 }

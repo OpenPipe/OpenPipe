@@ -5,7 +5,7 @@ import { BsTrash } from "react-icons/bs";
 import { useHandledAsyncCallback, useDataset } from "~/utils/hooks";
 import DeleteDatasetDialog from "./DeleteDatasetDialog";
 
-export const DeleteDatasetButton = ({ closeDrawer }: { closeDrawer: () => void }) => {
+export const DeleteDatasetButton = () => {
   const dataset = useDataset();
   const router = useRouter();
 
@@ -13,14 +13,13 @@ export const DeleteDatasetButton = ({ closeDrawer }: { closeDrawer: () => void }
 
   const [onDelete] = useHandledAsyncCallback(async () => {
     await router.push({ pathname: "/datasets" });
-    closeDrawer();
-  }, [router, closeDrawer]);
+  }, [router]);
 
   return (
     <>
       <Button
         size="sm"
-        variant="ghost"
+        variant="outline"
         colorScheme="red"
         fontWeight="normal"
         onClick={disclosure.onOpen}
