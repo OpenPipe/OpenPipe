@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { VStack, Card, Grid, HStack } from "@chakra-ui/react";
+import { VStack, Card, Grid, HStack, Box } from "@chakra-ui/react";
 
 import { useTestingEntries } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
@@ -37,8 +37,8 @@ const EvaluationTable = () => {
   if (!entries) return null;
 
   return (
-    <VStack w="full" h="full" justifyContent="space-between" px={8}>
-      <HStack w="full">
+    <VStack w="full" h="full" justifyContent="space-between" pl={8}>
+      <HStack w="full" spacing={0}>
         <Card flex={1} minW="fit-content" variant="outline">
           <Grid
             display="grid"
@@ -68,6 +68,7 @@ const EvaluationTable = () => {
             ))}
           </Grid>
         </Card>
+        <Box minW={8}>&nbsp;</Box>
       </HStack>
       <EvaluationPaginator py={8} />
     </VStack>
