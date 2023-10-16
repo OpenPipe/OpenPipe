@@ -63,7 +63,7 @@ async function getModalCompletion(
   const id = uuidv4();
 
   const serializedInput = serializeChatInput(input, fineTune);
-  const templatedPrompt = `### Instruction:\n${serializedInput}\n### Response:\n`;
+  const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
   if (input.stream) {
     throw new Error("Streaming is not yet supported");
