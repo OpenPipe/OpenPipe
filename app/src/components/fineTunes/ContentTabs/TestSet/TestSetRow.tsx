@@ -1,7 +1,9 @@
 import { Th, Td, Thead, Tr, Text, VStack, HStack } from "@chakra-ui/react";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import SyntaxHighlighter from "react-syntax-highlighter";
+import { z } from "zod";
 import ColoredPercent from "~/components/ColoredPercent";
+import { chatMessage } from "~/types/shared.types";
 
 import { type RouterOutputs } from "~/utils/api";
 
@@ -56,7 +58,7 @@ const TestSetRow = ({
 const FormattedInput = ({ prunedInput }: { prunedInput: TestingEntry["prunedInput"] }) => {
   let parsedInput = null;
   try {
-    parsedInput = JSON.parse(prunedInput) as unknown as ChatCompletionMessage[];
+    parsedInput = z.array(chatMessage).parse(JSON.parse(prunedInput));
   } catch (e) {
     // ignore
   }

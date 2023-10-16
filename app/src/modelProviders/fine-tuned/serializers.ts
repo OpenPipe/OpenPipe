@@ -1,35 +1,5 @@
-import { isObject, pick } from "lodash-es";
-import type { ChatCompletionCreateParams, ChatCompletionMessage } from "openai/resources/chat";
-import { z } from "zod";
-
-export const CURRENT_PIPELINE_VERSION = 2;
-
-export const validatedChatInput = <
-  T extends { messages: unknown; functions?: unknown; function_call?: unknown },
->(
-  entry: T,
-) => {
-  // TODO: actually validate. We'll just assert the types for now.
-  return pick(entry, ["messages", "functions", "function_call"]) as Pick<
-    ChatCompletionCreateParams,
-    "messages" | "functions" | "function_call"
-  >;
-};
-
-const outputSchema = z.object({
-  role: z.literal("assistant"),
-  content: z.union([z.string(), z.null()]),
-  function_call: z
-    .object({
-      name: z.string(),
-      description: z.string().optional(),
-      arguments: z.string(),
-    })
-    .optional(),
-});
-
-export const validatedChatOutput = (output: unknown): ChatCompletionMessage =>
-  outputSchema.parse(output);
+import { isObject } from "lodash-es";
+import { type ChatCompletionMessage, type ChatCompletionCreateParams } from "openai/resources/chat";
 
 const FUNCTION_CALL_TAG = "<function>";
 const FUNCTION_ARGS_TAG = "<arguments>";

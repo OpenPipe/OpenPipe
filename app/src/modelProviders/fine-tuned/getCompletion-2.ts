@@ -8,7 +8,7 @@ import { getStringsToPrune, pruneInputMessages } from "./getCompletion";
 import { prisma } from "~/server/db";
 import { runInference } from "~/server/modal-rpc/clients";
 import { omit } from "lodash-es";
-import { deserializeChatOutput, serializeChatInput } from "./utils";
+import { deserializeChatOutput, serializeChatInput } from "./serializers";
 
 export async function getCompletion2(
   fineTune: FineTune,

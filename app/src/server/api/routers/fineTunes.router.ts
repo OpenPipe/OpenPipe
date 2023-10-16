@@ -10,7 +10,8 @@ import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { Prisma } from "@prisma/client";
-import { CURRENT_PIPELINE_VERSION } from "~/modelProviders/fine-tuned/utils";
+import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
+import { typedDatasetEntry } from "~/types/dbColumns.types";
 
 const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
 
@@ -327,8 +328,13 @@ export const fineTunesRouter = createTRPCRouter({
         }),
       ]);
 
+      const parsedEntries = entries.map((entry) => ({
+        ...entry,
+        datasetEntry: typedDatasetEntry(entry.datasetEntry),
+      }));
+
       return {
-        entries,
+        entries: parsedEntries,
         count,
         countFinished,
         averageScore: averageScore._avg.score,
