@@ -39,7 +39,7 @@ export const updatePruningRuleMatches = async (
   });
 
   for (let i = numOmittedRules; i < allPruningRules.length; i++) {
-    let prunedInput: RawBuilder<string> = sql`CAST("DatasetEntry"."input" AS TEXT)`;
+    let prunedInput: RawBuilder<string> = sql`CAST("DatasetEntry"."messages" AS TEXT)`;
 
     // For each rule to update, find all the dataset entries with matching prompts, after previous rules have been applied
     for (let j = 0; j < i; j++) {
