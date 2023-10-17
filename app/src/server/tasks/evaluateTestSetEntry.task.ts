@@ -8,7 +8,6 @@ import {
   pruneInputMessagesStringified,
   getStringsToPrune,
 } from "~/modelProviders/fine-tuned/getCompletion";
-import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
@@ -64,8 +63,6 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           modelId,
           datasetEntryId,
           prunedInput: prunedMessages,
-          // TODO: need to count tokens based on the full input, not just messages
-          prunedInputTokens: countLlamaChatTokens(prunedMessages),
         },
       });
     }
@@ -134,13 +131,14 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           completionMessage.function_call,
         );
       }
-      const outputTokens = countLlamaChatTokensInMessages([completionMessage]);
+
       await prisma.fineTuneTestingEntry.update({
         where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {
           cacheKey,
           output: completionMessage as unknown as Prisma.InputJsonValue,
-          outputTokens,
+          prunedInputTokens: completion.usage?.prompt_tokens,
+          outputTokens: completion.usage?.completion_tokens,
           score,
           errorMessage: null,
         },

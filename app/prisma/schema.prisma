@@ -590,7 +590,7 @@ model FineTuneTestingEntry {
     id String @id @default(uuid()) @db.Uuid
 
     cacheKey          String?
-    prunedInputTokens Int
+    prunedInputTokens Int?
 
     // TODO: get rid of this, just calculate it on the fly
     prunedInput  String

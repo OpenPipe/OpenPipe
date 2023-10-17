@@ -48,7 +48,7 @@ const EvaluationTable = () => {
         <Card flex={1} minW="fit-content" variant="outline">
           <Grid
             display="grid"
-            gridTemplateColumns={`minmax(550px, 1fr) repeat(${numOutputColumns}, 480px)`}
+            gridTemplateColumns={`minmax(600px, 1fr) repeat(${numOutputColumns}, 480px)`}
             sx={{
               "> *": {
                 borderColor: "gray.300",

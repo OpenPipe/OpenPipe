@@ -2,7 +2,7 @@
   Warnings:
 
   - A unique constraint covering the columns `[modelId,datasetEntryId]` on the table `FineTuneTestingEntry` will be added. If there are existing duplicate values, this will fail.
-  - Added the required column `modelId` to the `FineTuneTestingEntry` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `modelId` to the `FineTuneTestingEntry` table without a default value.
 
 */
 -- CreateEnum
@@ -13,6 +13,8 @@ DROP INDEX "FineTuneTestingEntry_fineTuneId_datasetEntryId_key";
 
 -- AlterTable
 ALTER TABLE "Dataset" ADD COLUMN "enabledComparisonModels" "ComparisonModel"[] DEFAULT ARRAY[]::"ComparisonModel"[];
+
+ALTER TABLE "FineTuneTestingEntry" ALTER COLUMN "prunedInputTokens" DROP NOT NULL;
 
 -- AlterTable: Add modelId without NOT NULL constraint
 ALTER TABLE "FineTuneTestingEntry" ADD COLUMN "modelId" TEXT;
