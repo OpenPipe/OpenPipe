@@ -7,7 +7,11 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
-import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
+import {
+  requireCanModifyProject,
+  requireCanViewProject,
+  requireNothing,
+} from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
@@ -82,7 +86,10 @@ export const fineTunesRouter = createTRPCRouter({
         .orderBy("ft.createdAt", "desc")
         .execute();
 
-      if (!fineTunes || fineTunes.length === 0) return [];
+      if (!fineTunes || fineTunes.length === 0) {
+        requireNothing(ctx);
+        return [];
+      }
 
       if (fineTunes[0]) await requireCanViewProject(fineTunes[0].projectId, ctx);
 
