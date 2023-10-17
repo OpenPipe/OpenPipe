@@ -1,6 +1,5 @@
 import { type ComparisonModel, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
-import { omit } from "lodash-es";
 
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
@@ -47,7 +46,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       });
     }
 
-    const datasetEntry = typedDatasetEntry(omit(rawDatasetEntry, "dataset"));
+    const datasetEntry = typedDatasetEntry(rawDatasetEntry);
 
     const existingTestEntry = await prisma.fineTuneTestingEntry.findUnique({
       where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
