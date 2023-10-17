@@ -5,10 +5,11 @@ import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
 import { pick, shuffle } from "lodash-es";
-import { type ComparisonModel, Prisma } from "@prisma/client";
+import { type ComparisonModel } from "@prisma/client";
+import { sql } from "kysely";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { prisma } from "~/server/db";
+import { prisma, kysely } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
@@ -569,32 +570,37 @@ export const datasetEntriesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { datasetId, modelId } = input;
 
-      const [dataset, countFinished, averageScore] = await prisma.$transaction([
-        prisma.dataset.findUnique({
-          where: {
-            id: datasetId,
-          },
-        }),
-        prisma.fineTuneTestingEntry.count({
-          where: {
-            modelId,
-            datasetEntry: { outdated: false, datasetId },
-            output: { not: Prisma.DbNull },
-          },
-        }),
-        prisma.fineTuneTestingEntry.aggregate({
-          where: {
-            modelId,
-            datasetEntry: {
-              outdated: false,
-              datasetId,
-            },
-          },
-          _avg: {
-            score: true,
-          },
-        }),
-      ]);
+      const dataset = await prisma.dataset.findUnique({
+        where: {
+          id: datasetId,
+        },
+      });
+
+      const finishedCount = await kysely
+        .selectFrom("FineTuneTestingEntry")
+        .leftJoin("DatasetEntry", "FineTuneTestingEntry.datasetEntryId", "DatasetEntry.id")
+        .where("FineTuneTestingEntry.modelId", "=", modelId)
+        .where("DatasetEntry.outdated", "=", false)
+        .where("DatasetEntry.datasetId", "=", datasetId)
+        .where(sql.raw(`"FineTuneTestingEntry"."output" is not null`))
+        .select(["FineTuneTestingEntry.id"])
+        .execute();
+
+      const averageScoreResult = await kysely
+        .selectFrom("FineTuneTestingEntry")
+        .leftJoin("DatasetEntry", "FineTuneTestingEntry.datasetEntryId", "DatasetEntry.id")
+        .where("FineTuneTestingEntry.modelId", "=", modelId)
+        .where("DatasetEntry.outdated", "=", false)
+        .where("DatasetEntry.datasetId", "=", datasetId)
+        .where(sql.raw(`"FineTuneTestingEntry"."output" is not null`))
+        .select(({ fn }) => [
+          "FineTuneTestingEntry.modelId",
+          fn.agg<number>("AVG", ["FineTuneTestingEntry.score"]).as("averageScore"),
+        ])
+        .groupBy("FineTuneTestingEntry.modelId")
+        .execute();
+
+      const averageScore = averageScoreResult[0] ? averageScoreResult[0].averageScore : null;
 
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
@@ -615,8 +621,8 @@ export const datasetEntriesRouter = createTRPCRouter({
       return {
         slug,
         isComparisonModel: isComparisonModel(modelId),
-        countFinished,
-        averageScore: averageScore._avg.score,
+        finishedCount: finishedCount.length,
+        averageScore,
       };
     }),
 });

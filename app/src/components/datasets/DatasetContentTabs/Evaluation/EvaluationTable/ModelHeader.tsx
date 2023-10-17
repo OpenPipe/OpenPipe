@@ -13,12 +13,12 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
   const entries = useTestingEntries().data;
 
   useEffect(() => {
-    if (!stats?.countFinished || !entries?.count || stats?.countFinished < entries?.count) {
+    if (!stats?.finishedCount || !entries?.count || stats?.finishedCount < entries?.count) {
       setRefetchInterval(5000);
     } else {
       setRefetchInterval(0);
     }
-  }, [stats?.countFinished, entries?.count]);
+  }, [stats?.finishedCount, entries?.count]);
 
   if (!stats || !entries) return <GridItem />;
 
@@ -41,7 +41,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
       )}
 
       <HStack>
-        {stats.averageScore && (
+        {stats.averageScore !== null && (
           <>
             <ColoredPercent value={stats.averageScore} />
             <Tooltip
@@ -63,9 +63,9 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
           </>
         )}
 
-        {stats.countFinished < entries.count && (
+        {stats.finishedCount < entries.count && (
           <Text>
-            {stats.countFinished}/{entries.count}
+            {stats.finishedCount}/{entries.count}
           </Text>
         )}
       </HStack>
