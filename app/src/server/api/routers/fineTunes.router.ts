@@ -7,11 +7,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
-import {
-  requireCanModifyProject,
-  requireCanViewProject,
-  requireNothing,
-} from "~/utils/accessControl";
+import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
@@ -65,6 +61,15 @@ export const fineTunesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { datasetId } = input;
 
+      const dataset = await prisma.dataset.findUnique({
+        where: {
+          id: datasetId,
+        },
+      });
+
+      if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
+      await requireCanViewProject(dataset?.projectId, ctx);
+
       const fineTunes = await kysely
         .selectFrom("FineTune as ft")
         .where("datasetId", "=", datasetId)
@@ -85,13 +90,6 @@ export const fineTunesRouter = createTRPCRouter({
         ])
         .orderBy("ft.createdAt", "desc")
         .execute();
-
-      if (!fineTunes || fineTunes.length === 0) {
-        requireNothing(ctx);
-        return [];
-      }
-
-      if (fineTunes[0]) await requireCanViewProject(fineTunes[0].projectId, ctx);
 
       return fineTunes;
     }),
