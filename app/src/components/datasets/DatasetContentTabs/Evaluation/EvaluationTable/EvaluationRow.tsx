@@ -23,7 +23,7 @@ export const TableHeader = ({
   };
   return (
     <>
-      <GridItem sx={sharedProps} bgColor="white" zIndex={1}>
+      <GridItem sx={sharedProps} bgColor="white" zIndex={1} borderTopLeftRadius={4}>
         <Text fontWeight="bold" color="gray.500">
           Input
         </Text>
@@ -35,8 +35,13 @@ export const TableHeader = ({
           </Text>
         </GridItem>
       )}
-      {visibleModelIds.map((modelId) => (
-        <GridItem key={modelId} sx={sharedProps} borderLeftWidth={1}>
+      {visibleModelIds.map((modelId, i) => (
+        <GridItem
+          key={modelId}
+          sx={sharedProps}
+          borderLeftWidth={1}
+          borderTopRightRadius={i === visibleModelIds.length - 1 ? 4 : 0}
+        >
           <ModelHeader modelId={modelId} />
         </GridItem>
       ))}
