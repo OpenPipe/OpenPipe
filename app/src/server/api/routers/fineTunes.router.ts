@@ -82,11 +82,7 @@ export const fineTunesRouter = createTRPCRouter({
         .orderBy("ft.createdAt", "desc")
         .execute();
 
-      if (!fineTunes || fineTunes.length === 0)
-        throw new TRPCError({
-          message: "No fine tunes found for the given datasetId",
-          code: "NOT_FOUND",
-        });
+      if (!fineTunes || fineTunes.length === 0) return [];
 
       if (fineTunes[0]) await requireCanViewProject(fineTunes[0].projectId, ctx);
 
