@@ -110,9 +110,19 @@ const FormattedInputGridItem = ({
   const [innerContentHeight, setInnerContentHeight] = useState(0);
   useLayoutEffect(() => {
     if (inputRef.current) {
-      setInnerContentHeight(inputRef.current.getBoundingClientRect().height);
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          // Update the state with the new height
+          setInnerContentHeight(entry.contentRect.height);
+        }
+      });
+
+      // Start observing the element's size
+      resizeObserver.observe(inputRef.current);
+
+      return () => resizeObserver.disconnect();
     }
-  }, [maxOutputHeight]);
+  }, []);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const expandable = innerContentHeight > maxOutputHeight + VERTICAL_PADDING;

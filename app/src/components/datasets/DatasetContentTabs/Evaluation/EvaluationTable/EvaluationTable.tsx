@@ -37,14 +37,12 @@ const EvaluationTable = () => {
   if (!entries) return null;
 
   return (
-    <VStack w="full" h="full" justifyContent="space-between" pl={8}>
+    <VStack w="full" h="full" justifyContent="space-between" px={8}>
       <HStack w="full" spacing={0}>
         <Card flex={1} minW="fit-content" variant="outline">
           <Grid
             display="grid"
-            gridTemplateColumns={
-              numOutputColumns ? `550px repeat(${numOutputColumns}, minmax(480px, 1fr))` : `1fr`
-            }
+            gridTemplateColumns={`minmax(550px, 1fr) repeat(${numOutputColumns}, 480px)`}
             sx={{
               "> *": {
                 borderColor: "gray.300",
