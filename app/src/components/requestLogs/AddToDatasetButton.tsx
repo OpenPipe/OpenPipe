@@ -148,6 +148,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
               <b>{sampleSize.toLocaleString()}</b> randomly chosen logs will be added to{" "}
               {createNewDataset ? "your new dataset" : <b>{selectedDatasetOption?.label}</b>}.
             </Text>
+            <Text>Note: Only logs with a status code of 200 will be included in the dataset.</Text>
             <VStack alignItems="flex-start" spacing={4}>
               <Flex
                 flexDir={{ base: "column", md: "row" }}
