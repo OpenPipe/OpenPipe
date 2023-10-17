@@ -595,6 +595,7 @@ model FineTuneTestingEntry {
     outputTokens Int?
     output       Json?
     score        Float?
+    latencyMs    Int?
     errorMessage String?
 
     // Used for querying both fine-tuned and comparison models

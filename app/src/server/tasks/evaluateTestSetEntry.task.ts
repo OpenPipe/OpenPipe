@@ -99,6 +99,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       functions: datasetEntry.functions ?? undefined,
     };
     try {
+      const startingTime = Date.now();
       if (isComparisonModel(modelId)) {
         completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
       } else if (fineTune && (fineTune.pipelineVersion === 1 || fineTune.pipelineVersion === 2)) {
@@ -112,6 +113,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         });
         return;
       }
+      const latencyMs = Date.now() - startingTime;
 
       const completionMessage = completion.choices[0]?.message;
       if (!completionMessage) throw new Error("No completion returned");
@@ -131,6 +133,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           prunedInputTokens: completion.usage?.prompt_tokens,
           outputTokens: completion.usage?.completion_tokens,
           score,
+          latencyMs,
           errorMessage: null,
         },
       });
