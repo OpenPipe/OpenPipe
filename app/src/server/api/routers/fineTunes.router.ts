@@ -61,6 +61,15 @@ export const fineTunesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { datasetId } = input;
 
+      const dataset = await prisma.dataset.findUnique({
+        where: {
+          id: datasetId,
+        },
+      });
+
+      if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
+      await requireCanViewProject(dataset?.projectId, ctx);
+
       const fineTunes = await kysely
         .selectFrom("FineTune as ft")
         .where("datasetId", "=", datasetId)
@@ -81,10 +90,6 @@ export const fineTunesRouter = createTRPCRouter({
         ])
         .orderBy("ft.createdAt", "desc")
         .execute();
-
-      if (!fineTunes || fineTunes.length === 0) return [];
-
-      if (fineTunes[0]) await requireCanViewProject(fineTunes[0].projectId, ctx);
 
       return fineTunes;
     }),
