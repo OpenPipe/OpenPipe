@@ -105,11 +105,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
     };
     try {
       if (isComparisonModel(modelId)) {
-        completion = await getOpenaiCompletion(
-          rawDatasetEntry.dataset.projectId,
-          getComparisonModelName(modelId as ComparisonModel),
-          input,
-        );
+        completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
       } else if (fineTune && (fineTune.pipelineVersion === 1 || fineTune.pipelineVersion === 2)) {
         completion = await getCompletion2(fineTune, input);
       } else {

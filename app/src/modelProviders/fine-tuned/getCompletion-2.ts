@@ -19,7 +19,14 @@ export async function getCompletion2(
   const prunedInput = { messages: prunedMessages, ...omit(input, "messages") };
 
   if (fineTune.baseModel === "GPT_3_5_TURBO") {
-    return getOpenaiCompletion(fineTune.projectId, fineTune.openaiModelId, prunedInput);
+    const model = fineTune.openaiModelId;
+
+    if (!model) throw new Error("No OpenAI model ID found");
+
+    return getOpenaiCompletion(fineTune.projectId, {
+      ...prunedInput,
+      model,
+    });
   } else {
     return getModalCompletion(fineTune, prunedInput);
   }

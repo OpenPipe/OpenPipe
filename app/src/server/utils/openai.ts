@@ -26,11 +26,8 @@ export const openai = new OpenAI(config);
 
 export async function getOpenaiCompletion(
   projectId: string,
-  modelId: string | null,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion> {
-  if (!modelId) throw new Error("No OpenAI model ID found");
-
   const apiKeys = await prisma.apiKey.findMany({
     where: { projectId: projectId },
   });
@@ -45,7 +42,6 @@ export async function getOpenaiCompletion(
 
   const resp = await openai.chat.completions.create({
     ...input,
-    model: modelId,
     stream: false,
   });
 
