@@ -26,8 +26,6 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
   handler: async (task) => {
     const { modelId, datasetEntryId, skipCache } = task;
 
-    console.log("evaluating");
-
     const rawDatasetEntry = await prisma.datasetEntry.findUnique({
       where: { id: datasetEntryId },
       include: {
@@ -39,9 +37,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       },
     });
 
-    console.log(0.1);
     if (!rawDatasetEntry?.dataset) return;
-    console.log(0.2);
 
     let fineTune;
     if (!isComparisonModel(modelId)) {
@@ -50,19 +46,13 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       });
     }
 
-    // console.log("raw dataset entry", omit(rawDatasetEntry, "dataset"));
-
     const datasetEntry = typedDatasetEntry(omit(rawDatasetEntry, "dataset"));
 
     const existingTestEntry = await prisma.fineTuneTestingEntry.findUnique({
       where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
     });
 
-    console.log(1);
-
     if (existingTestEntry?.output && !skipCache) return;
-
-    console.log(2);
 
     let prunedMessages = existingTestEntry?.prunedInput;
 
@@ -79,8 +69,6 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         },
       });
     }
-
-    console.log(3);
 
     const cacheKey = hashObject({
       modelId,
@@ -106,8 +94,6 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         return;
       }
     }
-
-    console.log(4);
 
     let completion;
     const input = {
@@ -137,8 +123,6 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         return;
       }
 
-      console.log(5);
-
       const completionMessage = completion.choices[0]?.message;
       if (!completionMessage) throw new Error("No completion returned");
       let score;
@@ -159,9 +143,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           errorMessage: null,
         },
       });
-      console.log(5.5);
     } catch (e) {
-      console.log(6);
       await prisma.fineTuneTestingEntry.update({
         where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {
