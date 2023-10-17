@@ -90,7 +90,9 @@ const FileUploadRow = ({ fileUpload }: { fileUpload: FileUpload }) => {
     <VStack w="full" alignItems="flex-start" p={4} borderBottomWidth={1}>
       <HStack w="full" justifyContent="space-between" alignItems="flex-start">
         <VStack alignItems="flex-start" spacing={0}>
-          <Text fontWeight="bold">{fileName}</Text>
+          <Text fontWeight="bold" wordBreak="break-all">
+            {fileName}
+          </Text>
           <Text fontSize="xs">({formatFileSize(fileSize, 2)})</Text>
         </VStack>
         <Button
