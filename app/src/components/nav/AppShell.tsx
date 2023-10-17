@@ -119,7 +119,7 @@ const NavSidebar = () => {
       </VStack>
 
       <Divider />
-      <HStack spacing={0} align="center" justify="center">
+      <Flex flexDir={{ base: "column-reverse", md: "row" }} align="center" justify="center">
         <ChakraLink
           href="https://github.com/openpipe/openpipe"
           target="_blank"
@@ -140,7 +140,7 @@ const NavSidebar = () => {
             <Icon as={FaReadme} boxSize={6} />
           </ChakraLink>
         </Tooltip>
-      </HStack>
+      </Flex>
     </VStack>
   );
 };

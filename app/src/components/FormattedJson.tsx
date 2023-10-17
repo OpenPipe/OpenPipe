@@ -28,7 +28,14 @@ const FormattedJson = ({ json }: { json: any }) => {
   return (
     <Box position="relative" fontSize="sm" borderRadius="md" overflow="hidden">
       <SyntaxHighlighter
-        customStyle={{ overflowX: "unset" }}
+        customStyle={{
+          overflowX: "unset",
+          backgroundColor: "#FFFAF0",
+          borderColor: "#F6AD55",
+          border: "1px solid #F6AD55",
+          borderRadius: 8,
+          padding: 16,
+        }}
         language="json"
         style={atelierCaveLight}
         lineProps={{
@@ -42,9 +49,10 @@ const FormattedJson = ({ json }: { json: any }) => {
         aria-label="Copy"
         icon={<CopyIcon />}
         position="absolute"
-        top={1}
-        right={1}
+        top={4}
+        right={4}
         size="xs"
+        colorScheme="orange"
         variant="ghost"
         onClick={() => void copyToClipboard(jsonString)}
       />

@@ -83,6 +83,14 @@ const ColumnVisibilityDropdown = () => {
     [visibleColumns, columnVisibilityOptions, setVisibleColumns],
   );
 
+  const ensureColumnShown = useCallback(
+    (columnKey: string) => {
+      if (visibleColumns.length && !visibleColumns.includes(columnKey))
+        toggleColumnVisibility(columnKey);
+    },
+    [visibleColumns, toggleColumnVisibility],
+  );
+
   const isClientRehydrated = useIsClientRehydrated();
   if (!isClientRehydrated) return null;
 
@@ -163,6 +171,7 @@ const ColumnVisibilityDropdown = () => {
         disclosure={addComparisonModelDialog}
         onClose={() => {
           addComparisonModelDialog.onClose();
+          ensureColumnShown(comparisonModelIdToAdd as string);
           setComparisonModelIdToAdd(null);
         }}
       />
