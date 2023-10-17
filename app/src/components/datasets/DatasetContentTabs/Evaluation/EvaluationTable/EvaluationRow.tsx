@@ -155,7 +155,7 @@ const FormattedInputGridItem = ({
               pointerEvents="none"
             />
           )}
-          <HStack w="full" h={6} alignItems="flex-end" justifyContent="center" bgColor="white">
+          <HStack w="full" h={8} alignItems="flex-end" justifyContent="center" bgColor="white">
             <Button
               variant="link"
               colorScheme="gray"
