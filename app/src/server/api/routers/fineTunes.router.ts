@@ -1,16 +1,16 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 import { sql } from "kysely";
+import { z } from "zod";
 
+import { Prisma } from "@prisma/client";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
-import { requireCanViewProject, requireCanModifyProject } from "~/utils/accessControl";
+import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
+import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
-import { Prisma } from "@prisma/client";
-import { CURRENT_PIPELINE_VERSION } from "~/modelProviders/fine-tuned/utils";
 
 const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
 

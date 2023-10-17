@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Th, Td, Thead, Tr, Text, Collapse } from "@chakra-ui/react";
 
 import { type RouterOutputs } from "~/utils/api";
-import { validatedChatInput } from "~/modelProviders/fine-tuned/utils";
 
 export const TableHeader = () => {
   return (
@@ -49,7 +48,7 @@ const TrainingDataRow = ({
               bgColor="orange.50"
               borderRadius={4}
             >
-              {JSON.stringify(validatedChatInput(entry), null, 4)}
+              {JSON.stringify(entry, null, 4)}
             </Text>
           </Collapse>
         </Td>

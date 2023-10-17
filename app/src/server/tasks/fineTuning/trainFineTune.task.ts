@@ -1,17 +1,14 @@
 import { env } from "~/env.mjs";
 import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
-import {
-  CURRENT_PIPELINE_VERSION,
-  serializeChatInput,
-  serializeChatOutput,
-  validatedChatInput,
-  validatedChatOutput,
-} from "~/modelProviders/fine-tuned/utils";
 import { prisma } from "~/server/db";
 import { trainerv1 } from "~/server/modal-rpc/clients";
 import { uploadTrainingDataFile } from "~/utils/azure/server";
 import defineTask from "../defineTask";
 import { trainOpenaiFineTune } from "./trainOpenaiFineTune";
+import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
+import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
+import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { truthyFilter } from "~/utils/utils";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
@@ -63,19 +60,23 @@ const trainModalFineTune = async (fineTuneId: string) => {
 
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
-  const trainingRows = fineTune.trainingEntries.map((entry) => {
-    const inputs = validatedChatInput(entry.datasetEntry);
-    return {
-      instruction: serializeChatInput(
-        {
-          messages: pruneInputMessages(inputs.messages, stringsToPrune),
-          function_call: inputs.function_call,
-        },
-        { pipelineVersion: CURRENT_PIPELINE_VERSION },
-      ),
-      output: serializeChatOutput(validatedChatOutput(entry.datasetEntry.output)),
-    };
-  });
+  const trainingRows = fineTune.trainingEntries
+    .map((entry) => {
+      const dsEntry = typedDatasetEntry(entry.datasetEntry);
+      if (!dsEntry.output) return null;
+      return {
+        instruction: serializeChatInput(
+          {
+            messages: pruneInputMessages(dsEntry.messages, stringsToPrune),
+            function_call: dsEntry.function_call ?? undefined,
+            functions: dsEntry.functions ?? undefined,
+          },
+          { pipelineVersion: CURRENT_PIPELINE_VERSION },
+        ),
+        output: serializeChatOutput(dsEntry.output),
+      };
+    })
+    .filter(truthyFilter);
 
   const jsonlStr = trainingRows.map((row) => JSON.stringify(row)).join("\n");
 

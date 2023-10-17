@@ -1,10 +1,11 @@
 import { type FineTune } from "@prisma/client";
-import { type ChatCompletionMessage } from "openai/resources/chat";
 
 import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "../db";
 import { countLlamaChatTokens, countOpenAIChatTokens } from "~/utils/countTokens";
 import { evaluateTestSetEntry } from "../tasks/evaluateTestSetEntry.task";
+import { z } from "zod";
+import { chatMessage } from "~/types/shared.types";
 
 export const startTestJobs = async (fineTune: FineTune) => {
   const stringsToPrune = await getStringsToPrune(fineTune.id);
@@ -17,7 +18,7 @@ export const startTestJobs = async (fineTune: FineTune) => {
   await prisma.fineTuneTestingEntry.createMany({
     data: datasetEntries.map((entry) => {
       const prunedInput = pruneInputMessages(
-        entry.messages as unknown as ChatCompletionMessage[],
+        z.array(chatMessage).parse(entry.messages),
         stringsToPrune,
       );
       let prunedInputTokens;

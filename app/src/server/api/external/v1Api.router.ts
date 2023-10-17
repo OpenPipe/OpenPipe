@@ -15,6 +15,13 @@ import { TRPCError } from "@trpc/server";
 import { getCompletion, getStringsToPrune } from "~/modelProviders/fine-tuned/getCompletion";
 import { captureFineTuneUsage } from "~/utils/analytics/serverAnalytics";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
+import {
+  chatCompletionInput,
+  chatCompletionOutput,
+  chatMessage,
+  functionCallInput,
+  functionsInput,
+} from "~/types/shared.types";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -37,8 +44,9 @@ export const v1ApiRouter = createOpenApiRouter({
       openapi: {
         method: "POST",
         path: "/check-cache",
-        description: "Check if a prompt is cached",
+        description: "DEPRECATED: we no longer support prompt caching.",
         protect: true,
+        deprecated: true,
       },
     })
     .input(
@@ -96,26 +104,31 @@ export const v1ApiRouter = createOpenApiRouter({
       },
     })
     .input(
+      // TODO: replace this whole mess with just `chatCompletionInput` once
+      // no one is using the `reqPayload` field anymore.
       z.object({
-        reqPayload: z.object({
-          model: z.string(),
-          messages: z.array(z.any()),
-          function_call: z
-            .union([z.literal("none"), z.literal("auto"), z.object({ name: z.string() })])
-            .optional(),
-          functions: z.array(z.any()).optional(),
-          n: z.number().optional(),
-          max_tokens: z.number().optional(),
-          temperature: z.number().optional(),
-          stream: z.boolean().optional(),
-        }),
+        reqPayload: chatCompletionInput
+          .optional()
+          .describe("DEPRECATED. Use the top-level fields instead"),
+        messages: z.array(chatMessage).optional(),
+        function_call: functionCallInput,
+        functions: functionsInput,
+        n: z.number().optional(),
+        max_tokens: z.number().optional(),
+        temperature: z.number().optional(),
+        stream: z.boolean().optional(),
       }),
     )
-    .output(z.unknown().describe("JSON-encoded response payload"))
-    .mutation(async ({ input, ctx }) => {
+    .output(chatCompletionOutput)
+    .mutation(async ({ input, ctx }): Promise<ChatCompletion> => {
       const { key } = ctx;
 
-      const modelSlug = input.reqPayload.model.replace("openpipe:", "");
+      const inputPayload =
+        "reqPayload" in input
+          ? chatCompletionInput.parse(input.reqPayload)
+          : chatCompletionInput.parse(input);
+
+      const modelSlug = inputPayload.model.replace("openpipe:", "");
       const fineTune = await prisma.fineTune.findUnique({
         where: { slug: modelSlug },
       });
@@ -140,9 +153,9 @@ export const v1ApiRouter = createOpenApiRouter({
           }
           const stringsToPrune = await getStringsToPrune(fineTune.id);
 
-          return await getCompletion(input.reqPayload, fineTune.inferenceUrls, stringsToPrune);
+          return await getCompletion(inputPayload, fineTune.inferenceUrls, stringsToPrune);
         } else if (fineTune.pipelineVersion >= 1 && fineTune.pipelineVersion <= 2) {
-          return await getCompletion2(fineTune, input.reqPayload);
+          return await getCompletion2(fineTune, inputPayload);
         } else {
           throw new TRPCError({
             message: "The model is not set up for inference",

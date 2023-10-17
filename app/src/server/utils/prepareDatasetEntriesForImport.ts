@@ -2,16 +2,18 @@ import { type Prisma } from "@prisma/client";
 import { shuffle } from "lodash-es";
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+import { type RowToImport } from "~/components/datasets/parseRowsToImport";
 
 import { prisma } from "~/server/db";
-import { type TrainingRow } from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
+import { chatMessage } from "~/types/shared.types";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
 
 type CreateManyInput = Omit<Prisma.DatasetEntryCreateManyInput, "id"> & { id: string };
 
-export const formatEntriesFromTrainingRows = async (
+export const prepareDatasetEntriesForImport = async (
   datasetId: string,
-  trainingRows: TrainingRow[],
+  trainingRows: RowToImport[],
   updateCallback?: (progress: number) => Promise<void>,
   updateFrequency = 1000,
 ) => {
@@ -52,7 +54,6 @@ export const formatEntriesFromTrainingRows = async (
       ]);
     }
     const persistentId = uuidv4();
-    // console.log("outputTokens", outputTokens);
     datasetEntriesToCreate.push({
       id: uuidv4(),
       datasetId: datasetId,
@@ -64,9 +65,7 @@ export const formatEntriesFromTrainingRows = async (
         content: "",
       },
       // TODO: need to count tokens based on the full input, not just messages
-      inputTokens: countLlamaChatTokensInMessages(
-        row.input.messages as unknown as ChatCompletionMessageParam[],
-      ),
+      inputTokens: countLlamaChatTokensInMessages(z.array(chatMessage).parse(row.input.messages)),
       outputTokens,
       type: typesToAssign.pop() as "TRAIN" | "TEST",
       sortKey: `${batchDate}-${persistentId}`,

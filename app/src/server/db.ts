@@ -1,4 +1,4 @@
-import { type DB } from "./db.types";
+import { type DB } from "../types/kysely-codegen.types";
 
 import { PrismaClient } from "@prisma/client";
 import { Kysely, PostgresDialect } from "kysely";

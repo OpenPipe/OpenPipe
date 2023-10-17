@@ -37,14 +37,8 @@ export default function DatasetEntryEditorDrawer({
 
   const { data: datasetEntry, isLoading } = useDatasetEntry(datasetEntryId);
 
-  const savedInputMessages = useMemo(
-    () => datasetEntry?.messages as unknown as ChatCompletionMessageParam[],
-    [datasetEntry],
-  );
-  const savedOutputMessage = useMemo(
-    () => datasetEntry?.output as unknown as ChatCompletionMessageParam,
-    [datasetEntry],
-  );
+  const savedInputMessages = useMemo(() => datasetEntry?.messages, [datasetEntry]);
+  const savedOutputMessage = useMemo(() => datasetEntry?.output, [datasetEntry]);
 
   const [inputMessagesToSave, setInputMessagesToSave] = useState<ChatCompletionMessageParam[]>([]);
   const [outputMessageToSave, setOutputMessageToSave] = useState<ChatCompletionMessageParam | null>(
@@ -52,7 +46,7 @@ export default function DatasetEntryEditorDrawer({
   );
 
   useEffect(() => {
-    if (savedInputMessages) {
+    if (savedInputMessages && savedOutputMessage) {
       setInputMessagesToSave(savedInputMessages);
       setOutputMessageToSave(savedOutputMessage);
     }
@@ -181,8 +175,8 @@ export default function DatasetEntryEditorDrawer({
             <Button
               isDisabled={isLoading || !hasUpdates}
               onClick={() => {
-                setInputMessagesToSave(savedInputMessages);
-                setOutputMessageToSave(savedOutputMessage);
+                savedInputMessages && setInputMessagesToSave(savedInputMessages);
+                savedOutputMessage && setOutputMessageToSave(savedOutputMessage);
               }}
             >
               Reset

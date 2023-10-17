@@ -24,9 +24,9 @@ import { FaReadme } from "react-icons/fa";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import ActionButton from "~/components/ActionButton";
-import { validateTrainingRows, type TrainingRow, parseJSONL } from "./validateTrainingRows";
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";
+import { RowToImport, parseRowsToImport } from "../../parseRowsToImport";
 
 const UploadDataButton = () => {
   const disclosure = useDisclosure();
@@ -50,7 +50,7 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
   const dataset = useDataset().data;
 
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [trainingRows, setTrainingRows] = useState<TrainingRow[] | null>(null);
+  const [datasetRows, setDatasetRows] = useState<RowToImport[] | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,28 +75,25 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
 
     // skip reading if file is larger than 10MB
     if (file.size > 10000000) {
-      setTrainingRows(null);
+      setDatasetRows(null);
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       const content = e.target?.result as string;
-      // Process the content, e.g., set to state
-      let parsedJSONL;
       try {
-        parsedJSONL = parseJSONL(content) as TrainingRow[];
-        const validationError = validateTrainingRows(parsedJSONL);
-        if (validationError) {
-          setValidationError(validationError);
-          setTrainingRows(null);
+        const resp = parseRowsToImport(content);
+        if ("error" in resp) {
+          setValidationError(resp.error);
+          setDatasetRows(null);
           return;
         }
-        setTrainingRows(parsedJSONL);
+        setDatasetRows(resp);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         setValidationError("Unable to parse JSONL file: " + (e.message as string));
-        setTrainingRows(null);
+        setDatasetRows(null);
         return;
       }
     };
@@ -105,9 +102,9 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
 
   const resetState = useCallback(() => {
     setValidationError(null);
-    setTrainingRows(null);
+    setDatasetRows(null);
     setFile(null);
-  }, [setValidationError, setTrainingRows, setFile]);
+  }, [setValidationError, setDatasetRows, setFile]);
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -134,7 +131,7 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     await utils.datasets.listFileUploads.invalidate();
 
     disclosure.onClose();
-  }, [dataset, trainingRows, triggerFileDownloadMutation, file, utils]);
+  }, [dataset, datasetRows, triggerFileDownloadMutation, file, utils]);
 
   return (
     <Modal
@@ -218,14 +215,14 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               <VStack w="full" h="full" justifyContent="center" spacing={8}>
                 <JsonFileIcon />
                 <VStack w="full">
-                  {trainingRows ? (
+                  {datasetRows ? (
                     <>
                       <Text fontSize={32} color="gray.500" fontWeight="bold">
                         Success
                       </Text>
                       <Text color="gray.500">
-                        We'll upload <b>{trainingRows.length}</b>{" "}
-                        {pluralize("row", trainingRows.length)} into <b>{dataset?.name}</b>.{" "}
+                        We'll upload <b>{datasetRows.length}</b>{" "}
+                        {pluralize("row", datasetRows.length)} into <b>{dataset?.name}</b>.{" "}
                       </Text>
                     </>
                   ) : (

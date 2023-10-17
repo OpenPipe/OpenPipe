@@ -1,12 +1,9 @@
 import fs from "fs";
 import OpenAI from "openai";
 
-import {
-  type ContentChatCompletionMessage,
-  type OpenaiTrainingRow,
-} from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
 import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "~/server/db";
+import { typedDatasetEntry } from "~/types/dbColumns.types";
 
 export const trainOpenaiFineTune = async (fineTuneId: string) => {
   const fineTune = await prisma.fineTune.findUnique({
@@ -55,13 +52,10 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
 
   const trainingEntries = fineTune.trainingEntries.map((entry) => ({
     messages: [
-      ...pruneInputMessages(
-        entry.datasetEntry.messages as unknown as ContentChatCompletionMessage[],
-        stringsToPrune,
-      ),
+      ...pruneInputMessages(typedDatasetEntry(entry.datasetEntry).messages, stringsToPrune),
       entry.datasetEntry.output,
     ],
-  })) as unknown as OpenaiTrainingRow[];
+  }));
 
   const jsonlStr = trainingEntries.map((row) => JSON.stringify(row)).join("\n");
 

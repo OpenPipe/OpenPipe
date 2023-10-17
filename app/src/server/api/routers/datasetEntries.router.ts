@@ -1,25 +1,24 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { type ChatCompletion, type ChatCompletionMessageParam } from "openai/resources/chat";
+import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
-import { shuffle } from "lodash-es";
+import { pick, shuffle } from "lodash-es";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
-import { type TrainingRow } from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
 import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
-import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import { evaluateTestSetEntry } from "~/server/tasks/evaluateTestSetEntry.task";
-import { validatedChatInput, validatedChatOutput } from "~/modelProviders/fine-tuned/utils";
 import { truthyFilter } from "~/utils/utils";
 import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/constructFiltersQuery";
+import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
+import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -138,8 +137,13 @@ export const datasetEntriesRouter = createTRPCRouter({
         }),
       ]);
 
+      const typedEntries = entries.map((entry) => ({
+        ...entry,
+        datasetEntry: typedDatasetEntry(entry.datasetEntry),
+      }));
+
       return {
-        entries,
+        entries: typedEntries,
         count,
       };
     }),
@@ -171,7 +175,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       throw new TRPCError({ message: "Dataset entry not found", code: "NOT_FOUND" });
     }
 
-    return entry;
+    return typedDatasetEntry(entry);
   }),
   create: protectedProcedure
     .input(
@@ -248,25 +252,19 @@ export const datasetEntriesRouter = createTRPCRouter({
         orderBy: { createdAt: "desc" },
       });
 
-      const trainingRows = loggedCalls
+      const rowsToConvert = loggedCalls
         .map((loggedCall) => {
-          const input = validatedChatInput(
-            loggedCall.modelResponse?.reqPayload as { messages: unknown },
-          );
-          let output: ChatCompletionMessageParam;
-          const resp = loggedCall.modelResponse?.respPayload as unknown as
-            | ChatCompletion
-            | undefined;
-          if (resp && resp.choices?.[0]) {
-            output = resp.choices[0].message;
-          } else {
-            return null;
-          }
-          return { input, output };
+          if (!loggedCall.modelResponse) return null;
+          const modelResponse = typedLoggedCallModelResponse(loggedCall.modelResponse);
+
+          const output = modelResponse.respPayload?.choices[0]?.message;
+          if (!output) return null;
+
+          return { input: modelResponse.reqPayload, output };
         })
         .filter(truthyFilter);
 
-      const datasetEntriesToCreate = await formatEntriesFromTrainingRows(datasetId, trainingRows);
+      const datasetEntriesToCreate = await prepareDatasetEntriesForImport(datasetId, rowsToConvert);
 
       // Ensure dataset and dataset entries are created atomically
       await prisma.$transaction([
@@ -448,9 +446,9 @@ export const datasetEntriesRouter = createTRPCRouter({
         },
       });
 
-      let rows: TrainingRow[] = datasetEntries.map((entry) => ({
-        input: validatedChatInput(entry),
-        output: validatedChatOutput(entry.output),
+      let rows = datasetEntries.map(typedDatasetEntry).map((entry) => ({
+        input: pick(entry, ["messages", "functions", "function_call"]),
+        output: entry.output,
       }));
 
       if (input.removeDuplicates) {

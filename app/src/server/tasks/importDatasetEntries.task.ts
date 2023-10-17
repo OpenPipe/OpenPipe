@@ -1,13 +1,9 @@
+import { parseRowsToImport } from "~/components/datasets/parseRowsToImport";
 import { prisma } from "~/server/db";
-import defineTask from "./defineTask";
 import { downloadBlobToString } from "~/utils/azure/server";
-import {
-  type TrainingRow,
-  validateTrainingRows,
-  parseJSONL,
-} from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
-import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
+import { prepareDatasetEntriesForImport } from "../utils/prepareDatasetEntriesForImport";
 import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
+import defineTask from "./defineTask";
 
 export type ImportDatasetEntriesJob = {
   datasetFileUploadId: string;
@@ -50,21 +46,13 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     const jsonlStr = await downloadBlobToString(datasetFileUpload.blobName, onBlobDownloadProgress);
 
-    let trainingRows: TrainingRow[] = [];
-    let validationError: string | null = null;
-    try {
-      trainingRows = parseJSONL(jsonlStr) as TrainingRow[];
-      validationError = validateTrainingRows(trainingRows);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      validationError = e.message;
-    }
+    const rowsToImport = parseRowsToImport(jsonlStr);
 
-    if (validationError) {
+    if ("error" in rowsToImport) {
       await prisma.datasetFileUpload.update({
         where: { id: datasetFileUploadId },
         data: {
-          errorMessage: `Invalid JSONL: ${validationError}`,
+          errorMessage: `Invalid JSONL: ${rowsToImport.error}`,
           status: "ERROR",
         },
       });
@@ -83,16 +71,16 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       await prisma.datasetFileUpload.update({
         where: { id: datasetFileUploadId },
         data: {
-          progress: 30 + Math.floor((progress / trainingRows.length) * 69),
+          progress: 30 + Math.floor((progress / rowsToImport.length) * 69),
         },
       });
     };
 
     let datasetEntriesToCreate;
     try {
-      datasetEntriesToCreate = await formatEntriesFromTrainingRows(
+      datasetEntriesToCreate = await prepareDatasetEntriesForImport(
         datasetFileUpload.datasetId,
-        trainingRows,
+        rowsToImport,
         updateCallback,
         500,
       );
