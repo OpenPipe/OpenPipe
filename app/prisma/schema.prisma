@@ -206,12 +206,13 @@ model DatasetFileUpload {
 model Dataset {
     id String @id @default(uuid()) @db.Uuid
 
-    name               String
-    datasetEntries     DatasetEntry[]
-    fineTunes          FineTune[]
-    datasetFileUploads DatasetFileUpload[]
-    pruningRules       PruningRule[]
-    trainingRatio      Float               @default(0.8)
+    name                    String
+    datasetEntries          DatasetEntry[]
+    fineTunes               FineTune[]
+    datasetFileUploads      DatasetFileUpload[]
+    pruningRules            PruningRule[]
+    trainingRatio           Float               @default(0.8)
+    enabledComparisonModels ComparisonModel[]   @default([])
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -581,6 +582,10 @@ model FineTuneTrainingEntry {
     @@index([fineTuneId, createdAt, id])
 }
 
+enum ComparisonModel {
+    GPT_3_5_TURBO
+}
+
 model FineTuneTestingEntry {
     id String @id @default(uuid()) @db.Uuid
 
@@ -594,8 +599,9 @@ model FineTuneTestingEntry {
     score        Float?
     errorMessage String?
 
-    fineTuneId String   @db.Uuid
-    fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+    modelId    String
+    fineTuneId String?   @db.Uuid
+    fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
 
     datasetEntryId String       @db.Uuid
     datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
@@ -603,7 +609,7 @@ model FineTuneTestingEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([fineTuneId, datasetEntryId])
+    @@unique([modelId, datasetEntryId])
     @@index([cacheKey])
 }
 
