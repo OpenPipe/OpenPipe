@@ -352,8 +352,8 @@ export const datasetEntriesRouter = createTRPCRouter({
       const newEntry = await prisma.datasetEntry.create({
         data: {
           messages: parsedInput ?? prevEntry.messages,
-          functions: parsedInput ?? prevEntry.functions,
-          function_call: parsedInput ?? prevEntry.function_call,
+          functions: prevEntry.functions ?? undefined,
+          function_call: prevEntry.function_call ?? undefined,
           output: parsedOutput ?? prevEntry.output,
           inputTokens: inputTokens ?? prevEntry.inputTokens,
           outputTokens: outputTokens ?? prevEntry.outputTokens,
