@@ -102,7 +102,7 @@ export default function DatasetEntryEditorDrawer({
       isOpen={!!datasetEntryId}
       onClose={() => setDatasetEntryId(null)}
       placement="right"
-      size="md"
+      size="xl"
     >
       <DrawerOverlay />
       <DrawerContent>
