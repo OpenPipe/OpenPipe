@@ -15,6 +15,9 @@ export const displayBaseModel = (baseModel: BaseModel) => {
   }
 };
 
+export const isComparisonModel = (modelId: string) =>
+  ComparisonModel[modelId as keyof typeof ComparisonModel] !== undefined;
+
 export const getComparisonModelName = (comparisonModel: ComparisonModel) => {
   switch (comparisonModel) {
     case "GPT_3_5_TURBO":

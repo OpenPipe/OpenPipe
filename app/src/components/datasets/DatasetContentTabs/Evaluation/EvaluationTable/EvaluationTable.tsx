@@ -26,7 +26,11 @@ const EvaluationTable = () => {
     if (!entries?.enabledComparisonModels || !entries?.deployedFineTunes)
       return [showOriginalOutput, combinedColumnIds];
 
-    combinedColumnIds.push(...entries.enabledComparisonModels);
+    combinedColumnIds.push(
+      ...entries.enabledComparisonModels.filter(
+        (cm) => !visibleColumns.length || visibleColumns.includes(cm),
+      ),
+    );
     combinedColumnIds.push(
       ...entries.deployedFineTunes
         .filter((ft) => !visibleColumns.length || visibleColumns.includes(ft.slug))

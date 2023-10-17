@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
 import { pick, shuffle } from "lodash-es";
-import { Prisma } from "@prisma/client";
+import { type ComparisonModel, Prisma } from "@prisma/client";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -21,6 +21,7 @@ import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/construc
 import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
 import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
+import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -568,7 +569,7 @@ export const datasetEntriesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { datasetId, modelId } = input;
 
-      const [dataset, countFinished, averageScore, fineTune] = await prisma.$transaction([
+      const [dataset, countFinished, averageScore] = await prisma.$transaction([
         prisma.dataset.findUnique({
           where: {
             id: datasetId,
@@ -593,19 +594,27 @@ export const datasetEntriesRouter = createTRPCRouter({
             score: true,
           },
         }),
-        prisma.fineTune.findUnique({
-          where: {
-            id: modelId,
-          },
-        }),
       ]);
 
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
+      let slug: string;
+      if (isComparisonModel(modelId)) {
+        slug = getComparisonModelName(modelId as ComparisonModel);
+      } else {
+        const fineTune = await prisma.fineTune.findUnique({
+          where: {
+            id: modelId,
+          },
+        });
+        if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
+        slug = fineTune.slug || modelId;
+      }
+
       return {
-        slug: fineTune?.slug || modelId,
-        isFineTune: !!fineTune,
+        slug,
+        isComparisonModel: isComparisonModel(modelId),
         countFinished,
         averageScore: averageScore._avg.score,
       };

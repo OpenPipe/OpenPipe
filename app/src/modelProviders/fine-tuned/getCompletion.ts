@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
 import { type CompletionResponse } from "../types";
 import { prisma } from "~/server/db";
+import { isComparisonModel } from "~/utils/baseModels";
 
 export async function getExperimentsCompletion(
   input: ChatCompletionCreateParams,
@@ -114,8 +115,10 @@ export async function getCompletion(
   };
 }
 
-// If model is not a fine-tune, this will return an empty array
+// If model is comparison model, this will return an empty array
 export const getStringsToPrune = async (modelId: string) => {
+  if (isComparisonModel(modelId)) return [];
+
   const pruningRules = await prisma.pruningRule.findMany({
     where: { fineTuneId: modelId },
     select: { textToMatch: true },

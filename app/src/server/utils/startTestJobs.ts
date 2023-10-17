@@ -5,6 +5,7 @@ import { evaluateTestSetEntry } from "../tasks/evaluateTestSetEntry.task";
 import { z } from "zod";
 import { chatMessage } from "~/types/shared.types";
 import { BaseModel, ComparisonModel } from "@prisma/client";
+import { isComparisonModel } from "~/utils/baseModels";
 
 export const startDatasetTestJobs = async (datasetId: string) => {
   const dataset = await prisma.dataset.findUnique({
@@ -24,17 +25,23 @@ export const startDatasetTestJobs = async (datasetId: string) => {
 
 export const startTestJobs = async (datasetId: string, modelId: string) => {
   const stringsToPrune = await getStringsToPrune(modelId);
-  const [datasetEntries, fineTune] = await prisma.$transaction([
-    prisma.datasetEntry.findMany({
-      where: { datasetId, outdated: false, type: "TEST" },
-      select: { id: true, messages: true },
-      orderBy: { sortKey: "desc" },
-    }),
-    prisma.fineTune.findUnique({
+  const datasetEntries = await prisma.datasetEntry.findMany({
+    where: {
+      datasetId,
+      outdated: false,
+      type: "TEST",
+      fineTuneTestDatasetEntries: { none: { modelId } },
+    },
+    select: { id: true, messages: true },
+    orderBy: { sortKey: "desc" },
+  });
+  let fineTune;
+  if (!isComparisonModel(modelId)) {
+    fineTune = await prisma.fineTune.findUnique({
       where: { id: modelId },
       select: { baseModel: true },
-    }),
-  ]);
+    });
+  }
   const baseModel = fineTune?.baseModel;
   // create fineTuneTestEntry for each dataset entry
   await prisma.fineTuneTestingEntry.createMany({

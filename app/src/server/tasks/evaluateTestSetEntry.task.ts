@@ -13,7 +13,7 @@ import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/co
 import { getCompletion2, getOpenaiCompletion } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
-import { getComparisonModelName } from "~/utils/baseModels";
+import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 
 export type EvaluateTestSetEntryJob = {
   modelId: string;
@@ -26,23 +26,31 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
   handler: async (task) => {
     const { modelId, datasetEntryId, skipCache } = task;
 
-    const [fineTune, rawDatasetEntry] = await prisma.$transaction([
-      prisma.fineTune.findFirst({
-        where: { id: modelId },
-      }),
-      prisma.datasetEntry.findUnique({
-        where: { id: datasetEntryId },
-        include: {
-          dataset: {
-            include: {
-              project: true,
-            },
+    console.log("evaluating");
+
+    const rawDatasetEntry = await prisma.datasetEntry.findUnique({
+      where: { id: datasetEntryId },
+      include: {
+        dataset: {
+          include: {
+            project: true,
           },
         },
-      }),
-    ]);
+      },
+    });
 
+    console.log(0.1);
     if (!rawDatasetEntry?.dataset) return;
+    console.log(0.2);
+
+    let fineTune;
+    if (!isComparisonModel(modelId)) {
+      fineTune = await prisma.fineTune.findUnique({
+        where: { id: modelId },
+      });
+    }
+
+    // console.log("raw dataset entry", omit(rawDatasetEntry, "dataset"));
 
     const datasetEntry = typedDatasetEntry(omit(rawDatasetEntry, "dataset"));
 
@@ -50,7 +58,11 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
     });
 
+    console.log(1);
+
     if (existingTestEntry?.output && !skipCache) return;
+
+    console.log(2);
 
     let prunedMessages = existingTestEntry?.prunedInput;
 
@@ -67,6 +79,8 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         },
       });
     }
+
+    console.log(3);
 
     const cacheKey = hashObject({
       modelId,
@@ -93,6 +107,8 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       }
     }
 
+    console.log(4);
+
     let completion;
     const input = {
       model: fineTune
@@ -103,9 +119,13 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       functions: datasetEntry.functions ?? undefined,
     };
     try {
-      if (!fineTune) {
-        completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, modelId, input);
-      } else if (fineTune.pipelineVersion === 1 || fineTune.pipelineVersion === 2) {
+      if (isComparisonModel(modelId)) {
+        completion = await getOpenaiCompletion(
+          rawDatasetEntry.dataset.projectId,
+          getComparisonModelName(modelId as ComparisonModel),
+          input,
+        );
+      } else if (fineTune && (fineTune.pipelineVersion === 1 || fineTune.pipelineVersion === 2)) {
         completion = await getCompletion2(fineTune, input);
       } else {
         await prisma.fineTuneTestingEntry.update({
@@ -116,6 +136,8 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         });
         return;
       }
+
+      console.log(5);
 
       const completionMessage = completion.choices[0]?.message;
       if (!completionMessage) throw new Error("No completion returned");
@@ -137,7 +159,9 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           errorMessage: null,
         },
       });
+      console.log(5.5);
     } catch (e) {
+      console.log(6);
       await prisma.fineTuneTestingEntry.update({
         where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {

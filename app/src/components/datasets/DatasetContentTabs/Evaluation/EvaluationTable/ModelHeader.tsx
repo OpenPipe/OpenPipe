@@ -24,7 +24,11 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
 
   return (
     <VStack alignItems="flex-start">
-      {stats.isFineTune ? (
+      {stats.isComparisonModel ? (
+        <Text fontWeight="bold" color="gray.500">
+          {stats.slug}
+        </Text>
+      ) : (
         <Text
           as={Link}
           href={{ pathname: "/fine-tunes/[id]", query: { id: modelId } }}
@@ -33,10 +37,6 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
           color="gray.500"
         >
           openpipe:{stats.slug}
-        </Text>
-      ) : (
-        <Text fontWeight="bold" color="gray.500">
-          {modelId}
         </Text>
       )}
 
