@@ -23,7 +23,6 @@ export const startDatasetTestJobs = async (datasetId: string) => {
 };
 
 export const startTestJobs = async (datasetId: string, modelId: string) => {
-  const stringsToPrune = await getStringsToPrune(modelId);
   const datasetEntries = await prisma.datasetEntry.findMany({
     where: {
       datasetId,
@@ -37,17 +36,10 @@ export const startTestJobs = async (datasetId: string, modelId: string) => {
 
   // create fineTuneTestEntry for each dataset entry
   await prisma.fineTuneTestingEntry.createMany({
-    data: datasetEntries.map((entry) => {
-      const prunedInput = pruneInputMessages(
-        z.array(chatMessage).parse(entry.messages),
-        stringsToPrune,
-      );
-      return {
-        modelId,
-        datasetEntryId: entry.id,
-        prunedInput: JSON.stringify(prunedInput),
-      };
-    }),
+    data: datasetEntries.map((entry) => ({
+      modelId,
+      datasetEntryId: entry.id,
+    })),
     skipDuplicates: true,
   });
   for (const entry of datasetEntries) {

@@ -148,8 +148,7 @@ export interface FineTune {
 export interface FineTuneTestingEntry {
   id: string;
   cacheKey: string | null;
-  prunedInputTokens: number;
-  prunedInput: string;
+  prunedInputTokens: number | null;
   outputTokens: number | null;
   output: Json | null;
   errorMessage: string | null;

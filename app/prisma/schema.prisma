@@ -592,8 +592,6 @@ model FineTuneTestingEntry {
     cacheKey          String?
     prunedInputTokens Int?
 
-    // TODO: get rid of this, just calculate it on the fly
-    prunedInput  String
     outputTokens Int?
     output       Json?
     score        Float?

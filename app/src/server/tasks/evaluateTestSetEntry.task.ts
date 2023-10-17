@@ -4,10 +4,7 @@ import { type JsonValue } from "type-fest";
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
 import defineTask from "./defineTask";
-import {
-  pruneInputMessagesStringified,
-  getStringsToPrune,
-} from "~/modelProviders/fine-tuned/getCompletion";
+import { pruneInputMessages, getStringsToPrune } from "~/modelProviders/fine-tuned/getCompletion";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
@@ -53,23 +50,21 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
 
     if (existingTestEntry?.output && !skipCache) return;
 
-    let prunedMessages = existingTestEntry?.prunedInput;
-
     const stringsToPrune = await getStringsToPrune(modelId);
+    const prunedMessages = pruneInputMessages(datasetEntry.messages, stringsToPrune);
+
     if (!existingTestEntry) {
-      prunedMessages = pruneInputMessagesStringified(datasetEntry.messages, stringsToPrune);
       await prisma.fineTuneTestingEntry.create({
         data: {
           modelId,
           datasetEntryId,
-          prunedInput: prunedMessages,
         },
       });
     }
 
     const cacheKey = hashObject({
       modelId,
-      input: prunedMessages,
+      input: JSON.stringify(prunedMessages),
       function_call: datasetEntry.function_call,
       functions: datasetEntry.functions,
     } as JsonValue);
@@ -99,7 +94,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       model: fineTune
         ? `openpipe:${fineTune.slug}`
         : getComparisonModelName(modelId as ComparisonModel),
-      messages: datasetEntry.messages,
+      messages: prunedMessages,
       function_call: datasetEntry.function_call ?? undefined,
       functions: datasetEntry.functions ?? undefined,
     };
