@@ -56,8 +56,8 @@ const AddComparisonModelDialog = ({
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
 
-    disclosure.onClose();
-  }, [mutation, dataset?.id, dataset?.enabledComparisonModels, modelId, disclosure.onClose]);
+    onClose();
+  }, [mutation, dataset?.id, dataset?.enabledComparisonModels, modelId, onClose]);
 
   const [modelNameToConfirm, setModelNameToConfirm] = useState("");
 
