@@ -605,7 +605,8 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
-      let slug: string;
+      let slug;
+      let baseModel;
       if (isComparisonModel(modelId)) {
         slug = getComparisonModelName(modelId as ComparisonModel);
       } else {
@@ -615,11 +616,13 @@ export const datasetEntriesRouter = createTRPCRouter({
           },
         });
         if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
-        slug = fineTune.slug || modelId;
+        slug = fineTune.slug;
+        baseModel = fineTune.baseModel;
       }
 
       return {
         slug,
+        baseModel,
         isComparisonModel: isComparisonModel(modelId),
         finishedCount: finishedCount.length,
         averageScore,
