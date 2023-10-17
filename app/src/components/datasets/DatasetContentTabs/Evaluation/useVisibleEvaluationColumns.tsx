@@ -1,12 +1,14 @@
 import { useRouter } from "next/router";
 
+export const EVALUATION_COLUMNS_KEY = "compare";
+
 export const useVisibleEvaluationColumns = () => {
   const router = useRouter();
 
   // Split the "compare" query by commas to get the array of strings.
   const visibleColumns =
-    typeof router.query.compare === "string"
-      ? router.query.compare.split(",").filter((col) => !!col)
+    typeof router.query[EVALUATION_COLUMNS_KEY] === "string"
+      ? router.query[EVALUATION_COLUMNS_KEY].split(",").filter((col) => !!col)
       : [];
 
   const setVisibleColumns = (newVisibleValues: string[]) => {
@@ -18,7 +20,7 @@ export const useVisibleEvaluationColumns = () => {
 
     // If newVisibleValues is empty, we want to remove the "compare" query param entirely.
     if (newVisibleValues.length === 0) {
-      delete (updatedQuery as { [key: string]: unknown }).compare;
+      delete (updatedQuery as { [key: string]: unknown })[EVALUATION_COLUMNS_KEY];
     }
 
     void router.push(
