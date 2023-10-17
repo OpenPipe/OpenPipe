@@ -9,7 +9,7 @@ const Evaluation = () => {
       <Box alignSelf="flex-start" px={8}>
         <ColumnVisibilityDropdown />
       </Box>
-      <Box w="full" flex={1} id="box">
+      <Box w="full" flex={1}>
         <EvaluationTable />
       </Box>
     </VStack>

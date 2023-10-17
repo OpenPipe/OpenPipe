@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import OpenAI from "openai";
 import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 import { type FineTune } from "@prisma/client";
 
 import { getStringsToPrune, pruneInputMessages } from "./getCompletion";
-import { prisma } from "~/server/db";
 import { runInference } from "~/server/modal-rpc/clients";
 import { omit } from "lodash-es";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
+import { getOpenaiCompletion } from "~/server/utils/openai";
 
 export async function getCompletion2(
   fineTune: FineTune,
@@ -24,37 +23,6 @@ export async function getCompletion2(
   } else {
     return getModalCompletion(fineTune, prunedInput);
   }
-}
-
-export async function getOpenaiCompletion(
-  projectId: string,
-  modelId: string | null,
-  input: ChatCompletionCreateParams,
-): Promise<ChatCompletion> {
-  if (!modelId) throw new Error("No OpenAI model ID found");
-
-  const apiKeys = await prisma.apiKey.findMany({
-    where: { projectId: projectId },
-  });
-
-  const openaiApiKey = apiKeys.find((key) => key.provider === "OPENAI")?.apiKey;
-
-  if (!openaiApiKey) {
-    throw new Error("No OpenAI API key found");
-  }
-
-  const openai = new OpenAI({ apiKey: openaiApiKey });
-
-  const resp = await openai.chat.completions.create({
-    ...input,
-    model: modelId,
-    stream: false,
-  });
-
-  return {
-    ...resp,
-    model: input.model,
-  };
 }
 
 async function getModalCompletion(

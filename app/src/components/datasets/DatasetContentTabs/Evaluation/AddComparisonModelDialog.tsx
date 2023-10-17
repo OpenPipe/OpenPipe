@@ -18,7 +18,12 @@ import { type ComparisonModel } from "@prisma/client";
 import Link from "next/link";
 
 import { api } from "~/utils/api";
-import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
+import {
+  useDataset,
+  useHandledAsyncCallback,
+  useSelectedProject,
+  useTestingEntries,
+} from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { getComparisonModelName } from "~/utils/baseModels";
 
@@ -39,6 +44,7 @@ const AddComparisonModelDialog = ({
 
   const mutation = api.datasets.update.useMutation();
   const utils = api.useContext();
+  const entries = useTestingEntries().data;
 
   const [onUpdateConfirm, updateInProgress] = useHandledAsyncCallback(async () => {
     if (!dataset?.id || !modelId) return;
@@ -90,7 +96,10 @@ const AddComparisonModelDialog = ({
                 </Text>
               ) : (
                 <VStack>
-                  <Text>To confirm this change, please type the model's ID below.</Text>
+                  <Text>
+                    To confirm this change and run <b>{modelName}</b> against{" "}
+                    <b>{entries?.count || ""}</b> test entries, please type the model's ID below.
+                  </Text>
                   <Box bgColor="orange.100" w="full" p={2} borderRadius={4}>
                     <Text fontFamily="inconsolata">{modelName}</Text>
                   </Box>

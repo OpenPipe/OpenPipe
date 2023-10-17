@@ -21,6 +21,6 @@ export const isComparisonModel = (modelId: string) =>
 export const getComparisonModelName = (comparisonModel: ComparisonModel) => {
   switch (comparisonModel) {
     case "GPT_3_5_TURBO":
-      return "gpt-3.5-turbo";
+      return "gpt-3.5-turbo-0613";
   }
 };

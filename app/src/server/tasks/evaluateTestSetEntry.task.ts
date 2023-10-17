@@ -10,10 +10,11 @@ import {
   getStringsToPrune,
 } from "~/modelProviders/fine-tuned/getCompletion";
 import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
-import { getCompletion2, getOpenaiCompletion } from "~/modelProviders/fine-tuned/getCompletion-2";
+import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
+import { getOpenaiCompletion } from "../utils/openai";
 
 export type EvaluateTestSetEntryJob = {
   modelId: string;
@@ -73,6 +74,8 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
     const cacheKey = hashObject({
       modelId,
       input: prunedMessages,
+      function_call: datasetEntry.function_call,
+      functions: datasetEntry.functions,
     } as JsonValue);
 
     if (!skipCache) {

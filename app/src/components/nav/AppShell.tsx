@@ -11,6 +11,7 @@ import {
   Flex,
   useBreakpointValue,
   Tooltip,
+  type BoxProps,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import Link from "next/link";
@@ -149,11 +150,13 @@ export default function AppShell({
   title,
   requireAuth,
   requireBeta,
+  containerProps,
 }: {
   children: React.ReactNode;
   title?: string;
   requireAuth?: boolean;
   requireBeta?: boolean;
+  containerProps?: BoxProps;
 }) {
   const [vh, setVh] = useState("100vh"); // Default height to prevent flicker on initial render
   const router = useRouter();
@@ -193,7 +196,7 @@ export default function AppShell({
           <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
         </Head>
         <NavSidebar />
-        <Box h="100%" flex={1} overflowY="auto" bgColor="gray.50">
+        <Box h="100%" flex={1} overflowY="auto" bgColor="gray.50" {...containerProps}>
           {children}
         </Box>
       </Flex>

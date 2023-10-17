@@ -6,11 +6,10 @@ import { useRouter, type NextRouter } from "next/router";
 const ContentTabs = ({
   tabs,
   headerProps,
-  ...props
 }: {
   tabs: { key: string; title: string; component: React.ReactElement }[];
   headerProps?: StackProps;
-} & StackProps) => {
+}) => {
   const [borderPosition, setBorderPosition] = useState({ left: "0", width: "0" });
   const headersRef = useRef<{ [key: string]: HTMLButtonElement }>({});
 
@@ -29,7 +28,7 @@ const ContentTabs = ({
   }, [activeTabKey]);
 
   return (
-    <VStack w="full" flex={1} {...props}>
+    <>
       <VStack w="full" alignItems="flex-start" spacing={0} {...headerProps}>
         <HStack position="relative">
           {tabs.map((tab) => (
@@ -58,7 +57,7 @@ const ContentTabs = ({
       <Box w="full" pt={8}>
         {tabs.find((tab) => tab.key === activeTabKey)?.component}
       </Box>
-    </VStack>
+    </>
   );
 };
 
