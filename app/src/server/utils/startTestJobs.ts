@@ -11,7 +11,9 @@ export const startDatasetTestJobs = async (datasetId: string) => {
   const dataset = await prisma.dataset.findUnique({
     where: { id: datasetId },
     include: {
-      fineTunes: true,
+      fineTunes: {
+        where: { status: "DEPLOYED" },
+      },
     },
   });
   if (!dataset) return;
