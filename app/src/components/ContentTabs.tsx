@@ -29,7 +29,7 @@ const ContentTabs = ({
 
   return (
     <>
-      <VStack w="full" alignItems="flex-start" spacing={0} {...headerProps}>
+      <VStack w="full" alignItems="flex-start" spacing={0} pb={8} {...headerProps}>
         <HStack position="relative">
           {tabs.map((tab) => (
             <TabHeader
@@ -54,9 +54,7 @@ const ContentTabs = ({
         </HStack>
         <Divider />
       </VStack>
-      <Box w="full" pt={8}>
-        {tabs.find((tab) => tab.key === activeTabKey)?.component}
-      </Box>
+      {tabs.find((tab) => tab.key === activeTabKey)?.component}
     </>
   );
 };

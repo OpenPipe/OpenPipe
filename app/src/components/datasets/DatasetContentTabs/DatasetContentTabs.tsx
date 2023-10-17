@@ -31,7 +31,7 @@ const tabs = [
 ];
 
 const DatasetContentTabs = () => (
-  <ContentTabs tabs={tabs} headerProps={{ px: 8, position: "sticky", left: 0, right: 0 }} />
+  <ContentTabs tabs={tabs} headerProps={{ px: 8, position: "sticky", left: 0, right: 0, pt: 2 }} />
 );
 
 export default DatasetContentTabs;
