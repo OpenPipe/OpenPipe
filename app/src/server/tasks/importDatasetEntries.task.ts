@@ -4,6 +4,7 @@ import { downloadBlobToString } from "~/utils/azure/server";
 import { prepareDatasetEntriesForImport } from "../utils/prepareDatasetEntriesForImport";
 import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
 import defineTask from "./defineTask";
+import { startDatasetTestJobs } from "../utils/startTestJobs";
 
 export type ImportDatasetEntriesJob = {
   datasetFileUploadId: string;
@@ -114,6 +115,8 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       new Date(0),
       datasetEntriesToCreate.map((entry) => entry.id),
     );
+
+    await startDatasetTestJobs(datasetFileUpload.datasetId);
 
     await prisma.datasetFileUpload.update({
       where: { id: datasetFileUploadId },

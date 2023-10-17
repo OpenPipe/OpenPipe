@@ -144,10 +144,11 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              Of the <b>{totalNumLogsSelected.toLocaleString()}</b> you have selected,{" "}
+              Of the <b>{totalNumLogsSelected.toLocaleString()}</b> you have selected{" "}
               <b>{sampleSize.toLocaleString()}</b> randomly chosen logs will be added to{" "}
               {createNewDataset ? "your new dataset" : <b>{selectedDatasetOption?.label}</b>}.
             </Text>
+            <Text>Note: Only logs with a status code of 200 will be included in the dataset.</Text>
             <VStack alignItems="flex-start" spacing={4}>
               <Flex
                 flexDir={{ base: "column", md: "row" }}

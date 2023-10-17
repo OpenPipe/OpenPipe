@@ -23,7 +23,7 @@ const fineTune = await prisma.fineTune.findUniqueOrThrow({
   where: { id: "fa64d94e-dbfd-4d68-8a8c-d55ec8994b54" },
 });
 
-await startTestJobs(fineTune);
+await startTestJobs(fineTune.datasetId, fineTune.id);
 
 // const outputs = await prisma.fineTuneTestingEntry.findMany({
 //   where: { fineTuneId: fineTune.id, output: { not: Prisma.AnyNull }, score: null },

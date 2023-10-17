@@ -2,7 +2,6 @@ import { TRPCError } from "@trpc/server";
 import { sql } from "kysely";
 import { z } from "zod";
 
-import { Prisma } from "@prisma/client";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
@@ -303,45 +302,5 @@ export const fineTunesRouter = createTRPCRouter({
         },
       });
       return success("Fine tune deleted");
-    }),
-  testingStats: protectedProcedure
-    .input(z.object({ fineTuneId: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const { fineTuneId } = input;
-
-      const [fineTune, countFinished, averageScore] = await prisma.$transaction([
-        prisma.fineTune.findUnique({
-          where: {
-            id: fineTuneId,
-          },
-        }),
-        prisma.fineTuneTestingEntry.count({
-          where: {
-            fineTuneId: fineTuneId,
-            datasetEntry: { outdated: false },
-            output: { not: Prisma.DbNull },
-          },
-        }),
-        prisma.fineTuneTestingEntry.aggregate({
-          where: {
-            fineTuneId: fineTuneId,
-            datasetEntry: {
-              outdated: false,
-            },
-          },
-          _avg: {
-            score: true,
-          },
-        }),
-      ]);
-
-      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
-      await requireCanViewProject(fineTune.projectId, ctx);
-
-      return {
-        slug: fineTune.slug,
-        countFinished,
-        averageScore: averageScore._avg.score,
-      };
     }),
 });

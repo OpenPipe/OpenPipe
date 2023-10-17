@@ -5,9 +5,11 @@ import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
 import { pick, shuffle } from "lodash-es";
+import { type ComparisonModel } from "@prisma/client";
+import { sql } from "kysely";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { prisma } from "~/server/db";
+import { prisma, kysely } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
@@ -19,6 +21,8 @@ import { truthyFilter } from "~/utils/utils";
 import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/constructFiltersQuery";
 import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
 import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
+import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
+import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -289,6 +293,8 @@ export const datasetEntriesRouter = createTRPCRouter({
         datasetEntriesToCreate.map((entry) => entry.id),
       );
 
+      await startDatasetTestJobs(datasetId);
+
       return success(datasetId);
     }),
   update: protectedProcedure
@@ -381,7 +387,13 @@ export const datasetEntriesRouter = createTRPCRouter({
         });
         for (const fineTune of fineTunes) {
           await evaluateTestSetEntry.enqueue({
-            fineTuneId: fineTune.id,
+            modelId: fineTune.id,
+            datasetEntryId: newEntry.id,
+          });
+        }
+        for (const comparisonModel of dataset.enabledComparisonModels) {
+          await evaluateTestSetEntry.enqueue({
+            modelId: comparisonModel,
             datasetEntryId: newEntry.id,
           });
         }
@@ -510,7 +522,7 @@ export const datasetEntriesRouter = createTRPCRouter({
           include: {
             fineTuneTestDatasetEntries: {
               select: {
-                fineTuneId: true,
+                modelId: true,
                 output: true,
                 score: true,
                 errorMessage: true,
@@ -545,6 +557,72 @@ export const datasetEntriesRouter = createTRPCRouter({
         entry.fineTuneTestDatasetEntries.find((entry) => !entry.output),
       );
 
-      return { entries, count, pageIncomplete, deployedFineTunes };
+      return {
+        entries,
+        count,
+        pageIncomplete,
+        enabledComparisonModels: dataset.enabledComparisonModels,
+        deployedFineTunes,
+      };
+    }),
+  testingStats: protectedProcedure
+    .input(z.object({ datasetId: z.string(), modelId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const { datasetId, modelId } = input;
+
+      const dataset = await prisma.dataset.findUnique({
+        where: {
+          id: datasetId,
+        },
+      });
+
+      const finishedCount = await kysely
+        .selectFrom("FineTuneTestingEntry")
+        .leftJoin("DatasetEntry", "FineTuneTestingEntry.datasetEntryId", "DatasetEntry.id")
+        .where("FineTuneTestingEntry.modelId", "=", modelId)
+        .where("DatasetEntry.outdated", "=", false)
+        .where("DatasetEntry.datasetId", "=", datasetId)
+        .where(sql.raw(`"FineTuneTestingEntry"."output" is not null`))
+        .select(["FineTuneTestingEntry.id"])
+        .execute();
+
+      const averageScoreResult = await kysely
+        .selectFrom("FineTuneTestingEntry")
+        .leftJoin("DatasetEntry", "FineTuneTestingEntry.datasetEntryId", "DatasetEntry.id")
+        .where("FineTuneTestingEntry.modelId", "=", modelId)
+        .where("DatasetEntry.outdated", "=", false)
+        .where("DatasetEntry.datasetId", "=", datasetId)
+        .where(sql.raw(`"FineTuneTestingEntry"."output" is not null`))
+        .select(({ fn }) => [
+          "FineTuneTestingEntry.modelId",
+          fn.agg<number>("AVG", ["FineTuneTestingEntry.score"]).as("averageScore"),
+        ])
+        .groupBy("FineTuneTestingEntry.modelId")
+        .execute();
+
+      const averageScore = averageScoreResult[0] ? averageScoreResult[0].averageScore : null;
+
+      if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
+      await requireCanViewProject(dataset.projectId, ctx);
+
+      let slug: string;
+      if (isComparisonModel(modelId)) {
+        slug = getComparisonModelName(modelId as ComparisonModel);
+      } else {
+        const fineTune = await prisma.fineTune.findUnique({
+          where: {
+            id: modelId,
+          },
+        });
+        if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
+        slug = fineTune.slug || modelId;
+      }
+
+      return {
+        slug,
+        isComparisonModel: isComparisonModel(modelId),
+        finishedCount: finishedCount.length,
+        averageScore,
+      };
     }),
 });

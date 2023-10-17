@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { sql } from "kysely";
+import { ComparisonModel } from "@prisma/client";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
@@ -8,6 +9,7 @@ import { error, success } from "~/utils/errorHandling/standardResponses";
 import { generateBlobUploadUrl } from "~/utils/azure/server";
 import { importDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
 import { env } from "~/env.mjs";
+import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -70,7 +72,10 @@ export const datasetsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        name: z.string(),
+        updates: z.object({
+          name: z.string().optional(),
+          enabledComparisonModels: z.array(z.enum([ComparisonModel.GPT_3_5_TURBO])).optional(),
+        }),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -82,9 +87,14 @@ export const datasetsRouter = createTRPCRouter({
       await prisma.dataset.update({
         where: { id: input.id },
         data: {
-          name: input.name,
+          name: input.updates.name,
+          enabledComparisonModels: input.updates.enabledComparisonModels,
         },
       });
+
+      if (input.updates.enabledComparisonModels) {
+        await startDatasetTestJobs(input.id);
+      }
 
       return success("Dataset updated");
     }),

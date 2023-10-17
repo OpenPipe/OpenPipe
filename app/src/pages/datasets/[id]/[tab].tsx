@@ -1,13 +1,4 @@
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  Center,
-  Flex,
-  Icon,
-  Input,
-  VStack,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, Input, VStack } from "@chakra-ui/react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { AiOutlineDatabase } from "react-icons/ai";
@@ -27,7 +18,6 @@ export default function Dataset() {
 
   const dataset = useDataset();
 
-  const drawerDisclosure = useDisclosure();
   const [name, setName] = useState(dataset.data?.name || "");
   useEffect(() => {
     setName(dataset.data?.name || "");
@@ -42,7 +32,9 @@ export default function Dataset() {
     if (name && name !== dataset.data?.name && dataset.data?.id) {
       await updateMutation.mutateAsync({
         id: dataset.data.id,
-        name,
+        updates: {
+          name,
+        },
       });
       await Promise.all([utils.datasets.list.invalidate(), utils.datasets.get.invalidate()]);
     }
@@ -59,8 +51,8 @@ export default function Dataset() {
   }
 
   return (
-    <AppShell title={dataset.data?.name}>
-      <VStack h="full">
+    <AppShell title={dataset.data?.name} containerProps={{ position: "relative" }}>
+      <VStack position="sticky" left={0} right={0} w="full">
         <BetaBanner />
         <PageHeaderContainer>
           <Breadcrumb>
@@ -92,8 +84,8 @@ export default function Dataset() {
             </BreadcrumbItem>
           </Breadcrumb>
         </PageHeaderContainer>
-        <DatasetContentTabs />
       </VStack>
+      <DatasetContentTabs />
       <FileUploadsCard />
     </AppShell>
   );

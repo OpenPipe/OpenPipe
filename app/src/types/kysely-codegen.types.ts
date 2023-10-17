@@ -64,6 +64,7 @@ export interface Dataset {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   trainingRatio: Generated<number>;
+  enabledComparisonModels: Generated<string[] | null>;
 }
 
 export interface DatasetEntry {
@@ -72,7 +73,7 @@ export interface DatasetEntry {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   loggedCallId: string | null;
-  input: Generated<Json>;
+  messages: Generated<Json>;
   inputTokens: number;
   output: Json | null;
   outputTokens: number;
@@ -81,6 +82,8 @@ export interface DatasetEntry {
   outdated: Generated<boolean>;
   sortKey: string;
   persistentId: string;
+  function_call: Json | null;
+  functions: Json | null;
 }
 
 export interface DatasetFileUpload {
@@ -145,16 +148,16 @@ export interface FineTune {
 export interface FineTuneTestingEntry {
   id: string;
   cacheKey: string | null;
-  prunedInputTokens: number;
-  prunedInput: string;
+  prunedInputTokens: number | null;
   outputTokens: number | null;
   output: Json | null;
   errorMessage: string | null;
-  fineTuneId: string;
+  fineTuneId: string | null;
   datasetEntryId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   score: number | null;
+  modelId: string;
 }
 
 export interface FineTuneTrainingEntry {

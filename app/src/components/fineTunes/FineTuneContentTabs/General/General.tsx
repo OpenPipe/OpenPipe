@@ -45,7 +45,11 @@ const General = () => {
             </HStack>
             <HStack>
               <Text w={180}>Test Set Performance</Text>
-              <ColoredPercent value={fineTune.averageScore} />
+              {fineTune.status === "DEPLOYED" ? (
+                <ColoredPercent value={fineTune.averageScore} />
+              ) : (
+                <Text color="gray.500">Pending</Text>
+              )}
               {fineTune.status === "DEPLOYED" && (
                 <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneSlug={fineTune.slug} />
               )}

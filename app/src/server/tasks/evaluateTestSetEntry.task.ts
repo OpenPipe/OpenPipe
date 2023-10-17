@@ -1,20 +1,18 @@
-import { type Prisma } from "@prisma/client";
+import { type ComparisonModel, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
 import defineTask from "./defineTask";
-import {
-  pruneInputMessagesStringified,
-  getStringsToPrune,
-} from "~/modelProviders/fine-tuned/getCompletion";
-import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
+import { pruneInputMessages, getStringsToPrune } from "~/modelProviders/fine-tuned/getCompletion";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
+import { getOpenaiCompletion } from "../utils/openai";
 
 export type EvaluateTestSetEntryJob = {
-  fineTuneId: string;
+  modelId: string;
   datasetEntryId: string;
   skipCache?: boolean;
 };
@@ -22,46 +20,53 @@ export type EvaluateTestSetEntryJob = {
 export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
   id: "evaluateTestSetEntry",
   handler: async (task) => {
-    const { fineTuneId, datasetEntryId, skipCache } = task;
+    const { modelId, datasetEntryId, skipCache } = task;
 
-    const [fineTune, rawDatasetEntry] = await prisma.$transaction([
-      prisma.fineTune.findUnique({
-        where: { id: fineTuneId },
-      }),
-      prisma.datasetEntry.findUnique({
-        where: { id: datasetEntryId },
-      }),
-    ]);
+    const rawDatasetEntry = await prisma.datasetEntry.findUnique({
+      where: { id: datasetEntryId },
+      include: {
+        dataset: {
+          include: {
+            project: true,
+          },
+        },
+      },
+    });
 
-    if (!fineTune || !rawDatasetEntry) return;
+    if (!rawDatasetEntry?.dataset) return;
+
+    let fineTune;
+    if (!isComparisonModel(modelId)) {
+      fineTune = await prisma.fineTune.findUnique({
+        where: { id: modelId },
+      });
+    }
 
     const datasetEntry = typedDatasetEntry(rawDatasetEntry);
 
     const existingTestEntry = await prisma.fineTuneTestingEntry.findUnique({
-      where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+      where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
     });
 
     if (existingTestEntry?.output && !skipCache) return;
 
-    let prunedMessages = existingTestEntry?.prunedInput;
+    const stringsToPrune = await getStringsToPrune(modelId);
+    const prunedMessages = pruneInputMessages(datasetEntry.messages, stringsToPrune);
 
-    const stringsToPrune = await getStringsToPrune(fineTune.id);
     if (!existingTestEntry) {
-      prunedMessages = pruneInputMessagesStringified(datasetEntry.messages, stringsToPrune);
       await prisma.fineTuneTestingEntry.create({
         data: {
-          fineTuneId,
+          modelId,
           datasetEntryId,
-          prunedInput: prunedMessages,
-          // TODO: need to count tokens based on the full input, not just messages
-          prunedInputTokens: countLlamaChatTokens(prunedMessages),
         },
       });
     }
 
     const cacheKey = hashObject({
-      fineTuneId,
-      input: prunedMessages,
+      modelId,
+      input: JSON.stringify(prunedMessages),
+      function_call: datasetEntry.function_call,
+      functions: datasetEntry.functions,
     } as JsonValue);
 
     if (!skipCache) {
@@ -73,7 +78,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
 
       if (matchingTestEntry?.output) {
         await prisma.fineTuneTestingEntry.update({
-          where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+          where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
           data: {
             output: matchingTestEntry.output,
             outputTokens: matchingTestEntry.outputTokens,
@@ -86,17 +91,21 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
 
     let completion;
     const input = {
-      model: `openpipe:${fineTune.slug}`,
-      messages: datasetEntry.messages,
+      model: fineTune
+        ? `openpipe:${fineTune.slug}`
+        : getComparisonModelName(modelId as ComparisonModel),
+      messages: prunedMessages,
       function_call: datasetEntry.function_call ?? undefined,
       functions: datasetEntry.functions ?? undefined,
     };
     try {
-      if (fineTune.pipelineVersion === 1 || fineTune.pipelineVersion === 2) {
+      if (isComparisonModel(modelId)) {
+        completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
+      } else if (fineTune && (fineTune.pipelineVersion === 1 || fineTune.pipelineVersion === 2)) {
         completion = await getCompletion2(fineTune, input);
       } else {
         await prisma.fineTuneTestingEntry.update({
-          where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+          where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
           data: {
             errorMessage: "The model is not set up for inference",
           },
@@ -113,20 +122,21 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           completionMessage.function_call,
         );
       }
-      const outputTokens = countLlamaChatTokensInMessages([completionMessage]);
+
       await prisma.fineTuneTestingEntry.update({
-        where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+        where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {
           cacheKey,
           output: completionMessage as unknown as Prisma.InputJsonValue,
-          outputTokens,
+          prunedInputTokens: completion.usage?.prompt_tokens,
+          outputTokens: completion.usage?.completion_tokens,
           score,
           errorMessage: null,
         },
       });
     } catch (e) {
       await prisma.fineTuneTestingEntry.update({
-        where: { fineTuneId_datasetEntryId: { fineTuneId, datasetEntryId } },
+        where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {
           errorMessage: (e as Error).message,
         },

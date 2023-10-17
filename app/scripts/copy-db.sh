@@ -19,7 +19,7 @@ parse_connection_string() {
 
 # Function to check whether to dump the prod DB
 should_dump_prod_db() {
-    if [ ! -f "/tmp/openpipe-prod.db" ] || [ "$FORCE_DUMP" = "true" ]; then
+    if [ ! -f "$PROD_DUMP_FILE" ] || [ "$FORCE_DUMP" = "true" ]; then
         return 0  # Should dump the prod DB
     else
         return 1  # Should not dump the prod DB
@@ -33,7 +33,7 @@ dump_prod_db() {
     # Set the password as an environment variable
     export PGPASSWORD="$PASSWORD"
     
-    pg_dump -v -Fc -h "$HOST" -U "$DB_USERNAME" -d "$DB_NAME" > /tmp/openpipe-prod.dump
+    pg_dump -v -Fc -h "$HOST" -U "$DB_USERNAME" -d "$DB_NAME" > "$PROD_DUMP_FILE"
     
     # Unset the password environment variable
     unset PGPASSWORD
@@ -60,7 +60,7 @@ create_dev_db() {
 # Function to restore the dump to the dev database
 restore_to_dev_db() {
     report_progress "Restoring dump to dev database..."
-    pg_restore -v --no-owner --no-privileges -d openpipe-dev /tmp/openpipe-prod.dump
+    pg_restore -v --no-owner --no-privileges -d openpipe-dev "$PROD_DUMP_FILE"
 }
 
 # Main execution

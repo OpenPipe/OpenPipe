@@ -1,42 +1,45 @@
-import { type FineTune } from "@prisma/client";
-
-import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "../db";
-import { countLlamaChatTokens, countOpenAIChatTokens } from "~/utils/countTokens";
 import { evaluateTestSetEntry } from "../tasks/evaluateTestSetEntry.task";
-import { z } from "zod";
-import { chatMessage } from "~/types/shared.types";
 
-export const startTestJobs = async (fineTune: FineTune) => {
-  const stringsToPrune = await getStringsToPrune(fineTune.id);
+export const startDatasetTestJobs = async (datasetId: string) => {
+  const dataset = await prisma.dataset.findUnique({
+    where: { id: datasetId },
+    include: {
+      fineTunes: {
+        where: { status: "DEPLOYED" },
+      },
+    },
+  });
+  if (!dataset) return;
+  for (const fineTune of dataset.fineTunes) {
+    await startTestJobs(datasetId, fineTune.id);
+  }
+  for (const comparisonModel of dataset.enabledComparisonModels) {
+    await startTestJobs(datasetId, comparisonModel);
+  }
+};
+
+export const startTestJobs = async (datasetId: string, modelId: string) => {
   const datasetEntries = await prisma.datasetEntry.findMany({
-    where: { datasetId: fineTune.datasetId, outdated: false, type: "TEST" },
+    where: {
+      datasetId,
+      outdated: false,
+      type: "TEST",
+      fineTuneTestDatasetEntries: { none: { modelId } },
+    },
     select: { id: true, messages: true },
     orderBy: { sortKey: "desc" },
   });
+
   // create fineTuneTestEntry for each dataset entry
   await prisma.fineTuneTestingEntry.createMany({
-    data: datasetEntries.map((entry) => {
-      const prunedInput = pruneInputMessages(
-        z.array(chatMessage).parse(entry.messages),
-        stringsToPrune,
-      );
-      let prunedInputTokens;
-      if (fineTune.baseModel === "GPT_3_5_TURBO") {
-        prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInput);
-      } else {
-        prunedInputTokens = countLlamaChatTokens(JSON.stringify(prunedInput));
-      }
-      return {
-        fineTuneId: fineTune.id,
-        datasetEntryId: entry.id,
-        prunedInputTokens,
-        prunedInput: JSON.stringify(prunedInput),
-      };
-    }),
+    data: datasetEntries.map((entry) => ({
+      modelId,
+      datasetEntryId: entry.id,
+    })),
     skipDuplicates: true,
   });
   for (const entry of datasetEntries) {
-    await evaluateTestSetEntry.enqueue({ fineTuneId: fineTune.id, datasetEntryId: entry.id });
+    await evaluateTestSetEntry.enqueue({ modelId, datasetEntryId: entry.id });
   }
 };

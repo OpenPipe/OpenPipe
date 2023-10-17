@@ -45,8 +45,8 @@ const DeleteDatasetDialog = ({
           </AlertDialogHeader>
 
           <AlertDialogBody>
-            If you delete this dataset all the associated dataset entries will be deleted as well.
-            Are you sure?
+            If you delete this dataset all the associated dataset entries and fine-tuned models will
+            be deleted as well. Are you sure?
           </AlertDialogBody>
 
           <AlertDialogFooter>
