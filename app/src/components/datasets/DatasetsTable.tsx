@@ -20,6 +20,7 @@ const DatasetsTable = ({}) => {
             <Tr>
               <Th>Name</Th>
               <Th>Created At</Th>
+              <Th>Models</Th>
               <Th>Size</Th>
             </Tr>
           </Thead>
@@ -33,6 +34,7 @@ const DatasetsTable = ({}) => {
                     </Link>
                   </Td>
                   <Td>{dayjs(dataset.createdAt).format("MMMM D h:mm A")}</Td>
+                  <Td>{dataset.fineTuneCount}</Td>
                   <Td>{dataset.datasetEntryCount}</Td>
                 </Tr>
               );

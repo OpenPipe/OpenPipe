@@ -8,7 +8,7 @@ import LoggedCallTable from "~/components/requestLogs/LoggedCallsTable";
 import LoggedCallsPaginator from "~/components/requestLogs/LoggedCallsPaginator";
 import ActionButton from "~/components/ActionButton";
 import LogFilters from "~/components/requestLogs/LogFilters/LogFilters";
-import ColumnVisiblityDropdown from "~/components/requestLogs/ColumnVisiblityDropdown";
+import ColumnVisibilityDropdown from "~/components/requestLogs/ColumnVisibilityDropdown";
 import ExportButton from "~/components/requestLogs/ExportButton";
 import AddToDatasetButton from "~/components/requestLogs/AddToDatasetButton";
 import { api } from "~/utils/api";
@@ -36,7 +36,7 @@ export default function LoggedCalls() {
           <HStack w="full" justifyContent="flex-end">
             <AddToDatasetButton />
             <ExportButton />
-            <ColumnVisiblityDropdown />
+            <ColumnVisibilityDropdown />
             <ActionButton
               onClick={() => {
                 setFiltersShown(!filtersShown);

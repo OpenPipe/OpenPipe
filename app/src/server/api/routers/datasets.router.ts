@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { sql } from "kysely";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { generateBlobUploadUrl } from "~/utils/azure/server";
@@ -24,37 +25,25 @@ export const datasetsRouter = createTRPCRouter({
   list: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ input, ctx }) => {
-      await requireCanViewProject(input.projectId, ctx);
+      const { projectId } = input;
+      await requireCanViewProject(projectId, ctx);
 
-      const datasets = await prisma.dataset.findMany({
-        where: {
-          projectId: input.projectId,
-        },
-        orderBy: { createdAt: "desc" },
-      });
+      const datasets = await kysely
+        .selectFrom("Dataset as d")
+        .where("projectId", "=", projectId)
+        .selectAll()
+        .select(() => [
+          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = d.id)::int`.as(
+            "datasetEntryCount",
+          ),
+          sql<number>`(select count(*) from "FineTune" where "datasetId" = d.id)::int`.as(
+            "fineTuneCount",
+          ),
+        ])
+        .orderBy("d.createdAt", "desc")
+        .execute();
 
-      const datasetEntryCounts = await prisma.datasetEntry.groupBy({
-        by: ["datasetId"],
-        where: {
-          datasetId: {
-            in: datasets.map((dataset) => dataset.id),
-          },
-          outdated: false,
-        },
-        _count: {
-          id: true,
-        },
-      });
-
-      return datasets.map((dataset) => {
-        const datasetEntryCount = datasetEntryCounts.find(
-          (datasetEntryCount) => datasetEntryCount.datasetId === dataset.id,
-        );
-        return {
-          ...dataset,
-          datasetEntryCount: datasetEntryCount?._count?.id ?? 0,
-        };
-      });
+      return datasets;
     }),
 
   create: protectedProcedure

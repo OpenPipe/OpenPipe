@@ -10,7 +10,7 @@ import { borders } from "./styles";
 import { useScenarios } from "~/utils/hooks";
 import ScenarioPaginator from "./ScenarioPaginator";
 import { Fragment } from "react";
-import useScrolledPast from "./useHasScrolledPast";
+import useHasScrolledPast from "./useHasScrolledPast";
 
 export default function OutputsTable({
   experimentId,
@@ -25,7 +25,7 @@ export default function OutputsTable({
   );
 
   const scenarios = useScenarios();
-  const shouldFlattenHeader = useScrolledPast(50);
+  const shouldFlattenHeader = useHasScrolledPast(50);
 
   if (!variants.data || !scenarios.data) return null;
 

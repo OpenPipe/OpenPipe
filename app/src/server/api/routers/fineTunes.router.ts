@@ -52,6 +52,46 @@ export const fineTunesRouter = createTRPCRouter({
         count,
       };
     }),
+  listForDataset: protectedProcedure
+    .input(
+      z.object({
+        datasetId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { datasetId } = input;
+
+      const fineTunes = await kysely
+        .selectFrom("FineTune as ft")
+        .where("datasetId", "=", datasetId)
+        .selectAll()
+        .select(() => [
+          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+            "numTrainingEntries",
+          ),
+          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "type" = 'TEST' and not outdated)::int`.as(
+            "numTestingEntries",
+          ),
+          sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
+            "numPruningRules",
+          ),
+          sql<number>`(select avg("score") from "FineTuneTestingEntry" where "fineTuneId" = ft.id)`.as(
+            "averageScore",
+          ),
+        ])
+        .orderBy("ft.createdAt", "desc")
+        .execute();
+
+      if (!fineTunes || fineTunes.length === 0)
+        throw new TRPCError({
+          message: "No fine tunes found for the given datasetId",
+          code: "NOT_FOUND",
+        });
+
+      if (fineTunes[0]) await requireCanViewProject(fineTunes[0].projectId, ctx);
+
+      return fineTunes;
+    }),
   get: protectedProcedure
     .input(
       z.object({
@@ -263,48 +303,15 @@ export const fineTunesRouter = createTRPCRouter({
       });
       return success("Fine tune deleted");
     }),
-  listTestingEntries: protectedProcedure
-    .input(z.object({ fineTuneId: z.string(), page: z.number(), pageSize: z.number() }))
+  testingStats: protectedProcedure
+    .input(z.object({ fineTuneId: z.string() }))
     .query(async ({ input, ctx }) => {
-      const { fineTuneId, page, pageSize } = input;
+      const { fineTuneId } = input;
 
-      const fineTune = await prisma.fineTune.findUnique({
-        where: {
-          id: fineTuneId,
-        },
-      });
-
-      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
-      await requireCanViewProject(fineTune.projectId, ctx);
-
-      const [entries, count, countFinished, averageScore] = await prisma.$transaction([
-        prisma.fineTuneTestingEntry.findMany({
+      const [fineTune, countFinished, averageScore] = await prisma.$transaction([
+        prisma.fineTune.findUnique({
           where: {
-            fineTuneId: fineTuneId,
-            datasetEntry: { outdated: false },
-          },
-          include: {
-            datasetEntry: {
-              select: {
-                messages: true,
-                output: true,
-                inputTokens: true,
-                outputTokens: true,
-              },
-            },
-          },
-          orderBy: {
-            datasetEntry: {
-              sortKey: "desc",
-            },
-          },
-          skip: (page - 1) * pageSize,
-          take: pageSize,
-        }),
-        prisma.fineTuneTestingEntry.count({
-          where: {
-            fineTuneId: fineTuneId,
-            datasetEntry: { outdated: false },
+            id: fineTuneId,
           },
         }),
         prisma.fineTuneTestingEntry.count({
@@ -327,9 +334,11 @@ export const fineTunesRouter = createTRPCRouter({
         }),
       ]);
 
+      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
+      await requireCanViewProject(fineTune.projectId, ctx);
+
       return {
-        entries,
-        count,
+        slug: fineTune.slug,
         countFinished,
         averageScore: averageScore._avg.score,
       };

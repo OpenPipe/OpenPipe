@@ -11,7 +11,7 @@ import { prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
-import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
+import { type TrainingRow } from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
 import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 import { formatEntriesFromTrainingRows } from "~/server/utils/createEntriesFromTrainingRows";
@@ -487,5 +487,66 @@ export const datasetEntriesRouter = createTRPCRouter({
       const base64 = output.getContents().toString("base64");
 
       return base64;
+    }),
+  listTestingEntries: protectedProcedure
+    .input(z.object({ datasetId: z.string(), page: z.number(), pageSize: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const { datasetId, page, pageSize } = input;
+
+      const dataset = await prisma.dataset.findUnique({
+        where: {
+          id: datasetId,
+        },
+      });
+
+      if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
+      await requireCanViewProject(dataset.projectId, ctx);
+
+      const [entries, count, deployedFineTunes] = await prisma.$transaction([
+        prisma.datasetEntry.findMany({
+          where: {
+            datasetId,
+            outdated: false,
+            type: "TEST",
+          },
+          include: {
+            fineTuneTestDatasetEntries: {
+              select: {
+                fineTuneId: true,
+                output: true,
+                score: true,
+                errorMessage: true,
+              },
+            },
+          },
+          orderBy: {
+            sortKey: "desc",
+          },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.datasetEntry.count({
+          where: {
+            datasetId,
+            outdated: false,
+            type: "TEST",
+          },
+        }),
+        prisma.fineTune.findMany({
+          where: {
+            datasetId,
+            status: "DEPLOYED",
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+      ]);
+
+      const pageIncomplete = !!entries.find((entry) =>
+        entry.fineTuneTestDatasetEntries.find((entry) => !entry.output),
+      );
+
+      return { entries, count, pageIncomplete, deployedFineTunes };
     }),
 });

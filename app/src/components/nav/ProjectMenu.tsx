@@ -190,7 +190,7 @@ const ProjectOption = ({
   return (
     <HStack
       as={Link}
-      href="/experiments"
+      href="/request-logs"
       onClick={() => {
         setSelectedProjectId(proj.id);
         onClose();

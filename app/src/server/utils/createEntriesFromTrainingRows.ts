@@ -4,7 +4,7 @@ import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
 import { prisma } from "~/server/db";
-import { type TrainingRow } from "~/components/datasets/validateTrainingRows";
+import { type TrainingRow } from "~/components/datasets/DatasetContentTabs/General/validateTrainingRows";
 import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
 
 type CreateManyInput = Omit<Prisma.DatasetEntryCreateManyInput, "id"> & { id: string };
