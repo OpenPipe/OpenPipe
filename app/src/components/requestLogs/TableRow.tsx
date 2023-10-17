@@ -193,7 +193,7 @@ export const TableRow = ({
       <Tr>
         <Td colSpan={visibleColumns.size + 1} w="full" p={0}>
           <Collapse in={isExpanded} unmountOnExit={true}>
-            <HStack align="stretch" p={4}>
+            <HStack align="stretch" px={6} pt={2} pb={4} spacing={4}>
               <VStack flex={1} align="stretch">
                 <Heading size="sm">Input</Heading>
                 <FormattedJson json={loggedCall.modelResponse?.reqPayload} />
