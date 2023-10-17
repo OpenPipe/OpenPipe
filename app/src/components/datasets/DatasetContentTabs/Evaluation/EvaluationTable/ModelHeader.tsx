@@ -5,6 +5,7 @@ import { BsQuestionCircle } from "react-icons/bs";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hooks";
+import { displayBaseModel } from "~/utils/baseModels";
 
 const ModelHeader = ({ modelId }: { modelId: string }) => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -62,6 +63,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
             </Tooltip>
           </>
         )}
+        {stats.baseModel && <Text color="gray.500">{displayBaseModel(stats.baseModel)}</Text>}
 
         {stats.finishedCount < entries.count && (
           <Text>
