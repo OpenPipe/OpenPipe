@@ -114,9 +114,10 @@ export async function getCompletion(
   };
 }
 
-export const getStringsToPrune = async (fineTuneId: string) => {
+// If model is not a fine-tune, this will return an empty array
+export const getStringsToPrune = async (modelId: string) => {
   const pruningRules = await prisma.pruningRule.findMany({
-    where: { fineTuneId },
+    where: { fineTuneId: modelId },
     select: { textToMatch: true },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });

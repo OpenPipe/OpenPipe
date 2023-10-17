@@ -20,20 +20,21 @@ export async function getCompletion2(
   const prunedInput = { messages: prunedMessages, ...omit(input, "messages") };
 
   if (fineTune.baseModel === "GPT_3_5_TURBO") {
-    return getOpenaiCompletion(fineTune, prunedInput);
+    return getOpenaiCompletion(fineTune.projectId, fineTune.openaiModelId, prunedInput);
   } else {
     return getModalCompletion(fineTune, prunedInput);
   }
 }
 
-async function getOpenaiCompletion(
-  fineTune: FineTune,
+export async function getOpenaiCompletion(
+  projectId: string,
+  modelId: string | null,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion> {
-  if (!fineTune.openaiModelId) throw new Error("No OpenAI model ID found");
+  if (!modelId) throw new Error("No OpenAI model ID found");
 
   const apiKeys = await prisma.apiKey.findMany({
-    where: { projectId: fineTune.projectId },
+    where: { projectId: projectId },
   });
 
   const openaiApiKey = apiKeys.find((key) => key.provider === "OPENAI")?.apiKey;
@@ -46,7 +47,7 @@ async function getOpenaiCompletion(
 
   const resp = await openai.chat.completions.create({
     ...input,
-    model: fineTune.openaiModelId,
+    model: modelId,
     stream: false,
   });
 

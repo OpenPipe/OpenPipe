@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
 import { pick, shuffle } from "lodash-es";
+import { Prisma } from "@prisma/client";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
@@ -19,6 +20,7 @@ import { truthyFilter } from "~/utils/utils";
 import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/constructFiltersQuery";
 import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
 import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
+import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -289,6 +291,8 @@ export const datasetEntriesRouter = createTRPCRouter({
         datasetEntriesToCreate.map((entry) => entry.id),
       );
 
+      await startDatasetTestJobs(datasetId);
+
       return success(datasetId);
     }),
   update: protectedProcedure
@@ -352,8 +356,8 @@ export const datasetEntriesRouter = createTRPCRouter({
       const newEntry = await prisma.datasetEntry.create({
         data: {
           messages: parsedInput ?? prevEntry.messages,
-          functions: parsedInput ?? prevEntry.functions,
-          function_call: parsedInput ?? prevEntry.function_call,
+          functions: prevEntry.functions ?? undefined,
+          function_call: prevEntry.function_call ?? undefined,
           output: parsedOutput ?? prevEntry.output,
           inputTokens: inputTokens ?? prevEntry.inputTokens,
           outputTokens: outputTokens ?? prevEntry.outputTokens,
@@ -381,7 +385,13 @@ export const datasetEntriesRouter = createTRPCRouter({
         });
         for (const fineTune of fineTunes) {
           await evaluateTestSetEntry.enqueue({
-            fineTuneId: fineTune.id,
+            modelId: fineTune.id,
+            datasetEntryId: newEntry.id,
+          });
+        }
+        for (const comparisonModel of dataset.enabledComparisonModels) {
+          await evaluateTestSetEntry.enqueue({
+            modelId: comparisonModel,
             datasetEntryId: newEntry.id,
           });
         }
@@ -510,7 +520,7 @@ export const datasetEntriesRouter = createTRPCRouter({
           include: {
             fineTuneTestDatasetEntries: {
               select: {
-                fineTuneId: true,
+                modelId: true,
                 output: true,
                 score: true,
                 errorMessage: true,
@@ -545,6 +555,59 @@ export const datasetEntriesRouter = createTRPCRouter({
         entry.fineTuneTestDatasetEntries.find((entry) => !entry.output),
       );
 
-      return { entries, count, pageIncomplete, deployedFineTunes };
+      return {
+        entries,
+        count,
+        pageIncomplete,
+        enabledComparisonModels: dataset.enabledComparisonModels,
+        deployedFineTunes,
+      };
+    }),
+  testingStats: protectedProcedure
+    .input(z.object({ datasetId: z.string(), modelId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const { datasetId, modelId } = input;
+
+      const [dataset, countFinished, averageScore, fineTune] = await prisma.$transaction([
+        prisma.dataset.findUnique({
+          where: {
+            id: datasetId,
+          },
+        }),
+        prisma.fineTuneTestingEntry.count({
+          where: {
+            modelId,
+            datasetEntry: { outdated: false, datasetId },
+            output: { not: Prisma.DbNull },
+          },
+        }),
+        prisma.fineTuneTestingEntry.aggregate({
+          where: {
+            modelId,
+            datasetEntry: {
+              outdated: false,
+              datasetId,
+            },
+          },
+          _avg: {
+            score: true,
+          },
+        }),
+        prisma.fineTune.findUnique({
+          where: {
+            id: modelId,
+          },
+        }),
+      ]);
+
+      if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
+      await requireCanViewProject(dataset.projectId, ctx);
+
+      return {
+        slug: fineTune?.slug || modelId,
+        isFineTune: !!fineTune,
+        countFinished,
+        averageScore: averageScore._avg.score,
+      };
     }),
 });

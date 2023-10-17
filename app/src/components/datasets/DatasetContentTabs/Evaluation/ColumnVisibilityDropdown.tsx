@@ -12,7 +12,8 @@ import {
   Box,
 } from "@chakra-ui/react";
 import { BiCheck } from "react-icons/bi";
-import { BsToggles } from "react-icons/bs";
+import { BsPlusSquare, BsToggles } from "react-icons/bs";
+import { ComparisonModel } from "@prisma/client";
 
 import { useIsClientRehydrated, useTestingEntries } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
@@ -118,6 +119,24 @@ const ColumnVisibilityDropdown = () => {
               </Box>
             </HStack>
           ))}
+          {!entries?.enabledComparisonModels.includes(ComparisonModel.GPT_3_5_TURBO) && (
+            <HStack
+              as={Button}
+              w="full"
+              minH={10}
+              variant="ghost"
+              justifyContent="space-between"
+              fontWeight="semibold"
+              borderRadius={0}
+              colorScheme="orange"
+              color="black"
+              fontSize="sm"
+              borderBottomWidth={1}
+            >
+              <Text>Add gpt-3.5-turbo comparison</Text>
+              <Icon as={BsPlusSquare} color="orange.400" boxSize={5} />
+            </HStack>
+          )}
         </VStack>
       </PopoverContent>
     </Popover>

@@ -245,10 +245,14 @@ export const useTestingEntries = (refetchInterval?: number) => {
   );
 };
 
-export const useFineTuneTestingStats = (fineTuneId?: string, refetchInterval?: number) => {
-  return api.fineTunes.testingStats.useQuery(
-    { fineTuneId: fineTuneId ?? "" },
-    { enabled: !!fineTuneId, refetchInterval },
+export const useModelTestingStats = (
+  datasetId?: string,
+  modelId?: string,
+  refetchInterval?: number,
+) => {
+  return api.datasetEntries.testingStats.useQuery(
+    { datasetId: datasetId ?? "", modelId: modelId ?? "" },
+    { enabled: !!datasetId && !!modelId, refetchInterval },
   );
 };
 

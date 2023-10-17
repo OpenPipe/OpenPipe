@@ -4,11 +4,12 @@ import Link from "next/link";
 import { BsQuestionCircle } from "react-icons/bs";
 
 import ColoredPercent from "~/components/ColoredPercent";
-import { useFineTuneTestingStats, useTestingEntries } from "~/utils/hooks";
+import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hooks";
 
-const FineTuneHeader = ({ fineTuneId }: { fineTuneId: string }) => {
+const ModelHeader = ({ modelId }: { modelId: string }) => {
   const [refetchInterval, setRefetchInterval] = useState(0);
-  const stats = useFineTuneTestingStats(fineTuneId, refetchInterval).data;
+  const dataset = useDataset().data;
+  const stats = useModelTestingStats(dataset?.id, modelId, refetchInterval).data;
   const entries = useTestingEntries().data;
 
   useEffect(() => {
@@ -23,15 +24,21 @@ const FineTuneHeader = ({ fineTuneId }: { fineTuneId: string }) => {
 
   return (
     <VStack alignItems="flex-start">
-      <Text
-        as={Link}
-        href={{ pathname: "/fine-tunes/[id]", query: { id: fineTuneId } }}
-        _hover={{ textDecoration: "underline" }}
-        fontWeight="bold"
-        color="gray.500"
-      >
-        openpipe:{stats.slug}
-      </Text>
+      {stats.isFineTune ? (
+        <Text
+          as={Link}
+          href={{ pathname: "/fine-tunes/[id]", query: { id: modelId } }}
+          _hover={{ textDecoration: "underline" }}
+          fontWeight="bold"
+          color="gray.500"
+        >
+          openpipe:{stats.slug}
+        </Text>
+      ) : (
+        <Text fontWeight="bold" color="gray.500">
+          {modelId}
+        </Text>
+      )}
 
       <HStack>
         {stats.averageScore && (
@@ -66,4 +73,4 @@ const FineTuneHeader = ({ fineTuneId }: { fineTuneId: string }) => {
   );
 };
 
-export default FineTuneHeader;
+export default ModelHeader;

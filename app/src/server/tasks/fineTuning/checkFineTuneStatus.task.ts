@@ -5,7 +5,7 @@ import { trainerv1 } from "~/server/modal-rpc/clients";
 import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 
 const runOnce = async () => {
-  const trainingJobs = await prisma.fineTune.findMany({
+  const trainingFineTunes = await prisma.fineTune.findMany({
     where: {
       status: {
         in: ["TRAINING"],
@@ -15,48 +15,49 @@ const runOnce = async () => {
   });
 
   await Promise.all(
-    trainingJobs.map(async (job) => {
-      if (!job.modalTrainingJobId) {
+    trainingFineTunes.map(async (ft) => {
+      if (!ft.modalTrainingJobId) {
         throw new Error("No modalTrainingJobId");
       }
       try {
-        const resp = await trainerv1.default.trainingStatus(job.modalTrainingJobId);
+        const resp = await trainerv1.default.trainingStatus(ft.modalTrainingJobId);
         if (resp.status === "done") {
-          const fineTune = await prisma.fineTune.findUnique({
-            where: { id: job.id },
+          // Ensure we have the latest fine-tune data
+          const currentFineTune = await prisma.fineTune.findUnique({
+            where: { id: ft.id },
           });
-          if (!fineTune) return;
-          if (fineTune.huggingFaceModelId) {
+          if (!currentFineTune) return;
+          if (currentFineTune.huggingFaceModelId) {
             // this kicks off the upload of the model weights and returns almost immediately.
             // We currently don't check whether the weights actually uploaded, probably should
             // add that at some point!
-            await trainerv1.default.persistModelWeights(fineTune.huggingFaceModelId);
+            await trainerv1.default.persistModelWeights(currentFineTune.huggingFaceModelId);
           }
 
           await prisma.fineTune.update({
-            where: { id: job.id },
+            where: { id: currentFineTune.id },
             data: {
               trainingFinishedAt: new Date(),
               status: "DEPLOYED",
             },
           });
 
-          captureFineTuneTrainingFinished(fineTune.projectId, job.slug, true);
+          captureFineTuneTrainingFinished(currentFineTune.projectId, currentFineTune.slug, true);
 
-          await startTestJobs(job);
+          await startTestJobs(currentFineTune.datasetId, currentFineTune.id);
         } else if (resp.status === "error") {
-          const fineTune = await prisma.fineTune.update({
-            where: { id: job.id },
+          await prisma.fineTune.update({
+            where: { id: ft.id },
             data: {
               trainingFinishedAt: new Date(),
               status: "ERROR",
               errorMessage: "Training job failed",
             },
           });
-          captureFineTuneTrainingFinished(fineTune.projectId, job.slug, false);
+          captureFineTuneTrainingFinished(ft.projectId, ft.slug, false);
         }
       } catch (e) {
-        console.error(`Failed to check training status for model ${job.id}`, e);
+        console.error(`Failed to check training status for model ${ft.id}`, e);
         return;
       }
     }),

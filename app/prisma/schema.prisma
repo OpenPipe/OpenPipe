@@ -599,7 +599,9 @@ model FineTuneTestingEntry {
     score        Float?
     errorMessage String?
 
+    // Used for querying both fine-tuned and comparison models
     modelId    String
+    // Duplicates the modelId field, but Prisma needs it to make the fineTune relation work
     fineTuneId String?   @db.Uuid
     fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
 

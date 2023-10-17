@@ -6,14 +6,14 @@ import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { type RouterOutputs } from "~/utils/api";
-import FineTuneHeader from "./FineTuneHeader";
+import ModelHeader from "./ModelHeader";
 
 export const TableHeader = ({
   showOriginalOutput,
-  visibleFineTuneIds,
+  visibleModelIds,
 }: {
   showOriginalOutput: boolean;
-  visibleFineTuneIds: string[];
+  visibleModelIds: string[];
 }) => {
   const sharedProps = {
     position: "sticky",
@@ -35,9 +35,9 @@ export const TableHeader = ({
           </Text>
         </GridItem>
       )}
-      {visibleFineTuneIds.map((fineTuneId) => (
-        <GridItem key={fineTuneId} sx={sharedProps} borderLeftWidth={1}>
-          <FineTuneHeader fineTuneId={fineTuneId} />
+      {visibleModelIds.map((modelId) => (
+        <GridItem key={modelId} sx={sharedProps} borderLeftWidth={1}>
+          <ModelHeader modelId={modelId} />
         </GridItem>
       ))}
     </>
@@ -51,18 +51,18 @@ const EvaluationRow = ({
   output,
   fineTuneEntries,
   showOriginalOutput,
-  visibleFineTuneIds,
+  visibleModelIds,
 }: {
   messages: TestingEntry["messages"];
   output: TestingEntry["output"];
   fineTuneEntries: TestingEntry["fineTuneTestDatasetEntries"];
   showOriginalOutput: boolean;
-  visibleFineTuneIds: string[];
+  visibleModelIds: string[];
 }) => {
-  const orderedFineTuneEntries = visibleFineTuneIds.map(
-    (fineTuneId) =>
-      fineTuneEntries.find((entry) => entry.fineTuneId === fineTuneId) || {
-        fineTuneId,
+  const orderedModelEntries = visibleModelIds.map(
+    (modelId) =>
+      fineTuneEntries.find((entry) => entry.modelId === modelId) || {
+        modelId,
         output: null,
         errorMessage: null,
         score: null,
@@ -85,9 +85,9 @@ const EvaluationRow = ({
       {showOriginalOutput && (
         <FormattedOutputGridItem output={output} onHeightUpdated={onHeightUpdated} />
       )}
-      {orderedFineTuneEntries.map((entry) => (
+      {orderedModelEntries.map((entry) => (
         <FormattedOutputGridItem
-          key={entry.fineTuneId}
+          key={entry.modelId}
           output={entry.output}
           errorMessage={entry.errorMessage}
           score={entry.score}

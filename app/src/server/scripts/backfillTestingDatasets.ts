@@ -42,7 +42,7 @@ let numEntries = 0;
 
 for (const entry of fineTune.dataset.datasetEntries) {
   await evaluateTestSetEntry.enqueue({
-    fineTuneId: fineTune.id,
+    modelId: fineTune.id,
     datasetEntryId: entry.id,
     skipCache: true,
   });

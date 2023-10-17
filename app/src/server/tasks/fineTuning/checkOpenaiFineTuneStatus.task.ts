@@ -57,7 +57,7 @@ const runOnce = async () => {
             },
           });
           captureFineTuneTrainingFinished(fineTune.projectId, fineTune.slug, true);
-          await startTestJobs(fineTune);
+          await startTestJobs(fineTune.datasetId, fineTune.id);
         } else if (resp.status === "failed") {
           await prisma.fineTune.update({
             where: { id: fineTune.id },

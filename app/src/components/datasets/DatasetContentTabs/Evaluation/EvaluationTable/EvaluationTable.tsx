@@ -18,21 +18,23 @@ const EvaluationTable = () => {
 
   const { visibleColumns } = useVisibleEvaluationColumns();
 
-  const [showOriginalOutput, visibleFineTuneIds] = useMemo(() => {
+  const [showOriginalOutput, visibleModelIds] = useMemo(() => {
     const showOriginalOutput =
       !visibleColumns.length || visibleColumns.includes(ORIGINAL_OUTPUT_COLUMN_KEY);
     const combinedColumnIds: string[] = [];
 
-    if (!entries?.deployedFineTunes) return [showOriginalOutput, combinedColumnIds];
+    if (!entries?.enabledComparisonModels || !entries?.deployedFineTunes)
+      return [showOriginalOutput, combinedColumnIds];
 
-    return [
-      showOriginalOutput,
-      entries.deployedFineTunes
+    combinedColumnIds.push(...entries.enabledComparisonModels);
+    combinedColumnIds.push(
+      ...entries.deployedFineTunes
         .filter((ft) => !visibleColumns.length || visibleColumns.includes(ft.slug))
         .map((ft) => ft.id),
-    ];
-  }, [entries?.deployedFineTunes, visibleColumns]);
-  const numOutputColumns = visibleFineTuneIds.length + (showOriginalOutput ? 1 : 0);
+    );
+    return [showOriginalOutput, combinedColumnIds];
+  }, [entries?.enabledComparisonModels, entries?.deployedFineTunes, visibleColumns]);
+  const numOutputColumns = visibleModelIds.length + (showOriginalOutput ? 1 : 0);
 
   if (!entries) return null;
 
@@ -52,7 +54,7 @@ const EvaluationTable = () => {
           >
             <TableHeader
               showOriginalOutput={showOriginalOutput}
-              visibleFineTuneIds={visibleFineTuneIds}
+              visibleModelIds={visibleModelIds}
             />
             {entries.entries.map((entry) => (
               <EvaluationRow
@@ -61,7 +63,7 @@ const EvaluationTable = () => {
                 output={entry.output}
                 fineTuneEntries={entry.fineTuneTestDatasetEntries}
                 showOriginalOutput={showOriginalOutput}
-                visibleFineTuneIds={visibleFineTuneIds}
+                visibleModelIds={visibleModelIds}
               />
             ))}
           </Grid>
