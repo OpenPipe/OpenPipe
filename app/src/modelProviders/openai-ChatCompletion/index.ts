@@ -53,9 +53,9 @@ const modelProvider: OpenaiChatModelProvider = {
       outputTokens = output.usage.completion_tokens;
     } else {
       try {
-        inputTokens = countOpenAIChatTokens(model, input.messages);
+        inputTokens = countOpenAIChatTokens(input.messages, model);
         outputTokens = output
-          ? countOpenAIChatTokens(model, output.choices.map((c) => c.message).filter(truthyFilter))
+          ? countOpenAIChatTokens(output.choices.map((c) => c.message).filter(truthyFilter), model)
           : 0;
       } catch (err) {
         inputTokens = 0;

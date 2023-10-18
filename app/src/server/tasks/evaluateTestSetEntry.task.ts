@@ -10,6 +10,11 @@ import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 import { getOpenaiCompletion } from "../utils/openai";
+import {
+  countLlamaChatTokens,
+  countLlamaChatTokensInMessages,
+  countOpenAIChatTokens,
+} from "~/utils/countTokens";
 
 export type EvaluateTestSetEntryJob = {
   modelId: string;
@@ -125,14 +130,24 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         );
       }
 
+      let outputTokens: number;
+      if (completion.usage?.completion_tokens) {
+        outputTokens = completion.usage.completion_tokens;
+      } else if (fineTune?.baseModel === "GPT_3_5_TURBO" || isComparisonModel(modelId)) {
+        outputTokens = countOpenAIChatTokens([completionMessage]);
+      } else {
+        outputTokens = countLlamaChatTokensInMessages([completionMessage]);
+      }
+
       await prisma.fineTuneTestingEntry.update({
         where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {
           cacheKey,
           output: completionMessage as unknown as Prisma.InputJsonValue,
           prunedInputTokens: completion.usage?.prompt_tokens,
-          outputTokens: completion.usage?.completion_tokens,
+          outputTokens,
           score,
+          latencyPerTokenMs: latencyMs / outputTokens,
           latencyMs,
           errorMessage: null,
         },

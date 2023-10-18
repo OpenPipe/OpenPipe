@@ -11,8 +11,8 @@ interface GPTTokensMessageItem {
 }
 
 export const countOpenAIChatTokens = (
-  model: SupportedModel,
   messages: ChatCompletionMessageParam[],
+  model: SupportedModel = "gpt-3.5-turbo-0613",
 ) => {
   const reformattedMessages = messages.map((message) => ({
     role: message.role,
