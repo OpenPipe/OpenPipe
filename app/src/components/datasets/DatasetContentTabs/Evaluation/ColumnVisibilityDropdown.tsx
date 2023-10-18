@@ -18,7 +18,7 @@ import { ComparisonModel } from "@prisma/client";
 import { useIsClientRehydrated, useTestingEntries } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleEvaluationColumns } from "./useVisibleEvaluationColumns";
-import { getComparisonModelName } from "~/utils/baseModels";
+import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 import AddComparisonModelDialog from "./AddComparisonModelDialog";
 
 export const EMPTY_OUTPUT_COLUMNS_KEY = "empty";
@@ -48,7 +48,7 @@ const ColumnVisibilityDropdown = () => {
     ];
     for (const comparisonModel of entries?.enabledComparisonModels ?? []) {
       options.push({
-        label: getComparisonModelName(comparisonModel),
+        label: COMPARISON_MODEL_NAMES[comparisonModel],
         key: comparisonModel,
       });
     }

@@ -7,6 +7,7 @@ import { WritableStreamBuffer } from "stream-buffers";
 import { pick, shuffle } from "lodash-es";
 import { type ComparisonModel } from "@prisma/client";
 import { sql } from "kysely";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma, kysely } from "~/server/db";
@@ -22,7 +23,13 @@ import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/construc
 import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
 import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
-import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
+import {
+  COMPARISON_MODEL_NAMES,
+  getComparisonModel,
+  isComparisonModel,
+  isComparisonModelName,
+} from "~/utils/baseModels";
+import { SortOrder } from "~/types/shared.types";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -499,9 +506,21 @@ export const datasetEntriesRouter = createTRPCRouter({
       return base64;
     }),
   listTestingEntries: protectedProcedure
-    .input(z.object({ datasetId: z.string(), page: z.number(), pageSize: z.number() }))
+    .input(
+      z.object({
+        datasetId: z.string(),
+        page: z.number(),
+        pageSize: z.number(),
+        sort: z
+          .object({
+            sortModelSlug: z.string().optional(),
+            sortOrder: z.string().optional(),
+          })
+          .optional(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const { datasetId, page, pageSize } = input;
+      const { datasetId, page, pageSize, sort } = input;
 
       const dataset = await prisma.dataset.findUnique({
         where: {
@@ -512,29 +531,86 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
-      const [entries, count, deployedFineTunes] = await prisma.$transaction([
-        prisma.datasetEntry.findMany({
-          where: {
-            datasetId,
-            outdated: false,
-            type: "TEST",
-          },
-          include: {
-            fineTuneTestDatasetEntries: {
-              select: {
-                modelId: true,
-                output: true,
-                score: true,
-                errorMessage: true,
-              },
+      let sortModelId = "";
+      if (sort?.sortModelSlug && isComparisonModelName(sort?.sortModelSlug)) {
+        sortModelId = getComparisonModel(sort?.sortModelSlug) ?? "";
+      } else if (sort?.sortModelSlug) {
+        try {
+          const fineTune = await prisma.fineTune.findFirst({
+            where: {
+              slug: sort?.sortModelSlug,
+            },
+            select: {
+              id: true,
+            },
+          });
+          sortModelId = fineTune?.id ?? "";
+        } catch (e) {
+          // If the slug is malformed, do nothing
+        }
+      }
+
+      let scoreSortOrder: SortOrder = SortOrder.DESC;
+      if (sort?.sortOrder === "asc") {
+        scoreSortOrder = SortOrder.ASC;
+      }
+
+      const entries = await kysely
+        .selectFrom("DatasetEntry as de")
+        .leftJoin(
+          (eb) =>
+            eb
+              .selectFrom("FineTuneTestingEntry")
+              .select(["modelId", "score", "datasetEntryId"])
+              .where("modelId", "=", sortModelId)
+              .as("sftte"),
+          (join) => join.onRef("sftte.datasetEntryId", "=", "de.id"),
+        )
+        .where(({ eb }) => eb("de.datasetId", "=", datasetId))
+        .where("de.outdated", "=", false)
+        .where("de.type", "=", "TEST")
+        .select((eb) => [
+          "de.id as id",
+          "de.messages as messages",
+          "de.function_call as function_call",
+          "de.output as output",
+          jsonArrayFrom(
+            eb
+              .selectFrom("FineTuneTestingEntry as ftte")
+              .select(["modelId", "output", "score", "errorMessage"])
+              .whereRef("ftte.datasetEntryId", "=", "de.id"),
+          ).as("fineTuneTestDatasetEntries"),
+        ])
+        .orderBy("sftte.score", scoreSortOrder)
+        .orderBy("de.sortKey", "desc")
+        .offset((page - 1) * pageSize)
+        .limit(pageSize)
+        .execute();
+
+      await prisma.datasetEntry.findMany({
+        where: {
+          datasetId,
+          outdated: false,
+          type: "TEST",
+        },
+        include: {
+          fineTuneTestDatasetEntries: {
+            select: {
+              modelId: true,
+              output: true,
+              score: true,
+              errorMessage: true,
             },
           },
-          orderBy: {
-            sortKey: "desc",
-          },
-          skip: (page - 1) * pageSize,
-          take: pageSize,
-        }),
+        },
+        orderBy: {
+          sortKey: "desc",
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      });
+
+      const [count, deployedFineTunes] = await prisma.$transaction([
         prisma.datasetEntry.count({
           where: {
             datasetId,
@@ -608,7 +684,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       let slug;
       let baseModel;
       if (isComparisonModel(modelId)) {
-        slug = getComparisonModelName(modelId as ComparisonModel);
+        slug = COMPARISON_MODEL_NAMES[modelId as ComparisonModel];
       } else {
         const fineTune = await prisma.fineTune.findUnique({
           where: {

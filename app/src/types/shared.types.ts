@@ -87,3 +87,8 @@ export const chatCompletionOutput = z.object({
 }) satisfies z.ZodType<ChatCompletion, any, any>;
 
 export const validatedChatOutput = (output: unknown) => chatMessage.parse(output);
+
+export enum SortOrder {
+  ASC = "asc",
+  DESC = "desc",
+}

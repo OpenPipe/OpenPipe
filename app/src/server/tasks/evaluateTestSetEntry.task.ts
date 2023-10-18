@@ -8,7 +8,7 @@ import { pruneInputMessages, getStringsToPrune } from "~/modelProviders/fine-tun
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
-import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
+import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/baseModels";
 import { getOpenaiCompletion } from "../utils/openai";
 
 export type EvaluateTestSetEntryJob = {
@@ -93,7 +93,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
     const input = {
       model: fineTune
         ? `openpipe:${fineTune.slug}`
-        : getComparisonModelName(modelId as ComparisonModel),
+        : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
       messages: prunedMessages,
       function_call: datasetEntry.function_call ?? undefined,
       functions: datasetEntry.functions ?? undefined,
