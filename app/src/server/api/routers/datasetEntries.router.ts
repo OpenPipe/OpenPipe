@@ -535,19 +535,15 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (sort?.sortModelSlug && isComparisonModelName(sort?.sortModelSlug)) {
         sortModelId = getComparisonModel(sort?.sortModelSlug) ?? "";
       } else if (sort?.sortModelSlug) {
-        try {
-          const fineTune = await prisma.fineTune.findFirst({
-            where: {
-              slug: sort?.sortModelSlug,
-            },
-            select: {
-              id: true,
-            },
-          });
-          sortModelId = fineTune?.id ?? "";
-        } catch (e) {
-          // If the slug is malformed, do nothing
-        }
+        const fineTune = await prisma.fineTune.findFirst({
+          where: {
+            slug: sort?.sortModelSlug,
+          },
+          select: {
+            id: true,
+          },
+        });
+        sortModelId = fineTune?.id ?? "";
       }
 
       let scoreSortOrder: SortOrder = SortOrder.DESC;
@@ -586,29 +582,6 @@ export const datasetEntriesRouter = createTRPCRouter({
         .offset((page - 1) * pageSize)
         .limit(pageSize)
         .execute();
-
-      await prisma.datasetEntry.findMany({
-        where: {
-          datasetId,
-          outdated: false,
-          type: "TEST",
-        },
-        include: {
-          fineTuneTestDatasetEntries: {
-            select: {
-              modelId: true,
-              output: true,
-              score: true,
-              errorMessage: true,
-            },
-          },
-        },
-        orderBy: {
-          sortKey: "desc",
-        },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      });
 
       const [count, deployedFineTunes] = await prisma.$transaction([
         prisma.datasetEntry.count({

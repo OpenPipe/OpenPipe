@@ -67,6 +67,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
                 spacing={0}
                 h={6}
                 cursor="pointer"
+                mb={1}
                 onClick={() => {
                   const modelSelected = sortModelSlug === stats.slug;
                   if (!modelSelected) {
