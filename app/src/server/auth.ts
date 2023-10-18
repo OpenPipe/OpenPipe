@@ -1,12 +1,18 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type GetServerSidePropsContext } from "next";
-import { getServerSession, type NextAuthOptions, type DefaultSession } from "next-auth";
+import {
+  getServerSession,
+  type NextAuthOptions,
+  type DefaultSession,
+  type Profile,
+} from "next-auth";
 import * as Sentry from "@sentry/nextjs";
-import GitHubModule from "next-auth/providers/github";
+import GitHubModule, { type GithubProfile } from "next-auth/providers/github";
 
 import { prisma } from "~/server/db";
 import { env } from "~/env.mjs";
 import { ensureDefaultExport } from "~/utils/utils";
+import { captureSignup } from "~/utils/analytics/serverAnalytics";
 
 const GitHubProvider = ensureDefaultExport(GitHubModule);
 
@@ -47,8 +53,11 @@ export const authOptions: NextAuthOptions = {
     }),
   },
   events: {
-    signIn({ user }) {
+    signIn({ user, profile, isNewUser }) {
       Sentry.setUser({ id: user.id });
+      if (isNewUser) {
+        captureSignup(user, (profile as Profile & { username: string }).username);
+      }
     },
     signOut() {
       Sentry.setUser(null);
@@ -59,6 +68,15 @@ export const authOptions: NextAuthOptions = {
     GitHubProvider({
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
+      profile(profile: GithubProfile) {
+        return {
+          id: profile.id.toString(),
+          name: profile.name ?? profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+          username: profile.login,
+        };
+      },
     }),
   ],
   theme: {
