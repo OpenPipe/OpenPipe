@@ -38,7 +38,8 @@ if (!fineTune) {
   console.error("no fine tune found");
   process.exit(1);
 }
-let numEntries = 0;
+
+console.log(`queueing ${fineTune.dataset.datasetEntries.length} fine tune testing entry jobs`);
 
 for (const entry of fineTune.dataset.datasetEntries) {
   await evaluateTestSetEntry.enqueue({
@@ -46,9 +47,6 @@ for (const entry of fineTune.dataset.datasetEntries) {
     datasetEntryId: entry.id,
     skipCache: true,
   });
-  numEntries++;
 }
-
-console.log(`queueing ${numEntries} fine tune testing entry jobs`);
 
 console.log("done");
