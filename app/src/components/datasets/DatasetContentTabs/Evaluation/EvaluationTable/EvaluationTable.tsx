@@ -6,6 +6,7 @@ import EvaluationRow, { TableHeader } from "./EvaluationRow";
 import EvaluationPaginator from "./EvaluationPaginator";
 import { ORIGINAL_OUTPUT_COLUMN_KEY } from "../ColumnVisibilityDropdown";
 import { useVisibleEvaluationColumns } from "../useVisibleEvaluationColumns";
+import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 
 const EvaluationTable = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -28,7 +29,7 @@ const EvaluationTable = () => {
 
     combinedColumnIds.push(
       ...entries.enabledComparisonModels.filter(
-        (cm) => !visibleColumns.length || visibleColumns.includes(cm),
+        (cm) => !visibleColumns.length || visibleColumns.includes(COMPARISON_MODEL_NAMES[cm]),
       ),
     );
     combinedColumnIds.push(

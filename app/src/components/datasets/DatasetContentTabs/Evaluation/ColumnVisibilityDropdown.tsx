@@ -49,7 +49,7 @@ const ColumnVisibilityDropdown = () => {
     for (const comparisonModel of entries?.enabledComparisonModels ?? []) {
       options.push({
         label: COMPARISON_MODEL_NAMES[comparisonModel],
-        key: comparisonModel,
+        key: COMPARISON_MODEL_NAMES[comparisonModel],
       });
     }
     for (const slug of fineTuneSlugs ?? []) {
@@ -171,7 +171,7 @@ const ColumnVisibilityDropdown = () => {
         disclosure={addComparisonModelDialog}
         onClose={() => {
           addComparisonModelDialog.onClose();
-          ensureColumnShown(comparisonModelIdToAdd as string);
+          ensureColumnShown(COMPARISON_MODEL_NAMES[comparisonModelIdToAdd as ComparisonModel]);
           setComparisonModelIdToAdd(null);
         }}
       />
