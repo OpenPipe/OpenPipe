@@ -577,6 +577,14 @@ export const datasetEntriesRouter = createTRPCRouter({
               .whereRef("ftte.datasetEntryId", "=", "de.id"),
           ).as("fineTuneTestDatasetEntries"),
         ])
+        .orderBy(() =>
+          sql.raw(
+            `CASE
+             WHEN sftte.score IS NULL THEN 1
+             ELSE 0
+           END`,
+          ),
+        )
         .orderBy("sftte.score", scoreSortOrder)
         .orderBy("de.sortKey", "desc")
         .offset((page - 1) * pageSize)
