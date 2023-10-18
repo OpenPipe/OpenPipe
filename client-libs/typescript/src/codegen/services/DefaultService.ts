@@ -10,7 +10,8 @@ export class DefaultService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
 
     /**
-     * Check if a prompt is cached
+     * @deprecated
+     * DEPRECATED: we no longer support prompt caching.
      * @param requestBody
      * @returns any Successful response
      * @throws ApiError
@@ -53,11 +54,76 @@ export class DefaultService {
     public createChatCompletion(
         requestBody: {
             /**
-             * JSON-encoded request payload
+             * DEPRECATED. Use the top-level fields instead
              */
-            reqPayload?: any;
+            reqPayload?: {
+                model: string;
+                messages: Array<{
+                    role: ('user' | 'assistant' | 'system' | 'function');
+                    content: (string | 'null' | null);
+                    function_call?: {
+                        name: string;
+                        arguments: string;
+                    };
+                }>;
+                function_call?: ('none' | 'auto' | {
+                    name: string;
+                });
+                functions?: Array<{
+                    name: string;
+                    parameters: Record<string, any>;
+                    description?: string;
+                }>;
+                'n'?: number | null;
+                max_tokens?: number;
+                temperature?: number;
+                stream?: boolean;
+            };
+            model?: string;
+            messages?: Array<{
+                role: ('user' | 'assistant' | 'system' | 'function');
+                content: (string | 'null' | null);
+                function_call?: {
+                    name: string;
+                    arguments: string;
+                };
+            }>;
+            function_call?: ('none' | 'auto' | {
+                name: string;
+            });
+            functions?: Array<{
+                name: string;
+                parameters: Record<string, any>;
+                description?: string;
+            }>;
+            'n'?: number | null;
+            max_tokens?: number;
+            temperature?: number | null;
+            stream?: boolean | null;
         },
-    ): CancelablePromise<any> {
+    ): CancelablePromise<{
+        id: string;
+        object: string;
+        created: number;
+        model: string;
+        choices: Array<{
+            finish_reason: ('stop' | 'length' | 'function_call');
+            index: number;
+            message: {
+                role: ('user' | 'assistant' | 'system' | 'function');
+                content: (string | 'null' | null);
+                function_call?: {
+                    name: string;
+                    arguments: string;
+                };
+            };
+        }>;
+        usage?: {
+            prompt_tokens: number;
+            completion_tokens: number;
+            total_tokens: number;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/chat/completions',

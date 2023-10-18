@@ -36,12 +36,10 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
 
         try:
             if model.startswith("openpipe:"):
-                print("CLIENT")
-                print(configured_client)
                 response = create_chat_completion.sync_detailed(
                     client=configured_client,
-                    json_body=create_chat_completion.CreateChatCompletionJsonBody(
-                        req_payload=kwargs,
+                    json_body=create_chat_completion.CreateChatCompletionJsonBody.from_dict(
+                        kwargs,
                     ),
                 )
                 chat_completion = OpenAIObject.construct_from(json.loads(response.content), api_key=None)
@@ -131,11 +129,20 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
             return OpenAIObject.construct_from(cached_response, api_key=None)
 
         requested_at = int(time.time() * 1000)
+        model = kwargs.get("model", '')
 
         try:
-            chat_completion = await original_openai.ChatCompletion.acreate(
-                *args, **kwargs
-            )
+            if model.startswith("openpipe:"):
+                response = await create_chat_completion.asyncio_detailed(
+                    client=configured_client,
+                    json_body=create_chat_completion.CreateChatCompletionJsonBody.from_dict(
+                        kwargs,
+                    ),
+                )
+                chat_completion = OpenAIObject.construct_from(json.loads(response.content), api_key=None)
+                print(chat_completion)
+            else:
+                chat_completion = await original_openai.ChatCompletion.acreate(*args, **kwargs)
 
             if inspect.isasyncgen(chat_completion):
 

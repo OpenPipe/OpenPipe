@@ -84,9 +84,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
 
     if (body.model.startsWith("openpipe:")) {
       if (!this.opClient) throw new Error("OpenPipe client not set");
-      const opClientPromise = this.opClient.default.createChatCompletion({
-        reqPayload: body,
-      });
+      const opClientPromise = this.opClient.default.createChatCompletion(body);
       resp = withTimeout(opClientPromise, options?.timeout ?? this.openaiClient.timeout, () =>
         opClientPromise.cancel(),
       ) as Core.APIPromise<ChatCompletion>;
