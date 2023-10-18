@@ -27,7 +27,7 @@ def last_logged_call():
     return local_testing_only_get_latest_logged_call.sync(client=configured_client)
 
 
-@pytest.mark.focus
+# @pytest.mark.focus
 def test_sync():
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",

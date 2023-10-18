@@ -14,7 +14,7 @@
     "/check-cache": {
       "post": {
         "operationId": "checkCache",
-        "description": "Check if a prompt is cached",
+        "description": "DEPRECATED: we no longer support prompt caching.",
         "security": [
           {
             "Authorization": []
@@ -72,7 +72,8 @@
           "default": {
             "$ref": "#/components/responses/error"
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/chat/completions": {
@@ -92,7 +93,291 @@
                 "type": "object",
                 "properties": {
                   "reqPayload": {
-                    "description": "JSON-encoded request payload"
+                    "type": "object",
+                    "properties": {
+                      "model": {
+                        "type": "string"
+                      },
+                      "messages": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "role": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "user"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "assistant"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "system"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "function"
+                                  ]
+                                }
+                              ]
+                            },
+                            "content": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "enum": [
+                                    "null"
+                                  ],
+                                  "nullable": true
+                                }
+                              ]
+                            },
+                            "function_call": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "arguments": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "arguments"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "role",
+                            "content"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "function_call": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "none"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "auto"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "functions": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            },
+                            "description": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "parameters"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "n": {
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "max_tokens": {
+                        "type": "number"
+                      },
+                      "temperature": {
+                        "type": "number"
+                      },
+                      "stream": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "model",
+                      "messages"
+                    ],
+                    "additionalProperties": false,
+                    "description": "DEPRECATED. Use the top-level fields instead"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "messages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "user"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "assistant"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "system"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "function"
+                              ]
+                            }
+                          ]
+                        },
+                        "content": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "null"
+                              ],
+                              "nullable": true
+                            }
+                          ]
+                        },
+                        "function_call": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "arguments": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "arguments"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "role",
+                        "content"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "function_call": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "none"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "auto"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "functions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "parameters": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "parameters"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "n": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "max_tokens": {
+                    "type": "number"
+                  },
+                  "temperature": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "stream": {
+                    "type": "boolean",
+                    "nullable": true
                   }
                 },
                 "additionalProperties": false
@@ -107,7 +392,155 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "JSON-encoded response payload"
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "object": {
+                      "type": "string"
+                    },
+                    "created": {
+                      "type": "number"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "choices": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "finish_reason": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "stop"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "length"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "function_call"
+                                ]
+                              }
+                            ]
+                          },
+                          "index": {
+                            "type": "number"
+                          },
+                          "message": {
+                            "type": "object",
+                            "properties": {
+                              "role": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "user"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "assistant"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "system"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "function"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "content": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "null"
+                                    ],
+                                    "nullable": true
+                                  }
+                                ]
+                              },
+                              "function_call": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "arguments": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "arguments"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "role",
+                              "content"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "finish_reason",
+                          "index",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "usage": {
+                      "type": "object",
+                      "properties": {
+                        "prompt_tokens": {
+                          "type": "number"
+                        },
+                        "completion_tokens": {
+                          "type": "number"
+                        },
+                        "total_tokens": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "prompt_tokens",
+                        "completion_tokens",
+                        "total_tokens"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "object",
+                    "created",
+                    "model",
+                    "choices"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }

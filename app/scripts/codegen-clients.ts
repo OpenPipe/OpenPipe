@@ -6,7 +6,7 @@ import { execSync } from "child_process";
 import { generate } from "openapi-typescript-codegen";
 
 const scriptPath = import.meta.url.replace("file://", "");
-const clientLibsPath = path.join(path.dirname(scriptPath), "../../../../client-libs");
+const clientLibsPath = path.join(path.dirname(scriptPath), "../../client-libs");
 
 const schemaPath = path.join(clientLibsPath, "openapi.json");
 

@@ -110,13 +110,14 @@ export const v1ApiRouter = createOpenApiRouter({
         reqPayload: chatCompletionInput
           .optional()
           .describe("DEPRECATED. Use the top-level fields instead"),
+        model: z.string().optional(),
         messages: z.array(chatMessage).optional(),
         function_call: functionCallInput,
         functions: functionsInput,
-        n: z.number().optional(),
+        n: z.number().nullable().optional(),
         max_tokens: z.number().optional(),
-        temperature: z.number().optional(),
-        stream: z.boolean().optional(),
+        temperature: z.number().nullable().optional(),
+        stream: z.boolean().nullable().optional(),
       }),
     )
     .output(chatCompletionOutput)

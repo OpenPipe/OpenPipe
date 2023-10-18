@@ -54,7 +54,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     json_body: CheckCacheJsonBody,
 ) -> Response[CheckCacheResponse200]:
-    """Check if a prompt is cached
+    """DEPRECATED: we no longer support prompt caching.
 
     Args:
         json_body (CheckCacheJsonBody):
@@ -83,7 +83,7 @@ def sync(
     client: AuthenticatedClient,
     json_body: CheckCacheJsonBody,
 ) -> Optional[CheckCacheResponse200]:
-    """Check if a prompt is cached
+    """DEPRECATED: we no longer support prompt caching.
 
     Args:
         json_body (CheckCacheJsonBody):
@@ -107,7 +107,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     json_body: CheckCacheJsonBody,
 ) -> Response[CheckCacheResponse200]:
-    """Check if a prompt is cached
+    """DEPRECATED: we no longer support prompt caching.
 
     Args:
         json_body (CheckCacheJsonBody):
@@ -134,7 +134,7 @@ async def asyncio(
     client: AuthenticatedClient,
     json_body: CheckCacheJsonBody,
 ) -> Optional[CheckCacheResponse200]:
-    """Check if a prompt is cached
+    """DEPRECATED: we no longer support prompt caching.
 
     Args:
         json_body (CheckCacheJsonBody):
