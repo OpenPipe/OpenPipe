@@ -4,6 +4,7 @@ import { type RefObject, useCallback, useEffect, useRef, useState } from "react"
 
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
+import { useTestEntrySortOrder } from "~/components/datasets/DatasetContentTabs/Evaluation/useTestEntrySortOrder";
 
 export const useExperiments = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
@@ -239,10 +240,28 @@ export const useTestingEntries = (refetchInterval?: number) => {
   const dataset = useDataset().data;
   const { page, pageSize } = usePageParams();
 
-  return api.datasetEntries.listTestingEntries.useQuery(
-    { datasetId: dataset?.id || "", page, pageSize },
+  const { sortModelSlug, sortOrder } = useTestEntrySortOrder();
+
+  const { data, isLoading, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
+    {
+      datasetId: dataset?.id || "",
+      page,
+      pageSize,
+      sort: { sortModelSlug: sortModelSlug ?? undefined, sortOrder: sortOrder ?? undefined },
+    },
     { enabled: !!dataset?.id, refetchInterval },
   );
+
+  const [stableData, setStableData] = useState(data);
+
+  useEffect(() => {
+    // Prevent annoying flashes while entries are loading from the server
+    if (!isLoading) {
+      setStableData(data);
+    }
+  }, [data, isLoading]);
+
+  return { data: stableData, isLoading, ...rest };
 };
 
 export const useModelTestingStats = (
@@ -264,7 +283,7 @@ export const useLoggedCalls = (applyFilters = true) => {
 
   const { data, isLoading, ...rest } = api.loggedCalls.list.useQuery(
     { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? filters : [] },
-    { enabled: !!selectedProjectId },
+    { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
   );
 
   const [stableData, setStableData] = useState(data);

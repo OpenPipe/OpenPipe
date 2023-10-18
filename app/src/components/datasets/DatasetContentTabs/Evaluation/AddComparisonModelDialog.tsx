@@ -25,7 +25,7 @@ import {
   useTestingEntries,
 } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { getComparisonModelName } from "~/utils/baseModels";
+import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 
 const AddComparisonModelDialog = ({
   modelId,
@@ -69,7 +69,7 @@ const AddComparisonModelDialog = ({
 
   if (!modelId) return null;
 
-  const modelName = getComparisonModelName(modelId);
+  const modelName = COMPARISON_MODEL_NAMES[modelId];
 
   return (
     <AlertDialog leastDestructiveRef={cancelRef} {...disclosure} onClose={onClose}>

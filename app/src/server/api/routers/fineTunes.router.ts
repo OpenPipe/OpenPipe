@@ -8,7 +8,7 @@ import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
-import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
+import { SUPPORTED_BASE_MODELS, isComparisonModelName } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 
 const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
@@ -141,6 +141,10 @@ export const fineTunesRouter = createTRPCRouter({
       });
       await requireCanModifyProject(projectId, ctx);
 
+      if (isComparisonModelName(input.slug)) {
+        return error("Fine tune IDs cannot match any base model names");
+      }
+
       const existingFineTune = await prisma.fineTune.findFirst({
         where: {
           slug: input.slug,
@@ -260,6 +264,10 @@ export const fineTunesRouter = createTRPCRouter({
 
       if (!fineTune) return error("Fine tune not found");
       await requireCanModifyProject(fineTune.projectId, ctx);
+
+      if (isComparisonModelName(input.slug)) {
+        return error("Fine tune IDs cannot match any base model names");
+      }
 
       const existingFineTune = await prisma.fineTune.findFirst({
         where: {

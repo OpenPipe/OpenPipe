@@ -6,7 +6,7 @@ import AppShell from "~/components/nav/AppShell";
 
 export default function FineTunes() {
   return (
-    <AppShell title="Fine Tunes" requireAuth>
+    <AppShell title="Fine Tunes" requireAuth requireBeta>
       <BetaBanner />
       <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
         <Text fontSize="2xl" fontWeight="bold">
