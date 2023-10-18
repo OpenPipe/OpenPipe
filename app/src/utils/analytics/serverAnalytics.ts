@@ -1,5 +1,6 @@
-import { type Session } from "next-auth";
+import { type User, type Session } from "next-auth";
 import { PostHog } from "posthog-node";
+
 import { env } from "~/env.mjs";
 
 export const posthogServerClient = env.NEXT_PUBLIC_POSTHOG_KEY
@@ -65,6 +66,18 @@ export const captureFineTuneTrainingFinished = (
     properties: {
       slug,
       success,
+    },
+  });
+};
+
+export const captureSignup = (user: User, gitHubUsername: string) => {
+  posthogServerClient?.capture({
+    distinctId: user.id,
+    event: "signup",
+    properties: {
+      name: user.name,
+      email: user.email,
+      gitHubUsername,
     },
   });
 };

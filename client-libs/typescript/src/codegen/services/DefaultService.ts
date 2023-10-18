@@ -74,7 +74,7 @@ export class DefaultService {
                     parameters: Record<string, any>;
                     description?: string;
                 }>;
-                'n'?: number | null;
+                'n'?: number;
                 max_tokens?: number;
                 temperature?: number;
                 stream?: boolean;

@@ -36,7 +36,7 @@ class CreateChatCompletionJsonBodyReqPayload:
             CreateChatCompletionJsonBodyReqPayloadFunctionCallType0,
             CreateChatCompletionJsonBodyReqPayloadFunctionCallType1, Unset]):
         functions (Union[Unset, List['CreateChatCompletionJsonBodyReqPayloadFunctionsItem']]):
-        n (Union[Unset, None, float]):
+        n (Union[Unset, float]):
         max_tokens (Union[Unset, float]):
         temperature (Union[Unset, float]):
         stream (Union[Unset, bool]):
@@ -51,7 +51,7 @@ class CreateChatCompletionJsonBodyReqPayload:
         Unset,
     ] = UNSET
     functions: Union[Unset, List["CreateChatCompletionJsonBodyReqPayloadFunctionsItem"]] = UNSET
-    n: Union[Unset, None, float] = UNSET
+    n: Union[Unset, float] = UNSET
     max_tokens: Union[Unset, float] = UNSET
     temperature: Union[Unset, float] = UNSET
     stream: Union[Unset, bool] = UNSET
