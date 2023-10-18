@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Text, VStack, HStack, Tooltip, Box, GridItem, Icon } from "@chakra-ui/react";
 import Link from "next/link";
-import { BiSolidUpArrowAlt, BiSolidDownArrowAlt } from "react-icons/bi";
+import { BiSolidUpArrow, BiSolidDownArrow } from "react-icons/bi";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hooks";
@@ -67,7 +67,6 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
                 spacing={0}
                 h={6}
                 cursor="pointer"
-                mb={1}
                 onClick={() => {
                   const modelSelected = sortModelSlug === stats.slug;
                   if (!modelSelected) {
@@ -80,24 +79,23 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
                 }}
               >
                 <Icon
-                  as={BiSolidUpArrowAlt}
+                  as={BiSolidUpArrow}
                   color={
                     sortModelSlug === stats.slug && sortOrder === SortOrder.ASC
                       ? "orange.400"
-                      : "gray.500"
+                      : "gray.300"
                   }
-                  boxSize={4}
+                  boxSize={3}
                   strokeWidth={2}
-                  mb={-1}
                 />
                 <Icon
-                  as={BiSolidDownArrowAlt}
+                  as={BiSolidDownArrow}
                   color={
                     sortModelSlug === stats.slug && sortOrder === SortOrder.DESC
                       ? "orange.400"
-                      : "gray.500"
+                      : "gray.300"
                   }
-                  boxSize={4}
+                  boxSize={3}
                   strokeWidth={2}
                 />
               </VStack>
