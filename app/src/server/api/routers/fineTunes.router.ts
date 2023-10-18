@@ -8,11 +8,7 @@ import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
-import {
-  COMPARISON_MODEL_NAMES,
-  SUPPORTED_BASE_MODELS,
-  isComparisonModelName,
-} from "~/utils/baseModels";
+import { SUPPORTED_BASE_MODELS, isComparisonModelName } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 
 const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
