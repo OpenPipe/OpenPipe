@@ -207,11 +207,11 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       posthog-js:
-        specifier: ^1.75.3
-        version: 1.75.3
+        specifier: ^1.84.1
+        version: 1.84.1
       posthog-node:
-        specifier: ^3.1.1
-        version: 3.1.1
+        specifier: ^3.1.2
+        version: 3.1.2
       prettier:
         specifier: ^3.0.0
         version: 3.0.0
@@ -8300,14 +8300,14 @@ packages:
   /postgres-range@1.1.3:
     resolution: {integrity: sha512-VdlZoocy5lCP0c/t66xAfclglEapXPCIVhqqJRncYpvbCgImF0w67aPKfbqUMr72tO2k5q0TdTZwCLjPTI6C9g==}
 
-  /posthog-js@1.75.3:
-    resolution: {integrity: sha512-q5xP4R/Tx8E6H0goZQjY+URMLATFiYXc2raHA+31aNvpBs118fPTmExa4RK6MgRZDFhBiMUBZNT6aj7dM3SyUQ==}
+  /posthog-js@1.84.1:
+    resolution: {integrity: sha512-VWf6Hj9qBCyXBahIeUiOF/P8EuMfuD3db7QiS5hlytmJt0n5KwroIkN+oP6GrYBa3fzt9OWNLFVyRZ2wNE/vrg==}
     dependencies:
       fflate: 0.4.8
     dev: false
 
-  /posthog-node@3.1.1:
-    resolution: {integrity: sha512-OUSYcnLHbzvY/dxNsbUGoYuTZz5XNx48BkfiCkOIJZMFvot5VPQ0KWEjX+kzYxEwHeXbjW9plqsOVcYCYfidgg==}
+  /posthog-node@3.1.2:
+    resolution: {integrity: sha512-atPGYjiK+QvtseKKsrUxMrzN84sIVs9jTa7nx5hl999gJly1S3J5r0DApwZ69NKfJkVIeLTCJyT0kyS+7WqDSw==}
     engines: {node: '>=15.0.0'}
     dependencies:
       axios: 0.27.2

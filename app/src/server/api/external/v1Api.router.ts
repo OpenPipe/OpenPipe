@@ -1,4 +1,4 @@
-import { type Prisma } from "@prisma/client";
+import { UsageType, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
@@ -22,6 +22,7 @@ import {
   functionCallInput,
   functionsInput,
 } from "~/types/shared.types";
+import { calculateFineTuneUsageCost } from "~/utils/baseModels";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -145,6 +146,7 @@ export const v1ApiRouter = createOpenApiRouter({
       }
 
       try {
+        let completion;
         if (fineTune.pipelineVersion === 0) {
           if (!fineTune.inferenceUrls.length) {
             throw new TRPCError({
@@ -154,15 +156,31 @@ export const v1ApiRouter = createOpenApiRouter({
           }
           const stringsToPrune = await getStringsToPrune(fineTune.id);
 
-          return await getCompletion(inputPayload, fineTune.inferenceUrls, stringsToPrune);
+          completion = await getCompletion(inputPayload, fineTune.inferenceUrls, stringsToPrune);
         } else if (fineTune.pipelineVersion >= 1 && fineTune.pipelineVersion <= 2) {
-          return await getCompletion2(fineTune, inputPayload);
+          completion = await getCompletion2(fineTune, inputPayload);
         } else {
           throw new TRPCError({
             message: "The model is not set up for inference",
             code: "BAD_REQUEST",
           });
         }
+        const inputTokens = completion.usage?.prompt_tokens ?? 0;
+        const outputTokens = completion.usage?.completion_tokens ?? 0;
+        await prisma.usageLog.create({
+          data: {
+            fineTuneId: fineTune.id,
+            type: UsageType.EXTERNAL,
+            inputTokens,
+            outputTokens,
+            cost: calculateFineTuneUsageCost({
+              inputTokens,
+              outputTokens,
+              baseModel: fineTune.baseModel,
+            }),
+          },
+        });
+        return completion;
       } catch (error: unknown) {
         console.error(error);
         throw new TRPCError({
@@ -263,6 +281,7 @@ export const v1ApiRouter = createOpenApiRouter({
             inputTokens: usage?.inputTokens,
             outputTokens: usage?.outputTokens,
             cost: usage?.cost,
+            completionId: respPayload.success ? respPayload.data.id : null,
           },
         }),
         // Avoid foreign key constraint error by updating the logged call after the model response is created
