@@ -9,7 +9,6 @@ import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
-import { countLlamaChatTokens } from "~/utils/countTokens";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
