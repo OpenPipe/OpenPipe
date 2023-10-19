@@ -26,56 +26,32 @@
 <br>
 Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited to your exact needs. Evaluate model and prompt combinations in the playground. Query your past requests and export optimized training data. Try it out at https://app.openpipe.ai or <a href="#running-locally">run it locally</a>.
 <br>
-
+<br>
+<img height="480" src="https://github.com/openpipe/openpipe/assets/41524992/eaa8b92d-4536-4f63-bbef-4b0b1a60f6b5" alt="fine-tune demo">
 
 ## Features
 
- * <b>Experiment</b>
-   * Compare models and prompts against one another.
-   * Bulk-test wide-reaching scenarios using code templating.
-   * Autogenerate scenarios for fresh test perspectives.
+- Easy integration with OpenAI's SDK in both Python and TypeScript.
+  - [Python SDK](https://pypi.org/project/openpipe/)
+  - [Typescript SDK](https://www.npmjs.com/package/openpipe)
+- Fine-tune GPT 3.5, Mistral, and Llama 2 models, host on-platform or download the weights.
+  - Model output is OpenAI-compatible.
+  - Switching from GPT 4 to a fine-tuned Mistral model only requires changing the model name.
+- Swiftly query logs using intuitive built-in filters.
+- Import datasets in OpenAI-compatible JSONL files
+- Prune large chunks of duplicate text like system prompts.
+- Compare output accuracy against base models like gpt-3.5-turbo
 
- * <b>Fine-Tune (Beta)</b>
-   * Easy integration with OpenPipe's SDK in both Python and JS.
-   * Swiftly query logs using intuitive built-in filters.
-   * Prune large chunks of duplicate text like system prompts.
-   * Fine-tune GPT 3.5 and Llama 2 models, host on-platform or download the weights.
-   
-<img src="https://github.com/openpipe/openpipe/assets/41524992/eaa8b92d-4536-4f63-bbef-4b0b1a60f6b5" alt="fine-tune demo">
+## Supported Base Models
 
-<!-- <img height="400px" src="https://github.com/openpipe/openpipe/assets/41524992/66bb1843-cb72-4130-a369-eec2df3b8201" alt="playground demo"> -->
+- mistral-7b
+- llama-2-7b
+- llama-2-13b
+- gpt-3.5-turbo
 
+## Documentation
 
-## Sample Experiments
-
-These are sample experiments users have created that show how OpenPipe works. Feel free to fork them and start experimenting yourself.
-
-- [Twitter Sentiment Analysis](https://app.openpipe.ai/experiments/62c20a73-2012-4a64-973c-4b665ad46a57)
-- [Reddit User Needs](https://app.openpipe.ai/experiments/22222222-2222-2222-2222-222222222222)
-- [OpenAI Function Calls](https://app.openpipe.ai/experiments/2ebbdcb3-ed51-456e-87dc-91f72eaf3e2b)
-- [Activity Classification](https://app.openpipe.ai/experiments/3950940f-ab6b-4b74-841d-7e9dbc4e4ff8)
-
-## Supported Models
-
-#### OpenAI
-  - [GPT 3.5 Turbo](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
-  - [GPT 3.5 Turbo 16k](https://platform.openai.com/docs/guides/gpt/chat-completions-api)
-  - [GPT 4](https://openai.com/gpt-4)
-#### Llama2
-  - [7b chat](https://replicate.com/a16z-infra/llama7b-v2-chat)
-  - [13b chat](https://replicate.com/a16z-infra/llama13b-v2-chat)
-  - [70b chat](https://replicate.com/replicate/llama70b-v2-chat)
-#### Llama2 Fine-Tunes
-  - [Open-Orca/OpenOrcaxOpenChat-Preview2-13B](https://huggingface.co/Open-Orca/OpenOrcaxOpenChat-Preview2-13B)
-  - [Open-Orca/OpenOrca-Platypus2-13B](https://huggingface.co/Open-Orca/OpenOrca-Platypus2-13B)
-  - [NousResearch/Nous-Hermes-Llama2-13b](https://huggingface.co/NousResearch/Nous-Hermes-Llama2-13b)
-  - [jondurbin/airoboros-l2-13b-gpt4-2.0](https://huggingface.co/jondurbin/airoboros-l2-13b-gpt4-2.0)
-  - [lmsys/vicuna-13b-v1.5](https://huggingface.co/lmsys/vicuna-13b-v1.5)
-  - [Gryphe/MythoMax-L2-13b](https://huggingface.co/Gryphe/MythoMax-L2-13b)
-  - [NousResearch/Nous-Hermes-llama-2-7b](https://huggingface.co/NousResearch/Nous-Hermes-llama-2-7b)
-#### Anthropic
-  - [Claude 1 Instant](https://www.anthropic.com/index/introducing-claude)
-  - [Claude 2](https://www.anthropic.com/index/claude-2)
+- See [docs](https://docs.openpipe.ai/introduction)
 
 ## Running Locally
 
