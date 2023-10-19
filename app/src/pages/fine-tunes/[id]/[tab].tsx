@@ -26,7 +26,7 @@ export default function FineTune() {
   const { slug } = fineTune.data;
 
   return (
-    <AppShell title={`openpipe:${slug}`} requireBeta>
+    <AppShell title={`openpipe:${slug}`}>
       <VStack h="full" overflowY="scroll">
         <PageHeaderContainer>
           <Breadcrumb>
