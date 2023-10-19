@@ -195,8 +195,8 @@ importers:
         specifier: 4.8.0
         version: 4.8.0(encoding@0.1.13)
       openpipe:
-        specifier: 0.4.6
-        version: 0.4.6
+        specifier: 0.5.1
+        version: 0.5.1
       openpipe-dev:
         specifier: workspace:^
         version: link:../client-libs/typescript
@@ -3532,9 +3532,6 @@ packages:
   /@types/node@18.16.0:
     resolution: {integrity: sha512-BsAaKhB+7X+H4GnSjGhJG9Qi8Tw+inU9nJDwmD5CgOmBLEI6ArdhikpLX7DjbjDRDTbqZzU2LSQNZg8WGPiSZQ==}
 
-  /@types/node@18.18.6:
-    resolution: {integrity: sha512-wf3Vz+jCmOQ2HV1YUJuCWdL64adYxumkrxtc+H1VUQlnQI04+5HtH+qZCOE21lBE7gIrt+CwX2Wv8Acrw5Ak6w==}
-
   /@types/node@20.4.10:
     resolution: {integrity: sha512-vwzFiiy8Rn6E0MtA13/Cxxgpan/N6UeNYR9oUu6kuJWxu6zCk98trcDp8CBhbtaeuq9SykCmXkFr2lWLoPcvLg==}
 
@@ -4450,7 +4447,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001551
-      electron-to-chromium: 1.4.560
+      electron-to-chromium: 1.4.561
       node-releases: 2.0.13
       update-browserslist-db: 1.0.13(browserslist@4.22.1)
 
@@ -5231,8 +5228,8 @@ packages:
   /electron-to-chromium@1.4.490:
     resolution: {integrity: sha512-6s7NVJz+sATdYnIwhdshx/N/9O6rvMxmhVoDSDFdj6iA45gHR8EQje70+RYsF4GeB+k0IeNSBnP7yG9ZXJFr7A==}
 
-  /electron-to-chromium@1.4.560:
-    resolution: {integrity: sha512-HhJH/pWAxTaPZl7R3mJ6gCd8MfjQdil9RAWk84qHaLsmPTadydfAmq0a1x8kZtOGQ6pZrWhOYj5uZ8I0meZIgg==}
+  /electron-to-chromium@1.4.561:
+    resolution: {integrity: sha512-eS5t4ulWOBfVHdq9SW2dxEaFarj1lPjvJ8PaYMOjY0DecBaj/t4ARziL2IPpDr4atyWwjLFGQ2vo/VCgQFezVQ==}
 
   /emoji-regex@10.2.1:
     resolution: {integrity: sha512-97g6QgOk8zlDRdgq1WxwgTMgEWGVAQvB5Fdpgc1MkNy56la5SKP9GsMXKDOdqwn90/41a8yPwIGk1Y6WVbeMQA==}
@@ -6936,7 +6933,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 18.18.6
+      '@types/node': 20.4.10
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -7952,8 +7949,8 @@ packages:
       oidc-token-hash: 5.0.3
     dev: false
 
-  /openpipe@0.4.6:
-    resolution: {integrity: sha512-hqCgMVGx4BfwOVmymxswCorshf7Vrhl2mBKh2GmIEexu+gTKxyxIZe3YHXPXsfectLRUz1PJPs3eF2r3iUPtJw==}
+  /openpipe@0.5.1:
+    resolution: {integrity: sha512-7kXo0h3eVwHMjpcEU3Vo3ng39Y//pkBqQtfzhj+wMfa0ifSCfkPCF4tOgtCIxvc7EChqOOd8O5S62aP4Ti2Hhg==}
     dependencies:
       encoding: 0.1.13
       form-data: 4.0.0

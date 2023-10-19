@@ -8,6 +8,10 @@ description: "Our SDK wraps calls and forwards requests"
 Streamed requests won't have any added latency. The SDK forwards each streamed token as it's received from the server while
 simultaneously collecting it in the response it will report to your OpenPipe instance once the entire response has been received.
 
+### Can I disable reporting for sensitive data within the SDK?
+
+Yes, you can disable reporting calls at any time. See [Installing the SDK](/getting-started/openpipe-sdk) for more details.
+
 #### Your OpenAI key never leaves your machine.
 
 Calls to OpenAI are carried out by our SDK **on your machine**, meaning that your API key is secure, and you'll

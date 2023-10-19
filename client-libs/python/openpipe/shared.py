@@ -21,7 +21,7 @@ if os.environ.get("OPENPIPE_API_KEY"):
 def _get_tags(openpipe_options):
     tags = openpipe_options.get("tags") or {}
     tags["$sdk"] = "python"
-    tags["$sdk.version"] = pkg_resources.get_distribution('openpipe').version
+    tags["$sdk.version"] = pkg_resources.get_distribution("openpipe").version
 
     return ReportJsonBodyTags.from_dict(tags)
 
@@ -99,10 +99,20 @@ async def maybe_check_cache_async(
         return None
 
 
+def _should_log_request(openpipe_options={}):
+    if configured_client.token == "":
+        return False
+
+    return openpipe_options.get("log_request", True)
+
+
 def report(
     openpipe_options={},
     **kwargs,
 ):
+    if not _should_log_request(openpipe_options):
+        return
+
     try:
         api_report.sync_detailed(
             client=configured_client,
@@ -121,6 +131,9 @@ async def report_async(
     openpipe_options={},
     **kwargs,
 ):
+    if not _should_log_request(openpipe_options):
+        return
+
     try:
         await api_report.asyncio_detailed(
             client=configured_client,

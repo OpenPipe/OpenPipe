@@ -9,7 +9,7 @@ export type OpenPipeConfig = {
 };
 
 export type OpenPipeArgs = {
-  openpipe?: { cache?: boolean; tags?: Record<string, string> };
+  openpipe?: { cache?: boolean; tags?: Record<string, string>; logRequest?: boolean };
 };
 
 export type OpenPipeMeta = {

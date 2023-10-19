@@ -110,9 +110,10 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     options?: Core.RequestOptions,
   ): Core.APIPromise<Stream<ChatCompletionChunk> | ChatCompletion>;
   async create(
-    { openpipe, ...body }: ChatCompletionCreateParams & OpenPipeArgs,
+    { openpipe: rawOpenpipe, ...body }: ChatCompletionCreateParams & OpenPipeArgs,
     options?: Core.RequestOptions,
   ): Promise<Core.APIPromise<(ChatCompletion & { openpipe: OpenPipeMeta }) | WrappedStream>> {
+    const openpipe = { logRequest: true, ...rawOpenpipe };
     const requestedAt = Date.now();
     let reportingFinished: OpenPipeMeta["reportingFinished"] = Promise.resolve();
     let cacheRequested = openpipe?.cache ?? false;
@@ -151,38 +152,36 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     try {
       if (body.stream) {
         const stream = await this._create(body, options);
-        let wrappedStream;
         try {
-          wrappedStream = new WrappedStream(stream, (response) =>
-            this._report({
+          return new WrappedStream(stream, (response) => {
+            if (!openpipe.logRequest) return Promise.resolve();
+            return this._report({
               requestedAt,
               receivedAt: Date.now(),
               reqPayload: body,
               respPayload: response,
               statusCode: 200,
               tags: getTags(openpipe),
-            }),
-          );
+            });
+          });
         } catch (e) {
           console.error("OpenPipe: error creating wrapped stream");
           console.error(e);
           throw e;
         }
-
-        // Do some logging of each chunk here
-
-        return wrappedStream;
       } else {
         const response = await this._create(body, options);
 
-        reportingFinished = this._report({
-          requestedAt,
-          receivedAt: Date.now(),
-          reqPayload: body,
-          respPayload: response,
-          statusCode: 200,
-          tags: getTags(openpipe),
-        });
+        reportingFinished = openpipe.logRequest
+          ? this._report({
+              requestedAt,
+              receivedAt: Date.now(),
+              reqPayload: body,
+              respPayload: response,
+              statusCode: 200,
+              tags: getTags(openpipe),
+            })
+          : Promise.resolve();
         return {
           ...response,
           openpipe: {
