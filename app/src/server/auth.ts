@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
     signIn({ user, profile, isNewUser }) {
       Sentry.setUser({ id: user.id });
       if (isNewUser) {
-        captureSignup(user, (profile as Profile & { username: string }).username);
+        captureSignup(user, (profile as Profile & { gitHubUsername: string }).gitHubUsername);
       }
     },
     signOut() {
@@ -74,7 +74,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name ?? profile.login,
           email: profile.email,
           image: profile.avatar_url,
-          username: profile.login,
+          gitHubUsername: profile.login,
         };
       },
     }),
