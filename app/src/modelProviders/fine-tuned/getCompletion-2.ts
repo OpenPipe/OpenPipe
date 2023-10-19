@@ -23,10 +23,14 @@ export async function getCompletion2(
 
     if (!model) throw new Error("No OpenAI model ID found");
 
-    return getOpenaiCompletion(fineTune.projectId, {
+    const completion = await getOpenaiCompletion(fineTune.projectId, {
       ...prunedInput,
       model,
     });
+    return {
+      ...completion,
+      model: input.model,
+    };
   } else {
     return getModalCompletion(fineTune, prunedInput);
   }
