@@ -633,7 +633,7 @@ model UsageLog {
 
     createdAt DateTime @default(now())
 
-    @@index([fineTuneId, createdAt])
+    @@index([fineTuneId, createdAt, type])
 }
 
 // enum FineTuneLogEntryType {

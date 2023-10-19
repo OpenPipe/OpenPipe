@@ -15,7 +15,7 @@ CREATE TABLE "UsageLog" (
 );
 
 -- CreateIndex
-CREATE INDEX "UsageLog_fineTuneId_createdAt_idx" ON "UsageLog"("fineTuneId", "createdAt");
+CREATE INDEX "UsageLog_fineTuneId_createdAt_type_idx" ON "UsageLog"("fineTuneId", "createdAt", "type");
 
 -- AddForeignKey
 ALTER TABLE "UsageLog" ADD CONSTRAINT "UsageLog_fineTuneId_fkey" FOREIGN KEY ("fineTuneId") REFERENCES "FineTune"("id") ON DELETE CASCADE ON UPDATE CASCADE;
