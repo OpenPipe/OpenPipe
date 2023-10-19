@@ -154,7 +154,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
         const stream = await this._create(body, options);
         try {
           return new WrappedStream(stream, (response) => {
-            if (!openpipe?.logRequest) return Promise.resolve();
+            if (!openpipe.logRequest) return Promise.resolve();
             return this._report({
               requestedAt,
               receivedAt: Date.now(),
@@ -172,7 +172,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
       } else {
         const response = await this._create(body, options);
 
-        reportingFinished = openpipe?.logRequest
+        reportingFinished = openpipe.logRequest
           ? this._report({
               requestedAt,
               receivedAt: Date.now(),

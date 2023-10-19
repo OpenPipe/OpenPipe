@@ -49,7 +49,10 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 completion = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "system", "content": "count to 10"}],
-    openpipe={"tags": {"prompt_id": "counting", "any_key": "any_value"}},
+    openpipe={
+      "tags": {"prompt_id": "counting", "any_key": "any_value"},
+      "log_request": True # Enable/disable data collection. Defaults to True.
+    },
 )
 
 ```
@@ -106,6 +109,7 @@ const completion = await openai.chat.completions.create({
       prompt_id: "counting",
       any_key: "any_value",
     },
+    logRequest: true, // Enable/disable data collection. Defaults to true.
   },
 });
 ```

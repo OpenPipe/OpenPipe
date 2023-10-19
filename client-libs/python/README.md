@@ -36,6 +36,9 @@ OpenPipe has a concept of "tagging." This is very useful for grouping a certain 
 completion = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "system", "content": "count to 10"}],
-    openpipe={"tags": {"prompt_id": "counting"}},
+    openpipe={
+        "tags": {"prompt_id": "counting"},
+        "log_request": True, # defaults to True
+    },
 )
 ```
