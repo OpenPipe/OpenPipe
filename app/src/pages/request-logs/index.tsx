@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, VStack, HStack, Box, IconButton, Icon } from "@chakra-ui/react";
+import { Text, VStack, HStack, Box, IconButton, Icon, keyframes } from "@chakra-ui/react";
 import { BiRefresh } from "react-icons/bi";
 import { FiFilter } from "react-icons/fi";
 
@@ -12,11 +12,19 @@ import ColumnVisibilityDropdown from "~/components/requestLogs/ColumnVisibilityD
 import ExportButton from "~/components/requestLogs/ExportButton";
 import AddToDatasetButton from "~/components/requestLogs/AddToDatasetButton";
 import { api } from "~/utils/api";
+import { useLoggedCalls } from "~/utils/hooks";
+
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
 
 export default function LoggedCalls() {
   const [filtersShown, setFiltersShown] = useState(true);
 
   const utils = api.useContext();
+
+  const { isFetching } = useLoggedCalls(true);
 
   return (
     <AppShell title="Request Logs" requireAuth>
@@ -29,7 +37,14 @@ export default function LoggedCalls() {
             <IconButton
               aria-label="Refresh logs"
               variant="ghost"
-              icon={<Icon as={BiRefresh} boxSize={8} color="gray.400" />}
+              icon={
+                <Icon
+                  as={BiRefresh}
+                  boxSize={8}
+                  color="gray.400"
+                  animation={isFetching ? `${spin} 1s linear infinite` : undefined}
+                />
+              }
               onClick={() => void utils.loggedCalls.list.invalidate()}
             />
           </HStack>

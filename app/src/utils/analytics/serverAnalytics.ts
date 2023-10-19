@@ -77,6 +77,7 @@ export const captureSignup = (user: User, gitHubUsername: string) => {
     properties: {
       name: user.name,
       email: user.email,
+      encodedEmail: encodeURIComponent(user.email ?? ""),
       gitHubUsername,
     },
   });

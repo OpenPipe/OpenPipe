@@ -194,7 +194,7 @@ export const useDatasetEntries = () => {
   const dataset = useDataset().data;
   const { page, pageSize } = usePageParams();
 
-  const { data, isLoading, ...rest } = api.datasetEntries.list.useQuery(
+  const { data, isFetching, ...rest } = api.datasetEntries.list.useQuery(
     { datasetId: dataset?.id ?? "", page, pageSize },
     { enabled: !!dataset?.id },
   );
@@ -203,12 +203,12 @@ export const useDatasetEntries = () => {
 
   useEffect(() => {
     // Prevent annoying flashes while logs are loading from the server
-    if (!isLoading) {
+    if (!isFetching) {
       setStableData(data);
     }
-  }, [data, isLoading]);
+  }, [data, isFetching]);
 
-  return { data: stableData, isLoading, ...rest };
+  return { data: stableData, isFetching, ...rest };
 };
 
 export const useDatasetEntry = (entryId: string | null) => {
@@ -219,7 +219,7 @@ export const useTrainingEntries = () => {
   const fineTune = useFineTune().data;
   const { page, pageSize } = usePageParams();
 
-  const { data, isLoading, ...rest } = api.datasetEntries.listTrainingEntries.useQuery(
+  const { data, isFetching, ...rest } = api.datasetEntries.listTrainingEntries.useQuery(
     { fineTuneId: fineTune?.id ?? "", page, pageSize },
     { enabled: !!fineTune?.id },
   );
@@ -228,12 +228,12 @@ export const useTrainingEntries = () => {
 
   useEffect(() => {
     // Prevent annoying flashes while logs are loading from the server
-    if (!isLoading) {
+    if (!isFetching) {
       setStableData(data);
     }
-  }, [data, isLoading]);
+  }, [data, isFetching]);
 
-  return { data: stableData, isLoading, ...rest };
+  return { data: stableData, isFetching, ...rest };
 };
 
 export const useTestingEntries = (refetchInterval?: number) => {
@@ -242,7 +242,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
 
   const { sortModelSlug, sortOrder } = useTestEntrySortOrder();
 
-  const { data, isLoading, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
+  const { data, isFetching, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
     {
       datasetId: dataset?.id || "",
       page,
@@ -256,12 +256,12 @@ export const useTestingEntries = (refetchInterval?: number) => {
 
   useEffect(() => {
     // Prevent annoying flashes while entries are loading from the server
-    if (!isLoading) {
+    if (!isFetching) {
       setStableData(data);
     }
-  }, [data, isLoading]);
+  }, [data, isFetching]);
 
-  return { data: stableData, isLoading, ...rest };
+  return { data: stableData, isFetching, ...rest };
 };
 
 export const useModelTestingStats = (
@@ -281,7 +281,7 @@ export const useLoggedCalls = (applyFilters = true) => {
   const filters = useAppStore((state) => state.logFilters.filters);
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
-  const { data, isLoading, ...rest } = api.loggedCalls.list.useQuery(
+  const { data, isFetching, ...rest } = api.loggedCalls.list.useQuery(
     { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? filters : [] },
     { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
   );
@@ -290,13 +290,13 @@ export const useLoggedCalls = (applyFilters = true) => {
 
   useEffect(() => {
     // Prevent annoying flashes while logs are loading from the server
-    if (!isLoading) {
+    if (!isFetching) {
       setStableData(data);
       setMatchingLogsCount(data?.count ?? 0);
     }
-  }, [data, isLoading, setMatchingLogsCount]);
+  }, [data, isFetching, setMatchingLogsCount]);
 
-  return { data: stableData, isLoading, ...rest };
+  return { data: stableData, isFetching, ...rest };
 };
 
 export const useTotalNumLogsSelected = () => {
