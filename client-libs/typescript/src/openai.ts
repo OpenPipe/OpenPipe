@@ -151,38 +151,36 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     try {
       if (body.stream) {
         const stream = await this._create(body, options);
-        let wrappedStream;
         try {
-          wrappedStream = new WrappedStream(stream, (response) =>
-            this._report({
+          return new WrappedStream(stream, (response) => {
+            if (openpipe?.skipReporting) return Promise.resolve();
+            return this._report({
               requestedAt,
               receivedAt: Date.now(),
               reqPayload: body,
               respPayload: response,
               statusCode: 200,
               tags: getTags(openpipe),
-            }),
-          );
+            });
+          });
         } catch (e) {
           console.error("OpenPipe: error creating wrapped stream");
           console.error(e);
           throw e;
         }
-
-        // Do some logging of each chunk here
-
-        return wrappedStream;
       } else {
         const response = await this._create(body, options);
 
-        reportingFinished = this._report({
-          requestedAt,
-          receivedAt: Date.now(),
-          reqPayload: body,
-          respPayload: response,
-          statusCode: 200,
-          tags: getTags(openpipe),
-        });
+        reportingFinished = openpipe?.skipReporting
+          ? Promise.resolve()
+          : this._report({
+              requestedAt,
+              receivedAt: Date.now(),
+              reqPayload: body,
+              respPayload: response,
+              statusCode: 200,
+              tags: getTags(openpipe),
+            });
         return {
           ...response,
           openpipe: {
