@@ -539,7 +539,6 @@ model FineTune {
     status               FineTuneStatus @default(PENDING)
     errorMessage         String?
     trainingBlobName     String?
-    trainingTokensUsed   Int?
     trainingStartedAt    DateTime?
     trainingFinishedAt   DateTime?
     deploymentStartedAt  DateTime?

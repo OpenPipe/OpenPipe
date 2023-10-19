@@ -102,16 +102,11 @@ const trainModalFineTune = async (fineTuneId: string) => {
 
   try {
     const resp = await trainerv1.default.startTraining(fineTuneId, callbackBaseUrl);
-    const trainingTokensUsed = trainingRows.reduce(
-      (acc, row) => acc + countLlamaChatTokens(row.instruction) + countLlamaChatTokens(row.output),
-      0,
-    );
     await prisma.fineTune.update({
       where: { id: fineTuneId },
       data: {
         status: "TRAINING",
         trainingStartedAt: new Date(),
-        trainingTokensUsed,
         modalTrainingJobId: resp.call_id,
       },
     });
