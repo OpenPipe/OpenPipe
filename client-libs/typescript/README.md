@@ -48,7 +48,7 @@ async function main() {
         prompt_id: "getCompletion",
         any_key: "any_value",
       },
-      logRequest: true, // defaults to true
+      logRequest: true, // Enable/disable data collection. Defaults to true.
     },
   });
 

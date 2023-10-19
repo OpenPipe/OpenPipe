@@ -38,7 +38,7 @@ completion = openai.ChatCompletion.create(
     messages=[{"role": "system", "content": "count to 10"}],
     openpipe={
         "tags": {"prompt_id": "counting"},
-        "log_request": True, # defaults to True
+        "log_request": True, # Enable/disable data collection. Defaults to True.
     },
 )
 ```
