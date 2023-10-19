@@ -170,7 +170,6 @@ export const v1ApiRouter = createOpenApiRouter({
         await prisma.usageLog.create({
           data: {
             fineTuneId: fineTune.id,
-            type: UsageType.INFERENCE,
             inputTokens,
             outputTokens,
             cost: calculateFineTuneUsageCost({

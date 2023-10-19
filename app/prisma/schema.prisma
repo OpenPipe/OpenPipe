@@ -539,6 +539,7 @@ model FineTune {
     status               FineTuneStatus @default(PENDING)
     errorMessage         String?
     trainingBlobName     String?
+    trainingTokensUsed   Int?
     trainingStartedAt    DateTime?
     trainingFinishedAt   DateTime?
     deploymentStartedAt  DateTime?
@@ -615,19 +616,12 @@ model FineTuneTestingEntry {
     @@index([cacheKey])
 }
 
-enum UsageType {
-    TRAINING
-    INFERENCE
-}
-
 model UsageLog {
     id String @id @default(uuid()) @db.Uuid
 
-    type           UsageType
-    trainingTokens Int?
-    inputTokens    Int?
-    outputTokens   Int?
-    cost           Float
+    inputTokens  Int
+    outputTokens Int
+    cost         Float
 
     fineTuneId String   @db.Uuid
     fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)

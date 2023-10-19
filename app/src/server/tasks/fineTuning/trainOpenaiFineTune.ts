@@ -1,9 +1,11 @@
 import fs from "fs";
 import OpenAI from "openai";
+import { type ChatCompletionMessageParam } from "openai/resources/chat";
 
 import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "~/server/db";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { countOpenAIChatTokens } from "~/utils/countTokens";
 
 export const trainOpenaiFineTune = async (fineTuneId: string) => {
   const fineTune = await prisma.fineTune.findUnique({
@@ -91,9 +93,17 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
       model: "gpt-3.5-turbo",
     });
 
+    const trainingTokensUsed = trainingEntries.reduce(
+      (acc, row) =>
+        acc +
+        countOpenAIChatTokens("gpt-3.5-turbo-0613", row.messages as ChatCompletionMessageParam[]),
+      0,
+    );
+
     await prisma.fineTune.update({
       where: { id: fineTuneId },
       data: {
+        trainingTokensUsed,
         openaiTrainingJobId: fineTuneJob.id,
       },
     });

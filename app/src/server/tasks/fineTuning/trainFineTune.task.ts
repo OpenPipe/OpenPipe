@@ -9,6 +9,7 @@ import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
+import { countLlamaChatTokens } from "~/utils/countTokens";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
@@ -101,11 +102,16 @@ const trainModalFineTune = async (fineTuneId: string) => {
 
   try {
     const resp = await trainerv1.default.startTraining(fineTuneId, callbackBaseUrl);
+    const trainingTokensUsed = trainingRows.reduce(
+      (acc, row) => acc + countLlamaChatTokens(row.instruction) + countLlamaChatTokens(row.output),
+      0,
+    );
     await prisma.fineTune.update({
       where: { id: fineTuneId },
       data: {
         status: "TRAINING",
         trainingStartedAt: new Date(),
+        trainingTokensUsed,
         modalTrainingJobId: resp.call_id,
       },
     });
