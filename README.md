@@ -46,6 +46,8 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 
 ## Supported Base Models
 
+To fine-tune Mistral and Llama 2 models in the hosted app, [join the waitlist](https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc).
+
 - mistral-7b
 - llama-2-7b
 - llama-2-13b
