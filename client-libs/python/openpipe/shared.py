@@ -99,18 +99,18 @@ async def maybe_check_cache_async(
         return None
 
 
-def _should_skip_reporting(openpipe_options):
+def _should_log_request(openpipe_options={}):
     if configured_client.token == "":
-        return True
+        return False
 
-    return openpipe_options.get("skip_reporting", False)
+    return openpipe_options.get("log_request", True)
 
 
 def report(
     openpipe_options={},
     **kwargs,
 ):
-    if _should_skip_reporting(openpipe_options):
+    if not _should_log_request(openpipe_options):
         return
 
     try:
@@ -131,7 +131,7 @@ async def report_async(
     openpipe_options={},
     **kwargs,
 ):
-    if _should_skip_reporting(openpipe_options):
+    if not _should_log_request(openpipe_options):
         return
 
     try:

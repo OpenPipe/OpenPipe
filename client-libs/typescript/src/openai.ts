@@ -110,9 +110,10 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     options?: Core.RequestOptions,
   ): Core.APIPromise<Stream<ChatCompletionChunk> | ChatCompletion>;
   async create(
-    { openpipe, ...body }: ChatCompletionCreateParams & OpenPipeArgs,
+    { openpipe: rawOpenpipe, ...body }: ChatCompletionCreateParams & OpenPipeArgs,
     options?: Core.RequestOptions,
   ): Promise<Core.APIPromise<(ChatCompletion & { openpipe: OpenPipeMeta }) | WrappedStream>> {
+    const openpipe = { logRequest: true, ...rawOpenpipe };
     const requestedAt = Date.now();
     let reportingFinished: OpenPipeMeta["reportingFinished"] = Promise.resolve();
     let cacheRequested = openpipe?.cache ?? false;
@@ -153,7 +154,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
         const stream = await this._create(body, options);
         try {
           return new WrappedStream(stream, (response) => {
-            if (openpipe?.skipReporting) return Promise.resolve();
+            if (!openpipe?.logRequest) return Promise.resolve();
             return this._report({
               requestedAt,
               receivedAt: Date.now(),
@@ -171,16 +172,16 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
       } else {
         const response = await this._create(body, options);
 
-        reportingFinished = openpipe?.skipReporting
-          ? Promise.resolve()
-          : this._report({
+        reportingFinished = openpipe?.logRequest
+          ? this._report({
               requestedAt,
               receivedAt: Date.now(),
               reqPayload: body,
               respPayload: response,
               statusCode: 200,
               tags: getTags(openpipe),
-            });
+            })
+          : Promise.resolve();
         return {
           ...response,
           openpipe: {
