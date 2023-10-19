@@ -15,6 +15,28 @@ export const displayBaseModel = (baseModel: BaseModel) => {
   }
 };
 
+const BASE_MODEL_PRICES: Record<BaseModel, { training: number; input: number; output: number }> = {
+  MISTRAL_7b: { training: 0.000004, input: 0.0000012, output: 0.0000016 },
+  LLAMA2_7b: { training: 0.000004, input: 0.0000012, output: 0.0000016 },
+  LLAMA2_13b: { training: 0.000008, input: 0.0000024, output: 0.0000032 },
+  GPT_3_5_TURBO: { training: 0.000008, input: 0.000012, output: 0.000016 },
+};
+
+export const calculateFineTuneUsageCost = ({
+  trainingTokens = 0,
+  inputTokens = 0,
+  outputTokens = 0,
+  baseModel,
+}: {
+  trainingTokens?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  baseModel: BaseModel;
+}) => {
+  const { training, input, output } = BASE_MODEL_PRICES[baseModel];
+  return training * trainingTokens + input * inputTokens + output * outputTokens;
+};
+
 export const isComparisonModel = (modelId: string) =>
   ComparisonModel[modelId as keyof typeof ComparisonModel] !== undefined;
 
