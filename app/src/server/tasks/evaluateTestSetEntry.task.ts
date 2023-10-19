@@ -1,4 +1,4 @@
-import { type ComparisonModel, type Prisma } from "@prisma/client";
+import { UsageType, type ComparisonModel, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 
 import { prisma } from "~/server/db";
@@ -8,7 +8,11 @@ import { pruneInputMessages, getStringsToPrune } from "~/modelProviders/fine-tun
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
-import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/baseModels";
+import {
+  COMPARISON_MODEL_NAMES,
+  calculateFineTuneUsageCost,
+  isComparisonModel,
+} from "~/utils/baseModels";
 import { getOpenaiCompletion } from "../utils/openai";
 
 export type EvaluateTestSetEntryJob = {
@@ -121,6 +125,24 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           datasetEntry.output.function_call,
           completionMessage.function_call,
         );
+      }
+
+      if (fineTune) {
+        const inputTokens = completion.usage?.prompt_tokens ?? 0;
+        const outputTokens = completion.usage?.completion_tokens ?? 0;
+        await prisma.usageLog.create({
+          data: {
+            fineTuneId: fineTune.id,
+            type: UsageType.TESTING,
+            inputTokens,
+            outputTokens,
+            cost: calculateFineTuneUsageCost({
+              inputTokens,
+              outputTokens,
+              baseModel: fineTune.baseModel,
+            }),
+          },
+        });
       }
 
       await prisma.fineTuneTestingEntry.update({

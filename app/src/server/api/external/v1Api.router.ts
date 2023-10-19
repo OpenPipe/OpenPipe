@@ -1,4 +1,4 @@
-import { type Prisma } from "@prisma/client";
+import { UsageType, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
@@ -170,6 +170,7 @@ export const v1ApiRouter = createOpenApiRouter({
         await prisma.usageLog.create({
           data: {
             fineTuneId: fineTune.id,
+            type: UsageType.EXTERNAL,
             inputTokens,
             outputTokens,
             cost: calculateFineTuneUsageCost({
@@ -177,7 +178,6 @@ export const v1ApiRouter = createOpenApiRouter({
               outputTokens,
               baseModel: fineTune.baseModel,
             }),
-            completionId: completion.id,
           },
         });
         return completion;

@@ -615,12 +615,18 @@ model FineTuneTestingEntry {
     @@index([cacheKey])
 }
 
+enum UsageType {
+    TESTING
+    EXTERNAL
+}
+
 model UsageLog {
     id String @id @default(uuid()) @db.Uuid
 
     inputTokens  Int
     outputTokens Int
     cost         Float
+    type         UsageType @default(EXTERNAL)
 
     fineTuneId String   @db.Uuid
     fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
