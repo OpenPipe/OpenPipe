@@ -13,7 +13,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma, kysely } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
-import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
+import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import hashObject from "~/server/utils/hashObject";
 import { type JsonValue } from "type-fest";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
@@ -30,6 +30,7 @@ import {
   isComparisonModelName,
 } from "~/utils/baseModels";
 import { SortOrder } from "~/types/shared.types";
+import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -225,11 +226,11 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(projectId, ctx);
 
-      const baseQuery = constructFiltersQuery(input.filters, projectId, {
-        defaultToSelected: input.defaultToSelected,
-        selectedLogIds: input.selectedLogIds,
-        deselectedLogIds: input.deselectedLogIds,
-      });
+      const baseQuery = constructFiltersQuery(
+        input.filters,
+        projectId,
+        pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
+      );
 
       const loggedCallIds = (await baseQuery.select(["lc.id"]).execute()).map((row) => row.id);
 
@@ -302,6 +303,8 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await startDatasetTestJobs(datasetId);
 
+      await countDatasetEntryTokens.enqueue();
+
       return success(datasetId);
     }),
   update: protectedProcedure
@@ -333,9 +336,6 @@ export const datasetEntriesRouter = createTRPCRouter({
       let inputTokens = undefined;
       if (input.updates.input) {
         parsedInput = JSON.parse(input.updates.input);
-        inputTokens = countLlamaChatTokensInMessages(
-          parsedInput as unknown as ChatCompletionMessageParam[],
-        );
       }
 
       let parsedOutput = undefined;
@@ -343,9 +343,6 @@ export const datasetEntriesRouter = createTRPCRouter({
       // The client might send "null" as a string, so we need to check for that
       if (input.updates.output && input.updates.output !== "null") {
         parsedOutput = JSON.parse(input.updates.output);
-        outputTokens = countLlamaChatTokensInMessages([
-          parsedOutput as unknown as ChatCompletionMessageParam,
-        ]);
       }
 
       const prevEntry = await prisma.datasetEntry.update({
@@ -362,14 +359,18 @@ export const datasetEntriesRouter = createTRPCRouter({
         },
       });
 
+      const fieldsForTokenCounting = typedDatasetEntry({
+        messages: parsedInput ?? prevEntry.messages,
+        functions: prevEntry.functions ?? undefined,
+        function_call: prevEntry.function_call ?? undefined,
+        output: parsedOutput ?? prevEntry.output,
+      });
+
       const newEntry = await prisma.datasetEntry.create({
         data: {
-          messages: parsedInput ?? prevEntry.messages,
-          functions: prevEntry.functions ?? undefined,
-          function_call: prevEntry.function_call ?? undefined,
-          output: parsedOutput ?? prevEntry.output,
-          inputTokens: inputTokens ?? prevEntry.inputTokens,
-          outputTokens: outputTokens ?? prevEntry.outputTokens,
+          ...fieldsForTokenCounting,
+          inputTokens: countLlamaInputTokens(fieldsForTokenCounting),
+          outputTokens: countLlamaOutputTokens(fieldsForTokenCounting.output),
           type: input.updates.type ?? prevEntry.type,
           datasetId: prevEntry.datasetId,
           sortKey: prevEntry.sortKey,

@@ -6,7 +6,7 @@ import { type ModelProvider } from "../types";
 import inputSchema from "../openai-ChatCompletion/codegen/input.schema.json";
 import { getExperimentsCompletion } from "./getCompletion";
 import frontendModelProvider from "./frontend";
-import { countLlamaChatTokensInMessages } from "~/utils/countTokens";
+import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import { truthyFilter } from "~/utils/utils";
 
 export type FineTunedModelProvider = ModelProvider<
@@ -55,9 +55,9 @@ const modelProvider: FineTunedModelProvider = {
       inputTokens = output.usage.prompt_tokens;
       outputTokens = output.usage.completion_tokens;
     } else {
-      inputTokens = countLlamaChatTokensInMessages(input.messages);
+      inputTokens = countLlamaInputTokens(input);
       outputTokens = output
-        ? countLlamaChatTokensInMessages(output.choices.map((c) => c.message).filter(truthyFilter))
+        ? output.choices.map((c) => countLlamaOutputTokens(c.message)).reduce((a, b) => a + b)
         : 0;
     }
 

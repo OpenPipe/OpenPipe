@@ -33,8 +33,11 @@ export const TableHeader = () => {
               }}
             />
             <Text>
-              ({selectedDatasetEntryIds.size ? `${selectedDatasetEntryIds.size}/` : ""}
-              {matchingDatasetEntryIds?.length || 0})
+              (
+              {selectedDatasetEntryIds.size
+                ? `${selectedDatasetEntryIds.size.toLocaleString()}/`
+                : ""}
+              {(matchingDatasetEntryIds?.length || 0).toLocaleString()})
             </Text>
           </HStack>
         </Th>

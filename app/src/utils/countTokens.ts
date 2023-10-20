@@ -1,8 +1,13 @@
-import { type ChatCompletionMessageParam } from "openai/resources/chat";
+import {
+  ChatCompletionCreateParams,
+  ChatCompletionMessage,
+  type ChatCompletionMessageParam,
+} from "openai/resources/chat";
 import { GPTTokens } from "gpt-tokens";
 import llamaTokenizer from "llama-tokenizer-js";
 
 import { type SupportedModel } from "~/modelProviders/openai-ChatCompletion";
+import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
 
 interface GPTTokensMessageItem {
   name?: string;
@@ -25,14 +30,10 @@ export const countOpenAIChatTokens = (
   }).usedTokens;
 };
 
-export const countLlamaChatTokensInMessages = (messages: ChatCompletionMessageParam[]) => {
-  const stringToTokenize = messages
-    .map((message) => message.content || JSON.stringify(message.function_call))
-    .join("\n");
-  return countLlamaChatTokens(stringToTokenize);
-};
+export const countLlamaTokens = (input: string) => llamaTokenizer.encode(input).length;
 
-export const countLlamaChatTokens = (stringToTokenize: string) => {
-  const tokens = llamaTokenizer.encode(stringToTokenize);
-  return tokens.length;
-};
+export const countLlamaInputTokens = (input: Parameters<typeof serializeChatInput>[0]) =>
+  countLlamaTokens(serializeChatInput(input, { pipelineVersion: 2 }));
+
+export const countLlamaOutputTokens = (output: ChatCompletionMessage) =>
+  countLlamaTokens(serializeChatOutput(output));

@@ -11,6 +11,7 @@ import { checkFineTuneStatus } from "./fineTuning/checkFineTuneStatus.task";
 import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatus.task";
 import { evaluateTestSetEntry } from "./evaluateTestSetEntry.task";
 import type defineTask from "./defineTask";
+import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
 
 console.log("Starting worker");
 
@@ -26,6 +27,7 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   checkFineTuneStatus,
   checkOpenaiFineTuneStatus,
   evaluateTestSetEntry,
+  countDatasetEntryTokens,
 ];
 
 const taskList = registeredTasks.reduce((acc, task) => {
