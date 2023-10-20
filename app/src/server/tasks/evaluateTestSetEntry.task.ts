@@ -68,10 +68,10 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
 
     const cacheKey = hashObject({
       modelId,
-      input: JSON.stringify(prunedMessages),
+      messages: prunedMessages,
       function_call: datasetEntry.function_call,
       functions: datasetEntry.functions,
-    } as JsonValue);
+    });
 
     if (!skipCache) {
       const matchingTestEntry = await prisma.fineTuneTestingEntry.findFirst({
