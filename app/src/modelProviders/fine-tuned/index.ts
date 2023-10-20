@@ -1,13 +1,12 @@
-import { type JSONSchema4 } from "json-schema";
 import { type BaseModel } from "@prisma/client";
+import { type JSONSchema4 } from "json-schema";
 import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 
-import { type ModelProvider } from "../types";
-import inputSchema from "../openai-ChatCompletion/codegen/input.schema.json";
-import { getExperimentsCompletion } from "./getCompletion";
-import frontendModelProvider from "./frontend";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
-import { truthyFilter } from "~/utils/utils";
+import inputSchema from "../openai-ChatCompletion/codegen/input.schema.json";
+import { type ModelProvider } from "../types";
+import frontendModelProvider from "./frontend";
+import { getExperimentsCompletion } from "./getCompletion";
 
 export type FineTunedModelProvider = ModelProvider<
   string,

@@ -1,13 +1,9 @@
-import {
-  ChatCompletionCreateParams,
-  ChatCompletionMessage,
-  type ChatCompletionMessageParam,
-} from "openai/resources/chat";
 import { GPTTokens } from "gpt-tokens";
 import llamaTokenizer from "llama-tokenizer-js";
+import { type ChatCompletionMessage, type ChatCompletionMessageParam } from "openai/resources/chat";
 
-import { type SupportedModel } from "~/modelProviders/openai-ChatCompletion";
 import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
+import { type SupportedModel } from "~/modelProviders/openai-ChatCompletion";
 
 interface GPTTokensMessageItem {
   name?: string;

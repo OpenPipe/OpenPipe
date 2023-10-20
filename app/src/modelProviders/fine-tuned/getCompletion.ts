@@ -1,19 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   type ChatCompletion,
-  type ChatCompletionMessage,
   type ChatCompletionCreateParams,
+  type ChatCompletionMessage,
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
-import {
-  countLlamaInputTokens,
-  countLlamaOutputTokens,
-  countLlamaTokens,
-} from "~/utils/countTokens";
-import { type CompletionResponse } from "../types";
 import { prisma } from "~/server/db";
 import { isComparisonModel } from "~/utils/baseModels";
+import { countLlamaInputTokens, countLlamaTokens } from "~/utils/countTokens";
+import { type CompletionResponse } from "../types";
 
 export async function getExperimentsCompletion(
   input: ChatCompletionCreateParams,

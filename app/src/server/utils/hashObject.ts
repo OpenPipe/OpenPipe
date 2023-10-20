@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { type JsonValue } from "type-fest";
 
-function sortKeys(obj: object): JsonValue {
+function sortKeys(obj: JsonValue): JsonValue {
   if (typeof obj !== "object" || obj === null) {
     // Not an object or array, return as is
     return obj;
@@ -32,7 +32,7 @@ export function hashRequest(projectId: string, reqPayload: JsonValue): string {
   return hashObject(obj);
 }
 
-export default function hashObject(obj: object): string {
+export default function hashObject(obj: JsonValue): string {
   // Sort object keys recursively
   const sortedObj = sortKeys(obj);
 
