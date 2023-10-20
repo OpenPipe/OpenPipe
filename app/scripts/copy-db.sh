@@ -8,6 +8,9 @@ report_progress() {
     echo "--------------------------------------------"
 }
 
+export CACHE_DIR=~/.cache/openpipe/prod-db
+mkdir -p "$CACHE_DIR"
+
 # Function to parse the connection string and set variables
 parse_connection_string() {
     TEMP_URL=${PROD_DATABASE_URL#postgres://}
@@ -19,7 +22,7 @@ parse_connection_string() {
 
 # Function to check whether to dump the prod DB
 should_dump_prod_db() {
-    if [ ! -f "$PROD_DUMP_FILE" ] || [ "$FORCE_DUMP" = "true" ]; then
+    if [ "$FORCE_DUMP" = "true" ]; then
         return 0  # Should dump the prod DB
     else
         return 1  # Should not dump the prod DB
@@ -33,7 +36,7 @@ dump_prod_db() {
     # Set the password as an environment variable
     export PGPASSWORD="$PASSWORD"
     
-    pg_dump -v -Fc -h "$HOST" -U "$DB_USERNAME" -d "$DB_NAME" > "$PROD_DUMP_FILE"
+    pg_dump -v -Fd -f "$CACHE_DIR" --jobs=8 -h "$HOST" -U "$DB_USERNAME" -d "$DB_NAME"
     
     # Unset the password environment variable
     unset PGPASSWORD
@@ -60,7 +63,8 @@ create_dev_db() {
 # Function to restore the dump to the dev database
 restore_to_dev_db() {
     report_progress "Restoring dump to dev database..."
-    pg_restore -v --no-owner --no-privileges -d openpipe-dev "$PROD_DUMP_FILE"
+    pg_restore -v --no-owner --no-privileges -d openpipe-dev --format=d --jobs=8 "$CACHE_DIR"
+    # pg_restore -v --no-owner --no-privileges -d openpipe-dev --jobs=8 "$PROD_DUMP_FILE"
 }
 
 # Main execution
