@@ -61,6 +61,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       await prisma.fineTuneTestingEntry.create({
         data: {
           modelId,
+          fineTuneId: fineTune?.id,
           datasetEntryId,
         },
       });

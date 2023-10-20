@@ -31,14 +31,6 @@ export const startTestJobs = async (datasetId: string, modelId: string) => {
     orderBy: { sortKey: "desc" },
   });
 
-  // create fineTuneTestEntry for each dataset entry
-  await prisma.fineTuneTestingEntry.createMany({
-    data: datasetEntries.map((entry) => ({
-      modelId,
-      datasetEntryId: entry.id,
-    })),
-    skipDuplicates: true,
-  });
   for (const entry of datasetEntries) {
     await evaluateTestSetEntry.enqueue({ modelId, datasetEntryId: entry.id });
   }
