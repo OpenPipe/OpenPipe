@@ -35,7 +35,7 @@ const DatasetsTable = ({}) => {
                   </Td>
                   <Td>{dayjs(dataset.createdAt).format("MMMM D h:mm A")}</Td>
                   <Td>{dataset.fineTuneCount}</Td>
-                  <Td>{dataset.datasetEntryCount}</Td>
+                  <Td>{dataset.datasetEntryCount.toLocaleString()}</Td>
                 </Tr>
               );
             })}

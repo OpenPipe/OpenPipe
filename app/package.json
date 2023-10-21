@@ -25,7 +25,8 @@
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'",
     "test": "pnpm vitest",
     "repl": "tsx --require scripts/repl.ts",
-    "repl:watch": "tsx --watch scripts/repl.ts"
+    "repl:watch": "tsx --watch scripts/repl.ts",
+    "dev:modal": "cd ../trainer && concurrently 'poetry run modal serve src/inference_server/main.py' 'poetry run modal serve src/trainer/main.py' --kill-others"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.5.8",

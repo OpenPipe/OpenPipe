@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   type ChatCompletion,
-  type ChatCompletionMessage,
   type ChatCompletionCreateParams,
+  type ChatCompletionMessage,
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
-import { countLlamaChatTokens, countLlamaChatTokensInMessages } from "~/utils/countTokens";
-import { type CompletionResponse } from "../types";
 import { prisma } from "~/server/db";
 import { isComparisonModel } from "~/utils/baseModels";
+import { countLlamaInputTokens, countLlamaTokens } from "~/utils/countTokens";
+import { type CompletionResponse } from "../types";
 
 export async function getExperimentsCompletion(
   input: ChatCompletionCreateParams,
@@ -90,8 +90,8 @@ export async function getCompletion(
     throw new Error(`Unexpected response format from model: ${JSON.stringify(respText)}`);
   }
 
-  const promptTokens = countLlamaChatTokensInMessages(messages);
-  const completionTokens = countLlamaChatTokens(finalCompletion);
+  const promptTokens = countLlamaInputTokens({ messages });
+  const completionTokens = countLlamaTokens(finalCompletion);
 
   const completionMessage = parseCompletionMessage(finalCompletion);
 

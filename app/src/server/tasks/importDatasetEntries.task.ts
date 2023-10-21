@@ -5,6 +5,7 @@ import { prepareDatasetEntriesForImport } from "../utils/prepareDatasetEntriesFo
 import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
 import defineTask from "./defineTask";
 import { startDatasetTestJobs } from "../utils/startTestJobs";
+import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
 
 export type ImportDatasetEntriesJob = {
   datasetFileUploadId: string;
@@ -117,6 +118,8 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
     );
 
     await startDatasetTestJobs(datasetFileUpload.datasetId);
+
+    await countDatasetEntryTokens.runNow();
 
     await prisma.datasetFileUpload.update({
       where: { id: datasetFileUploadId },

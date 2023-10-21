@@ -26,7 +26,7 @@ import { api } from "~/utils/api";
 import ActionButton from "~/components/ActionButton";
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";
-import { RowToImport, parseRowsToImport } from "../../parseRowsToImport";
+import { type RowToImport, parseRowsToImport } from "../../parseRowsToImport";
 
 const UploadDataButton = () => {
   const disclosure = useDisclosure();

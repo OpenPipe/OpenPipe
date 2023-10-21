@@ -34,7 +34,11 @@ export const deserializeChatOutput = (completion: string): ChatCompletionMessage
 };
 
 export const serializeChatInput = (
-  input: Pick<ChatCompletionCreateParams, "messages" | "function_call" | "functions">,
+  input: {
+    messages: ChatCompletionCreateParams["messages"];
+    function_call?: ChatCompletionCreateParams["function_call"] | null;
+    functions?: ChatCompletionCreateParams["functions"] | null;
+  },
   fineTune: { pipelineVersion: number; id?: string },
 ) => {
   if (fineTune.pipelineVersion === 1) {

@@ -43,7 +43,6 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     ),
                 )
                 chat_completion = OpenAIObject.construct_from(json.loads(response.content), api_key=None)
-                print(chat_completion)
             else:
                 chat_completion = original_openai.ChatCompletion.create(*args, **kwargs)
 
@@ -140,7 +139,6 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     ),
                 )
                 chat_completion = OpenAIObject.construct_from(json.loads(response.content), api_key=None)
-                print(chat_completion)
             else:
                 chat_completion = await original_openai.ChatCompletion.acreate(*args, **kwargs)
 

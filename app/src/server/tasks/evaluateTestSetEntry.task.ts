@@ -69,7 +69,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
 
     const cacheKey = hashObject({
       modelId,
-      input: JSON.stringify(prunedMessages),
+      messages: prunedMessages as unknown as JsonValue,
       function_call: datasetEntry.function_call,
       functions: datasetEntry.functions,
     } as JsonValue);

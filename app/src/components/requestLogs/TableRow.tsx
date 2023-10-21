@@ -53,8 +53,8 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
                 onChange={toggleAllSelected}
               />
               <Text>
-                ({totalNumLogsSelected ? `${totalNumLogsSelected}/` : ""}
-                {matchingCount ?? 0})
+                ({totalNumLogsSelected ? `${totalNumLogsSelected.toLocaleString()}/` : ""}
+                {(matchingCount ?? 0).toLocaleString()})
               </Text>
             </HStack>
           </Th>

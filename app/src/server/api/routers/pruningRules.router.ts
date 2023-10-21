@@ -9,7 +9,7 @@ import {
   requireCanViewProject,
   requireCanModifyPruningRule,
 } from "~/utils/accessControl";
-import { countLlamaChatTokens } from "~/utils/countTokens";
+import { countLlamaTokens } from "~/utils/countTokens";
 
 export const pruningRulesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -63,7 +63,7 @@ export const pruningRulesRouter = createTRPCRouter({
         },
         data: {
           textToMatch: input.updates.textToMatch,
-          tokensInText: countLlamaChatTokens(input.updates.textToMatch),
+          tokensInText: countLlamaTokens(input.updates.textToMatch),
         },
       });
 
@@ -85,7 +85,7 @@ export const pruningRulesRouter = createTRPCRouter({
       const { datasetId, createdAt } = await prisma.pruningRule.create({
         data: {
           textToMatch: input.textToMatch,
-          tokensInText: countLlamaChatTokens(input.textToMatch),
+          tokensInText: countLlamaTokens(input.textToMatch),
           datasetId: input.datasetId,
         },
       });
