@@ -82,7 +82,7 @@ const trainModalFineTune = async (fineTuneId: string) => {
 
   const blobName = await uploadTrainingDataFile(jsonlStr);
 
-  const huggingFaceModelId = `OpenPipe/ft-${env.NODE_ENV}-${fineTuneId}`;
+  const huggingFaceModelId = `OpenPipe/ft-${env.NODE_ENV}-${fineTuneId}-${fineTune.slug}`;
 
   await prisma.fineTune.update({
     where: { id: fineTuneId },

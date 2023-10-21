@@ -42,8 +42,8 @@ if stub.is_inside():
 @stub.function(
     gpu=modal.gpu.A100(memory=40, count=1),
     secret=modal.Secret.from_name("openpipe"),
-    # 8 hour timeout
-    timeout=60 * 60 * 8,
+    # 24 hour timeout
+    timeout=60 * 60 * 24,
     volumes={"/models": stub.volume},
 )
 def train(fine_tune_id: str, base_url: str):

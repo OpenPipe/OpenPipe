@@ -73,12 +73,13 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     shutil.rmtree(merged_model_path, ignore_errors=True)
 
     write_config(
-        config_path,
-        base_model,
-        num_epochs,
-        training_file,
-        fine_tune_id,
+        config_path=config_path,
+        base_model=base_model,
+        num_epochs=num_epochs,
+        training_file=training_file,
         out_path=lora_model_path,
+        wandb_project=f"OP {training_info.project_name}",
+        wandb_run_id=training_info.model_slug
     )
 
     logging.info("Running training")
