@@ -47,17 +47,25 @@
                     "baseModel": {
                       "type": "string",
                       "enum": [
+                        "MISTRAL_7b",
                         "LLAMA2_7b",
                         "LLAMA2_13b",
-                        "LLAMA2_70b",
                         "GPT_3_5_TURBO"
                       ]
+                    },
+                    "projectName": {
+                      "type": "string"
+                    },
+                    "modelSlug": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "trainingDataUrl",
                     "huggingFaceModelId",
-                    "baseModel"
+                    "baseModel",
+                    "projectName",
+                    "modelSlug"
                   ],
                   "additionalProperties": false
                 }

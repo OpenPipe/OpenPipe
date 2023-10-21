@@ -26,11 +26,18 @@ export const v1ApiRouter = createOpenApiRouter({
         trainingDataUrl: z.string(),
         huggingFaceModelId: z.string(),
         baseModel: z.enum(SUPPORTED_BASE_MODELS),
+        projectName: z.string(),
+        modelSlug: z.string(),
       }),
     )
     .mutation(async ({ input }) => {
       const fineTune = await prisma.fineTune.findUnique({
         where: { id: input.fineTuneId },
+        include: {
+          project: {
+            select: { name: true },
+          },
+        },
       });
 
       if (!fineTune)
@@ -46,6 +53,8 @@ export const v1ApiRouter = createOpenApiRouter({
         trainingDataUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),
         huggingFaceModelId: fineTune.huggingFaceModelId,
         baseModel: fineTune.baseModel,
+        projectName: fineTune.project.name,
+        modelSlug: fineTune.slug,
       };
     }),
 });
