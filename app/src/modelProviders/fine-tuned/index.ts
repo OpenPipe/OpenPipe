@@ -6,7 +6,7 @@ import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countToke
 import inputSchema from "../openai-ChatCompletion/codegen/input.schema.json";
 import { type ModelProvider } from "../types";
 import frontendModelProvider from "./frontend";
-import { getExperimentsCompletion } from "./getCompletion";
+import { getExperimentsCompletion } from "./getCompletionForExperiments";
 
 export type FineTunedModelProvider = ModelProvider<
   string,

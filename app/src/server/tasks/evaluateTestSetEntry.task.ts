@@ -1,19 +1,18 @@
 import { UsageType, type ComparisonModel, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 
+import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
-import defineTask from "./defineTask";
-import { pruneInputMessages, getStringsToPrune } from "~/modelProviders/fine-tuned/getCompletion";
-import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
-import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import {
   COMPARISON_MODEL_NAMES,
   calculateFineTuneUsageCost,
   isComparisonModel,
 } from "~/utils/baseModels";
+import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { getOpenaiCompletion } from "../utils/openai";
+import defineTask from "./defineTask";
 
 export type EvaluateTestSetEntryJob = {
   modelId: string;
@@ -54,9 +53,6 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
 
     if (existingTestEntry?.output && !skipCache) return;
 
-    const stringsToPrune = await getStringsToPrune(modelId);
-    const prunedMessages = pruneInputMessages(datasetEntry.messages, stringsToPrune);
-
     if (!existingTestEntry) {
       await prisma.fineTuneTestingEntry.create({
         data: {
@@ -69,7 +65,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
 
     const cacheKey = hashObject({
       modelId,
-      messages: prunedMessages as unknown as JsonValue,
+      messages: datasetEntry.messages,
       function_call: datasetEntry.function_call,
       functions: datasetEntry.functions,
     } as JsonValue);
@@ -99,14 +95,14 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       model: fineTune
         ? `openpipe:${fineTune.slug}`
         : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
-      messages: prunedMessages,
+      messages: datasetEntry.messages,
       function_call: datasetEntry.function_call ?? undefined,
       functions: datasetEntry.functions ?? undefined,
     };
     try {
       if (isComparisonModel(modelId)) {
         completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
-      } else if (fineTune && (fineTune.pipelineVersion === 1 || fineTune.pipelineVersion === 2)) {
+      } else if (fineTune) {
         completion = await getCompletion2(fineTune, input);
       } else {
         await prisma.fineTuneTestingEntry.update({

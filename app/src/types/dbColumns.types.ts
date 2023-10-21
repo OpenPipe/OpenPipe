@@ -20,7 +20,7 @@ export const datasetEntrySchema = z
 export const typedDatasetEntry = <T extends Pick<DatasetEntry, "messages">>(
   input: T,
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
-): T & z.infer<typeof datasetEntrySchema> => datasetEntrySchema.parse(input);
+): Omit<T, "messages"> & z.infer<typeof datasetEntrySchema> => datasetEntrySchema.parse(input);
 
 const loggedCallModelResponseSchema = z
   .object({

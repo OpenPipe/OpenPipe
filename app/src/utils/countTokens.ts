@@ -4,6 +4,7 @@ import { type ChatCompletionMessage, type ChatCompletionMessageParam } from "ope
 
 import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
 import { type SupportedModel } from "~/modelProviders/openai-ChatCompletion";
+import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 
 interface GPTTokensMessageItem {
   name?: string;
@@ -29,7 +30,7 @@ export const countOpenAIChatTokens = (
 export const countLlamaTokens = (input: string) => llamaTokenizer.encode(input).length;
 
 export const countLlamaInputTokens = (input: Parameters<typeof serializeChatInput>[0]) =>
-  countLlamaTokens(serializeChatInput(input, { pipelineVersion: 2 }));
+  countLlamaTokens(serializeChatInput(input, { pipelineVersion: CURRENT_PIPELINE_VERSION }));
 
 export const countLlamaOutputTokens = (output: ChatCompletionMessage) =>
   countLlamaTokens(serializeChatOutput(output));

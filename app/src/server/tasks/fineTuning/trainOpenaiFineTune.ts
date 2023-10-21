@@ -1,9 +1,9 @@
 import fs from "fs";
 import OpenAI from "openai";
 
-import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "~/server/db";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 
 export const trainOpenaiFineTune = async (fineTuneId: string) => {
   const fineTune = await prisma.fineTune.findUnique({

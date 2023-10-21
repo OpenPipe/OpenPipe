@@ -1,18 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
-import { v4 as uuidv4 } from "uuid";
 import { type FineTune } from "@prisma/client";
+import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 
-import { getStringsToPrune, pruneInputMessages } from "./getCompletion";
-import { runInference } from "~/server/modal-rpc/clients";
 import { omit } from "lodash-es";
-import { deserializeChatOutput, serializeChatInput } from "./serializers";
+import { runInference } from "~/server/modal-rpc/clients";
 import { getOpenaiCompletion } from "~/server/utils/openai";
+import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
+import { deserializeChatOutput, serializeChatInput } from "./serializers";
 
 export async function getCompletion2(
   fineTune: FineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion> {
+  if (fineTune.pipelineVersion < 1 || fineTune.pipelineVersion > 2) {
+    throw new Error(
+      `Model was trained with pipeline version ${fineTune.pipelineVersion}, but only versions 1-2 are currently supported.`,
+    );
+  }
+
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
   const prunedMessages = pruneInputMessages(input.messages, stringsToPrune);
@@ -23,14 +28,10 @@ export async function getCompletion2(
 
     if (!model) throw new Error("No OpenAI model ID found");
 
-    const completion = await getOpenaiCompletion(fineTune.projectId, {
+    return getOpenaiCompletion(fineTune.projectId, {
       ...prunedInput,
       model,
     });
-    return {
-      ...completion,
-      model: input.model,
-    };
   } else {
     return getModalCompletion(fineTune, prunedInput);
   }
@@ -40,8 +41,6 @@ async function getModalCompletion(
   fineTune: FineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion> {
-  const id = uuidv4();
-
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
@@ -62,7 +61,7 @@ async function getModalCompletion(
   });
 
   return {
-    id,
+    id: resp.id,
     object: "chat.completion",
     created: Date.now(),
     model: input.model,

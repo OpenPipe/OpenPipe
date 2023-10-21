@@ -1,20 +1,17 @@
 import { UsageType, type Prisma } from "@prisma/client";
-import { type JsonValue } from "type-fest";
-import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
-import { prisma } from "~/server/db";
-import { hashRequest } from "~/server/utils/hashObject";
-import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
-import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
+import { TRPCError } from "@trpc/server";
 import {
   type ChatCompletion,
   type ChatCompletionCreateParams,
 } from "openai/resources/chat/completions";
-import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
-import { TRPCError } from "@trpc/server";
-import { getCompletion, getStringsToPrune } from "~/modelProviders/fine-tuned/getCompletion";
-import { captureFineTuneUsage } from "~/utils/analytics/serverAnalytics";
+import { type JsonValue } from "type-fest";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
+import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
+import { prisma } from "~/server/db";
+import { hashRequest } from "~/server/utils/hashObject";
 import {
   chatCompletionInput,
   chatCompletionOutput,
@@ -22,7 +19,9 @@ import {
   functionCallInput,
   functionsInput,
 } from "~/types/shared.types";
+import { captureFineTuneUsage } from "~/utils/analytics/serverAnalytics";
 import { calculateFineTuneUsageCost } from "~/utils/baseModels";
+import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -146,25 +145,7 @@ export const v1ApiRouter = createOpenApiRouter({
       }
 
       try {
-        let completion;
-        if (fineTune.pipelineVersion === 0) {
-          if (!fineTune.inferenceUrls.length) {
-            throw new TRPCError({
-              message: "The model is not set up for inference",
-              code: "BAD_REQUEST",
-            });
-          }
-          const stringsToPrune = await getStringsToPrune(fineTune.id);
-
-          completion = await getCompletion(inputPayload, fineTune.inferenceUrls, stringsToPrune);
-        } else if (fineTune.pipelineVersion >= 1 && fineTune.pipelineVersion <= 2) {
-          completion = await getCompletion2(fineTune, inputPayload);
-        } else {
-          throw new TRPCError({
-            message: "The model is not set up for inference",
-            code: "BAD_REQUEST",
-          });
-        }
+        const completion = await getCompletion2(fineTune, inputPayload);
         const inputTokens = completion.usage?.prompt_tokens ?? 0;
         const outputTokens = completion.usage?.completion_tokens ?? 0;
         await prisma.usageLog.create({
