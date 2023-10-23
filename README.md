@@ -35,7 +35,7 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 
 - Easy integration with OpenAI's SDK in both Python and TypeScript.
   - [Python SDK](https://pypi.org/project/openpipe/)
-  - [Typescript SDK](https://www.npmjs.com/package/openpipe)
+  - [TypeScript SDK](https://www.npmjs.com/package/openpipe)
 - Fine-tune GPT 3.5, Mistral, and Llama 2 models, host on-platform or download the weights.
   - Model output is OpenAI-compatible.
   - Switching from GPT 4 to a fine-tuned Mistral model only requires changing the model name.
