@@ -85,20 +85,21 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     logging.info("Running training")
     do_train_cli(config_path)
 
-    logging.info("Reloading the base model")
-    model = AutoModelForCausalLM.from_pretrained(
-        base_model,
-        return_dict=True,
-        torch_dtype=torch.float16,
-    )
+    with torch.device("cuda:0"):
+        logging.info("Reloading the base model")
+        model = AutoModelForCausalLM.from_pretrained(
+            base_model,
+            return_dict=True,
+            torch_dtype=torch.float16,
+        )
 
-    logging.info("Loading PEFT model")
-    model = PeftModel.from_pretrained(model, lora_model_path)
-    logging.info("Merging the model")
-    model = model.merge_and_unload()
+        logging.info("Loading PEFT model")
+        model = PeftModel.from_pretrained(model, lora_model_path)
+        logging.info("Merging the model")
+        model = model.merge_and_unload()
 
-    logging.info(f"Saving the final model to {merged_model_path}")
-    model.save_pretrained(merged_model_path)
+        logging.info(f"Saving the final model to {merged_model_path}")
+        model.save_pretrained(merged_model_path, safe_serialization=True)
 
-    tokenizer = AutoTokenizer.from_pretrained(lora_model_path)
-    tokenizer.save_pretrained(merged_model_path)
+        tokenizer = AutoTokenizer.from_pretrained(lora_model_path)
+        tokenizer.save_pretrained(merged_model_path, safe_serialization=True)

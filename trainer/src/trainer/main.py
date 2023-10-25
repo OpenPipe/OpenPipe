@@ -13,12 +13,12 @@ image = (
     .apt_install("git")
     .run_commands(
         "git clone https://github.com/OpenAccess-AI-Collective/axolotl.git /axolotl",
-        "cd /axolotl && git checkout 77c84e0 > /dev/null 2>&1",
+        "cd /axolotl && git checkout 20aa4b5 > /dev/null 2>&1",
         "pip install -e /axolotl",
     )
     .pip_install(
-        "deepspeed==0.10.3",
-        "flash-attn==2.2.4.post1",
+        "deepspeed==0.11.1",
+        "flash-attn==2.3.3",
         "httpx==0.24.1",
         "peft==0.5.0",
         "huggingface-hub==0.17.3",

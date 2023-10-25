@@ -5,7 +5,7 @@ import { prisma } from "~/server/db";
 import { type CompletionResponse } from "../types";
 import { getCompletion2 } from "./getCompletion-2";
 
-export async function getExperimentsCompletion(
+async function getCompletionForExperiments(
   input: ChatCompletionCreateParams,
   _onStream: ((partialOutput: ChatCompletion) => void) | null,
 ): Promise<CompletionResponse<ChatCompletion>> {
@@ -35,3 +35,5 @@ export async function getExperimentsCompletion(
     };
   }
 }
+
+export default getCompletionForExperiments;
