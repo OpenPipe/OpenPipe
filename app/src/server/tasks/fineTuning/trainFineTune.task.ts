@@ -1,5 +1,4 @@
 import { env } from "~/env.mjs";
-import { getStringsToPrune, pruneInputMessages } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "~/server/db";
 import { trainerv1 } from "~/server/modal-rpc/clients";
 import { uploadTrainingDataFile } from "~/utils/azure/server";
@@ -9,6 +8,7 @@ import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
+import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;

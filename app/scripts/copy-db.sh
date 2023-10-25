@@ -9,7 +9,6 @@ report_progress() {
 }
 
 export CACHE_DIR=~/.cache/openpipe/prod-db
-mkdir -p "$CACHE_DIR"
 
 # Function to parse the connection string and set variables
 parse_connection_string() {
@@ -33,10 +32,24 @@ should_dump_prod_db() {
 dump_prod_db() {
     report_progress "Dumping production database..."
     
+    rm -rf "$CACHE_DIR"
+    mkdir -p "$CACHE_DIR"
+
     # Set the password as an environment variable
     export PGPASSWORD="$PASSWORD"
     
-    pg_dump -v -Fd -f "$CACHE_DIR" --jobs=8 -h "$HOST" -U "$DB_USERNAME" -d "$DB_NAME"
+    pg_dump \
+      -v \
+      -Fd \
+      -f "$CACHE_DIR" \
+      --exclude-table-data '"LoggedCallModelResponse"' \
+      --exclude-table-data '"LoggedCall"' \
+      --exclude-table-data '"LoggedCallTag"' \
+      --jobs=8 \
+      --strict-names \
+      -h "$HOST" \
+      -U "$DB_USERNAME" \
+      -d "$DB_NAME"
     
     # Unset the password environment variable
     unset PGPASSWORD

@@ -6,7 +6,7 @@ import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countToke
 import inputSchema from "../openai-ChatCompletion/codegen/input.schema.json";
 import { type ModelProvider } from "../types";
 import frontendModelProvider from "./frontend";
-import { getExperimentsCompletion } from "./getCompletion";
+import getCompletionForExperiments from "./getCompletionForExperiments";
 
 export type FineTunedModelProvider = ModelProvider<
   string,
@@ -42,7 +42,7 @@ const modelProvider: FineTunedModelProvider = {
   },
   inputSchema: inputSchema as JSONSchema4,
   canStream: false,
-  getCompletion: getExperimentsCompletion,
+  getCompletion: getCompletionForExperiments,
   getUsage: (input, output, opts) => {
     const model = modelProvider.getModel(input);
     if (!model) return null;

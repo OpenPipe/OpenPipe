@@ -71,8 +71,6 @@ base_mistral_config = {
     "gradient_checkpointing": True,
     "flash_attention": True,
     "warmup_steps": 10,
-    "eval_table_size": 5,
-    "eval_table_max_new_tokens": 128,
     "weight_decay": 0.0,
     "special_tokens": {
         "bos_token": "<s>",
