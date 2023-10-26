@@ -7,7 +7,7 @@ import AppShell from "~/components/nav/AppShell";
 import LoggedCallTable from "~/components/requestLogs/LoggedCallsTable";
 import LoggedCallsPaginator from "~/components/requestLogs/LoggedCallsPaginator";
 import ActionButton from "~/components/ActionButton";
-import LogFilters from "~/components/requestLogs/LogFilters/LogFilters";
+import LogFilters from "~/components/requestLogs/LogFilters";
 import ColumnVisibilityDropdown from "~/components/requestLogs/ColumnVisibilityDropdown";
 import ExportButton from "~/components/requestLogs/ExportButton";
 import AddToDatasetButton from "~/components/requestLogs/AddToDatasetButton";
@@ -45,6 +45,7 @@ export default function LoggedCalls() {
                   animation={isFetching ? `${spin} 1s linear infinite` : undefined}
                 />
               }
+              isDisabled={isFetching}
               onClick={() => void utils.loggedCalls.list.invalidate()}
             />
           </HStack>

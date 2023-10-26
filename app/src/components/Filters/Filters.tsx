@@ -1,11 +1,9 @@
 import { VStack, Text, Card } from "@chakra-ui/react";
 
-import AddFilterButton from "./AddFilterButton";
-import { useAppStore } from "~/state/store";
-import LogFilter from "./LogFilter";
+import AddFilterButton from "../Filters/AddFilterButton";
+import Filter, { type FilterData } from "./Filter";
 
-const LogFilters = () => {
-  const filters = useAppStore((s) => s.logFilters.filters);
+const Filters = ({ filters }: { filters: FilterData[] }) => {
   return (
     <Card w="full">
       <VStack alignItems="flex-start" padding={4} spacing={4} w="full">
@@ -13,7 +11,7 @@ const LogFilters = () => {
           Filters
         </Text>
         {filters.map((filter) => (
-          <LogFilter key={filter.id} filter={filter} />
+          <Filter key={filter.id} filter={filter} />
         ))}
         <AddFilterButton />
       </VStack>
@@ -21,4 +19,4 @@ const LogFilters = () => {
   );
 };
 
-export default LogFilters;
+export default Filters;

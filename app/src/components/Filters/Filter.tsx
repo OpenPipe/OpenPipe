@@ -8,7 +8,16 @@ import { debounce } from "lodash-es";
 import SelectFieldDropdown from "./SelectFieldDropdown";
 import SelectComparatorDropdown from "./SelectComparatorDropdown";
 
-const LogFilter = ({ filter }: { filter: LogFilter }) => {
+export const comparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
+
+export interface FilterData {
+  id: string;
+  field: string;
+  comparator: (typeof comparators)[number];
+  value: string;
+}
+
+const Filter = ({ filter }: { filter: FilterData }) => {
   const updateFilter = useAppStore((s) => s.logFilters.updateFilter);
   const deleteFilter = useAppStore((s) => s.logFilters.deleteFilter);
 
@@ -41,4 +50,4 @@ const LogFilter = ({ filter }: { filter: LogFilter }) => {
   );
 };
 
-export default LogFilter;
+export default Filter;
