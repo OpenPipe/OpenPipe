@@ -5,16 +5,16 @@ import { BsTrash } from "react-icons/bs";
 import { debounce } from "lodash-es";
 import SelectFieldDropdown from "./SelectFieldDropdown";
 import SelectComparatorDropdown from "./SelectComparatorDropdown";
-import { useFilters, type FilterData } from "./useFilters";
+import { useFilters, type FilterType } from "./useFilters";
 
-const Filter = ({ filterOptions, filter }: { filterOptions: string[]; filter: FilterData }) => {
+const Filter = ({ filterOptions, filter }: { filterOptions: string[]; filter: FilterType }) => {
   const updateFilter = useFilters().updateFilter;
-  const deleteFilter = useFilters().deleteFilter;
+  const removeFilter = useFilters().removeFilter;
 
   const [editedValue, setEditedValue] = useState(filter.value);
 
   const debouncedUpdateFilter = useCallback(
-    debounce((filter: FilterData) => updateFilter(filter), 500, {
+    debounce((filter: FilterType) => updateFilter(filter), 500, {
       leading: true,
     }),
     [updateFilter],
@@ -32,9 +32,9 @@ const Filter = ({ filterOptions, filter }: { filterOptions: string[]; filter: Fi
         }}
       />
       <IconButton
-        aria-label="Delete Filter"
+        aria-label="Remove Filter"
         icon={<BsTrash />}
-        onClick={() => deleteFilter(filter.id)}
+        onClick={() => removeFilter(filter)}
       />
     </HStack>
   );

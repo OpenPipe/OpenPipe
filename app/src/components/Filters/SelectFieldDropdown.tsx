@@ -1,12 +1,12 @@
 import InputDropdown from "~/components/InputDropdown";
-import { type FilterData, useFilters } from "./useFilters";
+import { type FilterType, useFilters } from "./useFilters";
 
 const SelectFieldDropdown = ({
   filterOptions,
   filter,
 }: {
   filterOptions: string[];
-  filter: FilterData;
+  filter: FilterType;
 }) => {
   const updateFilter = useFilters().updateFilter;
 

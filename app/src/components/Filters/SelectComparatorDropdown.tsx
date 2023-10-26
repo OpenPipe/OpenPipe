@@ -1,7 +1,7 @@
 import InputDropdown from "~/components/InputDropdown";
-import { type FilterData, useFilters, comparators } from "./useFilters";
+import { type FilterType, useFilters, comparators } from "./useFilters";
 
-const SelectComparatorDropdown = ({ filter }: { filter: FilterData }) => {
+const SelectComparatorDropdown = ({ filter }: { filter: FilterType }) => {
   const updateFilter = useFilters().updateFilter;
 
   const { comparator } = filter;
