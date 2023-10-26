@@ -9,8 +9,8 @@ export interface FilterData {
   value: string;
 }
 
-const FIELD_SEPARATOR = "|:|";
-const FILTER_SEPARATOR = "|,|";
+const FIELD_SEPARATOR = ":";
+const FILTER_SEPARATOR = ",";
 
 const parseFilters = (encodedFilters: string) =>
   encodedFilters
