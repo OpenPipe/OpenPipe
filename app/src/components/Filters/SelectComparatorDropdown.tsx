@@ -1,9 +1,8 @@
-import { comparators, type LogFilter } from "~/state/logFiltersSlice";
-import { useAppStore } from "~/state/store";
 import InputDropdown from "~/components/InputDropdown";
+import { type FilterData, useFilters, comparators } from "./useFilters";
 
-const SelectComparatorDropdown = ({ filter }: { filter: LogFilter }) => {
-  const updateFilter = useAppStore((s) => s.logFilters.updateFilter);
+const SelectComparatorDropdown = ({ filter }: { filter: FilterData }) => {
+  const updateFilter = useFilters().updateFilter;
 
   const { comparator } = filter;
 

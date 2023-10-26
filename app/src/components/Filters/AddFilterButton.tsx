@@ -1,10 +1,9 @@
 import { Button, HStack, Icon, Text } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
-import { comparators, defaultFilterableFields } from "~/state/logFiltersSlice";
-import { useAppStore } from "~/state/store";
+import { comparators, useFilters } from "./useFilters";
 
-const AddFilterButton = () => {
-  const addFilter = useAppStore((s) => s.logFilters.addFilter);
+const AddFilterButton = ({ filterOptions }: { filterOptions: string[] }) => {
+  const addFilter = useFilters().addFilter;
 
   return (
     <HStack
@@ -13,7 +12,7 @@ const AddFilterButton = () => {
       onClick={() =>
         addFilter({
           id: Date.now().toString(),
-          field: defaultFilterableFields[0],
+          field: filterOptions[0] as string,
           comparator: comparators[0],
           value: "",
         })

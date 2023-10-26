@@ -6,6 +6,7 @@ import { type RouterOutputs } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { useIsClientRehydrated, useDatasetEntries } from "~/utils/hooks";
 import { useMemo } from "react";
+import { useFilters } from "~/components/Filters/useFilters";
 
 type DatasetEntry = RouterOutputs["datasetEntries"]["list"]["entries"][0];
 
@@ -96,7 +97,7 @@ export const TableRow = ({
 
 export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: boolean }) => {
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
-  const filters = useAppStore((state) => state.logFilters.filters);
+  const filters = useFilters().filters;
   const { isLoading } = useDatasetEntries();
 
   if (isLoading) return null;

@@ -1,9 +1,12 @@
 import { VStack, Text, Card } from "@chakra-ui/react";
 
 import AddFilterButton from "../Filters/AddFilterButton";
-import Filter, { type FilterData } from "./Filter";
+import Filter from "./Filter";
+import { useFilters } from "./useFilters";
 
-const Filters = ({ filters }: { filters: FilterData[] }) => {
+const Filters = ({ filterOptions }: { filterOptions: string[] }) => {
+  const filters = useFilters().filters;
+
   return (
     <Card w="full">
       <VStack alignItems="flex-start" padding={4} spacing={4} w="full">
@@ -11,9 +14,9 @@ const Filters = ({ filters }: { filters: FilterData[] }) => {
           Filters
         </Text>
         {filters.map((filter) => (
-          <Filter key={filter.id} filter={filter} />
+          <Filter key={filter.id} filterOptions={filterOptions} filter={filter} />
         ))}
-        <AddFilterButton />
+        <AddFilterButton filterOptions={filterOptions} />
       </VStack>
     </Card>
   );

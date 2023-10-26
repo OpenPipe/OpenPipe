@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { type Expression, type SqlBool, sql, type RawBuilder } from "kysely";
 import { kysely } from "~/server/db";
-import { comparators, defaultFilterableFields } from "~/state/logFiltersSlice";
+import { comparators } from "~/components/Filters/useFilters";
+import { defaultFilterableFields } from "~/components/requestLogs/LogFilters";
 
 export const logFiltersSchema = z.array(
   z.object({

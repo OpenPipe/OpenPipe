@@ -1,18 +1,20 @@
-import { defaultFilterableFields, type LogFilter } from "~/state/logFiltersSlice";
-import { useAppStore } from "~/state/store";
-import { useTagNames } from "~/utils/hooks";
 import InputDropdown from "~/components/InputDropdown";
+import { type FilterData, useFilters } from "./useFilters";
 
-const SelectFieldDropdown = ({ filter }: { filter: LogFilter }) => {
-  const tagNames = useTagNames().data;
-
-  const updateFilter = useAppStore((s) => s.logFilters.updateFilter);
+const SelectFieldDropdown = ({
+  filterOptions,
+  filter,
+}: {
+  filterOptions: string[];
+  filter: FilterData;
+}) => {
+  const updateFilter = useFilters().updateFilter;
 
   const { field } = filter;
 
   return (
     <InputDropdown
-      options={[...defaultFilterableFields, ...(tagNames || [])]}
+      options={filterOptions}
       selectedOption={field}
       onSelect={(option) => updateFilter({ ...filter, field: option })}
     />

@@ -1,9 +1,5 @@
 import { type SliceCreator } from "./store";
 
-export const comparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
-
-export const defaultFilterableFields = ["Request", "Response", "Model", "Status Code"] as const;
-
 export enum StaticColumnKeys {
   SENT_AT = "sentAt",
   MODEL = "model",

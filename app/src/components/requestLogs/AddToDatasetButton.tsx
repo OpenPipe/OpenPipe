@@ -27,6 +27,7 @@ import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useRouter } from "next/router";
+import { useFilters } from "../Filters/useFilters";
 
 const AddToDatasetButton = () => {
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -54,7 +55,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
   const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const resetLogSelection = useAppStore((s) => s.selectedLogs.resetLogSelection);
-  const filters = useAppStore((state) => state.logFilters.filters);
+  const filters = useFilters().filters;
 
   const totalNumLogsSelected = useTotalNumLogsSelected();
   const maxSampleSize = Math.min(totalNumLogsSelected, 20000);

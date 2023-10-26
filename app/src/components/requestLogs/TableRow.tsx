@@ -26,6 +26,7 @@ import {
   useTagNames,
 } from "~/utils/hooks";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
+import { useFilters } from "../Filters/useFilters";
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
@@ -212,7 +213,7 @@ export const TableRow = ({
 
 export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: boolean }) => {
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
-  const filters = useAppStore((state) => state.logFilters.filters);
+  const filters = useFilters().filters;
   const { isLoading } = useLoggedCalls();
 
   if (isLoading) return null;
