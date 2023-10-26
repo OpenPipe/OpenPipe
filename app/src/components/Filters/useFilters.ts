@@ -16,10 +16,8 @@ const parseFilters = (encodedFilters: string) =>
   encodedFilters
     .split(FILTER_SEPARATOR)
     .map((e) => {
-      console.log("e", e);
       const [id, field, comparator, value] = e.split(FIELD_SEPARATOR);
 
-      console.log(e.split(FIELD_SEPARATOR));
       if (!id || !field || !comparator) return null;
       return {
         id: decodeURIComponent(id),
