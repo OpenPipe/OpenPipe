@@ -5,19 +5,19 @@ import {
   createStandaloneToast,
 } from "@chakra-ui/react";
 import "@fontsource/inconsolata";
-import { modalAnatomy } from "@chakra-ui/anatomy";
+import { cardAnatomy, modalAnatomy } from "@chakra-ui/anatomy";
 import { createMultiStyleConfigHelpers } from "@chakra-ui/styled-system";
 
 const systemFont =
   'ui-sans-serif, -apple-system, "system-ui", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"';
 
 /* eslint-disable @typescript-eslint/unbound-method */
-const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpers(
-  modalAnatomy.keys,
-);
+const modal = createMultiStyleConfigHelpers(modalAnatomy.keys);
 
-const modalTheme = defineMultiStyleConfig({
-  baseStyle: definePartsStyle({
+const card = createMultiStyleConfigHelpers(cardAnatomy.keys);
+
+const modalTheme = modal.defineMultiStyleConfig({
+  baseStyle: modal.definePartsStyle({
     dialog: { borderRadius: "md", mx: 4 },
   }),
 });
@@ -63,6 +63,16 @@ const theme = extendTheme({
         },
       },
     },
+    Card: card.defineMultiStyleConfig({
+      baseStyle: card.definePartsStyle({
+        container: {
+          boxShadow: "unset",
+          borderColor: "gray.300",
+          borderWidth: 1,
+          // borderRadius: "md",
+        },
+      }),
+    }),
     Modal: modalTheme,
     Divider,
   },

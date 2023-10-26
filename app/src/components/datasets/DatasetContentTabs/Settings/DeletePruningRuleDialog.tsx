@@ -46,8 +46,8 @@ const DeletePruningRuleDialog = ({
 
           <AlertDialogBody>
             Are you sure you want to delete the following pruning rule? It currently has{" "}
-            <b>{rule.numMatches}</b> matches and removes approximately <b>{rule.tokensInText}</b>{" "}
-            tokens from each matching dataset entry.
+            <b>{rule.numMatches.toLocaleString()}</b> matches and removes approximately{" "}
+            <b>{rule.tokensInText.toLocaleString()}</b> tokens from each matching dataset entry.
           </AlertDialogBody>
 
           <AlertDialogFooter>
