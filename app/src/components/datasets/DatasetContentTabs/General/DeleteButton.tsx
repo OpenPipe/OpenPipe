@@ -85,7 +85,7 @@ const DeleteDatasetEntriesModal = ({ disclosure }: { disclosure: UseDisclosureRe
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              Are you sure you want to delete the <b>{selectedIds.size}</b>{" "}
+              Are you sure you want to delete the <b>{selectedIds.size.toLocaleString()}</b>{" "}
               {pluralize("row", selectedIds.size)} rows you've selected?
             </Text>
           </VStack>
