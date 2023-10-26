@@ -6,6 +6,7 @@ import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
 import defineTask from "./defineTask";
 import { startDatasetTestJobs } from "../utils/startTestJobs";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
+import { captureException } from "@sentry/browser";
 
 export type ImportDatasetEntriesJob = {
   datasetFileUploadId: string;
@@ -119,7 +120,13 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     await startDatasetTestJobs(datasetFileUpload.datasetId);
 
-    await countDatasetEntryTokens.runNow();
+    try {
+      await countDatasetEntryTokens.runNow();
+    } catch (e) {
+      // Catch this error since if counting tokens fails we don't want
+      // to redo the whole import
+      captureException(e);
+    }
 
     await prisma.datasetFileUpload.update({
       where: { id: datasetFileUploadId },
