@@ -226,6 +226,13 @@ enum DatasetEntryType {
     TEST
 }
 
+enum DatasetEntryProvenance {
+    REQUEST_LOG
+    UPLOAD
+    RELABELED_BY_MODEL
+    RELABELED_BY_HUMAN
+}
+
 model DatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
@@ -248,6 +255,8 @@ model DatasetEntry {
 
     fineTuneTrainingEntries    FineTuneTrainingEntry[]
     fineTuneTestDatasetEntries FineTuneTestingEntry[]
+
+    provenance DatasetEntryProvenance
 
     authoringUserId String? @db.Uuid // The user who created this version of the entry (if any)
     authoringUser   User?   @relation(fields: [authoringUserId], references: [id])
