@@ -35,7 +35,7 @@ export const datasetsRouter = createTRPCRouter({
         .where("projectId", "=", projectId)
         .selectAll()
         .select(() => [
-          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = d.id)::int`.as(
+          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = d.id and not outdated)::int`.as(
             "datasetEntryCount",
           ),
           sql<number>`(select count(*) from "FineTune" where "datasetId" = d.id)::int`.as(
