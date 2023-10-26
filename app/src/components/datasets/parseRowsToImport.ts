@@ -1,3 +1,4 @@
+import { isObject } from "lodash-es";
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
 import { z } from "zod";
 import { chatMessage, functionCallInput, functionsInput } from "~/types/shared.types";
@@ -39,6 +40,19 @@ export const parseRowsToImport = (jsonlString: string): RowToImport[] | { error:
 
 const validateRowToImport = (row: unknown): { error: string } | RowToImport => {
   if (!row) return { error: "empty row" };
+
+  // Soo turns out that when you call OpenAI with Azure it doesn't return
+  // `content: null` if it performs a function call. So let's manually add that if necessary
+  if (
+    isObject(row) &&
+    "output" in row &&
+    isObject(row.output) &&
+    !("content" in row.output) &&
+    "function_call" in row.output
+  ) {
+    // @ts-expect-error we're about to check this with Zod anyway
+    row.output.content = null;
+  }
 
   const parsedRow = rowSchema.safeParse(row);
 
