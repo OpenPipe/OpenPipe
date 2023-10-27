@@ -6,6 +6,7 @@ import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { useTestEntrySortOrder } from "~/components/datasets/DatasetContentTabs/Evaluation/useTestEntrySortOrder";
 import { useFilters } from "~/components/Filters/useFilters";
+import { useMappedModelIdFilters } from "~/components/datasets/DatasetContentTabs/Evaluation/useMappedModelIdFilters";
 
 export const useExperiments = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
@@ -243,7 +244,7 @@ export const useTrainingEntries = () => {
 export const useTestingEntries = (refetchInterval?: number) => {
   const dataset = useDataset().data;
 
-  const filters = useFilters().filters;
+  const filters = useMappedModelIdFilters();
 
   const { page, pageSize } = usePageParams();
 
@@ -277,7 +278,7 @@ export const useModelTestingStats = (
   modelId?: string,
   refetchInterval?: number,
 ) => {
-  const filters = useFilters().filters;
+  const filters = useMappedModelIdFilters();
 
   const { data, isFetching, ...rest } = api.datasetEntries.testingStats.useQuery(
     { datasetId: datasetId ?? "", filters, modelId: modelId ?? "" },

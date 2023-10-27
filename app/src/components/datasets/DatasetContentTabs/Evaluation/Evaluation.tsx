@@ -7,6 +7,7 @@ import ColumnVisibilityDropdown from "./ColumnVisibilityDropdown";
 import ActionButton from "~/components/ActionButton";
 import EvaluationFilters from "./EvaluationFilters";
 import { useTestingEntries } from "~/utils/hooks";
+import EvaluationPaginator from "./EvaluationTable/EvaluationPaginator";
 
 const Evaluation = () => {
   const [filtersShown, setFiltersShown] = useState(false);
@@ -33,6 +34,9 @@ const Evaluation = () => {
       </VStack>
       <Box w="full" flex={1}>
         <EvaluationTable />
+      </Box>
+      <Box px={8} position="sticky" left={0} w="full">
+        <EvaluationPaginator py={8} />
       </Box>
     </>
   );

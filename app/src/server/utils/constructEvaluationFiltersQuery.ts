@@ -2,7 +2,7 @@ import { type z } from "zod";
 import { type Expression, type SqlBool, sql } from "kysely";
 
 import { kysely } from "~/server/db";
-import { type filtersSchema } from "~/types/shared.types";
+import { EVALUATION_FILTERS_OUTPUT_APPENDIX, type filtersSchema } from "~/types/shared.types";
 import { comparatorToSqlExpression } from "./constructLoggedCallFiltersQuery";
 import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
 
@@ -32,5 +32,33 @@ export const constructEvaluationFiltersQuery = (
     return eb.and(wheres);
   });
 
-  return baseQuery;
+  const modelOutputFilters = filters
+    .filter((filter) => filter.field.endsWith(EVALUATION_FILTERS_OUTPUT_APPENDIX))
+    .map(({ field, ...rest }) => {
+      return {
+        field: field.replace(EVALUATION_FILTERS_OUTPUT_APPENDIX, ""),
+        ...rest,
+      };
+    });
+
+  let updatedBaseQuery = baseQuery;
+
+  for (let i = 0; i < modelOutputFilters.length; i++) {
+    const filter = modelOutputFilters[i];
+    if (!filter?.value) continue;
+    const tableAlias = `te${i}`;
+    const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
+
+    updatedBaseQuery = updatedBaseQuery
+      .leftJoin(`FineTuneTestingEntry as ${tableAlias}`, (join) =>
+        join
+          .onRef("de.id", "=", `${tableAlias}.datasetEntryId`)
+          .on(`${tableAlias}.modelId`, "=", filter.field),
+      )
+      .where(
+        filterExpression(sql.raw(`${tableAlias}.output::text`)),
+      ) as unknown as typeof baseQuery;
+  }
+
+  return updatedBaseQuery;
 };

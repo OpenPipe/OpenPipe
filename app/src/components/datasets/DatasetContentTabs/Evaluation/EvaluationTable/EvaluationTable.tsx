@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { VStack, Card, Grid, HStack, Box, Text } from "@chakra-ui/react";
+import { Card, Grid, HStack, Box, Text } from "@chakra-ui/react";
 
 import { useDataset, useTestingEntries } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
-import EvaluationPaginator from "./EvaluationPaginator";
 import { ORIGINAL_OUTPUT_COLUMN_KEY } from "../ColumnVisibilityDropdown";
 import { useVisibleEvaluationColumns } from "../useVisibleEvaluationColumns";
 import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
@@ -45,44 +44,38 @@ const EvaluationTable = () => {
   if (!entries) return null;
 
   return (
-    <VStack w="full" h="full" justifyContent="space-between" px={8}>
-      <HStack w="full" spacing={0}>
-        <Card flex={1} minW="fit-content" variant="outline">
-          <Grid
-            display="grid"
-            gridTemplateColumns={`minmax(600px, 1fr) repeat(${numOutputColumns}, 480px)`}
-            sx={{
-              "> *": {
-                borderColor: "gray.300",
-                padding: 4,
-              },
-            }}
-          >
-            <TableHeader
+    <HStack w="full" px={8} spacing={0}>
+      <Card flex={1} minW="fit-content" variant="outline">
+        <Grid
+          display="grid"
+          gridTemplateColumns={`minmax(600px, 1fr) repeat(${numOutputColumns}, 480px)`}
+          sx={{
+            "> *": {
+              borderColor: "gray.300",
+              padding: 4,
+            },
+          }}
+        >
+          <TableHeader showOriginalOutput={showOriginalOutput} visibleModelIds={visibleModelIds} />
+          {entries.entries.map((entry) => (
+            <EvaluationRow
+              key={entry.id}
+              messages={entry.messages}
+              output={entry.output}
+              fineTuneEntries={entry.fineTuneTestDatasetEntries}
               showOriginalOutput={showOriginalOutput}
               visibleModelIds={visibleModelIds}
             />
-            {entries.entries.map((entry) => (
-              <EvaluationRow
-                key={entry.id}
-                messages={entry.messages}
-                output={entry.output}
-                fineTuneEntries={entry.fineTuneTestDatasetEntries}
-                showOriginalOutput={showOriginalOutput}
-                visibleModelIds={visibleModelIds}
-              />
-            ))}
-            {!entries.entries.length && (
-              <Box gridColumn="1 / -1" textAlign="center" py={6}>
-                <Text color="gray.500">No matching entries found. Try removing some filters.</Text>
-              </Box>
-            )}
-          </Grid>
-        </Card>
-        <Box minW={8}>&nbsp;</Box>
-      </HStack>
-      <EvaluationPaginator py={8} />
-    </VStack>
+          ))}
+          {!entries.entries.length && (
+            <Box gridColumn="1 / -1" textAlign="center" py={6}>
+              <Text color="gray.500">No matching entries found. Try removing some filters.</Text>
+            </Box>
+          )}
+        </Grid>
+      </Card>
+      <Box minW={8}>&nbsp;</Box>
+    </HStack>
   );
 };
 
