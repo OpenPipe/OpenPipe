@@ -32,6 +32,7 @@ import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import InfoCircle from "../InfoCircle";
+import { useFilters } from "../Filters/useFilters";
 
 const SUPPORTED_EXPORT_FORMATS = ["alpaca-finetune", "openai-fine-tune", "unformatted"];
 
@@ -58,7 +59,7 @@ export default ExportButton;
 
 const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const filters = useAppStore((s) => s.logFilters.filters);
+  const filters = useFilters().filters;
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
   const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);

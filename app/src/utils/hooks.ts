@@ -5,6 +5,7 @@ import { type RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { useTestEntrySortOrder } from "~/components/datasets/DatasetContentTabs/Evaluation/useTestEntrySortOrder";
+import { useFilters } from "~/components/Filters/useFilters";
 
 export const useExperiments = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
@@ -278,7 +279,7 @@ export const useModelTestingStats = (
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { page, pageSize } = usePageParams();
-  const filters = useAppStore((state) => state.logFilters.filters);
+  const filters = useFilters().filters;
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
   const { data, isFetching, ...rest } = api.loggedCalls.list.useQuery(

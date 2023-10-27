@@ -47,6 +47,8 @@ const TrainingDataRow = ({
               p={4}
               bgColor="orange.50"
               borderRadius={4}
+              borderColor="orange.300"
+              borderWidth={1}
             >
               {JSON.stringify(entry, null, 4)}
             </Text>
@@ -61,6 +63,8 @@ const TrainingDataRow = ({
               p={4}
               bgColor="orange.50"
               borderRadius={4}
+              borderColor="orange.300"
+              borderWidth={1}
             >
               {JSON.stringify(entry.output, null, 4)}
             </Text>

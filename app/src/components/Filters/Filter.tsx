@@ -2,20 +2,19 @@ import { useCallback, useState } from "react";
 import { HStack, IconButton, Input } from "@chakra-ui/react";
 import { BsTrash } from "react-icons/bs";
 
-import { type LogFilter } from "~/state/logFiltersSlice";
-import { useAppStore } from "~/state/store";
 import { debounce } from "lodash-es";
 import SelectFieldDropdown from "./SelectFieldDropdown";
 import SelectComparatorDropdown from "./SelectComparatorDropdown";
+import { useFilters, type FilterType } from "./useFilters";
 
-const LogFilter = ({ filter }: { filter: LogFilter }) => {
-  const updateFilter = useAppStore((s) => s.logFilters.updateFilter);
-  const deleteFilter = useAppStore((s) => s.logFilters.deleteFilter);
+const Filter = ({ filterOptions, filter }: { filterOptions: string[]; filter: FilterType }) => {
+  const updateFilter = useFilters().updateFilter;
+  const removeFilter = useFilters().removeFilter;
 
   const [editedValue, setEditedValue] = useState(filter.value);
 
   const debouncedUpdateFilter = useCallback(
-    debounce((filter: LogFilter) => updateFilter(filter), 500, {
+    debounce((filter: FilterType) => updateFilter(filter), 500, {
       leading: true,
     }),
     [updateFilter],
@@ -23,7 +22,7 @@ const LogFilter = ({ filter }: { filter: LogFilter }) => {
 
   return (
     <HStack>
-      <SelectFieldDropdown filter={filter} />
+      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} />
       <SelectComparatorDropdown filter={filter} />
       <Input
         value={editedValue}
@@ -33,12 +32,12 @@ const LogFilter = ({ filter }: { filter: LogFilter }) => {
         }}
       />
       <IconButton
-        aria-label="Delete Filter"
+        aria-label="Remove Filter"
         icon={<BsTrash />}
-        onClick={() => deleteFilter(filter.id)}
+        onClick={() => removeFilter(filter)}
       />
     </HStack>
   );
 };
 
-export default LogFilter;
+export default Filter;
