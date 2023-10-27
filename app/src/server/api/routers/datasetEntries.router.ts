@@ -30,6 +30,7 @@ import {
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
+import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -265,13 +266,16 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const rowsToConvert = loggedCalls
         .map((loggedCall) => {
-          if (!loggedCall.modelResponse) return null;
-          const modelResponse = typedLoggedCallModelResponse(loggedCall.modelResponse);
+          const modelResponse =
+            loggedCall.modelResponse && typedLoggedCallModelResponse(loggedCall.modelResponse);
 
-          const output = modelResponse.respPayload?.choices[0]?.message;
-          if (!output) return null;
+          const validated = validateRowToImport({
+            input: modelResponse?.reqPayload,
+            output: modelResponse?.respPayload?.choices[0]?.message,
+          });
 
-          return { input: modelResponse.reqPayload, output };
+          if ("error" in validated) return null;
+          return validated;
         })
         .filter(truthyFilter);
 
