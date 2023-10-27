@@ -1,5 +1,6 @@
 import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox } from "@chakra-ui/react";
 import Link from "next/link";
+import { DatasetEntryType } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
 import { type RouterOutputs } from "~/utils/api";
@@ -90,8 +91,30 @@ export const TableRow = ({
       </Td>
       <Td isNumeric>{datasetEntry.inputTokens.toLocaleString()}</Td>
       <Td isNumeric>{datasetEntry.outputTokens.toLocaleString()}</Td>
-      <Td isNumeric>{datasetEntry.type}</Td>
+      <Td isNumeric>
+        <EntryType type={datasetEntry.type} />
+      </Td>
     </Tr>
+  );
+};
+
+const EntryType = ({ type }: { type: string }) => {
+  const color = type === DatasetEntryType.TRAIN ? "orange.500" : "purple.500";
+  return (
+    <HStack justifyContent="flex-end">
+      <Text
+        fontSize="xs"
+        fontWeight="semibold"
+        w="14"
+        color={color}
+        borderColor={color}
+        borderWidth={1}
+        borderRadius={4}
+        textAlign="center"
+      >
+        {type}
+      </Text>
+    </HStack>
   );
 };
 
