@@ -136,6 +136,7 @@ const NavSidebar = () => {
             color="gray.500"
             _hover={{ color: "gray.800" }}
             p={2}
+            mt={1}
           >
             <Icon as={FaReadme} boxSize={6} />
           </ChakraLink>

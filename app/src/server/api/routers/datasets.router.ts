@@ -17,12 +17,21 @@ export const datasetsRouter = createTRPCRouter({
       where: { id: input.id },
       include: {
         project: true,
+        fineTunes: {
+          where: {
+            status: "DEPLOYED",
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
       },
     });
 
     await requireCanViewProject(dataset.projectId, ctx);
 
-    return dataset;
+    const { fineTunes, ...rest } = dataset;
+    return { deployedFineTunes: fineTunes, ...rest };
   }),
   list: protectedProcedure
     .input(z.object({ projectId: z.string() }))

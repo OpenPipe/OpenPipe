@@ -92,3 +92,32 @@ export enum SortOrder {
   ASC = "asc",
   DESC = "desc",
 }
+
+export const comparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
+
+export const filtersSchema = z.array(
+  z.object({
+    field: z.string(),
+    comparator: z.enum(comparators),
+    value: z.string(),
+  }),
+);
+
+export enum LoggedCallsFiltersDefaultFields {
+  Request = "Request",
+  Response = "Response",
+  Model = "Model",
+  StatusCode = "Status Code",
+}
+
+export enum GeneralFiltersDefaultFields {
+  Input = "Input",
+  Output = "Output",
+}
+
+export enum EvaluationFiltersDefaultFields {
+  Input = "Input",
+  OriginalOutput = "Original Output",
+}
+
+export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";

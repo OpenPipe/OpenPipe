@@ -6,6 +6,7 @@ import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { useTestEntrySortOrder } from "~/components/datasets/DatasetContentTabs/Evaluation/useTestEntrySortOrder";
 import { useFilters } from "~/components/Filters/useFilters";
+import { useMappedModelIdFilters } from "~/components/datasets/DatasetContentTabs/Evaluation/useMappedModelIdFilters";
 
 export const useExperiments = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
@@ -193,10 +194,13 @@ export const useDataset = () => {
 
 export const useDatasetEntries = () => {
   const dataset = useDataset().data;
+
+  const filters = useFilters().filters;
+
   const { page, pageSize } = usePageParams();
 
   const { data, isFetching, ...rest } = api.datasetEntries.list.useQuery(
-    { datasetId: dataset?.id ?? "", page, pageSize },
+    { datasetId: dataset?.id ?? "", filters, page, pageSize },
     { enabled: !!dataset?.id },
   );
 
@@ -239,6 +243,9 @@ export const useTrainingEntries = () => {
 
 export const useTestingEntries = (refetchInterval?: number) => {
   const dataset = useDataset().data;
+
+  const filters = useMappedModelIdFilters();
+
   const { page, pageSize } = usePageParams();
 
   const { sortModelSlug, sortOrder } = useTestEntrySortOrder();
@@ -246,6 +253,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
   const { data, isFetching, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
     {
       datasetId: dataset?.id || "",
+      filters,
       page,
       pageSize,
       sort: { sortModelSlug: sortModelSlug ?? undefined, sortOrder: sortOrder ?? undefined },
@@ -270,10 +278,23 @@ export const useModelTestingStats = (
   modelId?: string,
   refetchInterval?: number,
 ) => {
-  return api.datasetEntries.testingStats.useQuery(
-    { datasetId: datasetId ?? "", modelId: modelId ?? "" },
+  const filters = useMappedModelIdFilters();
+
+  const { data, isFetching, ...rest } = api.datasetEntries.testingStats.useQuery(
+    { datasetId: datasetId ?? "", filters, modelId: modelId ?? "" },
     { enabled: !!datasetId && !!modelId, refetchInterval },
   );
+
+  const [stableData, setStableData] = useState(data);
+
+  useEffect(() => {
+    // Prevent annoying flashes while stats are loading from the server
+    if (!isFetching) {
+      setStableData(data);
+    }
+  }, [data, isFetching]);
+
+  return { data: stableData, isFetching, ...rest };
 };
 
 export const useLoggedCalls = (applyFilters = true) => {

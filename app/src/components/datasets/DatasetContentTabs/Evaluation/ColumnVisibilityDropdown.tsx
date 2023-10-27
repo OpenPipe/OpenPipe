@@ -15,7 +15,7 @@ import { BiCheck } from "react-icons/bi";
 import { BsPlusSquare, BsToggles } from "react-icons/bs";
 import { ComparisonModel } from "@prisma/client";
 
-import { useIsClientRehydrated, useTestingEntries } from "~/utils/hooks";
+import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleEvaluationColumns } from "./useVisibleEvaluationColumns";
 import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
@@ -26,10 +26,10 @@ export const ORIGINAL_OUTPUT_COLUMN_KEY = "original";
 
 const ColumnVisibilityDropdown = () => {
   const { visibleColumns, setVisibleColumns } = useVisibleEvaluationColumns();
-  const entries = useTestingEntries().data;
+  const dataset = useDataset().data;
   const fineTuneSlugs = useMemo(
-    () => entries?.deployedFineTunes?.map((ft) => ft.slug) || [],
-    [entries?.deployedFineTunes],
+    () => dataset?.deployedFineTunes?.map((ft) => ft.slug) || [],
+    [dataset?.deployedFineTunes],
   );
 
   const popover = useDisclosure();
@@ -46,7 +46,7 @@ const ColumnVisibilityDropdown = () => {
         key: ORIGINAL_OUTPUT_COLUMN_KEY,
       },
     ];
-    for (const comparisonModel of entries?.enabledComparisonModels ?? []) {
+    for (const comparisonModel of dataset?.enabledComparisonModels ?? []) {
       options.push({
         label: COMPARISON_MODEL_NAMES[comparisonModel],
         key: COMPARISON_MODEL_NAMES[comparisonModel],
@@ -59,7 +59,7 @@ const ColumnVisibilityDropdown = () => {
       });
     }
     return options;
-  }, [entries?.enabledComparisonModels, fineTuneSlugs]);
+  }, [dataset?.enabledComparisonModels, fineTuneSlugs]);
 
   const toggleColumnVisibility = useCallback(
     (key: string) => {
@@ -141,7 +141,7 @@ const ColumnVisibilityDropdown = () => {
                 </Box>
               </HStack>
             ))}
-            {!entries?.enabledComparisonModels.includes(ComparisonModel.GPT_3_5_TURBO) && (
+            {!dataset?.enabledComparisonModels.includes(ComparisonModel.GPT_3_5_TURBO) && (
               <HStack
                 as={Button}
                 w="full"

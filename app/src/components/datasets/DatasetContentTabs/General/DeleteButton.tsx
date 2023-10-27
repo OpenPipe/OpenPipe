@@ -32,7 +32,7 @@ const DeleteButton = () => {
     <>
       <ActionButton
         onClick={disclosure.onOpen}
-        label="Delete"
+        label="Delete Rows"
         icon={BsTrash}
         isDisabled={selectedIds.size === 0}
       />

@@ -1,7 +1,13 @@
+import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
 import Filters from "../Filters/Filters";
 import { useTagNames } from "~/utils/hooks";
 
-export const defaultFilterableFields = ["Request", "Response", "Model", "Status Code"] as const;
+const defaultFilterableFields = [
+  LoggedCallsFiltersDefaultFields.Request,
+  LoggedCallsFiltersDefaultFields.Response,
+  LoggedCallsFiltersDefaultFields.Model,
+  LoggedCallsFiltersDefaultFields.StatusCode,
+];
 
 const LogFilters = () => {
   const tagNames = useTagNames().data;

@@ -1,19 +1,17 @@
-import { z } from "zod";
+import { type z } from "zod";
 import { type Expression, type SqlBool, sql, type RawBuilder } from "kysely";
 import { kysely } from "~/server/db";
-import { comparators } from "~/components/Filters/useFilters";
-import { defaultFilterableFields } from "~/components/requestLogs/LogFilters";
-
-export const logFiltersSchema = z.array(
-  z.object({
-    field: z.string(),
-    comparator: z.enum(comparators),
-    value: z.string(),
-  }),
-);
+import {
+  LoggedCallsFiltersDefaultFields,
+  type comparators,
+  type filtersSchema,
+} from "~/types/shared.types";
 
 // create comparator type based off of comparators
-const comparatorToSqlExpression = (comparator: (typeof comparators)[number], value: string) => {
+export const comparatorToSqlExpression = (
+  comparator: (typeof comparators)[number],
+  value: string,
+) => {
   return (reference: RawBuilder<unknown>): Expression<SqlBool> => {
     switch (comparator) {
       case "=":
@@ -31,8 +29,8 @@ const comparatorToSqlExpression = (comparator: (typeof comparators)[number], val
   };
 };
 
-export const constructFiltersQuery = (
-  filters: z.infer<typeof logFiltersSchema>,
+export const constructLoggedCallFiltersQuery = (
+  filters: z.infer<typeof filtersSchema>,
   projectId: string,
   selectionParams?: {
     defaultToSelected: boolean;
@@ -50,16 +48,16 @@ export const constructFiltersQuery = (
         if (!filter.value) continue;
         const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
 
-        if (filter.field === "Request") {
+        if (filter.field === LoggedCallsFiltersDefaultFields.Request) {
           wheres.push(filterExpression(sql.raw(`lcmr."reqPayload"::text`)));
         }
-        if (filter.field === "Response") {
+        if (filter.field === LoggedCallsFiltersDefaultFields.Response) {
           wheres.push(filterExpression(sql.raw(`lcmr."respPayload"::text`)));
         }
-        if (filter.field === "Model") {
+        if (filter.field === LoggedCallsFiltersDefaultFields.Model) {
           wheres.push(filterExpression(sql.raw(`lc."model"`)));
         }
-        if (filter.field === "Status Code") {
+        if (filter.field === LoggedCallsFiltersDefaultFields.StatusCode) {
           wheres.push(filterExpression(sql.raw(`lcmr."statusCode"::text`)));
         }
       }
@@ -69,7 +67,9 @@ export const constructFiltersQuery = (
 
   const tagFilters = filters.filter(
     (filter) =>
-      !defaultFilterableFields.includes(filter.field as (typeof defaultFilterableFields)[number]),
+      !Object.values(LoggedCallsFiltersDefaultFields).includes(
+        filter.field as LoggedCallsFiltersDefaultFields,
+      ),
   );
 
   let updatedBaseQuery = baseQuery;

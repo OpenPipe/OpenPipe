@@ -1,6 +1,7 @@
 import { Button, HStack, Icon, Text } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
-import { comparators, useFilters } from "./useFilters";
+import { useFilters } from "./useFilters";
+import { comparators } from "~/types/shared.types";
 
 const AddFilterButton = ({ filterOptions }: { filterOptions: string[] }) => {
   const addFilter = useFilters().addFilter;
