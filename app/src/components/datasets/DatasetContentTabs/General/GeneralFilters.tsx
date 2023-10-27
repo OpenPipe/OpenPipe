@@ -1,8 +1,12 @@
 import { Box } from "@chakra-ui/react";
 
 import Filters from "~/components/Filters/Filters";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 
-const defaultFilterOptions = ["Input", "Output"];
+const defaultFilterOptions = [
+  GeneralFiltersDefaultFields.Input,
+  GeneralFiltersDefaultFields.Output,
+];
 
 const GeneralFilters = () => {
   return (

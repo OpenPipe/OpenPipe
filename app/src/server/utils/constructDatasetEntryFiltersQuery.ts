@@ -2,7 +2,7 @@ import { type z } from "zod";
 import { type Expression, type SqlBool, sql } from "kysely";
 
 import { kysely } from "~/server/db";
-import { type filtersSchema } from "~/types/shared.types";
+import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
 import { comparatorToSqlExpression } from "./constructLoggedCallFiltersQuery";
 
 export const constructDatasetEntryFiltersQuery = (
@@ -19,10 +19,10 @@ export const constructDatasetEntryFiltersQuery = (
       if (!filter.value) continue;
       const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
 
-      if (filter.field === "Input") {
+      if (filter.field === GeneralFiltersDefaultFields.Input) {
         wheres.push(filterExpression(sql.raw(`de."messages"::text`)));
       }
-      if (filter.field === "Output") {
+      if (filter.field === GeneralFiltersDefaultFields.Output) {
         wheres.push(filterExpression(sql.raw(`de."output"::text`)));
       }
     }

@@ -102,3 +102,20 @@ export const filtersSchema = z.array(
     value: z.string(),
   }),
 );
+
+export enum LoggedCallsFiltersDefaultFields {
+  Request = "Request",
+  Response = "Response",
+  Model = "Model",
+  StatusCode = "Status Code",
+}
+
+export enum GeneralFiltersDefaultFields {
+  Input = "Input",
+  Output = "Output",
+}
+
+export enum EvaluationFiltersDefaultFields {
+  Input = "Input",
+  OriginalOutput = "Original Output",
+}

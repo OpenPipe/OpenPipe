@@ -30,7 +30,7 @@ import {
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
-import { constructTestDatasetEntryFiltersQuery } from "~/server/utils/constructTestDatasetEntryFiltersQuery";
+import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 
@@ -576,7 +576,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         scoreSortOrder = SortOrder.ASC;
       }
 
-      const baseQuery = constructTestDatasetEntryFiltersQuery(filters, datasetId);
+      const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
 
       const entries = await baseQuery
         .leftJoin(
@@ -662,7 +662,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         .select(["FineTuneTestingEntry.id"])
         .execute();
 
-      const baseQuery = constructTestDatasetEntryFiltersQuery(filters, datasetId);
+      const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
 
       const averageScoreResult = await baseQuery
         .leftJoin("FineTuneTestingEntry as te", "de.id", "te.datasetEntryId")
