@@ -18,13 +18,13 @@ const ViewEvaluationButton = ({
         query: {
           id: datasetId,
           tab: DATASET_EVALUATION_TAB_KEY,
-          [EVALUATION_COLUMNS_KEY]: fineTuneSlug,
+          [EVALUATION_COLUMNS_KEY]: ["original", fineTuneSlug].join(","),
         },
       }}
       variant="link"
       color="blue.600"
     >
-      View Evalution
+      View Evaluation
     </Button>
   );
 };

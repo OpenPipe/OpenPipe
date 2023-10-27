@@ -26,7 +26,12 @@ import { api } from "~/utils/api";
 import ActionButton from "~/components/ActionButton";
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";
-import { type RowToImport, parseRowsToImport } from "../../parseRowsToImport";
+import {
+  type RowToImport,
+  parseRowsToImport,
+  isRowToImport,
+  isParseError,
+} from "../../parseRowsToImport";
 
 const UploadDataButton = () => {
   const disclosure = useDisclosure();
@@ -84,12 +89,15 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
       const content = e.target?.result as string;
       try {
         const resp = parseRowsToImport(content);
-        if ("error" in resp) {
-          setValidationError(resp.error);
+
+        const errors = resp.filter(isParseError);
+
+        if (errors[0]) {
+          setValidationError(`Error on line ${errors[0].line ?? "[unknown]"}: ${errors[0].error}`);
           setDatasetRows(null);
           return;
         }
-        setDatasetRows(resp);
+        setDatasetRows(resp.filter(isRowToImport));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         setValidationError("Unable to parse JSONL file: " + (e.message as string));
@@ -144,7 +152,7 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
       <ModalContent w={1200}>
         <ModalHeader>
           <HStack>
-            <Text>Upload Training Logs</Text>
+            <Text>Import Dataset Entries</Text>
           </HStack>
         </ModalHeader>
         {!sendingInProgress && <ModalCloseButton />}
@@ -175,17 +183,18 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               <VStack
                 w="full"
                 h="full"
+                py={16}
+                px={8}
                 stroke="gray.300"
                 justifyContent="center"
                 borderRadius={8}
-                sx={{
-                  "background-image": `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='2%25' y='2%25' width='96%25' height='96%25' fill='none' stroke='%23eee' stroke-width='4' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square' rx='8' ry='8'/%3e%3c/svg%3e")`,
-                }}
+                borderWidth={4}
+                borderColor="gray.200"
+                borderStyle="dashed"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleFileDrop}
               >
                 <JsonFileIcon />
-                <Icon as={AiOutlineCloudUpload} boxSize={24} color="gray.300" />
 
                 <Text fontSize={32} color="gray.500" fontWeight="bold">
                   Drag & Drop
@@ -208,6 +217,7 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                   >
                     browse
                   </Text>
+                  .
                 </Text>
               </VStack>
             )}
