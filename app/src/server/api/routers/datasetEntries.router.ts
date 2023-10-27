@@ -665,6 +665,8 @@ export const datasetEntriesRouter = createTRPCRouter({
       const baseQuery = constructTestDatasetEntryFiltersQuery(filters, datasetId);
 
       const averageScoreResult = await baseQuery
+        .leftJoin("FineTuneTestingEntry as te", "de.id", "te.datasetEntryId")
+        .where("te.modelId", "=", modelId)
         .where(sql.raw(`te."output" is not null`))
         .select(({ fn }) => ["te.modelId", fn.agg<number>("AVG", ["te.score"]).as("averageScore")])
         .groupBy("te.modelId")
