@@ -119,3 +119,5 @@ export enum EvaluationFiltersDefaultFields {
   Input = "Input",
   OriginalOutput = "Original Output",
 }
+
+export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";

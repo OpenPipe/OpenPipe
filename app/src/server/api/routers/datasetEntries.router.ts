@@ -619,16 +619,6 @@ export const datasetEntriesRouter = createTRPCRouter({
         .execute()
         .then((rows) => rows.length);
 
-      const deployedFineTunes = await prisma.fineTune.findMany({
-        where: {
-          datasetId,
-          status: "DEPLOYED",
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-
       const pageIncomplete = !!entries.find((entry) =>
         entry.fineTuneTestDatasetEntries.find((entry) => !entry.output),
       );
@@ -637,8 +627,6 @@ export const datasetEntriesRouter = createTRPCRouter({
         entries,
         count,
         pageIncomplete,
-        enabledComparisonModels: dataset.enabledComparisonModels,
-        deployedFineTunes,
       };
     }),
   testingStats: protectedProcedure

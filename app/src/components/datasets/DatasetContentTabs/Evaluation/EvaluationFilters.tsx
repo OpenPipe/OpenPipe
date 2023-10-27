@@ -1,9 +1,13 @@
 import { useMemo } from "react";
 import { Box } from "@chakra-ui/react";
 
-import { useTestingEntries } from "~/utils/hooks";
+import { useDataset } from "~/utils/hooks";
 import Filters from "~/components/Filters/Filters";
-import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
+import {
+  EVALUATION_FILTERS_OUTPUT_APPENDIX,
+  EvaluationFiltersDefaultFields,
+} from "~/types/shared.types";
+import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 
 const defaultEvaluationFilterOptions = [
   EvaluationFiltersDefaultFields.Input,
@@ -11,17 +15,20 @@ const defaultEvaluationFilterOptions = [
 ];
 
 const EvaluationFilters = () => {
-  const entries = useTestingEntries().data;
+  const dataset = useDataset().data;
 
   const filterOptions = useMemo(
     () => [
       ...defaultEvaluationFilterOptions,
       ...[
-        ...(entries?.enabledComparisonModels.map((cm) => `${cm} (output)`) || []),
-        ...(entries?.deployedFineTunes?.map((ft) => `${ft.slug} (output)`) || []),
+        ...(dataset?.enabledComparisonModels.map(
+          (cm) => COMPARISON_MODEL_NAMES[cm] + EVALUATION_FILTERS_OUTPUT_APPENDIX,
+        ) || []),
+        ...(dataset?.deployedFineTunes?.map((ft) => ft.slug + EVALUATION_FILTERS_OUTPUT_APPENDIX) ||
+          []),
       ],
     ],
-    [entries?.enabledComparisonModels, entries?.deployedFineTunes],
+    [dataset?.enabledComparisonModels, dataset?.deployedFineTunes],
   );
 
   return (

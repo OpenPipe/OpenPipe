@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { VStack, Card, Grid, HStack, Box, Text } from "@chakra-ui/react";
 
-import { useTestingEntries } from "~/utils/hooks";
+import { useDataset, useTestingEntries } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
 import EvaluationPaginator from "./EvaluationPaginator";
 import { ORIGINAL_OUTPUT_COLUMN_KEY } from "../ColumnVisibilityDropdown";
@@ -10,6 +10,7 @@ import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 
 const EvaluationTable = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
+  const dataset = useDataset().data;
   const entries = useTestingEntries(refetchInterval).data;
 
   useEffect(
@@ -24,21 +25,21 @@ const EvaluationTable = () => {
       !visibleColumns.length || visibleColumns.includes(ORIGINAL_OUTPUT_COLUMN_KEY);
     const combinedColumnIds: string[] = [];
 
-    if (!entries?.enabledComparisonModels || !entries?.deployedFineTunes)
+    if (!dataset?.enabledComparisonModels || !dataset?.deployedFineTunes)
       return [showOriginalOutput, combinedColumnIds];
 
     combinedColumnIds.push(
-      ...entries.enabledComparisonModels.filter(
+      ...dataset.enabledComparisonModels.filter(
         (cm) => !visibleColumns.length || visibleColumns.includes(COMPARISON_MODEL_NAMES[cm]),
       ),
     );
     combinedColumnIds.push(
-      ...entries.deployedFineTunes
+      ...dataset.deployedFineTunes
         .filter((ft) => !visibleColumns.length || visibleColumns.includes(ft.slug))
         .map((ft) => ft.id),
     );
     return [showOriginalOutput, combinedColumnIds];
-  }, [entries?.enabledComparisonModels, entries?.deployedFineTunes, visibleColumns]);
+  }, [dataset?.enabledComparisonModels, dataset?.deployedFineTunes, visibleColumns]);
   const numOutputColumns = visibleModelIds.length + (showOriginalOutput ? 1 : 0);
 
   if (!entries) return null;
