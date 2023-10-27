@@ -272,7 +272,7 @@ const FormattedMessage = ({
       </VStack>
     );
   }
-  return <Text>{message.content}</Text>;
+  return <Text whiteSpace="pre-wrap">{message.content}</Text>;
 };
 
 export default EvaluationRow;
