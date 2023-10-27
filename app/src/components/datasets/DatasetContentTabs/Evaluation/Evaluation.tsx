@@ -1,26 +1,21 @@
 import { useState } from "react";
-import { VStack, HStack, Box } from "@chakra-ui/react";
+import { VStack, HStack, Box, Text } from "@chakra-ui/react";
 import { FiFilter } from "react-icons/fi";
 
 import EvaluationTable from "./EvaluationTable/EvaluationTable";
 import ColumnVisibilityDropdown from "./ColumnVisibilityDropdown";
 import ActionButton from "~/components/ActionButton";
 import EvaluationFilters from "./EvaluationFilters";
+import { useTestingEntries } from "~/utils/hooks";
 
 const Evaluation = () => {
   const [filtersShown, setFiltersShown] = useState(true);
 
+  const { data } = useTestingEntries();
+
   return (
     <>
-      <VStack
-        px={8}
-        position="sticky"
-        left={0}
-        w="full"
-        justifyContent="flex-start"
-        pb={4}
-        zIndex={5}
-      >
+      <VStack px={8} position="sticky" left={0} w="full" alignItems="flex-start" pb={4} zIndex={5}>
         <HStack w="full">
           <ColumnVisibilityDropdown />
           <ActionButton
@@ -32,6 +27,9 @@ const Evaluation = () => {
           />
         </HStack>
         {filtersShown && <EvaluationFilters />}
+        <Text fontWeight="bold" fontSize="lg" pt={8}>
+          Results {data?.count !== undefined ? `(${data.count})` : ""}
+        </Text>
       </VStack>
       <Box w="full" flex={1}>
         <EvaluationTable />

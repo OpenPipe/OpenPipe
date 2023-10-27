@@ -591,24 +591,20 @@ export const datasetEntriesRouter = createTRPCRouter({
         .limit(pageSize)
         .execute();
 
-      const [count, deployedFineTunes] = await prisma.$transaction([
-        prisma.datasetEntry.count({
-          where: {
-            datasetId,
-            outdated: false,
-            type: "TEST",
-          },
-        }),
-        prisma.fineTune.findMany({
-          where: {
-            datasetId,
-            status: "DEPLOYED",
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        }),
-      ]);
+      const count = await baseQuery
+        .select("de.id")
+        .execute()
+        .then((rows) => rows.length);
+
+      const deployedFineTunes = await prisma.fineTune.findMany({
+        where: {
+          datasetId,
+          status: "DEPLOYED",
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
 
       const pageIncomplete = !!entries.find((entry) =>
         entry.fineTuneTestDatasetEntries.find((entry) => !entry.output),
