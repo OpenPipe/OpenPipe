@@ -31,48 +31,74 @@ import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countToke
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
 import { constructTestDatasetEntryFiltersQuery } from "~/server/utils/constructTestDatasetEntryFiltersQuery";
+import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
-    .input(z.object({ datasetId: z.string(), page: z.number(), pageSize: z.number() }))
+    .input(
+      z.object({
+        datasetId: z.string(),
+        filters: filtersSchema,
+        page: z.number(),
+        pageSize: z.number(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const { datasetId, page, pageSize } = input;
+      const { datasetId, filters, page, pageSize } = input;
 
       const { projectId } = await prisma.dataset.findUniqueOrThrow({
         where: { id: datasetId },
       });
       await requireCanViewProject(projectId, ctx);
 
-      const [entries, matchingEntries, trainingCount, testingCount] = await prisma.$transaction([
-        prisma.datasetEntry.findMany({
-          where: {
-            datasetId: datasetId,
-            outdated: false,
-          },
-          include: {
-            matchedRules: {
-              select: {
-                pruningRule: {
-                  select: {
-                    tokensInText: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: { sortKey: "desc" },
-          skip: (page - 1) * pageSize,
-          take: pageSize,
-        }),
-        prisma.datasetEntry.findMany({
-          where: {
-            datasetId: datasetId,
-            outdated: false,
-          },
-          select: {
-            id: true,
-          },
-        }),
+      const baseQuery = constructDatasetEntryFiltersQuery(filters, datasetId);
+
+      const entries = (
+        await baseQuery
+          .select((eb) => [
+            "de.id as id",
+            "de.messages as messages",
+            "de.function_call as function_call",
+            "de.output as output",
+            "de.inputTokens as inputTokens",
+            "de.outputTokens as outputTokens",
+            "de.type as type",
+            "de.sortKey as sortKey",
+            "de.authoringUserId as authoringUserId",
+            "de.persistentId as persistentId",
+            "de.createdAt as createdAt",
+            "de.updatedAt as updatedAt",
+            "de.outdated as outdated",
+            "de.datasetId as datasetId",
+            jsonArrayFrom(
+              eb
+                .selectFrom("PruningRuleMatch as prm")
+                .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
+                .select(["pr.textToMatch", "pr.tokensInText"])
+                .whereRef("prm.datasetEntryId", "=", "de.id"),
+            ).as("matchedRules"),
+          ])
+          .orderBy("de.sortKey", "desc")
+          .limit(pageSize)
+          .offset((page - 1) * pageSize)
+          .execute()
+      ).map((entry) => ({
+        ...entry,
+        inputTokens:
+          entry.inputTokens -
+          entry.matchedRules.reduce((acc, match) => acc + (match.tokensInText ?? 0), 0),
+        matchedRules: entry.matchedRules.map((match) => ({
+          textToMatch: match.textToMatch as string,
+          tokensInText: match.tokensInText as number,
+        })),
+      }));
+
+      const matchingEntryIds = await baseQuery
+        .select("de.id")
+        .execute()
+        .then((rows) => rows.map((row) => row.id));
+
+      const [trainingCount, testingCount] = await prisma.$transaction([
         prisma.datasetEntry.count({
           where: {
             datasetId: datasetId,
@@ -89,16 +115,9 @@ export const datasetEntriesRouter = createTRPCRouter({
         }),
       ]);
 
-      const entriesWithUpdatedInputTokens = entries.map((entry) => ({
-        ...entry,
-        inputTokens:
-          entry.inputTokens -
-          entry.matchedRules.reduce((acc, match) => acc + match.pruningRule.tokensInText, 0),
-      }));
-
       return {
-        entries: entriesWithUpdatedInputTokens,
-        matchingEntryIds: matchingEntries.map((entry) => entry.id),
+        entries,
+        matchingEntryIds,
         trainingCount,
         testingCount,
       };

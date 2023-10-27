@@ -193,10 +193,13 @@ export const useDataset = () => {
 
 export const useDatasetEntries = () => {
   const dataset = useDataset().data;
+
+  const filters = useFilters().filters;
+
   const { page, pageSize } = usePageParams();
 
   const { data, isFetching, ...rest } = api.datasetEntries.list.useQuery(
-    { datasetId: dataset?.id ?? "", page, pageSize },
+    { datasetId: dataset?.id ?? "", filters, page, pageSize },
     { enabled: !!dataset?.id },
   );
 
