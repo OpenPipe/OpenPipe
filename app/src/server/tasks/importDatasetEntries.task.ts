@@ -1,4 +1,8 @@
-import { parseRowsToImport } from "~/components/datasets/parseRowsToImport";
+import {
+  isParseError,
+  isRowToImport,
+  parseRowsToImport,
+} from "~/components/datasets/parseRowsToImport";
 import { prisma } from "~/server/db";
 import { downloadBlobToString } from "~/utils/azure/server";
 import { prepareDatasetEntriesForImport } from "../utils/prepareDatasetEntriesForImport";
@@ -51,15 +55,19 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     const rowsToImport = parseRowsToImport(jsonlStr);
 
-    if ("error" in rowsToImport) {
+    const errorRows = rowsToImport.filter(isParseError);
+    const goodRows = rowsToImport.filter(isRowToImport);
+
+    if (!goodRows.length || errorRows.length > goodRows.length) {
+      const error = errorRows[0]?.error ?? "No lines to import";
+
       await prisma.datasetFileUpload.update({
         where: { id: datasetFileUploadId },
         data: {
-          errorMessage: `Invalid JSONL: ${rowsToImport.error}`,
+          errorMessage: `Invalid JSONL: ${error}`,
           status: "ERROR",
         },
       });
-      return;
     }
 
     await prisma.datasetFileUpload.update({
@@ -83,7 +91,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
     try {
       datasetEntriesToCreate = await prepareDatasetEntriesForImport(
         datasetFileUpload.datasetId,
-        rowsToImport,
+        goodRows,
         updateCallback,
         500,
       );
@@ -104,7 +112,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       where: { id: datasetFileUploadId },
       data: {
         status: "SAVING",
-        progress: 99,
+        progress: 90,
       },
     });
 

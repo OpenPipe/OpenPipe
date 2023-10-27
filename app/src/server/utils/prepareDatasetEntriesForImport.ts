@@ -9,7 +9,7 @@ type CreateManyInput = Omit<Prisma.DatasetEntryCreateManyInput, "id"> & { id: st
 
 export const prepareDatasetEntriesForImport = async (
   datasetId: string,
-  trainingRows: RowToImport[],
+  entriesToImport: RowToImport[],
   updateCallback?: (progress: number) => Promise<void>,
   updateFrequency = 1000,
 ) => {
@@ -31,9 +31,9 @@ export const prepareDatasetEntriesForImport = async (
 
   const trainingRatio = dataset?.trainingRatio ?? 0.8;
 
-  const newTotalEntries = existingTrainingCount + existingTestingCount + trainingRows.length;
+  const newTotalEntries = existingTrainingCount + existingTestingCount + entriesToImport.length;
   const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
-  const numTestingToAdd = trainingRows.length - numTrainingToAdd;
+  const numTestingToAdd = entriesToImport.length - numTrainingToAdd;
   const typesToAssign = shuffle([
     ...Array(numTrainingToAdd).fill("TRAIN"),
     ...Array(numTestingToAdd).fill("TEST"),
@@ -41,7 +41,7 @@ export const prepareDatasetEntriesForImport = async (
   const datasetEntriesToCreate: CreateManyInput[] = [];
   const batchDate = Date.now();
   let i = 0;
-  for (const row of trainingRows) {
+  for (const row of entriesToImport) {
     if (updateCallback && i % updateFrequency === 0) await updateCallback(i);
     const persistentId = uuidv4();
     datasetEntriesToCreate.push({

@@ -1,3 +1,4 @@
+import { validate } from "jsonschema";
 import { isObject } from "lodash-es";
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
 import { z } from "zod";
@@ -14,31 +15,29 @@ export const rowSchema = z.object({
 
 export type RowToImport = z.infer<typeof rowSchema>;
 
+export type ParseError = { line?: number; error: string };
+export type ParsedRow = ParseError | RowToImport;
+
 export type ContentChatCompletionMessage = Omit<ChatCompletionMessageParam, "function_call">;
 
-export const parseRowsToImport = (jsonlString: string): RowToImport[] | { error: string } => {
+export const parseRowsToImport = (jsonlString: string): ParsedRow[] => {
   const lines = jsonlString.trim().split("\n");
 
-  const parsedLines = [];
+  const parsedRows = [];
 
   for (let i = 0; i < lines.length; i++) {
     try {
-      parsedLines.push(JSON.parse(lines[i] as string));
+      const parsed = JSON.parse(lines[i] as string);
+      parsedRows.push({ line: i + 1, ...validateRowToImport(parsed) });
     } catch (e: any) {
-      return { error: `Error parsing line ${i}: ${e.message as string}` };
+      parsedRows.push({ line: i + 1, error: e.message as string });
     }
   }
 
-  const validatedRows: RowToImport[] = [];
-  for (let i = 0; i < parsedLines.length; i++) {
-    const validatedRow = validateRowToImport(parsedLines[i]);
-    if ("error" in validatedRow) return { error: `row ${i + 1}: ${validatedRow.error}` };
-    validatedRows.push(validatedRow);
-  }
-  return validatedRows;
+  return parsedRows;
 };
 
-const validateRowToImport = (row: unknown): { error: string } | RowToImport => {
+export const validateRowToImport = (row: unknown): ParseError | RowToImport => {
   if (!row) return { error: "empty row" };
 
   // Soo turns out that when you call OpenAI with Azure it doesn't return
@@ -70,7 +69,42 @@ const validateRowToImport = (row: unknown): { error: string } | RowToImport => {
   if (output) {
     if (!output.content && !output.function_call)
       return { error: "output contains no content or function_call" };
+    if (output.content && output.function_call)
+      return { error: "output contains both content and function_call" };
+    if (output.function_call) {
+      const inputFunction = parsedRow.data.input.functions?.find(
+        (fn) => fn.name === output.function_call?.name,
+      );
+      if (!inputFunction)
+        return { error: "output contains function_call but no matching function in input" };
+      if (output.function_call.arguments) {
+        let parsedArgs;
+        try {
+          parsedArgs = JSON.parse(output.function_call.arguments);
+        } catch (e) {
+          return { error: "function_call arguments are not valid JSON" };
+        }
+
+        const validation = validate(parsedArgs, inputFunction.parameters);
+        console.log(validation.errors);
+
+        if (!validation.valid)
+          return {
+            error: `function_call arguments do not match function parameters. ${validation.errors
+              .map((e) => e.stack)
+              .join(", ")}`,
+          };
+      }
+    }
   }
 
   return parsedRow.data;
+};
+
+export const isParseError = (row: ParsedRow): row is ParseError => {
+  return "error" in row;
+};
+
+export const isRowToImport = (row: ParsedRow): row is RowToImport => {
+  return !isParseError(row);
 };
