@@ -45,6 +45,7 @@ dump_prod_db() {
       --exclude-table-data '"LoggedCallModelResponse"' \
       --exclude-table-data '"LoggedCall"' \
       --exclude-table-data '"LoggedCallTag"' \
+      --exclude-table-data 'graphile_worker.jobs' \
       --jobs=8 \
       --strict-names \
       -h "$HOST" \
