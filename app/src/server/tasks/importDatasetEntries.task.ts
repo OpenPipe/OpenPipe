@@ -60,11 +60,12 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     if (!goodRows.length || errorRows.length > goodRows.length) {
       const error = errorRows[0]?.error ?? "No lines to import";
+      const line = errorRows[0]?.line ?? 0;
 
       await prisma.datasetFileUpload.update({
         where: { id: datasetFileUploadId },
         data: {
-          errorMessage: `Invalid JSONL: ${error}`,
+          errorMessage: `Invalid JSONL on line ${line}: ${error}`,
           status: "ERROR",
         },
       });

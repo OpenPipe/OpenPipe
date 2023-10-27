@@ -267,7 +267,7 @@ const FormattedMessage = ({
               {JSON.stringify(JSON.parse(args), null, 4)}
             </SyntaxHighlighter>
           ) : (
-            <Text>{args}</Text>
+            <Text maxW="full">{args}</Text>
           ))}
       </VStack>
     );

@@ -62,7 +62,11 @@ const FileUploadsCard = () => {
             cursor="pointer"
           />
         </HStack>
-        {fileUploads?.data?.map((upload) => <FileUploadRow key={upload.id} fileUpload={upload} />)}
+        <VStack w="full" spacing={0} overflowY="auto" maxH="80vh">
+          {fileUploads?.data?.map((upload) => (
+            <FileUploadRow key={upload.id} fileUpload={upload} />
+          ))}
+        </VStack>
       </VStack>
     </Portal>
   );

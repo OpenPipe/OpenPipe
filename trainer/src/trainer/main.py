@@ -5,6 +5,19 @@ from typing import Union, Literal
 import os
 from ..shared import model_cache_dir, logging
 
+
+def cache_model_weights():
+    from huggingface_hub import snapshot_download
+
+    # Images seem to be cached really efficiently on Modal so let's just save
+    # all our base model weights to the image to make training faster.
+    snapshot_download("mistralai/Mistral-7B-v0.1")
+    snapshot_download("meta-llama/Llama-2-7b-hf")
+    snapshot_download("meta-llama/Llama-2-13b-hf")
+
+    print("Model weights cached")
+
+
 image = (
     modal.Image.from_registry(
         "nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04",
@@ -12,17 +25,18 @@ image = (
     )
     .apt_install("git")
     .run_commands(
-        "git clone https://github.com/OpenAccess-AI-Collective/axolotl.git /axolotl",
-        "cd /axolotl && git checkout 20aa4b5 > /dev/null 2>&1",
-        "pip install -e /axolotl",
+        "git clone https://github.com/OpenPipe/axolotl.git /axolotl",
+        "cd /axolotl && git checkout 3848038 > /dev/null 2>&1",
+        "pip3 install -e '/axolotl'",
     )
     .pip_install(
-        "deepspeed==0.11.1",
-        "flash-attn==2.3.3",
         "httpx==0.24.1",
-        "peft==0.5.0",
         "huggingface-hub==0.17.3",
+        "hf-transfer~=0.1",
+        "flash-attn==2.3.3",
     )
+    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
+    .run_function(cache_model_weights, secret=modal.Secret.from_name("openpipe"))
 )
 
 

@@ -241,6 +241,7 @@ export const fineTunesRouter = createTRPCRouter({
         data: {
           status: "PENDING",
           errorMessage: null,
+          createdAt: new Date(),
         },
       });
 
