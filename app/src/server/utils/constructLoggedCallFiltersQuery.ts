@@ -1,19 +1,14 @@
-import { z } from "zod";
+import { type z } from "zod";
 import { type Expression, type SqlBool, sql, type RawBuilder } from "kysely";
 import { kysely } from "~/server/db";
-import { comparators } from "~/components/Filters/useFilters";
 import { defaultFilterableFields } from "~/components/requestLogs/LogFilters";
-
-export const logFiltersSchema = z.array(
-  z.object({
-    field: z.string(),
-    comparator: z.enum(comparators),
-    value: z.string(),
-  }),
-);
+import { type comparators, type filtersSchema } from "~/types/shared.types";
 
 // create comparator type based off of comparators
-const comparatorToSqlExpression = (comparator: (typeof comparators)[number], value: string) => {
+export const comparatorToSqlExpression = (
+  comparator: (typeof comparators)[number],
+  value: string,
+) => {
   return (reference: RawBuilder<unknown>): Expression<SqlBool> => {
     switch (comparator) {
       case "=":
@@ -31,8 +26,8 @@ const comparatorToSqlExpression = (comparator: (typeof comparators)[number], val
   };
 };
 
-export const constructFiltersQuery = (
-  filters: z.infer<typeof logFiltersSchema>,
+export const constructLoggedCallFiltersQuery = (
+  filters: z.infer<typeof filtersSchema>,
   projectId: string,
   selectionParams?: {
     defaultToSelected: boolean;

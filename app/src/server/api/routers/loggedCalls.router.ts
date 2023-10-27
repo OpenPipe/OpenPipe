@@ -9,7 +9,8 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
 import { requireCanViewProject } from "~/utils/accessControl";
 import hashObject from "~/server/utils/hashObject";
-import { constructFiltersQuery, logFiltersSchema } from "~/server/utils/constructFiltersQuery";
+import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
+import { filtersSchema } from "~/types/shared.types";
 
 export const loggedCallsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -18,7 +19,7 @@ export const loggedCallsRouter = createTRPCRouter({
         projectId: z.string(),
         page: z.number(),
         pageSize: z.number(),
-        filters: logFiltersSchema,
+        filters: filtersSchema,
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -26,7 +27,7 @@ export const loggedCallsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructFiltersQuery(input.filters, projectId);
+      const baseQuery = constructLoggedCallFiltersQuery(input.filters, projectId);
 
       const rawCalls = await baseQuery
         .select((eb) => [
@@ -109,7 +110,7 @@ export const loggedCallsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        filters: logFiltersSchema,
+        filters: filtersSchema,
         defaultToSelected: z.boolean(),
         selectedLogIds: z.string().array(),
         deselectedLogIds: z.string().array(),
@@ -121,7 +122,7 @@ export const loggedCallsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      const baseQuery = constructFiltersQuery(input.filters, input.projectId, {
+      const baseQuery = constructLoggedCallFiltersQuery(input.filters, input.projectId, {
         defaultToSelected: input.defaultToSelected,
         selectedLogIds: input.selectedLogIds,
         deselectedLogIds: input.deselectedLogIds,

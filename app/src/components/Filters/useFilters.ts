@@ -1,6 +1,5 @@
 import { useQueryParam, JsonParam, withDefault } from "use-query-params";
-
-export const comparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
+import { type comparators } from "~/types/shared.types";
 
 export interface FilterType {
   id: string;

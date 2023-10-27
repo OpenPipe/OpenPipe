@@ -92,3 +92,13 @@ export enum SortOrder {
   ASC = "asc",
   DESC = "desc",
 }
+
+export const comparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
+
+export const filtersSchema = z.array(
+  z.object({
+    field: z.string(),
+    comparator: z.enum(comparators),
+    value: z.string(),
+  }),
+);

@@ -71,6 +71,11 @@ const EvaluationTable = () => {
                 visibleModelIds={visibleModelIds}
               />
             ))}
+            {!entries.entries.length && (
+              <Box gridColumn="1 / -1" textAlign="center">
+                No entries found.
+              </Box>
+            )}
           </Grid>
         </Card>
         <Box minW={8}>&nbsp;</Box>
