@@ -8,9 +8,11 @@ import ActionButton from "~/components/ActionButton";
 import EvaluationFilters from "./EvaluationFilters";
 import { useTestingEntries } from "~/utils/hooks";
 import EvaluationPaginator from "./EvaluationTable/EvaluationPaginator";
+import { useFilters } from "~/components/Filters/useFilters";
 
 const Evaluation = () => {
-  const [filtersShown, setFiltersShown] = useState(false);
+  const filters = useFilters().filters;
+  const [filtersShown, setFiltersShown] = useState(filters.length > 0);
 
   const { data } = useTestingEntries();
 

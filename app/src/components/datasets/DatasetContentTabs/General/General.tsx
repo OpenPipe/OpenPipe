@@ -9,9 +9,11 @@ import DatasetEntriesTable from "./DatasetEntriesTable/DatasetEntriesTable";
 import DatasetEntryPaginator from "./DatasetEntryPaginator";
 import { FiFilter } from "react-icons/fi";
 import GeneralFilters from "./GeneralFilters";
+import { useFilters } from "~/components/Filters/useFilters";
 
 const General = () => {
-  const [filtersShown, setFiltersShown] = useState(false);
+  const filters = useFilters().filters;
+  const [filtersShown, setFiltersShown] = useState(filters.length > 0);
 
   return (
     <VStack pb={8} px={8} alignItems="flex-start" spacing={4} w="full">
