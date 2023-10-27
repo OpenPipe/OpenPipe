@@ -33,7 +33,7 @@ const Evaluation = () => {
             icon={FiFilter}
           />
         </HStack>
-        <Filters filterOptions={defaultFilterOptions} />
+        {filtersShown && <Filters filterOptions={defaultFilterOptions} />}
       </VStack>
       <Box w="full" flex={1}>
         <EvaluationTable />
