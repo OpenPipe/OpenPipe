@@ -287,7 +287,7 @@ export const useModelTestingStats = (
   const [stableData, setStableData] = useState(data);
 
   useEffect(() => {
-    // Prevent annoying flashes while entries are loading from the server
+    // Prevent annoying flashes while stats are loading from the server
     if (!isFetching) {
       setStableData(data);
     }
