@@ -9,7 +9,7 @@ import EvaluationFilters from "./EvaluationFilters";
 import { useTestingEntries } from "~/utils/hooks";
 
 const Evaluation = () => {
-  const [filtersShown, setFiltersShown] = useState(true);
+  const [filtersShown, setFiltersShown] = useState(false);
 
   const { data } = useTestingEntries();
 
