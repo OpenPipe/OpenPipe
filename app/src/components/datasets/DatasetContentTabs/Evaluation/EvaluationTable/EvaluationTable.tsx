@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { VStack, Card, Grid, HStack, Box } from "@chakra-ui/react";
+import { VStack, Card, Grid, HStack, Box, Text } from "@chakra-ui/react";
 
 import { useTestingEntries } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
@@ -72,8 +72,8 @@ const EvaluationTable = () => {
               />
             ))}
             {!entries.entries.length && (
-              <Box gridColumn="1 / -1" textAlign="center">
-                No entries found.
+              <Box gridColumn="1 / -1" textAlign="center" py={6}>
+                <Text color="gray.500">No matching entries found. Try removing some filters.</Text>
               </Box>
             )}
           </Grid>
