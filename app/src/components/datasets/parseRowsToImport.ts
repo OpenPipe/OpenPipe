@@ -86,7 +86,6 @@ export const validateRowToImport = (row: unknown): ParseError | RowToImport => {
         }
 
         const validation = validate(parsedArgs, inputFunction.parameters);
-        console.log(validation.errors);
 
         if (!validation.valid)
           return {

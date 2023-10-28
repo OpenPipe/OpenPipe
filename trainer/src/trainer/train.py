@@ -6,7 +6,6 @@ from ..api_client.client import AuthenticatedClient
 from ..shared import model_cache_dir
 
 from .write_config import write_config
-from axolotl.cli.train import do_cli as do_train_cli
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 
@@ -14,6 +13,7 @@ import shutil
 import torch
 import logging
 import os
+import subprocess
 
 logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -79,11 +79,26 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
         training_file=training_file,
         out_path=lora_model_path,
         wandb_project=f"OP {training_info.project_name}",
-        wandb_run_id=training_info.model_slug
+        wandb_run_id=training_info.model_slug,
     )
 
-    logging.info("Running training")
-    do_train_cli(config_path)
+    logging.info("Beginning training")
+    try:
+        # We have to run this in a subprocess instead of importing axolotl directly
+        # because I haven't figured out how to free the GPU memory after training
+        # and we get OOMs when we reload the peft model to merge it.
+        subprocess.run(
+            [
+                "python",
+                "-m",
+                "axolotl.cli.train",
+                config_path,
+            ],
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Training failed: {e}")
+        raise e
 
     with torch.device("cuda:0"):
         logging.info("Reloading the base model")
@@ -101,5 +116,6 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
         logging.info(f"Saving the final model to {merged_model_path}")
         model.save_pretrained(merged_model_path, safe_serialization=True)
 
+        logging.info("Saving the tokenizer")
         tokenizer = AutoTokenizer.from_pretrained(lora_model_path)
         tokenizer.save_pretrained(merged_model_path, safe_serialization=True)
