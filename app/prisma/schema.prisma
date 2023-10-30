@@ -257,7 +257,7 @@ model DatasetEntry {
     fineTuneTrainingEntries    FineTuneTrainingEntry[]
     fineTuneTestDatasetEntries FineTuneTestingEntry[]
 
-    provenance DatasetEntryProvenance @default(UPLOAD)
+    provenance DatasetEntryProvenance
 
     authoringUserId String? @db.Uuid // The user who created this version of the entry (if any)
     authoringUser   User?   @relation(fields: [authoringUserId], references: [id])
