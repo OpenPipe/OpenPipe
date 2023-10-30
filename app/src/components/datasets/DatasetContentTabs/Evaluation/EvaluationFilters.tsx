@@ -10,8 +10,8 @@ import {
 import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 
 const defaultEvaluationFilterOptions = [
-  EvaluationFiltersDefaultFields.Input,
-  EvaluationFiltersDefaultFields.OriginalOutput,
+  { field: EvaluationFiltersDefaultFields.Input },
+  { field: EvaluationFiltersDefaultFields.OriginalOutput },
 ];
 
 const EvaluationFilters = () => {
@@ -21,11 +21,12 @@ const EvaluationFilters = () => {
     () => [
       ...defaultEvaluationFilterOptions,
       ...[
-        ...(dataset?.enabledComparisonModels.map(
-          (cm) => COMPARISON_MODEL_NAMES[cm] + EVALUATION_FILTERS_OUTPUT_APPENDIX,
-        ) || []),
-        ...(dataset?.deployedFineTunes?.map((ft) => ft.slug + EVALUATION_FILTERS_OUTPUT_APPENDIX) ||
-          []),
+        ...(dataset?.enabledComparisonModels || []).map((cm) => ({
+          field: COMPARISON_MODEL_NAMES[cm] + EVALUATION_FILTERS_OUTPUT_APPENDIX,
+        })),
+        ...(dataset?.deployedFineTunes || []).map((ft) => ({
+          field: ft.slug + EVALUATION_FILTERS_OUTPUT_APPENDIX,
+        })),
       ],
     ],
     [dataset?.enabledComparisonModels, dataset?.deployedFineTunes],

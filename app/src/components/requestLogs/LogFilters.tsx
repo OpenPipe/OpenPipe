@@ -1,20 +1,25 @@
+import { useMemo } from "react";
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
 import Filters from "../Filters/Filters";
 import { useTagNames } from "~/utils/hooks";
 
 const defaultFilterableFields = [
-  LoggedCallsFiltersDefaultFields.Request,
-  LoggedCallsFiltersDefaultFields.Response,
-  LoggedCallsFiltersDefaultFields.Model,
-  LoggedCallsFiltersDefaultFields.StatusCode,
+  { field: LoggedCallsFiltersDefaultFields.Request },
+  { field: LoggedCallsFiltersDefaultFields.Response },
+  { field: LoggedCallsFiltersDefaultFields.Model },
+  { field: LoggedCallsFiltersDefaultFields.StatusCode },
+  { field: LoggedCallsFiltersDefaultFields.SentAt, type: "date" },
 ];
 
 const LogFilters = () => {
   const tagNames = useTagNames().data;
 
-  if (!tagNames) return null;
+  const filterOptions = useMemo(
+    () => [...defaultFilterableFields, ...(tagNames || []).map((tag) => ({ field: tag }))],
+    [tagNames],
+  );
 
-  return <Filters filterOptions={[...defaultFilterableFields, ...tagNames]} />;
+  return <Filters filterOptions={filterOptions} />;
 };
 
 export default LogFilters;

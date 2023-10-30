@@ -1,21 +1,17 @@
 import { useQueryParam, JsonParam, withDefault } from "use-query-params";
-import { type comparators } from "~/types/shared.types";
-
-export interface FilterType {
-  id: string;
-  field: string;
-  comparator: (typeof comparators)[number];
-  value: string;
-}
+import { type FilterDataType } from "./types";
 
 export const useFilters = () => {
-  const [filters, setFilters] = useQueryParam<FilterType[]>("filters", withDefault(JsonParam, []));
+  const [filters, setFilters] = useQueryParam<FilterDataType[]>(
+    "filters",
+    withDefault(JsonParam, []),
+  );
 
-  const addFilter = (filter: FilterType) => setFilters([...filters, filter]);
-  const updateFilter = (filter: FilterType) =>
+  const addFilter = (filter: FilterDataType) => setFilters([...filters, filter]);
+  const updateFilter = (filter: FilterDataType) =>
     setFilters(filters.map((f) => (f.id === filter.id ? filter : f)));
 
-  const removeFilter = (filter: FilterType) =>
+  const removeFilter = (filter: FilterDataType) =>
     setFilters(filters.filter((f) => f.id !== filter.id));
 
   return { filters, setFilters, addFilter, updateFilter, removeFilter };
