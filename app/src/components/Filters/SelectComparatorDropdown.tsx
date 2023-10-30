@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import InputDropdown from "~/components/InputDropdown";
 import { useFilters } from "./useFilters";
 import { type FilterDataType, type FilterTypeType, comparatorsForFilterType } from "./types";
+import { comparators } from "~/types/shared.types";
 
 const SelectComparatorDropdown = ({
   filter,
@@ -26,9 +27,33 @@ const SelectComparatorDropdown = ({
     <InputDropdown
       options={comparators}
       selectedOption={comparator}
+      getDisplayLabel={getComparatorLabel}
       onSelect={(option) => updateFilter({ ...filter, comparator: option })}
     />
   );
+};
+
+const getComparatorLabel = (comparator: (typeof comparators)[number]) => {
+  switch (comparator) {
+    case "CONTAINS":
+      return "Contains";
+    case "NOT_CONTAINS":
+      return "Does not contain";
+    case "LAST 15M":
+      return "Last 15 minutes";
+    case "LAST 24H":
+      return "Last 24 hours";
+    case "LAST 7D":
+      return "Last 7 days";
+    case "BEFORE":
+      return "Before";
+    case "AFTER":
+      return "After";
+    case "RANGE":
+      return "Range";
+    default:
+      return comparator;
+  }
 };
 
 export default SelectComparatorDropdown;
