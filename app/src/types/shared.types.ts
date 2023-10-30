@@ -132,6 +132,7 @@ export enum GeneralFiltersDefaultFields {
 export enum EvaluationFiltersDefaultFields {
   Input = "Input",
   OriginalOutput = "Original Output",
+  ImportId = "Import ID",
 }
 
 export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";
