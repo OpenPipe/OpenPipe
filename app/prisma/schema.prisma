@@ -273,7 +273,7 @@ model DatasetEntry {
     @@index([importId])
 }
 
-enum RelabelJobStatus {
+enum RelabelRequestStatus {
     PENDING
     IN_PROGRESS
     COMPLETE
@@ -284,8 +284,8 @@ model RelabelRequest {
     id String @id @default(uuid()) @db.Uuid
 
     batchId                  String
-    datasetEntryPersistentId String           @db.Uuid
-    status                   RelabelJobStatus @default(PENDING)
+    datasetEntryPersistentId String               @db.Uuid
+    status                   RelabelRequestStatus @default(PENDING)
     errorMessage             String?
 
     createdAt DateTime @default(now())
