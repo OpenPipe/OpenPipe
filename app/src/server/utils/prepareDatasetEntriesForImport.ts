@@ -33,7 +33,10 @@ export const prepareDatasetEntriesForImport = async (
   const trainingRatio = dataset?.trainingRatio ?? 0.8;
 
   const newTotalEntries = existingTrainingCount + existingTestingCount + entriesToImport.length;
-  const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
+  const numTrainingToAdd = Math.min(
+    Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount,
+    entriesToImport.length,
+  );
   const numTestingToAdd = entriesToImport.length - numTrainingToAdd;
   const typesToAssign = shuffle([
     ...Array(numTrainingToAdd).fill("TRAIN"),
