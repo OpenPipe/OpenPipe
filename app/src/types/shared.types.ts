@@ -8,6 +8,8 @@ import { z } from "zod";
 
 export const CURRENT_PIPELINE_VERSION = 2;
 
+export type AtLeastOne<T> = readonly [T, ...T[]];
+
 export const validatedChatInput = <
   T extends { messages: unknown; functions?: unknown; function_call?: unknown },
 >(

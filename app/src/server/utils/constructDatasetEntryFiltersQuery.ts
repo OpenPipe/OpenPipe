@@ -3,7 +3,7 @@ import { type Expression, type SqlBool, sql } from "kysely";
 
 import { kysely } from "~/server/db";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
-import { comparatorToSqlExpression } from "./constructLoggedCallFiltersQuery";
+import { textComparatorToSqlExpression } from "./constructLoggedCallFiltersQuery";
 
 export const constructDatasetEntryFiltersQuery = (
   filters: z.infer<typeof filtersSchema>,
@@ -17,7 +17,10 @@ export const constructDatasetEntryFiltersQuery = (
 
     for (const filter of filters) {
       if (!filter.value) continue;
-      const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
+      const filterExpression = textComparatorToSqlExpression(
+        filter.comparator,
+        filter.value as string,
+      );
 
       if (filter.field === GeneralFiltersDefaultFields.Input) {
         wheres.push(filterExpression(sql.raw(`de."messages"::text`)));

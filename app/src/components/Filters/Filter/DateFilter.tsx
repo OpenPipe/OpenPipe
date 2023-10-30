@@ -8,12 +8,13 @@ import SelectFieldDropdown from "../SelectFieldDropdown";
 import SelectComparatorDropdown from "../SelectComparatorDropdown";
 import { useFilters } from "../useFilters";
 import { type FilterDataType, type FilterOptionType } from "../types";
+import { type AtLeastOne } from "~/types/shared.types";
 
 const DateFilter = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: FilterOptionType[];
+  filterOptions: AtLeastOne<FilterOptionType>;
   filter: FilterDataType;
 }) => {
   const updateFilter = useFilters().updateFilter;
@@ -71,7 +72,7 @@ const DateFilter = ({
           <Input
             type="datetime-local"
             w={240}
-            name="startDate"
+            aria-label="first date"
             onChange={(e) => updateDate(e.target.value)}
             value={formatDateForPicker(firstDate)}
           />
@@ -82,7 +83,7 @@ const DateFilter = ({
             <Input
               type="datetime-local"
               w={240}
-              name="endDate"
+              aria-label="second date"
               onChange={(e) => updateDate(e.target.value, true)}
               value={formatDateForPicker(secondDate)}
             />

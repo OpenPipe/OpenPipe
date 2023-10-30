@@ -7,12 +7,13 @@ import SelectFieldDropdown from "../SelectFieldDropdown";
 import SelectComparatorDropdown from "../SelectComparatorDropdown";
 import { useFilters } from "../useFilters";
 import { type FilterOptionType, type FilterDataType } from "../types";
+import { type AtLeastOne } from "~/types/shared.types";
 
 const TextFilter = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: FilterOptionType[];
+  filterOptions: AtLeastOne<FilterOptionType>;
   filter: FilterDataType;
 }) => {
   const updateFilter = useFilters().updateFilter;

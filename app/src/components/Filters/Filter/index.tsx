@@ -1,3 +1,4 @@
+import { type AtLeastOne } from "~/types/shared.types";
 import { type FilterDataType, type FilterOptionType } from "../types";
 import DateFilter from "./DateFilter";
 import TextFilter from "./TextFilter";
@@ -6,7 +7,7 @@ const Filter = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: FilterOptionType[];
+  filterOptions: AtLeastOne<FilterOptionType>;
   filter: FilterDataType;
 }) => {
   const selectedFilterOption = filterOptions.find(

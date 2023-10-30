@@ -31,14 +31,14 @@ export const textComparatorToSqlExpression = (
 
 export const dateComparatorToSqlExpression = (
   comparator: (typeof comparators)[number],
-  value: number[],
+  value: [number, number],
 ) => {
   const [start, end] = value;
   let startDate: string;
   let endDate: string;
   try {
-    startDate = new Date(start as number).toISOString();
-    endDate = new Date(end as number).toISOString();
+    startDate = new Date(start).toISOString();
+    endDate = new Date(end).toISOString();
   } catch (e) {
     throw new Error("Failed to parse start and end dates");
   }
@@ -77,8 +77,6 @@ export const constructLoggedCallFiltersQuery = (
     .where((eb) => {
       const wheres: Expression<SqlBool>[] = [eb("lc.projectId", "=", projectId)];
 
-      console.log("filters", filters);
-
       const dateFilters = filters.filter(
         (filter) => filter.field === LoggedCallsFiltersDefaultFields.SentAt,
       );
@@ -87,7 +85,7 @@ export const constructLoggedCallFiltersQuery = (
       for (const filter of dateFilters) {
         const filterExpression = dateComparatorToSqlExpression(
           filter.comparator,
-          filter.value as number[],
+          filter.value as [number, number],
         );
 
         if (filter.field === LoggedCallsFiltersDefaultFields.SentAt) {

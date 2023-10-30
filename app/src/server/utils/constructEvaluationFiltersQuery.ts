@@ -3,7 +3,7 @@ import { type Expression, type SqlBool, sql } from "kysely";
 
 import { kysely } from "~/server/db";
 import { EVALUATION_FILTERS_OUTPUT_APPENDIX, type filtersSchema } from "~/types/shared.types";
-import { comparatorToSqlExpression } from "./constructLoggedCallFiltersQuery";
+import { textComparatorToSqlExpression } from "./constructLoggedCallFiltersQuery";
 import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
 
 export const constructEvaluationFiltersQuery = (
@@ -19,7 +19,10 @@ export const constructEvaluationFiltersQuery = (
 
     for (const filter of filters) {
       if (!filter.value) continue;
-      const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
+      const filterExpression = textComparatorToSqlExpression(
+        filter.comparator,
+        filter.value as string,
+      );
 
       if (filter.field === EvaluationFiltersDefaultFields.Input) {
         wheres.push(filterExpression(sql.raw(`de."messages"::text`)));
@@ -47,7 +50,10 @@ export const constructEvaluationFiltersQuery = (
     const filter = modelOutputFilters[i];
     if (!filter?.value) continue;
     const tableAlias = `te${i}`;
-    const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
+    const filterExpression = textComparatorToSqlExpression(
+      filter.comparator,
+      filter.value as string,
+    );
 
     updatedBaseQuery = updatedBaseQuery
       .leftJoin(`FineTuneTestingEntry as ${tableAlias}`, (join) =>

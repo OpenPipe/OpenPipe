@@ -1,10 +1,10 @@
 import { Button, HStack, Icon, Text } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { useFilters } from "./useFilters";
-import { comparators } from "~/types/shared.types";
+import { type AtLeastOne, comparators } from "~/types/shared.types";
 import { type FilterOptionType } from "./types";
 
-const AddFilterButton = ({ filterOptions }: { filterOptions: FilterOptionType[] }) => {
+const AddFilterButton = ({ filterOptions }: { filterOptions: AtLeastOne<FilterOptionType> }) => {
   const addFilter = useFilters().addFilter;
 
   return (
@@ -14,7 +14,7 @@ const AddFilterButton = ({ filterOptions }: { filterOptions: FilterOptionType[] 
       onClick={() =>
         addFilter({
           id: Date.now().toString(),
-          field: filterOptions[0]?.field as string,
+          field: filterOptions[0].field,
           comparator: comparators[0],
           value: "",
         })

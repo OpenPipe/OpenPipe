@@ -3,12 +3,13 @@ import { useMemo } from "react";
 import InputDropdown from "~/components/InputDropdown";
 import { useFilters } from "./useFilters";
 import { type FilterDataType, comparatorsForFilterType, type FilterOptionType } from "./types";
+import { type AtLeastOne } from "~/types/shared.types";
 
 const SelectFieldDropdown = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: FilterOptionType[];
+  filterOptions: AtLeastOne<FilterOptionType>;
   filter: FilterDataType;
 }) => {
   const updateFilter = useFilters().updateFilter;
@@ -25,7 +26,7 @@ const SelectFieldDropdown = ({
     let value = filter.value;
     if (optionTypeChanged) {
       const newComparatorOptions = comparatorsForFilterType(option.type);
-      comparator = newComparatorOptions[0] as (typeof newComparatorOptions)[number];
+      comparator = newComparatorOptions[0];
       value = "";
     }
 

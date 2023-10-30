@@ -18,7 +18,7 @@ const SelectComparatorDropdown = ({
 
   useEffect(() => {
     if (!comparators.includes(comparator)) {
-      updateFilter({ ...filter, comparator: comparators[0] as (typeof comparators)[number] });
+      updateFilter({ ...filter, comparator: comparators[0] });
     }
   }, [comparator, comparators, filter, updateFilter]);
 
