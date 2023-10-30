@@ -25,6 +25,7 @@ import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EditableMessage from "./EditableMessage";
 import EntryTypeDropdown from "./EntryTypeDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import dayjs from "~/utils/dayjs";
 
 export default function DatasetEntryEditorDrawer({
   datasetEntryId,
@@ -108,65 +109,94 @@ export default function DatasetEntryEditorDrawer({
       <DrawerContent>
         <DrawerCloseButton mt={3} />
         <DrawerHeader bgColor="orange.50">
-          <HStack w="full" justifyContent="space-between" pr={8}>
-            <Heading size="md">Dataset Entry</Heading>
-            {datasetEntry && (
-              <EntryTypeDropdown type={datasetEntry.type} onTypeChange={onUpdateType} />
-            )}
-          </HStack>
+          <VStack w="full" alignItems="flex-start">
+            <HStack w="full" justifyContent="space-between" pr={8}>
+              <Heading size="md">Dataset Entry</Heading>
+              {datasetEntry && (
+                <EntryTypeDropdown type={datasetEntry.type} onTypeChange={onUpdateType} />
+              )}
+            </HStack>
+          </VStack>
         </DrawerHeader>
         <DrawerBody h="full" pb={4} bgColor="orange.50">
-          <VStack h="full" justifyContent="space-between">
-            <VStack w="full" spacing={12} py={4}>
-              <VStack w="full" alignItems="flex-start">
-                <Text fontWeight="bold">Input</Text>
-                {inputMessagesToSave.map((message, i) => {
-                  return (
-                    <>
-                      <Divider key={`divider-${i}`} my={4} />
-                      <EditableMessage
-                        key={i}
-                        message={message}
-                        onEdit={(message) => {
-                          const newInputMessages = [...inputMessagesToSave];
-                          newInputMessages[i] = message;
-                          setInputMessagesToSave(newInputMessages);
-                        }}
-                        onDelete={() => {
-                          const newInputMessages = [...inputMessagesToSave];
-                          newInputMessages.splice(i, 1);
-                          setInputMessagesToSave(newInputMessages);
-                        }}
-                        ruleMatches={datasetEntry?.matchedRules}
-                      />
-                    </>
-                  );
-                })}
-                <Divider my={4} />
-                <Button
-                  w="full"
-                  onClick={() =>
-                    setInputMessagesToSave([...inputMessagesToSave, { role: "user", content: "" }])
-                  }
-                  variant="outline"
-                  color="gray.500"
-                  _hover={{ bgColor: "orange.100" }}
-                >
-                  <HStack spacing={0}>
-                    <Text>Add Message</Text>
-                    <Icon as={BsPlus} boxSize={6} />
-                  </HStack>
-                </Button>
+          <VStack w="full" spacing={12} pb={4}>
+            {datasetEntry && (
+              <VStack
+                w="full"
+                alignItems="flex-start"
+                fontSize="xs"
+                bgColor="gray.50"
+                borderRadius={8}
+                borderWidth={1}
+                borderColor="gray.200"
+                p={4}
+              >
+                {datasetEntry?.importId && (
+                  <>
+                    <Text>
+                      <Text as="span" fontWeight="bold">
+                        Import ID:
+                      </Text>{" "}
+                      {datasetEntry.importId}
+                    </Text>
+                  </>
+                )}
+                <Text>
+                  <Text as="span" fontWeight="bold">
+                    Last Updated:
+                  </Text>{" "}
+                  {dayjs(datasetEntry.createdAt).format("MMMM D h:mm A")}
+                </Text>
               </VStack>
-              <VStack w="full" alignItems="flex-start">
-                <Text fontWeight="bold">Output</Text>
-                <Divider my={4} />
-                <EditableMessage
-                  message={outputMessageToSave}
-                  onEdit={(message) => setOutputMessageToSave(message)}
-                  isOutput
-                />
-              </VStack>
+            )}
+            <VStack w="full" alignItems="flex-start">
+              <Text fontWeight="bold">Input</Text>
+              {inputMessagesToSave.map((message, i) => {
+                return (
+                  <>
+                    <Divider key={`divider-${i}`} my={4} />
+                    <EditableMessage
+                      key={i}
+                      message={message}
+                      onEdit={(message) => {
+                        const newInputMessages = [...inputMessagesToSave];
+                        newInputMessages[i] = message;
+                        setInputMessagesToSave(newInputMessages);
+                      }}
+                      onDelete={() => {
+                        const newInputMessages = [...inputMessagesToSave];
+                        newInputMessages.splice(i, 1);
+                        setInputMessagesToSave(newInputMessages);
+                      }}
+                      ruleMatches={datasetEntry?.matchedRules}
+                    />
+                  </>
+                );
+              })}
+              <Divider my={4} />
+              <Button
+                w="full"
+                onClick={() =>
+                  setInputMessagesToSave([...inputMessagesToSave, { role: "user", content: "" }])
+                }
+                variant="outline"
+                color="gray.500"
+                _hover={{ bgColor: "orange.100" }}
+              >
+                <HStack spacing={0}>
+                  <Text>Add Message</Text>
+                  <Icon as={BsPlus} boxSize={6} />
+                </HStack>
+              </Button>
+            </VStack>
+            <VStack w="full" alignItems="flex-start">
+              <Text fontWeight="bold">Output</Text>
+              <Divider my={4} />
+              <EditableMessage
+                message={outputMessageToSave}
+                onEdit={(message) => setOutputMessageToSave(message)}
+                isOutput
+              />
             </VStack>
           </VStack>
         </DrawerBody>
