@@ -17,6 +17,9 @@ configured_client = AuthenticatedClient(
 if os.environ.get("OPENPIPE_API_KEY"):
     configured_client.token = os.environ["OPENPIPE_API_KEY"]
 
+if os.environ.get("OPENPIPE_BASE_URL"):
+    configured_client._base_url = os.environ["OPENPIPE_BASE_URL"]
+
 
 def _get_tags(openpipe_options):
     tags = openpipe_options.get("tags") or {}
