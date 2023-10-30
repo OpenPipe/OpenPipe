@@ -93,17 +93,28 @@ export enum SortOrder {
   DESC = "desc",
 }
 
-export const comparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
+export const textComparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
+export const dateComparators = [
+  "LAST 15M",
+  "LAST 24H",
+  "LAST 7D",
+  "BEFORE",
+  "AFTER",
+  "RANGE",
+] as const;
+export const comparators = [...textComparators, ...dateComparators] as const;
+export type ComparatorsSubsetType = typeof textComparators | typeof dateComparators;
 
 export const filtersSchema = z.array(
   z.object({
     field: z.string(),
     comparator: z.enum(comparators),
-    value: z.string(),
+    value: z.string().or(z.array(z.number())),
   }),
 );
 
 export enum LoggedCallsFiltersDefaultFields {
+  SentAt = "Sent At",
   Request = "Request",
   Response = "Response",
   Model = "Model",

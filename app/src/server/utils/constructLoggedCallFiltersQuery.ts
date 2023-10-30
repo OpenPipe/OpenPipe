@@ -3,12 +3,12 @@ import { type Expression, type SqlBool, sql, type RawBuilder } from "kysely";
 import { kysely } from "~/server/db";
 import {
   LoggedCallsFiltersDefaultFields,
-  type comparators,
   type filtersSchema,
+  type comparators,
 } from "~/types/shared.types";
 
 // create comparator type based off of comparators
-export const comparatorToSqlExpression = (
+export const textComparatorToSqlExpression = (
   comparator: (typeof comparators)[number],
   value: string,
 ) => {
@@ -23,6 +23,39 @@ export const comparatorToSqlExpression = (
         return sql`${reference} LIKE ${"%" + value + "%"}`;
       case "NOT_CONTAINS":
         return sql`(${reference} NOT LIKE ${"%" + value + "%"} OR ${reference} IS NULL)`;
+      default:
+        throw new Error("Unknown comparator");
+    }
+  };
+};
+
+export const dateComparatorToSqlExpression = (
+  comparator: (typeof comparators)[number],
+  value: number[],
+) => {
+  const [start, end] = value;
+  let startDate: string;
+  let endDate: string;
+  try {
+    startDate = new Date(start as number).toISOString();
+    endDate = new Date(end as number).toISOString();
+  } catch (e) {
+    throw new Error("Failed to parse start and end dates");
+  }
+  return (reference: RawBuilder<unknown>): Expression<SqlBool> => {
+    switch (comparator) {
+      case "LAST 15M":
+        return sql`${reference} > timezone('UTC', NOW()) - INTERVAL '15 minutes'`;
+      case "LAST 24H":
+        return sql`${reference} > timezone('UTC', NOW()) - INTERVAL '24 hours'`;
+      case "LAST 7D":
+        return sql`${reference} > timezone('UTC', NOW()) - INTERVAL '7 days'`;
+      case "BEFORE":
+        return sql`${reference} < ${startDate}`;
+      case "AFTER":
+        return sql`${reference} > ${startDate}`;
+      case "RANGE":
+        return sql`${reference} BETWEEN ${startDate} AND ${endDate}`;
       default:
         throw new Error("Unknown comparator");
     }
@@ -44,9 +77,30 @@ export const constructLoggedCallFiltersQuery = (
     .where((eb) => {
       const wheres: Expression<SqlBool>[] = [eb("lc.projectId", "=", projectId)];
 
+      console.log("filters", filters);
+
+      const dateFilters = filters.filter(
+        (filter) => filter.field === LoggedCallsFiltersDefaultFields.SentAt,
+      );
+
+      // Add date-related filters first
+      for (const filter of dateFilters) {
+        const filterExpression = dateComparatorToSqlExpression(
+          filter.comparator,
+          filter.value as number[],
+        );
+
+        if (filter.field === LoggedCallsFiltersDefaultFields.SentAt) {
+          wheres.push(filterExpression(sql.raw(`lc."requestedAt"`)));
+        }
+      }
+
       for (const filter of filters) {
         if (!filter.value) continue;
-        const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
+        const filterExpression = textComparatorToSqlExpression(
+          filter.comparator,
+          filter.value as string,
+        );
 
         if (filter.field === LoggedCallsFiltersDefaultFields.Request) {
           wheres.push(filterExpression(sql.raw(`lcmr."reqPayload"::text`)));
@@ -78,7 +132,10 @@ export const constructLoggedCallFiltersQuery = (
     const filter = tagFilters[i];
     if (!filter?.value) continue;
     const tableAlias = `lct${i}`;
-    const filterExpression = comparatorToSqlExpression(filter.comparator, filter.value);
+    const filterExpression = textComparatorToSqlExpression(
+      filter.comparator,
+      filter.value as string,
+    );
 
     updatedBaseQuery = updatedBaseQuery
       .leftJoin(`LoggedCallTag as ${tableAlias}`, (join) =>

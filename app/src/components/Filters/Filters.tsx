@@ -3,8 +3,9 @@ import { VStack, Text, Card } from "@chakra-ui/react";
 import AddFilterButton from "../Filters/AddFilterButton";
 import Filter from "./Filter";
 import { useFilters } from "./useFilters";
+import { type FilterOptionType } from "./types";
 
-const Filters = ({ filterOptions }: { filterOptions: string[] }) => {
+const Filters = ({ filterOptions }: { filterOptions: FilterOptionType[] }) => {
   const filters = useFilters().filters;
 
   return (

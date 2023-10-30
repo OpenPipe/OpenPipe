@@ -1,11 +1,26 @@
+import { useEffect } from "react";
 import InputDropdown from "~/components/InputDropdown";
-import { type FilterType, useFilters } from "./useFilters";
-import { comparators } from "~/types/shared.types";
+import { useFilters } from "./useFilters";
+import { type FilterDataType, type FilterTypeType, comparatorsForFilterType } from "./types";
 
-const SelectComparatorDropdown = ({ filter }: { filter: FilterType }) => {
+const SelectComparatorDropdown = ({
+  filter,
+  filterType,
+}: {
+  filter: FilterDataType;
+  filterType: FilterTypeType;
+}) => {
   const updateFilter = useFilters().updateFilter;
 
+  const comparators = comparatorsForFilterType(filterType);
+
   const { comparator } = filter;
+
+  useEffect(() => {
+    if (!comparators.includes(comparator)) {
+      updateFilter({ ...filter, comparator: comparators[0] as (typeof comparators)[number] });
+    }
+  }, [comparator, comparators, filter, updateFilter]);
 
   return (
     <InputDropdown

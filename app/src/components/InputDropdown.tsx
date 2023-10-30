@@ -43,7 +43,7 @@ const InputDropdown = <T,>({
       <PopoverTrigger>
         <InputGroup
           cursor="pointer"
-          w={getDisplayLabel(selectedOption).length * 14 + 180}
+          w={getDisplayLabel(selectedOption).length * 9 + 110}
           {...inputGroupProps}
         >
           <Input

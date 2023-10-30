@@ -4,8 +4,8 @@ import Filters from "~/components/Filters/Filters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 
 const defaultFilterOptions = [
-  GeneralFiltersDefaultFields.Input,
-  GeneralFiltersDefaultFields.Output,
+  { field: GeneralFiltersDefaultFields.Input },
+  { field: GeneralFiltersDefaultFields.Output },
 ];
 
 const GeneralFilters = () => {
