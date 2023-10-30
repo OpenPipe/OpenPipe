@@ -299,7 +299,11 @@ export const datasetEntriesRouter = createTRPCRouter({
         })
         .filter(truthyFilter);
 
-      const datasetEntriesToCreate = await prepareDatasetEntriesForImport(datasetId, rowsToConvert);
+      const datasetEntriesToCreate = await prepareDatasetEntriesForImport(
+        datasetId,
+        rowsToConvert,
+        "REQUEST_LOG",
+      );
 
       // Ensure dataset and dataset entries are created atomically
       await prisma.$transaction([
@@ -397,8 +401,10 @@ export const datasetEntriesRouter = createTRPCRouter({
           type: input.updates.type ?? prevEntry.type,
           datasetId: prevEntry.datasetId,
           sortKey: prevEntry.sortKey,
+          provenance: "RELABELED_BY_HUMAN",
           authoringUserId: ctx.session?.user.id,
           persistentId: prevEntry.persistentId,
+          importId: prevEntry.importId,
           matchedRules: {
             create: prevEntry.matchedRules.map((match) => ({
               pruningRuleId: match.pruningRuleId,

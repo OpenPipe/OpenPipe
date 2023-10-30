@@ -93,6 +93,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       datasetEntriesToCreate = await prepareDatasetEntriesForImport(
         datasetFileUpload.datasetId,
         goodRows,
+        "UPLOAD",
         updateCallback,
         500,
       );

@@ -54,6 +54,8 @@ await prisma.datasetEntry.create({
     outputTokens: 1,
     type: "TRAIN",
     sortKey: "1",
+    importId: "test-import-id",
+    provenance: "UPLOAD",
   },
 });
 await prisma.datasetEntry.create({
@@ -68,6 +70,8 @@ await prisma.datasetEntry.create({
     outputTokens: 1,
     type: "TRAIN",
     sortKey: "1",
+    importId: "test-import-id",
+    provenance: "UPLOAD",
   },
 });
 
