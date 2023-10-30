@@ -107,10 +107,10 @@ export default function DatasetEntryEditorDrawer({
     >
       <DrawerOverlay />
       <DrawerContent>
-        <DrawerCloseButton mt={3} />
+        <DrawerCloseButton mt={3} mr={6} />
         <DrawerHeader bgColor="orange.50">
           <VStack w="full" alignItems="flex-start">
-            <HStack w="full" justifyContent="space-between" pr={8}>
+            <HStack w="full" justifyContent="space-between" pr={12}>
               <Heading size="md">Dataset Entry</Heading>
               {datasetEntry && (
                 <EntryTypeDropdown type={datasetEntry.type} onTypeChange={onUpdateType} />
