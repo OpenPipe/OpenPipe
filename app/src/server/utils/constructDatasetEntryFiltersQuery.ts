@@ -28,6 +28,9 @@ export const constructDatasetEntryFiltersQuery = (
       if (filter.field === GeneralFiltersDefaultFields.Output) {
         wheres.push(filterExpression(sql.raw(`de."output"::text`)));
       }
+      if (filter.field === GeneralFiltersDefaultFields.ImportId) {
+        wheres.push(filterExpression(sql.raw(`de."importId"`)));
+      }
     }
 
     return eb.and(wheres);

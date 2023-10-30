@@ -6,6 +6,7 @@ import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 const defaultFilterOptions = [
   { field: GeneralFiltersDefaultFields.Input },
   { field: GeneralFiltersDefaultFields.Output },
+  { field: GeneralFiltersDefaultFields.ImportId },
 ];
 
 const GeneralFilters = () => {

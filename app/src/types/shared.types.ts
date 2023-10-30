@@ -126,6 +126,7 @@ export enum LoggedCallsFiltersDefaultFields {
 export enum GeneralFiltersDefaultFields {
   Input = "Input",
   Output = "Output",
+  ImportId = "Import ID",
 }
 
 export enum EvaluationFiltersDefaultFields {
