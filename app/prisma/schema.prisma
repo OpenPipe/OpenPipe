@@ -252,7 +252,7 @@ model DatasetEntry {
     outdated     Boolean            @default(false)
     sortKey      String // Used to sort entries in the UI
     persistentId String             @default(uuid()) @db.Uuid
-    importId     String?
+    importId     String
 
     fineTuneTrainingEntries    FineTuneTrainingEntry[]
     fineTuneTestDatasetEntries FineTuneTestingEntry[]
