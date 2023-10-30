@@ -226,6 +226,13 @@ enum DatasetEntryType {
     TEST
 }
 
+enum DatasetEntryProvenance {
+    REQUEST_LOG
+    UPLOAD
+    RELABELED_BY_MODEL
+    RELABELED_BY_HUMAN
+}
+
 model DatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
@@ -245,9 +252,12 @@ model DatasetEntry {
     outdated     Boolean            @default(false)
     sortKey      String // Used to sort entries in the UI
     persistentId String             @default(uuid()) @db.Uuid
+    importId     String?
 
     fineTuneTrainingEntries    FineTuneTrainingEntry[]
     fineTuneTestDatasetEntries FineTuneTestingEntry[]
+
+    provenance DatasetEntryProvenance @default(UPLOAD)
 
     authoringUserId String? @db.Uuid // The user who created this version of the entry (if any)
     authoringUser   User?   @relation(fields: [authoringUserId], references: [id])
@@ -260,6 +270,28 @@ model DatasetEntry {
 
     @@index([datasetId, outdated, sortKey])
     @@index([datasetId, outdated, type])
+    @@index([importId])
+}
+
+enum RelabelJobStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETE
+    ERROR
+}
+
+model RelabelRequest {
+    id String @id @default(uuid()) @db.Uuid
+
+    batchId                  String
+    datasetEntryPersistentId String           @db.Uuid
+    status                   RelabelJobStatus @default(PENDING)
+    errorMessage             String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([batchId, datasetEntryPersistentId])
 }
 
 model PruningRule {
