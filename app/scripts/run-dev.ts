@@ -1,4 +1,3 @@
-import { execa, type ExecaChildProcess } from "execa";
 import "dotenv/config";
 import HumanIdModule from "human-id";
 import concurrently from "concurrently";
@@ -22,9 +21,9 @@ await concurrently(
     { command: "pnpm dev:tunnel", name: "tunnel", prefixColor: "blue", env },
     { command: "pnpm dev:next", name: "next", prefixColor: "green", env },
     { command: "pnpm dev:wss", name: "wss", prefixColor: "yellow", env },
-    { command: "pnpm worker --watch", name: "worker", prefixColor: "magenta", env },
+    { command: "pnpm dev:worker", name: "worker", prefixColor: "magenta", env },
   ],
   {
     killOthers: ["failure", "success"],
   },
-);
+).result;

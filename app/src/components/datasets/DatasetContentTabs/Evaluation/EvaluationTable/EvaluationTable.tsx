@@ -60,9 +60,7 @@ const EvaluationTable = () => {
           {entries.entries.map((entry) => (
             <EvaluationRow
               key={entry.id}
-              messages={entry.messages}
-              output={entry.output}
-              fineTuneEntries={entry.fineTuneTestDatasetEntries}
+              entry={entry}
               showOriginalOutput={showOriginalOutput}
               visibleModelIds={visibleModelIds}
             />

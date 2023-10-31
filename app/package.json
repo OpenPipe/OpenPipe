@@ -11,8 +11,9 @@
   "scripts": {
     "build": "next build",
     "dev:next": "TZ=UTC next dev",
-    "dev:wss": "pnpm tsx --watch src/wss-server.ts",
-    "worker": "NODE_ENV='development' pnpm tsx --watch src/server/tasks/worker.ts",
+    "dev:wss": "tsx --watch src/wss-server.ts",
+    "dev:worker": "tsx --watch src/server/tasks/worker.ts",
+    "worker": "tsx src/server/tasks/worker.ts",
     "dev": "tsx scripts/run-dev.ts",
     "dev:tunnel": "tsx scripts/dev-tunnel.ts",
     "postinstall": "prisma generate",
@@ -24,7 +25,7 @@
     "seed": "tsx prisma/seed.ts",
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'",
     "test": "pnpm vitest",
-    "repl": "tsx --require scripts/repl.ts",
+    "repl": "tsx scripts/repl.ts",
     "repl:watch": "tsx --watch scripts/repl.ts",
     "dev:modal": "cd ../trainer && concurrently 'poetry run modal serve src/inference_server/main.py' 'poetry run modal serve src/trainer/main.py' --kill-others"
   },
