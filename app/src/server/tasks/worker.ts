@@ -10,8 +10,9 @@ import { trainFineTune } from "./fineTuning/trainFineTune.task";
 import { checkFineTuneStatus } from "./fineTuning/checkFineTuneStatus.task";
 import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatus.task";
 import { evaluateTestSetEntry } from "./evaluateTestSetEntry.task";
-import type defineTask from "./defineTask";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
+import { relabelDatasetEntry } from "./relabelDatasetEntryTask";
+import type defineTask from "./defineTask";
 
 console.log("Starting worker");
 
@@ -28,6 +29,7 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   checkOpenaiFineTuneStatus,
   evaluateTestSetEntry,
   countDatasetEntryTokens,
+  relabelDatasetEntry,
 ];
 
 const taskList = registeredTasks.reduce((acc, task) => {

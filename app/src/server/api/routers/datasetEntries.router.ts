@@ -33,6 +33,7 @@ import { truthyFilter } from "~/utils/utils";
 import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
+import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntryTask";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -472,6 +473,46 @@ export const datasetEntriesRouter = createTRPCRouter({
       await updatePruningRuleMatches(dataset.id, new Date(0), input.ids);
 
       return success("Dataset entries deleted");
+    }),
+
+  relabel: protectedProcedure
+    .input(
+      z.object({
+        ids: z.string().array(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (input.ids.length === 0) {
+        return error("No ids provided");
+      }
+      const { dataset } = await prisma.datasetEntry.findUniqueOrThrow({
+        where: { id: input.ids[0] },
+        include: {
+          dataset: true,
+        },
+      });
+
+      if (!dataset) {
+        return error("Dataset not found for dataset entry");
+      }
+
+      await requireCanModifyProject(dataset.projectId, ctx);
+
+      const batchId = Date.now().toString();
+
+      // TODO: pass filters instead of ids to speed up query
+      const datasetEntries = await prisma.datasetEntry.findMany({
+        where: {
+          id: {
+            in: input.ids,
+          },
+          datasetId: dataset?.id,
+        },
+      });
+
+      await queueRelabelDatasetEntries(batchId, datasetEntries);
+
+      return success({ batchId });
     }),
 
   export: protectedProcedure

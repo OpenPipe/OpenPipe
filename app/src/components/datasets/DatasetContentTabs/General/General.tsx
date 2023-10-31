@@ -10,6 +10,7 @@ import DatasetEntryPaginator from "./DatasetEntryPaginator";
 import { FiFilter } from "react-icons/fi";
 import GeneralFilters from "./GeneralFilters";
 import { useFilters } from "~/components/Filters/useFilters";
+import RelabelButton from "./RelabelButton";
 
 const General = () => {
   const filters = useFilters().filters;
@@ -27,6 +28,7 @@ const General = () => {
           label={filtersShown ? "Hide Filters" : "Show Filters"}
           icon={FiFilter}
         />
+        <RelabelButton />
         <DeleteButton />
       </HStack>
       {filtersShown && <GeneralFilters />}
