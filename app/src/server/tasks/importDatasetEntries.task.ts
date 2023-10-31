@@ -88,12 +88,14 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       });
     };
 
+    const importId = Date.now().toString();
     let datasetEntriesToCreate;
     try {
       datasetEntriesToCreate = await prepareDatasetEntriesForImport(
         datasetFileUpload.datasetId,
         goodRows,
         "UPLOAD",
+        importId,
         updateCallback,
         500,
       );

@@ -299,10 +299,12 @@ export const datasetEntriesRouter = createTRPCRouter({
         })
         .filter(truthyFilter);
 
+      const importId = Date.now().toString();
       const datasetEntriesToCreate = await prepareDatasetEntriesForImport(
         datasetId,
         rowsToConvert,
         "REQUEST_LOG",
+        importId,
       );
 
       // Ensure dataset and dataset entries are created atomically
@@ -332,7 +334,7 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await countDatasetEntryTokens.enqueue();
 
-      return success(datasetId);
+      return success({ datasetId, importId });
     }),
   update: protectedProcedure
     .input(
