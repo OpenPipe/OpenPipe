@@ -24,6 +24,10 @@ You can include other parameters from the OpenAI chat completion input format (e
 - **`role`**: Must be `assistant` for OpenAI compatibility.
 - **`content`** or **`function_call`**: must be set in the same way as OpenAI's [chat completion response format](https://platform.openai.com/docs/guides/gpt/chat-completions-api).
 
+### Other Fields
+
+- **`split`**: Optional. One of "TRAIN" or "TEST". If you don't set this field we'll automatically divide your inputs into train and test splits with a target ratio of 80:20.
+
 ```jsonl
 ...
 {"input":{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Tasmania?"}],"functions":[{"name":"log_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]},"output":{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Hobart\"}"}}}

@@ -77,7 +77,7 @@ export interface DatasetEntry {
   inputTokens: number;
   output: Json | null;
   outputTokens: number;
-  type: "TEST" | "TRAIN";
+  split: "TEST" | "TRAIN";
   authoringUserId: string | null;
   outdated: Generated<boolean>;
   sortKey: string;

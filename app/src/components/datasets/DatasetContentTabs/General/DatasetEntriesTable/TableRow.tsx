@@ -1,6 +1,6 @@
 import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox } from "@chakra-ui/react";
 import Link from "next/link";
-import { DatasetEntryType } from "@prisma/client";
+import { DatasetEntrySplit } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
 import { type RouterOutputs } from "~/utils/api";
@@ -46,7 +46,7 @@ export const TableHeader = () => {
         <Th>Created At</Th>
         <Th isNumeric>Input tokens</Th>
         <Th isNumeric>Output tokens</Th>
-        <Th isNumeric>Type</Th>
+        <Th isNumeric>Split</Th>
       </Tr>
     </Thead>
   );
@@ -92,14 +92,14 @@ export const TableRow = ({
       <Td isNumeric>{datasetEntry.inputTokens.toLocaleString()}</Td>
       <Td isNumeric>{datasetEntry.outputTokens.toLocaleString()}</Td>
       <Td isNumeric>
-        <EntryType type={datasetEntry.type} />
+        <EntrySplit split={datasetEntry.split} />
       </Td>
     </Tr>
   );
 };
 
-const EntryType = ({ type }: { type: string }) => {
-  const color = type === DatasetEntryType.TRAIN ? "orange.500" : "purple.500";
+const EntrySplit = ({ split }: { split: string }) => {
+  const color = split === DatasetEntrySplit.TRAIN ? "orange.500" : "purple.500";
   return (
     <HStack justifyContent="flex-end">
       <Text
@@ -112,7 +112,7 @@ const EntryType = ({ type }: { type: string }) => {
         borderRadius={4}
         textAlign="center"
       >
-        {type}
+        {split}
       </Text>
     </HStack>
   );

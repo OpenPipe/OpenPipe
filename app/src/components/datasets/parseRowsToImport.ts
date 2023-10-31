@@ -11,6 +11,7 @@ export const rowSchema = z.object({
     functions: functionsInput,
   }),
   output: chatMessage,
+  split: z.enum(["TRAIN", "TEST"]).optional(),
 });
 
 export type RowToImport = z.infer<typeof rowSchema>;

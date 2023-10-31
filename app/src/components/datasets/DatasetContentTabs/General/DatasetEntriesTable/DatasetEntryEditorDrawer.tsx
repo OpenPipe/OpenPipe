@@ -17,13 +17,13 @@ import {
 } from "@chakra-ui/react";
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { BsPlus } from "react-icons/bs";
-import { type DatasetEntryType } from "@prisma/client";
+import { type DatasetEntrySplit } from "@prisma/client";
 import { isEqual } from "lodash-es";
 
 import { api } from "~/utils/api";
 import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EditableMessage from "./EditableMessage";
-import EntryTypeDropdown from "./EntryTypeDropdown";
+import EntrySplitDropdown from "./EntrySplitDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
 export default function DatasetEntryEditorDrawer({
@@ -81,13 +81,13 @@ export default function DatasetEntryEditorDrawer({
     utils,
   ]);
 
-  const [onUpdateType] = useHandledAsyncCallback(
-    async (type: DatasetEntryType) => {
+  const [onUpdateSplit] = useHandledAsyncCallback(
+    async (split: DatasetEntrySplit) => {
       if (!datasetEntryId) return;
       const resp = await updateMutation.mutateAsync({
         id: datasetEntryId,
         updates: {
-          type,
+          split,
         },
       });
       if (maybeReportError(resp)) return;
@@ -111,7 +111,7 @@ export default function DatasetEntryEditorDrawer({
           <HStack w="full" justifyContent="space-between" pr={8}>
             <Heading size="md">Dataset Entry</Heading>
             {datasetEntry && (
-              <EntryTypeDropdown type={datasetEntry.type} onTypeChange={onUpdateType} />
+              <EntrySplitDropdown split={datasetEntry.split} onChange={onUpdateSplit} />
             )}
           </HStack>
         </DrawerHeader>
