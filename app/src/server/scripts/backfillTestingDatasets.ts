@@ -23,7 +23,7 @@ const fineTune = await prisma.fineTune.findUnique({
           },
           where: {
             outdated: false,
-            type: "TEST",
+            split: "TEST",
           },
           orderBy: {
             sortKey: "desc",

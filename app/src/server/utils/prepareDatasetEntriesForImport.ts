@@ -5,46 +5,52 @@ import { type RowToImport } from "~/components/datasets/parseRowsToImport";
 
 import { prisma } from "~/server/db";
 
-type CreateManyInput = Omit<Prisma.DatasetEntryCreateManyInput, "id"> & { id: string };
-
 export const prepareDatasetEntriesForImport = async (
   datasetId: string,
   entriesToImport: RowToImport[],
-  updateCallback?: (progress: number) => Promise<void>,
-  updateFrequency = 1000,
 ) => {
-  const [dataset, existingTrainingCount, existingTestingCount] = await prisma.$transaction([
+  let [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
     prisma.dataset.findUnique({ where: { id: datasetId } }),
     prisma.datasetEntry.count({
       where: {
         datasetId,
-        type: "TRAIN",
+        split: "TRAIN",
       },
     }),
     prisma.datasetEntry.count({
       where: {
         datasetId,
-        type: "TEST",
       },
     }),
   ]);
 
   const trainingRatio = dataset?.trainingRatio ?? 0.8;
 
-  const newTotalEntries = existingTrainingCount + existingTestingCount + entriesToImport.length;
+  existingTrainingCount += entriesToImport.filter((row) => row.split === "TRAIN").length;
+
+  const newTotalEntries = existingCount + entriesToImport.length;
   const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
-  const numTestingToAdd = entriesToImport.length - numTrainingToAdd;
-  const typesToAssign = shuffle([
-    ...Array(numTrainingToAdd).fill("TRAIN"),
-    ...Array(numTestingToAdd).fill("TEST"),
-  ]);
-  const datasetEntriesToCreate: CreateManyInput[] = [];
+
+  let numTrainingAdded = 0;
+  const entriesWithSplit = shuffle(entriesToImport).map((row) => {
+    let split = row.split;
+    if (!split) {
+      if (numTrainingAdded < numTrainingToAdd) {
+        split = "TRAIN";
+        numTrainingAdded++;
+      } else {
+        split = "TEST";
+      }
+    }
+    return { ...row, split };
+  });
+
   const batchDate = Date.now();
-  let i = 0;
-  for (const row of entriesToImport) {
-    if (updateCallback && i % updateFrequency === 0) await updateCallback(i);
+
+  return shuffle(entriesWithSplit).map((row) => {
     const persistentId = uuidv4();
-    datasetEntriesToCreate.push({
+
+    return {
       id: uuidv4(),
       datasetId: datasetId,
       messages: row.input.messages as object[],
@@ -56,12 +62,9 @@ export const prepareDatasetEntriesForImport = async (
       },
       inputTokens: 0,
       outputTokens: 0,
-      type: typesToAssign.pop() as "TRAIN" | "TEST",
+      split: row.split,
       sortKey: `${batchDate}-${persistentId}`,
       persistentId,
-    });
-    i++;
-  }
-
-  return datasetEntriesToCreate;
+    };
+  });
 };

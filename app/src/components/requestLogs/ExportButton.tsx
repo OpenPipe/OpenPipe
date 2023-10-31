@@ -134,8 +134,8 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              We'll export the <b>{totalNumLogsSelected}</b> logs you have selected in the format of
-              your choice.
+              We'll export the <b>{totalNumLogsSelected.toLocaleString()}</b> logs you have selected
+              in the format of your choice.
             </Text>
             <VStack alignItems="flex-start" spacing={4}>
               <Flex
