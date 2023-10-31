@@ -595,7 +595,11 @@ model FineTuneTestingEntry {
     prunedInputTokens Int?
 
     outputTokens Int?
+
+    // type ChatCompletionMessage 
     output       Json?
+    finishReason String?
+
     score        Float?
     errorMessage String?
 

@@ -596,7 +596,15 @@ export const datasetEntriesRouter = createTRPCRouter({
           jsonArrayFrom(
             eb
               .selectFrom("FineTuneTestingEntry as ftte")
-              .select(["modelId", "output", "score", "errorMessage"])
+              .select([
+                "modelId",
+                "output",
+                "score",
+                "errorMessage",
+                "finishReason",
+                "inputTokens",
+                "outputTokens",
+              ])
               .whereRef("ftte.datasetEntryId", "=", "de.id"),
           ).as("fineTuneTestDatasetEntries"),
         ])

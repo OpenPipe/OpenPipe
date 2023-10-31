@@ -13,7 +13,7 @@ import { evaluateTestSetEntry } from "./evaluateTestSetEntry.task";
 import type defineTask from "./defineTask";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
 
-console.log("Starting worker");
+console.log("Starting worker...");
 
 // Prevent verbose logging every time a task succeeds:
 // https://github.com/graphile/worker/blob/5ddf9de1b0ca5b26e95aba75a834abd77c03e9ee/src/worker.ts#L322C14-L322C40

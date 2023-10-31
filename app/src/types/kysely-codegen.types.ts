@@ -158,6 +158,7 @@ export interface FineTuneTestingEntry {
   updatedAt: Timestamp;
   score: number | null;
   modelId: string;
+  finishReason: string | null;
 }
 
 export interface FineTuneTrainingEntry {
@@ -359,6 +360,16 @@ export interface TestScenario {
   updatedAt: Timestamp;
 }
 
+export interface UsageLog {
+  id: string;
+  inputTokens: number;
+  outputTokens: number;
+  cost: number;
+  type: Generated<"EXTERNAL" | "TESTING">;
+  fineTuneId: string;
+  createdAt: Generated<Timestamp>;
+}
+
 export interface User {
   id: string;
   name: string | null;
@@ -368,6 +379,7 @@ export interface User {
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
   role: Generated<"ADMIN" | "USER">;
+  gitHubUsername: string | null;
 }
 
 export interface UserInvitation {
@@ -417,6 +429,7 @@ export interface DB {
   Session: Session;
   TemplateVariable: TemplateVariable;
   TestScenario: TestScenario;
+  UsageLog: UsageLog;
   User: User;
   UserInvitation: UserInvitation;
   VerificationToken: VerificationToken;
