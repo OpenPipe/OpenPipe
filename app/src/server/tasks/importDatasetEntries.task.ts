@@ -80,7 +80,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       },
     });
 
-    const importId = Date.now().toString();
+    const importId = new Date().toISOString();
     let datasetEntriesToCreate;
     try {
       datasetEntriesToCreate = await prepareDatasetEntriesForImport(

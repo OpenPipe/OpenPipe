@@ -322,7 +322,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         })
         .filter(truthyFilter);
 
-      const importId = Date.now().toString();
+      const importId = new Date().toISOString();
       const datasetEntriesToCreate = await prepareDatasetEntriesForImport(
         datasetId,
         rowsToConvert,
@@ -521,7 +521,7 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(dataset.projectId, ctx);
 
-      const batchId = Date.now().toString();
+      const batchId = new Date().toISOString();
 
       // TODO: pass filters instead of ids to speed up query
       const datasetEntries = await prisma.datasetEntry.findMany({
