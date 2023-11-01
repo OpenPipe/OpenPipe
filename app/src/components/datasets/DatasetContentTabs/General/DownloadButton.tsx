@@ -109,8 +109,8 @@ const ExportDatasetEntriesModal = ({ disclosure }: { disclosure: UseDisclosureRe
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              We'll export the <b>{selectedIds.size}</b> rows you have selected in the OpenAI
-              training format.
+              We'll export the <b>{selectedIds.size.toLocaleString()}</b> rows you have selected in
+              the OpenAI training format.
             </Text>
             <VStack alignItems="flex-start" spacing={4}>
               <Flex

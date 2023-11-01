@@ -1,4 +1,4 @@
-import { PrismaClient, DatasetEntryType } from "@prisma/client";
+import { PrismaClient, DatasetEntrySplit } from "@prisma/client";
 import yargs from "yargs/yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -68,7 +68,7 @@ const shuffledWords = words.sort(() => Math.random() - 0.5);
 // Create entries in parallel
 await Promise.all(
   shuffledWords.map((word, index) => {
-    const entryType = Math.random() < 0.9 ? DatasetEntryType.TRAIN : DatasetEntryType.TEST;
+    const entrySplit = Math.random() < 0.9 ? DatasetEntrySplit.TRAIN : DatasetEntrySplit.TEST;
 
     const messages = [{ role: "system", content: `the first letter of '${word}' is` }];
     const output = {
@@ -83,7 +83,7 @@ await Promise.all(
         output,
         inputTokens: 0,
         outputTokens: 0,
-        type: entryType,
+        split: entrySplit,
         datasetId, // Use the preserved or new ID
         sortKey: index.toString(), // Use array index as sortKey
         importId: "synthetic-dataset",

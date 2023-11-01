@@ -13,6 +13,7 @@ import {
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
+import { type ChatCompletion } from "openai/resources/chat";
 
 export type EvaluateTestSetEntryJob = {
   modelId: string;
@@ -90,7 +91,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       }
     }
 
-    let completion;
+    let completion: ChatCompletion;
     const input = {
       model: fineTune
         ? `openpipe:${fineTune.slug}`
@@ -114,13 +115,14 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         return;
       }
 
+      const choice = completion.choices[0];
       const completionMessage = completion.choices[0]?.message;
-      if (!completionMessage) throw new Error("No completion returned");
+      if (!choice) throw new Error("No completion returned");
       let score;
       if (datasetEntry.output?.function_call) {
         score = calculateEntryScore(
           datasetEntry.output.function_call,
-          completionMessage.function_call,
+          choice.message.function_call,
         );
       }
 
@@ -147,6 +149,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         data: {
           cacheKey,
           output: completionMessage as unknown as Prisma.InputJsonValue,
+          finishReason: choice.finish_reason,
           prunedInputTokens: completion.usage?.prompt_tokens,
           outputTokens: completion.usage?.completion_tokens,
           score,

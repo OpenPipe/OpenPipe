@@ -1,5 +1,16 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { Text, VStack, HStack, GridItem, Box, Button, Icon } from "@chakra-ui/react";
+import {
+  Text,
+  VStack,
+  HStack,
+  GridItem,
+  Box,
+  Button,
+  Icon,
+  Alert,
+  AlertIcon,
+  AlertDescription,
+} from "@chakra-ui/react";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
@@ -20,10 +31,11 @@ export const TableHeader = ({
     top: 0,
     bgColor: "white",
     borderBottomWidth: 1,
+    zIndex: 1,
   };
   return (
     <>
-      <GridItem sx={sharedProps} bgColor="white" zIndex={1} borderTopLeftRadius={4}>
+      <GridItem sx={sharedProps} bgColor="white" borderTopLeftRadius={4}>
         <Text fontWeight="bold" color="gray.500">
           Input
         </Text>
@@ -52,21 +64,17 @@ export const TableHeader = ({
 type TestingEntry = RouterOutputs["datasetEntries"]["listTestingEntries"]["entries"][number];
 
 const EvaluationRow = ({
-  messages,
-  output,
-  fineTuneEntries,
+  entry,
   showOriginalOutput,
   visibleModelIds,
 }: {
-  messages: TestingEntry["messages"];
-  output: TestingEntry["output"];
-  fineTuneEntries: TestingEntry["fineTuneTestDatasetEntries"];
+  entry: TestingEntry;
   showOriginalOutput: boolean;
   visibleModelIds: string[];
 }) => {
   const orderedModelEntries = visibleModelIds.map(
     (modelId) =>
-      fineTuneEntries.find((entry) => entry.modelId === modelId) || {
+      entry.fineTuneTestDatasetEntries.find((ft) => ft.modelId === modelId) || {
         modelId,
         output: null,
         errorMessage: null,
@@ -86,29 +94,32 @@ const EvaluationRow = ({
 
   return (
     <>
-      <FormattedInputGridItem messages={messages} maxOutputHeight={maxOutputHeight} />
+      <FormattedInputGridItem entry={entry} maxOutputHeight={maxOutputHeight} />
       {showOriginalOutput && (
-        <FormattedOutputGridItem output={output} onHeightUpdated={onHeightUpdated} />
-      )}
-      {orderedModelEntries.map((entry) => (
         <FormattedOutputGridItem
-          key={entry.modelId}
-          output={entry.output}
-          errorMessage={entry.errorMessage}
-          score={entry.score}
+          entry={{ output: entry.output }}
           onHeightUpdated={onHeightUpdated}
         />
-      ))}
+      )}
+      {orderedModelEntries.map((ftEntry) => {
+        return (
+          <FormattedOutputGridItem
+            key={ftEntry.modelId}
+            entry={ftEntry}
+            onHeightUpdated={onHeightUpdated}
+          />
+        );
+      })}
     </>
   );
 };
 
 const VERTICAL_PADDING = 32;
 const FormattedInputGridItem = ({
-  messages,
+  entry,
   maxOutputHeight,
 }: {
-  messages: TestingEntry["messages"];
+  entry: TestingEntry;
   maxOutputHeight: number;
 }) => {
   const inputRef = useRef<HTMLDivElement>(null);
@@ -141,7 +152,7 @@ const FormattedInputGridItem = ({
       transition="height 0.5s ease-in-out"
     >
       <VStack ref={inputRef} alignItems="flex-start" spacing={8}>
-        {(messages as unknown as ChatCompletionMessage[]).map((message, index) => (
+        {(entry.messages as unknown as ChatCompletionMessage[]).map((message, index) => (
           <VStack key={index} alignItems="flex-start" w="full">
             <Text fontWeight="bold" color="gray.500">
               {message.role}
@@ -149,6 +160,12 @@ const FormattedInputGridItem = ({
             <FormattedMessage message={message} />
           </VStack>
         ))}
+        <Text color="gray.500">
+          <Text as="span" fontWeight="bold">
+            ID:
+          </Text>{" "}
+          {entry.id}
+        </Text>
       </VStack>
       {expandable && (
         <VStack position="absolute" bottom={0} w="full" spacing={0}>
@@ -186,18 +203,15 @@ const FormattedInputGridItem = ({
   );
 };
 
-type FormattedOutputProps = {
-  output: TestingEntry["output"];
-  score?: number | null;
-  errorMessage?: string | null;
-};
+type FTEntry = Partial<TestingEntry["fineTuneTestDatasetEntries"][number]>;
 
 const FormattedOutputGridItem = ({
-  output,
-  score,
-  errorMessage,
+  entry,
   onHeightUpdated,
-}: FormattedOutputProps & { onHeightUpdated: (height: number) => void }) => {
+}: {
+  entry: FTEntry;
+  onHeightUpdated: (height: number) => void;
+}) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -211,21 +225,35 @@ const FormattedOutputGridItem = ({
   return (
     <GridItem borderTopWidth={1} borderLeftWidth={1}>
       <Box ref={ref}>
-        <FormattedOutput output={output} score={score} errorMessage={errorMessage} />
+        <FormattedOutput entry={entry} />
       </Box>
     </GridItem>
   );
 };
 
-const FormattedOutput = ({ output, score, errorMessage }: FormattedOutputProps) => {
-  if (errorMessage) {
-    return <Text color="red.500">{errorMessage}</Text>;
+const FormattedOutput = ({ entry }: { entry: FTEntry }) => {
+  if (entry.errorMessage) {
+    return <Text color="red.500">{entry.errorMessage}</Text>;
   }
 
-  if (!output) return <Text color="gray.500">Pending</Text>;
+  if (!entry.output) return <Text color="gray.500">Pending</Text>;
 
-  const message = output as unknown as ChatCompletionMessage;
-  return <FormattedMessage message={message} score={score} />;
+  const message = entry.output as unknown as ChatCompletionMessage;
+  return (
+    <>
+      <FormattedMessage message={message} score={entry.score} />
+      {entry.finishReason === "length" && (
+        <Alert status="warning" mt={4} zIndex={0}>
+          <AlertIcon />
+          <AlertDescription>
+            This completion was cut off because it reached the maximum number of tokens the base
+            model supports. It used <b>{entry.inputTokens ?? "uknown"}</b> input tokens and{" "}
+            <b>{entry.outputTokens ?? "unknown"}</b> output tokens.
+          </AlertDescription>
+        </Alert>
+      )}
+    </>
+  );
 };
 
 const FormattedMessage = ({

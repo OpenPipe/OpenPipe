@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# Function to display a message with a separator
 report_progress() {
     echo "--------------------------------------------"
     echo "$1"
@@ -9,8 +8,8 @@ report_progress() {
 }
 
 export CACHE_DIR=~/.cache/openpipe/prod-db
+export TEMP_DB_NAME="openpipe_temp"
 
-# Function to parse the connection string and set variables
 parse_connection_string() {
     TEMP_URL=${PROD_DATABASE_URL#postgres://}
     DB_USERNAME=$(echo $TEMP_URL | cut -d':' -f1)
@@ -19,23 +18,14 @@ parse_connection_string() {
     DB_NAME=$(echo $TEMP_URL | cut -d'/' -f2 | cut -d'?' -f1)
 }
 
-# Function to check whether to dump the prod DB
 should_dump_prod_db() {
-    if [ "$FORCE_DUMP" = "true" ]; then
-        return 0  # Should dump the prod DB
-    else
-        return 1  # Should not dump the prod DB
-    fi
+    [ "$FORCE_DUMP" = "true" ]
 }
 
-# Function to dump the production database
 dump_prod_db() {
     report_progress "Dumping production database..."
-    
     rm -rf "$CACHE_DIR"
     mkdir -p "$CACHE_DIR"
-
-    # Set the password as an environment variable
     export PGPASSWORD="$PASSWORD"
     
     pg_dump \
@@ -56,34 +46,26 @@ dump_prod_db() {
     unset PGPASSWORD
 }
 
-# Function to terminate connections to the dev database
-terminate_dev_connections() {
-    report_progress "Terminating existing connections to dev database..."
-    psql -a -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'openpipe-dev' AND pid <> pg_backend_pid();"
+terminate_connections() {
+    report_progress "Terminating existing connections to $1 database..."
+    psql -a -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$1' AND pid <> pg_backend_pid();"
 }
 
-# Function to drop the dev database
-drop_dev_db() {
-    report_progress "Dropping dev database..."
-    dropdb -e openpipe-dev
+drop_db() {
+    report_progress "Dropping $1 database..."
+    dropdb -e $1
 }
 
-# Function to create the dev database
-create_dev_db() {
-    report_progress "Creating dev database..."
-    createdb -e openpipe-dev
+create_db() {
+    report_progress "Creating $1 database..."
+    createdb -e $1
 }
 
-# Function to restore the dump to the dev database
-restore_to_dev_db() {
-    report_progress "Restoring dump to dev database..."
-    pg_restore -v --no-owner --no-privileges -d openpipe-dev --format=d --jobs=8 "$CACHE_DIR"
-    # pg_restore -v --no-owner --no-privileges -d openpipe-dev --jobs=8 "$PROD_DUMP_FILE"
+run_update_sql_on_temp_db() {
+    report_progress "Running SQL update on temporary database..."
+    psql -d "$TEMP_DB_NAME" -c 'update "DatasetEntry" set "loggedCallId" = null;'
 }
 
-# Main execution
-
-# Check for --force-dump flag
 if [[ "$@" == *"--force-dump"* ]]; then
     FORCE_DUMP="true"
 else
@@ -93,14 +75,31 @@ fi
 source .env
 parse_connection_string
 
-# Conditional check for dumping the prod DB
 if should_dump_prod_db; then
     dump_prod_db
 else
     report_progress "Skipping production database dump."
 fi
 
-terminate_dev_connections
-drop_dev_db
-create_dev_db
-restore_to_dev_db
+terminate_connections "$TEMP_DB_NAME"
+drop_db "$TEMP_DB_NAME"
+create_db "$TEMP_DB_NAME"
+
+report_progress "Restoring dump to $TEMP_DB_NAME database..."
+pg_restore -v --no-owner --no-privileges -d $TEMP_DB_NAME --format=d --jobs=8 "$CACHE_DIR" || true
+run_update_sql_on_temp_db
+
+terminate_connections "openpipe-dev"
+drop_db "openpipe-dev"
+create_db "openpipe-dev"
+
+report_progress "Restoring schema to dev database..."
+# Restore just schema to dev db
+pg_restore -v --no-owner --no-privileges -d openpipe-dev --format=d --jobs=8 --schema-only "$CACHE_DIR"
+
+report_progress "Restoring data to dev database..."
+# Restore data from temp db to dev db
+pg_restore -v --no-owner --no-privileges -d openpipe-dev --format=d --jobs=8 --data-only --disable-triggers "$CACHE_DIR"
+
+report_progress "Database copy complete."
+```

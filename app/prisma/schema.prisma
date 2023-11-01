@@ -221,7 +221,7 @@ model Dataset {
     updatedAt DateTime @updatedAt
 }
 
-enum DatasetEntryType {
+enum DatasetEntrySplit {
     TRAIN
     TEST
 }
@@ -241,7 +241,7 @@ model DatasetEntry {
     inputTokens  Int
     outputTokens Int
     matchedRules PruningRuleMatch[]
-    type         DatasetEntryType
+    split        DatasetEntrySplit
     outdated     Boolean            @default(false)
     sortKey      String // Used to sort entries in the UI
     persistentId String             @default(uuid()) @db.Uuid
@@ -259,7 +259,7 @@ model DatasetEntry {
     updatedAt DateTime @updatedAt
 
     @@index([datasetId, outdated, sortKey])
-    @@index([datasetId, outdated, type])
+    @@index([datasetId, outdated, split])
 }
 
 model PruningRule {
@@ -595,7 +595,11 @@ model FineTuneTestingEntry {
     prunedInputTokens Int?
 
     outputTokens Int?
+
+    // type ChatCompletionMessage 
     output       Json?
+    finishReason String?
+
     score        Float?
     errorMessage String?
 

@@ -48,10 +48,10 @@ export const startTestJobs = async (datasetId: string, modelId: string) => {
     where: {
       datasetId,
       outdated: false,
-      type: "TEST",
+      split: "TEST",
       fineTuneTestDatasetEntries: { none: { modelId } },
     },
-    select: { id: true, messages: true },
+    select: { id: true },
     orderBy: { sortKey: "desc" },
   });
 

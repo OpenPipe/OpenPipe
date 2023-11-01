@@ -77,7 +77,7 @@ export const fineTunesRouter = createTRPCRouter({
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "type" = 'TEST' and not outdated)::int`.as(
+          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "split" = 'TEST' and not outdated)::int`.as(
             "numTestingEntries",
           ),
           sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
@@ -107,7 +107,7 @@ export const fineTunesRouter = createTRPCRouter({
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "type" = 'TEST' and not outdated)::int`.as(
+          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "split" = 'TEST' and not outdated)::int`.as(
             "numTestingEntries",
           ),
           sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
@@ -169,11 +169,11 @@ export const fineTunesRouter = createTRPCRouter({
               datasetEntries: {
                 select: {
                   id: true,
-                  type: true,
+                  split: true,
                 },
                 where: {
                   outdated: false,
-                  type: "TRAIN",
+                  split: "TRAIN",
                 },
               },
               pruningRules: {

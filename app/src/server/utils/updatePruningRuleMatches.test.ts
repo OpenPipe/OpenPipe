@@ -61,7 +61,7 @@ const createDatasetEntry = async (datasetId: string, messages: ChatCompletionMes
       inputTokens: 0,
       outputTokens: 0,
       datasetId,
-      type: "TRAIN",
+      split: "TRAIN",
       sortKey: "_",
       importId: "_",
       provenance: "UPLOAD",

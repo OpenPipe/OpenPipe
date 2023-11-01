@@ -10,6 +10,8 @@ from typing import Union
 from ..shared import model_cache_dir
 import os
 
+from concurrent.futures import ThreadPoolExecutor
+
 image = (
     modal.Image.from_registry(
         "nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04",
@@ -69,6 +71,22 @@ def cache_model_weights(hf_model_id: str, cache_dir: str):
         logging.info("Model committed.")
 
 
+def read_all_files(directory):
+    # Just open each file and read the whole thing into memory. This is a hack
+    # because Modal's `Volume` file system has really bad perf on first read,
+    # especially if you're grabbing just a piece at a time like SafeTensors
+    # does.
+    def read_file(file):
+        with open(file, "r") as f:
+            f.read()
+
+    with ThreadPoolExecutor() as executor:
+        for root, _, files in os.walk(directory):
+            for file in files:
+                file_path = os.path.join(root, file)
+                executor.submit(read_file, file_path)
+
+
 @stub.cls(
     gpu=modal.gpu.A100(memory=40, count=1),
     secret=modal.Secret.from_name("openpipe"),
@@ -80,6 +98,9 @@ class Model:
     def __init__(self, huggingface_model_id: str):
         model_dir = model_cache_dir(huggingface_model_id, "/models")
         cache_model_weights(huggingface_model_id, model_dir)
+
+        logging.info("Preloading model")
+        read_all_files(model_dir)
 
         logging.info(f"Loading model from volume {model_dir}")
         self.engine = AsyncLLMEngine.from_engine_args(AsyncEngineArgs(model=model_dir))

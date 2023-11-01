@@ -38,6 +38,7 @@ const config = {
       { vars: "all", varsIgnorePattern: "^_", args: "after-used", argsIgnorePattern: "^_" },
     ],
     "react/no-unescaped-entities": "off",
+    "prefer-const": ["error", { destructuring: "all" }],
   },
 };
 

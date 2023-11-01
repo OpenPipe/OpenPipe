@@ -14,7 +14,7 @@ export const constructEvaluationFiltersQuery = (
     const wheres: Expression<SqlBool>[] = [
       eb("de.datasetId", "=", datasetId),
       eb("de.outdated", "=", false),
-      eb("de.type", "=", "TEST"),
+      eb("de.split", "=", "TEST"),
     ];
 
     for (const filter of filters) {

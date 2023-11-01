@@ -64,7 +64,7 @@ export const datasetEntriesRouter = createTRPCRouter({
             "de.output as output",
             "de.inputTokens as inputTokens",
             "de.outputTokens as outputTokens",
-            "de.type as type",
+            "de.split as split",
             "de.sortKey as sortKey",
             "de.authoringUserId as authoringUserId",
             "de.persistentId as persistentId",
@@ -112,14 +112,14 @@ export const datasetEntriesRouter = createTRPCRouter({
           where: {
             datasetId: datasetId,
             outdated: false,
-            type: "TRAIN",
+            split: "TRAIN",
           },
         }),
         prisma.datasetEntry.count({
           where: {
             datasetId: datasetId,
             outdated: false,
-            type: "TEST",
+            split: "TEST",
           },
         }),
       ]);
@@ -365,7 +365,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         updates: z.object({
-          type: z.enum(["TRAIN", "TEST"]).optional(),
+          split: z.enum(["TRAIN", "TEST"]).optional(),
           input: z.string().optional(),
           output: z.string().optional(),
         }),
@@ -424,7 +424,7 @@ export const datasetEntriesRouter = createTRPCRouter({
           output: validatedOutput,
           inputTokens: countLlamaInputTokens(inputFields),
           outputTokens: countLlamaOutputTokens(validatedOutput),
-          type: input.updates.type ?? prevEntry.type,
+          split: input.updates.split ?? prevEntry.split,
           datasetId: prevEntry.datasetId,
           sortKey: prevEntry.sortKey,
           provenance: "RELABELED_BY_HUMAN",
@@ -441,7 +441,7 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await updatePruningRuleMatches(dataset.id, new Date(0), [newEntry.id]);
 
-      if (newEntry.type === "TEST") {
+      if (newEntry.split === "TEST") {
         const fineTunes = await prisma.fineTune.findMany({
           where: {
             datasetId: dataset.id,
@@ -668,7 +668,15 @@ export const datasetEntriesRouter = createTRPCRouter({
           jsonArrayFrom(
             eb
               .selectFrom("FineTuneTestingEntry as ftte")
-              .select(["modelId", "output", "score", "errorMessage"])
+              .select([
+                "modelId",
+                "output",
+                "score",
+                "errorMessage",
+                "finishReason",
+                "inputTokens",
+                "outputTokens",
+              ])
               .whereRef("ftte.datasetEntryId", "=", "de.id"),
           ).as("fineTuneTestDatasetEntries"),
         ])

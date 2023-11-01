@@ -80,15 +80,6 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       },
     });
 
-    const updateCallback = async (progress: number) => {
-      await prisma.datasetFileUpload.update({
-        where: { id: datasetFileUploadId },
-        data: {
-          progress: 30 + Math.floor((progress / rowsToImport.length) * 69),
-        },
-      });
-    };
-
     const importId = Date.now().toString();
     let datasetEntriesToCreate;
     try {
@@ -98,8 +89,6 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
         "UPLOAD",
         importId,
         authoringUserId,
-        updateCallback,
-        500,
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {

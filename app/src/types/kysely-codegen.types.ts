@@ -77,7 +77,7 @@ export interface DatasetEntry {
   inputTokens: number;
   output: Json | null;
   outputTokens: number;
-  type: "TEST" | "TRAIN";
+  split: "TEST" | "TRAIN";
   authoringUserId: string | null;
   outdated: Generated<boolean>;
   sortKey: string;
@@ -160,6 +160,7 @@ export interface FineTuneTestingEntry {
   updatedAt: Timestamp;
   score: number | null;
   modelId: string;
+  finishReason: string | null;
 }
 
 export interface FineTuneTrainingEntry {
