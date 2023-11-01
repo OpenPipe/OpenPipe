@@ -226,6 +226,13 @@ enum DatasetEntrySplit {
     TEST
 }
 
+enum DatasetEntryProvenance {
+    REQUEST_LOG
+    UPLOAD
+    RELABELED_BY_MODEL
+    RELABELED_BY_HUMAN
+}
+
 model DatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
@@ -242,9 +249,11 @@ model DatasetEntry {
     outputTokens Int
     matchedRules PruningRuleMatch[]
     split        DatasetEntrySplit
-    outdated     Boolean            @default(false)
+    outdated     Boolean                @default(false)
     sortKey      String // Used to sort entries in the UI
-    persistentId String             @default(uuid()) @db.Uuid
+    persistentId String                 @default(uuid()) @db.Uuid
+    importId     String
+    provenance   DatasetEntryProvenance
 
     fineTuneTrainingEntries    FineTuneTrainingEntry[]
     fineTuneTestDatasetEntries FineTuneTestingEntry[]
@@ -260,6 +269,28 @@ model DatasetEntry {
 
     @@index([datasetId, outdated, sortKey])
     @@index([datasetId, outdated, split])
+    @@index([importId])
+}
+
+enum RelabelRequestStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETE
+    ERROR
+}
+
+model RelabelRequest {
+    id String @id @default(uuid()) @db.Uuid
+
+    batchId                  String
+    datasetEntryPersistentId String               @db.Uuid
+    status                   RelabelRequestStatus @default(PENDING)
+    errorMessage             String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([batchId, datasetEntryPersistentId])
 }
 
 model PruningRule {

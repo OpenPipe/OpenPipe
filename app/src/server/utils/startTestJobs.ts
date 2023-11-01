@@ -1,6 +1,30 @@
 import { prisma } from "../db";
 import { evaluateTestSetEntry } from "../tasks/evaluateTestSetEntry.task";
 
+export const startDatasetEntryTestJobs = async (datasetEntryId: string) => {
+  const datasetEntry = await prisma.datasetEntry.findFirst({
+    where: { id: datasetEntryId, split: "TEST" },
+    include: {
+      dataset: {
+        include: {
+          fineTunes: {
+            where: { status: "DEPLOYED" },
+          },
+        },
+      },
+    },
+  });
+
+  if (!datasetEntry?.dataset) return;
+
+  for (const fineTune of datasetEntry.dataset.fineTunes) {
+    await evaluateTestSetEntry.enqueue({ modelId: fineTune.id, datasetEntryId });
+  }
+  for (const comparisonModel of datasetEntry.dataset.enabledComparisonModels) {
+    await evaluateTestSetEntry.enqueue({ modelId: comparisonModel, datasetEntryId });
+  }
+};
+
 export const startDatasetTestJobs = async (datasetId: string) => {
   const dataset = await prisma.dataset.findUnique({
     where: { id: datasetId },

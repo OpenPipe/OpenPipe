@@ -63,6 +63,8 @@ const createDatasetEntry = async (datasetId: string, messages: ChatCompletionMes
       datasetId,
       split: "TRAIN",
       sortKey: "_",
+      importId: "_",
+      provenance: "UPLOAD",
     },
   });
 };

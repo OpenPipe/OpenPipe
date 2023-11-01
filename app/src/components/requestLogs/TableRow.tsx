@@ -52,6 +52,7 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
               <Checkbox
                 isChecked={defaultToSelected && !deselectedLogIds.size && totalNumLogsSelected > 0}
                 onChange={toggleAllSelected}
+                _hover={{ borderColor: "gray.300" }}
               />
               <Text>
                 ({totalNumLogsSelected ? `${totalNumLogsSelected.toLocaleString()}/` : ""}

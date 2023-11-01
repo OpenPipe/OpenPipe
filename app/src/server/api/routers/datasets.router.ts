@@ -158,7 +158,10 @@ export const datasetsRouter = createTRPCRouter({
         },
       });
 
-      await importDatasetEntries.enqueue({ datasetFileUploadId: id });
+      await importDatasetEntries.enqueue({
+        datasetFileUploadId: id,
+        authoringUserId: ctx.session.user.id,
+      });
     }),
   listFileUploads: protectedProcedure
     .input(z.object({ datasetId: z.string() }))

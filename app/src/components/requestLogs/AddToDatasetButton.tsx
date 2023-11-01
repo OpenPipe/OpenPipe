@@ -27,7 +27,9 @@ import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useRouter } from "next/router";
-import { useFilters } from "../Filters/useFilters";
+import { constructFiltersQueryParams, useFilters } from "../Filters/useFilters";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { DATASET_GENERAL_TAB_KEY } from "../datasets/DatasetContentTabs/DatasetContentTabs";
 
 const AddToDatasetButton = () => {
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -109,9 +111,21 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
 
     if (maybeReportError(response)) return;
 
-    const datasetId = response.payload;
+    const { datasetId, importId } = response.payload;
 
-    await router.push({ pathname: "/datasets/[id]", query: { id: datasetId } });
+    const filtersQueryParams = constructFiltersQueryParams([
+      {
+        id: Date.now().toString(),
+        field: GeneralFiltersDefaultFields.ImportId,
+        comparator: "=",
+        value: importId,
+      },
+    ]);
+
+    await router.push({
+      pathname: "/datasets/[id]/[tab]",
+      query: { id: datasetId, tab: DATASET_GENERAL_TAB_KEY, ...filtersQueryParams },
+    });
 
     disclosure.onClose();
     resetLogSelection();

@@ -12,6 +12,7 @@ import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 const defaultEvaluationFilterOptions = [
   { field: EvaluationFiltersDefaultFields.Input },
   { field: EvaluationFiltersDefaultFields.OriginalOutput },
+  { field: EvaluationFiltersDefaultFields.ImportId },
 ];
 
 const EvaluationFilters = () => {

@@ -126,11 +126,14 @@ export enum LoggedCallsFiltersDefaultFields {
 export enum GeneralFiltersDefaultFields {
   Input = "Input",
   Output = "Output",
+  ImportId = "Import ID",
+  RelabelBatchId = "Relabel Batch ID",
 }
 
 export enum EvaluationFiltersDefaultFields {
   Input = "Input",
   OriginalOutput = "Original Output",
+  ImportId = "Import ID",
 }
 
 export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";

@@ -1,4 +1,4 @@
-import { type Prisma } from "@prisma/client";
+import { type DatasetEntryProvenance, type Prisma } from "@prisma/client";
 import { shuffle } from "lodash-es";
 import { v4 as uuidv4 } from "uuid";
 import { type RowToImport } from "~/components/datasets/parseRowsToImport";
@@ -8,8 +8,11 @@ import { prisma } from "~/server/db";
 export const prepareDatasetEntriesForImport = async (
   datasetId: string,
   entriesToImport: RowToImport[],
+  provenance: DatasetEntryProvenance,
+  importId: string,
+  authoringUserId: string,
 ) => {
-  let [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
+  const [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
     prisma.dataset.findUnique({ where: { id: datasetId } }),
     prisma.datasetEntry.count({
       where: {
@@ -26,12 +29,10 @@ export const prepareDatasetEntriesForImport = async (
 
   const trainingRatio = dataset?.trainingRatio ?? 0.8;
 
-  existingTrainingCount += entriesToImport.filter((row) => row.split === "TRAIN").length;
-
   const newTotalEntries = existingCount + entriesToImport.length;
   const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
 
-  let numTrainingAdded = 0;
+  let numTrainingAdded = entriesToImport.filter((row) => row.split === "TRAIN").length;
   const entriesWithSplit = shuffle(entriesToImport).map((row) => {
     let split = row.split;
     if (!split) {
@@ -62,8 +63,11 @@ export const prepareDatasetEntriesForImport = async (
       },
       inputTokens: 0,
       outputTokens: 0,
+      authoringUserId,
+      provenance,
       split: row.split,
       sortKey: `${batchDate}-${persistentId}`,
+      importId,
       persistentId,
     };
   });

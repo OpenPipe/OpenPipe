@@ -28,10 +28,41 @@ export const constructDatasetEntryFiltersQuery = (
       if (filter.field === GeneralFiltersDefaultFields.Output) {
         wheres.push(filterExpression(sql.raw(`de."output"::text`)));
       }
+      if (filter.field === GeneralFiltersDefaultFields.ImportId) {
+        wheres.push(filterExpression(sql.raw(`de."importId"`)));
+      }
     }
 
     return eb.and(wheres);
   });
 
-  return baseQuery;
+  let updatedBaseQuery = baseQuery;
+
+  const relabelBatchIdFilters = filters.filter(
+    (filter) => filter.field === GeneralFiltersDefaultFields.RelabelBatchId,
+  );
+
+  for (let i = 0; i < relabelBatchIdFilters.length; i++) {
+    const filter = relabelBatchIdFilters[i];
+    if (!filter?.value) continue;
+    const filterExpression = textComparatorToSqlExpression(
+      filter.comparator,
+      filter.value as string,
+    );
+
+    const tableAlias = `rr${i}`;
+
+    updatedBaseQuery = updatedBaseQuery
+      .leftJoin(`RelabelRequest as ${tableAlias}`, (join) =>
+        join.on(
+          sql.raw('de."persistentId"'),
+          "=",
+          sql.raw(`${tableAlias}."datasetEntryPersistentId"`),
+        ),
+      )
+      .where(filterExpression(sql.raw(`${tableAlias}."batchId"`)))
+      .groupBy("de.id") as unknown as typeof baseQuery;
+  }
+
+  return updatedBaseQuery;
 };

@@ -30,6 +30,9 @@ export const constructEvaluationFiltersQuery = (
       if (filter.field === EvaluationFiltersDefaultFields.OriginalOutput) {
         wheres.push(filterExpression(sql.raw(`de."output"::text`)));
       }
+      if (filter.field === EvaluationFiltersDefaultFields.ImportId) {
+        wheres.push(filterExpression(sql.raw(`de."importId"`)));
+      }
     }
 
     return eb.and(wheres);

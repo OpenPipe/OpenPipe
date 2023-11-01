@@ -84,6 +84,8 @@ export interface DatasetEntry {
   persistentId: string;
   function_call: Json | null;
   functions: Json | null;
+  importId: string;
+  provenance: "RELABELED_BY_HUMAN" | "RELABELED_BY_MODEL" | "REQUEST_LOG" | "UPLOAD";
 }
 
 export interface DatasetFileUpload {
@@ -321,6 +323,16 @@ export interface PruningRuleMatch {
   datasetEntryId: string;
 }
 
+export interface RelabelRequest {
+  id: string;
+  batchId: string;
+  datasetEntryPersistentId: string;
+  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  errorMessage: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
 export interface ScenarioVariantCell {
   id: string;
   errorMessage: string | null;
@@ -425,6 +437,7 @@ export interface DB {
   PromptVariant: PromptVariant;
   PruningRule: PruningRule;
   PruningRuleMatch: PruningRuleMatch;
+  RelabelRequest: RelabelRequest;
   ScenarioVariantCell: ScenarioVariantCell;
   Session: Session;
   TemplateVariable: TemplateVariable;
