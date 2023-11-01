@@ -7,6 +7,7 @@ const defaultFilterOptions = [
   { field: GeneralFiltersDefaultFields.Input },
   { field: GeneralFiltersDefaultFields.Output },
   { field: GeneralFiltersDefaultFields.ImportId },
+  { field: GeneralFiltersDefaultFields.RelabelBatchId },
 ];
 
 const GeneralFilters = () => {

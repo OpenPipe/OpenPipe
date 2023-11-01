@@ -84,6 +84,8 @@ export interface DatasetEntry {
   persistentId: string;
   function_call: Json | null;
   functions: Json | null;
+  importId: string;
+  provenance: "RELABELED_BY_HUMAN" | "RELABELED_BY_MODEL" | "REQUEST_LOG" | "UPLOAD";
 }
 
 export interface DatasetFileUpload {
@@ -320,6 +322,16 @@ export interface PruningRuleMatch {
   datasetEntryId: string;
 }
 
+export interface RelabelRequest {
+  id: string;
+  batchId: string;
+  datasetEntryPersistentId: string;
+  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  errorMessage: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
 export interface ScenarioVariantCell {
   id: string;
   errorMessage: string | null;
@@ -359,6 +371,16 @@ export interface TestScenario {
   updatedAt: Timestamp;
 }
 
+export interface UsageLog {
+  id: string;
+  inputTokens: number;
+  outputTokens: number;
+  cost: number;
+  type: Generated<"EXTERNAL" | "TESTING">;
+  fineTuneId: string;
+  createdAt: Generated<Timestamp>;
+}
+
 export interface User {
   id: string;
   name: string | null;
@@ -368,6 +390,7 @@ export interface User {
   createdAt: Generated<Timestamp>;
   updatedAt: Generated<Timestamp>;
   role: Generated<"ADMIN" | "USER">;
+  gitHubUsername: string | null;
 }
 
 export interface UserInvitation {
@@ -413,10 +436,12 @@ export interface DB {
   PromptVariant: PromptVariant;
   PruningRule: PruningRule;
   PruningRuleMatch: PruningRuleMatch;
+  RelabelRequest: RelabelRequest;
   ScenarioVariantCell: ScenarioVariantCell;
   Session: Session;
   TemplateVariable: TemplateVariable;
   TestScenario: TestScenario;
+  UsageLog: UsageLog;
   User: User;
   UserInvitation: UserInvitation;
   VerificationToken: VerificationToken;

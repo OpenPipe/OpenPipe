@@ -157,7 +157,6 @@ export default function DatasetEntryEditorDrawer({
                     onClick={() => setHistoryVisible(!historyVisible)}
                     cursor="pointer"
                     fontWeight="bold"
-                    color="blue.600"
                     spacing={0.5}
                   >
                     <Text>Version History</Text>

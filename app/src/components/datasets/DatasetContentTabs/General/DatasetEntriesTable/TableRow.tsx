@@ -33,6 +33,7 @@ export const TableHeader = () => {
               onChange={() => {
                 allSelected ? clearSelectedIds() : addSelectedIds(matchingDatasetEntryIds || []);
               }}
+              _hover={{ borderColor: "gray.300" }}
             />
             <Text>
               (
@@ -79,7 +80,11 @@ export const TableRow = ({
     >
       {showOptions && (
         <Td>
-          <Checkbox isChecked={isChecked} onChange={() => toggleChecked(datasetEntry.id)} />
+          <Checkbox
+            isChecked={isChecked}
+            onChange={() => toggleChecked(datasetEntry.id)}
+            _hover={{ borderColor: "gray.300" }}
+          />
         </Td>
       )}
       <Td>

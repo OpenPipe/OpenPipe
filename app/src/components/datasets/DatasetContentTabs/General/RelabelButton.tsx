@@ -24,6 +24,8 @@ import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { useFilters } from "~/components/Filters/useFilters";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 
 const RelabelButton = () => {
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
@@ -56,6 +58,7 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
 
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
   const clearSelectedIds = useAppStore((s) => s.selectedDatasetEntries.clearSelectedIds);
+  const addFilter = useFilters().addFilter;
 
   const [onRelabelConfirm, confirmingRelabelInProgress] = useHandledAsyncCallback(async () => {
     if (!selectedIds) return;
@@ -64,10 +67,19 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
     });
     if (maybeReportError(resp)) return;
     const { batchId } = resp.payload;
+
+    addFilter({
+      id: Date.now().toString(),
+      field: GeneralFiltersDefaultFields.RelabelBatchId,
+      comparator: "=",
+      value: batchId.toString(),
+    });
+
+    clearSelectedIds();
     await utils.datasets.get.invalidate();
 
     disclosure.onClose();
-  }, [mutation, selectedIds, clearSelectedIds, disclosure.onClose]);
+  }, [mutation, selectedIds, clearSelectedIds, addFilter, disclosure.onClose]);
 
   const [numEntriesToConfirm, setNumEntriesToConfirm] = useState("");
 

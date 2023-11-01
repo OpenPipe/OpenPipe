@@ -127,6 +127,7 @@ export enum GeneralFiltersDefaultFields {
   Input = "Input",
   Output = "Output",
   ImportId = "Import ID",
+  RelabelBatchId = "Relabel Batch ID",
 }
 
 export enum EvaluationFiltersDefaultFields {
