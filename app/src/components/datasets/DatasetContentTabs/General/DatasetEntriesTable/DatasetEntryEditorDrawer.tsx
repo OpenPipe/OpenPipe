@@ -14,9 +14,11 @@ import {
   Text,
   Divider,
   Icon,
+  Collapse,
 } from "@chakra-ui/react";
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { BsPlus } from "react-icons/bs";
+import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { type DatasetEntryType } from "@prisma/client";
 import { isEqual } from "lodash-es";
 
@@ -26,6 +28,7 @@ import EditableMessage from "./EditableMessage";
 import EntryTypeDropdown from "./EntryTypeDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import dayjs from "~/utils/dayjs";
+import DatasetEntryHistoryRow from "./DatasetEntryHistoryRow";
 
 export default function DatasetEntryEditorDrawer({
   datasetEntryId,
@@ -45,6 +48,7 @@ export default function DatasetEntryEditorDrawer({
   const [outputMessageToSave, setOutputMessageToSave] = useState<ChatCompletionMessageParam | null>(
     null,
   );
+  const [historyVisible, setHistoryVisible] = useState(false);
 
   useEffect(() => {
     if (savedInputMessages && savedOutputMessage) {
@@ -147,6 +151,31 @@ export default function DatasetEntryEditorDrawer({
                   </Text>{" "}
                   {dayjs(datasetEntry.createdAt).format("MMMM D h:mm A")}
                 </Text>
+                <VStack w="full" alignItems="flex-start" spacing={0} pt={4}>
+                  <HStack
+                    _hover={{ textDecoration: "underline" }}
+                    onClick={() => setHistoryVisible(!historyVisible)}
+                    cursor="pointer"
+                    fontWeight="bold"
+                    color="blue.600"
+                    spacing={0.5}
+                  >
+                    <Text>Version History</Text>
+                    <Icon
+                      as={historyVisible ? FiChevronUp : FiChevronDown}
+                      strokeWidth={3}
+                      boxSize={3.5}
+                      pt={0.5}
+                    />
+                  </HStack>
+                  <Collapse in={historyVisible} unmountOnExit={true}>
+                    <VStack align="stretch" spacing={0} pt={2}>
+                      {datasetEntry?.history.map((entry, i) => (
+                        <DatasetEntryHistoryRow key={entry.id} entry={entry} isFirst={i === 0} />
+                      ))}
+                    </VStack>
+                  </Collapse>
+                </VStack>
               </VStack>
             )}
             <VStack w="full" alignItems="flex-start">

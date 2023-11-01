@@ -204,11 +204,26 @@ export const datasetEntriesRouter = createTRPCRouter({
 
     await requireCanViewProject(entry.dataset.projectId, ctx);
 
-    if (!entry) {
-      throw new TRPCError({ message: "Dataset entry not found", code: "NOT_FOUND" });
-    }
+    const history = await prisma.datasetEntry.findMany({
+      where: {
+        persistentId: entry.persistentId,
+        createdAt: {
+          lte: entry.createdAt,
+        },
+      },
+      include: {
+        authoringUser: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-    return typedDatasetEntry(entry);
+    return { ...typedDatasetEntry(entry), history };
   }),
   create: protectedProcedure
     .input(
@@ -306,6 +321,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         rowsToConvert,
         "REQUEST_LOG",
         importId,
+        ctx.session.user.id,
       );
 
       // Ensure dataset and dataset entries are created atomically

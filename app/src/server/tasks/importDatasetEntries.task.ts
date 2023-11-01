@@ -14,12 +14,13 @@ import { captureException } from "@sentry/browser";
 
 export type ImportDatasetEntriesJob = {
   datasetFileUploadId: string;
+  authoringUserId: string;
 };
 
 export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
   id: "importDatasetEntries",
   handler: async (task) => {
-    const { datasetFileUploadId } = task;
+    const { datasetFileUploadId, authoringUserId } = task;
     const datasetFileUpload = await prisma.datasetFileUpload.findUnique({
       where: { id: datasetFileUploadId },
     });
@@ -96,6 +97,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
         goodRows,
         "UPLOAD",
         importId,
+        authoringUserId,
         updateCallback,
         500,
       );

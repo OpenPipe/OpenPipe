@@ -9,6 +9,7 @@ import { countLlamaOutputTokens } from "~/utils/countTokens";
 import { startDatasetEntryTestJobs } from "../utils/startTestJobs";
 
 export type RelabelDatasetEntryJob = {
+  authoringUserId: string;
   relabelRequestId: string;
   datasetEntryId: string;
 };
@@ -16,7 +17,7 @@ export type RelabelDatasetEntryJob = {
 export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
   id: "relabelDatasetEntry",
   handler: async (task) => {
-    const { relabelRequestId, datasetEntryId } = task;
+    const { authoringUserId, relabelRequestId, datasetEntryId } = task;
 
     const [relabelRequest, rawDatasetEntry] = await prisma.$transaction([
       prisma.relabelRequest.findUnique({
@@ -85,6 +86,7 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
             type: datasetEntry.type,
             sortKey: datasetEntry.sortKey,
             provenance: "RELABELED_BY_MODEL",
+            authoringUserId,
             importId: datasetEntry.importId,
             persistentId: datasetEntry.persistentId,
           },
@@ -124,6 +126,7 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
 
 export const queueRelabelDatasetEntries = async (
   batchId: string,
+  authoringUserId: string,
   datasetEntries: DatasetEntry[],
 ) => {
   const relabelRequestsToCreate: Prisma.RelabelRequestCreateManyInput[] = [];
@@ -143,6 +146,6 @@ export const queueRelabelDatasetEntries = async (
     const relabelRequestId = relabelRequestsToCreate[i]?.id;
     const datasetEntryId = datasetEntries[i]?.id;
     if (!relabelRequestId || !datasetEntryId) continue;
-    await relabelDatasetEntry.enqueue({ relabelRequestId, datasetEntryId });
+    await relabelDatasetEntry.enqueue({ authoringUserId, relabelRequestId, datasetEntryId });
   }
 };

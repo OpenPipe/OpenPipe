@@ -12,6 +12,7 @@ export const prepareDatasetEntriesForImport = async (
   entriesToImport: RowToImport[],
   provenance: DatasetEntryProvenance,
   importId: string,
+  authoringUserId: string,
   updateCallback?: (progress: number) => Promise<void>,
   updateFrequency = 1000,
 ) => {
@@ -62,6 +63,7 @@ export const prepareDatasetEntriesForImport = async (
       inputTokens: 0,
       outputTokens: 0,
       type: typesToAssign.pop() as "TRAIN" | "TEST",
+      authoringUserId,
       provenance,
       sortKey: `${batchDate}-${persistentId}`,
       importId,
