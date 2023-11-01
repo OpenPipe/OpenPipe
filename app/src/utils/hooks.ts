@@ -192,7 +192,7 @@ export const useDataset = () => {
   return dataset;
 };
 
-export const useDatasetEntries = () => {
+export const useDatasetEntries = (refetchInterval = 0) => {
   const dataset = useDataset().data;
 
   const filters = useFilters().filters;
@@ -201,7 +201,7 @@ export const useDatasetEntries = () => {
 
   const { data, isFetching, ...rest } = api.datasetEntries.list.useQuery(
     { datasetId: dataset?.id ?? "", filters, page, pageSize },
-    { enabled: !!dataset?.id },
+    { enabled: !!dataset?.id, refetchInterval },
   );
 
   const [stableData, setStableData] = useState(data);

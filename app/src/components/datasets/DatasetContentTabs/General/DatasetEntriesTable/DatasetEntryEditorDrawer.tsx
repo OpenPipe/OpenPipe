@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Drawer,
   DrawerBody,
@@ -30,7 +30,7 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import dayjs from "~/utils/dayjs";
 import DatasetEntryHistoryRow from "./DatasetEntryHistoryRow";
 
-export default function DatasetEntryEditorDrawer({
+function DatasetEntryEditorDrawer({
   datasetEntryId,
   setDatasetEntryId,
 }: {
@@ -253,3 +253,6 @@ export default function DatasetEntryEditorDrawer({
     </Drawer>
   );
 }
+
+// Ensure that drawer does not constantly re-render when parent polls dataset entry list
+export default React.memo(DatasetEntryEditorDrawer);

@@ -74,6 +74,13 @@ export const datasetEntriesRouter = createTRPCRouter({
             "de.datasetId as datasetId",
             jsonArrayFrom(
               eb
+                .selectFrom("RelabelRequest as rr")
+                .select(["rr.status"])
+                .orderBy("rr.createdAt", "desc")
+                .whereRef("rr.datasetEntryPersistentId", "=", "de.persistentId"),
+            ).as("relabelStatuses"),
+            jsonArrayFrom(
+              eb
                 .selectFrom("PruningRuleMatch as prm")
                 .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
                 .select(["pr.textToMatch", "pr.tokensInText"])

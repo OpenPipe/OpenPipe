@@ -1,6 +1,6 @@
 import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox } from "@chakra-ui/react";
 import Link from "next/link";
-import { DatasetEntryType } from "@prisma/client";
+import { DatasetEntryType, RelabelRequestStatus } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
 import { type RouterOutputs } from "~/utils/api";
@@ -11,7 +11,7 @@ import { useFilters } from "~/components/Filters/useFilters";
 
 type DatasetEntry = RouterOutputs["datasetEntries"]["list"]["entries"][0];
 
-export const TableHeader = () => {
+export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColumn: boolean }) => {
   const matchingDatasetEntryIds = useDatasetEntries().data?.matchingEntryIds;
   const selectedDatasetEntryIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
   const addSelectedIds = useAppStore((s) => s.selectedDatasetEntries.addSelectedIds);
@@ -45,6 +45,7 @@ export const TableHeader = () => {
           </HStack>
         </Th>
         <Th>Created At</Th>
+        {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
         <Th isNumeric>Input tokens</Th>
         <Th isNumeric>Output tokens</Th>
         <Th isNumeric>Type</Th>
@@ -55,12 +56,14 @@ export const TableHeader = () => {
 
 export const TableRow = ({
   datasetEntry,
-  onToggle,
+  toggleExpanded,
   showOptions,
+  showRelabelStatusColumn,
 }: {
   datasetEntry: DatasetEntry;
-  onToggle: () => void;
+  toggleExpanded: (entryId: string) => void;
   showOptions?: boolean;
+  showRelabelStatusColumn?: boolean;
 }) => {
   const createdAt = dayjs(datasetEntry.createdAt).format("MMMM D h:mm A");
   const fullTime = dayjs(datasetEntry.createdAt).toString();
@@ -73,7 +76,7 @@ export const TableRow = ({
 
   return (
     <Tr
-      onClick={onToggle}
+      onClick={() => toggleExpanded(datasetEntry.id)}
       key={datasetEntry.id}
       _hover={{ bgColor: "gray.50", cursor: "pointer" }}
       fontSize="sm"
@@ -94,6 +97,11 @@ export const TableRow = ({
           </Box>
         </Tooltip>
       </Td>
+      {showRelabelStatusColumn && (
+        <Td>
+          <RelabelingStatus status={datasetEntry.relabelStatuses?.[0]?.status} />
+        </Td>
+      )}
       <Td isNumeric>{datasetEntry.inputTokens.toLocaleString()}</Td>
       <Td isNumeric>{datasetEntry.outputTokens.toLocaleString()}</Td>
       <Td isNumeric>
@@ -120,6 +128,36 @@ const EntryType = ({ type }: { type: string }) => {
         {type}
       </Text>
     </HStack>
+  );
+};
+
+const RelabelingStatus = ({ status }: { status?: RelabelRequestStatus }) => {
+  if (!status) return null;
+
+  let color;
+  let text;
+
+  switch (status) {
+    case RelabelRequestStatus.ERROR:
+      color = "red.500";
+      text = "Failed";
+      break;
+    case RelabelRequestStatus.IN_PROGRESS:
+      color = "blue.500";
+      text = "In Progress";
+      break;
+    case RelabelRequestStatus.PENDING:
+      color = "gray.500";
+      text = "Pending";
+      break;
+    default:
+      return null;
+  }
+
+  return (
+    <Text fontWeight="bold" color={color}>
+      {text}
+    </Text>
   );
 };
 
