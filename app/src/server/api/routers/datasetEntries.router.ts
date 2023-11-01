@@ -526,7 +526,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         },
       });
 
-      await queueRelabelDatasetEntries(batchId, datasetEntries);
+      await queueRelabelDatasetEntries(batchId, ctx.session.user.id, datasetEntries);
 
       return success({ batchId });
     }),
