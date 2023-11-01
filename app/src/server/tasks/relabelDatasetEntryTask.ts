@@ -83,7 +83,7 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
             output: completionMessage as unknown as Prisma.InputJsonValue,
             inputTokens: datasetEntry.inputTokens,
             outputTokens: countLlamaOutputTokens(completionMessage),
-            type: datasetEntry.type,
+            split: datasetEntry.split,
             sortKey: datasetEntry.sortKey,
             provenance: "RELABELED_BY_MODEL",
             authoringUserId,
@@ -105,7 +105,7 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
         }),
       ]);
 
-      if (newDatasetEntry.type === "TEST") {
+      if (newDatasetEntry.split === "TEST") {
         await startDatasetEntryTestJobs(newDatasetEntry.id);
       }
     } catch (e) {

@@ -3,7 +3,7 @@ import { evaluateTestSetEntry } from "../tasks/evaluateTestSetEntry.task";
 
 export const startDatasetEntryTestJobs = async (datasetEntryId: string) => {
   const datasetEntry = await prisma.datasetEntry.findFirst({
-    where: { id: datasetEntryId, type: "TEST" },
+    where: { id: datasetEntryId, split: "TEST" },
     include: {
       dataset: {
         include: {
