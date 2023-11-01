@@ -12,7 +12,7 @@ export const prepareDatasetEntriesForImport = async (
   importId: string,
   authoringUserId: string,
 ) => {
-  let [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
+  const [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
     prisma.dataset.findUnique({ where: { id: datasetId } }),
     prisma.datasetEntry.count({
       where: {
@@ -29,15 +29,10 @@ export const prepareDatasetEntriesForImport = async (
 
   const trainingRatio = dataset?.trainingRatio ?? 0.8;
 
-  existingTrainingCount += entriesToImport.filter((row) => row.split === "TRAIN").length;
-
   const newTotalEntries = existingCount + entriesToImport.length;
-  const numTrainingToAdd = Math.min(
-    Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount,
-    entriesToImport.length,
-  );
+  const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
 
-  let numTrainingAdded = 0;
+  let numTrainingAdded = entriesToImport.filter((row) => row.split === "TRAIN").length;
   const entriesWithSplit = shuffle(entriesToImport).map((row) => {
     let split = row.split;
     if (!split) {
