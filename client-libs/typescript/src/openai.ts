@@ -11,7 +11,7 @@ import type {
 } from "openai/resources/chat/completions";
 
 import { WrappedStream } from "./openai/streaming";
-import { DefaultService, OPClient } from "./codegen";
+import { ApiError, DefaultService, OPClient } from "./codegen";
 import type { Stream } from "openai/streaming";
 import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags, withTimeout } from "./shared";
 
@@ -191,14 +191,17 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
         };
       }
     } catch (error: unknown) {
-      if (error instanceof openai.APIError) {
-        const rawMessage = error.message as string | string[];
+      if (error instanceof openai.APIError || error instanceof ApiError) {
+        const rawMessage =
+          error instanceof openai.APIError
+            ? (error.message as string | string[])
+            : error.body.message;
         const message = Array.isArray(rawMessage) ? rawMessage.join(", ") : rawMessage;
         reportingFinished = this._report({
           requestedAt,
           receivedAt: Date.now(),
           reqPayload: body,
-          respPayload: error.error,
+          respPayload: error instanceof openai.APIError ? error.error : error.body,
           statusCode: error.status,
           errorMessage: message,
           tags: getTags(openpipe),
