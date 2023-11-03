@@ -6,9 +6,8 @@ import json
 
 from openpipe.merge_openai_chunks import merge_openai_chunks
 from openpipe.openpipe_meta import openpipe_meta
-from openpipe.api_client.api.default import (
-    create_chat_completion
-)
+from openpipe.api_client.api.default import create_chat_completion
+from openpipe.api_client import errors
 
 from .shared import (
     _should_check_cache,
@@ -32,7 +31,7 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
             return OpenAIObject.construct_from(cached_response, api_key=None)
 
         requested_at = int(time.time() * 1000)
-        model = kwargs.get("model", '')
+        model = kwargs.get("model", "")
 
         try:
             if model.startswith("openpipe:"):
@@ -42,7 +41,9 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                         kwargs,
                     ),
                 )
-                chat_completion = OpenAIObject.construct_from(json.loads(response.content), api_key=None)
+                chat_completion = OpenAIObject.construct_from(
+                    json.loads(response.content), api_key=None
+                )
             else:
                 chat_completion = original_openai.ChatCompletion.create(*args, **kwargs)
 
@@ -106,14 +107,25 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     error_message=str(e),
                     status_code=e.http_status,
                 )
-            else:
+            elif isinstance(e, errors.UnexpectedStatus):
+                error_content = None
+                error_message = ""
+                try:
+                    error_content = json.loads(e.content)
+                    error_message = error_content.get("message", "")
+                except:
+                    pass
+
                 report(
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
                     req_payload=kwargs,
-                    error_message=str(e),
+                    resp_payload=error_content,
+                    error_message=error_message,
+                    status_code=e.status_code,
                 )
+                raise Exception(error_message)
 
             raise e
 
@@ -128,7 +140,7 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
             return OpenAIObject.construct_from(cached_response, api_key=None)
 
         requested_at = int(time.time() * 1000)
-        model = kwargs.get("model", '')
+        model = kwargs.get("model", "")
 
         try:
             if model.startswith("openpipe:"):
@@ -138,9 +150,13 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                         kwargs,
                     ),
                 )
-                chat_completion = OpenAIObject.construct_from(json.loads(response.content), api_key=None)
+                chat_completion = OpenAIObject.construct_from(
+                    json.loads(response.content), api_key=None
+                )
             else:
-                chat_completion = await original_openai.ChatCompletion.acreate(*args, **kwargs)
+                chat_completion = await original_openai.ChatCompletion.acreate(
+                    *args, **kwargs
+                )
 
             if inspect.isasyncgen(chat_completion):
 
@@ -207,14 +223,24 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     error_message=str(e),
                     status_code=e.http_status,
                 )
-            else:
+            elif isinstance(e, errors.UnexpectedStatus):
+                error_content = None
+                error_message = ""
+                try:
+                    error_content = json.loads(e.content)
+                    error_message = error_content.get("message", "")
+                except:
+                    pass
                 await report_async(
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
                     req_payload=kwargs,
-                    error_message=str(e),
+                    resp_payload=error_content,
+                    error_message=error_message,
+                    status_code=e.status_code,
                 )
+                raise Exception(error_message)
 
             raise e
 

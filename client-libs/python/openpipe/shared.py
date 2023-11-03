@@ -11,7 +11,7 @@ import os
 import pkg_resources
 
 configured_client = AuthenticatedClient(
-    base_url="https://app.openpipe.ai/api/v1", token=""
+    base_url="https://app.openpipe.ai/api/v1", token="", raise_on_unexpected_status=True
 )
 
 if os.environ.get("OPENPIPE_API_KEY"):
