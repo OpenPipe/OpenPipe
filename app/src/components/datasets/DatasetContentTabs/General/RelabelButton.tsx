@@ -101,7 +101,7 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
             <VStack spacing={4} alignItems="flex-start">
               <Text>
                 The {pluralize("entry", selectedIds.size)} you've selected will be relabeled using
-                GPT-4. This project's OpenAI token will be used for the API calls.
+                GPT-4. This project's OpenAI API key will be used for the API calls.
               </Text>
 
               {needsMissingOpenaiKey ? (
