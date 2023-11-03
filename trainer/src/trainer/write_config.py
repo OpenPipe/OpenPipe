@@ -81,7 +81,13 @@ base_mistral_config = {
 
 
 def write_config(
-    config_path, base_model, num_epochs, training_file, out_path, wandb_project, wandb_run_id
+    config_path,
+    base_model,
+    num_epochs,
+    training_file,
+    out_path,
+    wandb_project,
+    wandb_run_id,
 ):
     if "Llama-2" in base_model:
         config = base_llama2_config
@@ -109,9 +115,9 @@ def write_config(
     config["num_epochs"] = num_epochs
     config["logging_steps"] = 1
     config["save_safetensors"] = True
-    # config['eval_steps'] = 100
-    config['strict'] = False
-    config['save_strategy'] = 'no'
+    config["eval_steps"] = 0.1
+    config["strict"] = False
+    config["save_strategy"] = "no"
 
     logging.info("Persisting config:")
     logging.info(config)
