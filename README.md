@@ -28,7 +28,7 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 <br>
 <br>
 <p align="center">
- <img width="720" src="https://github.com/openpipe/openpipe/assets/41524992/eaa8b92d-4536-4f63-bbef-4b0b1a60f6b5" alt="fine-tune demo">
+ <img width="720" src="https://github.com/openpipe/openpipe/assets/41524992/5f7ae843-a4b8-44bf-ad33-44c04e2c925c" alt="fine-tune demo">
 </p>
 
 ## Features
