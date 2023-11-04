@@ -45,7 +45,7 @@
         "features/exporting-data",
         "features/fine-tuning",
         "features/running-inference",
-        "features/experiments"
+        "features/pruning-rules"
       ]
     },
     {
