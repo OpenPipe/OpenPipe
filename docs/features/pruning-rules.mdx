@@ -1,0 +1,16 @@
+---
+title: "Pruning Rules"
+description: "Decrease input token counts by pruning out chunks of static text."
+---
+
+Some prompts have large chunks of unchanging text, like system messages that don't differ from one request to the next. By removing this static text and fine-tuning a model on the compacted data, we can reduce the size of incoming requests and save you money on inference.
+
+You can add pruning rules to your dataset in the Settings tab, as shown below:
+
+<Frame>![](/images/features/pruning-rules.png)</Frame>
+
+You can also see what your input looks like with the pruning rules applied in the Dataset Entry drawer:
+
+<Frame>![](/images/features/applied-pruning-rule.png)</Frame>
+
+A fine-tuned model automatically inherits all pruning rules applied to the dataset on which it is trained. These rules will automatically prune static text out of any incoming requests sent to that model. Pruning rules that are added after a fine-tuned model was trained will not be associated with that model, so you don't need to worry about backwards compatibility.
