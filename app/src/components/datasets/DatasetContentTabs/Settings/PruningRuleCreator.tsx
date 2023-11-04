@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { VStack, HStack, Text, Button } from "@chakra-ui/react";
 
 import { api } from "~/utils/api";
@@ -25,6 +25,10 @@ const PruningRuleCreator = ({ index }: { index: number }) => {
     await utils.pruningRules.list.invalidate({ datasetId: dataset.id });
     setShowEditor(false);
   }, [createRuleMutation, editedTextToMatch, dataset?.id, utils]);
+
+  useEffect(() => {
+    if (!showEditor) setEditedTextToMatch("");
+  }, [showEditor, setEditedTextToMatch]);
 
   if (!showEditor) {
     return (
