@@ -11,6 +11,12 @@ from ..models.create_chat_completion_response_200_choices_item_finish_reason_typ
 from ..models.create_chat_completion_response_200_choices_item_finish_reason_type_2 import (
     CreateChatCompletionResponse200ChoicesItemFinishReasonType2,
 )
+from ..models.create_chat_completion_response_200_choices_item_finish_reason_type_3 import (
+    CreateChatCompletionResponse200ChoicesItemFinishReasonType3,
+)
+from ..models.create_chat_completion_response_200_choices_item_finish_reason_type_4 import (
+    CreateChatCompletionResponse200ChoicesItemFinishReasonType4,
+)
 
 if TYPE_CHECKING:
     from ..models.create_chat_completion_response_200_choices_item_message import (
@@ -27,7 +33,9 @@ class CreateChatCompletionResponse200ChoicesItem:
     Attributes:
         finish_reason (Union[CreateChatCompletionResponse200ChoicesItemFinishReasonType0,
             CreateChatCompletionResponse200ChoicesItemFinishReasonType1,
-            CreateChatCompletionResponse200ChoicesItemFinishReasonType2]):
+            CreateChatCompletionResponse200ChoicesItemFinishReasonType2,
+            CreateChatCompletionResponse200ChoicesItemFinishReasonType3,
+            CreateChatCompletionResponse200ChoicesItemFinishReasonType4]):
         index (float):
         message (CreateChatCompletionResponse200ChoicesItemMessage):
     """
@@ -36,6 +44,8 @@ class CreateChatCompletionResponse200ChoicesItem:
         CreateChatCompletionResponse200ChoicesItemFinishReasonType0,
         CreateChatCompletionResponse200ChoicesItemFinishReasonType1,
         CreateChatCompletionResponse200ChoicesItemFinishReasonType2,
+        CreateChatCompletionResponse200ChoicesItemFinishReasonType3,
+        CreateChatCompletionResponse200ChoicesItemFinishReasonType4,
     ]
     index: float
     message: "CreateChatCompletionResponse200ChoicesItemMessage"
@@ -47,6 +57,12 @@ class CreateChatCompletionResponse200ChoicesItem:
             finish_reason = self.finish_reason.value
 
         elif isinstance(self.finish_reason, CreateChatCompletionResponse200ChoicesItemFinishReasonType1):
+            finish_reason = self.finish_reason.value
+
+        elif isinstance(self.finish_reason, CreateChatCompletionResponse200ChoicesItemFinishReasonType2):
+            finish_reason = self.finish_reason.value
+
+        elif isinstance(self.finish_reason, CreateChatCompletionResponse200ChoicesItemFinishReasonType3):
             finish_reason = self.finish_reason.value
 
         else:
@@ -80,6 +96,8 @@ class CreateChatCompletionResponse200ChoicesItem:
             CreateChatCompletionResponse200ChoicesItemFinishReasonType0,
             CreateChatCompletionResponse200ChoicesItemFinishReasonType1,
             CreateChatCompletionResponse200ChoicesItemFinishReasonType2,
+            CreateChatCompletionResponse200ChoicesItemFinishReasonType3,
+            CreateChatCompletionResponse200ChoicesItemFinishReasonType4,
         ]:
             try:
                 if not isinstance(data, str):
@@ -97,11 +115,27 @@ class CreateChatCompletionResponse200ChoicesItem:
                 return finish_reason_type_1
             except:  # noqa: E722
                 pass
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                finish_reason_type_2 = CreateChatCompletionResponse200ChoicesItemFinishReasonType2(data)
+
+                return finish_reason_type_2
+            except:  # noqa: E722
+                pass
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                finish_reason_type_3 = CreateChatCompletionResponse200ChoicesItemFinishReasonType3(data)
+
+                return finish_reason_type_3
+            except:  # noqa: E722
+                pass
             if not isinstance(data, str):
                 raise TypeError()
-            finish_reason_type_2 = CreateChatCompletionResponse200ChoicesItemFinishReasonType2(data)
+            finish_reason_type_4 = CreateChatCompletionResponse200ChoicesItemFinishReasonType4(data)
 
-            return finish_reason_type_2
+            return finish_reason_type_4
 
         finish_reason = _parse_finish_reason(d.pop("finish_reason"))
 

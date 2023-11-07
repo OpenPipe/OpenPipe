@@ -1,4 +1,4 @@
-import { type ChatCompletionMessage } from "openai/resources/chat";
+import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { prisma } from "~/server/db";
 import { isComparisonModel } from "./baseModels";
 
@@ -23,14 +23,25 @@ export const getStringsToPrune = async (modelId: string) => {
   return pruningRules.map((rule) => rule.textToMatch);
 };
 
-export const pruneInputMessages = (messages: ChatCompletionMessage[], stringsToPrune: string[]) => {
+export const pruneInputMessages = (
+  messages: ChatCompletionMessageParam[],
+  stringsToPrune: string[],
+) => {
   for (const stringToPrune of stringsToPrune) {
     for (const message of messages) {
-      if (message.content) {
-        message.content = message.content.replaceAll(stringToPrune, "");
+      if ("content" in message && message.content) {
+        const content = Array.isArray(message.content)
+          ? message.content.join("\n")
+          : message.content;
+        message.content = content.replaceAll(stringToPrune, "");
       }
     }
   }
-  messages = messages.filter((message) => message.content !== "" || message.function_call);
+  messages = messages.filter(
+    (message) =>
+      message.content !== "" ||
+      ("function_call" in message && message.function_call) ||
+      ("tool_calls" in message && message.tool_calls && message.tool_calls.length > 0),
+  );
   return messages;
 };

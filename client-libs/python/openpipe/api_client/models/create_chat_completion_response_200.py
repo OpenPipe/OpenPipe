@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Type, TypeVar, Union
 
 from attrs import define
 
+from ..models.create_chat_completion_response_200_object import CreateChatCompletionResponse200Object
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -17,7 +18,7 @@ class CreateChatCompletionResponse200:
     """
     Attributes:
         id (str):
-        object_ (str):
+        object_ (CreateChatCompletionResponse200Object):
         created (float):
         model (str):
         choices (List['CreateChatCompletionResponse200ChoicesItem']):
@@ -25,7 +26,7 @@ class CreateChatCompletionResponse200:
     """
 
     id: str
-    object_: str
+    object_: CreateChatCompletionResponse200Object
     created: float
     model: str
     choices: List["CreateChatCompletionResponse200ChoicesItem"]
@@ -33,7 +34,8 @@ class CreateChatCompletionResponse200:
 
     def to_dict(self) -> Dict[str, Any]:
         id = self.id
-        object_ = self.object_
+        object_ = self.object_.value
+
         created = self.created
         model = self.model
         choices = []
@@ -69,7 +71,7 @@ class CreateChatCompletionResponse200:
         d = src_dict.copy()
         id = d.pop("id")
 
-        object_ = d.pop("object")
+        object_ = CreateChatCompletionResponse200Object(d.pop("object"))
 
         created = d.pop("created")
 

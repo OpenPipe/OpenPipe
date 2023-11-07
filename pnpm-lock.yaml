@@ -67,7 +67,7 @@ importers:
         version: 7.77.0
       '@t3-oss/env-nextjs':
         specifier: ^0.3.1
-        version: 0.3.1(typescript@5.0.4)(zod@3.21.4)
+        version: 0.3.1(typescript@5.0.4)(zod@3.22.4)
       '@tabler/icons-react':
         specifier: ^2.22.0
         version: 2.22.0(react@18.2.0)
@@ -192,11 +192,11 @@ importers:
         specifier: ^6.9.4
         version: 6.9.4
       openai:
-        specifier: 4.8.0
-        version: 4.8.0(encoding@0.1.13)
+        specifier: ^4.16.1
+        version: 4.16.1(encoding@0.1.13)
       openpipe:
-        specifier: 0.5.1
-        version: 0.5.1
+        specifier: 0.6.0
+        version: 0.6.0
       openpipe-dev:
         specifier: workspace:^
         version: link:../client-libs/typescript
@@ -271,7 +271,7 @@ importers:
         version: 3.0.3
       trpc-openapi:
         specifier: ^1.2.0
-        version: 1.2.0(@trpc/server@10.26.0)(zod@3.21.4)
+        version: 1.2.0(@trpc/server@10.26.0)(zod@3.22.4)
       tsx:
         specifier: ^3.12.7
         version: 3.12.7
@@ -291,8 +291,8 @@ importers:
         specifier: ^17.7.2
         version: 17.7.2
       zod:
-        specifier: ^3.21.4
-        version: 3.21.4
+        specifier: ^3.22.4
+        version: 3.22.4
       zustand:
         specifier: ^4.3.9
         version: 4.3.9(immer@10.0.2)(react@18.2.0)
@@ -389,10 +389,10 @@ importers:
         version: 0.40.0
       openapi-typescript:
         specifier: ^6.3.4
-        version: 6.3.4
+        version: 6.7.0
       openapi-typescript-codegen:
-        specifier: ^0.25.0
-        version: 0.25.0
+        specifier: github:OpenPipe/openapi-typescript-codegen.git#feat/support-nested-any-of
+        version: github.com/OpenPipe/openapi-typescript-codegen/c5797a01a35f6058a36086ee2deefac5d8717ea9
       prisma:
         specifier: ^4.14.0
         version: 4.14.0
@@ -422,7 +422,7 @@ importers:
         version: 2.6.12(encoding@0.1.13)
       openai:
         specifier: ^4.8.0
-        version: 4.8.0(encoding@0.1.13)
+        version: 4.16.1(encoding@0.1.13)
       openai-legacy:
         specifier: npm:openai@3.3.0
         version: /openai@3.3.0
@@ -511,7 +511,7 @@ packages:
     resolution: {integrity: sha512-GBD2Le9w2+lVFoc4vswGI/TjkNIZSVp7+9xPf+X3uidBfWnAeUWmquteSyt0+VCrhNMWj/FTABISQrD3Z/YA+w==}
     dependencies:
       '@jsdevtools/ono': 7.1.3
-      '@types/json-schema': 7.0.12
+      '@types/json-schema': 7.0.14
       call-me-maybe: 1.0.2
       js-yaml: 4.1.0
     dev: true
@@ -875,7 +875,7 @@ packages:
     engines: {node: '>= 16'}
     dependencies:
       '@jsdevtools/ono': 7.1.3
-      '@types/json-schema': 7.0.12
+      '@types/json-schema': 7.0.14
       call-me-maybe: 1.0.2
       js-yaml: 4.1.0
     dev: false
@@ -3151,25 +3151,25 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@t3-oss/env-core@0.3.1(typescript@5.0.4)(zod@3.21.4):
+  /@t3-oss/env-core@0.3.1(typescript@5.0.4)(zod@3.22.4):
     resolution: {integrity: sha512-iEnBuWeSjzqQLDTUw7H+YhstV4OZrGXTkQGL6ZOMxZQoCmwGX7GVS+1KCd5RvCzOtrIAD9jeOItSWNjC7sG4Sg==}
     peerDependencies:
       typescript: '>=4.7.2'
       zod: ^3.0.0
     dependencies:
       typescript: 5.0.4
-      zod: 3.21.4
+      zod: 3.22.4
     dev: false
 
-  /@t3-oss/env-nextjs@0.3.1(typescript@5.0.4)(zod@3.21.4):
+  /@t3-oss/env-nextjs@0.3.1(typescript@5.0.4)(zod@3.22.4):
     resolution: {integrity: sha512-W1OgOn5xtpdEGraAQesyLzO2aNLRfSJEyK6qjQFfEUnrPbkvB+WxABX2bPMqfn4KJQ8pziLCSdBFiUN8OagqAg==}
     peerDependencies:
       typescript: '>=4.7.2'
       zod: ^3.0.0
     dependencies:
-      '@t3-oss/env-core': 0.3.1(typescript@5.0.4)(zod@3.21.4)
+      '@t3-oss/env-core': 0.3.1(typescript@5.0.4)(zod@3.22.4)
       typescript: 5.0.4
-      zod: 3.21.4
+      zod: 3.22.4
     dev: false
 
   /@tabler/icons-react@2.22.0(react@18.2.0):
@@ -3401,11 +3401,11 @@ packages:
       '@types/ms': 0.7.31
     dev: false
 
-  /@types/eslint-scope@3.7.6:
-    resolution: {integrity: sha512-zfM4ipmxVKWdxtDaJ3MP3pBurDXOCoyjvlpE3u6Qzrmw4BPbfm4/ambIeTk/r/J0iq/+2/xp0Fmt+gFvXJY2PQ==}
+  /@types/eslint-scope@3.7.7:
+    resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
     dependencies:
-      '@types/eslint': 8.44.6
-      '@types/estree': 1.0.3
+      '@types/eslint': 8.44.7
+      '@types/estree': 1.0.5
 
   /@types/eslint@8.37.0:
     resolution: {integrity: sha512-Piet7dG2JBuDIfohBngQ3rCt7MgO9xCO4xIMKxBThCq5PNRB91IjlJ10eJVwfoNtvTErmxLzwBZ7rHZtbOMmFQ==}
@@ -3414,10 +3414,10 @@ packages:
       '@types/json-schema': 7.0.12
     dev: true
 
-  /@types/eslint@8.44.6:
-    resolution: {integrity: sha512-P6bY56TVmX8y9J87jHNgQh43h6VVU+6H7oN7hgvivV81K2XY8qJZ5vqPy/HdUoVIelii2kChYVzQanlswPWVFw==}
+  /@types/eslint@8.44.7:
+    resolution: {integrity: sha512-f5ORu2hcBbKei97U73mf+l9t4zTGl74IqZ0GQk4oVea/VS8tQZYkUveSYojk+frraAVYId0V2WC9O4PTNru2FQ==}
     dependencies:
-      '@types/estree': 1.0.3
+      '@types/estree': 1.0.5
       '@types/json-schema': 7.0.14
 
   /@types/estree@1.0.1:
@@ -3426,6 +3426,10 @@ packages:
 
   /@types/estree@1.0.3:
     resolution: {integrity: sha512-CS2rOaoQ/eAgAfcTfq6amKG7bsN+EMcgGY4FAFQdvSj2y1ixvOZTUA9mOtCai7E1SYu283XNw7urKK30nP3wkQ==}
+    dev: false
+
+  /@types/estree@1.0.5:
+    resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
 
   /@types/express-serve-static-core@4.17.35:
     resolution: {integrity: sha512-wALWQwrgiB2AWTT91CB62b6Yt0sNHpznUXeZEcnPU3DRdlDIz74x8Qg1UUYKSVFi+va5vKOLYRBI1bRKiLLKIg==}
@@ -3523,6 +3527,12 @@ packages:
 
   /@types/node@18.16.0:
     resolution: {integrity: sha512-BsAaKhB+7X+H4GnSjGhJG9Qi8Tw+inU9nJDwmD5CgOmBLEI6ArdhikpLX7DjbjDRDTbqZzU2LSQNZg8WGPiSZQ==}
+
+  /@types/node@18.18.8:
+    resolution: {integrity: sha512-OLGBaaK5V3VRBS1bAkMVP2/W9B+H8meUfl866OrMNQqt7wDgdpWPp5o6gmIc9pB+lIQHSq4ZL8ypeH1vPxcPaQ==}
+    dependencies:
+      undici-types: 5.26.5
+    dev: false
 
   /@types/node@20.4.10:
     resolution: {integrity: sha512-vwzFiiy8Rn6E0MtA13/Cxxgpan/N6UeNYR9oUu6kuJWxu6zCk98trcDp8CBhbtaeuq9SykCmXkFr2lWLoPcvLg==}
@@ -3780,7 +3790,7 @@ packages:
       eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.40.0)
-      '@types/json-schema': 7.0.12
+      '@types/json-schema': 7.0.14
       '@types/semver': 7.5.0
       '@typescript-eslint/scope-manager': 5.59.6
       '@typescript-eslint/types': 5.59.6
@@ -3968,12 +3978,12 @@ packages:
       negotiator: 0.6.3
     dev: false
 
-  /acorn-import-assertions@1.9.0(acorn@8.10.0):
+  /acorn-import-assertions@1.9.0(acorn@8.11.2):
     resolution: {integrity: sha512-cmMwop9x+8KFhxvKrKfPYmN6/pKTYYHBqLa0DfvVZcKMJWNyWLnaqND7dx/qn66R7ewM1UX5XMaDVP5wlVTaVA==}
     peerDependencies:
       acorn: ^8
     dependencies:
-      acorn: 8.10.0
+      acorn: 8.11.2
 
   /acorn-jsx@5.3.2(acorn@8.10.0):
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -3990,6 +4000,12 @@ packages:
 
   /acorn@8.10.0:
     resolution: {integrity: sha512-F0SAmZ8iUtS//m8DmCTA0jlh6TDKkHQyK6xc6V4KDTyZKA9dnvX9/3sRTVQrWm79glUAZbnmmNcdYwUIHWVybw==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+    dev: true
+
+  /acorn@8.11.2:
+    resolution: {integrity: sha512-nc0Axzp/0FILLEVsm4fNwLCwMttvhEI263QtVPQcbpfZZ3ts0hLsZGOpE6czNlid7CJ9MlyH8reXkpsf3YUY4w==}
     engines: {node: '>=0.4.0'}
     hasBin: true
 
@@ -4438,8 +4454,8 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001551
-      electron-to-chromium: 1.4.561
+      caniuse-lite: 1.0.30001561
+      electron-to-chromium: 1.4.576
       node-releases: 2.0.13
       update-browserslist-db: 1.0.13(browserslist@4.22.1)
 
@@ -4526,8 +4542,8 @@ packages:
   /caniuse-lite@1.0.30001519:
     resolution: {integrity: sha512-0QHgqR+Jv4bxHMp8kZ1Kn8CH55OikjKJ6JmKkZYP1F3D7w+lnFXF70nG5eNfsZS89jadi5Ywy5UCSKLAglIRkg==}
 
-  /caniuse-lite@1.0.30001551:
-    resolution: {integrity: sha512-vtBAez47BoGMMzlbYhfXrMV1kvRF2WP/lqiMuDu1Sb4EE4LKEgjopFDSRtZfdVnslNRpOqV/woE+Xgrwj6VQlg==}
+  /caniuse-lite@1.0.30001561:
+    resolution: {integrity: sha512-NTt0DNoKe958Q0BE0j0c1V9jbUzhBxHIEJy7asmGrpE0yG63KTV7PLHPnK2E1O9RsQrQ081I3NLuXGS6zht3cw==}
 
   /caseless@0.12.0:
     resolution: {integrity: sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==}
@@ -5220,8 +5236,8 @@ packages:
   /electron-to-chromium@1.4.490:
     resolution: {integrity: sha512-6s7NVJz+sATdYnIwhdshx/N/9O6rvMxmhVoDSDFdj6iA45gHR8EQje70+RYsF4GeB+k0IeNSBnP7yG9ZXJFr7A==}
 
-  /electron-to-chromium@1.4.561:
-    resolution: {integrity: sha512-eS5t4ulWOBfVHdq9SW2dxEaFarj1lPjvJ8PaYMOjY0DecBaj/t4ARziL2IPpDr4atyWwjLFGQ2vo/VCgQFezVQ==}
+  /electron-to-chromium@1.4.576:
+    resolution: {integrity: sha512-yXsZyXJfAqzWk1WKryr0Wl0MN2D47xodPvEEwlVePBnhU5E7raevLQR+E6b9JAD3GfL/7MbAL9ZtWQQPcLx7wA==}
 
   /emoji-regex@10.2.1:
     resolution: {integrity: sha512-97g6QgOk8zlDRdgq1WxwgTMgEWGVAQvB5Fdpgc1MkNy56la5SKP9GsMXKDOdqwn90/41a8yPwIGk1Y6WVbeMQA==}
@@ -7872,11 +7888,11 @@ packages:
       - debug
     dev: false
 
-  /openai@4.8.0(encoding@0.1.13):
-    resolution: {integrity: sha512-CnLZvHi2x4pIoGAWCaj3jHi1a6NA4oFBL6mJDSXkIR5A/wv6lven7uL2gxMevjGBLA7OqYqis3Z2PMluiGauVw==}
+  /openai@4.16.1(encoding@0.1.13):
+    resolution: {integrity: sha512-Gr+uqUN1ICSk6VhrX64E+zL7skjI1TgPr/XUN+ZQuNLLOvx15+XZulx/lSW4wFEAQzgjBDlMBbBeikguGIjiMg==}
     hasBin: true
     dependencies:
-      '@types/node': 18.16.0
+      '@types/node': 18.18.8
       '@types/node-fetch': 2.6.4
       abort-controller: 3.0.0
       agentkeepalive: 4.5.0
@@ -7884,6 +7900,7 @@ packages:
       form-data-encoder: 1.7.2
       formdata-node: 4.4.1
       node-fetch: 2.6.12(encoding@0.1.13)
+      web-streams-polyfill: 3.2.1
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -7891,17 +7908,6 @@ packages:
   /openapi-types@12.1.3:
     resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
     dev: false
-
-  /openapi-typescript-codegen@0.25.0:
-    resolution: {integrity: sha512-nN/TnIcGbP58qYgwEEy5FrAAjePcYgfMaCe3tsmYyTgI3v4RR9v8os14L+LEWDvV50+CmqiyTzRkKKtJeb6Ybg==}
-    hasBin: true
-    dependencies:
-      camelcase: 6.3.0
-      commander: 11.0.0
-      fs-extra: 11.1.1
-      handlebars: 4.7.8
-      json-schema-ref-parser: 9.0.9
-    dev: true
 
   /openapi-typescript@5.4.1:
     resolution: {integrity: sha512-AGB2QiZPz4rE7zIwV3dRHtoUC/CWHhUjuzGXvtmMQN2AFV8xCTLKcZUHLcdPQmt/83i22nRE7+TxXOXkK+gf4Q==}
@@ -7916,8 +7922,8 @@ packages:
       yargs-parser: 21.1.1
     dev: true
 
-  /openapi-typescript@6.3.4:
-    resolution: {integrity: sha512-icWb7WBBFr8+RxX7NZC5ez0WkTSQAScLnI33vHRLvWxkpOGKLlp94C0wcicZWzh85EoIoFjO+tujcQxo7zeZdA==}
+  /openapi-typescript@6.7.0:
+    resolution: {integrity: sha512-eoUfJwhnMEug7euZ1dATG7iRiDVsEROwdPkhLUDiaFjcClV4lzft9F0Ii0fYjULCPNIiWiFi0BqMpSxipuvAgQ==}
     hasBin: true
     dependencies:
       ansi-colors: 4.1.3
@@ -7937,13 +7943,13 @@ packages:
       oidc-token-hash: 5.0.3
     dev: false
 
-  /openpipe@0.5.1:
-    resolution: {integrity: sha512-7kXo0h3eVwHMjpcEU3Vo3ng39Y//pkBqQtfzhj+wMfa0ifSCfkPCF4tOgtCIxvc7EChqOOd8O5S62aP4Ti2Hhg==}
+  /openpipe@0.6.0:
+    resolution: {integrity: sha512-YmZb35xMnoKB0HBGqmgfUzae8NVoNcaSTxhoBYFG9x9ZAy0zY01BUzh31EU+dM2ZZqfisjwkqiIdyLkmSvwAoQ==}
     dependencies:
       encoding: 0.1.13
       form-data: 4.0.0
       node-fetch: 2.6.12(encoding@0.1.13)
-      openai: 4.8.0(encoding@0.1.13)
+      openai: 4.16.1(encoding@0.1.13)
       openai-legacy: /openai@3.3.0
     transitivePeerDependencies:
       - debug
@@ -9058,7 +9064,7 @@ packages:
     resolution: {integrity: sha512-pN/yOAvcC+5rQ5nERGuwrjLlYvLTbCibnZ1I7B1LaiAz9BRBlE9GMgE/eqV30P7aJQUf7Ddimy/RsbYO/GrVGg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/json-schema': 7.0.12
+      '@types/json-schema': 7.0.14
       ajv: 6.12.6
       ajv-keywords: 3.5.2(ajv@6.12.6)
 
@@ -9504,16 +9510,16 @@ packages:
       jest-worker: 27.5.1
       schema-utils: 3.3.0
       serialize-javascript: 6.0.1
-      terser: 5.22.0
+      terser: 5.24.0
       webpack: 5.89.0
 
-  /terser@5.22.0:
-    resolution: {integrity: sha512-hHZVLgRA2z4NWcN6aS5rQDc+7Dcy58HOf2zbYwmFcQ+ua3h6eEFf5lIDKTzbWwlazPyOZsFQO8V80/IjVNExEw==}
+  /terser@5.24.0:
+    resolution: {integrity: sha512-ZpGR4Hy3+wBEzVEnHvstMvqpD/nABNelQn/z2r0fjVWGQsN3bpOLzQlqDxmb4CDZnXq5lpjnQ+mHQLAOpfM5iw==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
       '@jridgewell/source-map': 0.3.5
-      acorn: 8.10.0
+      acorn: 8.11.2
       commander: 2.20.3
       source-map-support: 0.5.21
 
@@ -9633,7 +9639,7 @@ packages:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
 
-  /trpc-openapi@1.2.0(@trpc/server@10.26.0)(zod@3.21.4):
+  /trpc-openapi@1.2.0(@trpc/server@10.26.0)(zod@3.22.4):
     resolution: {integrity: sha512-pfYoCd/3KYXWXvUPZBKJw455OOwngKN/6SIcj7Yit19OMLJ+8yVZkEvGEeg5wUSwfsiTdRsKuvqkRPXVSwV7ew==}
     peerDependencies:
       '@trpc/server': ^10.0.0
@@ -9645,8 +9651,8 @@ packages:
       lodash.clonedeep: 4.5.0
       node-mocks-http: 1.12.2
       openapi-types: 12.1.3
-      zod: 3.21.4
-      zod-to-json-schema: 3.21.4(zod@3.21.4)
+      zod: 3.22.4
+      zod-to-json-schema: 3.21.4(zod@3.22.4)
     dev: false
 
   /ts-interface-checker@0.1.13:
@@ -9874,6 +9880,10 @@ packages:
 
   /uncrypto@0.1.3:
     resolution: {integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==}
+    dev: false
+
+  /undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
     dev: false
 
   /undici@5.23.0:
@@ -10231,6 +10241,11 @@ packages:
       glob-to-regexp: 0.4.1
       graceful-fs: 4.2.11
 
+  /web-streams-polyfill@3.2.1:
+    resolution: {integrity: sha512-e0MO3wdXWKrLbL0DgGnUV7WHVuw9OUvL4hjgnPkIeEvESk74gAITi5G606JtZPp39cd8HA9VQzCIvA49LpPN5Q==}
+    engines: {node: '>= 8'}
+    dev: false
+
   /web-streams-polyfill@4.0.0-beta.3:
     resolution: {integrity: sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==}
     engines: {node: '>= 14'}
@@ -10258,13 +10273,13 @@ packages:
       webpack-cli:
         optional: true
     dependencies:
-      '@types/eslint-scope': 3.7.6
-      '@types/estree': 1.0.3
+      '@types/eslint-scope': 3.7.7
+      '@types/estree': 1.0.5
       '@webassemblyjs/ast': 1.11.6
       '@webassemblyjs/wasm-edit': 1.11.6
       '@webassemblyjs/wasm-parser': 1.11.6
-      acorn: 8.10.0
-      acorn-import-assertions: 1.9.0(acorn@8.10.0)
+      acorn: 8.11.2
+      acorn-import-assertions: 1.9.0(acorn@8.11.2)
       browserslist: 4.22.1
       chrome-trace-event: 1.0.3
       enhanced-resolve: 5.15.0
@@ -10486,16 +10501,20 @@ packages:
       readable-stream: 3.6.2
     dev: false
 
-  /zod-to-json-schema@3.21.4(zod@3.21.4):
+  /zod-to-json-schema@3.21.4(zod@3.22.4):
     resolution: {integrity: sha512-fjUZh4nQ1s6HMccgIeE0VP4QG/YRGPmyjO9sAh890aQKPEk3nqbfUXhMFaC+Dr5KvYBm8BCyvfpZf2jY9aGSsw==}
     peerDependencies:
       zod: ^3.21.4
     dependencies:
-      zod: 3.21.4
+      zod: 3.22.4
     dev: false
 
   /zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
+    dev: false
+
+  /zod@3.22.4:
+    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
     dev: false
 
   /zustand@4.3.9(immer@10.0.2)(react@18.2.0):
@@ -10514,3 +10533,18 @@ packages:
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
+
+  github.com/OpenPipe/openapi-typescript-codegen/c5797a01a35f6058a36086ee2deefac5d8717ea9:
+    resolution: {tarball: https://codeload.github.com/OpenPipe/openapi-typescript-codegen/tar.gz/c5797a01a35f6058a36086ee2deefac5d8717ea9}
+    name: openapi-typescript-codegen
+    version: 0.25.0
+    hasBin: true
+    prepare: true
+    requiresBuild: true
+    dependencies:
+      camelcase: 6.3.0
+      commander: 11.0.0
+      fs-extra: 11.1.1
+      handlebars: 4.7.8
+      json-schema-ref-parser: 9.0.9
+    dev: true

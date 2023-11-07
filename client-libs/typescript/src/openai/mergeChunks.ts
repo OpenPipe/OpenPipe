@@ -16,7 +16,7 @@ export default function mergeChunks(
   chunk: ChatCompletionChunk,
 ): ChatCompletion {
   if (base === null) {
-    return mergeChunks({ ...chunk, choices: [] }, chunk);
+    return mergeChunks({ ...chunk, object: "chat.completion", choices: [] }, chunk);
   }
 
   const choices = [...base.choices];

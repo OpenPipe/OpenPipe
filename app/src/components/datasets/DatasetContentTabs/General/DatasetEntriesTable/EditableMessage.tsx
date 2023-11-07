@@ -21,7 +21,7 @@ import InputDropdown from "~/components/InputDropdown";
 import { parseableToFunctionCall } from "~/utils/utils";
 import FunctionCallEditor from "./FunctionCallEditor";
 
-const MESSAGE_ROLE_OPTIONS = ["system", "user", "assistant", "function"] as const;
+const MESSAGE_ROLE_OPTIONS = ["system", "user", "assistant", "tool", "function"] as const;
 const OUTPUT_OPTIONS = ["plaintext", "func_call"] as const;
 
 const EditableMessage = ({
@@ -37,7 +37,10 @@ const EditableMessage = ({
   isOutput?: boolean;
   ruleMatches?: RouterOutputs["datasetEntries"]["get"]["matchedRules"];
 }) => {
-  const { role = "assistant", content = "", function_call } = message || {};
+  const { role = "assistant", content = "" } = message || {};
+
+  const function_call = message && "function_call" in message ? message.function_call : undefined;
+  const tool_calls = message && "tool_calls" in message ? message.tool_calls : undefined;
 
   const currentOutputOption: (typeof OUTPUT_OPTIONS)[number] = function_call
     ? "func_call"
@@ -46,13 +49,16 @@ const EditableMessage = ({
   const [showDiff, setShowDiff] = useState(false);
 
   const stringifiedMessageContent = useMemo(() => {
-    if (!message) return "";
-    if (message.function_call) {
-      return JSON.stringify(message.function_call, null, 2);
+    if (tool_calls) {
+      return JSON.stringify(tool_calls, null, 2);
+    } else if (function_call) {
+      return JSON.stringify(function_call, null, 2);
+    } else if (Array.isArray(content)) {
+      return content.join("\n");
     } else {
-      return message.content || "";
+      return content || "";
     }
-  }, [message]);
+  }, [content, function_call, tool_calls]);
 
   const [prunedMessageContent, savedTokens] = useMemo(() => {
     if (!stringifiedMessageContent) return ["", 0];
@@ -70,6 +76,8 @@ const EditableMessage = ({
     return [messageContent, savedTokens];
   }, [stringifiedMessageContent, ruleMatches]);
 
+  if (!message) return null;
+
   return (
     <VStack w="full">
       <HStack w="full" justifyContent="space-between">
@@ -79,11 +87,19 @@ const EditableMessage = ({
               options={MESSAGE_ROLE_OPTIONS}
               selectedOption={role}
               onSelect={(option) => {
-                const updatedMessage = { role: option, content };
-                if (role === "assistant" && currentOutputOption === "func_call") {
-                  updatedMessage.content = JSON.stringify(function_call, null, 2);
+                switch (option) {
+                  case "system":
+                  case "user":
+                  case "assistant":
+                    onEdit({ role: option, content: stringifiedMessageContent });
+                    break;
+                  case "function":
+                    onEdit({ role: option, name: "", content: stringifiedMessageContent });
+                    break;
+                  case "tool":
+                    onEdit({ role: option, tool_call_id: "", content: stringifiedMessageContent });
+                    break;
                 }
-                onEdit(updatedMessage);
               }}
               inputGroupProps={{ w: "32", bgColor: "white" }}
             />
@@ -102,8 +118,8 @@ const EditableMessage = ({
                   updatedMessage.content = JSON.stringify(function_call, null, 2);
                 } else if (option === "func_call") {
                   updatedMessage.function_call =
-                    content && parseableToFunctionCall(content)
-                      ? JSON.parse(content)
+                    stringifiedMessageContent && parseableToFunctionCall(stringifiedMessageContent)
+                      ? JSON.parse(stringifiedMessageContent)
                       : { name: "", arguments: "{}" };
                 }
                 onEdit(updatedMessage);
@@ -132,12 +148,14 @@ const EditableMessage = ({
       {function_call ? (
         <FunctionCallEditor
           function_call={function_call}
-          onEdit={(function_call) => onEdit({ role, function_call, content: null })}
+          onEdit={(function_call) => onEdit({ role: "assistant", function_call, content: null })}
         />
       ) : (
         <AutoResizeTextArea
-          value={content || JSON.stringify(function_call, null, 2)}
-          onChange={(e) => onEdit({ role, content: e.target.value })}
+          value={stringifiedMessageContent}
+          onChange={(e) =>
+            onEdit({ ...message, content: e.target.value } as ChatCompletionMessageParam)
+          }
           bgColor="white"
         />
       )}

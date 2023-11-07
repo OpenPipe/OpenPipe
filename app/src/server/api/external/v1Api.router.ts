@@ -1,9 +1,6 @@
 import { UsageType, type Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import {
-  type ChatCompletion,
-  type ChatCompletionCreateParams,
-} from "openai/resources/chat/completions";
+import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { type JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -115,7 +112,7 @@ export const v1ApiRouter = createOpenApiRouter({
         function_call: functionCallInput,
         functions: functionsInput,
         n: z.number().nullable().optional(),
-        max_tokens: z.number().optional(),
+        max_tokens: z.number().nullable().optional(),
         temperature: z.number().nullable().optional(),
         stream: z.boolean().nullable().optional(),
       }),

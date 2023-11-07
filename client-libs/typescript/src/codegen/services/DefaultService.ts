@@ -4,11 +4,8 @@
 /* eslint-disable */
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
-
 export class DefaultService {
-
     constructor(public readonly httpRequest: BaseHttpRequest) {}
-
     /**
      * @deprecated
      * DEPRECATED: we no longer support prompt caching.
@@ -44,7 +41,6 @@ export class DefaultService {
             mediaType: 'application/json',
         });
     }
-
     /**
      * Create completion for a prompt
      * @param requestBody
@@ -58,14 +54,45 @@ export class DefaultService {
              */
             reqPayload?: {
                 model: string;
-                messages: Array<{
-                    role: ('user' | 'assistant' | 'system' | 'function');
+                messages: Array<({
+                    role: 'system';
+                    content: (string | 'null' | null);
+                } | {
+                    role: 'user';
+                    content: (string | Array<({
+                        type: 'image_url';
+                        image_url: {
+                            detail?: ('auto' | 'low' | 'high');
+                            url?: string;
+                        };
+                    } | {
+                        type: 'text';
+                        text: string;
+                    })> | 'null' | null);
+                } | {
+                    role: 'assistant';
                     content: (string | 'null' | null);
                     function_call?: {
                         name: string;
                         arguments: string;
                     };
-                }>;
+                    tool_calls?: Array<{
+                        id: string;
+                        function: {
+                            name: string;
+                            arguments: string;
+                        };
+                        type: 'function';
+                    }>;
+                } | {
+                    role: 'tool';
+                    content: (string | 'null' | null);
+                    tool_call_id: string;
+                } | {
+                    role: 'function';
+                    name: string;
+                    content: (string | 'null' | null);
+                })>;
                 function_call?: ('none' | 'auto' | {
                     name: string;
                 });
@@ -75,19 +102,50 @@ export class DefaultService {
                     description?: string;
                 }>;
                 'n'?: number;
-                max_tokens?: number;
+                max_tokens?: number | null;
                 temperature?: number;
                 stream?: boolean;
             };
             model?: string;
-            messages?: Array<{
-                role: ('user' | 'assistant' | 'system' | 'function');
+            messages?: Array<({
+                role: 'system';
+                content: (string | 'null' | null);
+            } | {
+                role: 'user';
+                content: (string | Array<({
+                    type: 'image_url';
+                    image_url: {
+                        detail?: ('auto' | 'low' | 'high');
+                        url?: string;
+                    };
+                } | {
+                    type: 'text';
+                    text: string;
+                })> | 'null' | null);
+            } | {
+                role: 'assistant';
                 content: (string | 'null' | null);
                 function_call?: {
                     name: string;
                     arguments: string;
                 };
-            }>;
+                tool_calls?: Array<{
+                    id: string;
+                    function: {
+                        name: string;
+                        arguments: string;
+                    };
+                    type: 'function';
+                }>;
+            } | {
+                role: 'tool';
+                content: (string | 'null' | null);
+                tool_call_id: string;
+            } | {
+                role: 'function';
+                name: string;
+                content: (string | 'null' | null);
+            })>;
             function_call?: ('none' | 'auto' | {
                 name: string;
             });
@@ -97,25 +155,33 @@ export class DefaultService {
                 description?: string;
             }>;
             'n'?: number | null;
-            max_tokens?: number;
+            max_tokens?: number | null;
             temperature?: number | null;
             stream?: boolean | null;
         },
     ): CancelablePromise<{
         id: string;
-        object: string;
+        object: 'chat.completion';
         created: number;
         model: string;
         choices: Array<{
-            finish_reason: ('stop' | 'length' | 'function_call');
+            finish_reason: ('length' | 'function_call' | 'tool_calls' | 'stop' | 'content_filter');
             index: number;
             message: {
-                role: ('user' | 'assistant' | 'system' | 'function');
+                role: 'assistant';
                 content: (string | 'null' | null);
                 function_call?: {
                     name: string;
                     arguments: string;
                 };
+                tool_calls?: Array<{
+                    id: string;
+                    function: {
+                        name: string;
+                        arguments: string;
+                    };
+                    type: 'function';
+                }>;
             };
         }>;
         usage?: {
@@ -131,7 +197,6 @@ export class DefaultService {
             mediaType: 'application/json',
         });
     }
-
     /**
      * Report an API call
      * @param requestBody
@@ -179,7 +244,6 @@ export class DefaultService {
             mediaType: 'application/json',
         });
     }
-
     /**
      * Get the latest logged call (only for local testing)
      * @returns any Successful response
@@ -202,5 +266,4 @@ export class DefaultService {
             url: '/local-testing-only-get-latest-logged-call',
         });
     }
-
 }
