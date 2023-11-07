@@ -55,7 +55,7 @@ async function getModalCompletion(
   const resp = await runInference({
     model: fineTune.huggingFaceModelId,
     prompt: templatedPrompt,
-    max_tokens: input.max_tokens,
+    max_tokens: input.max_tokens ?? undefined,
     temperature: input.temperature ?? 0,
     n: input.n ?? 1,
   });
