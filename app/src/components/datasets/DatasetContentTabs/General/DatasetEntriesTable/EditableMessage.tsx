@@ -89,11 +89,7 @@ const EditableMessage = ({
               onSelect={(option) => {
                 switch (option) {
                   case "system":
-                    onEdit({ role: option, content: stringifiedMessageContent });
-                    break;
                   case "user":
-                    onEdit({ role: option, content: stringifiedMessageContent });
-                    break;
                   case "assistant":
                     onEdit({ role: option, content: stringifiedMessageContent });
                     break;
