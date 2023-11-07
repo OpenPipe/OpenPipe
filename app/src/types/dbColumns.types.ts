@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  chatCompletionMessage,
   chatCompletionInput,
   chatCompletionOutput,
   chatMessage,
@@ -13,7 +14,7 @@ export const datasetEntrySchema = z
     messages: z.array(chatMessage),
     function_call: functionCallInput.nullable(),
     functions: functionsInput.nullable(),
-    output: chatMessage.optional().nullable(),
+    output: chatCompletionMessage.optional().nullable(),
   })
   .passthrough();
 
@@ -37,7 +38,7 @@ export const typedLoggedCallModelResponse = <T extends Pick<LoggedCallModelRespo
 
 const fineTuneTestingEntrySchema = z
   .object({
-    output: chatMessage.passthrough().optional(),
+    output: chatCompletionMessage,
   })
   .passthrough();
 

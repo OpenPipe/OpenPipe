@@ -1,9 +1,6 @@
 import { UsageType, type Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import {
-  type ChatCompletion,
-  type ChatCompletionCreateParams,
-} from "openai/resources/chat/completions";
+import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { type JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";

@@ -2,7 +2,12 @@ import { validate } from "jsonschema";
 import { isObject } from "lodash-es";
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
 import { z } from "zod";
-import { chatMessage, functionCallInput, functionsInput } from "~/types/shared.types";
+import {
+  chatCompletionMessage,
+  chatMessage,
+  functionCallInput,
+  functionsInput,
+} from "~/types/shared.types";
 
 export const rowSchema = z.object({
   input: z.object({
@@ -10,7 +15,7 @@ export const rowSchema = z.object({
     function_call: functionCallInput,
     functions: functionsInput,
   }),
-  output: chatMessage,
+  output: chatCompletionMessage,
   split: z.enum(["TRAIN", "TEST"]).optional(),
 });
 
@@ -60,9 +65,9 @@ export const validateRowToImport = (row: unknown): ParseError | RowToImport => {
 
   const messages = parsedRow.data.input.messages;
   //   Validate input
-  if (messages.some((x) => !x.content && !x.function_call))
+  if (messages.some((x) => !x.content && !("function_call" in x && x.function_call)))
     return { error: "input contains item with no content or function_call" };
-  if (messages.some((x) => x.function_call && !x.function_call.arguments))
+  if (messages.some((x) => "function_call" in x && x.function_call && !x.function_call.arguments))
     return { error: "input contains item with function_call but no arguments" };
 
   //   Validate output

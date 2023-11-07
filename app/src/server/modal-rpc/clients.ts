@@ -26,7 +26,7 @@ type ModalInput = {
   model: string;
   prompt: string;
   n?: number;
-  max_tokens?: number;
+  max_tokens?: number | null;
   temperature?: number;
 };
 

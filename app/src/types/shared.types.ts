@@ -1,8 +1,8 @@
 import { pick } from "lodash-es";
-import type {
-  ChatCompletion,
-  ChatCompletionCreateParams,
-  ChatCompletionMessage,
+import {
+  type ChatCompletion,
+  type ChatCompletionCreateParams,
+  type ChatCompletionMessageParam,
 } from "openai/resources/chat";
 import { z } from "zod";
 
@@ -21,13 +21,6 @@ export const validatedChatInput = <
     "messages" | "functions" | "function_call"
   >;
 };
-
-const chatMessageRole = z.union([
-  z.literal("user"),
-  z.literal("assistant"),
-  z.literal("system"),
-  z.literal("function"),
-]);
 
 export const functionCallOutput = z
   .object({
@@ -50,11 +43,55 @@ export const functionsInput = z
   )
   .optional();
 
-export const chatMessage = z.object({
-  role: chatMessageRole,
+const chatCompletionSystemMessageParamSchema = z.object({
+  role: z.literal("system"),
+  content: z.union([z.string(), z.null()]),
+});
+
+const chatCompletionUserMessageParamSchema = z.object({
+  role: z.literal("user"),
+  content: z.union([z.string(), z.null()]),
+});
+
+const chatCompletionAssistantMessageParamSchema = z.object({
+  role: z.literal("assistant"),
   content: z.union([z.string(), z.null()]),
   function_call: functionCallOutput.optional(),
-}) satisfies z.ZodType<ChatCompletionMessage, any, any>;
+  tool_calls: z
+    .array(
+      z.object({
+        id: z.string(),
+        function: z.object({
+          name: z.string(),
+          arguments: z.string(),
+        }),
+        type: z.literal("function"),
+      }),
+    )
+    .optional(),
+});
+
+const chatCompletionToolMessageParamSchema = z.object({
+  role: z.literal("tool"),
+  content: z.union([z.string(), z.null()]),
+  tool_call_id: z.string(),
+});
+
+const chatCompletionFunctionMessageParamSchema = z.object({
+  role: z.literal("function"),
+  name: z.string(),
+  content: z.union([z.string(), z.null()]),
+});
+
+export const chatMessage = z.union([
+  chatCompletionSystemMessageParamSchema,
+  chatCompletionUserMessageParamSchema,
+  chatCompletionAssistantMessageParamSchema,
+  chatCompletionToolMessageParamSchema,
+  chatCompletionFunctionMessageParamSchema,
+]) satisfies z.ZodType<ChatCompletionMessageParam, any, any>;
+
+export const chatCompletionMessage = chatCompletionAssistantMessageParamSchema;
 
 export const chatCompletionInput = z.object({
   model: z.string(),
@@ -69,14 +106,20 @@ export const chatCompletionInput = z.object({
 
 export const chatCompletionOutput = z.object({
   id: z.string(),
-  object: z.string(),
+  object: z.literal("chat.completion"),
   created: z.number(),
   model: z.string(),
   choices: z.array(
     z.object({
-      finish_reason: z.union([z.literal("stop"), z.literal("length"), z.literal("function_call")]),
+      finish_reason: z.union([
+        z.literal("length"),
+        z.literal("function_call"),
+        z.literal("tool_calls"),
+        z.literal("stop"),
+        z.literal("content_filter"),
+      ]),
       index: z.number(),
-      message: chatMessage,
+      message: chatCompletionMessage,
     }),
   ),
   usage: z

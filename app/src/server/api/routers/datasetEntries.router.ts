@@ -19,7 +19,7 @@ import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEnt
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
-import { SortOrder, chatMessage, filtersSchema } from "~/types/shared.types";
+import { SortOrder, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import {
   COMPARISON_MODEL_NAMES,
@@ -410,7 +410,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (input.updates.output && input.updates.output !== "null") {
         newOutput = JSON.parse(input.updates.output);
       }
-      const validatedOutput = chatMessage.parse(newOutput);
+      const validatedOutput = chatCompletionMessage.parse(newOutput);
 
       const inputFields = typedDatasetEntry({
         messages: parsedMessages,
