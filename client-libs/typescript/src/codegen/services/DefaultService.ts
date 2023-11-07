@@ -4,11 +4,8 @@
 /* eslint-disable */
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
-
 export class DefaultService {
-
     constructor(public readonly httpRequest: BaseHttpRequest) {}
-
     /**
      * @deprecated
      * DEPRECATED: we no longer support prompt caching.
@@ -44,7 +41,6 @@ export class DefaultService {
             mediaType: 'application/json',
         });
     }
-
     /**
      * Create completion for a prompt
      * @param requestBody
@@ -63,7 +59,16 @@ export class DefaultService {
                     content: (string | 'null' | null);
                 } | {
                     role: 'user';
-                    content: (string | 'null' | null);
+                    content: (string | Array<({
+                        type: 'image_url';
+                        image_url: {
+                            detail?: ('auto' | 'low' | 'high');
+                            url?: string;
+                        };
+                    } | {
+                        type: 'text';
+                        text: string;
+                    })> | 'null' | null);
                 } | {
                     role: 'assistant';
                     content: (string | 'null' | null);
@@ -97,7 +102,7 @@ export class DefaultService {
                     description?: string;
                 }>;
                 'n'?: number;
-                max_tokens?: number;
+                max_tokens?: number | null;
                 temperature?: number;
                 stream?: boolean;
             };
@@ -107,7 +112,16 @@ export class DefaultService {
                 content: (string | 'null' | null);
             } | {
                 role: 'user';
-                content: (string | 'null' | null);
+                content: (string | Array<({
+                    type: 'image_url';
+                    image_url: {
+                        detail?: ('auto' | 'low' | 'high');
+                        url?: string;
+                    };
+                } | {
+                    type: 'text';
+                    text: string;
+                })> | 'null' | null);
             } | {
                 role: 'assistant';
                 content: (string | 'null' | null);
@@ -141,7 +155,7 @@ export class DefaultService {
                 description?: string;
             }>;
             'n'?: number | null;
-            max_tokens?: number;
+            max_tokens?: number | null;
             temperature?: number | null;
             stream?: boolean | null;
         },
@@ -183,7 +197,6 @@ export class DefaultService {
             mediaType: 'application/json',
         });
     }
-
     /**
      * Report an API call
      * @param requestBody
@@ -231,7 +244,6 @@ export class DefaultService {
             mediaType: 'application/json',
         });
     }
-
     /**
      * Get the latest logged call (only for local testing)
      * @returns any Successful response
@@ -254,5 +266,4 @@ export class DefaultService {
             url: '/local-testing-only-get-latest-logged-call',
         });
     }
-
 }

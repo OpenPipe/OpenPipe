@@ -22,7 +22,7 @@ class CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemTyp
     Attributes:
         detail (Union[CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0,
             CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1,
-            CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2]):
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2, Unset]):
         url (Union[Unset, str]):
     """
 
@@ -30,33 +30,40 @@ class CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemTyp
         CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0,
         CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1,
         CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2,
-    ]
+        Unset,
+    ] = UNSET
     url: Union[Unset, str] = UNSET
 
     def to_dict(self) -> Dict[str, Any]:
-        detail: str
+        detail: Union[Unset, str]
+        if isinstance(self.detail, Unset):
+            detail = UNSET
 
-        if isinstance(
+        elif isinstance(
             self.detail, CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0
         ):
-            detail = self.detail.value
+            detail = UNSET
+            if not isinstance(self.detail, Unset):
+                detail = self.detail.value
 
         elif isinstance(
             self.detail, CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1
         ):
-            detail = self.detail.value
+            detail = UNSET
+            if not isinstance(self.detail, Unset):
+                detail = self.detail.value
 
         else:
-            detail = self.detail.value
+            detail = UNSET
+            if not isinstance(self.detail, Unset):
+                detail = self.detail.value
 
         url = self.url
 
         field_dict: Dict[str, Any] = {}
-        field_dict.update(
-            {
-                "detail": detail,
-            }
-        )
+        field_dict.update({})
+        if detail is not UNSET:
+            field_dict["detail"] = detail
         if url is not UNSET:
             field_dict["url"] = url
 
@@ -72,15 +79,26 @@ class CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemTyp
             CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0,
             CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1,
             CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2,
+            Unset,
         ]:
+            if isinstance(data, Unset):
+                return data
             try:
                 if not isinstance(data, str):
                     raise TypeError()
-                detail_type_0 = (
-                    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0(
-                        data
+                _detail_type_0 = data
+                detail_type_0: Union[
+                    Unset,
+                    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0,
+                ]
+                if isinstance(_detail_type_0, Unset):
+                    detail_type_0 = UNSET
+                else:
+                    detail_type_0 = (
+                        CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0(
+                            _detail_type_0
+                        )
                     )
-                )
 
                 return detail_type_0
             except:  # noqa: E722
@@ -88,24 +106,41 @@ class CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemTyp
             try:
                 if not isinstance(data, str):
                     raise TypeError()
-                detail_type_1 = (
-                    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1(
-                        data
+                _detail_type_1 = data
+                detail_type_1: Union[
+                    Unset,
+                    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1,
+                ]
+                if isinstance(_detail_type_1, Unset):
+                    detail_type_1 = UNSET
+                else:
+                    detail_type_1 = (
+                        CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1(
+                            _detail_type_1
+                        )
                     )
-                )
 
                 return detail_type_1
             except:  # noqa: E722
                 pass
             if not isinstance(data, str):
                 raise TypeError()
-            detail_type_2 = (
-                CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2(data)
-            )
+            _detail_type_2 = data
+            detail_type_2: Union[
+                Unset, CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2
+            ]
+            if isinstance(_detail_type_2, Unset):
+                detail_type_2 = UNSET
+            else:
+                detail_type_2 = (
+                    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2(
+                        _detail_type_2
+                    )
+                )
 
             return detail_type_2
 
-        detail = _parse_detail(d.pop("detail"))
+        detail = _parse_detail(d.pop("detail", UNSET))
 
         url = d.pop("url", UNSET)
 

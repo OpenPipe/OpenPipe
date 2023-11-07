@@ -187,9 +187,6 @@
                                                     "type": "string"
                                                   }
                                                 },
-                                                "required": [
-                                                  "detail"
-                                                ],
                                                 "additionalProperties": false
                                               }
                                             },
@@ -444,7 +441,8 @@
                         "type": "number"
                       },
                       "max_tokens": {
-                        "type": "number"
+                        "type": "number",
+                        "nullable": true
                       },
                       "temperature": {
                         "type": "number"
@@ -552,9 +550,6 @@
                                                 "type": "string"
                                               }
                                             },
-                                            "required": [
-                                              "detail"
-                                            ],
                                             "additionalProperties": false
                                           }
                                         },
@@ -810,7 +805,8 @@
                     "nullable": true
                   },
                   "max_tokens": {
-                    "type": "number"
+                    "type": "number",
+                    "nullable": true
                   },
                   "temperature": {
                     "type": "number",

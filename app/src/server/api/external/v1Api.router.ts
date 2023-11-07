@@ -112,7 +112,7 @@ export const v1ApiRouter = createOpenApiRouter({
         function_call: functionCallInput,
         functions: functionsInput,
         n: z.number().nullable().optional(),
-        max_tokens: z.number().optional(),
+        max_tokens: z.number().nullable().optional(),
         temperature: z.number().nullable().optional(),
         stream: z.boolean().nullable().optional(),
       }),

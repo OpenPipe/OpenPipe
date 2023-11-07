@@ -48,27 +48,23 @@ const chatCompletionSystemMessageParamSchema = z.object({
   content: z.union([z.string(), z.null()]),
 });
 
+const chatCompletionContentPartSchema = z.union([
+  z.object({
+    type: z.literal("image_url"),
+    image_url: z.object({
+      detail: z.union([z.literal("auto"), z.literal("low"), z.literal("high")]).optional(),
+      url: z.string().optional(),
+    }),
+  }),
+  z.object({
+    type: z.literal("text"),
+    text: z.string(),
+  }),
+]);
+
 const chatCompletionUserMessageParamSchema = z.object({
   role: z.literal("user"),
-  content: z.union([
-    z.string(),
-    z.array(
-      z.union([
-        z.object({
-          type: z.literal("image_url"),
-          image_url: z.object({
-            detail: z.union([z.literal("auto"), z.literal("low"), z.literal("high")]),
-            url: z.string().optional(),
-          }),
-        }),
-        z.object({
-          type: z.literal("text"),
-          text: z.string(),
-        }),
-      ]),
-    ),
-    z.null(),
-  ]),
+  content: z.union([z.string(), z.array(chatCompletionContentPartSchema), z.null()]),
 });
 
 const chatCompletionAssistantMessageParamSchema = z.object({
@@ -117,7 +113,7 @@ export const chatCompletionInput = z.object({
   function_call: functionCallInput,
   functions: functionsInput,
   n: z.number().optional(),
-  max_tokens: z.number().optional(),
+  max_tokens: z.number().nullable().optional(),
   temperature: z.number().optional(),
   stream: z.boolean().optional(),
 }) satisfies z.ZodType<ChatCompletionCreateParams, any, any>;
