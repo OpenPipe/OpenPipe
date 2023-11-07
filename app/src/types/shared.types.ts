@@ -1,8 +1,8 @@
 import { pick } from "lodash-es";
-import {
-  type ChatCompletion,
-  type ChatCompletionCreateParams,
-  type ChatCompletionMessageParam,
+import type {
+  ChatCompletion,
+  ChatCompletionCreateParams,
+  ChatCompletionMessageParam,
 } from "openai/resources/chat";
 import { z } from "zod";
 

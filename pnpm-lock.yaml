@@ -388,7 +388,7 @@ importers:
         specifier: ^0.40.0
         version: 0.40.0
       openapi-typescript:
-        specifier: ^6.7.0
+        specifier: ^6.3.4
         version: 6.7.0
       openapi-typescript-codegen:
         specifier: github:OpenPipe/openapi-typescript-codegen.git#feat/support-nested-any-of
