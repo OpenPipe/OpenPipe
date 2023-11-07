@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class CreateChatCompletionJsonBodyMessagesItemRoleType2(str, Enum):
+class CreateChatCompletionJsonBodyReqPayloadMessagesItemType0Role(str, Enum):
     SYSTEM = "system"
 
     def __str__(self) -> str:

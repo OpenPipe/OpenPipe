@@ -17,8 +17,20 @@ if TYPE_CHECKING:
     from ..models.create_chat_completion_json_body_req_payload_functions_item import (
         CreateChatCompletionJsonBodyReqPayloadFunctionsItem,
     )
-    from ..models.create_chat_completion_json_body_req_payload_messages_item import (
-        CreateChatCompletionJsonBodyReqPayloadMessagesItem,
+    from ..models.create_chat_completion_json_body_req_payload_messages_item_type_0 import (
+        CreateChatCompletionJsonBodyReqPayloadMessagesItemType0,
+    )
+    from ..models.create_chat_completion_json_body_req_payload_messages_item_type_1 import (
+        CreateChatCompletionJsonBodyReqPayloadMessagesItemType1,
+    )
+    from ..models.create_chat_completion_json_body_req_payload_messages_item_type_2 import (
+        CreateChatCompletionJsonBodyReqPayloadMessagesItemType2,
+    )
+    from ..models.create_chat_completion_json_body_req_payload_messages_item_type_3 import (
+        CreateChatCompletionJsonBodyReqPayloadMessagesItemType3,
+    )
+    from ..models.create_chat_completion_json_body_req_payload_messages_item_type_4 import (
+        CreateChatCompletionJsonBodyReqPayloadMessagesItemType4,
     )
 
 
@@ -31,7 +43,11 @@ class CreateChatCompletionJsonBodyReqPayload:
 
     Attributes:
         model (str):
-        messages (List['CreateChatCompletionJsonBodyReqPayloadMessagesItem']):
+        messages (List[Union['CreateChatCompletionJsonBodyReqPayloadMessagesItemType0',
+            'CreateChatCompletionJsonBodyReqPayloadMessagesItemType1',
+            'CreateChatCompletionJsonBodyReqPayloadMessagesItemType2',
+            'CreateChatCompletionJsonBodyReqPayloadMessagesItemType3',
+            'CreateChatCompletionJsonBodyReqPayloadMessagesItemType4']]):
         function_call (Union['CreateChatCompletionJsonBodyReqPayloadFunctionCallType2',
             CreateChatCompletionJsonBodyReqPayloadFunctionCallType0,
             CreateChatCompletionJsonBodyReqPayloadFunctionCallType1, Unset]):
@@ -43,7 +59,15 @@ class CreateChatCompletionJsonBodyReqPayload:
     """
 
     model: str
-    messages: List["CreateChatCompletionJsonBodyReqPayloadMessagesItem"]
+    messages: List[
+        Union[
+            "CreateChatCompletionJsonBodyReqPayloadMessagesItemType0",
+            "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1",
+            "CreateChatCompletionJsonBodyReqPayloadMessagesItemType2",
+            "CreateChatCompletionJsonBodyReqPayloadMessagesItemType3",
+            "CreateChatCompletionJsonBodyReqPayloadMessagesItemType4",
+        ]
+    ]
     function_call: Union[
         "CreateChatCompletionJsonBodyReqPayloadFunctionCallType2",
         CreateChatCompletionJsonBodyReqPayloadFunctionCallType0,
@@ -57,10 +81,38 @@ class CreateChatCompletionJsonBodyReqPayload:
     stream: Union[Unset, bool] = UNSET
 
     def to_dict(self) -> Dict[str, Any]:
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_0 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType0,
+        )
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_1 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType1,
+        )
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_2 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType2,
+        )
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_3 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType3,
+        )
+
         model = self.model
         messages = []
         for messages_item_data in self.messages:
-            messages_item = messages_item_data.to_dict()
+            messages_item: Dict[str, Any]
+
+            if isinstance(messages_item_data, CreateChatCompletionJsonBodyReqPayloadMessagesItemType0):
+                messages_item = messages_item_data.to_dict()
+
+            elif isinstance(messages_item_data, CreateChatCompletionJsonBodyReqPayloadMessagesItemType1):
+                messages_item = messages_item_data.to_dict()
+
+            elif isinstance(messages_item_data, CreateChatCompletionJsonBodyReqPayloadMessagesItemType2):
+                messages_item = messages_item_data.to_dict()
+
+            elif isinstance(messages_item_data, CreateChatCompletionJsonBodyReqPayloadMessagesItemType3):
+                messages_item = messages_item_data.to_dict()
+
+            else:
+                messages_item = messages_item_data.to_dict()
 
             messages.append(messages_item)
 
@@ -126,8 +178,20 @@ class CreateChatCompletionJsonBodyReqPayload:
         from ..models.create_chat_completion_json_body_req_payload_functions_item import (
             CreateChatCompletionJsonBodyReqPayloadFunctionsItem,
         )
-        from ..models.create_chat_completion_json_body_req_payload_messages_item import (
-            CreateChatCompletionJsonBodyReqPayloadMessagesItem,
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_0 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType0,
+        )
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_1 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType1,
+        )
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_2 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType2,
+        )
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_3 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType3,
+        )
+        from ..models.create_chat_completion_json_body_req_payload_messages_item_type_4 import (
+            CreateChatCompletionJsonBodyReqPayloadMessagesItemType4,
         )
 
         d = src_dict.copy()
@@ -136,7 +200,55 @@ class CreateChatCompletionJsonBodyReqPayload:
         messages = []
         _messages = d.pop("messages")
         for messages_item_data in _messages:
-            messages_item = CreateChatCompletionJsonBodyReqPayloadMessagesItem.from_dict(messages_item_data)
+
+            def _parse_messages_item(
+                data: object,
+            ) -> Union[
+                "CreateChatCompletionJsonBodyReqPayloadMessagesItemType0",
+                "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1",
+                "CreateChatCompletionJsonBodyReqPayloadMessagesItemType2",
+                "CreateChatCompletionJsonBodyReqPayloadMessagesItemType3",
+                "CreateChatCompletionJsonBodyReqPayloadMessagesItemType4",
+            ]:
+                try:
+                    if not isinstance(data, dict):
+                        raise TypeError()
+                    messages_item_type_0 = CreateChatCompletionJsonBodyReqPayloadMessagesItemType0.from_dict(data)
+
+                    return messages_item_type_0
+                except:  # noqa: E722
+                    pass
+                try:
+                    if not isinstance(data, dict):
+                        raise TypeError()
+                    messages_item_type_1 = CreateChatCompletionJsonBodyReqPayloadMessagesItemType1.from_dict(data)
+
+                    return messages_item_type_1
+                except:  # noqa: E722
+                    pass
+                try:
+                    if not isinstance(data, dict):
+                        raise TypeError()
+                    messages_item_type_2 = CreateChatCompletionJsonBodyReqPayloadMessagesItemType2.from_dict(data)
+
+                    return messages_item_type_2
+                except:  # noqa: E722
+                    pass
+                try:
+                    if not isinstance(data, dict):
+                        raise TypeError()
+                    messages_item_type_3 = CreateChatCompletionJsonBodyReqPayloadMessagesItemType3.from_dict(data)
+
+                    return messages_item_type_3
+                except:  # noqa: E722
+                    pass
+                if not isinstance(data, dict):
+                    raise TypeError()
+                messages_item_type_4 = CreateChatCompletionJsonBodyReqPayloadMessagesItemType4.from_dict(data)
+
+                return messages_item_type_4
+
+            messages_item = _parse_messages_item(messages_item_data)
 
             messages.append(messages_item)
 

@@ -58,14 +58,36 @@ export class DefaultService {
              */
             reqPayload?: {
                 model: string;
-                messages: Array<{
-                    role: ('user' | 'assistant' | 'system' | 'function');
+                messages: Array<({
+                    role: 'system';
+                    content: (string | 'null' | null);
+                } | {
+                    role: 'user';
+                    content: (string | 'null' | null);
+                } | {
+                    role: 'assistant';
                     content: (string | 'null' | null);
                     function_call?: {
                         name: string;
                         arguments: string;
                     };
-                }>;
+                    tool_calls?: Array<{
+                        id: string;
+                        function: {
+                            name: string;
+                            arguments: string;
+                        };
+                        type: 'function';
+                    }>;
+                } | {
+                    role: 'tool';
+                    content: (string | 'null' | null);
+                    tool_call_id: string;
+                } | {
+                    role: 'function';
+                    name: string;
+                    content: (string | 'null' | null);
+                })>;
                 function_call?: ('none' | 'auto' | {
                     name: string;
                 });
@@ -80,14 +102,36 @@ export class DefaultService {
                 stream?: boolean;
             };
             model?: string;
-            messages?: Array<{
-                role: ('user' | 'assistant' | 'system' | 'function');
+            messages?: Array<({
+                role: 'system';
+                content: (string | 'null' | null);
+            } | {
+                role: 'user';
+                content: (string | 'null' | null);
+            } | {
+                role: 'assistant';
                 content: (string | 'null' | null);
                 function_call?: {
                     name: string;
                     arguments: string;
                 };
-            }>;
+                tool_calls?: Array<{
+                    id: string;
+                    function: {
+                        name: string;
+                        arguments: string;
+                    };
+                    type: 'function';
+                }>;
+            } | {
+                role: 'tool';
+                content: (string | 'null' | null);
+                tool_call_id: string;
+            } | {
+                role: 'function';
+                name: string;
+                content: (string | 'null' | null);
+            })>;
             function_call?: ('none' | 'auto' | {
                 name: string;
             });
@@ -103,19 +147,27 @@ export class DefaultService {
         },
     ): CancelablePromise<{
         id: string;
-        object: string;
+        object: 'chat.completion';
         created: number;
         model: string;
         choices: Array<{
-            finish_reason: ('stop' | 'length' | 'function_call');
+            finish_reason: ('length' | 'function_call' | 'tool_calls' | 'stop' | 'content_filter');
             index: number;
             message: {
-                role: ('user' | 'assistant' | 'system' | 'function');
+                role: 'assistant';
                 content: (string | 'null' | null);
                 function_call?: {
                     name: string;
                     arguments: string;
                 };
+                tool_calls?: Array<{
+                    id: string;
+                    function: {
+                        name: string;
+                        arguments: string;
+                    };
+                    type: 'function';
+                }>;
             };
         }>;
         usage?: {

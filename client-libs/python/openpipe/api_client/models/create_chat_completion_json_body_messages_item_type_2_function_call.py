@@ -2,11 +2,11 @@ from typing import Any, Dict, Type, TypeVar
 
 from attrs import define
 
-T = TypeVar("T", bound="CreateChatCompletionJsonBodyReqPayloadMessagesItemFunctionCall")
+T = TypeVar("T", bound="CreateChatCompletionJsonBodyMessagesItemType2FunctionCall")
 
 
 @define
-class CreateChatCompletionJsonBodyReqPayloadMessagesItemFunctionCall:
+class CreateChatCompletionJsonBodyMessagesItemType2FunctionCall:
     """
     Attributes:
         name (str):
@@ -37,9 +37,9 @@ class CreateChatCompletionJsonBodyReqPayloadMessagesItemFunctionCall:
 
         arguments = d.pop("arguments")
 
-        create_chat_completion_json_body_req_payload_messages_item_function_call = cls(
+        create_chat_completion_json_body_messages_item_type_2_function_call = cls(
             name=name,
             arguments=arguments,
         )
 
-        return create_chat_completion_json_body_req_payload_messages_item_function_call
+        return create_chat_completion_json_body_messages_item_type_2_function_call
