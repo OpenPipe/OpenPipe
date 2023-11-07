@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1(str, Enum):
+class CreateChatCompletionJsonBodyMessagesItemType1ContentType2(str, Enum):
     NULL = "null"
 
     def __str__(self) -> str:

@@ -19,8 +19,32 @@ from .create_chat_completion_json_body_messages_item_type_0_role import (
     CreateChatCompletionJsonBodyMessagesItemType0Role,
 )
 from .create_chat_completion_json_body_messages_item_type_1 import CreateChatCompletionJsonBodyMessagesItemType1
-from .create_chat_completion_json_body_messages_item_type_1_content_type_1 import (
-    CreateChatCompletionJsonBodyMessagesItemType1ContentType1,
+from .create_chat_completion_json_body_messages_item_type_1_content_type_1_item_type_0 import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0,
+)
+from .create_chat_completion_json_body_messages_item_type_1_content_type_1_item_type_0_image_url import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0ImageUrl,
+)
+from .create_chat_completion_json_body_messages_item_type_1_content_type_1_item_type_0_image_url_detail_type_0 import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0ImageUrlDetailType0,
+)
+from .create_chat_completion_json_body_messages_item_type_1_content_type_1_item_type_0_image_url_detail_type_1 import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0ImageUrlDetailType1,
+)
+from .create_chat_completion_json_body_messages_item_type_1_content_type_1_item_type_0_image_url_detail_type_2 import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0ImageUrlDetailType2,
+)
+from .create_chat_completion_json_body_messages_item_type_1_content_type_1_item_type_0_type import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0Type,
+)
+from .create_chat_completion_json_body_messages_item_type_1_content_type_1_item_type_1 import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType1,
+)
+from .create_chat_completion_json_body_messages_item_type_1_content_type_1_item_type_1_type import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType1Type,
+)
+from .create_chat_completion_json_body_messages_item_type_1_content_type_2 import (
+    CreateChatCompletionJsonBodyMessagesItemType1ContentType2,
 )
 from .create_chat_completion_json_body_messages_item_type_1_role import (
     CreateChatCompletionJsonBodyMessagesItemType1Role,
@@ -86,8 +110,32 @@ from .create_chat_completion_json_body_req_payload_messages_item_type_0_role imp
 from .create_chat_completion_json_body_req_payload_messages_item_type_1 import (
     CreateChatCompletionJsonBodyReqPayloadMessagesItemType1,
 )
-from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1 import (
-    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1,
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_0 import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0,
+)
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_0_image_url import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrl,
+)
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_0_image_url_detail_type_0 import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0,
+)
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_0_image_url_detail_type_1 import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1,
+)
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_0_image_url_detail_type_2 import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2,
+)
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_0_type import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0Type,
+)
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_1 import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType1,
+)
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_1_type import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType1Type,
+)
+from .create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_2 import (
+    CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType2,
 )
 from .create_chat_completion_json_body_req_payload_messages_item_type_1_role import (
     CreateChatCompletionJsonBodyReqPayloadMessagesItemType1Role,
@@ -196,7 +244,15 @@ __all__ = (
     "CreateChatCompletionJsonBodyMessagesItemType0ContentType1",
     "CreateChatCompletionJsonBodyMessagesItemType0Role",
     "CreateChatCompletionJsonBodyMessagesItemType1",
-    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0ImageUrl",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0ImageUrlDetailType0",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0ImageUrlDetailType1",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0ImageUrlDetailType2",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType0Type",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType1",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType1ItemType1Type",
+    "CreateChatCompletionJsonBodyMessagesItemType1ContentType2",
     "CreateChatCompletionJsonBodyMessagesItemType1Role",
     "CreateChatCompletionJsonBodyMessagesItemType2",
     "CreateChatCompletionJsonBodyMessagesItemType2ContentType1",
@@ -221,7 +277,15 @@ __all__ = (
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType0ContentType1",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType0Role",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1",
-    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrl",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0Type",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType1",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType1Type",
+    "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType2",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType1Role",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType2",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType2ContentType1",

@@ -50,7 +50,25 @@ const chatCompletionSystemMessageParamSchema = z.object({
 
 const chatCompletionUserMessageParamSchema = z.object({
   role: z.literal("user"),
-  content: z.union([z.string(), z.null()]),
+  content: z.union([
+    z.string(),
+    z.array(
+      z.union([
+        z.object({
+          type: z.literal("image_url"),
+          image_url: z.object({
+            detail: z.union([z.literal("auto"), z.literal("low"), z.literal("high")]),
+            url: z.string().optional(),
+          }),
+        }),
+        z.object({
+          type: z.literal("text"),
+          text: z.string(),
+        }),
+      ]),
+    ),
+    z.null(),
+  ]),
 });
 
 const chatCompletionAssistantMessageParamSchema = z.object({

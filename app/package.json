@@ -91,7 +91,7 @@
     "nextjs-cors": "^2.1.2",
     "nextjs-routes": "^2.0.1",
     "nodemailer": "^6.9.4",
-    "openai": "^4.16.1",
+    "openai": "^4.8.0",
     "openpipe": "0.5.1",
     "openpipe-dev": "workspace:^",
     "pg": "^8.11.2",
