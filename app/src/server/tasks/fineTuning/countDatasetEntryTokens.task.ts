@@ -11,8 +11,8 @@ export const countDatasetEntryTokens = defineTask<void>({
         select: {
           id: true,
           messages: true,
-          function_call: true,
-          functions: true,
+          tool_choice: true,
+          tools: true,
           output: true,
         },
         orderBy: { sortKey: "desc" },
