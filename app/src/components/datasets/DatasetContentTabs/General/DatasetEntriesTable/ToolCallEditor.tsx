@@ -1,20 +1,22 @@
 import { useRef, useMemo, useEffect } from "react";
 import { VStack, HStack, Text, Input, Box } from "@chakra-ui/react";
-import { type ChatCompletionMessage } from "openai/resources/chat";
+import type { ChatCompletionMessageToolCall } from "openai/resources/chat";
 
 import { useAppStore } from "~/state/store";
 import { type CreatedEditor } from "~/state/sharedVariantEditor.slice";
 
-const FunctionCallEditor = ({
-  function_call,
+const ToolCallEditor = ({
+  tool_call,
   onEdit,
 }: {
-  function_call: ChatCompletionMessage.FunctionCall;
-  onEdit: (function_call: ChatCompletionMessage.FunctionCall) => void;
+  tool_call: ChatCompletionMessageToolCall;
+  onEdit: (tool_call: ChatCompletionMessageToolCall) => void;
 }) => {
   const monaco = useAppStore.use.sharedArgumentsEditor.monaco();
   const editorRef = useRef<CreatedEditor | null>(null);
   const editorId = useMemo(() => `editor_${Math.random().toString(36).substring(7)}`, []);
+
+  const { function: function_call } = tool_call;
 
   useEffect(() => {
     if (monaco) {
@@ -66,7 +68,10 @@ const FunctionCallEditor = ({
 
       editor.onDidBlurEditorText(() => {
         attemptDocumentFormat();
-        onEdit({ name: function_call.name, arguments: editor.getValue() });
+        onEdit({
+          ...tool_call,
+          function: { name: function_call.name, arguments: editor.getValue() },
+        });
       });
 
       // Interval function to check for action availability
@@ -88,10 +93,14 @@ const FunctionCallEditor = ({
       return () => {
         contentChangeListener.dispose();
         resizeObserver.disconnect();
-        editor?.dispose();
+        try {
+          editor?.dispose();
+        } catch (error) {
+          console.error("Error disposing editor:", error);
+        }
       };
     }
-  }, [monaco, editorId, function_call.name, function_call.arguments, onEdit]);
+  }, [monaco, editorId, function_call.name, function_call.arguments, tool_call, onEdit]);
 
   return (
     <VStack w="full" alignItems="flex-start">
@@ -101,7 +110,12 @@ const FunctionCallEditor = ({
         </Text>
         <Input
           value={function_call.name}
-          onChange={(e) => onEdit({ name: e.target.value, arguments: function_call.arguments })}
+          onChange={(e) =>
+            onEdit({
+              ...tool_call,
+              function: { name: e.target.value, arguments: function_call.arguments },
+            })
+          }
           bgColor="white"
         />
       </HStack>
@@ -122,4 +136,4 @@ const FunctionCallEditor = ({
   );
 };
 
-export default FunctionCallEditor;
+export default ToolCallEditor;

@@ -86,6 +86,8 @@ export interface DatasetEntry {
   functions: Json | null;
   importId: string;
   provenance: "RELABELED_BY_HUMAN" | "RELABELED_BY_MODEL" | "REQUEST_LOG" | "UPLOAD";
+  tool_choice: Json | null;
+  tools: Json | null;
 }
 
 export interface DatasetFileUpload {

@@ -156,6 +156,8 @@ export const datasetEntriesRouter = createTRPCRouter({
                 messages: true,
                 function_call: true,
                 functions: true,
+                tool_choice: true,
+                tools: true,
                 output: true,
                 inputTokens: true,
                 outputTokens: true,
@@ -416,6 +418,8 @@ export const datasetEntriesRouter = createTRPCRouter({
         messages: parsedMessages,
         functions: prevEntry.functions ?? undefined,
         function_call: prevEntry.function_call ?? undefined,
+        tool_choice: prevEntry.tool_choice ?? undefined,
+        tools: prevEntry.tools ?? undefined,
       });
 
       const newEntry = await prisma.datasetEntry.create({
@@ -663,7 +667,6 @@ export const datasetEntriesRouter = createTRPCRouter({
         .select((eb) => [
           "de.id as id",
           "de.messages as messages",
-          "de.function_call as function_call",
           "de.output as output",
           jsonArrayFrom(
             eb

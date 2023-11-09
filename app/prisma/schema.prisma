@@ -242,6 +242,8 @@ model DatasetEntry {
     // Equivalent to the same fields in the OpenAI chat completion input
     function_call Json?
     functions     Json?
+    tool_choice   Json?
+    tools         Json?
     messages      Json  @default("[]")
 
     output       Json?

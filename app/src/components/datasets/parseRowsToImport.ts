@@ -7,6 +7,8 @@ import {
   chatMessage,
   functionCallInput,
   functionsInput,
+  toolChoiceInput,
+  toolsInput,
 } from "~/types/shared.types";
 
 export const rowSchema = z.object({
@@ -14,6 +16,8 @@ export const rowSchema = z.object({
     messages: z.array(chatMessage),
     function_call: functionCallInput,
     functions: functionsInput,
+    tool_choice: toolChoiceInput,
+    tools: toolsInput,
   }),
   output: chatCompletionMessage,
   split: z.enum(["TRAIN", "TEST"]).optional(),
@@ -65,40 +69,42 @@ export const validateRowToImport = (row: unknown): ParseError | RowToImport => {
 
   const messages = parsedRow.data.input.messages;
   //   Validate input
-  if (messages.some((x) => !x.content && !("function_call" in x && x.function_call)))
-    return { error: "input contains item with no content or function_call" };
+  if (
+    messages.some(
+      (x) =>
+        !x.content &&
+        !("function_call" in x && x.function_call) &&
+        !("tool_calls" in x && x.tool_calls),
+    )
+  )
+    return { error: "input contains item with no content, function_call, or tool_calls" };
   if (messages.some((x) => "function_call" in x && x.function_call && !x.function_call.arguments))
     return { error: "input contains item with function_call but no arguments" };
 
   //   Validate output
   const output = parsedRow.data.output;
   if (output) {
-    if (!output.content && !output.function_call)
-      return { error: "output contains no content or function_call" };
-    if (output.content && output.function_call)
-      return { error: "output contains both content and function_call" };
+    if (!output.content && !output.function_call && !output.tool_calls)
+      return { error: "output contains no content, function_call, or tool_calls" };
+    if (
+      (output.content && output.function_call) ||
+      (output.content && output.tool_calls) ||
+      (output.function_call && output.tool_calls)
+    )
+      return {
+        error: "output contains more than one of the following: content|function_call|tool_calls",
+      };
     if (output.function_call) {
-      const inputFunction = parsedRow.data.input.functions?.find(
-        (fn) => fn.name === output.function_call?.name,
-      );
-      if (!inputFunction)
-        return { error: "output contains function_call but no matching function in input" };
-      if (output.function_call.arguments) {
-        let parsedArgs;
-        try {
-          parsedArgs = JSON.parse(output.function_call.arguments);
-        } catch (e) {
-          return { error: "function_call arguments are not valid JSON" };
-        }
-
-        const validation = validate(parsedArgs, inputFunction.parameters);
-
-        if (!validation.valid)
-          return {
-            error: `function_call arguments do not match function parameters. ${validation.errors
-              .map((e) => e.stack)
-              .join(", ")}`,
-          };
+      const err = parseFunctionCall(output.function_call, parsedRow.data.input.functions);
+      if (err) return { error: `output function_call: ${err}` };
+    }
+    if (output.tool_calls) {
+      if (!Array.isArray(output.tool_calls)) return { error: "output tool_calls is not an array" };
+      for (const toolCall of output.tool_calls) {
+        if (!toolCall.function)
+          return { error: "output tool_calls contains item with no function" };
+        const err = parseFunctionCall(toolCall.function, parsedRow.data.input.functions);
+        if (err) return { error: `output tool_call function: ${err}` };
       }
     }
   }
@@ -112,4 +118,31 @@ export const isParseError = (row: ParsedRow): row is ParseError => {
 
 export const isRowToImport = (row: ParsedRow): row is RowToImport => {
   return !isParseError(row);
+};
+
+const parseFunctionCall = (
+  function_call: { name: string; arguments: string },
+  functions?: {
+    name: string;
+    parameters: Record<string, unknown>;
+    description?: string | undefined;
+  }[],
+) => {
+  const inputFunction = functions?.find((fn) => fn.name === function_call?.name);
+  if (!inputFunction) return "no matching function in input";
+  if (function_call.arguments) {
+    let parsedArgs;
+    try {
+      parsedArgs = JSON.parse(function_call.arguments);
+    } catch (e) {
+      return "function arguments are not valid JSON";
+    }
+
+    const validation = validate(parsedArgs, inputFunction.parameters);
+
+    if (!validation.valid)
+      return `function arguments do not match function parameters. ${validation.errors
+        .map((e) => e.stack)
+        .join(", ")}`;
+  }
 };
