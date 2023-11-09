@@ -19,8 +19,8 @@ export const convertFunctionCall = (
 
 export const convertFunctions = (
   functions: ChatCompletionCreateParamsBase["functions"] | null,
-): ChatCompletionCreateParamsBase["tools"] => {
-  if (!functions) return undefined;
+): ChatCompletionCreateParamsBase["tools"] | null => {
+  if (!functions) return functions;
   return functions.map((func) => ({
     type: "function",
     function: {
@@ -33,8 +33,7 @@ export const convertFunctions = (
 
 export const convertMessages = (
   messages: ChatCompletionCreateParamsBase["messages"],
-): ChatCompletionCreateParamsBase["messages"] =>
-  messages ? messages.map(convertFunctionMessageToToolCall) : [];
+): ChatCompletionCreateParamsBase["messages"] => messages.map(convertFunctionMessageToToolCall);
 
 export const convertFunctionMessageToToolCall = (
   message: ChatCompletionCreateParamsBase["messages"][0],
