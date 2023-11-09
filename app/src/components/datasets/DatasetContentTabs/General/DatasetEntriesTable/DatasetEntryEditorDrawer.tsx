@@ -29,6 +29,10 @@ import EntrySplitDropdown from "./EntrySplitDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import dayjs from "~/utils/dayjs";
 import DatasetEntryHistoryRow from "./DatasetEntryHistoryRow";
+import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
+
+const CONTAINER_ID = "drawer-container";
+const CONTENT_ID = "drawer-content";
 
 function DatasetEntryEditorDrawer({
   datasetEntryId,
@@ -102,6 +106,8 @@ function DatasetEntryEditorDrawer({
     [updateMutation, datasetEntryId, setDatasetEntryId, utils],
   );
 
+  useKeepScrollAtBottom(CONTAINER_ID, CONTENT_ID);
+
   return (
     <Drawer
       isOpen={!!datasetEntryId}
@@ -122,8 +128,8 @@ function DatasetEntryEditorDrawer({
             </HStack>
           </VStack>
         </DrawerHeader>
-        <DrawerBody h="full" pb={4} bgColor="orange.50">
-          <VStack w="full" spacing={12} pb={4}>
+        <DrawerBody h="full" pb={4} bgColor="orange.50" id={CONTAINER_ID}>
+          <VStack w="full" spacing={12} pb={4} id={CONTENT_ID}>
             {datasetEntry && (
               <VStack
                 w="full"
