@@ -126,9 +126,9 @@ const EditableMessage = ({
         </HStack>
         {!isOutput && (
           <HStack>
-            <Tooltip label="Delete" hasArrow>
+            <Tooltip label="Delete Message" hasArrow>
               <IconButton
-                aria-label="Delete"
+                aria-label="Delete Message"
                 icon={<Icon as={BsX} boxSize={6} />}
                 onClick={onDelete}
                 size="xs"

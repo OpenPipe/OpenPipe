@@ -1,5 +1,7 @@
-import { VStack } from "@chakra-ui/react";
+import { Button, HStack, VStack, Text, Icon } from "@chakra-ui/react";
 import type { ChatCompletionMessageToolCall } from "openai/resources/chat";
+import { BsPlus } from "react-icons/bs";
+
 import ToolCallEditor from "./ToolCallEditor";
 
 const ToolCallsEditor = ({
@@ -10,7 +12,7 @@ const ToolCallsEditor = ({
   onEdit: (tool_calls: ChatCompletionMessageToolCall[]) => void;
 }) => {
   return (
-    <VStack w="full" alignItems="flex-start">
+    <VStack w="full" alignItems="flex-start" spacing={4} p={4} mt={2}>
       {tool_calls.map((tool_call, i) => (
         <ToolCallEditor
           key={i}
@@ -20,8 +22,38 @@ const ToolCallsEditor = ({
             newToolCalls[i] = updatedToolCall;
             onEdit(newToolCalls);
           }}
+          onDelete={() => {
+            const newToolCalls = [...tool_calls];
+            newToolCalls.splice(i, 1);
+            onEdit(newToolCalls);
+          }}
         />
       ))}
+      <Button
+        mt={4}
+        w="full"
+        onClick={() =>
+          onEdit([
+            ...tool_calls,
+            {
+              type: "function",
+              function: {
+                name: "untitled",
+                arguments: "{}",
+              },
+              id: "",
+            },
+          ])
+        }
+        variant="outline"
+        color="gray.500"
+        _hover={{ bgColor: "orange.200" }}
+      >
+        <HStack spacing={0}>
+          <Text>Add Tool Call</Text>
+          <Icon as={BsPlus} boxSize={6} />
+        </HStack>
+      </Button>
     </VStack>
   );
 };
