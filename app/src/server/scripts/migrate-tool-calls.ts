@@ -20,14 +20,21 @@ await kysely.transaction().execute(async (trx) => {
       "de.function_call as function_call",
       "de.functions as functions",
     ])
-    .where("functions", "is not", null)
     .execute();
 
   console.log(`found ${entriesToUpdate.length} entries to update`);
 
+  let numMalformedEntries = 0;
   // Update each entry
   for (const entry of entriesToUpdate) {
-    const typedEntry = typedDatasetEntry(entry);
+    let typedEntry;
+    try {
+      typedEntry = typedDatasetEntry(entry);
+    } catch (e) {
+      console.log("entry is", entry);
+      numMalformedEntries++;
+      continue;
+    }
 
     const tool_choice = convertFunctionCall(typedEntry.function_call);
 
@@ -47,6 +54,8 @@ await kysely.transaction().execute(async (trx) => {
       .where("id", "=", entry.id)
       .execute();
   }
+
+  console.log(`found ${numMalformedEntries} malformed entries`);
 
   console.log("updated entries");
 
