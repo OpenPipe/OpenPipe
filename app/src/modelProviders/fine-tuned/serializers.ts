@@ -1,5 +1,10 @@
 import { isObject } from "lodash-es";
 import { type ChatCompletionMessage, type ChatCompletionCreateParams } from "openai/resources/chat";
+import {
+  convertFunctionCall,
+  convertFunctions,
+  convertMessages,
+} from "~/server/utils/convertFunctionCalls";
 
 const FUNCTION_CALL_TAG = "<function>";
 const FUNCTION_ARGS_TAG = "<arguments>";
@@ -29,17 +34,20 @@ export const deserializeChatOutput = (completion: string): ChatCompletionMessage
     const toolCalls = [];
 
     while (unparsedCompletion.includes(FUNCTION_CALL_TAG)) {
-      const functionName = completion.split(FUNCTION_CALL_TAG)[1]?.split(FUNCTION_ARGS_TAG)[0];
-      const functionArgs = completion.split(FUNCTION_ARGS_TAG)[1]?.split(FUNCTION_CALL_TAG)[0];
+      const functionName = unparsedCompletion
+        .split(FUNCTION_CALL_TAG)[1]
+        ?.split(FUNCTION_ARGS_TAG)[0];
+      const functionArgs = unparsedCompletion
+        .split(FUNCTION_ARGS_TAG)[1]
+        ?.split(FUNCTION_CALL_TAG)[0];
       toolCalls.push({
         id: "",
         type: "function" as const,
         function: { name: functionName as string, arguments: functionArgs ?? "" },
       });
-      unparsedCompletion = unparsedCompletion.replace(
-        FUNCTION_CALL_TAG + (functionName || "") + FUNCTION_ARGS_TAG + (functionArgs || ""),
-        "",
-      );
+      const nextFunctionCallIndex = unparsedCompletion.indexOf(FUNCTION_CALL_TAG, 1);
+      unparsedCompletion =
+        nextFunctionCallIndex === -1 ? "" : unparsedCompletion.slice(nextFunctionCallIndex);
     }
 
     message.tool_calls = toolCalls;
@@ -52,29 +60,34 @@ export const deserializeChatOutput = (completion: string): ChatCompletionMessage
 export const serializeChatInput = (
   input: {
     messages: ChatCompletionCreateParams["messages"];
+    function_call?: ChatCompletionCreateParams["function_call"] | null;
+    functions?: ChatCompletionCreateParams["functions"] | null;
     tool_choice?: ChatCompletionCreateParams["tool_choice"] | null;
     tools?: ChatCompletionCreateParams["tools"] | null;
   },
   fineTune: { pipelineVersion: number; id?: string },
 ) => {
+  const convertedMessages = convertMessages(input.messages);
   if (fineTune.pipelineVersion === 1) {
-    return JSON.stringify(input.messages);
+    return JSON.stringify(convertedMessages);
   } else if (fineTune.pipelineVersion === 2) {
     let functions: string[] | null = null;
-    if (input.tool_choice === "none") {
+    const toolChoice = input.tool_choice ?? convertFunctionCall(input.function_call);
+    const tools = input.tools ?? convertFunctions(input.functions);
+    if (toolChoice === "none") {
       functions = null;
     } else if (
-      isObject(input.tool_choice) &&
-      isObject(input.tool_choice.function) &&
-      "name" in input.tool_choice.function
+      isObject(toolChoice) &&
+      isObject(toolChoice.function) &&
+      "name" in toolChoice.function
     ) {
-      functions = [input.tool_choice.function.name];
-    } else if (input.tools) {
-      functions = input.tools?.map((tool) => tool.function.name) ?? [];
+      functions = [toolChoice.function.name];
+    } else if (tools) {
+      functions = tools?.map((tool) => tool.function.name) ?? [];
     }
     const toSerialize = functions
-      ? { messages: input.messages, functions }
-      : { messages: input.messages };
+      ? { messages: convertedMessages, functions }
+      : { messages: convertedMessages };
     return JSON.stringify(toSerialize);
   } else {
     throw new Error(`Invalid pipeline version for finetune ${fineTune?.id ?? "unknown"}`);
