@@ -43,6 +43,19 @@ export const functionsInput = z
   )
   .optional();
 
+export const toolCallsOutput = z.array(
+  z.object({
+    id: z.string(),
+    function: z.object({
+      name: z.string(),
+      arguments: z.string(),
+    }),
+    type: z.literal("function"),
+  }),
+);
+
+export const toolCallsOutputFunctionArguments = z.record(z.string(), z.unknown());
+
 export const toolChoiceInput = z
   .union([
     z.literal("none"),
@@ -95,18 +108,7 @@ const chatCompletionAssistantMessageParamSchema = z.object({
   role: z.literal("assistant"),
   content: z.union([z.string(), z.null()]),
   function_call: functionCallOutput.optional(),
-  tool_calls: z
-    .array(
-      z.object({
-        id: z.string(),
-        function: z.object({
-          name: z.string(),
-          arguments: z.string(),
-        }),
-        type: z.literal("function"),
-      }),
-    )
-    .optional(),
+  tool_calls: toolCallsOutput.optional(),
 });
 
 const chatCompletionToolMessageParamSchema = z.object({
