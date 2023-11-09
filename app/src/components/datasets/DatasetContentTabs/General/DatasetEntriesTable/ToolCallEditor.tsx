@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useLayoutEffect, useState } from "react";
 import { VStack, HStack, Text, Input, Box } from "@chakra-ui/react";
 import type { ChatCompletionMessageToolCall } from "openai/resources/chat";
 
@@ -18,12 +18,14 @@ const ToolCallEditor = ({
 
   const { function: function_call } = tool_call;
 
-  useEffect(() => {
-    if (monaco) {
-      const container = document.getElementById(editorId) as HTMLElement;
+  const [editor, setEditor] = useState<CreatedEditor | null>(null);
 
-      const editor = monaco.editor.create(container, {
-        value: function_call.arguments,
+  useLayoutEffect(() => {
+    const container = document.getElementById(editorId) as HTMLElement;
+
+    let newEditor: CreatedEditor | null = null;
+    if (container && monaco) {
+      newEditor = monaco.editor.create(container, {
         language: "json",
         theme: "customTheme",
         lineNumbers: "off",
@@ -43,6 +45,19 @@ const ToolCallEditor = ({
         fontSize: 14,
         scrollBeyondLastLine: false,
       });
+
+      setEditor(newEditor);
+    }
+    return () => {
+      if (newEditor) newEditor.dispose();
+    };
+  }, [!!monaco, editorId]);
+
+  useEffect(() => {
+    if (editor) {
+      const container = document.getElementById(editorId) as HTMLElement;
+
+      editor.setValue(function_call.arguments);
 
       editorRef.current = editor;
 
@@ -93,14 +108,9 @@ const ToolCallEditor = ({
       return () => {
         contentChangeListener.dispose();
         resizeObserver.disconnect();
-        try {
-          editor?.dispose();
-        } catch (error) {
-          console.error("Error disposing editor:", error);
-        }
       };
     }
-  }, [monaco, editorId, function_call.name, function_call.arguments, tool_call, onEdit]);
+  }, [editor, editorId, function_call.name, function_call.arguments, tool_call, onEdit]);
 
   return (
     <VStack w="full" alignItems="flex-start">
