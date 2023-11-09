@@ -83,6 +83,7 @@ export const convertToolCallMessageToFunction = (
         return {
           ...message,
           function_call: message.tool_calls[0]?.function,
+          tool_calls: undefined,
         };
       }
     case "tool":
