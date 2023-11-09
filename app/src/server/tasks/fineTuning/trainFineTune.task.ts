@@ -68,8 +68,8 @@ const trainModalFineTune = async (fineTuneId: string) => {
         instruction: serializeChatInput(
           {
             messages: pruneInputMessages(dsEntry.messages, stringsToPrune),
-            function_call: dsEntry.function_call ?? undefined,
-            functions: dsEntry.functions ?? undefined,
+            tool_choice: dsEntry.tool_choice ?? undefined,
+            tools: dsEntry.tools ?? undefined,
           },
           { pipelineVersion: CURRENT_PIPELINE_VERSION },
         ),

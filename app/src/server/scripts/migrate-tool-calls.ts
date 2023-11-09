@@ -6,7 +6,7 @@ import {
   convertFunctionCall,
   convertFunctions,
   convertMessages,
-  convertMessage,
+  convertFunctionMessageToToolCall,
 } from "../utils/convertFunctionCalls";
 
 await kysely.transaction().execute(async (trx) => {
@@ -34,7 +34,7 @@ await kysely.transaction().execute(async (trx) => {
     const tools = convertFunctions(typedEntry.functions);
 
     const messages = convertMessages(typedEntry.messages);
-    const output = typedEntry.output ? convertMessage(typedEntry.output) : null;
+    const output = typedEntry.output ? convertFunctionMessageToToolCall(typedEntry.output) : null;
 
     await trx
       .updateTable("DatasetEntry")
@@ -60,7 +60,9 @@ await kysely.transaction().execute(async (trx) => {
 
   for (const testingEntry of testEntriesToUpdate) {
     const testingEntryOutput = testingEntry.output
-      ? convertMessage(testingEntry.output as unknown as ChatCompletionMessageParam)
+      ? convertFunctionMessageToToolCall(
+          testingEntry.output as unknown as ChatCompletionMessageParam,
+        )
       : undefined;
 
     await trx

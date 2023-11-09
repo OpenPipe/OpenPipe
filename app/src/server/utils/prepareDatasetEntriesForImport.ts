@@ -7,7 +7,7 @@ import { prisma } from "~/server/db";
 import {
   convertFunctionCall,
   convertFunctions,
-  convertMessage,
+  convertFunctionMessageToToolCall,
   convertMessages,
 } from "./convertFunctionCalls";
 
@@ -66,7 +66,9 @@ export const prepareDatasetEntriesForImport = async (
       tool_choice:
         row.input.tool_choice || (convertFunctionCall(row.input.function_call) as object),
       tools: row.input.tools || (convertFunctions(row.input.functions) as object[]),
-      output: (convertMessage(row.output) as unknown as Prisma.InputJsonValue) ?? {
+      output: (convertFunctionMessageToToolCall(
+        row.output,
+      ) as unknown as Prisma.InputJsonValue) ?? {
         role: "assistant",
         content: "",
       },
