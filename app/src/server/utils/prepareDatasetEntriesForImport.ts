@@ -17,7 +17,7 @@ export const prepareDatasetEntriesForImport = async (
   provenance: DatasetEntryProvenance,
   importId: string,
   authoringUserId: string,
-) => {
+): Promise<(Prisma.DatasetEntryCreateManyInput & { id: string })[]> => {
   const [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
     prisma.dataset.findUnique({ where: { id: datasetId } }),
     prisma.datasetEntry.count({
@@ -61,7 +61,7 @@ export const prepareDatasetEntriesForImport = async (
       id: uuidv4(),
       datasetId: datasetId,
       messages: convertMessages(row.input.messages) as object[],
-      function_call: row.input.function_call as object,
+      function_call: row.input.function_call,
       functions: row.input.functions as object[],
       tool_choice:
         row.input.tool_choice || (convertFunctionCall(row.input.function_call) as object),
