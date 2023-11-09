@@ -101,8 +101,10 @@ export const fineTunesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const fineTune = await kysely
         .selectFrom("FineTune as ft")
-        .where("id", "=", input.id)
-        .selectAll()
+        .where("ft.id", "=", input.id)
+        .leftJoin("Dataset as d", "ft.datasetId", "d.id")
+        .select("d.name as datasetName")
+        .selectAll("ft")
         .select(() => [
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
