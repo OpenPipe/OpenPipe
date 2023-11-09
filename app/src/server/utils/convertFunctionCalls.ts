@@ -33,9 +33,12 @@ export const convertFunctions = (
 
 export const convertMessages = (
   messages: ChatCompletionCreateParamsBase["messages"],
-): ChatCompletionCreateParamsBase["messages"] => (messages ? messages.map(convertMessage) : []);
+): ChatCompletionCreateParamsBase["messages"] =>
+  messages ? messages.map(convertFunctionMessageToToolCall) : [];
 
-export const convertMessage = (message: ChatCompletionCreateParamsBase["messages"][0]) => {
+export const convertFunctionMessageToToolCall = (
+  message: ChatCompletionCreateParamsBase["messages"][0],
+) => {
   switch (message.role) {
     case "system":
     case "user":
@@ -60,7 +63,33 @@ export const convertMessage = (message: ChatCompletionCreateParamsBase["messages
       return {
         role: "tool" as const,
         content: message.content,
-        tool_call_id: "",
+        tool_call_id: message.name,
+      };
+  }
+};
+
+export const convertToolCallMessageToFunction = (
+  message: ChatCompletionCreateParamsBase["messages"][0],
+) => {
+  switch (message.role) {
+    case "system":
+    case "user":
+    case "function":
+      return message;
+    case "assistant":
+      if (message.function_call || !message.tool_calls?.length) {
+        return message;
+      } else {
+        return {
+          ...message,
+          function_call: message.tool_calls[0]?.function,
+        };
+      }
+    case "tool":
+      return {
+        role: "function" as const,
+        content: message.content,
+        name: message.tool_call_id,
       };
   }
 };

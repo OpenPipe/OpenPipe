@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { type FineTune } from "@prisma/client";
-import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
+import type {
+  ChatCompletionMessage,
+  ChatCompletion,
+  ChatCompletionCreateParams,
+} from "openai/resources/chat";
 
 import { omit } from "lodash-es";
 import { runInference } from "~/server/modal-rpc/clients";
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
+import { convertToolCallMessageToFunction } from "~/server/utils/convertFunctionCalls";
 
 export async function getCompletion2(
   fineTune: FineTune,
@@ -60,16 +65,25 @@ async function getModalCompletion(
     n: input.n ?? 1,
   });
 
+  let choices = resp.choices.map((choice, i) => ({
+    index: i,
+    message: deserializeChatOutput(choice.text.trim()),
+    finish_reason: choice.finish_reason,
+  }));
+  if (input.functions) {
+    // messages will automatically be deserialized to tool_calls, but the user might expect a function_call
+    choices = choices.map((choice) => ({
+      ...choice,
+      message: convertToolCallMessageToFunction(choice.message) as ChatCompletionMessage,
+    }));
+  }
+
   return {
     id: resp.id,
     object: "chat.completion",
     created: Date.now(),
     model: input.model,
-    choices: resp.choices.map((choice, i) => ({
-      index: i,
-      message: deserializeChatOutput(choice.text.trim()),
-      finish_reason: choice.finish_reason,
-    })),
+    choices,
     usage: {
       prompt_tokens: resp.usage.prompt_tokens,
       completion_tokens: resp.usage.completion_tokens,
