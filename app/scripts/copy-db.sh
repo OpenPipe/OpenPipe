@@ -52,9 +52,14 @@ terminate_connections() {
 }
 
 drop_db() {
-    report_progress "Dropping $1 database..."
-    dropdb -e $1
+    report_progress "Dropping $1 database if it exists..."
+    if psql -lqt | cut -d \| -f 1 | grep -qw $1; then
+        dropdb -e $1
+    else
+        echo "Database $1 does not exist, skipping drop."
+    fi
 }
+
 
 create_db() {
     report_progress "Creating $1 database..."
