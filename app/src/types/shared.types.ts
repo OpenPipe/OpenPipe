@@ -53,7 +53,7 @@ const chatCompletionContentPartSchema = z.union([
     type: z.literal("image_url"),
     image_url: z.object({
       detail: z.union([z.literal("auto"), z.literal("low"), z.literal("high")]).optional(),
-      url: z.string().optional(),
+      url: z.string(),
     }),
   }),
   z.object({
@@ -107,7 +107,7 @@ export const chatMessage = z.union([
 
 export const chatCompletionMessage = chatCompletionAssistantMessageParamSchema;
 
-export const chatCompletionInput = z.object({
+const chatCompletionInputBase = z.object({
   model: z.string(),
   messages: z.array(chatMessage),
   function_call: functionCallInput,
@@ -115,8 +115,22 @@ export const chatCompletionInput = z.object({
   n: z.number().optional(),
   max_tokens: z.number().nullable().optional(),
   temperature: z.number().optional(),
+});
+
+const chatCompletionInputStreaming = z.object({
+  ...chatCompletionInputBase.shape,
   stream: z.boolean().optional(),
 }) satisfies z.ZodType<ChatCompletionCreateParams, any, any>;
+
+const chatCompletionInputNonStreaming = z.object({
+  ...chatCompletionInputBase.shape,
+  stream: z.literal(false),
+}) satisfies z.ZodType<ChatCompletionCreateParams, any, any>;
+
+export const chatCompletionInput = z.union([
+  chatCompletionInputStreaming.passthrough(),
+  chatCompletionInputNonStreaming.passthrough(),
+]);
 
 export const chatCompletionOutput = z.object({
   id: z.string(),
