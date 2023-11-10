@@ -5,14 +5,10 @@ import inspect
 import json
 
 from openpipe.merge_openai_chunks import merge_openai_chunks
-from openpipe.openpipe_meta import openpipe_meta
 from openpipe.api_client.api.default import create_chat_completion
 from openpipe.api_client import errors
 
 from .shared import (
-    _should_check_cache,
-    maybe_check_cache,
-    maybe_check_cache_async,
     report_async,
     report,
     configured_client,
@@ -23,12 +19,6 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
     @classmethod
     def create(cls, *args, **kwargs):
         openpipe_options = kwargs.pop("openpipe", {})
-
-        cached_response = maybe_check_cache(
-            openpipe_options=openpipe_options, req_payload=kwargs
-        )
-        if cached_response:
-            return OpenAIObject.construct_from(cached_response, api_key=None)
 
         requested_at = int(time.time() * 1000)
         model = kwargs.get("model", "")
@@ -56,13 +46,6 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                             assembled_completion, chunk
                         )
 
-                        cache_status = (
-                            "MISS"
-                            if _should_check_cache(openpipe_options, kwargs)
-                            else "SKIP"
-                        )
-                        chunk.openpipe = openpipe_meta(cache_status=cache_status)
-
                         yield chunk
 
                     received_at = int(time.time() * 1000)
@@ -88,11 +71,6 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     resp_payload=chat_completion,
                     status_code=200,
                 )
-
-                cache_status = (
-                    "MISS" if _should_check_cache(openpipe_options, kwargs) else "SKIP"
-                )
-                chat_completion["openpipe"] = openpipe_meta(cache_status=cache_status)
             return chat_completion
         except Exception as e:
             received_at = int(time.time() * 1000)
@@ -133,12 +111,6 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
     async def acreate(cls, *args, **kwargs):
         openpipe_options = kwargs.pop("openpipe", {})
 
-        cached_response = await maybe_check_cache_async(
-            openpipe_options=openpipe_options, req_payload=kwargs
-        )
-        if cached_response:
-            return OpenAIObject.construct_from(cached_response, api_key=None)
-
         requested_at = int(time.time() * 1000)
         model = kwargs.get("model", "")
 
@@ -167,12 +139,6 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                             assembled_completion = merge_openai_chunks(
                                 assembled_completion, chunk
                             )
-                            cache_status = (
-                                "MISS"
-                                if _should_check_cache(openpipe_options, kwargs)
-                                else "SKIP"
-                            )
-                            chunk.openpipe = openpipe_meta(cache_status=cache_status)
                             yield chunk
                     finally:
                         try:
@@ -203,11 +169,6 @@ class WrappedChatCompletion(original_openai.ChatCompletion):
                     resp_payload=chat_completion,
                     status_code=200,
                 )
-
-                cache_status = (
-                    "MISS" if _should_check_cache(openpipe_options, kwargs) else "SKIP"
-                )
-                chat_completion["openpipe"] = openpipe_meta(cache_status=cache_status)
 
             return chat_completion
         except Exception as e:

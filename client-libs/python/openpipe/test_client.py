@@ -44,8 +44,6 @@ def test_sync():
         last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
     )
 
-    assert completion.openpipe["cache_status"] == "SKIP"
-
 
 def test_streaming():
     completion = openai.ChatCompletion.create(
@@ -77,8 +75,6 @@ async def test_async():
         == "count down from 5"
     )
 
-    assert completion.openpipe["cache_status"] == "SKIP"
-
 
 async def test_async_streaming():
     completion = await openai.ChatCompletion.acreate(
@@ -89,7 +85,6 @@ async def test_async_streaming():
 
     merged = None
     async for chunk in completion:
-        assert chunk.openpipe["cache_status"] == "SKIP"
         merged = merge_openai_chunks(merged, chunk)
 
     last_logged = last_logged_call()
@@ -102,7 +97,6 @@ async def test_async_streaming():
         last_logged.model_response.req_payload["messages"][0]["content"]
         == "count down from 5"
     )
-    assert merged["openpipe"]["cache_status"] == "SKIP"
 
 
 def test_sync_with_tags():
@@ -124,13 +118,13 @@ def test_sync_with_tags():
 
 def test_bad_call():
     try:
-        completion = openai.ChatCompletion.create(
+        openai.ChatCompletion.create(
             model="gpt-3.5-turbo-blaster",
             messages=[{"role": "system", "content": "count to 10"}],
             stream=True,
         )
         assert False
-    except Exception as e:
+    except Exception:
         pass
     last_logged = last_logged_call()
     print(last_logged)
@@ -139,26 +133,3 @@ def test_bad_call():
         == "The model `gpt-3.5-turbo-blaster` does not exist"
     )
     assert last_logged.model_response.status_code == 404
-
-
-async def test_caching():
-    messages = [{"role": "system", "content": f"repeat '{random_string(10)}'"}]
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        openpipe={"cache": True},
-    )
-    assert completion.openpipe["cache_status"] == "MISS"
-
-    first_logged = last_logged_call()
-    assert (
-        completion.choices[0].message.content
-        == first_logged.model_response.resp_payload["choices"][0]["message"]["content"]
-    )
-
-    completion2 = await openai.ChatCompletion.acreate(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        openpipe={"cache": True},
-    )
-    assert completion2.openpipe["cache_status"] == "HIT"
