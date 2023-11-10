@@ -10,7 +10,7 @@ import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import assert from "assert";
 
-dotenv.config({ path: "../.env" });
+dotenv.config();
 
 const oaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

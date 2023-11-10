@@ -11,7 +11,7 @@ export class WrappedStream extends Stream<ChatCompletionChunk> {
 
   constructor(stream: Stream<ChatCompletionChunk>, report: (response: unknown) => Promise<void>) {
     // @ts-expect-error - This is a private property but we need to access it
-    super(stream.response, stream.controller);
+    super(stream.iterator, stream.controller);
     this.report = report;
 
     const reportingFinished = new Promise<void>((resolve) => {
