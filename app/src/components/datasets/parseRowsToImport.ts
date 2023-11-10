@@ -95,16 +95,16 @@ export const validateRowToImport = (row: unknown): ParseError | RowToImport => {
         error: "output contains more than one of the following: content|function_call|tool_calls",
       };
     if (output.function_call) {
-      const err = parseFunctionCall(output.function_call, parsedRow.data.input.functions);
-      if (err) return { error: `output function_call: ${err}` };
+      const _err = parseFunctionCall(output.function_call, parsedRow.data.input.functions);
+      // TODO: Add error tag to dataset entry
     }
     if (output.tool_calls) {
       if (!Array.isArray(output.tool_calls)) return { error: "output tool_calls is not an array" };
       for (const toolCall of output.tool_calls) {
         if (!toolCall.function)
           return { error: "output tool_calls contains item with no function" };
-        const err = parseFunctionCall(toolCall.function, parsedRow.data.input.functions);
-        if (err) return { error: `output tool_call function: ${err}` };
+        const _err = parseFunctionCall(toolCall.function, parsedRow.data.input.functions);
+        // TODO: Add error tag to dataset entry
       }
     }
   }
