@@ -19,7 +19,6 @@ export class WrappedStream extends Stream<ChatCompletionChunk> {
     });
 
     this.openpipe = {
-      cacheStatus: "MISS",
       reportingFinished,
     };
   }

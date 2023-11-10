@@ -9,12 +9,10 @@ export type OpenPipeConfig = {
 };
 
 export type OpenPipeArgs = {
-  openpipe?: { cache?: boolean; tags?: Record<string, string>; logRequest?: boolean };
+  openpipe?: { tags?: Record<string, string>; logRequest?: boolean };
 };
 
 export type OpenPipeMeta = {
-  cacheStatus: "HIT" | "MISS" | "SKIP";
-
   // We report your call to OpenPipe asynchronously in the background. If you
   // need to wait until the report is sent to take further action, you can await
   // this promise.
@@ -25,7 +23,6 @@ export type ReportFn = (...args: Parameters<DefaultService["report"]>) => Promis
 
 export const getTags = (args: OpenPipeArgs["openpipe"]): Record<string, string> => ({
   ...args?.tags,
-  ...(args?.cache ? { $cache: args.cache?.toString() } : {}),
   $sdk: "typescript",
   "$sdk.version": pkg.version,
 });
