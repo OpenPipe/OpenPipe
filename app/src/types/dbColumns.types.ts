@@ -25,7 +25,7 @@ export const typedDatasetEntry = <T extends Pick<DatasetEntry, "messages">>(
 
 const loggedCallModelResponseSchema = z
   .object({
-    reqPayload: chatCompletionInput.passthrough(),
+    reqPayload: chatCompletionInput,
     respPayload: chatCompletionOutput.passthrough().optional().nullable(),
   })
   .passthrough();
