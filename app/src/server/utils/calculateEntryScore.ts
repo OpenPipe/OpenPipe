@@ -4,16 +4,50 @@ import { type ChatCompletionMessage } from "openai/resources/chat";
 // If function names match and there are no args, return 1
 // If function names match and there are args, return (num matching args / num args)
 export const calculateEntryScore = (
+  originalToolCalls: ChatCompletionMessage["tool_calls"],
+  generatedToolCalls: ChatCompletionMessage["tool_calls"],
+) => {
+  if (!originalToolCalls || !generatedToolCalls) return 0;
+
+  const functionCallComp: Record<
+    string,
+    {
+      originalFunctionCall?: ChatCompletionMessage["function_call"];
+      generatedFunctionCall?: ChatCompletionMessage["function_call"];
+    }
+  > = {};
+
+  for (const originalToolCall of originalToolCalls) {
+    functionCallComp[originalToolCall.function.name] = {
+      originalFunctionCall: originalToolCall.function,
+    };
+  }
+  for (const generatedToolCall of generatedToolCalls) {
+    const key = generatedToolCall.function.name;
+    if (!functionCallComp[key]) {
+      functionCallComp[key] = {};
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    functionCallComp[key]!.generatedFunctionCall = generatedToolCall.function;
+  }
+  let totalScore = 0;
+  for (const comp of Object.values(functionCallComp)) {
+    const { originalFunctionCall, generatedFunctionCall } = comp;
+    totalScore += calculateToolCallScore(originalFunctionCall, generatedFunctionCall);
+  }
+  return totalScore / Object.keys(functionCallComp).length;
+};
+
+export const calculateToolCallScore = (
   originalFunctionCall: ChatCompletionMessage["function_call"],
   generatedFunctionCall: ChatCompletionMessage["function_call"],
 ) => {
-  if (
-    !originalFunctionCall ||
-    !generatedFunctionCall ||
-    originalFunctionCall.name !== generatedFunctionCall.name
-  )
-    return 0;
-  if (!originalFunctionCall.arguments) return 1;
+  // If function names don't match, return 0
+  if (!originalFunctionCall || !generatedFunctionCall) return 0;
+  // If neither have args, then congrats, we matched them.
+  if (!originalFunctionCall.arguments && !generatedFunctionCall.arguments) return 1;
+  // If one has args and the other doesn't, then they don't match.
+  if (!originalFunctionCall.arguments || !generatedFunctionCall.arguments) return 0;
   let parsedOriginalArgs: Record<string, unknown> | undefined;
   try {
     parsedOriginalArgs = JSON.parse(originalFunctionCall.arguments);

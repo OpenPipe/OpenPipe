@@ -120,10 +120,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       if (!choice) throw new Error("No completion returned");
       let score;
       if (datasetEntry.output?.function_call) {
-        score = calculateEntryScore(
-          datasetEntry.output.function_call,
-          choice.message.function_call,
-        );
+        score = calculateEntryScore(datasetEntry.output.tool_calls, choice.message.tool_calls);
       }
 
       if (fineTune) {

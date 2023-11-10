@@ -40,7 +40,6 @@ export const pruneInputMessages = (
   messages = messages.filter(
     (message) =>
       message.content !== "" ||
-      ("function_call" in message && message.function_call) ||
       ("tool_calls" in message && message.tool_calls && message.tool_calls.length > 0),
   );
   return messages;

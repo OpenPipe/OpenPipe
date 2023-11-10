@@ -15,6 +15,8 @@ import {
   chatMessage,
   functionCallInput,
   functionsInput,
+  toolChoiceInput,
+  toolsInput,
 } from "~/types/shared.types";
 import { captureFineTuneUsage } from "~/utils/analytics/serverAnalytics";
 import { calculateFineTuneUsageCost } from "~/utils/baseModels";
@@ -111,6 +113,8 @@ export const v1ApiRouter = createOpenApiRouter({
         messages: z.array(chatMessage).optional(),
         function_call: functionCallInput,
         functions: functionsInput,
+        tool_choice: toolChoiceInput,
+        tools: toolsInput,
         n: z.number().nullable().optional(),
         max_tokens: z.number().nullable().optional(),
         temperature: z.number().nullable().optional(),

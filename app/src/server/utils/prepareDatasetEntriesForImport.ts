@@ -4,6 +4,12 @@ import { v4 as uuidv4 } from "uuid";
 import { type RowToImport } from "~/components/datasets/parseRowsToImport";
 
 import { prisma } from "~/server/db";
+import {
+  convertFunctionCall,
+  convertFunctions,
+  convertFunctionMessageToToolCall,
+  convertMessages,
+} from "./convertFunctionCalls";
 
 export const prepareDatasetEntriesForImport = async (
   datasetId: string,
@@ -11,7 +17,7 @@ export const prepareDatasetEntriesForImport = async (
   provenance: DatasetEntryProvenance,
   importId: string,
   authoringUserId: string,
-) => {
+): Promise<(Prisma.DatasetEntryCreateManyInput & { id: string })[]> => {
   const [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
     prisma.dataset.findUnique({ where: { id: datasetId } }),
     prisma.datasetEntry.count({
@@ -54,10 +60,15 @@ export const prepareDatasetEntriesForImport = async (
     return {
       id: uuidv4(),
       datasetId: datasetId,
-      messages: row.input.messages as object[],
-      function_call: row.input.function_call as object,
+      messages: convertMessages(row.input.messages) as object[],
+      function_call: row.input.function_call,
       functions: row.input.functions as object[],
-      output: (row.output as unknown as Prisma.InputJsonValue) ?? {
+      tool_choice:
+        row.input.tool_choice || (convertFunctionCall(row.input.function_call) as object),
+      tools: row.input.tools || (convertFunctions(row.input.functions) as object[]),
+      output: (convertFunctionMessageToToolCall(
+        row.output,
+      ) as unknown as Prisma.InputJsonValue) ?? {
         role: "assistant",
         content: "",
       },

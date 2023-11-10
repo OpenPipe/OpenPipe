@@ -64,8 +64,8 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
     const input = {
       model: "gpt-4",
       messages: datasetEntry.messages,
-      function_call: datasetEntry.function_call ?? undefined,
-      functions: datasetEntry.functions ?? undefined,
+      tool_choice: datasetEntry.tool_choice ?? undefined,
+      tools: datasetEntry.tools ?? undefined,
     };
     try {
       completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
@@ -78,8 +78,8 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
           data: {
             datasetId: datasetEntry.datasetId,
             messages: datasetEntry.messages,
-            function_call: datasetEntry.function_call ?? undefined,
-            functions: datasetEntry.functions ?? undefined,
+            tool_choice: datasetEntry.tool_choice ?? undefined,
+            tools: datasetEntry.tools ?? undefined,
             output: completionMessage as unknown as Prisma.InputJsonValue,
             inputTokens: datasetEntry.inputTokens,
             outputTokens: countLlamaOutputTokens(completionMessage),

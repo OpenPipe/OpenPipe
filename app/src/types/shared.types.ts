@@ -16,9 +16,9 @@ export const validatedChatInput = <
   entry: T,
 ) => {
   // TODO: actually validate. We'll just assert the types for now.
-  return pick(entry, ["messages", "functions", "function_call"]) as Pick<
+  return pick(entry, ["messages", "functions", "function_call", "tool_choice", "tools"]) as Pick<
     ChatCompletionCreateParams,
-    "messages" | "functions" | "function_call"
+    "messages" | "functions" | "function_call" | "tool_choice" | "tools"
   >;
 };
 
@@ -39,6 +39,43 @@ export const functionsInput = z
       name: z.string(),
       parameters: z.record(z.string(), z.unknown()),
       description: z.string().optional(),
+    }),
+  )
+  .optional();
+
+export const toolCallsOutput = z.array(
+  z.object({
+    id: z.string(),
+    function: z.object({
+      name: z.string(),
+      arguments: z.string(),
+    }),
+    type: z.literal("function"),
+  }),
+);
+
+export const toolCallsOutputFunctionArguments = z.record(z.string(), z.unknown());
+
+export const toolChoiceInput = z
+  .union([
+    z.literal("none"),
+    z.literal("auto"),
+    z.object({
+      type: z.literal("function").optional(),
+      function: z.object({ name: z.string() }).optional(),
+    }),
+  ])
+  .optional();
+
+export const toolsInput = z
+  .array(
+    z.object({
+      function: z.object({
+        name: z.string(),
+        parameters: z.record(z.string(), z.unknown()),
+        description: z.string().optional(),
+      }),
+      type: z.literal("function"),
     }),
   )
   .optional();
@@ -71,18 +108,7 @@ const chatCompletionAssistantMessageParamSchema = z.object({
   role: z.literal("assistant"),
   content: z.union([z.string(), z.null()]),
   function_call: functionCallOutput.optional(),
-  tool_calls: z
-    .array(
-      z.object({
-        id: z.string(),
-        function: z.object({
-          name: z.string(),
-          arguments: z.string(),
-        }),
-        type: z.literal("function"),
-      }),
-    )
-    .optional(),
+  tool_calls: toolCallsOutput.optional(),
 });
 
 const chatCompletionToolMessageParamSchema = z.object({
@@ -112,6 +138,8 @@ const chatCompletionInputBase = z.object({
   messages: z.array(chatMessage),
   function_call: functionCallInput,
   functions: functionsInput,
+  tool_choice: toolChoiceInput,
+  tools: toolsInput,
   n: z.number().optional(),
   max_tokens: z.number().nullable().optional(),
   temperature: z.number().optional(),

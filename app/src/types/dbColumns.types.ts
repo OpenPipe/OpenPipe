@@ -6,6 +6,8 @@ import {
   chatMessage,
   functionCallInput,
   functionsInput,
+  toolChoiceInput,
+  toolsInput,
 } from "./shared.types";
 import { type DatasetEntry, type LoggedCallModelResponse } from "@prisma/client";
 
@@ -14,6 +16,8 @@ export const datasetEntrySchema = z
     messages: z.array(chatMessage),
     function_call: functionCallInput.nullable(),
     functions: functionsInput.nullable(),
+    tool_choice: toolChoiceInput.nullable(),
+    tools: toolsInput.nullable(),
     output: chatCompletionMessage.optional().nullable(),
   })
   .passthrough();

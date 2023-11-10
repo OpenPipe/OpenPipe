@@ -1,27 +1,34 @@
-import { useRef, useMemo, useEffect } from "react";
-import { VStack, HStack, Text, Input, Box } from "@chakra-ui/react";
-import { type ChatCompletionMessage } from "openai/resources/chat";
+import { useRef, useMemo, useEffect, useLayoutEffect, useState } from "react";
+import { VStack, HStack, Text, Input, Box, Tooltip, IconButton, Icon } from "@chakra-ui/react";
+import type { ChatCompletionMessageToolCall } from "openai/resources/chat";
+import { BsX } from "react-icons/bs";
 
 import { useAppStore } from "~/state/store";
 import { type CreatedEditor } from "~/state/sharedVariantEditor.slice";
 
-const FunctionCallEditor = ({
-  function_call,
+const ToolCallEditor = ({
+  tool_call,
   onEdit,
+  onDelete,
 }: {
-  function_call: ChatCompletionMessage.FunctionCall;
-  onEdit: (function_call: ChatCompletionMessage.FunctionCall) => void;
+  tool_call: ChatCompletionMessageToolCall;
+  onEdit: (tool_call: ChatCompletionMessageToolCall) => void;
+  onDelete: () => void;
 }) => {
   const monaco = useAppStore.use.sharedArgumentsEditor.monaco();
   const editorRef = useRef<CreatedEditor | null>(null);
   const editorId = useMemo(() => `editor_${Math.random().toString(36).substring(7)}`, []);
 
-  useEffect(() => {
-    if (monaco) {
-      const container = document.getElementById(editorId) as HTMLElement;
+  const { function: function_call } = tool_call;
 
-      const editor = monaco.editor.create(container, {
-        value: function_call.arguments,
+  const [editor, setEditor] = useState<CreatedEditor | null>(null);
+
+  useLayoutEffect(() => {
+    const container = document.getElementById(editorId) as HTMLElement;
+
+    let newEditor: CreatedEditor | null = null;
+    if (container && monaco) {
+      newEditor = monaco.editor.create(container, {
         language: "json",
         theme: "customTheme",
         lineNumbers: "off",
@@ -41,6 +48,19 @@ const FunctionCallEditor = ({
         fontSize: 14,
         scrollBeyondLastLine: false,
       });
+
+      setEditor(newEditor);
+    }
+    return () => {
+      if (newEditor) newEditor.dispose();
+    };
+  }, [!!monaco, editorId]);
+
+  useEffect(() => {
+    if (editor) {
+      const container = document.getElementById(editorId) as HTMLElement;
+
+      editor.setValue(function_call.arguments);
 
       editorRef.current = editor;
 
@@ -66,7 +86,10 @@ const FunctionCallEditor = ({
 
       editor.onDidBlurEditorText(() => {
         attemptDocumentFormat();
-        onEdit({ name: function_call.name, arguments: editor.getValue() });
+        onEdit({
+          ...tool_call,
+          function: { name: function_call.name, arguments: editor.getValue() },
+        });
       });
 
       // Interval function to check for action availability
@@ -88,22 +111,45 @@ const FunctionCallEditor = ({
       return () => {
         contentChangeListener.dispose();
         resizeObserver.disconnect();
-        editor?.dispose();
       };
     }
-  }, [monaco, editorId, function_call.name, function_call.arguments, onEdit]);
+  }, [editor, editorId, function_call.name, function_call.arguments, tool_call, onEdit]);
 
   return (
-    <VStack w="full" alignItems="flex-start">
+    <VStack
+      w="full"
+      alignItems="flex-start"
+      bgColor="orange.100"
+      borderRadius={8}
+      borderWidth={1}
+      p={4}
+    >
       <HStack w="full">
         <Text fontWeight="bold" w={192}>
-          Name:
+          Name
         </Text>
         <Input
           value={function_call.name}
-          onChange={(e) => onEdit({ name: e.target.value, arguments: function_call.arguments })}
+          onChange={(e) =>
+            onEdit({
+              ...tool_call,
+              function: { name: e.target.value, arguments: function_call.arguments },
+            })
+          }
           bgColor="white"
         />
+        <Tooltip label="Remove Tool Call" hasArrow>
+          <IconButton
+            aria-label="Remove Tool Call"
+            icon={<Icon as={BsX} boxSize={6} />}
+            onClick={onDelete}
+            size="xs"
+            display="flex"
+            colorScheme="gray"
+            color="gray.500"
+            variant="ghost"
+          />
+        </Tooltip>
       </HStack>
       <Text fontWeight="bold" w={32}>
         Arguments
@@ -122,4 +168,4 @@ const FunctionCallEditor = ({
   );
 };
 
-export default FunctionCallEditor;
+export default ToolCallEditor;
