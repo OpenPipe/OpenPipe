@@ -1,11 +1,7 @@
 import dotenv from "dotenv";
 import { expect, test } from "vitest";
 import OpenAI from "../openai";
-import type {
-  ChatCompletion,
-  CompletionCreateParams,
-  CreateChatCompletionRequestMessage,
-} from "openai/resources/chat/completions";
+import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat/completions";
 import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import assert from "assert";
@@ -28,7 +24,7 @@ const opClient = new OPClient({
 const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
 
 test("basic call", async () => {
-  const payload: CompletionCreateParams = {
+  const payload: ChatCompletionCreateParams = {
     model: "gpt-3.5-turbo",
     messages: [{ role: "system", content: "count to 3" }],
   };
@@ -107,31 +103,4 @@ test("bad call", async () => {
     );
     expect(lastLogged?.modelResponse?.statusCode).toEqual(404);
   }
-});
-
-test("caching", async () => {
-  const message: CreateChatCompletionRequestMessage = {
-    role: "system",
-    content: `repeat '${randomString(10)}'`,
-  };
-  const completion = await oaiClient.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: [message],
-    openpipe: { cache: true },
-  });
-  expect(completion.openpipe.cacheStatus).toEqual("MISS");
-
-  await completion.openpipe.reportingFinished;
-  const firstLogged = await lastLoggedCall();
-
-  expect(completion.choices[0]?.message.content).toEqual(
-    firstLogged?.modelResponse?.respPayload.choices[0].message.content,
-  );
-
-  const completion2 = await oaiClient.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: [message],
-    openpipe: { cache: true },
-  });
-  expect(completion2.openpipe.cacheStatus).toEqual("HIT");
 });

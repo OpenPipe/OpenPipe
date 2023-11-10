@@ -1,6 +1,6 @@
 import * as openai from "openai";
 import * as Core from "openai/core";
-import { readEnv, type RequestOptions } from "openai/core";
+import { readEnv } from "openai/core";
 import type {
   ChatCompletion,
   ChatCompletionChunk,
@@ -116,38 +116,6 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
     const openpipe = { logRequest: true, ...rawOpenpipe };
     const requestedAt = Date.now();
     let reportingFinished: OpenPipeMeta["reportingFinished"] = Promise.resolve();
-    let cacheRequested = openpipe?.cache ?? false;
-    if (cacheRequested && body.stream) {
-      console.warn(
-        `Caching is not yet supported for streaming requests. Ignoring cache flag. Vote for this feature at https://github.com/OpenPipe/OpenPipe/issues/159`,
-      );
-      cacheRequested = false;
-    }
-
-    if (cacheRequested) {
-      try {
-        const cached = await this.opClient?.default
-          .checkCache({
-            requestedAt,
-            reqPayload: body,
-            tags: getTags(openpipe),
-          })
-          .then((res) => res.respPayload);
-
-        if (cached) {
-          const meta = {
-            cacheStatus: "HIT",
-            reportingFinished,
-          };
-          return {
-            ...cached,
-            openpipe: meta,
-          };
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
 
     try {
       if (body.stream) {
@@ -185,7 +153,6 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
         return {
           ...response,
           openpipe: {
-            cacheStatus: cacheRequested ? "MISS" : "SKIP",
             reportingFinished,
           },
         };
@@ -212,7 +179,6 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
         error = {
           ...error,
           openpipe: {
-            cacheStatus: cacheRequested ? "MISS" : "SKIP",
             reportingFinished,
           },
         };

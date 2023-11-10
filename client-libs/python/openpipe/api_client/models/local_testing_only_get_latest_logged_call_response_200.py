@@ -21,20 +21,19 @@ class LocalTestingOnlyGetLatestLoggedCallResponse200:
     """
     Attributes:
         created_at (datetime.datetime):
-        cache_hit (bool):
         tags (LocalTestingOnlyGetLatestLoggedCallResponse200Tags):
         model_response (Optional[LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse]):
     """
 
     created_at: datetime.datetime
-    cache_hit: bool
     tags: "LocalTestingOnlyGetLatestLoggedCallResponse200Tags"
-    model_response: Optional["LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse"]
+    model_response: Optional[
+        "LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse"
+    ]
 
     def to_dict(self) -> Dict[str, Any]:
         created_at = self.created_at.isoformat()
 
-        cache_hit = self.cache_hit
         tags = self.tags.to_dict()
 
         model_response = self.model_response.to_dict() if self.model_response else None
@@ -43,7 +42,6 @@ class LocalTestingOnlyGetLatestLoggedCallResponse200:
         field_dict.update(
             {
                 "createdAt": created_at,
-                "cacheHit": cache_hit,
                 "tags": tags,
                 "modelResponse": model_response,
             }
@@ -63,20 +61,25 @@ class LocalTestingOnlyGetLatestLoggedCallResponse200:
         d = src_dict.copy()
         created_at = isoparse(d.pop("createdAt"))
 
-        cache_hit = d.pop("cacheHit")
-
-        tags = LocalTestingOnlyGetLatestLoggedCallResponse200Tags.from_dict(d.pop("tags"))
+        tags = LocalTestingOnlyGetLatestLoggedCallResponse200Tags.from_dict(
+            d.pop("tags")
+        )
 
         _model_response = d.pop("modelResponse")
-        model_response: Optional[LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse]
+        model_response: Optional[
+            LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse
+        ]
         if _model_response is None:
             model_response = None
         else:
-            model_response = LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse.from_dict(_model_response)
+            model_response = (
+                LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse.from_dict(
+                    _model_response
+                )
+            )
 
         local_testing_only_get_latest_logged_call_response_200 = cls(
             created_at=created_at,
-            cache_hit=cache_hit,
             tags=tags,
             model_response=model_response,
         )
