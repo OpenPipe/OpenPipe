@@ -8,6 +8,7 @@ import { getStatusColor } from "../../FineTunesTable";
 import ColoredPercent from "~/components/ColoredPercent";
 import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
+import Link from "next/link";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -34,6 +35,12 @@ const General = () => {
             <HStack>
               <Text w={180}>Base Model</Text>
               <Text color="gray.500">{displayBaseModel(fineTune.baseModel)}</Text>
+            </HStack>
+            <HStack>
+              <Text w={180}>Dataset</Text>
+              <Link href={{ pathname: "/datasets/[id]", query: { id: fineTune.datasetId } }}>
+                <Text color="blue.600">{fineTune.datasetName}</Text>
+              </Link>
             </HStack>
             <HStack>
               <Text w={180}>Training Set Size</Text>
