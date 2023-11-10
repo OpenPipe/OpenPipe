@@ -24,7 +24,19 @@ export const countDatasetEntryTokens = defineTask<void>({
 
       await Promise.all(
         batch.map(async (datasetEntry) => {
-          const entry = typedDatasetEntry(datasetEntry);
+          let entry;
+          try {
+            entry = typedDatasetEntry(datasetEntry);
+          } catch (e) {
+            // If the entry is invalid, mark it as invalid and move on
+            await prisma.datasetEntry.update({
+              where: { id: datasetEntry.id },
+              data: { inputTokens: -1, outputTokens: -1 },
+            });
+            console.log(`Invalid dataset entry ${datasetEntry.id}`);
+            return;
+          }
+
           const inputTokens = countLlamaInputTokens(entry);
           const outputTokens = entry.output ? countLlamaOutputTokens(entry.output) : 0;
 
