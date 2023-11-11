@@ -1,6 +1,6 @@
 # Adapted from https://create.t3.gg/en/deployment/docker#3-create-dockerfile
 
-FROM node:20.1.0-bullseye as base
+FROM node:20.9.0-bullseye as base
 RUN yarn global add pnpm
 
 # DEPS
