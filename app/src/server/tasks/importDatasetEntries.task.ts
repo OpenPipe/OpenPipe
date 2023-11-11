@@ -74,8 +74,6 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       progress: 30,
     });
 
-    console.log("got to processing");
-
     const importId = new Date().toISOString();
     let datasetEntriesToCreate;
     try {
@@ -96,24 +94,16 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       return;
     }
 
-    console.log("got to saving");
-
     await updateDatasetFileUpload({
       status: "SAVING",
       progress: 75,
     });
 
-    console.log("got to saving");
-
     await prisma.datasetEntry.createMany({
       data: datasetEntriesToCreate,
     });
 
-    await updateDatasetFileUpload({
-      progress: 80,
-    });
-
-    console.log("got to pruning");
+    await updateDatasetFileUpload({ progress: 80 });
 
     await updatePruningRuleMatches(
       datasetFileUpload.datasetId,
@@ -121,19 +111,11 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       datasetEntriesToCreate.map((entry) => entry.id),
     );
 
-    await updateDatasetFileUpload({
-      progress: 85,
-    });
-
-    console.log("got to start test jobs");
+    await updateDatasetFileUpload({ progress: 85 });
 
     await startDatasetTestJobs(datasetFileUpload.datasetId);
 
-    await updateDatasetFileUpload({
-      progress: 90,
-    });
-
-    console.log("got to start token counting");
+    await updateDatasetFileUpload({ progress: 90 });
 
     await countDatasetEntryTokens.enqueue();
 
