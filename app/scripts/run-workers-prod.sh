@@ -7,4 +7,4 @@ pnpm prisma migrate deploy
 
 echo "Starting 4 workers"
 
-pnpm concurrently "pnpm worker" "pnpm worker" "pnpm worker" "pnpm worker"
+pnpm concurrently --kill-others "pnpm worker" "pnpm worker" "pnpm worker" "pnpm worker"
