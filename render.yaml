@@ -44,7 +44,7 @@ services:
     runtime: docker
     dockerfilePath: ./app/Dockerfile
     dockerContext: .
-    plan: pro
+    plan: pro plus
     dockerCommand: /code/app/scripts/run-workers-prod.sh
     envVars:
       - key: DATABASE_URL
