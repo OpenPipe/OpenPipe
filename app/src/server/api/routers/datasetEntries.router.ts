@@ -92,9 +92,10 @@ export const datasetEntriesRouter = createTRPCRouter({
           .execute()
       ).map((entry) => ({
         ...entry,
-        inputTokens:
-          entry.inputTokens -
-          entry.matchedRules.reduce((acc, match) => acc + (match.tokensInText ?? 0), 0),
+        inputTokens: entry.inputTokens
+          ? entry.inputTokens -
+            entry.matchedRules.reduce((acc, match) => acc + (match.tokensInText ?? 0), 0)
+          : null,
         matchedRules: entry.matchedRules.map((match) => ({
           textToMatch: match.textToMatch as string,
           tokensInText: match.tokensInText as number,

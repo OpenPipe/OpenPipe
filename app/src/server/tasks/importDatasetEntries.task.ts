@@ -124,7 +124,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
     await startDatasetTestJobs(datasetFileUpload.datasetId);
 
     try {
-      await countDatasetEntryTokens.runNow();
+      await countDatasetEntryTokens.enqueue();
     } catch (e) {
       // Catch this error since if counting tokens fails we don't want
       // to redo the whole import
