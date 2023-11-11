@@ -16,7 +16,7 @@ export const countDatasetEntryTokens = defineTask<void>({
           output: true,
         },
         orderBy: { sortKey: "desc" },
-        where: { inputTokens: 0 },
+        where: { inputTokens: null },
         take: 1000,
       });
 
@@ -31,7 +31,7 @@ export const countDatasetEntryTokens = defineTask<void>({
             // If the entry is invalid, mark it as invalid and move on
             await prisma.datasetEntry.update({
               where: { id: datasetEntry.id },
-              data: { inputTokens: -1, outputTokens: -1 },
+              data: { inputTokens: 0, outputTokens: 0 },
             });
             console.log(`Invalid dataset entry ${datasetEntry.id}`);
             return;
@@ -41,7 +41,7 @@ export const countDatasetEntryTokens = defineTask<void>({
           const outputTokens = entry.output ? countLlamaOutputTokens(entry.output) : 0;
 
           if (inputTokens === 0) {
-            throw new Error(`Invalid token count on dataset entry ${datasetEntry.id}`);
+            console.error(`Invalid token count on dataset entry ${datasetEntry.id}`);
           }
 
           await prisma.datasetEntry.update({

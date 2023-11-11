@@ -74,9 +74,9 @@ export interface DatasetEntry {
   updatedAt: Timestamp;
   loggedCallId: string | null;
   messages: Generated<Json>;
-  inputTokens: number;
+  inputTokens: number | null;
   output: Json | null;
-  outputTokens: number;
+  outputTokens: number | null;
   split: "TEST" | "TRAIN";
   authoringUserId: string | null;
   outdated: Generated<boolean>;

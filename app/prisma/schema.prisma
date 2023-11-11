@@ -247,8 +247,8 @@ model DatasetEntry {
     messages      Json  @default("[]")
 
     output       Json?
-    inputTokens  Int
-    outputTokens Int
+    inputTokens  Int?
+    outputTokens Int?
     matchedRules PruningRuleMatch[]
     split        DatasetEntrySplit
     outdated     Boolean                @default(false)
