@@ -10,10 +10,10 @@ repository = "https://github.com/OpenPipe/OpenPipe"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-openai = "^0.27.8"
 httpx = "^0.24.1"
 attrs = "^23.1.0"
 python-dateutil = "^2.8.2"
+openai = "^1.2.3"
 
 [tool.poetry.dev-dependencies]
 
