@@ -5,8 +5,11 @@ from openpipe.api_client.client import AuthenticatedClient
 from openpipe.api_client.models.report_json_body_tags import (
     ReportJsonBodyTags,
 )
+from openai.types.chat import ChatCompletion
 import os
 import pkg_resources
+import json
+from typing import Any, Dict, List, Union
 
 configured_client = AuthenticatedClient(
     base_url="https://app.openpipe.ai/api/v1", token="", raise_on_unexpected_status=True
@@ -74,3 +77,46 @@ async def report_async(
         # We don't want to break client apps if our API is down for some reason
         print(f"Error reporting to OpenPipe: {e}")
         print(e)
+
+
+def get_chat_completion_json(completion: ChatCompletion) -> Dict:
+    """
+    Converts a ChatCompletion object into a JSON object.
+    Handles arrays and selectively includes None values for specified fields.
+
+    Args:
+    - completion (ChatCompletion): The ChatCompletion object to convert.
+
+    Returns:
+    - Dict: A JSON object representing the ChatCompletion object.
+    """
+
+    include_null_fields = {
+        "content"
+    }  # Set of fields to include even if they have None value
+
+    def serialize(data: Any) -> Union[Dict, List]:
+        """
+        Custom serializer function for objects, arrays, and other types.
+        Excludes fields with None values unless specified.
+        """
+        if isinstance(data, list) or isinstance(data, tuple):
+            # Recursively process each element in the list or tuple
+            return [serialize(item) for item in data]
+
+        if hasattr(data, "__dict__"):
+            # Otherwise, use the __dict__ method to get attributes
+            data = data.__dict__
+            # Filter out None values, except for specified fields
+            return {
+                key: serialize(value)
+                if isinstance(value, (list, tuple, Dict))
+                else value
+                for key, value in data.items()
+                if value is not None or key in include_null_fields
+            }
+
+        return data
+
+    # Serialize the object and then load it back as a dictionary
+    return json.loads(json.dumps(completion, default=serialize, indent=4))
