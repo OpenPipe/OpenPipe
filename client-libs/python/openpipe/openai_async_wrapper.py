@@ -22,7 +22,7 @@ from .shared import (
 )
 
 
-class WrappedAsyncCompletions(AsyncCompletions):
+class AsyncCompletionsWrapper(AsyncCompletions):
     openpipe_client: AuthenticatedClient
 
     def __init__(
@@ -133,16 +133,16 @@ class WrappedAsyncCompletions(AsyncCompletions):
             raise e
 
 
-class WrappedAsyncChat(AsyncChat):
+class AsyncChatWrapper(AsyncChat):
     def __init__(
         self, client: OriginalAsyncOpenAI, openpipe_client: AuthenticatedClient
     ) -> None:
         super().__init__(client)
-        self.completions = WrappedAsyncCompletions(client, openpipe_client)
+        self.completions = AsyncCompletionsWrapper(client, openpipe_client)
 
 
-class WrappedAsyncOpenAI(OriginalAsyncOpenAI):
-    chat: WrappedAsyncChat
+class AsyncOpenAIWrapper(OriginalAsyncOpenAI):
+    chat: AsyncChatWrapper
     openpipe_client: AuthenticatedClient
 
     # Support auto-complete
@@ -174,4 +174,4 @@ class WrappedAsyncOpenAI(OriginalAsyncOpenAI):
 
         self.openpipe_client = configure_openpipe_client(openpipe)
 
-        self.chat = WrappedAsyncChat(self, self.openpipe_client)
+        self.chat = AsyncChatWrapper(self, self.openpipe_client)

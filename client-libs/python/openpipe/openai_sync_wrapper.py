@@ -22,7 +22,7 @@ from .shared import (
 )
 
 
-class WrappedCompletions(Completions):
+class CompletionsWrapper(Completions):
     openpipe_client: AuthenticatedClient
 
     def __init__(
@@ -124,16 +124,16 @@ class WrappedCompletions(Completions):
             raise e
 
 
-class WrappedChat(Chat):
+class ChatWrapper(Chat):
     def __init__(
         self, client: OriginalOpenAI, openpipe_client: AuthenticatedClient
     ) -> None:
         super().__init__(client)
-        self.completions = WrappedCompletions(client, openpipe_client)
+        self.completions = CompletionsWrapper(client, openpipe_client)
 
 
-class WrappedOpenAI(OriginalOpenAI):
-    chat: WrappedChat
+class OpenAIWrapper(OriginalOpenAI):
+    chat: ChatWrapper
     openpipe_client: AuthenticatedClient
 
     # Support auto-complete
@@ -165,4 +165,4 @@ class WrappedOpenAI(OriginalOpenAI):
 
         self.openpipe_client = configure_openpipe_client(openpipe)
 
-        self.chat = WrappedChat(self, self.openpipe_client)
+        self.chat = ChatWrapper(self, self.openpipe_client)
