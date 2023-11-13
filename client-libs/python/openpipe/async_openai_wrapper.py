@@ -1,22 +1,24 @@
-from openai import OpenAI as OriginalOpenAI, OpenAIError
-from openai.resources import Chat
-from openai.resources.chat.completions import Completions
+from openai import AsyncOpenAI as OriginalAsyncOpenAI, OpenAIError
+from openai.resources import AsyncChat
+from openai.resources.chat.completions import AsyncCompletions
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
-from openai._streaming import Stream
+from openai._streaming import AsyncStream
 import time
 import json
 
 from .merge_openai_chunks import merge_openai_chunks
 from .api_client.api.default import create_chat_completion
 from .api_client import errors
-from .shared import report, configured_client, get_chat_completion_json
+from .shared import report_async, configured_client, get_chat_completion_json
 
 
-class WrappedCompletions(Completions):
-    def __init__(self, client: OriginalOpenAI) -> None:
+class WrappedAsyncCompletions(AsyncCompletions):
+    def __init__(self, client: OriginalAsyncOpenAI) -> None:
         super().__init__(client)
 
-    def create(cls, *args, **kwargs) -> ChatCompletion | Stream[ChatCompletionChunk]:
+    async def create(
+        cls, *args, **kwargs
+    ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
         openpipe_options = kwargs.pop("openpipe", {})
 
         requested_at = int(time.time() * 1000)
@@ -24,7 +26,7 @@ class WrappedCompletions(Completions):
 
         try:
             if model.startswith("openpipe:"):
-                response = create_chat_completion.sync_detailed(
+                response = await create_chat_completion.asyncio_detailed(
                     client=configured_client,
                     json_body=create_chat_completion.CreateChatCompletionJsonBody.from_dict(
                         kwargs,
@@ -32,35 +34,42 @@ class WrappedCompletions(Completions):
                 )
                 chat_completion = ChatCompletion(**json.loads(response.content))
             else:
-                chat_completion = super().create(*args, **kwargs)
+                chat_completion = await super().create(*args, **kwargs)
 
-            if isinstance(chat_completion, Stream):
+            if isinstance(chat_completion, AsyncStream):
 
-                def _gen():
+                async def _gen():
                     assembled_completion = None
-                    for chunk in chat_completion:
-                        assembled_completion = merge_openai_chunks(
-                            assembled_completion, chunk
-                        )
-
-                        yield chunk
-
-                    received_at = int(time.time() * 1000)
-
-                    report(
-                        openpipe_options=openpipe_options,
-                        requested_at=requested_at,
-                        received_at=received_at,
-                        req_payload=kwargs,
-                        resp_payload=get_chat_completion_json(assembled_completion),
-                        status_code=200,
-                    )
+                    try:
+                        async for chunk in chat_completion:
+                            assembled_completion = merge_openai_chunks(
+                                assembled_completion, chunk
+                            )
+                            yield chunk
+                    finally:
+                        try:
+                            # This block will always execute when the generator exits.
+                            # This ensures that cleanup and reporting operations are performed regardless of how the generator terminates.
+                            received_at = int(time.time() * 1000)
+                            await report_async(
+                                openpipe_options=openpipe_options,
+                                requested_at=requested_at,
+                                received_at=received_at,
+                                req_payload=kwargs,
+                                resp_payload=get_chat_completion_json(
+                                    assembled_completion
+                                ),
+                                status_code=200,
+                            )
+                        except Exception as e:
+                            # Ignore any errors that occur while reporting
+                            pass
 
                 return _gen()
             else:
                 received_at = int(time.time() * 1000)
 
-                report(
+                await report_async(
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -73,7 +82,7 @@ class WrappedCompletions(Completions):
             received_at = int(time.time() * 1000)
 
             if isinstance(e, OpenAIError):
-                report(
+                await report_async(
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -91,7 +100,7 @@ class WrappedCompletions(Completions):
                 except:
                     pass
 
-                report(
+                await report_async(
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -105,15 +114,15 @@ class WrappedCompletions(Completions):
             raise e
 
 
-class WrappedChat(Chat):
-    def __init__(self, client: OriginalOpenAI) -> None:
+class WrappedAsyncChat(AsyncChat):
+    def __init__(self, client: OriginalAsyncOpenAI) -> None:
         super().__init__(client)
-        self.completions = WrappedCompletions(client)
+        self.completions = WrappedAsyncCompletions(client)
 
 
-class WrappedOpenAI(OriginalOpenAI):
-    chat: WrappedChat
+class WrappedAsyncOpenAI(OriginalAsyncOpenAI):
+    chat: WrappedAsyncChat
 
     def __init__(self) -> None:
         super().__init__()
-        self.chat = WrappedChat(self)
+        self.chat = WrappedAsyncChat(self)
