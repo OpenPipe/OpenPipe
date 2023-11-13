@@ -31,7 +31,7 @@ class WrappedCompletions(Completions):
                         kwargs,
                     ),
                 )
-                chat_completion = cast(ChatCompletion, json.loads(response.content))
+                chat_completion = ChatCompletion(**json.loads(response.content))
             else:
                 chat_completion = super().create(*args, **kwargs)
 
