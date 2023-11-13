@@ -1,3 +1,4 @@
 openapi.json linguist-generated
-python/api_client/models/* linguist-generated
-python/pnpm-lock.yaml linguist-generated
+
+python/openpipe/api_client/models/* linguist-generated
+python/openpipe/pnpm-lock.yaml linguist-generated
