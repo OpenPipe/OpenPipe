@@ -1,15 +1,25 @@
-from openai import AsyncOpenAI as OriginalAsyncOpenAI, OpenAIError
+from openai import OpenAI as OriginalAsyncOpenAI, OpenAIError, Timeout
 from openai.resources import AsyncChat
 from openai.resources.chat.completions import AsyncCompletions
+from openai._types import NotGiven, NOT_GIVEN
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai._streaming import AsyncStream
+from openai._base_client import DEFAULT_MAX_RETRIES
+
 import time
 import json
+from typing import Union, Mapping, Optional
+import httpx
 
 from .merge_openai_chunks import merge_openai_chunks
 from .api_client.api.default import create_chat_completion
 from .api_client import errors
-from .shared import report_async, configured_client, get_chat_completion_json
+from .shared import (
+    report_async,
+    configured_client,
+    get_chat_completion_json,
+    OpenPipeConfig,
+)
 
 
 class WrappedAsyncCompletions(AsyncCompletions):
@@ -123,6 +133,33 @@ class WrappedAsyncChat(AsyncChat):
 class WrappedAsyncOpenAI(OriginalAsyncOpenAI):
     chat: WrappedAsyncChat
 
-    def __init__(self) -> None:
-        super().__init__()
+    # Support auto-complete
+    def __init__(
+        self,
+        *,
+        openpipe: Optional[OpenPipeConfig] = None,
+        api_key: str | None = None,
+        organization: str | None = None,
+        base_url: str | httpx.URL | None = None,
+        timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        http_client: httpx.Client | None = None,
+        _strict_response_validation: bool = False,
+    ) -> None:
+        super().__init__(
+            api_key=api_key,
+            organization=organization,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            default_query=default_query,
+            http_client=http_client,
+            _strict_response_validation=_strict_response_validation,
+        )
+        if openpipe:
+            configured_client.token = openpipe.api_key
+            configured_client._base_url = openpipe.base_url
         self.chat = WrappedAsyncChat(self)

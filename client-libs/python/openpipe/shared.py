@@ -9,7 +9,14 @@ from openai.types.chat import ChatCompletion
 import os
 import pkg_resources
 import json
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, NamedTuple
+import time
+
+
+class OpenPipeConfig(NamedTuple):
+    base_url: str
+    api_key: str
+
 
 configured_client = AuthenticatedClient(
     base_url="https://app.openpipe.ai/api/v1", token="", raise_on_unexpected_status=True

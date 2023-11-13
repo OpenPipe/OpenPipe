@@ -302,3 +302,36 @@ def test_bad_openpipe_call():
     last_logged = last_logged_call()
     assert last_logged.model_response.error_message == "The model does not exist"
     assert last_logged.model_response.status_code == 404
+
+
+def test_bad_openai_initialization():
+    bad_client = OpenAI(api_key="bad_key")
+    try:
+        bad_client.chat.completions.create(
+            model="gpt-3.5-turbo-blaster",
+            messages=[{"role": "system", "content": "count to 10"}],
+            stream=True,
+        )
+        assert False
+    except Exception:
+        pass
+
+
+@pytest.mark.focus
+def test_bad_openpipe_initialization():
+    # bad_client = OpenAI(openpipe={"api_key": "bad_key"})
+    completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "system", "content": "This prompt should not be recorded."}],
+        openpipe={"tags": {"promptId": "test_bad_openpipe_initialization"}},
+    )
+
+    last_logged = last_logged_call()
+    assert (
+        last_logged.model_response.req_payload["messages"][0]["content"]
+        == "This prompt should not be recorded."
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        == completion.choices[0].message.content
+    )
