@@ -160,6 +160,11 @@ export const chatCompletionInput = z.union([
   chatCompletionInputNonStreaming.passthrough(),
 ]);
 
+export const chatCompletionInputReqPayload = z.object({
+  ...chatCompletionInputBase.shape,
+  stream: z.boolean().optional(),
+});
+
 export const chatCompletionOutput = z.object({
   id: z.string(),
   object: z.literal("chat.completion"),
