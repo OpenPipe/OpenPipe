@@ -5,10 +5,10 @@ import { type RowToImport } from "~/components/datasets/parseRowsToImport";
 
 import { prisma } from "~/server/db";
 import {
-  convertFunctionCall,
-  convertFunctions,
+  convertFunctionCallToToolChoice,
+  convertFunctionsToTools,
   convertFunctionMessageToToolCall,
-  convertMessages,
+  convertFunctionMessagesToToolCall,
 } from "./convertFunctionCalls";
 
 export const prepareDatasetEntriesForImport = async (
@@ -60,12 +60,13 @@ export const prepareDatasetEntriesForImport = async (
     return {
       id: uuidv4(),
       datasetId: datasetId,
-      messages: convertMessages(row.input.messages) as object[],
+      messages: convertFunctionMessagesToToolCall(row.input.messages) as object[],
       function_call: row.input.function_call,
       functions: row.input.functions as object[],
       tool_choice:
-        row.input.tool_choice || (convertFunctionCall(row.input.function_call) as object),
-      tools: row.input.tools || (convertFunctions(row.input.functions) as object[]),
+        row.input.tool_choice ||
+        (convertFunctionCallToToolChoice(row.input.function_call) as object),
+      tools: row.input.tools || (convertFunctionsToTools(row.input.functions) as object[]),
       output: (convertFunctionMessageToToolCall(
         row.output,
       ) as unknown as Prisma.InputJsonValue) ?? {

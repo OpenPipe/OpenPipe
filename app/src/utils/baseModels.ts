@@ -11,7 +11,7 @@ export const displayBaseModel = (baseModel: BaseModel) => {
     case "LLAMA2_13b":
       return "llama2-13b";
     case "GPT_3_5_TURBO":
-      return "gpt-3.5-turbo";
+      return "gpt-3.5-turbo-1106";
   }
 };
 
@@ -44,7 +44,7 @@ export const isComparisonModelName = (modelName: string) =>
   Object.values(COMPARISON_MODEL_NAMES).includes(modelName);
 
 export const COMPARISON_MODEL_NAMES: Record<ComparisonModel, string> = {
-  GPT_3_5_TURBO: "gpt-3.5-turbo-0613",
+  GPT_3_5_TURBO: "gpt-3.5-turbo-1106",
 };
 
 export const getComparisonModel = (modelName: string) => {

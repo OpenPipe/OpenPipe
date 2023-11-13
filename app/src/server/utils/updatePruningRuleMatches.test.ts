@@ -15,7 +15,7 @@ const input1: ChatCompletionMessageParam[] = [
   {
     role: "user",
     content:
-      'Prompt constructor function:\n---\n/**\n * Use Javascript to define an OpenAI chat completion\n * (https://platform.openai.com/docs/api-reference/chat/create).\n *\n * You have access to the current scenario in the `scenario`\n * variable.\n */\n\ndefinePrompt("openai/ChatCompletion", {\n  model: "gpt-3.5-turbo-0613",\n  messages: [\n    {\n      role: "system",\n      content: `Write \'Start experimenting!\' in ${scenario.language}`,\n    },\n  ],\n});',
+      "This is the user message.\nIt has a newline.\n\nAnd another two. Then it has text without newlines.",
   },
   {
     role: "assistant",
@@ -106,7 +106,7 @@ it("matches string with newline", async () => {
     createDatasetEntry(datasetId, input1),
     createPruningRule(
       datasetId,
-      "Prompt constructor function:\n---\n/**\n * Use Javascript to define an OpenAI chat completion\n * (https://platform.openai.com/docs/api-reference/chat/create).\n *",
+      "This is the user message.\nIt has a newline.\n\nAnd another two. ",
     ),
   ]);
 

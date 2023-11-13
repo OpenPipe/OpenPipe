@@ -1,9 +1,9 @@
 import { isObject } from "lodash-es";
 import { type ChatCompletionMessage, type ChatCompletionCreateParams } from "openai/resources/chat";
 import {
-  convertFunctionCall,
-  convertFunctions,
-  convertMessages,
+  convertFunctionCallToToolChoice,
+  convertFunctionsToTools,
+  convertFunctionMessagesToToolCall,
 } from "~/server/utils/convertFunctionCalls";
 
 const FUNCTION_CALL_TAG = "<function>";
@@ -67,13 +67,13 @@ export const serializeChatInput = (
   },
   fineTune: { pipelineVersion: number; id?: string },
 ) => {
-  const convertedMessages = convertMessages(input.messages);
+  const convertedMessages = convertFunctionMessagesToToolCall(input.messages);
   if (fineTune.pipelineVersion === 1) {
     return JSON.stringify(convertedMessages);
   } else if (fineTune.pipelineVersion === 2) {
     let functions: string[] | null = null;
-    const toolChoice = input.tool_choice ?? convertFunctionCall(input.function_call);
-    const tools = input.tools ?? convertFunctions(input.functions);
+    const toolChoice = input.tool_choice ?? convertFunctionCallToToolChoice(input.function_call);
+    const tools = input.tools ?? convertFunctionsToTools(input.functions ?? undefined);
     if (toolChoice === "none") {
       functions = null;
     } else if (
