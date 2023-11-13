@@ -3,10 +3,10 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat";
 import { kysely } from "../db";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import {
-  convertFunctionCall,
-  convertFunctions,
-  convertMessages,
   convertFunctionMessageToToolCall,
+  convertFunctionCallToToolChoice,
+  convertFunctionsToTools,
+  convertFunctionMessagesToToolCall,
 } from "../utils/convertFunctionCalls";
 
 await kysely.transaction().execute(async (trx) => {
@@ -36,11 +36,11 @@ await kysely.transaction().execute(async (trx) => {
       continue;
     }
 
-    const tool_choice = convertFunctionCall(typedEntry.function_call);
+    const tool_choice = convertFunctionCallToToolChoice(typedEntry.function_call);
 
-    const tools = convertFunctions(typedEntry.functions);
+    const tools = convertFunctionsToTools(typedEntry.functions ?? undefined);
 
-    const messages = convertMessages(typedEntry.messages);
+    const messages = convertFunctionMessagesToToolCall(typedEntry.messages);
     const output = typedEntry.output ? convertFunctionMessageToToolCall(typedEntry.output) : null;
 
     await trx

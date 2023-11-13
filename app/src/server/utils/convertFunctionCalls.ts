@@ -1,11 +1,9 @@
 import type { ChatCompletionCreateParamsBase } from "openai/resources/chat/completions";
 
-export const convertFunctionCall = (
+export const convertFunctionCallToToolChoice = (
   functionCall: ChatCompletionCreateParamsBase["function_call"] | null,
-): ChatCompletionCreateParamsBase["tool_choice"] => {
-  if (!functionCall) {
-    return undefined;
-  } else if (functionCall === "auto" || functionCall === "none") {
+): ChatCompletionCreateParamsBase["tool_choice"] | null => {
+  if (!functionCall || functionCall === "auto" || functionCall === "none") {
     return functionCall;
   } else if (functionCall.name) {
     return {
@@ -17,11 +15,22 @@ export const convertFunctionCall = (
   }
 };
 
-export const convertFunctions = (
-  functions: ChatCompletionCreateParamsBase["functions"] | null,
-): ChatCompletionCreateParamsBase["tools"] | null => {
-  if (!functions) return functions;
-  return functions.map((func) => ({
+export const convertToolChoiceToFunctionCall = (
+  toolChoice: ChatCompletionCreateParamsBase["tool_choice"],
+): ChatCompletionCreateParamsBase["function_call"] => {
+  if (!toolChoice || toolChoice === "auto" || toolChoice === "none") {
+    return toolChoice;
+  } else if (toolChoice.type === "function" && toolChoice.function) {
+    return {
+      name: toolChoice.function.name,
+    };
+  }
+};
+
+export const convertFunctionsToTools = (
+  functions: ChatCompletionCreateParamsBase["functions"],
+): ChatCompletionCreateParamsBase["tools"] =>
+  functions?.map((func) => ({
     type: "function",
     function: {
       name: func.name,
@@ -29,9 +38,28 @@ export const convertFunctions = (
       parameters: func.parameters,
     },
   }));
-};
 
-export const convertMessages = (
+export const convertToolsToFunctions = (
+  tools: ChatCompletionCreateParamsBase["tools"],
+): ChatCompletionCreateParamsBase["functions"] =>
+  tools?.map((tool) => ({
+    name: tool.function.name,
+    description: tool.function.description,
+    parameters: tool.function.parameters,
+  }));
+
+export const convertToolCallInputToFunctionInput = (
+  input: ChatCompletionCreateParamsBase,
+): ChatCompletionCreateParamsBase => ({
+  ...input,
+  messages: convertToolCallMessagesToFunction(input.messages),
+  function_call: input.function_call ?? convertToolChoiceToFunctionCall(input.tool_choice),
+  functions: input.functions ?? convertToolsToFunctions(input.tools),
+  tool_choice: undefined,
+  tools: undefined,
+});
+
+export const convertFunctionMessagesToToolCall = (
   messages: ChatCompletionCreateParamsBase["messages"],
 ): ChatCompletionCreateParamsBase["messages"] => messages.map(convertFunctionMessageToToolCall);
 
@@ -44,20 +72,21 @@ export const convertFunctionMessageToToolCall = (
     case "tool":
       return message;
     case "assistant":
-      if (message.tool_calls?.length || !message.function_call) {
-        return message;
-      } else {
-        return {
-          ...message,
-          tool_calls: [
-            {
-              id: "",
-              type: "function" as const,
-              function: message.function_call,
-            },
-          ],
-        };
+      let tool_calls = message.tool_calls;
+      if (!tool_calls && message.function_call) {
+        tool_calls = [
+          {
+            id: "",
+            type: "function" as const,
+            function: message.function_call,
+          },
+        ];
       }
+      return {
+        ...message,
+        tool_calls,
+        function_call: undefined,
+      };
     case "function":
       return {
         role: "tool" as const,
@@ -66,6 +95,10 @@ export const convertFunctionMessageToToolCall = (
       };
   }
 };
+
+export const convertToolCallMessagesToFunction = (
+  messages: ChatCompletionCreateParamsBase["messages"],
+): ChatCompletionCreateParamsBase["messages"] => messages.map(convertToolCallMessageToFunction);
 
 export const convertToolCallMessageToFunction = (
   message: ChatCompletionCreateParamsBase["messages"][0],
@@ -76,15 +109,11 @@ export const convertToolCallMessageToFunction = (
     case "function":
       return message;
     case "assistant":
-      if (message.function_call || !message.tool_calls?.length) {
-        return message;
-      } else {
-        return {
-          ...message,
-          function_call: message.tool_calls[0]?.function,
-          tool_calls: undefined,
-        };
-      }
+      return {
+        ...message,
+        function_call: message.function_call || message.tool_calls?.[0]?.function,
+        tool_calls: undefined,
+      };
     case "tool":
       return {
         role: "function" as const,
