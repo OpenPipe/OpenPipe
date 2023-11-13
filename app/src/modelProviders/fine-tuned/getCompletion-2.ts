@@ -39,13 +39,13 @@ export async function getCompletion2(
 
     // TODO: create pipeline without this conversion once OpenAI supports tool_calls for their fine-tuned models
 
-    // convert tool call input to function call input
     const completion = await getOpenaiCompletion(fineTune.projectId, {
+      // convert tool call input to function call input
       ...convertToolCallInputToFunctionInput(prunedInput),
       model,
     });
-    // convert function call output to tool call output
     if (completion.choices[0]?.message.function_call) {
+      // convert function call output to tool call output
       completion.choices[0].message = convertFunctionMessageToToolCall(
         completion.choices[0].message,
       ) as ChatCompletionMessage;

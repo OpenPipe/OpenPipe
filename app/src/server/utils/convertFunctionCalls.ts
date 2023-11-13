@@ -76,17 +76,19 @@ export const convertFunctionMessageToToolCall = (
     case "tool":
       return message;
     case "assistant":
+      let tool_calls = message.tool_calls;
+      if (!tool_calls && message.function_call) {
+        tool_calls = [
+          {
+            id: "",
+            type: "function" as const,
+            function: message.function_call,
+          },
+        ];
+      }
       return {
         ...message,
-        tool_calls: message.function_call
-          ? [
-              {
-                id: "",
-                type: "function" as const,
-                function: message.function_call,
-              },
-            ]
-          : undefined,
+        tool_calls,
         function_call: undefined,
       };
     case "function":
