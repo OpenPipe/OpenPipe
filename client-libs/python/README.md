@@ -13,14 +13,15 @@ This client allows you automatically report your OpenAI calls to [OpenPipe](http
 3. Configure the OpenPipe client as shown below.
 
 ```python
-from openpipe import openai, configure_openpipe
+from openpipe import OpenAI
 import os
 
-client = AsyncOpenAI(
+client = OpenAI(
     # defaults to os.environ.get("OPENAI_API_KEY")
     api_key="My API Key",
     openpipe={
-        # defaults to os.environ.get("OPENPIPE_API_KEY")
+        # Set the OpenPipe API key you got in step (2) above.
+        # If you have the `OPENPIPE_API_KEY` environment variable set we'll read from it by default
         "api_key": "My OpenPipe API Key",
     }
 )
