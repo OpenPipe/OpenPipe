@@ -29,9 +29,8 @@ export const convertToolChoiceToFunctionCall = (
 
 export const convertFunctionsToTools = (
   functions: ChatCompletionCreateParamsBase["functions"],
-): ChatCompletionCreateParamsBase["tools"] => {
-  if (!functions) return functions;
-  return functions.map((func) => ({
+): ChatCompletionCreateParamsBase["tools"] =>
+  functions?.map((func) => ({
     type: "function",
     function: {
       name: func.name,
@@ -39,18 +38,15 @@ export const convertFunctionsToTools = (
       parameters: func.parameters,
     },
   }));
-};
 
 export const convertToolsToFunctions = (
   tools: ChatCompletionCreateParamsBase["tools"],
-): ChatCompletionCreateParamsBase["functions"] => {
-  if (!tools) return tools;
-  return tools.map((tool) => ({
+): ChatCompletionCreateParamsBase["functions"] =>
+  tools?.map((tool) => ({
     name: tool.function.name,
     description: tool.function.description,
     parameters: tool.function.parameters,
   }));
-};
 
 export const convertToolCallInputToFunctionInput = (
   input: ChatCompletionCreateParamsBase,
