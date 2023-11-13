@@ -72,8 +72,6 @@ export const prepareDatasetEntriesForImport = async (
         role: "assistant",
         content: "",
       },
-      inputTokens: 0,
-      outputTokens: 0,
       authoringUserId,
       provenance,
       split: row.split,

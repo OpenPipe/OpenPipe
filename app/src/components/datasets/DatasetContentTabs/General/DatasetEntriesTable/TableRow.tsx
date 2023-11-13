@@ -102,8 +102,12 @@ export const TableRow = ({
           <RelabelingStatus status={datasetEntry.relabelStatuses?.[0]?.status} />
         </Td>
       )}
-      <Td isNumeric>{datasetEntry.inputTokens.toLocaleString()}</Td>
-      <Td isNumeric>{datasetEntry.outputTokens.toLocaleString()}</Td>
+      <Td isNumeric>
+        {datasetEntry.inputTokens?.toLocaleString() ?? <Text color="gray.500">counting</Text>}
+      </Td>
+      <Td isNumeric>
+        {datasetEntry.outputTokens?.toLocaleString() ?? <Text color="gray.500">counting</Text>}
+      </Td>
       <Td isNumeric>
         <EntrySplit split={datasetEntry.split} />
       </Td>

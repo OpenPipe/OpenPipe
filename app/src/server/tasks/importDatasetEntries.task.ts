@@ -1,3 +1,4 @@
+import { type Prisma } from "@prisma/client";
 import {
   isParseError,
   isRowToImport,
@@ -6,11 +7,10 @@ import {
 import { prisma } from "~/server/db";
 import { downloadBlobToString } from "~/utils/azure/server";
 import { prepareDatasetEntriesForImport } from "../utils/prepareDatasetEntriesForImport";
+import { startDatasetTestJobs } from "../utils/startTestJobs";
 import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
 import defineTask from "./defineTask";
-import { startDatasetTestJobs } from "../utils/startTestJobs";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
-import { captureException } from "@sentry/browser";
 
 export type ImportDatasetEntriesJob = {
   datasetFileUploadId: string;
@@ -25,30 +25,27 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       where: { id: datasetFileUploadId },
     });
 
-    if (!datasetFileUpload) {
-      await prisma.datasetFileUpload.update({
+    const updateDatasetFileUpload = async (data: Prisma.DatasetFileUploadUpdateInput) =>
+      prisma.datasetFileUpload.update({
         where: { id: datasetFileUploadId },
-        data: {
-          errorMessage: "Dataset File Upload not found",
-          status: "ERROR",
-        },
+        data,
+      });
+
+    if (!datasetFileUpload) {
+      await updateDatasetFileUpload({
+        errorMessage: "Dataset File Upload not found",
+        status: "ERROR",
       });
       return;
     }
-    await prisma.datasetFileUpload.update({
-      where: { id: datasetFileUploadId },
-      data: {
-        status: "DOWNLOADING",
-        progress: 5,
-      },
+    await updateDatasetFileUpload({
+      status: "DOWNLOADING",
+      progress: 5,
     });
 
     const onBlobDownloadProgress = async (progress: number) => {
-      await prisma.datasetFileUpload.update({
-        where: { id: datasetFileUploadId },
-        data: {
-          progress: 5 + Math.floor((progress / datasetFileUpload.fileSize) * 25),
-        },
+      await updateDatasetFileUpload({
+        progress: 5 + Math.floor((progress / datasetFileUpload.fileSize) * 25),
       });
     };
 
@@ -72,12 +69,9 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       });
     }
 
-    await prisma.datasetFileUpload.update({
-      where: { id: datasetFileUploadId },
-      data: {
-        status: "PROCESSING",
-        progress: 30,
-      },
+    await updateDatasetFileUpload({
+      status: "PROCESSING",
+      progress: 30,
     });
 
     const importId = new Date().toISOString();
@@ -92,28 +86,24 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      await prisma.datasetFileUpload.update({
-        where: { id: datasetFileUploadId },
-        data: {
-          errorMessage: `Error formatting rows: ${e.message as string}`,
-          status: "ERROR",
-          visible: true,
-        },
+      await updateDatasetFileUpload({
+        errorMessage: `Error preparing rows: ${e.message as string}`,
+        status: "ERROR",
+        visible: true,
       });
       return;
     }
 
-    await prisma.datasetFileUpload.update({
-      where: { id: datasetFileUploadId },
-      data: {
-        status: "SAVING",
-        progress: 90,
-      },
+    await updateDatasetFileUpload({
+      status: "SAVING",
+      progress: 75,
     });
 
     await prisma.datasetEntry.createMany({
       data: datasetEntriesToCreate,
     });
+
+    await updateDatasetFileUpload({ progress: 80 });
 
     await updatePruningRuleMatches(
       datasetFileUpload.datasetId,
@@ -121,23 +111,18 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       datasetEntriesToCreate.map((entry) => entry.id),
     );
 
+    await updateDatasetFileUpload({ progress: 85 });
+
     await startDatasetTestJobs(datasetFileUpload.datasetId);
 
-    try {
-      await countDatasetEntryTokens.runNow();
-    } catch (e) {
-      // Catch this error since if counting tokens fails we don't want
-      // to redo the whole import
-      captureException(e);
-    }
+    await updateDatasetFileUpload({ progress: 90 });
 
-    await prisma.datasetFileUpload.update({
-      where: { id: datasetFileUploadId },
-      data: {
-        status: "COMPLETE",
-        progress: 100,
-        visible: true,
-      },
+    await countDatasetEntryTokens.enqueue();
+
+    await updateDatasetFileUpload({
+      status: "COMPLETE",
+      progress: 100,
+      visible: true,
     });
   },
   beforeEnqueue: async (task) => {

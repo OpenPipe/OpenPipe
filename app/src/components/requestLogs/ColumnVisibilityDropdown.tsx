@@ -22,10 +22,6 @@ import ActionButton from "../ActionButton";
 const ColumnVisibilityDropdown = () => {
   const tagNames = useTagNames().data;
 
-  const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
-  const toggleColumnVisibility = useAppStore((s) => s.columnVisibility.toggleColumnVisibility);
-  const totalColumns = Object.keys(StaticColumnKeys).length + (tagNames?.length ?? 0);
-
   const popover = useDisclosure();
 
   const columnVisibilityOptions = useMemo(() => {
@@ -68,6 +64,15 @@ const ColumnVisibilityDropdown = () => {
     return options;
   }, [tagNames]);
 
+  const columnVisibilityKeys = new Set(columnVisibilityOptions.map((option) => option.key));
+
+  const visibleColumns = new Set(
+    Array.from(useAppStore((s) => s.columnVisibility.visibleColumns)).filter((key) =>
+      columnVisibilityKeys.has(key),
+    ),
+  );
+  const toggleColumnVisibility = useAppStore((s) => s.columnVisibility.toggleColumnVisibility);
+
   const isClientRehydrated = useIsClientRehydrated();
   if (!isClientRehydrated) return null;
 
@@ -81,7 +86,7 @@ const ColumnVisibilityDropdown = () => {
       <PopoverTrigger>
         <Box>
           <ActionButton
-            label={`Columns (${visibleColumns.size}/${totalColumns})`}
+            label={`Columns (${visibleColumns.size}/${columnVisibilityOptions.length})`}
             icon={BsToggles}
           />
         </Box>
