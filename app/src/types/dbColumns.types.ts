@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { type DatasetEntry, type LoggedCallModelResponse } from "@prisma/client";
+
 import {
   chatCompletionMessage,
   chatCompletionInput,
@@ -9,7 +11,6 @@ import {
   toolChoiceInput,
   toolsInput,
 } from "./shared.types";
-import { type DatasetEntry, type LoggedCallModelResponse } from "@prisma/client";
 
 export const datasetEntrySchema = z
   .object({

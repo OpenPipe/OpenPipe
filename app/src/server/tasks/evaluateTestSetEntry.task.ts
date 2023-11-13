@@ -1,5 +1,6 @@
 import { UsageType, type ComparisonModel, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
+import { type ChatCompletion } from "openai/resources/chat";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
@@ -13,7 +14,6 @@ import {
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
-import { type ChatCompletion } from "openai/resources/chat";
 
 export type EvaluateTestSetEntryJob = {
   modelId: string;
@@ -67,8 +67,8 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
     const cacheKey = hashObject({
       modelId,
       messages: datasetEntry.messages,
-      function_call: datasetEntry.function_call,
-      functions: datasetEntry.functions,
+      tool_choice: datasetEntry.tool_choice,
+      tools: datasetEntry.tools,
     } as JsonValue);
 
     if (!skipCache) {
@@ -97,8 +97,8 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         ? `openpipe:${fineTune.slug}`
         : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
       messages: datasetEntry.messages,
-      function_call: datasetEntry.function_call ?? undefined,
-      functions: datasetEntry.functions ?? undefined,
+      tool_choice: datasetEntry.tool_choice ?? undefined,
+      tools: datasetEntry.tools ?? undefined,
     };
     try {
       if (isComparisonModel(modelId)) {
@@ -119,7 +119,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       const completionMessage = completion.choices[0]?.message;
       if (!choice) throw new Error("No completion returned");
       let score;
-      if (datasetEntry.output?.function_call) {
+      if (datasetEntry.output?.tool_calls) {
         score = calculateEntryScore(datasetEntry.output.tool_calls, choice.message.tool_calls);
       }
 
@@ -153,11 +153,13 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           errorMessage: null,
         },
       });
-    } catch (e) {
+    } catch (e: unknown) {
+      const typedError = e as { message?: string; error?: { message: string } };
       await prisma.fineTuneTestingEntry.update({
         where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {
-          errorMessage: (e as Error).message,
+          errorMessage:
+            typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
         },
       });
       throw e;

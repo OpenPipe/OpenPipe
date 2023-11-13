@@ -11,7 +11,11 @@ import { runInference } from "~/server/modal-rpc/clients";
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
-import { convertToolCallMessageToFunction } from "~/server/utils/convertFunctionCalls";
+import {
+  convertFunctionMessageToToolCall,
+  convertToolCallInputToFunctionInput,
+  convertToolCallMessageToFunction,
+} from "~/server/utils/convertFunctionCalls";
 
 export async function getCompletion2(
   fineTune: FineTune,
@@ -33,10 +37,20 @@ export async function getCompletion2(
 
     if (!model) throw new Error("No OpenAI model ID found");
 
-    return getOpenaiCompletion(fineTune.projectId, {
-      ...prunedInput,
+    // TODO: create pipeline without this conversion once OpenAI supports tool_calls for their fine-tuned models
+
+    // convert tool call input to function call input
+    const completion = await getOpenaiCompletion(fineTune.projectId, {
+      ...convertToolCallInputToFunctionInput(prunedInput),
       model,
     });
+    // convert function call output to tool call output
+    if (completion.choices[0]?.message.function_call) {
+      completion.choices[0].message = convertFunctionMessageToToolCall(
+        completion.choices[0].message,
+      ) as ChatCompletionMessage;
+    }
+    return completion;
   } else {
     return getModalCompletion(fineTune, prunedInput);
   }

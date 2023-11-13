@@ -2,7 +2,9 @@ import fs from "fs";
 import OpenAI from "openai";
 
 import { prisma } from "~/server/db";
+import { convertToolCallMessagesToFunction } from "~/server/utils/convertFunctionCalls";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { chatCompletionMessage } from "~/types/shared.types";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 
 export const trainOpenaiFineTune = async (fineTuneId: string) => {
@@ -50,12 +52,15 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
 
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
-  const trainingEntries = fineTune.trainingEntries.map((entry) => ({
-    messages: [
-      ...pruneInputMessages(typedDatasetEntry(entry.datasetEntry).messages, stringsToPrune),
-      entry.datasetEntry.output,
-    ],
-  }));
+  const trainingEntries = fineTune.trainingEntries.map((entry) => {
+    const outputMessage = chatCompletionMessage.parse(entry.datasetEntry.output);
+    return {
+      messages: convertToolCallMessagesToFunction([
+        ...pruneInputMessages(typedDatasetEntry(entry.datasetEntry).messages, stringsToPrune),
+        outputMessage,
+      ]),
+    };
+  });
 
   const jsonlStr = trainingEntries.map((row) => JSON.stringify(row)).join("\n");
 
@@ -88,7 +93,7 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
 
     const fineTuneJob = await openai.fineTuning.jobs.create({
       training_file: trainingFile.id,
-      model: "gpt-3.5-turbo",
+      model: "gpt-3.5-turbo-1106",
     });
 
     await prisma.fineTune.update({
