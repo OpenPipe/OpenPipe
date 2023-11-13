@@ -40,7 +40,6 @@ def test_sync_content():
         openpipe={"tags": {"promptId": "test_sync_content"}},
     )
 
-    print("completion is", completion)
     last_logged = last_logged_call()
     assert (
         last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
@@ -51,7 +50,23 @@ def test_sync_content():
     )
 
 
-@pytest.mark.focus
+def test_sync_content_ft():
+    completion = client.chat.completions.create(
+        model="openpipe:test-sync-content-ft",
+        messages=[{"role": "system", "content": "count to 3"}],
+        openpipe={"tags": {"promptId": "test_sync_content_ft"}},
+    )
+
+    last_logged = last_logged_call()
+    assert (
+        last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        == completion.choices[0].message.content
+    )
+
+
 def test_sync_function_call():
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -77,11 +92,37 @@ def test_sync_function_call():
     )
 
 
+def test_sync_function_call_ft():
+    completion = client.chat.completions.create(
+        model="openpipe:test-sync-tool-calls-ft",
+        messages=[{"role": "system", "content": "tell me the weather in SF"}],
+        function_call=function_call,
+        functions=[function],
+        openpipe={"tags": {"promptId": "test_sync_function_call_ft"}},
+    )
+    last_logged = last_logged_call()
+    assert (
+        last_logged.model_response.req_payload["messages"][0]["content"]
+        == "tell me the weather in SF"
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        == completion.choices[0].message.content
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"][
+            "function_call"
+        ]["name"]
+        == "get_current_weather"
+    )
+
+
 def test_sync_tool_calls():
     completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "system", "content": "tell me the weather in SF"}],
-        tool_choice={"type": "function", "function": function_call},
+        model="gpt-3.5-turbo-1106",
+        messages=[
+            {"role": "system", "content": "tell me the weather in SF and Orlando"}
+        ],
         tools=[
             {
                 "type": "function",
@@ -93,7 +134,38 @@ def test_sync_tool_calls():
     last_logged = last_logged_call()
     assert (
         last_logged.model_response.req_payload["messages"][0]["content"]
-        == "tell me the weather in SF"
+        == "tell me the weather in SF and Orlando"
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        == completion.choices[0].message.content
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
+            0
+        ]["function"]["name"]
+        == "get_current_weather"
+    )
+
+
+def test_sync_tool_calls_ft():
+    completion = client.chat.completions.create(
+        model="openpipe:test-sync-tool-calls-ft",
+        messages=[
+            {"role": "system", "content": "tell me the weather in SF and Orlando"}
+        ],
+        tools=[
+            {
+                "type": "function",
+                "function": function,
+            },
+        ],
+        openpipe={"tags": {"promptId": "test_sync_tool_calls_ft"}},
+    )
+    last_logged = last_logged_call()
+    assert (
+        last_logged.model_response.req_payload["messages"][0]["content"]
+        == "tell me the weather in SF and Orlando"
     )
     assert (
         last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
@@ -121,6 +193,36 @@ def test_sync_streaming_content():
     assert (
         last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
         == merged.choices[0].message.content
+    )
+
+
+def test_sync_streaming_function_call():
+    completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "system", "content": "tell me the weather in SF"}],
+        function_call=function_call,
+        functions=[function],
+        stream=True,
+        openpipe={"tags": {"promptId": "test_sync_streaming_function_call"}},
+    )
+
+    merged = reduce(merge_openai_chunks, completion, None)
+
+    last_logged = last_logged_call()
+
+    assert (
+        last_logged.model_response.req_payload["messages"][0]["content"]
+        == "tell me the weather in SF"
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        == merged.choices[0].message.content
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"][
+            "function_call"
+        ]["name"]
+        == merged.choices[0].message.function_call.name
     )
 
 
