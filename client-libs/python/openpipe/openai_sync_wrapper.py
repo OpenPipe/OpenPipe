@@ -11,15 +11,25 @@ import json
 from typing import Union, Mapping, Optional, Dict
 import httpx
 
+from .api_client.client import AuthenticatedClient
 from .merge_openai_chunks import merge_openai_chunks
 from .api_client.api.default import create_chat_completion
 from .api_client import errors
-from .shared import report, configured_client, get_chat_completion_json
+from .shared import (
+    report,
+    get_chat_completion_json,
+    configure_openpipe_client,
+)
 
 
 class WrappedCompletions(Completions):
-    def __init__(self, client: OriginalOpenAI) -> None:
+    openpipe_client: AuthenticatedClient
+
+    def __init__(
+        self, client: OriginalOpenAI, openpipe_client: AuthenticatedClient
+    ) -> None:
         super().__init__(client)
+        self.openpipe_client = openpipe_client
 
     def create(cls, *args, **kwargs) -> ChatCompletion | Stream[ChatCompletionChunk]:
         openpipe_options = kwargs.pop("openpipe", {})
@@ -30,7 +40,7 @@ class WrappedCompletions(Completions):
         try:
             if model.startswith("openpipe:"):
                 response = create_chat_completion.sync_detailed(
-                    client=configured_client,
+                    client=cls.openpipe_client,
                     json_body=create_chat_completion.CreateChatCompletionJsonBody.from_dict(
                         kwargs,
                     ),
@@ -53,6 +63,7 @@ class WrappedCompletions(Completions):
                     received_at = int(time.time() * 1000)
 
                     report(
+                        configured_client=cls.openpipe_client,
                         openpipe_options=openpipe_options,
                         requested_at=requested_at,
                         received_at=received_at,
@@ -66,6 +77,7 @@ class WrappedCompletions(Completions):
                 received_at = int(time.time() * 1000)
 
                 report(
+                    configured_client=cls.openpipe_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -79,6 +91,7 @@ class WrappedCompletions(Completions):
 
             if isinstance(e, OpenAIError):
                 report(
+                    configured_client=cls.openpipe_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -97,6 +110,7 @@ class WrappedCompletions(Completions):
                     pass
 
                 report(
+                    configured_client=cls.openpipe_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -111,13 +125,16 @@ class WrappedCompletions(Completions):
 
 
 class WrappedChat(Chat):
-    def __init__(self, client: OriginalOpenAI) -> None:
+    def __init__(
+        self, client: OriginalOpenAI, openpipe_client: AuthenticatedClient
+    ) -> None:
         super().__init__(client)
-        self.completions = WrappedCompletions(client)
+        self.completions = WrappedCompletions(client, openpipe_client)
 
 
 class WrappedOpenAI(OriginalOpenAI):
     chat: WrappedChat
+    openpipe_client: AuthenticatedClient
 
     # Support auto-complete
     def __init__(
@@ -146,10 +163,6 @@ class WrappedOpenAI(OriginalOpenAI):
             _strict_response_validation=_strict_response_validation,
         )
 
-        if openpipe:
-            if "api_key" in openpipe:
-                self.token = openpipe["api_key"]
-            if "base_url" in openpipe:
-                self._base_url = openpipe["base_url"]
+        self.openpipe_client = configure_openpipe_client(openpipe)
 
-        self.chat = WrappedChat(self)
+        self.chat = WrappedChat(self, self.openpipe_client)

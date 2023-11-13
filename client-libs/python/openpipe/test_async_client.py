@@ -15,7 +15,7 @@ async def test_async_content():
         openpipe={"tags": {"promptId": "test_async_content"}},
     )
 
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
     assert (
         last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
     )
@@ -32,7 +32,7 @@ async def test_async_content():
 #         openpipe={"tags": {"promptId": "test_async_content_ft"}},
 #     )
 
-#     last_logged = last_logged_call()
+#     last_logged = last_logged_call(client)
 #     assert (
 #         last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
 #     )
@@ -50,7 +50,7 @@ async def test_async_function_call():
         functions=[function],
         openpipe={"tags": {"promptId": "test_async_function_call"}},
     )
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
     assert (
         last_logged.model_response.req_payload["messages"][0]["content"]
         == "tell me the weather in SF"
@@ -75,7 +75,7 @@ async def test_async_function_call():
 #         functions=[function],
 #         openpipe={"tags": {"promptId": "test_async_function_call_ft"}},
 #     )
-#     last_logged = last_logged_call()
+#     last_logged = last_logged_call(client)
 #     assert (
 #         last_logged.model_response.req_payload["messages"][0]["content"]
 #         == "tell me the weather in SF"
@@ -106,7 +106,7 @@ async def test_async_tool_calls():
         ],
         openpipe={"tags": {"promptId": "test_async_tool_calls"}},
     )
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
     assert (
         last_logged.model_response.req_payload["messages"][0]["content"]
         == "tell me the weather in SF and Orlando"
@@ -137,7 +137,7 @@ async def test_async_tool_calls():
 #         ],
 #         openpipe={"tags": {"promptId": "test_async_tool_calls_ft"}},
 #     )
-#     last_logged = last_logged_call()
+#     last_logged = last_logged_call(client)
 #     assert (
 #         last_logged.model_response.req_payload["messages"][0]["content"]
 #         == "tell me the weather in SF and Orlando"
@@ -166,7 +166,7 @@ async def test_async_streaming_content():
     async for chunk in completion:
         merged = merge_openai_chunks(merged, chunk)
 
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
     assert (
         last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
         == merged.choices[0].message.content
@@ -187,7 +187,7 @@ async def test_async_streaming_function_call():
     async for chunk in completion:
         merged = merge_openai_chunks(merged, chunk)
 
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
 
     assert (
         last_logged.model_response.req_payload["messages"][0]["content"]
@@ -225,7 +225,7 @@ async def test_async_streaming_tool_calls():
     async for chunk in completion:
         merged = merge_openai_chunks(merged, chunk)
 
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
     assert (
         last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
             0
@@ -241,7 +241,7 @@ async def test_async_with_tags():
         openpipe={"tags": {"promptId": "test_async_with_tags"}},
     )
 
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
     assert (
         last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
@@ -261,7 +261,7 @@ async def test_bad_openai_call():
         assert False
     except Exception:
         pass
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
     assert (
         last_logged.model_response.error_message
         == "The model `gpt-3.5-turbo-blaster` does not exist"
@@ -279,6 +279,6 @@ async def test_bad_openpipe_call():
         assert False
     except Exception:
         pass
-    last_logged = last_logged_call()
+    last_logged = last_logged_call(client)
     assert last_logged.model_response.error_message == "The model does not exist"
     assert last_logged.model_response.status_code == 404

@@ -9,24 +9,28 @@ from openai.types.chat import ChatCompletion
 import os
 import pkg_resources
 import json
-from typing import Any, Dict, List, Union, NamedTuple
-import time
+from typing import Any, Dict, List, Union
 
 
-class OpenPipeConfig(NamedTuple):
-    base_url: str
-    api_key: str
+def configure_openpipe_client(openpipe_options={}) -> AuthenticatedClient:
+    configured_client = AuthenticatedClient(
+        base_url="https://app.openpipe.ai/api/v1",
+        token="",
+        raise_on_unexpected_status=True,
+    )
 
+    if os.environ.get("OPENPIPE_API_KEY"):
+        configured_client.token = os.environ["OPENPIPE_API_KEY"]
 
-configured_client = AuthenticatedClient(
-    base_url="https://app.openpipe.ai/api/v1", token="", raise_on_unexpected_status=True
-)
+    if os.environ.get("OPENPIPE_BASE_URL"):
+        configured_client._base_url = os.environ["OPENPIPE_BASE_URL"]
 
-if os.environ.get("OPENPIPE_API_KEY"):
-    configured_client.token = os.environ["OPENPIPE_API_KEY"]
+    if openpipe_options and openpipe_options.get("api_key"):
+        configured_client.token = openpipe_options["api_key"]
+    if openpipe_options and openpipe_options.get("base_url"):
+        configured_client._base_url = openpipe_options["base_url"]
 
-if os.environ.get("OPENPIPE_BASE_URL"):
-    configured_client._base_url = os.environ["OPENPIPE_BASE_URL"]
+    return configured_client
 
 
 def _get_tags(openpipe_options):
@@ -37,7 +41,7 @@ def _get_tags(openpipe_options):
     return ReportJsonBodyTags.from_dict(tags)
 
 
-def _should_log_request(openpipe_options={}):
+def _should_log_request(configured_client: AuthenticatedClient, openpipe_options={}):
     if configured_client.token == "":
         return False
 
@@ -45,10 +49,11 @@ def _should_log_request(openpipe_options={}):
 
 
 def report(
+    configured_client: AuthenticatedClient,
     openpipe_options={},
     **kwargs,
 ):
-    if not _should_log_request(openpipe_options):
+    if not _should_log_request(configured_client, openpipe_options):
         return
 
     try:
@@ -66,10 +71,11 @@ def report(
 
 
 async def report_async(
+    configured_client: AuthenticatedClient,
     openpipe_options={},
     **kwargs,
 ):
-    if not _should_log_request(openpipe_options):
+    if not _should_log_request(configured_client, openpipe_options):
         return
 
     try:

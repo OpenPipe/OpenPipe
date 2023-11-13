@@ -1,4 +1,4 @@
-from openai import OpenAI as OriginalAsyncOpenAI, OpenAIError, Timeout
+from openai import AsyncOpenAI as OriginalAsyncOpenAI, OpenAIError, Timeout
 from openai.resources import AsyncChat
 from openai.resources.chat.completions import AsyncCompletions
 from openai._types import NotGiven, NOT_GIVEN
@@ -8,23 +8,28 @@ from openai._base_client import DEFAULT_MAX_RETRIES
 
 import time
 import json
-from typing import Union, Mapping, Optional
+from typing import Union, Mapping, Optional, Dict
 import httpx
 
+from .api_client.client import AuthenticatedClient
 from .merge_openai_chunks import merge_openai_chunks
 from .api_client.api.default import create_chat_completion
 from .api_client import errors
 from .shared import (
     report_async,
-    configured_client,
+    configure_openpipe_client,
     get_chat_completion_json,
-    OpenPipeConfig,
 )
 
 
 class WrappedAsyncCompletions(AsyncCompletions):
-    def __init__(self, client: OriginalAsyncOpenAI) -> None:
+    openpipe_client: AuthenticatedClient
+
+    def __init__(
+        self, client: OriginalAsyncOpenAI, openpipe_client: AuthenticatedClient
+    ) -> None:
         super().__init__(client)
+        self.openpipe_client = openpipe_client
 
     async def create(
         cls, *args, **kwargs
@@ -37,7 +42,7 @@ class WrappedAsyncCompletions(AsyncCompletions):
         try:
             if model.startswith("openpipe:"):
                 response = await create_chat_completion.asyncio_detailed(
-                    client=configured_client,
+                    client=cls.openpipe_client,
                     json_body=create_chat_completion.CreateChatCompletionJsonBody.from_dict(
                         kwargs,
                     ),
@@ -62,6 +67,7 @@ class WrappedAsyncCompletions(AsyncCompletions):
                             # This ensures that cleanup and reporting operations are performed regardless of how the generator terminates.
                             received_at = int(time.time() * 1000)
                             await report_async(
+                                configured_client=cls.openpipe_client,
                                 openpipe_options=openpipe_options,
                                 requested_at=requested_at,
                                 received_at=received_at,
@@ -80,6 +86,7 @@ class WrappedAsyncCompletions(AsyncCompletions):
                 received_at = int(time.time() * 1000)
 
                 await report_async(
+                    configured_client=cls.openpipe_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -93,6 +100,7 @@ class WrappedAsyncCompletions(AsyncCompletions):
 
             if isinstance(e, OpenAIError):
                 await report_async(
+                    configured_client=cls.openpipe_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -111,6 +119,7 @@ class WrappedAsyncCompletions(AsyncCompletions):
                     pass
 
                 await report_async(
+                    configured_client=cls.openpipe_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -125,19 +134,22 @@ class WrappedAsyncCompletions(AsyncCompletions):
 
 
 class WrappedAsyncChat(AsyncChat):
-    def __init__(self, client: OriginalAsyncOpenAI) -> None:
+    def __init__(
+        self, client: OriginalAsyncOpenAI, openpipe_client: AuthenticatedClient
+    ) -> None:
         super().__init__(client)
-        self.completions = WrappedAsyncCompletions(client)
+        self.completions = WrappedAsyncCompletions(client, openpipe_client)
 
 
 class WrappedAsyncOpenAI(OriginalAsyncOpenAI):
     chat: WrappedAsyncChat
+    openpipe_client: AuthenticatedClient
 
     # Support auto-complete
     def __init__(
         self,
         *,
-        openpipe: Optional[OpenPipeConfig] = None,
+        openpipe: Optional[Dict[str, str]] = None,
         api_key: str | None = None,
         organization: str | None = None,
         base_url: str | httpx.URL | None = None,
@@ -159,7 +171,7 @@ class WrappedAsyncOpenAI(OriginalAsyncOpenAI):
             http_client=http_client,
             _strict_response_validation=_strict_response_validation,
         )
-        if openpipe:
-            configured_client.token = openpipe.api_key
-            configured_client._base_url = openpipe.base_url
-        self.chat = WrappedAsyncChat(self)
+
+        self.openpipe_client = configure_openpipe_client(openpipe)
+
+        self.chat = WrappedAsyncChat(self, self.openpipe_client)
