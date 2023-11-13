@@ -5,9 +5,7 @@ from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from typing import cast
 from openai._streaming import Stream
 import time
-import inspect
 import json
-import pickle
 
 from .merge_openai_chunks import merge_openai_chunks
 from .api_client.api.default import create_chat_completion
@@ -37,7 +35,7 @@ class WrappedCompletions(Completions):
             else:
                 chat_completion = super().create(*args, **kwargs)
 
-            if inspect.isgenerator(chat_completion):
+            if isinstance(chat_completion, Stream):
 
                 def _gen():
                     assembled_completion = None
@@ -55,7 +53,7 @@ class WrappedCompletions(Completions):
                         requested_at=requested_at,
                         received_at=received_at,
                         req_payload=kwargs,
-                        resp_payload=assembled_completion,
+                        resp_payload=get_chat_completion_json(assembled_completion),
                         status_code=200,
                     )
 
@@ -81,9 +79,9 @@ class WrappedCompletions(Completions):
                     requested_at=requested_at,
                     received_at=received_at,
                     req_payload=kwargs,
-                    resp_payload=e.json_body,
+                    resp_payload=e.args,
                     error_message=str(e),
-                    status_code=e.http_status,
+                    status_code=e.__dict__["status_code"],
                 )
             elif isinstance(e, errors.UnexpectedStatus):
                 error_content = None
