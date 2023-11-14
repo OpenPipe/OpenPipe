@@ -44,7 +44,7 @@ export async function getCompletion2(
       ...convertToolCallInputToFunctionInput(prunedInput),
       model,
     });
-    if (completion.choices[0]?.message.function_call) {
+    if (completion.choices[0]?.message && input.tools?.length) {
       // convert function call output to tool call output
       completion.choices[0].message = convertFunctionMessageToToolCall(
         completion.choices[0].message,
