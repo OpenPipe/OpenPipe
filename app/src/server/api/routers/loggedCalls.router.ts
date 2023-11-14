@@ -85,11 +85,13 @@ export const loggedCallsRouter = createTRPCRouter({
         };
       });
 
-      const matchingLogIds = await baseQuery.select(["lc.id"]).execute();
+      const count = (
+        await baseQuery
+          .select(({ fn }) => [fn.count("lc.id").as("match_count")])
+          .executeTakeFirstOrThrow()
+      )?.match_count;
 
-      const count = matchingLogIds.length;
-
-      return { calls, count };
+      return { calls, count: Number(count) };
     }),
   getTagNames: protectedProcedure
     .input(z.object({ projectId: z.string() }))
