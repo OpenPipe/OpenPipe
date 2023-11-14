@@ -392,7 +392,8 @@ model LoggedCall {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@index([requestedAt])
+    @@index(projectId)
+    @@index([projectId, requestedAt])
 }
 
 model LoggedCallModelResponse {
@@ -432,7 +433,8 @@ model LoggedCallModelResponse {
     updatedAt   DateTime     @updatedAt
     loggedCalls LoggedCall[]
 
-    @@index([cacheKey])
+    @@index(originalLoggedCallId)
+    @@index(cacheKey)
 }
 
 model LoggedCallTag {
@@ -445,6 +447,7 @@ model LoggedCallTag {
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
     @@unique([loggedCallId, name])
+    @@index(loggedCallId)
     @@index([projectId, name])
     @@index([projectId, name, value])
 }
