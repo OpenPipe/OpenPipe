@@ -50,22 +50,21 @@ def test_sync_content():
     )
 
 
-# TODO: Add fine-tunes to production project after API is updated
-# def test_sync_content_ft():
-#     completion = client.chat.completions.create(
-#         model="openpipe:test-content-ft",
-#         messages=[{"role": "system", "content": "count to 3"}],
-#         openpipe={"tags": {"promptId": "test_sync_content_ft"}},
-#     )
+def test_sync_content_ft():
+    completion = client.chat.completions.create(
+        model="openpipe:test-content-ft",
+        messages=[{"role": "system", "content": "count to 3"}],
+        openpipe={"tags": {"promptId": "test_sync_content_ft"}},
+    )
 
-#     last_logged = last_logged_call(client)
-#     assert (
-#         last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
-#     )
-#     assert (
-#         last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
-#         == completion.choices[0].message.content
-#     )
+    last_logged = last_logged_call(client)
+    assert (
+        last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        == completion.choices[0].message.content
+    )
 
 
 def test_sync_function_call():
@@ -93,29 +92,29 @@ def test_sync_function_call():
     )
 
 
-# def test_sync_function_call_ft():
-#     completion = client.chat.completions.create(
-#         model="openpipe:test-tool-calls-ft",
-#         messages=[{"role": "system", "content": "tell me the weather in SF"}],
-#         function_call=function_call,
-#         functions=[function],
-#         openpipe={"tags": {"promptId": "test_sync_function_call_ft"}},
-#     )
-#     last_logged = last_logged_call(client)
-#     assert (
-#         last_logged.model_response.req_payload["messages"][0]["content"]
-#         == "tell me the weather in SF"
-#     )
-#     assert (
-#         last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
-#         == completion.choices[0].message.content
-#     )
-#     assert (
-#         last_logged.model_response.resp_payload["choices"][0]["message"][
-#             "function_call"
-#         ]["name"]
-#         == "get_current_weather"
-#     )
+def test_sync_function_call_ft():
+    completion = client.chat.completions.create(
+        model="openpipe:test-tool-calls-ft",
+        messages=[{"role": "system", "content": "tell me the weather in SF"}],
+        function_call=function_call,
+        functions=[function],
+        openpipe={"tags": {"promptId": "test_sync_function_call_ft"}},
+    )
+    last_logged = last_logged_call(client)
+    assert (
+        last_logged.model_response.req_payload["messages"][0]["content"]
+        == "tell me the weather in SF"
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        == completion.choices[0].message.content
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"][
+            "function_call"
+        ]["name"]
+        == "get_current_weather"
+    )
 
 
 def test_sync_tool_calls():
@@ -149,35 +148,35 @@ def test_sync_tool_calls():
     )
 
 
-# def test_sync_tool_calls_ft():
-#     completion = client.chat.completions.create(
-#         model="openpipe:test-tool-calls-ft",
-#         messages=[
-#             {"role": "system", "content": "tell me the weather in SF and Orlando"}
-#         ],
-#         tools=[
-#             {
-#                 "type": "function",
-#                 "function": function,
-#             },
-#         ],
-#         openpipe={"tags": {"promptId": "test_sync_tool_calls_ft"}},
-#     )
-#     last_logged = last_logged_call(client)
-#     assert (
-#         last_logged.model_response.req_payload["messages"][0]["content"]
-#         == "tell me the weather in SF and Orlando"
-#     )
-#     assert (
-#         last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
-#         == completion.choices[0].message.content
-#     )
-#     assert (
-#         last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
-#             0
-#         ]["function"]["name"]
-#         == "get_current_weather"
-#     )
+def test_sync_tool_calls_ft():
+    completion = client.chat.completions.create(
+        model="openpipe:test-tool-calls-ft",
+        messages=[
+            {"role": "system", "content": "tell me the weather in SF and Orlando"}
+        ],
+        tools=[
+            {
+                "type": "function",
+                "function": function,
+            },
+        ],
+        openpipe={"tags": {"promptId": "test_sync_tool_calls_ft"}},
+    )
+    last_logged = last_logged_call(client)
+    assert (
+        last_logged.model_response.req_payload["messages"][0]["content"]
+        == "tell me the weather in SF and Orlando"
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        == completion.choices[0].message.content
+    )
+    assert (
+        last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
+            0
+        ]["function"]["name"]
+        == "get_current_weather"
+    )
 
 
 def test_sync_streaming_content():
