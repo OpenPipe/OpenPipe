@@ -26,7 +26,7 @@ import UsageGraph from "~/components/dashboard/UsageGraph";
 export default function Dashboard() {
   const { data: selectedProject } = useSelectedProject();
 
-  const stats = api.dashboard.stats.useQuery(
+  const stats = api.usage.stats.useQuery(
     { projectId: selectedProject?.id ?? "" },
     { enabled: !!selectedProject },
   );

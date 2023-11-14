@@ -5,7 +5,7 @@ import { kysely } from "~/server/db";
 import { requireCanViewProject } from "~/utils/accessControl";
 import dayjs from "~/utils/dayjs";
 
-export const dashboardRouter = createTRPCRouter({
+export const usageRouter = createTRPCRouter({
   stats: protectedProcedure
     .input(
       z.object({
