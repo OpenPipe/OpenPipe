@@ -73,7 +73,9 @@ export const serializeChatInput = (
   } else if (fineTune.pipelineVersion === 2) {
     let functions: string[] | null = null;
     const toolChoice = input.tool_choice ?? convertFunctionCallToToolChoice(input.function_call);
-    const tools = input.tools ?? convertFunctionsToTools(input.functions ?? undefined);
+    const tools = input.tools?.length
+      ? input.tools
+      : convertFunctionsToTools(input.functions ?? undefined);
     if (toolChoice === "none") {
       functions = null;
     } else if (

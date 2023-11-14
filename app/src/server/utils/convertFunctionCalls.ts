@@ -54,7 +54,7 @@ export const convertToolCallInputToFunctionInput = (
   ...input,
   messages: convertToolCallMessagesToFunction(input.messages),
   function_call: input.function_call ?? convertToolChoiceToFunctionCall(input.tool_choice),
-  functions: input.functions ?? convertToolsToFunctions(input.tools),
+  functions: input.functions?.length ? input.functions : convertToolsToFunctions(input.tools),
   tool_choice: undefined,
   tools: undefined,
 });
