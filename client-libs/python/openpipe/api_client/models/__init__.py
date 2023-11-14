@@ -179,6 +179,44 @@ from .create_chat_completion_json_body_req_payload_messages_item_type_4_content_
 from .create_chat_completion_json_body_req_payload_messages_item_type_4_role import (
     CreateChatCompletionJsonBodyReqPayloadMessagesItemType4Role,
 )
+from .create_chat_completion_json_body_req_payload_tool_choice_type_0 import (
+    CreateChatCompletionJsonBodyReqPayloadToolChoiceType0,
+)
+from .create_chat_completion_json_body_req_payload_tool_choice_type_1 import (
+    CreateChatCompletionJsonBodyReqPayloadToolChoiceType1,
+)
+from .create_chat_completion_json_body_req_payload_tool_choice_type_2 import (
+    CreateChatCompletionJsonBodyReqPayloadToolChoiceType2,
+)
+from .create_chat_completion_json_body_req_payload_tool_choice_type_2_function import (
+    CreateChatCompletionJsonBodyReqPayloadToolChoiceType2Function,
+)
+from .create_chat_completion_json_body_req_payload_tool_choice_type_2_type import (
+    CreateChatCompletionJsonBodyReqPayloadToolChoiceType2Type,
+)
+from .create_chat_completion_json_body_req_payload_tools_item import CreateChatCompletionJsonBodyReqPayloadToolsItem
+from .create_chat_completion_json_body_req_payload_tools_item_function import (
+    CreateChatCompletionJsonBodyReqPayloadToolsItemFunction,
+)
+from .create_chat_completion_json_body_req_payload_tools_item_function_parameters import (
+    CreateChatCompletionJsonBodyReqPayloadToolsItemFunctionParameters,
+)
+from .create_chat_completion_json_body_req_payload_tools_item_type import (
+    CreateChatCompletionJsonBodyReqPayloadToolsItemType,
+)
+from .create_chat_completion_json_body_tool_choice_type_0 import CreateChatCompletionJsonBodyToolChoiceType0
+from .create_chat_completion_json_body_tool_choice_type_1 import CreateChatCompletionJsonBodyToolChoiceType1
+from .create_chat_completion_json_body_tool_choice_type_2 import CreateChatCompletionJsonBodyToolChoiceType2
+from .create_chat_completion_json_body_tool_choice_type_2_function import (
+    CreateChatCompletionJsonBodyToolChoiceType2Function,
+)
+from .create_chat_completion_json_body_tool_choice_type_2_type import CreateChatCompletionJsonBodyToolChoiceType2Type
+from .create_chat_completion_json_body_tools_item import CreateChatCompletionJsonBodyToolsItem
+from .create_chat_completion_json_body_tools_item_function import CreateChatCompletionJsonBodyToolsItemFunction
+from .create_chat_completion_json_body_tools_item_function_parameters import (
+    CreateChatCompletionJsonBodyToolsItemFunctionParameters,
+)
+from .create_chat_completion_json_body_tools_item_type import CreateChatCompletionJsonBodyToolsItemType
 from .create_chat_completion_response_200 import CreateChatCompletionResponse200
 from .create_chat_completion_response_200_choices_item import CreateChatCompletionResponse200ChoicesItem
 from .create_chat_completion_response_200_choices_item_finish_reason_type_0 import (
@@ -300,6 +338,24 @@ __all__ = (
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType4",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType4ContentType1",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType4Role",
+    "CreateChatCompletionJsonBodyReqPayloadToolChoiceType0",
+    "CreateChatCompletionJsonBodyReqPayloadToolChoiceType1",
+    "CreateChatCompletionJsonBodyReqPayloadToolChoiceType2",
+    "CreateChatCompletionJsonBodyReqPayloadToolChoiceType2Function",
+    "CreateChatCompletionJsonBodyReqPayloadToolChoiceType2Type",
+    "CreateChatCompletionJsonBodyReqPayloadToolsItem",
+    "CreateChatCompletionJsonBodyReqPayloadToolsItemFunction",
+    "CreateChatCompletionJsonBodyReqPayloadToolsItemFunctionParameters",
+    "CreateChatCompletionJsonBodyReqPayloadToolsItemType",
+    "CreateChatCompletionJsonBodyToolChoiceType0",
+    "CreateChatCompletionJsonBodyToolChoiceType1",
+    "CreateChatCompletionJsonBodyToolChoiceType2",
+    "CreateChatCompletionJsonBodyToolChoiceType2Function",
+    "CreateChatCompletionJsonBodyToolChoiceType2Type",
+    "CreateChatCompletionJsonBodyToolsItem",
+    "CreateChatCompletionJsonBodyToolsItemFunction",
+    "CreateChatCompletionJsonBodyToolsItemFunctionParameters",
+    "CreateChatCompletionJsonBodyToolsItemType",
     "CreateChatCompletionResponse200",
     "CreateChatCompletionResponse200ChoicesItem",
     "CreateChatCompletionResponse200ChoicesItemFinishReasonType0",

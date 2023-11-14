@@ -63,7 +63,7 @@ export class DefaultService {
                         type: 'image_url';
                         image_url: {
                             detail?: ('auto' | 'low' | 'high');
-                            url?: string;
+                            url: string;
                         };
                     } | {
                         type: 'text';
@@ -101,6 +101,20 @@ export class DefaultService {
                     parameters: Record<string, any>;
                     description?: string;
                 }>;
+                tool_choice?: ('none' | 'auto' | {
+                    type?: 'function';
+                    function?: {
+                        name: string;
+                    };
+                });
+                tools?: Array<{
+                    function: {
+                        name: string;
+                        parameters: Record<string, any>;
+                        description?: string;
+                    };
+                    type: 'function';
+                }>;
                 'n'?: number;
                 max_tokens?: number | null;
                 temperature?: number;
@@ -116,7 +130,7 @@ export class DefaultService {
                     type: 'image_url';
                     image_url: {
                         detail?: ('auto' | 'low' | 'high');
-                        url?: string;
+                        url: string;
                     };
                 } | {
                     type: 'text';
@@ -153,6 +167,20 @@ export class DefaultService {
                 name: string;
                 parameters: Record<string, any>;
                 description?: string;
+            }>;
+            tool_choice?: ('none' | 'auto' | {
+                type?: 'function';
+                function?: {
+                    name: string;
+                };
+            });
+            tools?: Array<{
+                function: {
+                    name: string;
+                    parameters: Record<string, any>;
+                    description?: string;
+                };
+                type: 'function';
             }>;
             'n'?: number | null;
             max_tokens?: number | null;

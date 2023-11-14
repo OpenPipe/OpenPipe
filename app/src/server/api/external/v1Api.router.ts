@@ -11,6 +11,7 @@ import { prisma } from "~/server/db";
 import { hashRequest } from "~/server/utils/hashObject";
 import {
   chatCompletionInput,
+  chatCompletionInputReqPayload,
   chatCompletionOutput,
   chatMessage,
   functionCallInput,
@@ -106,7 +107,7 @@ export const v1ApiRouter = createOpenApiRouter({
       // TODO: replace this whole mess with just `chatCompletionInput` once
       // no one is using the `reqPayload` field anymore.
       z.object({
-        reqPayload: chatCompletionInput
+        reqPayload: chatCompletionInputReqPayload
           .optional()
           .describe("DEPRECATED. Use the top-level fields instead"),
         model: z.string().optional(),

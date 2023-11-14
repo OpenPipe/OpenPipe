@@ -4,6 +4,8 @@ from attrs import define
 
 from ..models.create_chat_completion_json_body_function_call_type_0 import CreateChatCompletionJsonBodyFunctionCallType0
 from ..models.create_chat_completion_json_body_function_call_type_1 import CreateChatCompletionJsonBodyFunctionCallType1
+from ..models.create_chat_completion_json_body_tool_choice_type_0 import CreateChatCompletionJsonBodyToolChoiceType0
+from ..models.create_chat_completion_json_body_tool_choice_type_1 import CreateChatCompletionJsonBodyToolChoiceType1
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -27,6 +29,8 @@ if TYPE_CHECKING:
         CreateChatCompletionJsonBodyMessagesItemType4,
     )
     from ..models.create_chat_completion_json_body_req_payload import CreateChatCompletionJsonBodyReqPayload
+    from ..models.create_chat_completion_json_body_tool_choice_type_2 import CreateChatCompletionJsonBodyToolChoiceType2
+    from ..models.create_chat_completion_json_body_tools_item import CreateChatCompletionJsonBodyToolsItem
 
 
 T = TypeVar("T", bound="CreateChatCompletionJsonBody")
@@ -44,6 +48,9 @@ class CreateChatCompletionJsonBody:
         function_call (Union['CreateChatCompletionJsonBodyFunctionCallType2',
             CreateChatCompletionJsonBodyFunctionCallType0, CreateChatCompletionJsonBodyFunctionCallType1, Unset]):
         functions (Union[Unset, List['CreateChatCompletionJsonBodyFunctionsItem']]):
+        tool_choice (Union['CreateChatCompletionJsonBodyToolChoiceType2', CreateChatCompletionJsonBodyToolChoiceType0,
+            CreateChatCompletionJsonBodyToolChoiceType1, Unset]):
+        tools (Union[Unset, List['CreateChatCompletionJsonBodyToolsItem']]):
         n (Union[Unset, None, float]):
         max_tokens (Union[Unset, None, float]):
         temperature (Union[Unset, None, float]):
@@ -71,6 +78,13 @@ class CreateChatCompletionJsonBody:
         Unset,
     ] = UNSET
     functions: Union[Unset, List["CreateChatCompletionJsonBodyFunctionsItem"]] = UNSET
+    tool_choice: Union[
+        "CreateChatCompletionJsonBodyToolChoiceType2",
+        CreateChatCompletionJsonBodyToolChoiceType0,
+        CreateChatCompletionJsonBodyToolChoiceType1,
+        Unset,
+    ] = UNSET
+    tools: Union[Unset, List["CreateChatCompletionJsonBodyToolsItem"]] = UNSET
     n: Union[Unset, None, float] = UNSET
     max_tokens: Union[Unset, None, float] = UNSET
     temperature: Union[Unset, None, float] = UNSET
@@ -145,6 +159,33 @@ class CreateChatCompletionJsonBody:
 
                 functions.append(functions_item)
 
+        tool_choice: Union[Dict[str, Any], Unset, str]
+        if isinstance(self.tool_choice, Unset):
+            tool_choice = UNSET
+
+        elif isinstance(self.tool_choice, CreateChatCompletionJsonBodyToolChoiceType0):
+            tool_choice = UNSET
+            if not isinstance(self.tool_choice, Unset):
+                tool_choice = self.tool_choice.value
+
+        elif isinstance(self.tool_choice, CreateChatCompletionJsonBodyToolChoiceType1):
+            tool_choice = UNSET
+            if not isinstance(self.tool_choice, Unset):
+                tool_choice = self.tool_choice.value
+
+        else:
+            tool_choice = UNSET
+            if not isinstance(self.tool_choice, Unset):
+                tool_choice = self.tool_choice.to_dict()
+
+        tools: Union[Unset, List[Dict[str, Any]]] = UNSET
+        if not isinstance(self.tools, Unset):
+            tools = []
+            for tools_item_data in self.tools:
+                tools_item = tools_item_data.to_dict()
+
+                tools.append(tools_item)
+
         n = self.n
         max_tokens = self.max_tokens
         temperature = self.temperature
@@ -162,6 +203,10 @@ class CreateChatCompletionJsonBody:
             field_dict["function_call"] = function_call
         if functions is not UNSET:
             field_dict["functions"] = functions
+        if tool_choice is not UNSET:
+            field_dict["tool_choice"] = tool_choice
+        if tools is not UNSET:
+            field_dict["tools"] = tools
         if n is not UNSET:
             field_dict["n"] = n
         if max_tokens is not UNSET:
@@ -195,6 +240,10 @@ class CreateChatCompletionJsonBody:
             CreateChatCompletionJsonBodyMessagesItemType4,
         )
         from ..models.create_chat_completion_json_body_req_payload import CreateChatCompletionJsonBodyReqPayload
+        from ..models.create_chat_completion_json_body_tool_choice_type_2 import (
+            CreateChatCompletionJsonBodyToolChoiceType2,
+        )
+        from ..models.create_chat_completion_json_body_tools_item import CreateChatCompletionJsonBodyToolsItem
 
         d = src_dict.copy()
         _req_payload = d.pop("reqPayload", UNSET)
@@ -317,6 +366,62 @@ class CreateChatCompletionJsonBody:
 
             functions.append(functions_item)
 
+        def _parse_tool_choice(
+            data: object,
+        ) -> Union[
+            "CreateChatCompletionJsonBodyToolChoiceType2",
+            CreateChatCompletionJsonBodyToolChoiceType0,
+            CreateChatCompletionJsonBodyToolChoiceType1,
+            Unset,
+        ]:
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                _tool_choice_type_0 = data
+                tool_choice_type_0: Union[Unset, CreateChatCompletionJsonBodyToolChoiceType0]
+                if isinstance(_tool_choice_type_0, Unset):
+                    tool_choice_type_0 = UNSET
+                else:
+                    tool_choice_type_0 = CreateChatCompletionJsonBodyToolChoiceType0(_tool_choice_type_0)
+
+                return tool_choice_type_0
+            except:  # noqa: E722
+                pass
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                _tool_choice_type_1 = data
+                tool_choice_type_1: Union[Unset, CreateChatCompletionJsonBodyToolChoiceType1]
+                if isinstance(_tool_choice_type_1, Unset):
+                    tool_choice_type_1 = UNSET
+                else:
+                    tool_choice_type_1 = CreateChatCompletionJsonBodyToolChoiceType1(_tool_choice_type_1)
+
+                return tool_choice_type_1
+            except:  # noqa: E722
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            _tool_choice_type_2 = data
+            tool_choice_type_2: Union[Unset, CreateChatCompletionJsonBodyToolChoiceType2]
+            if isinstance(_tool_choice_type_2, Unset):
+                tool_choice_type_2 = UNSET
+            else:
+                tool_choice_type_2 = CreateChatCompletionJsonBodyToolChoiceType2.from_dict(_tool_choice_type_2)
+
+            return tool_choice_type_2
+
+        tool_choice = _parse_tool_choice(d.pop("tool_choice", UNSET))
+
+        tools = []
+        _tools = d.pop("tools", UNSET)
+        for tools_item_data in _tools or []:
+            tools_item = CreateChatCompletionJsonBodyToolsItem.from_dict(tools_item_data)
+
+            tools.append(tools_item)
+
         n = d.pop("n", UNSET)
 
         max_tokens = d.pop("max_tokens", UNSET)
@@ -331,6 +436,8 @@ class CreateChatCompletionJsonBody:
             messages=messages,
             function_call=function_call,
             functions=functions,
+            tool_choice=tool_choice,
+            tools=tools,
             n=n,
             max_tokens=max_tokens,
             temperature=temperature,

@@ -20,7 +20,10 @@ export const countOpenAIChatTokens = (
     role: message.role,
     // Not completely accurate, but gives a rough idea of the token count
     content:
-      message.content ?? JSON.stringify("function_call" in message ? message.function_call : ""),
+      message.content ||
+      JSON.stringify("function_call" in message ? message.function_call : "") ||
+      JSON.stringify("tool_calls" in message ? message.tool_calls : "") ||
+      "",
   }));
   return new GPTTokens({
     model,

@@ -20,21 +20,22 @@ T = TypeVar("T", bound="CreateChatCompletionJsonBodyReqPayloadMessagesItemType1C
 class CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrl:
     """
     Attributes:
+        url (str):
         detail (Union[CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0,
             CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1,
             CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2, Unset]):
-        url (Union[Unset, str]):
     """
 
+    url: str
     detail: Union[
         CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType0,
         CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType1,
         CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemType0ImageUrlDetailType2,
         Unset,
     ] = UNSET
-    url: Union[Unset, str] = UNSET
 
     def to_dict(self) -> Dict[str, Any]:
+        url = self.url
         detail: Union[Unset, str]
         if isinstance(self.detail, Unset):
             detail = UNSET
@@ -58,20 +59,21 @@ class CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemTyp
             if not isinstance(self.detail, Unset):
                 detail = self.detail.value
 
-        url = self.url
-
         field_dict: Dict[str, Any] = {}
-        field_dict.update({})
+        field_dict.update(
+            {
+                "url": url,
+            }
+        )
         if detail is not UNSET:
             field_dict["detail"] = detail
-        if url is not UNSET:
-            field_dict["url"] = url
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
+        url = d.pop("url")
 
         def _parse_detail(
             data: object,
@@ -142,11 +144,9 @@ class CreateChatCompletionJsonBodyReqPayloadMessagesItemType1ContentType1ItemTyp
 
         detail = _parse_detail(d.pop("detail", UNSET))
 
-        url = d.pop("url", UNSET)
-
         create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_0_image_url = cls(
-            detail=detail,
             url=url,
+            detail=detail,
         )
 
         return create_chat_completion_json_body_req_payload_messages_item_type_1_content_type_1_item_type_0_image_url
