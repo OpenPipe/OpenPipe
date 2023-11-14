@@ -22,7 +22,6 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/api/trpc/[trpc]", { "trpc": string }>
     | DynamicRoute<"/api/v1/[...trpc]", { "trpc": string[] }>
     | StaticRoute<"/api/v1/openapi">
-    | StaticRoute<"/dashboard">
     | DynamicRoute<"/datasets/[id]/[tab]", { "id": string; "tab": string }>
     | DynamicRoute<"/datasets/[id]", { "id": string }>
     | StaticRoute<"/datasets">
@@ -35,7 +34,8 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>
     | StaticRoute<"/project/settings">
     | StaticRoute<"/request-logs">
-    | StaticRoute<"/sentry-example-page">;
+    | StaticRoute<"/sentry-example-page">
+    | StaticRoute<"/usage">;
 
   interface StaticRoute<Pathname> {
     pathname: Pathname;

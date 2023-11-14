@@ -13,11 +13,12 @@ import { useMemo } from "react";
 import { useSelectedProject } from "~/utils/hooks";
 import dayjs from "~/utils/dayjs";
 import { api } from "~/utils/api";
+import { useToken } from "@chakra-ui/react";
 
 export default function UsageGraph() {
   const { data: selectedProject } = useSelectedProject();
 
-  const stats = api.dashboard.stats.useQuery(
+  const stats = api.usage.stats.useQuery(
     { projectId: selectedProject?.id ?? "" },
     { enabled: !!selectedProject },
   );
@@ -27,34 +28,30 @@ export default function UsageGraph() {
       stats.data?.periods.map(({ period, numQueries, cost }) => ({
         period,
         Requests: numQueries,
-        "Total Spent (USD)": parseFloat(cost.toString()),
+        Spent: parseFloat(cost.toString()),
       })) || []
     );
   }, [stats.data]);
+
+  const [spendColor, requestsColor] = useToken("colors", ["blue.500", "red.600"]);
 
   return (
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
         <XAxis dataKey="period" tickFormatter={(str: string) => dayjs(str).format("MMM D")} />
-        <YAxis yAxisId="left" dataKey="Requests" orientation="left" stroke="#8884d8" />
-        <YAxis
-          yAxisId="right"
-          dataKey="Total Spent (USD)"
-          orientation="right"
-          unit="$"
-          stroke="#82ca9d"
-        />
+        <YAxis yAxisId="left" dataKey="Requests" orientation="left" stroke={requestsColor} />
+        <YAxis yAxisId="right" dataKey="Spent" orientation="right" unit="$" stroke={spendColor} />
         <Tooltip />
         <Legend />
         <CartesianGrid stroke="#f5f5f5" />
-        <Line dataKey="Requests" stroke="#8884d8" yAxisId="left" dot={false} strokeWidth={2} />
         <Line
-          dataKey="Total Spent (USD)"
-          stroke="#82ca9d"
-          yAxisId="right"
+          dataKey="Requests"
+          stroke={requestsColor}
+          yAxisId="left"
           dot={false}
           strokeWidth={2}
         />
+        <Line dataKey="Spent" stroke={spendColor} yAxisId="right" dot={false} strokeWidth={2} />
       </LineChart>
     </ResponsiveContainer>
   );

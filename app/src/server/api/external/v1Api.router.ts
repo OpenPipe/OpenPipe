@@ -11,7 +11,6 @@ import { prisma } from "~/server/db";
 import { hashRequest } from "~/server/utils/hashObject";
 import {
   chatCompletionInput,
-  chatCompletionInputReqPayload,
   chatCompletionOutput,
   chatMessage,
   functionCallInput,
@@ -19,9 +18,10 @@ import {
   toolChoiceInput,
   toolsInput,
 } from "~/types/shared.types";
-import { captureFineTuneUsage } from "~/utils/analytics/serverAnalytics";
+import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
 import { calculateFineTuneUsageCost } from "~/utils/baseModels";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
+import { captureException } from "@sentry/nextjs";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -107,7 +107,7 @@ export const v1ApiRouter = createOpenApiRouter({
       // TODO: replace this whole mess with just `chatCompletionInput` once
       // no one is using the `reqPayload` field anymore.
       z.object({
-        reqPayload: chatCompletionInputReqPayload
+        reqPayload: chatCompletionInput
           .optional()
           .describe("DEPRECATED. Use the top-level fields instead"),
         model: z.string().optional(),
@@ -150,19 +150,36 @@ export const v1ApiRouter = createOpenApiRouter({
         const completion = await getCompletion2(fineTune, inputPayload);
         const inputTokens = completion.usage?.prompt_tokens ?? 0;
         const outputTokens = completion.usage?.completion_tokens ?? 0;
-        await prisma.usageLog.create({
-          data: {
-            fineTuneId: fineTune.id,
-            type: UsageType.EXTERNAL,
-            inputTokens,
-            outputTokens,
-            cost: calculateFineTuneUsageCost({
+        const cost = calculateFineTuneUsageCost({
+          inputTokens,
+          outputTokens,
+          baseModel: fineTune.baseModel,
+        });
+
+        // Don't `await` this to minimize latency
+        prisma.usageLog
+          .create({
+            data: {
+              fineTuneId: fineTune.id,
+              type: UsageType.EXTERNAL,
               inputTokens,
               outputTokens,
-              baseModel: fineTune.baseModel,
-            }),
+              cost,
+            },
+          })
+          .catch((error) => captureException(error));
+
+        posthogServerClient?.capture({
+          distinctId: fineTune.projectId,
+          event: "fine-tune-usage",
+          properties: {
+            model: inputPayload.model,
+            inputTokens,
+            outputTokens,
+            cost,
           },
         });
+
         return completion;
       } catch (error: unknown) {
         console.error(error);
@@ -221,15 +238,6 @@ export const v1ApiRouter = createOpenApiRouter({
             input.reqPayload as ChatCompletionCreateParams,
             respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
             { baseModel: fineTune?.baseModel },
-          );
-
-          captureFineTuneUsage(
-            ctx.key.projectId,
-            model,
-            input.statusCode,
-            usage?.inputTokens,
-            usage?.outputTokens,
-            usage?.cost,
           );
         } else {
           usage = openaAIModelProvider.getUsage(
