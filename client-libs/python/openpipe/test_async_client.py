@@ -8,6 +8,13 @@ from .test_sync_client import function_call, function, last_logged_call
 client = AsyncOpenAI()
 
 
+@pytest.fixture(autouse=True)
+def setup():
+    print("\nresetting async client\n")
+    global client
+    client = AsyncOpenAI()
+
+
 async def test_async_content():
     completion = await client.chat.completions.create(
         model="gpt-3.5-turbo",
