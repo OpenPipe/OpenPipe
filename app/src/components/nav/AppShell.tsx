@@ -79,8 +79,7 @@ const NavSidebar = () => {
 
             <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" />
             <IconLink icon={AiOutlineDatabase} label="Datasets" href="/datasets" />
-            <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" beta />
-            <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
+            <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" />
             {/* <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" /> */}
             <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
               <Text
@@ -94,6 +93,7 @@ const NavSidebar = () => {
                 CONFIGURATION
               </Text>
               <IconLink icon={BsGearFill} label="Project Settings" href="/project/settings" />
+              <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
             </VStack>
           </>
         )}

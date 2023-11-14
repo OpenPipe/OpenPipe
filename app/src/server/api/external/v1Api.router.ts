@@ -18,7 +18,7 @@ import {
   toolChoiceInput,
   toolsInput,
 } from "~/types/shared.types";
-import { captureFineTuneUsage, posthogServerClient } from "~/utils/analytics/serverAnalytics";
+import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
 import { calculateFineTuneUsageCost } from "~/utils/baseModels";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { captureException } from "@sentry/nextjs";
@@ -160,7 +160,7 @@ export const v1ApiRouter = createOpenApiRouter({
         prisma.usageLog
           .create({
             data: {
-              fineTuneId: inputPayload.model,
+              fineTuneId: fineTune.id,
               type: UsageType.EXTERNAL,
               inputTokens,
               outputTokens,
@@ -173,7 +173,7 @@ export const v1ApiRouter = createOpenApiRouter({
           distinctId: fineTune.projectId,
           event: "fine-tune-usage",
           properties: {
-            model: fineTune.slug,
+            model: inputPayload.model,
             inputTokens,
             outputTokens,
             cost,

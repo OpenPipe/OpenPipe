@@ -17,22 +17,47 @@ export const usageRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
       // Return the stats group by hour
-      const periods = await kysely
-        .selectFrom("LoggedCall")
-        .leftJoin(
-          "LoggedCallModelResponse",
-          "LoggedCall.id",
-          "LoggedCallModelResponse.originalLoggedCallId",
+      const baseQuery = kysely
+        .selectFrom("UsageLog as ul")
+        .innerJoin("FineTune as ft", "ft.id", "ul.fineTuneId")
+        .where("ft.projectId", "=", input.projectId);
+
+      const finetunesQuery = kysely
+        .selectFrom(
+          baseQuery
+            .select(({ fn }) => [
+              "ft.id as ftId",
+              fn.count("ul.id").as("numQueries"),
+              fn.sum("cost").as("cost"),
+              fn.sum("inputTokens").as("inputTokens"),
+              fn.sum("outputTokens").as("outputTokens"),
+            ])
+            .groupBy("ftId")
+            .as("stats"),
         )
-        .where("projectId", "=", input.projectId)
-        .select(({ fn }) => [
-          sql<Date>`date_trunc('day', "LoggedCallModelResponse"."requestedAt")`.as("period"),
-          sql<number>`count("LoggedCall"."id")::int`.as("numQueries"),
-          fn.sum(fn.coalesce("LoggedCallModelResponse.cost", sql<number>`0`)).as("cost"),
-        ])
-        .groupBy("period")
-        .orderBy("period")
-        .execute();
+        .innerJoin("FineTune as ft", "ft.id", "stats.ftId")
+        .selectAll("stats")
+        .select(["ft.baseModel", "ft.slug"])
+        .orderBy("numQueries", "desc");
+
+      const [periods, totals, fineTunes] = await Promise.all([
+        baseQuery
+          .select(({ fn }) => [
+            sql<Date>`date_trunc('day', "ul"."createdAt")`.as("period"),
+            sql<number>`count("ul"."id")::int`.as("numQueries"),
+            fn.sum(fn.coalesce("ul.cost", sql<number>`0`)).as("cost"),
+          ])
+          .groupBy("period")
+          .orderBy("period")
+          .execute(),
+        baseQuery
+          .select(({ fn }) => [
+            fn.sum(fn.coalesce("cost", sql<number>`0`)).as("cost"),
+            fn.count("ul.id").as("numQueries"),
+          ])
+          .executeTakeFirst(),
+        finetunesQuery.execute(),
+      ]);
 
       let originalDataIndex = periods.length - 1;
       // *SLAMS DOWN GLASS OF WHISKEY* timezones, amirite?
@@ -65,44 +90,6 @@ export const usageRouter = createTRPCRouter({
         dayToMatch = dayToMatch.subtract(1, "day");
       }
 
-      const totals = await kysely
-        .selectFrom("LoggedCall")
-        .leftJoin(
-          "LoggedCallModelResponse",
-          "LoggedCall.id",
-          "LoggedCallModelResponse.originalLoggedCallId",
-        )
-        .where("projectId", "=", input.projectId)
-        .select(({ fn }) => [
-          fn.sum(fn.coalesce("LoggedCallModelResponse.cost", sql<number>`0`)).as("cost"),
-          fn.count("LoggedCall.id").as("numQueries"),
-        ])
-        .executeTakeFirst();
-
-      const errors = await kysely
-        .selectFrom("LoggedCall")
-        .where("projectId", "=", input.projectId)
-        .leftJoin(
-          "LoggedCallModelResponse",
-          "LoggedCall.id",
-          "LoggedCallModelResponse.originalLoggedCallId",
-        )
-        .select(({ fn }) => [fn.count("LoggedCall.id").as("count"), "statusCode as code"])
-        .where("statusCode", ">", 200)
-        .groupBy("code")
-        .orderBy("count", "desc")
-        .execute();
-
-      const namedErrors = errors.map((e) => {
-        if (e.code === 429) {
-          return { ...e, name: "Rate limited" };
-        } else if (e.code === 500) {
-          return { ...e, name: "Internal server error" };
-        } else {
-          return { ...e, name: "Other" };
-        }
-      });
-
-      return { periods: backfilledPeriods, totals, errors: namedErrors };
+      return { periods: backfilledPeriods, totals, fineTunes };
     }),
 });
