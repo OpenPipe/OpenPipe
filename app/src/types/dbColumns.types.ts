@@ -1,24 +1,23 @@
-import { z } from "zod";
 import { type DatasetEntry, type LoggedCallModelResponse } from "@prisma/client";
+import { z } from "zod";
 
 import {
-  chatCompletionMessage,
   chatCompletionInput,
+  chatCompletionInputReqPayload,
+  chatCompletionMessage,
   chatCompletionOutput,
-  chatMessage,
-  functionCallInput,
-  functionsInput,
-  toolChoiceInput,
-  toolsInput,
 } from "./shared.types";
+
+const chatInputs = chatCompletionInputReqPayload.shape;
 
 export const datasetEntrySchema = z
   .object({
-    messages: z.array(chatMessage),
-    function_call: functionCallInput.nullable(),
-    functions: functionsInput.nullable(),
-    tool_choice: toolChoiceInput.nullable(),
-    tools: toolsInput.nullable(),
+    messages: chatInputs.messages,
+    function_call: chatInputs.function_call.nullable(),
+    functions: chatInputs.functions.nullable(),
+    tool_choice: chatInputs.tool_choice.nullable(),
+    tools: chatInputs.tools.nullable(),
+    response_format: chatInputs.response_format.nullable(),
     output: chatCompletionMessage.optional().nullable(),
   })
   .passthrough();

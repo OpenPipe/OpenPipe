@@ -1,6 +1,6 @@
 import { UsageType, type ComparisonModel, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
-import { type ChatCompletion } from "openai/resources/chat";
+import { type ChatCompletionCreateParams, type ChatCompletion } from "openai/resources/chat";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
@@ -92,14 +92,16 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
     }
 
     let completion: ChatCompletion;
-    const input = {
+    const input: ChatCompletionCreateParams = {
       model: fineTune
         ? `openpipe:${fineTune.slug}`
         : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
       messages: datasetEntry.messages,
       tool_choice: datasetEntry.tool_choice ?? undefined,
       tools: datasetEntry.tools ?? undefined,
+      response_format: datasetEntry.response_format ?? undefined,
     };
+
     try {
       if (isComparisonModel(modelId)) {
         completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
@@ -118,10 +120,8 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       const choice = completion.choices[0];
       const completionMessage = completion.choices[0]?.message;
       if (!choice) throw new Error("No completion returned");
-      let score;
-      if (datasetEntry.output?.tool_calls) {
-        score = calculateEntryScore(datasetEntry.output.tool_calls, choice.message.tool_calls);
-      }
+
+      const score = calculateEntryScore(datasetEntry, choice.message);
 
       if (fineTune) {
         const inputTokens = completion.usage?.prompt_tokens ?? 0;

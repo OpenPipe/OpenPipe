@@ -1,43 +1,42 @@
+import { isEqual, mean } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources/chat";
+import { type typedDatasetEntry } from "~/types/dbColumns.types";
+
+export const calculateEntryScore = (
+  datasetEntry: ReturnType<typeof typedDatasetEntry>,
+  generatedMessage: ChatCompletionMessage,
+) => {
+  if (datasetEntry.response_format?.type === "json_object" && !datasetEntry.output?.tool_calls) {
+    return calculateToolCallScore(
+      { name: "content", arguments: datasetEntry.output?.content ?? "" },
+      { name: "content", arguments: generatedMessage.content ?? "" },
+    );
+  } else if (datasetEntry.output?.tool_calls) {
+    const generatedToolCalls = Object.fromEntries(
+      generatedMessage.tool_calls?.map((toolCall) => [
+        toolCall.function.name,
+        toolCall.function.arguments,
+      ]) ?? [],
+    );
+
+    const scores = datasetEntry.output?.tool_calls.map((toolCall) => {
+      const generatedToolCall = generatedToolCalls[toolCall.function.name];
+      if (!generatedToolCall) return 0;
+      return calculateToolCallScore(toolCall.function, {
+        name: toolCall.function.name,
+        arguments: generatedToolCall,
+      });
+    });
+
+    return mean(scores);
+  } else {
+    return null;
+  }
+};
 
 // If function names don't match, return 0
 // If function names match and there are no args, return 1
 // If function names match and there are args, return (num matching args / num args)
-export const calculateEntryScore = (
-  originalToolCalls: ChatCompletionMessage["tool_calls"],
-  generatedToolCalls: ChatCompletionMessage["tool_calls"],
-) => {
-  if (!originalToolCalls || !generatedToolCalls) return 0;
-
-  const functionCallComp: Record<
-    string,
-    {
-      originalFunctionCall?: ChatCompletionMessage["function_call"];
-      generatedFunctionCall?: ChatCompletionMessage["function_call"];
-    }
-  > = {};
-
-  for (const originalToolCall of originalToolCalls) {
-    functionCallComp[originalToolCall.function.name] = {
-      originalFunctionCall: originalToolCall.function,
-    };
-  }
-  for (const generatedToolCall of generatedToolCalls) {
-    const key = generatedToolCall.function.name;
-    if (!functionCallComp[key]) {
-      functionCallComp[key] = {};
-    }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    functionCallComp[key]!.generatedFunctionCall = generatedToolCall.function;
-  }
-  let totalScore = 0;
-  for (const comp of Object.values(functionCallComp)) {
-    const { originalFunctionCall, generatedFunctionCall } = comp;
-    totalScore += calculateToolCallScore(originalFunctionCall, generatedFunctionCall);
-  }
-  return totalScore / Object.keys(functionCallComp).length;
-};
-
 export const calculateToolCallScore = (
   originalFunctionCall: ChatCompletionMessage["function_call"],
   generatedFunctionCall: ChatCompletionMessage["function_call"],
@@ -69,8 +68,8 @@ export const calculateToolCallScore = (
     // If there are no args, then congrats, we matched them.
     if (numOriginalArgs === 0) return 1;
 
-    const numMatchingArgs = Object.keys(parsedOriginalArgs).filter(
-      (key) => parsedOriginalArgs?.[key] === parsedGeneratedArgs?.[key],
+    const numMatchingArgs = Object.keys(parsedOriginalArgs).filter((key) =>
+      isEqual(parsedOriginalArgs?.[key], parsedGeneratedArgs?.[key]),
     ).length;
     return numMatchingArgs / numOriginalArgs;
   } catch (e) {
