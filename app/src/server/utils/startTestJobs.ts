@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import { evaluateTestSetEntry } from "../tasks/evaluateTestSetEntry.task";
+import { generateTestSetEntry } from "../tasks/generateTestSetEntry.task";
 
 export const startDatasetEntryTestJobs = async (datasetEntryId: string) => {
   const datasetEntry = await prisma.datasetEntry.findFirst({
@@ -18,10 +18,10 @@ export const startDatasetEntryTestJobs = async (datasetEntryId: string) => {
   if (!datasetEntry?.dataset) return;
 
   for (const fineTune of datasetEntry.dataset.fineTunes) {
-    await evaluateTestSetEntry.enqueue({ modelId: fineTune.id, datasetEntryId });
+    await generateTestSetEntry.enqueue({ modelId: fineTune.id, datasetEntryId });
   }
   for (const comparisonModel of datasetEntry.dataset.enabledComparisonModels) {
-    await evaluateTestSetEntry.enqueue({ modelId: comparisonModel, datasetEntryId });
+    await generateTestSetEntry.enqueue({ modelId: comparisonModel, datasetEntryId });
   }
 };
 
@@ -56,6 +56,6 @@ export const startTestJobs = async (datasetId: string, modelId: string) => {
   });
 
   for (const entry of datasetEntries) {
-    await evaluateTestSetEntry.enqueue({ modelId, datasetEntryId: entry.id });
+    await generateTestSetEntry.enqueue({ modelId, datasetEntryId: entry.id });
   }
 };

@@ -15,14 +15,14 @@ import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 
-export type EvaluateTestSetEntryJob = {
+export type GenerateTestSetEntryJob = {
   modelId: string;
   datasetEntryId: string;
   skipCache?: boolean;
 };
 
-export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
-  id: "evaluateTestSetEntry",
+export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
+  id: "generateTestSetEntry",
   handler: async (task) => {
     const { modelId, datasetEntryId, skipCache } = task;
 

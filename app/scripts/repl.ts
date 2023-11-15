@@ -9,7 +9,6 @@ import { ChatCompletionCreateParams, ChatCompletionMessage } from "openai/resour
 import { calculateEntryScore } from "~/server/utils/calculateEntryScore";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { pick } from "lodash-es";
-import { evaluateTestSetEntry } from "~/server/tasks/evaluateTestSetEntry.task";
 
 const setGlobal = (key: string, value: any) => {
   (global as any)[key] = value;

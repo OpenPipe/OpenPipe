@@ -11,7 +11,7 @@ import { z } from "zod";
 import { type JsonValue } from "type-fest";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
-import { evaluateTestSetEntry } from "~/server/tasks/evaluateTestSetEntry.task";
+import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import hashObject from "~/server/utils/hashObject";
@@ -453,13 +453,13 @@ export const datasetEntriesRouter = createTRPCRouter({
           },
         });
         for (const fineTune of fineTunes) {
-          await evaluateTestSetEntry.enqueue({
+          await generateTestSetEntry.enqueue({
             modelId: fineTune.id,
             datasetEntryId: newEntry.id,
           });
         }
         for (const comparisonModel of dataset.enabledComparisonModels) {
-          await evaluateTestSetEntry.enqueue({
+          await generateTestSetEntry.enqueue({
             modelId: comparisonModel,
             datasetEntryId: newEntry.id,
           });
