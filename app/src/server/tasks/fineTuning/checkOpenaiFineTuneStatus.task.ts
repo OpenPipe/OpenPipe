@@ -64,7 +64,7 @@ const runOnce = async () => {
             data: {
               trainingFinishedAt: new Date(),
               status: "ERROR",
-              errorMessage: "Failed to train model",
+              errorMessage: resp.error?.message || "See OpenAI dashboard for more details",
             },
           });
           captureFineTuneTrainingFinished(fineTune.projectId, fineTune.slug, false);
