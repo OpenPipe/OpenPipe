@@ -2,7 +2,7 @@ import { type ComparisonModel } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { sql } from "kysely";
-import { jsonArrayFrom } from "kysely/helpers/postgres";
+import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import { pick, shuffle } from "lodash-es";
 import { WritableStreamBuffer } from "stream-buffers";
 import { v4 as uuidv4 } from "uuid";
@@ -213,24 +213,23 @@ export const datasetEntriesRouter = createTRPCRouter({
 
     await requireCanViewProject(entry.dataset.projectId, ctx);
 
-    const history = await prisma.datasetEntry.findMany({
-      where: {
-        persistentId: entry.persistentId,
-        createdAt: {
-          lte: entry.createdAt,
-        },
-      },
-      include: {
-        authoringUser: {
-          select: {
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    const history = await kysely
+      .selectFrom("DatasetEntry")
+      .where("persistentId", "=", entry.persistentId)
+      .where("createdAt", "<=", entry.createdAt)
+      .select((eb) => [
+        "id",
+        "provenance",
+        "createdAt",
+        jsonObjectFrom(
+          eb
+            .selectFrom("User")
+            .select(["name"])
+            .whereRef("User.id", "=", "DatasetEntry.authoringUserId"),
+        ).as("authoringUser"),
+      ])
+      .orderBy("sortKey", "desc")
+      .execute();
 
     return { ...typedDatasetEntry(entry), history };
   }),
