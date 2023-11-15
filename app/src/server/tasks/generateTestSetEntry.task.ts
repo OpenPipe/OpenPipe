@@ -14,6 +14,7 @@ import {
 import { calculateEntryScore } from "../utils/calculateEntryScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
+import { queueEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
@@ -141,7 +142,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         });
       }
 
-      await prisma.fineTuneTestingEntry.update({
+      const updatedEntry = await prisma.fineTuneTestingEntry.update({
         where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {
           cacheKey,
@@ -153,6 +154,8 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
           errorMessage: null,
         },
       });
+
+      await queueEvalJobsForTestingEntry(updatedEntry, datasetEntry.datasetId);
     } catch (e: unknown) {
       const typedError = e as { message?: string; error?: { message: string } };
       await prisma.fineTuneTestingEntry.update({
