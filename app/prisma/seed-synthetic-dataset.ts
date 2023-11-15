@@ -84,8 +84,8 @@ await Promise.all(
         inputTokens: 0,
         outputTokens: 0,
         split: entrySplit,
-        datasetId, // Use the preserved or new ID
-        sortKey: index.toString(), // Use array index as sortKey
+        datasetId,
+        sortKey: index.toString(),
         importId: "synthetic-dataset",
         provenance: "UPLOAD",
       },

@@ -3,6 +3,7 @@ import { isObject } from "lodash-es";
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
 import { z } from "zod";
 import {
+  chatCompletionInputReqPayload,
   chatCompletionMessage,
   chatMessage,
   functionCallInput,
@@ -11,6 +12,8 @@ import {
   toolsInput,
 } from "~/types/shared.types";
 
+const chatInputs = chatCompletionInputReqPayload.shape;
+
 export const rowSchema = z.object({
   input: z.object({
     messages: z.array(chatMessage),
@@ -18,6 +21,7 @@ export const rowSchema = z.object({
     functions: functionsInput,
     tool_choice: toolChoiceInput,
     tools: toolsInput,
+    response_format: chatInputs.response_format,
   }),
   output: chatCompletionMessage,
   split: z.enum(["TRAIN", "TEST"]).optional(),

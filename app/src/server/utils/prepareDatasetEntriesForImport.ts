@@ -69,6 +69,7 @@ export const prepareDatasetEntriesForImport = async (
       tools: row.input.tools?.length
         ? row.input.tools
         : (convertFunctionsToTools(row.input.functions) as object[]),
+      response_format: row.input.response_format,
       output: (convertFunctionMessageToToolCall(
         row.output,
       ) as unknown as Prisma.InputJsonValue) ?? {

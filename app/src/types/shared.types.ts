@@ -1,4 +1,3 @@
-import { pick } from "lodash-es";
 import type {
   ChatCompletion,
   ChatCompletionCreateParams,
@@ -9,18 +8,6 @@ import { z } from "zod";
 export const CURRENT_PIPELINE_VERSION = 2;
 
 export type AtLeastOne<T> = readonly [T, ...T[]];
-
-export const validatedChatInput = <
-  T extends { messages: unknown; functions?: unknown; function_call?: unknown },
->(
-  entry: T,
-) => {
-  // TODO: actually validate. We'll just assert the types for now.
-  return pick(entry, ["messages", "functions", "function_call", "tool_choice", "tools"]) as Pick<
-    ChatCompletionCreateParams,
-    "messages" | "functions" | "function_call" | "tool_choice" | "tools"
-  >;
-};
 
 export const functionCallOutput = z
   .object({
@@ -143,6 +130,11 @@ const chatCompletionInputBase = z.object({
   n: z.number().optional(),
   max_tokens: z.number().nullable().optional(),
   temperature: z.number().optional(),
+  response_format: z
+    .object({
+      type: z.union([z.literal("text"), z.literal("json_object")]),
+    })
+    .optional(),
 });
 
 const chatCompletionInputStreaming = z.object({

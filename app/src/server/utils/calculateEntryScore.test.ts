@@ -94,8 +94,8 @@ const generatedMismatchingNames: ChatCompletionMessageParam = {
 
 it("calculates 1 for perfect match", () => {
   const score = calculateEntryScore(
-    originalMatchingArgs.tool_calls,
-    generatedMatchingArgs.tool_calls,
+    { messages: [], output: originalMatchingArgs },
+    generatedMatchingArgs,
   );
 
   expect(score).toBe(1);
@@ -103,8 +103,8 @@ it("calculates 1 for perfect match", () => {
 
 it("calculates 0 for mismatching names", () => {
   const score = calculateEntryScore(
-    originalMismatchingNames.tool_calls,
-    generatedMismatchingNames.tool_calls,
+    { messages: [], output: originalMismatchingNames },
+    generatedMismatchingNames,
   );
 
   expect(score).toBe(0);
@@ -112,8 +112,8 @@ it("calculates 0 for mismatching names", () => {
 
 it("calculates 0 for no matching args", () => {
   const score = calculateEntryScore(
-    originalMismatchingArgs.tool_calls,
-    generatedMismatchingArgs.tool_calls,
+    { messages: [], output: originalMismatchingArgs },
+    generatedMismatchingArgs,
   );
 
   expect(score).toBe(0);
