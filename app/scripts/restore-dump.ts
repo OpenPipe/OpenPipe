@@ -44,10 +44,10 @@ const restoreFromDisk = async (dumpFilePath: string) => {
 
   console.log(`Creating a temporary template database: ${templateDbName}`);
   await terminateConnections(templateDbName);
-  await $$`psql -c 'UPDATE pg_database SET datistemplate = FALSE WHERE datname = "${templateDbName}"'`;
+  await $$`psql -c "UPDATE pg_database SET datistemplate = FALSE WHERE datname = '${templateDbName}'"`;
   await $$`psql -c 'DROP DATABASE IF EXISTS "${templateDbName}"'`;
   await $$`psql -c 'CREATE DATABASE "${templateDbName}"'`;
-  await $$`psql -c 'UPDATE pg_database SET datistemplate = TRUE WHERE datname = "${templateDbName}"'`;
+  await $$`psql -c "UPDATE pg_database SET datistemplate = TRUE WHERE datname = '${templateDbName}'"`;
 
   console.log(`Processing the dump file and restoring to ${templateDbName}`);
   await $$`sed '/CREATE ROLE/d;/ALTER ROLE/d;/DROP ROLE/d;/GRANT .* TO/d' ${dumpFilePath} | sed 's/"querykey_prod_x93p"/"${templateDbName}"/g' | psql -d "${templateDbName}"`;
