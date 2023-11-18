@@ -20,6 +20,7 @@ import {
 } from "./selectedDatasetEntriesSlice";
 import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisibilitySlice";
 import { type FeatureFlagsSlice, createFeatureFlagsSlice } from "./featureFlags";
+import { type EvaluationsSlice, createEvaluationsSlice } from "./evaluationsSlice";
 
 enableMapSet();
 
@@ -37,6 +38,7 @@ export type State = {
   selectedDatasetEntries: SelectedDatasetEntriesSlice;
   columnVisibility: ColumnVisibilitySlice;
   featureFlags: FeatureFlagsSlice;
+  evaluationsSlice: EvaluationsSlice;
 };
 
 export type SliceCreator<T> = StateCreator<State, [["zustand/immer", never]], [], T>;
@@ -69,6 +71,7 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
       selectedDatasetEntries: createSelectedDatasetEntriesSlice(set, get, ...rest),
       columnVisibility: createColumnVisibilitySlice(set, get, ...rest),
       featureFlags: createFeatureFlagsSlice(set, get, ...rest),
+      evaluationsSlice: createEvaluationsSlice(set, get, ...rest),
     })),
     persistOptions,
   ),

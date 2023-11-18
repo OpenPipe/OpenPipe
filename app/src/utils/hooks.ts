@@ -370,6 +370,10 @@ export const useFineTune = () => {
   return fineTune;
 };
 
+export const useDatasetEval = (datasetEvalId: string | null) => {
+  return api.datasetEvals.get.useQuery({ id: datasetEvalId ?? "" }, { enabled: !!datasetEvalId });
+};
+
 export const usePruningRules = () => {
   const selectedDataset = useDataset().data;
 

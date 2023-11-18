@@ -52,3 +52,9 @@ export const getComparisonModel = (modelName: string) => {
   if (!model) return null;
   return model[0] as ComparisonModel;
 };
+
+export const getComparisonModelName = (modelId: string) => {
+  const model = Object.entries(COMPARISON_MODEL_NAMES).find(([id]) => id === modelId);
+  if (!model) return null;
+  return model[1];
+};

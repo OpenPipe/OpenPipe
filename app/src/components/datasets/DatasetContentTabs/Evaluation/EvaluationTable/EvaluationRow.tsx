@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Text,
   VStack,
@@ -18,6 +18,9 @@ import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import ColoredPercent from "~/components/ColoredPercent";
 import { type RouterOutputs } from "~/utils/api";
 import ModelHeader from "./ModelHeader";
+import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { useVisibleEvalIds } from "../useVisibleEvalIds";
+import EvalResults from "./EvalResults";
 
 export const TableHeader = ({
   showOriginalOutput,
@@ -97,15 +100,18 @@ const EvaluationRow = ({
       <FormattedInputGridItem entry={entry} maxOutputHeight={maxOutputHeight} />
       {showOriginalOutput && (
         <FormattedOutputGridItem
-          entry={{ output: entry.output }}
+          entry={{ datasetEntryId: entry.id, modelId: ORIGINAL_MODEL_ID, output: entry.output }}
+          evalResults={entry.datasetEvalResults}
           onHeightUpdated={onHeightUpdated}
         />
       )}
       {orderedModelEntries.map((ftEntry) => {
+        const x = ftEntry.modelId;
         return (
           <FormattedOutputGridItem
             key={ftEntry.modelId}
             entry={ftEntry}
+            evalResults={entry.datasetEvalResults}
             onHeightUpdated={onHeightUpdated}
           />
         );
@@ -203,16 +209,22 @@ const FormattedInputGridItem = ({
   );
 };
 
-type FTEntry = Partial<TestingEntry["fineTuneTestDatasetEntries"][number]>;
+type FTEntry = Partial<TestingEntry["fineTuneTestDatasetEntries"][number]> & {
+  datasetEntryId?: string;
+};
 
 const FormattedOutputGridItem = ({
   entry,
+  evalResults,
   onHeightUpdated,
 }: {
   entry: FTEntry;
+  evalResults: TestingEntry["datasetEvalResults"];
   onHeightUpdated: (height: number) => void;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+
+  const visibleEvalIds = useVisibleEvalIds().visibleEvalIds;
 
   useLayoutEffect(() => {
     if (ref.current) {
@@ -221,12 +233,23 @@ const FormattedOutputGridItem = ({
         onHeightUpdated(height);
       }
     }
-  });
+  }, [visibleEvalIds, onHeightUpdated]);
+
+  const applicableResults = useMemo(
+    () => evalResults.filter((result) => result.modelId === entry.modelId),
+    [evalResults, entry.modelId],
+  );
+
   return (
     <GridItem borderTopWidth={1} borderLeftWidth={1}>
-      <Box ref={ref}>
+      <VStack ref={ref} w="full" alignItems="flex-start">
         <FormattedOutput entry={entry} />
-      </Box>
+        <EvalResults
+          datasetEntryId={entry.datasetEntryId}
+          modelId={entry.modelId}
+          results={applicableResults}
+        />
+      </VStack>
     </GridItem>
   );
 };
@@ -265,7 +288,7 @@ const FormattedMessage = ({
 }) => {
   if (message.tool_calls) {
     return (
-      <VStack alignItems="flex-start" whiteSpace="pre-wrap">
+      <VStack alignItems="flex-start" whiteSpace="pre-wrap" w="full">
         {message.tool_calls.map((toolCall, index) => (
           <FormattedToolCall key={index} toolCall={toolCall} />
         ))}

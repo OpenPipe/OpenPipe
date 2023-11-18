@@ -260,7 +260,7 @@ model DatasetEntry {
     importId     String
     provenance   DatasetEntryProvenance
 
-    datasetEvalScores DatasetEvalScore[]
+    datasetEvalDatasetEntries DatasetEvalDatasetEntry[]
 
     fineTuneTrainingEntries    FineTuneTrainingEntry[]
     fineTuneTestDatasetEntries FineTuneTestingEntry[]
@@ -268,8 +268,8 @@ model DatasetEntry {
     authoringUserId String? @db.Uuid // The user who created this version of the entry (if any)
     authoringUser   User?   @relation(fields: [authoringUserId], references: [id])
 
-    datasetId String   @db.Uuid
-    dataset   Dataset? @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+    datasetId String  @db.Uuid
+    dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -587,11 +587,10 @@ model FineTune {
     deploymentFinishedAt DateTime?
     inferenceUrls        String[]       @default([])
 
-    trainingEntries   FineTuneTrainingEntry[]
-    testingEntries    FineTuneTestingEntry[]
-    pruningRules      PruningRule[]
-    usageLogs         UsageLog[]
-    datasetEvalScores DatasetEvalScore[]
+    trainingEntries FineTuneTrainingEntry[]
+    testingEntries  FineTuneTestingEntry[]
+    pruningRules    PruningRule[]
+    usageLogs       UsageLog[]
 
     datasetId String  @db.Uuid
     dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
@@ -655,8 +654,6 @@ model FineTuneTestingEntry {
     datasetEntryId String       @db.Uuid
     datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
-    datasetEvalScores DatasetEvalScore[]
-
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
@@ -670,7 +667,8 @@ model DatasetEval {
     name         String
     instructions String?
 
-    datasetEvalScores DatasetEvalScore[]
+    datasetEvalDatasetEntries DatasetEvalDatasetEntry[]
+    datasetEvalOutputSources  DatasetEvalOutputSource[]
 
     datasetId String  @db.Uuid
     dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
@@ -681,13 +679,11 @@ model DatasetEval {
     @@unique([datasetId, name])
 }
 
-model DatasetEvalScore {
+// Used to record which dataset entries should be evaluated for a given dataset eval
+model DatasetEvalDatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    score       Float
-    explanation String?
-    // Comparison eval scores are grouped by evalRunId
-    evalRunId   String?
+    results DatasetEvalResult[]
 
     datasetEvalId String      @db.Uuid
     datasetEval   DatasetEval @relation(fields: [datasetEvalId], references: [id], onDelete: Cascade)
@@ -695,18 +691,62 @@ model DatasetEvalScore {
     datasetEntryId String       @db.Uuid
     datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
-    // Scores that are associated with the original output of dataset entries will not have a fineTuneTestingEntryId
-    fineTuneTestingEntryId String?               @db.Uuid
-    fineTuneTestingEntry   FineTuneTestingEntry? @relation(fields: [fineTuneTestingEntryId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-    fineTuneId String?   @db.Uuid
-    fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+    @@unique([datasetEvalId, datasetEntryId])
+}
+
+// Used to record whether the original output and which comparison and fine-tuned models should be evaluated for a given dataset eval
+model DatasetEvalOutputSource {
+    id String @id @default(uuid()) @db.Uuid
+
+    // The id of the model, or "original" for the original output
+    modelId String
+
+    results           DatasetEvalResult[]
+    comparisonResults DatasetEvalResult[] @relation("comparison")
+
+    datasetEvalId String      @db.Uuid
+    datasetEval   DatasetEval @relation(fields: [datasetEvalId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([datasetEvalId, datasetEntryId, fineTuneId])
-    @@index([evalRunId])
+    @@unique([datasetEvalId, modelId])
+}
+
+enum DatasetEvalResultStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETE
+    ERROR
+}
+
+model DatasetEvalResult {
+    id String @id @default(uuid()) @db.Uuid
+
+    score        Float?
+    explanation  String?
+    errorMessage String?
+    status       DatasetEvalResultStatus @default(PENDING)
+
+    comparisonResultId String @db.Uuid // The id of the DatasetEvalResult to compare against
+
+    comparisonOutputSourceId String                  @db.Uuid // The id of the DatasetEvalOutputSource to compare against
+    comparisonOutputSource   DatasetEvalOutputSource @relation("comparison", fields: [comparisonOutputSourceId], references: [id], onDelete: Cascade)
+
+    datasetEvalDatasetEntryId String                  @db.Uuid
+    datasetEvalDatasetEntry   DatasetEvalDatasetEntry @relation(fields: [datasetEvalDatasetEntryId], references: [id], onDelete: Cascade)
+
+    datasetEvalOutputSourceId String                  @db.Uuid
+    datasetEvalOutputSource   DatasetEvalOutputSource @relation(fields: [datasetEvalOutputSourceId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([datasetEvalDatasetEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
+    @@index([comparisonResultId])
 }
 
 enum UsageType {

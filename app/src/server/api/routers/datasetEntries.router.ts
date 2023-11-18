@@ -672,7 +672,8 @@ export const datasetEntriesRouter = createTRPCRouter({
             eb
               .selectFrom("FineTuneTestingEntry as ftte")
               .select([
-                "modelId",
+                "id",
+                "ftte.modelId",
                 "output",
                 "score",
                 "errorMessage",
@@ -682,6 +683,18 @@ export const datasetEntriesRouter = createTRPCRouter({
               ])
               .whereRef("ftte.datasetEntryId", "=", "de.id"),
           ).as("fineTuneTestDatasetEntries"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("DatasetEvalResult as der")
+              .leftJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEntryId", "de.id")
+              .leftJoin(
+                "DatasetEvalOutputSource as deos",
+                "deos.id",
+                "der.datasetEvalOutputSourceId",
+              )
+              .select(["der.score", "der.status", "deos.datasetEvalId", "deos.modelId"])
+              .whereRef("der.datasetEvalDatasetEntryId", "=", "dede.id"),
+          ).as("datasetEvalResults"),
         ])
         .orderBy(() =>
           sql.raw(
@@ -702,8 +715,12 @@ export const datasetEntriesRouter = createTRPCRouter({
         .execute()
         .then((rows) => rows.length);
 
-      const pageIncomplete = !!entries.find((entry) =>
-        entry.fineTuneTestDatasetEntries.find((entry) => !entry.output),
+      const pageIncomplete = entries.some(
+        (entry) =>
+          entry.fineTuneTestDatasetEntries.some((entry) => !entry.output) ||
+          entry.datasetEvalResults.some(
+            (entry) => entry.status === "PENDING" || entry.status === "IN_PROGRESS",
+          ),
       );
 
       return {
