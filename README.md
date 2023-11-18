@@ -69,6 +69,7 @@ To fine-tune Mistral and Llama 2 models in the hosted app, [join the waitlist](h
 ```sh
 psql postgres
 CREATE ROLE postgres WITH LOGIN PASSWORD 'postgres';
+ALTER ROLE postgres SUPERUSER;
 ```
 8. Update `DATABASE_URL` if necessary to point to your Postgres instance and run `pnpm prisma migrate dev` in the `app` directory to create the database.
 9. Create a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app), set the callback URL to `<your local instance>/api/auth/callback/github`, e.g. `http://localhost:3000/api/auth/callback/github`.
