@@ -12,7 +12,7 @@
     "build": "next build",
     "dev:next": "NODE_OPTIONS='--no-node-snapshot' TZ=UTC next dev",
     "dev:wss": "tsx --watch src/wss-server.ts",
-    "dev:worker": "tsx --watch src/server/tasks/worker.ts",
+    "dev:worker": "NODE_OPTIONS='--no-node-snapshot' tsx --watch src/server/tasks/worker.ts",
     "worker": "tsx src/server/tasks/worker.ts",
     "dev": "tsx scripts/run-dev.ts",
     "dev:tunnel": "tsx scripts/dev-tunnel.ts",
