@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "next build",
-    "dev:next": "TZ=UTC next dev",
+    "dev:next": "NODE_OPTIONS='--no-node-snapshot' TZ=UTC next dev",
     "dev:wss": "tsx --watch src/wss-server.ts",
     "dev:worker": "tsx --watch src/server/tasks/worker.ts",
     "worker": "tsx src/server/tasks/worker.ts",
