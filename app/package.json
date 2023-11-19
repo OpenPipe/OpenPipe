@@ -130,8 +130,6 @@
   "devDependencies": {
     "@openapi-contrib/openapi-schema-to-json-schema": "^4.0.5",
     "@types/archiver": "^5.3.2",
-    "@types/babel__core": "^7.20.1",
-    "@types/babel__standalone": "^7.1.4",
     "@types/chroma-js": "^2.4.0",
     "@types/cors": "^2.8.13",
     "@types/eslint": "^8.37.0",
