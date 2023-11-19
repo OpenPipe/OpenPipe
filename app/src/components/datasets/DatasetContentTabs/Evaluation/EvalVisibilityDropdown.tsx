@@ -99,7 +99,7 @@ const EvalVisibilityDropdown = () => {
           <Box>
             <ActionButton
               label={
-                "Show Evals" +
+                "Evals" +
                 (columnVisibilityOptions.length
                   ? ` (${numVisibleEvals}/${columnVisibilityOptions.length})`
                   : "")

@@ -7,6 +7,7 @@ import { type RouterOutputs } from "~/utils/api";
 import { useDataset } from "~/utils/hooks";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import { useAppStore } from "~/state/store";
+import { isNumber } from "lodash-es";
 
 type DatasetEvalResults =
   RouterOutputs["datasetEntries"]["listTestingEntries"]["entries"][number]["datasetEvalResults"];
@@ -40,12 +41,13 @@ const EvalResults = ({
       acc.set(result.datasetEvalId, currentGroup);
       if (result.status === "PENDING") {
         acc.set(result.datasetEvalId, { ...currentGroup, isPending: true });
+        return acc;
       }
       if (result.status === "ERROR") {
         acc.set(result.datasetEvalId, { ...currentGroup, hasError: true });
         return acc;
       }
-      if (!result.score) return acc;
+      if (!isNumber(result.score)) return acc;
       acc.set(result.datasetEvalId, {
         ...currentGroup,
         scores: [...currentGroup.scores, result.score],

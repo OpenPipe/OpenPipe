@@ -281,75 +281,8 @@ export const datasetEvalsRouter = createTRPCRouter({
     }),
 
   getComparisonDetails: protectedProcedure
-    .input(z.object({ modelId: z.string(), datasetEvalId: z.string(), datasetEntryId: z.string() }))
+    .input(z.object({ datasetEvalId: z.string(), datasetEntryId: z.string(), modelId: z.string() }))
     .query(async ({ input, ctx }) => {
-      const comparisons = await kysely
-        .selectFrom("DatasetEvalResult as der")
-        .innerJoin(
-          (eb) =>
-            eb
-              .selectFrom("DatasetEvalDatasetEntry as dede")
-              .select(["dede.id", "dede.datasetEvalId"])
-              .where("dede.datasetEntryId", "=", input.datasetEntryId)
-              .where("dede.datasetEvalId", "=", input.datasetEvalId)
-              .as("dede"),
-          (join) => join.onRef("dede.id", "=", "der.datasetEvalDatasetEntryId"),
-        )
-        .innerJoin(
-          (eb) =>
-            eb
-              .selectFrom("DatasetEvalOutputSource as deos")
-              .select(["deos.id", "deos.datasetEvalId"])
-              .where("deos.modelId", "=", input.modelId)
-              .where("deos.datasetEvalId", "=", input.datasetEvalId)
-              .as("deos"),
-          (join) => join.onRef("deos.id", "=", "der.datasetEvalOutputSourceId"),
-        )
-        .innerJoin(
-          "DatasetEvalResult as comparisonResult",
-          "comparisonResult.id",
-          "der.comparisonResultId",
-        )
-        .innerJoin(
-          "DatasetEvalDatasetEntry as comparisonEntry",
-          "comparisonEntry.id",
-          "comparisonResult.datasetEvalDatasetEntryId",
-        )
-        .innerJoin(
-          "DatasetEntry as comparisonDatasetEntry",
-          "comparisonDatasetEntry.id",
-          "comparisonEntry.datasetEntryId",
-        )
-        .innerJoin(
-          "DatasetEvalOutputSource as comparisonOutput",
-          "comparisonOutput.id",
-          "comparisonResult.datasetEvalOutputSourceId",
-        )
-        .leftJoin(
-          "FineTuneTestingEntry as ftte",
-          "ftte.datasetEntryId",
-          "comparisonDatasetEntry.id",
-        )
-        .where((eb) =>
-          eb.or([
-            eb("ftte.modelId", "=", "comparisonOutput.modelId"),
-            eb("comparisonOutput.modelId", "=", ORIGINAL_MODEL_ID),
-          ]),
-        )
-        .select([
-          "der.score as score",
-          "comparisonOutput.modelId as comparisonModelId",
-          "comparisonDatasetEntry.output as comparisonOutput",
-          "comparisonResult.score as comparisonScore",
-        ])
-        .execute();
-
-      const outputSource = await prisma.datasetEvalOutputSource.findUniqueOrThrow({
-        where: {
-          datasetEvalId_modelId: { datasetEvalId: input.datasetEvalId, modelId: input.modelId },
-        },
-        select: { modelId: true },
-      });
       const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.findUniqueOrThrow({
         where: {
           datasetEvalId_datasetEntryId: {
@@ -358,6 +291,7 @@ export const datasetEvalsRouter = createTRPCRouter({
           },
         },
         select: {
+          id: true,
           datasetEntry: {
             select: {
               output: true,
@@ -380,11 +314,90 @@ export const datasetEvalsRouter = createTRPCRouter({
 
       await requireCanViewProject(datasetEvalDatasetEntry.datasetEntry.dataset.projectId, ctx);
 
+      const entries = await kysely
+        .selectFrom("DatasetEvalDatasetEntry as dede")
+        .where("dede.datasetEvalId", "=", input.datasetEvalId)
+        .where("dede.datasetEntryId", "=", input.datasetEntryId)
+        .leftJoin(
+          "DatasetEvalResult as selectedDer",
+          "selectedDer.datasetEvalDatasetEntryId",
+          "dede.id",
+        )
+        .leftJoin(
+          "DatasetEvalOutputSource as deos",
+          "deos.id",
+          "selectedDer.datasetEvalOutputSourceId",
+        )
+        .where("deos.modelId", "=", input.modelId)
+        .distinctOn("deos.modelId")
+        .leftJoin("DatasetEntry as de", "de.id", "dede.datasetEntryId")
+        .leftJoin("FineTuneTestingEntry as ftte", (join) =>
+          join
+            .on("ftte.datasetEntryId", "=", input.datasetEntryId)
+            .onRef("ftte.modelId", "=", "deos.modelId"),
+        )
+        .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
+        .select((eb) => [
+          "deos.modelId",
+          "ftte.output as output",
+          "ft.slug as slug",
+          jsonArrayFrom(
+            eb
+              .selectFrom("DatasetEvalResult as der")
+              .whereRef("der.datasetEvalDatasetEntryId", "=", "dede.id")
+              .whereRef("der.datasetEvalOutputSourceId", "=", "deos.id")
+              .leftJoin(
+                "DatasetEvalResult as comparisonDer",
+                "comparisonDer.id",
+                "der.comparisonResultId",
+              )
+              .leftJoin(
+                "DatasetEvalOutputSource as comparisonDeos",
+                "comparisonDeos.id",
+                "comparisonDer.datasetEvalOutputSourceId",
+              )
+              .leftJoin("FineTuneTestingEntry as comparisonFtte", (join) =>
+                join
+                  .on("comparisonFtte.datasetEntryId", "=", input.datasetEntryId)
+                  .onRef("comparisonFtte.modelId", "=", "comparisonDeos.modelId"),
+              )
+              .leftJoin("FineTune as comparisonFt", "comparisonFt.id", "comparisonFtte.fineTuneId")
+              .orderBy("comparisonFt.createdAt", "desc")
+              .select([
+                "comparisonDer.score",
+                "comparisonDer.explanation",
+                "comparisonDeos.modelId",
+                "comparisonFtte.output as output",
+                "comparisonFt.slug as slug",
+              ]),
+          ).as("comparisonResults"),
+        ])
+        .execute();
+
+      const entry = entries[0];
+
+      if (!entry) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Dataset entry for head-to-head comparison details not found",
+        });
+      }
+
+      // fill in output for original model
+      if (entry.modelId === ORIGINAL_MODEL_ID) {
+        entry.output = datasetEvalDatasetEntry.datasetEntry.output;
+      }
+      const originalModelComparisonResult = entry.comparisonResults.find(
+        (result) => result.modelId === ORIGINAL_MODEL_ID,
+      );
+      if (originalModelComparisonResult) {
+        originalModelComparisonResult.output = datasetEvalDatasetEntry.datasetEntry.output;
+      }
+
       return {
-        comparisons,
+        entry,
         datasetEval: datasetEvalDatasetEntry.datasetEval,
-        modelId: outputSource.modelId,
-        output: datasetEvalDatasetEntry?.datasetEntry?.output,
+        originalOutput: datasetEvalDatasetEntry?.datasetEntry?.output,
       };
     }),
 });

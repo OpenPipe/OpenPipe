@@ -301,18 +301,14 @@ export const queueEvalJobsForTestingEntry = async (
       "dede.id as datasetEvalDatasetEntryId",
       jsonArrayFrom(
         eb
-          .selectFrom("DatasetEvalOutputSource")
-          .select(["id", "modelId"])
-          .where("datasetEvalId", "=", "eval.id")
-          .leftJoin(
-            "FineTuneTestingEntry as ftte",
-            "ftte.modelId",
-            "DatasetEvalOutputSource.modelId",
-          )
+          .selectFrom("DatasetEvalOutputSource as deos")
+          .select(["deos.id", "deos.modelId"])
+          .whereRef("datasetEvalId", "=", "eval.id")
+          .leftJoin("FineTuneTestingEntry as ftte", "ftte.modelId", "deos.modelId")
           .where((eb) => {
             // Ensure output source already has output loaded
             return eb.or([
-              eb("modelId", "=", ORIGINAL_MODEL_ID),
+              eb("deos.modelId", "=", ORIGINAL_MODEL_ID),
               eb("ftte.output", "is not", null),
             ]);
           }),
