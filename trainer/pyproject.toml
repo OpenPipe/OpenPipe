@@ -10,7 +10,7 @@ test = "pytest-watch --runner 'pytest -rP -m focus'"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-modal = "^0.53.3665"
+modal = "0.55.4094"
 python-dotenv = "^1.0.0"
 
 

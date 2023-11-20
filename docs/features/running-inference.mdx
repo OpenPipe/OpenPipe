@@ -13,7 +13,12 @@ The last step is to update the model that you're querying to match the ID of you
   <Tab title="Python">
 
 ```python
-completion = openai.ChatCompletion.create(
+from openpipe import OpenAI
+
+# Find the config values in "Installing the SDK"
+client = OpenAI()
+
+completion = client.chat.completions.create(
     # model="gpt-3.5-turbo", - original model
     model="openpipe:your-fine-tuned-model-id",
     messages=[{"role": "system", "content": "count to 10"}],
@@ -25,7 +30,12 @@ completion = openai.ChatCompletion.create(
   <Tab title="NodeJS">
 
 ```typescript
-const completion = await openai.chat.completions.create({
+import OpenAI from "openpipe/openai";
+
+# Find the config values in "Installing the SDK"
+client = OpenAI()
+
+const completion = await client.chat.completions.create({
   // model: "gpt-3.5-turbo", - original model
   model: "openpipe:your-fine-tuned-model-id",
   messages: [{ role: "user", content: "Count to 10" }],

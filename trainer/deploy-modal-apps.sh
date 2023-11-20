@@ -7,7 +7,7 @@ set -e
 cd "$(dirname "$0")"
 
 # Default environment
-ENV="dev"
+ENV="prod"
 
 # List of valid environments
 VALID_ENVS=("dev" "prod")
