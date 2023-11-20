@@ -64,12 +64,18 @@ To fine-tune Mistral and Llama 2 models in the hosted app, [join the waitlist](h
 3. Install `pnpm`: `npm i -g pnpm`
 4. Clone this repository: `git clone https://github.com/openpipe/openpipe`
 5. Install the dependencies: `cd openpipe && pnpm install`
-6. Create a `.env` file (`cp .env.example .env`) and enter your `OPENAI_API_KEY`.
-7. Update `DATABASE_URL` if necessary to point to your Postgres instance and run `pnpm prisma migrate dev` to create the database.
-8. Create a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app), set the callback URL to `<your local instance>/api/auth/callback/github`, e.g. `http://localhost:3000/api/auth/callback/github`.
-9. Update the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` values from the Github OAuth app (Note: a PR to make auth optional when running locally would be a great contribution!).
-10. Start the app: `pnpm dev`.
-11. Navigate to [http://localhost:3000](http://localhost:3000)
+6. Create a `.env` file (`cd app && cp .env.example .env`) and enter your `OPENAI_API_KEY`.
+7. If you just installed postgres and wish to use the default `DATABASE_URL` run the following commands: 
+```sh
+psql postgres
+CREATE ROLE postgres WITH LOGIN PASSWORD 'postgres';
+ALTER ROLE postgres SUPERUSER;
+```
+8. Update `DATABASE_URL` if necessary to point to your Postgres instance and run `pnpm prisma migrate dev` in the `app` directory to create the database.
+9. Create a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app), set the callback URL to `<your local instance>/api/auth/callback/github`, e.g. `http://localhost:3000/api/auth/callback/github`.
+10. Update the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` values from the Github OAuth app (Note: a PR to make auth optional when running locally would be a great contribution!).
+11. To start the app run `pnpm dev` in the `app` directory.
+12. Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Testing Locally
 
