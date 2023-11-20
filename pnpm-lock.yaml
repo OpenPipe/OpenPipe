@@ -406,16 +406,16 @@ importers:
   client-libs/typescript:
     dependencies:
       encoding:
-        specifier: ^0.1.13
+        specifier: 0.1.13
         version: 0.1.13
       form-data:
-        specifier: ^4.0.0
+        specifier: 4.0.0
         version: 4.0.0
       node-fetch:
-        specifier: ^2.6.12
+        specifier: 2.6.12
         version: 2.6.12(encoding@0.1.13)
       openai:
-        specifier: ^4.17.1
+        specifier: 4.17.1
         version: 4.17.1(encoding@0.1.13)
       openai-legacy:
         specifier: npm:openai@3.3.0
