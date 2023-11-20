@@ -27,6 +27,25 @@ client = OpenAI(
 )
 ```
 
+You can now use your new OpenAI client, which functions identically to the generic OpenAI client while also reporting calls to your OpenPipe instance.
+
+## Special Features
+
+### Tagging
+
+OpenPipe has a concept of "tagging." This is very useful for grouping a certain set of completions together. When you're using a dataset for fine-tuning, you can select all the prompts that match a certain set of tags. Here's how you can use the tagging feature:
+
+```python
+completion = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "system", "content": "count to 10"}],
+    openpipe={
+        "tags": {"prompt_id": "counting"},
+        "log_request": True, # Enable/disable data collection. Defaults to True.
+    },
+)
+```
+
 ## Usage with langchain
 
 > Assuming you have created a project and have the openpipe key.
@@ -55,24 +74,5 @@ llm = ChatOpenAI(model="gpt-3.5-turbo")\
 chain: RunnableSequence = prompt | llm
 res = chain.invoke(
     {"query": "this is good"}
-)
-```
-
-You can now use your new OpenAI client, which functions identically to the generic OpenAI client while also reporting calls to your OpenPipe instance.
-
-## Special Features
-
-### Tagging
-
-OpenPipe has a concept of "tagging." This is very useful for grouping a certain set of completions together. When you're using a dataset for fine-tuning, you can select all the prompts that match a certain set of tags. Here's how you can use the tagging feature:
-
-```python
-completion = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[{"role": "system", "content": "count to 10"}],
-    openpipe={
-        "tags": {"prompt_id": "counting"},
-        "log_request": True, # Enable/disable data collection. Defaults to True.
-    },
 )
 ```
