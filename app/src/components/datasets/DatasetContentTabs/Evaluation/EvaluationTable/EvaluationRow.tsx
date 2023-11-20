@@ -242,7 +242,7 @@ const FormattedOutputGridItem = ({
 
   return (
     <GridItem borderTopWidth={1} borderLeftWidth={1}>
-      <VStack ref={ref} w="full" alignItems="flex-start">
+      <VStack ref={ref} w="full" alignItems="flex-start" justifyContent="space-between" h="full">
         <FormattedOutput entry={entry} />
         <EvalResults
           datasetEntryId={datasetEntryId}
