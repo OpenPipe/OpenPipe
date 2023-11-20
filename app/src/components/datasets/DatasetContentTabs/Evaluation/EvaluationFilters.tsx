@@ -9,18 +9,13 @@ import {
 } from "~/types/shared.types";
 import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 
-const defaultEvaluationFilterOptions = [
-  { field: EvaluationFiltersDefaultFields.Input },
-  { field: EvaluationFiltersDefaultFields.OriginalOutput },
-  { field: EvaluationFiltersDefaultFields.ImportId },
-];
-
 const EvaluationFilters = () => {
   const dataset = useDataset().data;
 
   const filterOptions = useMemo(
     () => [
-      ...defaultEvaluationFilterOptions,
+      { field: EvaluationFiltersDefaultFields.Input },
+      { field: EvaluationFiltersDefaultFields.OriginalOutput },
       ...[
         ...(dataset?.enabledComparisonModels || []).map((cm) => ({
           field: COMPARISON_MODEL_NAMES[cm] + EVALUATION_FILTERS_OUTPUT_APPENDIX,
@@ -29,8 +24,21 @@ const EvaluationFilters = () => {
           field: ft.slug + EVALUATION_FILTERS_OUTPUT_APPENDIX,
         })),
       ],
+      ...(dataset?.datasetEvals.length
+        ? [
+            {
+              field: EvaluationFiltersDefaultFields.EvalApplied,
+              type: "select" as const,
+              options: dataset?.datasetEvals.map((de) => ({
+                value: de.id,
+                label: de.name,
+              })),
+            },
+          ]
+        : []),
+      { field: EvaluationFiltersDefaultFields.ImportId },
     ],
-    [dataset?.enabledComparisonModels, dataset?.deployedFineTunes],
+    [dataset?.enabledComparisonModels, dataset?.deployedFineTunes, dataset?.datasetEvals],
   );
 
   return (
