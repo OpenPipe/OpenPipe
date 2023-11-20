@@ -27,6 +27,37 @@ client = OpenAI(
 )
 ```
 
+## Usage with langchain
+
+> Assuming you have created a project and have the openpipe key.
+
+```python
+from openpipe.langchain_llm import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.runnable import RunnableSequence
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "Classify user query into positive, negative or neutral.",
+        ),
+        ("human", "{query}"),
+    ]
+)
+llm = ChatOpenAI(model="gpt-3.5-turbo")\
+    .with_tags(chain_name="classify", any_key="some")
+
+# To provide the openpipe key explicitly
+# llm = ChatOpenAI(model="gpt-3.5-turbo", openpipe_kwargs={"api_key": "My OpenPipe API Key"})\
+#     .with_tags(chain_name="classify", any_key="some")
+
+chain: RunnableSequence = prompt | llm
+res = chain.invoke(
+    {"query": "this is good"}
+)
+```
+
 You can now use your new OpenAI client, which functions identically to the generic OpenAI client while also reporting calls to your OpenPipe instance.
 
 ## Special Features
