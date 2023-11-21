@@ -64,7 +64,7 @@ const EvalResults = ({
 
     return (
       datasetEvals
-        .filter((datasetEval) => !visibleEvalIds.length || visibleEvalIds.includes(datasetEval.id))
+        .filter((datasetEval) => visibleEvalIds.includes(datasetEval.id))
         // Ensure that only relevant datasetEvals are listed
         .filter((datasetEval) => aggregatedScores.has(datasetEval.id))
         .map((datasetEval) => ({

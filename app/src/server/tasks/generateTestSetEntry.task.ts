@@ -28,7 +28,10 @@ export type GenerateTestSetEntryJob = {
 export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
   id: "generateTestSetEntry",
   handler: async (task) => {
-    const { modelId, datasetEntryId, skipCache } = task;
+    const { modelId, datasetEntryId } = task;
+
+    // TODO: fix evals with caching
+    const skipCache = true;
 
     const rawDatasetEntry = await prisma.datasetEntry.findUnique({
       where: { id: datasetEntryId },

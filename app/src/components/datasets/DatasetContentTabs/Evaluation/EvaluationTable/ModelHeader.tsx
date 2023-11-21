@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Text, VStack, HStack, Tooltip, Box, GridItem, Icon } from "@chakra-ui/react";
 import Link from "next/link";
 import { BiSolidUpArrow, BiSolidDownArrow } from "react-icons/bi";
+import { isNumber } from "lodash-es";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hooks";
@@ -30,9 +31,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
 
   const visibleEvals = useMemo(
     () =>
-      dataset?.datasetEvals.filter(
-        (datasetEval) => !visibleEvalIds.length || visibleEvalIds.includes(datasetEval.id),
-      ) || [],
+      dataset?.datasetEvals.filter((datasetEval) => visibleEvalIds.includes(datasetEval.id)) || [],
     [dataset?.datasetEvals, visibleEvalIds],
   );
 
@@ -57,7 +56,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
               openpipe:{stats.slug}
             </Text>
           )}
-          {stats.averageScores?.averageScore !== null && (
+          {isNumber(stats.averageScores?.averageScore) && (
             <HStack spacing={1}>
               <Tooltip
                 label={
