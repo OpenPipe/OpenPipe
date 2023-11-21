@@ -6,7 +6,6 @@ import { prisma } from "../src/server/db";
 import { startTestJobs } from "~/server/utils/startTestJobs";
 import { Prisma } from "@prisma/client";
 import { ChatCompletionCreateParams, ChatCompletionMessage } from "openai/resources/chat";
-import { calculateEntryScore } from "~/server/utils/calculateEntryScore";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { pick } from "lodash-es";
 

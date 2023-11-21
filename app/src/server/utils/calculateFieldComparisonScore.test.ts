@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
-import { calculateEntryScore } from "./calculateEntryScore";
+import { calculateFieldComparisonScore } from "./calculateFieldComparisonScore";
 
 const originalMatchingArgs: ChatCompletionMessageParam = {
   role: "assistant",
@@ -93,7 +93,7 @@ const generatedMismatchingNames: ChatCompletionMessageParam = {
 };
 
 it("calculates 1 for perfect match", () => {
-  const score = calculateEntryScore(
+  const score = calculateFieldComparisonScore(
     { messages: [], output: originalMatchingArgs },
     generatedMatchingArgs,
   );
@@ -102,7 +102,7 @@ it("calculates 1 for perfect match", () => {
 });
 
 it("calculates 0 for mismatching names", () => {
-  const score = calculateEntryScore(
+  const score = calculateFieldComparisonScore(
     { messages: [], output: originalMismatchingNames },
     generatedMismatchingNames,
   );
@@ -111,7 +111,7 @@ it("calculates 0 for mismatching names", () => {
 });
 
 it("calculates 0 for no matching args", () => {
-  const score = calculateEntryScore(
+  const score = calculateFieldComparisonScore(
     { messages: [], output: originalMismatchingArgs },
     generatedMismatchingArgs,
   );

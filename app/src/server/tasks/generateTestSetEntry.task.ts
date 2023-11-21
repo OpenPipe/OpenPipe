@@ -11,7 +11,10 @@ import {
   calculateFineTuneUsageCost,
   isComparisonModel,
 } from "~/utils/baseModels";
-import { calculateEntryScore } from "../utils/calculateEntryScore";
+import {
+  saveFieldComparisonScore,
+  calculateFieldComparisonScore,
+} from "../utils/calculateFieldComparisonScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { queueEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
@@ -122,7 +125,16 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
       const completionMessage = completion.choices[0]?.message;
       if (!choice) throw new Error("No completion returned");
 
-      const score = calculateEntryScore(datasetEntry, choice.message);
+      const fieldComparisonScore = calculateFieldComparisonScore(datasetEntry, choice.message);
+
+      if (fieldComparisonScore) {
+        await saveFieldComparisonScore(
+          datasetEntry.datasetId,
+          datasetEntry.id,
+          fieldComparisonScore,
+          modelId,
+        );
+      }
 
       if (fineTune) {
         const inputTokens = completion.usage?.prompt_tokens ?? 0;
@@ -150,7 +162,6 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
           finishReason: choice.finish_reason,
           prunedInputTokens: completion.usage?.prompt_tokens,
           outputTokens: completion.usage?.completion_tokens,
-          score,
           errorMessage: null,
         },
       });

@@ -98,6 +98,7 @@ export interface DatasetEval {
   datasetId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  type: Generated<"FIELD_COMPARISON" | "HEAD_TO_HEAD">;
 }
 
 export interface DatasetEvalDatasetEntry {
@@ -126,8 +127,8 @@ export interface DatasetEvalResult {
   datasetEvalOutputSourceId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  comparisonResultId: string;
-  comparisonOutputSourceId: string;
+  comparisonResultId: string | null;
+  comparisonOutputSourceId: string | null;
 }
 
 export interface DatasetFileUpload {

@@ -661,11 +661,17 @@ model FineTuneTestingEntry {
     @@index([cacheKey])
 }
 
+enum DatasetEvalType {
+    FIELD_COMPARISON
+    HEAD_TO_HEAD
+}
+
 model DatasetEval {
     id String @id @default(uuid()) @db.Uuid
 
     name         String
     instructions String?
+    type         DatasetEvalType @default(HEAD_TO_HEAD)
 
     datasetEvalDatasetEntries DatasetEvalDatasetEntry[]
     datasetEvalOutputSources  DatasetEvalOutputSource[]
@@ -731,10 +737,10 @@ model DatasetEvalResult {
     errorMessage String?
     status       DatasetEvalResultStatus @default(PENDING)
 
-    comparisonResultId String @db.Uuid // The id of the DatasetEvalResult to compare against
+    comparisonResultId String? @db.Uuid // The id of the DatasetEvalResult to compare against
 
-    comparisonOutputSourceId String                  @db.Uuid // The id of the DatasetEvalOutputSource to compare against
-    comparisonOutputSource   DatasetEvalOutputSource @relation("comparison", fields: [comparisonOutputSourceId], references: [id], onDelete: Cascade)
+    comparisonOutputSourceId String?                  @db.Uuid // The id of the DatasetEvalOutputSource to compare against
+    comparisonOutputSource   DatasetEvalOutputSource? @relation("comparison", fields: [comparisonOutputSourceId], references: [id], onDelete: Cascade)
 
     datasetEvalDatasetEntryId String                  @db.Uuid
     datasetEvalDatasetEntry   DatasetEvalDatasetEntry @relation(fields: [datasetEvalDatasetEntryId], references: [id], onDelete: Cascade)

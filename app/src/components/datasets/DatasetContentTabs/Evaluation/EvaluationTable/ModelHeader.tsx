@@ -126,7 +126,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
           )}
         </HStack>
       </VStack>
-      <HStack w="full" justifyContent="flex-end">
+      <HStack w="full" justifyContent="flex-end" flexWrap="wrap">
         {visibleEvals.map((datasetEval) => (
           <EvalHeaderPill key={datasetEval.id} datasetEval={datasetEval} modelId={modelId} />
         ))}
