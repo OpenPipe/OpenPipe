@@ -55,20 +55,3 @@ export const dateComparatorToSqlExpression = (
     }
   };
 };
-
-export const selectComparatorToSqlExpression = (
-  comparator: (typeof comparators)[number],
-  value: string,
-) => {
-  return (reference: RawBuilder<unknown>): Expression<SqlBool> => {
-    switch (comparator) {
-      case "=":
-        return sql`${reference} = ${value}`;
-      case "!=":
-        // Handle NULL values
-        return sql`${reference} IS DISTINCT FROM ${value}`;
-      default:
-        throw new Error("Unknown comparator");
-    }
-  };
-};

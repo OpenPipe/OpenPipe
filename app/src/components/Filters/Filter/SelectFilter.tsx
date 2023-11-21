@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import { HStack, IconButton } from "@chakra-ui/react";
 import { BsTrash } from "react-icons/bs";
 
@@ -28,6 +28,21 @@ const SelectFilter = ({
     return selectOptions.find((option) => option.value === filter.value) || selectOptions[0];
   }, [filterOption, filter.value]);
 
+  const onOptionUpdated = useCallback(
+    (option: FilterSelectOptionType) => {
+      updateFilter({ ...filter, value: option.value });
+    },
+    [updateFilter, filter],
+  );
+
+  const valueIsEmpty = !filter.value;
+
+  useEffect(() => {
+    if (valueIsEmpty && selectedSelectFilterOption) {
+      onOptionUpdated(selectedSelectFilterOption);
+    }
+  }, [valueIsEmpty, onOptionUpdated, selectedSelectFilterOption]);
+
   if (!filterOption?.options || !selectedSelectFilterOption) {
     return null;
   }
@@ -40,9 +55,7 @@ const SelectFilter = ({
         options={filterOption.options}
         getDisplayLabel={(option) => option.label}
         selectedOption={selectedSelectFilterOption}
-        onSelect={(option: FilterSelectOptionType) =>
-          updateFilter({ ...filter, value: option.value })
-        }
+        onSelect={onOptionUpdated}
       />
       <IconButton
         aria-label="Remove Filter"
