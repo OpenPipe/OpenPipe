@@ -738,6 +738,9 @@ export const datasetEntriesRouter = createTRPCRouter({
         where: {
           id: datasetId,
         },
+        include: {
+          datasetEvals: true,
+        },
       });
 
       const finishedCount = await kysely
@@ -752,15 +755,51 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
 
-      const averageScoreResult = await baseQuery
+      const baseScoreQuery = baseQuery
         .leftJoin("FineTuneTestingEntry as te", "de.id", "te.datasetEntryId")
         .where("te.modelId", "=", modelId)
-        .where(sql.raw(`te."output" is not null`))
-        .select(({ fn }) => ["te.modelId", fn.agg<number>("AVG", ["te.score"]).as("averageScore")])
+        .where(sql.raw(`te."output" is not null`));
+
+      let updatedScoreQuery = baseScoreQuery;
+
+      // Add average score for each dataset eval
+      for (const datasetEval of dataset?.datasetEvals.slice(0, 2) ?? []) {
+        const alias = `averageScoreForEval_${datasetEval.id}`;
+        updatedScoreQuery = updatedScoreQuery
+          .leftJoin(
+            (eb) =>
+              eb
+                .selectFrom(`DatasetEvalDatasetEntry as dede`)
+                .where("dede.datasetEvalId", "=", datasetEval.id)
+                .leftJoin("DatasetEvalResult as der", "der.datasetEvalDatasetEntryId", "dede.id")
+                .leftJoin(
+                  "DatasetEvalOutputSource as deos",
+                  "deos.id",
+                  "der.datasetEvalOutputSourceId",
+                )
+                .where("deos.modelId", "=", modelId)
+                .select((eb) => [
+                  "dede.datasetEntryId as datasetEntryId",
+                  eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval_${datasetEval.id}`),
+                ])
+                .groupBy("dede.datasetEntryId")
+                .as(alias),
+            (join) => join.onRef(`${alias}.datasetEntryId`, "=", sql.raw("de.id")),
+          )
+          .select((eb) => [
+            eb.fn
+              .agg<number>("AVG", [`${alias}.scoreForEval_${datasetEval.id}`])
+              .as(datasetEval.id),
+          ]) as unknown as typeof baseScoreQuery;
+      }
+
+      const averageScoresResult = await updatedScoreQuery
+        .select("te.modelId")
+        .select((eb) => eb.fn.agg<number>("AVG", ["te.score"]).as("averageScore"))
         .groupBy("te.modelId")
         .execute();
 
-      const averageScore = averageScoreResult[0] ? averageScoreResult[0].averageScore : null;
+      const averageScores = averageScoresResult[0];
 
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
@@ -785,7 +824,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         baseModel,
         isComparisonModel: isComparisonModel(modelId),
         finishedCount: finishedCount.length,
-        averageScore,
+        averageScores: averageScores as typeof averageScores & Record<string, number>,
       };
     }),
 });
