@@ -30,7 +30,9 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
 
   const visibleEvals = useMemo(
     () =>
-      dataset?.datasetEvals.filter((datasetEval) => visibleEvalIds.includes(datasetEval.id)) || [],
+      dataset?.datasetEvals.filter(
+        (datasetEval) => !visibleEvalIds.length || visibleEvalIds.includes(datasetEval.id),
+      ) || [],
     [dataset?.datasetEvals, visibleEvalIds],
   );
 

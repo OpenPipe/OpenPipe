@@ -763,7 +763,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       let updatedScoreQuery = baseScoreQuery;
 
       // Add average score for each dataset eval
-      for (const datasetEval of dataset?.datasetEvals.slice(0, 2) ?? []) {
+      for (const datasetEval of dataset?.datasetEvals ?? []) {
         const alias = `averageScoreForEval_${datasetEval.id}`;
         updatedScoreQuery = updatedScoreQuery
           .leftJoin(

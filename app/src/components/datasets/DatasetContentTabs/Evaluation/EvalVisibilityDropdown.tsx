@@ -49,15 +49,15 @@ const EvalVisibilityDropdown = () => {
         } else {
           setVisibleEvalIds(allDatasetEvalIds.filter((id) => id != evalId));
         }
+      } else if (visibleEvalIds.includes(EMPTY_EVALS_KEY)) {
+        // All evals were hidden, so we're only showing this one.
+        setVisibleEvalIds([evalId]);
       } else if (
         visibleEvalIds.length === allDatasetEvalIds.length - 1 &&
         !visibleEvalIds.includes(evalId)
       ) {
         // This was the only hidden eval, so we're now showing all of them
         setVisibleEvalIds([]);
-      } else if (visibleEvalIds.includes(EMPTY_EVALS_KEY)) {
-        // All evals were hidden, so we're only showing this one.
-        setVisibleEvalIds([evalId]);
       } else if (visibleEvalIds.length === 1 && visibleEvalIds.includes(evalId)) {
         // This is the only visible eval, so we're hiding it.
         setVisibleEvalIds([EMPTY_EVALS_KEY]);
