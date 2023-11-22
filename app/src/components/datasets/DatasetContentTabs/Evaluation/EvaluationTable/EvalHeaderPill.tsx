@@ -13,12 +13,14 @@ import {
 } from "@chakra-ui/react";
 import { isNumber } from "lodash-es";
 import { FiChevronDown, FiEdit2 } from "react-icons/fi";
+import { FaArrowDown, FaArrowUp, FaEyeSlash } from "react-icons/fa";
 
 import { useModelTestingStats, useDataset } from "~/utils/hooks";
 import ColoredPercent from "~/components/ColoredPercent";
 import { useAppStore } from "~/state/store";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
-import { FaEyeSlash } from "react-icons/fa";
+import { useTestEntrySortOrder } from "../useTestEntrySortOrder";
+import { SortOrder } from "~/types/shared.types";
 
 const EvalHeaderPill = ({
   datasetEval,
@@ -33,6 +35,18 @@ const EvalHeaderPill = ({
     (state) => state.evaluationsSlice.setDatasetEvalIdToEdit,
   );
   const toggleEvalVisiblity = useVisibleEvalIds().toggleEvalVisiblity;
+
+  const { testEntrySortOrder, setTestEntrySortOrder } = useTestEntrySortOrder();
+
+  const [isSortingAscending, isSortingDescending] = useMemo(() => {
+    if (testEntrySortOrder?.modelId !== modelId || testEntrySortOrder?.evalId !== datasetEval.id) {
+      return [false, false];
+    }
+    return [
+      testEntrySortOrder.order === SortOrder.ASC,
+      testEntrySortOrder.order === SortOrder.DESC,
+    ];
+  }, [testEntrySortOrder, modelId, datasetEval]);
 
   const score = useMemo(() => {
     if (!stats?.averageScores || !(datasetEval.id in stats?.averageScores)) return null;
@@ -69,6 +83,8 @@ const EvalHeaderPill = ({
               {datasetEval.name}
             </Text>
             <ColoredPercent value={score} />
+            {isSortingAscending && <Icon as={FaArrowUp} boxSize={3} strokeWidth={2} />}
+            {isSortingDescending && <Icon as={FaArrowDown} boxSize={3} strokeWidth={2} />}
             <Icon as={FiChevronDown} boxSize={3} strokeWidth={2} />
           </HStack>
         </Box>
@@ -80,6 +96,54 @@ const EvalHeaderPill = ({
         mt={-1}
       >
         <VStack w="full" spacing={0}>
+          <HStack
+            as={Button}
+            w="full"
+            colorScheme="blue"
+            color="gray.500"
+            variant="ghost"
+            justifyContent="space-between"
+            h={8}
+            px={2}
+            onClick={() => {
+              if (isSortingAscending) {
+                setTestEntrySortOrder(null);
+              } else {
+                setTestEntrySortOrder({ modelId, evalId: datasetEval.id, order: SortOrder.ASC });
+              }
+            }}
+            borderRadius={0}
+            borderBottomWidth={1}
+          >
+            <Text fontSize="xs">Sort Ascending</Text>
+            <HStack>
+              <Icon as={FaArrowUp} color={isSortingAscending ? "blue.500" : "gray.500"} />
+            </HStack>
+          </HStack>
+          <HStack
+            as={Button}
+            w="full"
+            colorScheme="blue"
+            color="gray.500"
+            variant="ghost"
+            justifyContent="space-between"
+            h={8}
+            px={2}
+            onClick={() => {
+              if (isSortingDescending) {
+                setTestEntrySortOrder(null);
+              } else {
+                setTestEntrySortOrder({ modelId, evalId: datasetEval.id, order: SortOrder.DESC });
+              }
+            }}
+            borderRadius={0}
+            borderBottomWidth={1}
+          >
+            <Text fontSize="xs">Sort Descending</Text>
+            <HStack>
+              <Icon as={FaArrowDown} color={isSortingDescending ? "blue.500" : "gray.500"} />
+            </HStack>
+          </HStack>
           {datasetEval.type !== "FIELD_COMPARISON" && (
             <HStack
               as={Button}
