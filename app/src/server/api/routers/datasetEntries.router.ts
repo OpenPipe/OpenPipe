@@ -34,6 +34,7 @@ import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluat
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntryTask";
+import { copyDatasetEvalDatasetEntries } from "~/server/utils/copyDatasetEvalDatasetEntries";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -442,6 +443,10 @@ export const datasetEntriesRouter = createTRPCRouter({
           },
         },
       });
+
+      if (newEntry.split === "TEST") {
+        await copyDatasetEvalDatasetEntries(prevEntry.id, newEntry.id);
+      }
 
       await updatePruningRuleMatches(dataset.id, new Date(0), [newEntry.id]);
 

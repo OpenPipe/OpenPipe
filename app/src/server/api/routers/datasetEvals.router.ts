@@ -211,20 +211,24 @@ export const datasetEvalsRouter = createTRPCRouter({
         shouldQueueEvalJobs = true;
       }
 
-      const currentNumDatasetEntries = await prisma.datasetEvalDatasetEntry.count({
-        where: { datasetEvalId: input.id },
-      });
+      const currentDatasetEvalDatasetEntries = await kysely
+        .selectFrom("DatasetEvalDatasetEntry as dede")
+        .where("dede.datasetEvalId", "=", input.id)
+        .leftJoin("DatasetEntry as de", "de.id", "dede.datasetEntryId")
+        .where("de.split", "=", "TEST")
+        .where("de.outdated", "=", false)
+        .select("dede.id")
+        .execute();
+
+      console.log("datasetEntriesCount", currentDatasetEvalDatasetEntries.length);
+
+      const currentNumDatasetEntries = currentDatasetEvalDatasetEntries.length;
 
       if (
         input.updates.numDatasetEntries &&
         input.updates.numDatasetEntries !== currentNumDatasetEntries
       ) {
         if (currentNumDatasetEntries > input.updates.numDatasetEntries) {
-          const currentDatasetEvalDatasetEntries = await prisma.datasetEvalDatasetEntry.findMany({
-            where: { datasetEvalId: input.id },
-            select: { id: true },
-          });
-
           const numEntriesToDelete = currentNumDatasetEntries - input.updates.numDatasetEntries;
 
           const datasetEvalDatasetEntriesToDelete = shuffle(
