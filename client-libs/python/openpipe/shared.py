@@ -25,6 +25,8 @@ def configure_openpipe_client(openpipe_options={}) -> AuthenticatedClient:
     if os.environ.get("OPENPIPE_BASE_URL"):
         configured_client._base_url = os.environ["OPENPIPE_BASE_URL"]
 
+    if openpipe_options and "verify_ssl" in openpipe_options:
+        configured_client._verify_ssl = bool(openpipe_options["verify_ssl"])
     if openpipe_options and openpipe_options.get("api_key"):
         configured_client.token = openpipe_options["api_key"]
     if openpipe_options and openpipe_options.get("base_url"):
