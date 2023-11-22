@@ -14,7 +14,6 @@ import {
   Text,
   VStack,
   Link as ChakraLink,
-  IconButton,
 } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
 import Link from "next/link";
@@ -32,6 +31,7 @@ import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { getComparisonModelName } from "~/utils/baseModels";
 import { useAppStore } from "~/state/store";
 import DeleteEvalDialog from "./DeleteEvalDialog";
+import InfoCircle from "~/components/InfoCircle";
 
 const EditEvalModal = () => {
   const utils = api.useContext();
@@ -43,6 +43,9 @@ const EditEvalModal = () => {
   const datasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.datasetEvalIdToEdit);
   const setDatasetEvalIdToEdit = useAppStore(
     (state) => state.evaluationsSlice.setDatasetEvalIdToEdit,
+  );
+  const setComparisonCriteria = useAppStore(
+    (state) => state.evaluationsSlice.setComparisonCriteria,
   );
   const resetEvaluationsSlice = useAppStore(
     (state) => state.evaluationsSlice.resetEvaluationsSlice,
@@ -113,15 +116,26 @@ const EditEvalModal = () => {
     await utils.datasets.get.invalidate();
 
     setDatasetEvalIdToEdit(null);
-  }, [saveMutation, dataset?.id, datasetEvalIdToEdit, setDatasetEvalIdToEdit, name, instructions]);
+    setComparisonCriteria(null);
+  }, [
+    saveMutation,
+    dataset?.id,
+    datasetEvalIdToEdit,
+    setDatasetEvalIdToEdit,
+    setComparisonCriteria,
+    name,
+    instructions,
+  ]);
+
+  const hasChanged =
+    name !== datasetEval?.name ||
+    instructions !== datasetEval?.instructions ||
+    numDatasetEntries !== datasetEval?.numDatasetEntries ||
+    includedModelIds.length !== datasetEval?.outputSources.length;
 
   return (
     <>
-      <Modal
-        isOpen={!!datasetEvalIdToEdit && !deletionInitiated}
-        onClose={() => setDatasetEvalIdToEdit(null)}
-        size="xl"
-      >
+      <Modal isOpen={!!datasetEvalIdToEdit} onClose={() => setDatasetEvalIdToEdit(null)} size="xl">
         <ModalOverlay />
         <ModalContent w={1200}>
           <ModalHeader>
@@ -160,14 +174,6 @@ const EditEvalModal = () => {
                       placeholder="Evaluation 1"
                       w="full"
                     />
-                    <IconButton
-                      aria-label="Delete evaluation"
-                      icon={<Icon as={FaBalanceScale} />}
-                      colorScheme="red"
-                      variant="ghost"
-                      onClick={() => setDeletionInitiated(true)}
-                      minW={24}
-                    />
                   </VStack>
                   <VStack alignItems="flex-start" w="full">
                     <Text fontWeight="bold">Models</Text>
@@ -191,10 +197,14 @@ const EditEvalModal = () => {
                     </HStack>
                   </VStack>
                   <VStack alignItems="flex-start" w="full">
-                    <Text fontWeight="bold">Dataset Entries</Text>
+                    <HStack>
+                      <Text fontWeight="bold">Dataset Entries </Text>
+                      <InfoCircle tooltipText="The number of randomly selected evaluation dataset entries to apply this eval to." />
+                    </HStack>
                     <Input
                       value={numDatasetEntries}
-                      onChange={(e) => setNumDatasetEntries(Number(e.target.value) || 0)}
+                      type="number"
+                      onChange={(e) => setNumDatasetEntries(parseInt(e.target.value) || 0)}
                       placeholder="100"
                       w="full"
                     />
@@ -216,6 +226,14 @@ const EditEvalModal = () => {
 
           <ModalFooter>
             <HStack>
+              <Button
+                colorScheme="red"
+                variant="outline"
+                onClick={() => setDeletionInitiated(true)}
+                minW={24}
+              >
+                Delete
+              </Button>
               <Button colorScheme="gray" onClick={reset} minW={24}>
                 Reset
               </Button>
@@ -225,7 +243,11 @@ const EditEvalModal = () => {
                 minW={24}
                 isLoading={saveInProgress}
                 isDisabled={
-                  !name || !instructions || !numDatasetEntries || includedModelIds.length < 2
+                  !name ||
+                  !instructions ||
+                  !numDatasetEntries ||
+                  includedModelIds.length < 2 ||
+                  !hasChanged
                 }
               >
                 Save

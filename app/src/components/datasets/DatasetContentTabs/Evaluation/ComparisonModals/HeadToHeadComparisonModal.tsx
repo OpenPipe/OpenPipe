@@ -35,9 +35,7 @@ const HeadToHeadComparisonModal = () => {
   );
 
   const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD" && !datasetEvalIdToEdit;
-  const onClose = () => {
-    setComparisonCriteria(null);
-  };
+  const onClose = () => setComparisonCriteria(null);
 
   const { data } = api.datasetEvals.getHeadToHeadComparisonDetails.useQuery(
     {

@@ -12,6 +12,7 @@ import { useFilters } from "~/components/Filters/useFilters";
 import EvalVisibilityDropdown from "./EvalVisibilityDropdown";
 import HeadToHeadComparisonModal from "./ComparisonModals/HeadToHeadComparisonModal";
 import FieldComparisonModal from "./ComparisonModals/FieldComparisonModal";
+import EditEvalModal from "./EditEvalModal";
 
 const Evaluation = () => {
   const filters = useFilters().filters;
@@ -46,6 +47,7 @@ const Evaluation = () => {
       </Box>
       <FieldComparisonModal />
       <HeadToHeadComparisonModal />
+      <EditEvalModal />
     </>
   );
 };

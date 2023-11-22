@@ -29,7 +29,7 @@ export const datasetEvalsRouter = createTRPCRouter({
             .select(["deos.id", "deos.modelId"])
             .orderBy("deos.createdAt", "asc"),
         ).as("outputSources"),
-        eb.fn.count<number>("dede.id").as("numDatasetEntries"),
+        eb.fn.count<string>("dede.id").as("numDatasetEntries"),
       ])
       .groupBy(["eval.id", "d.projectId"])
       .executeTakeFirst();
@@ -39,7 +39,7 @@ export const datasetEvalsRouter = createTRPCRouter({
 
     await requireCanViewProject(datasetEval.projectId, ctx);
 
-    return datasetEval;
+    return { ...datasetEval, numDatasetEntries: parseInt(datasetEval.numDatasetEntries) };
   }),
 
   create: protectedProcedure
@@ -140,16 +140,16 @@ export const datasetEvalsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { dataset } = await prisma.datasetEval.findUniqueOrThrow({
+      const datasetEval = await prisma.datasetEval.findUniqueOrThrow({
         where: { id: input.id },
         include: {
           dataset: true,
         },
       });
-      await requireCanModifyProject(dataset.projectId, ctx);
+      await requireCanModifyProject(datasetEval.dataset.projectId, ctx);
 
       const numTestDatasetEntries = await prisma.datasetEntry.count({
-        where: { datasetId: dataset.id, split: "TEST" },
+        where: { datasetId: datasetEval.dataset.id, split: "TEST", outdated: false },
       });
       if (
         input.updates.numDatasetEntries &&
@@ -160,6 +160,8 @@ export const datasetEvalsRouter = createTRPCRouter({
         );
       }
 
+      console.log(1);
+
       await prisma.datasetEval.update({
         where: { id: input.id },
         data: {
@@ -168,7 +170,9 @@ export const datasetEvalsRouter = createTRPCRouter({
         },
       });
 
-      if (input.updates.instructions) {
+      console.log(2);
+
+      if (input.updates.instructions && input.updates.instructions !== datasetEval.instructions) {
         await kysely
           .deleteFrom("DatasetEvalResult as der")
           .innerJoin("DatasetEvalOutputSource as deos", "deos.id", "der.datasetEvalOutputSourceId")
@@ -176,6 +180,8 @@ export const datasetEvalsRouter = createTRPCRouter({
           .execute();
         await queueEvalJobsForEval(input.id);
       }
+
+      console.log(3);
 
       if (input.updates.modelIds) {
         const updatedModelIds = input.updates.modelIds;
@@ -206,11 +212,17 @@ export const datasetEvalsRouter = createTRPCRouter({
         await queueEvalJobsForEval(input.id);
       }
 
-      if (input.updates.numDatasetEntries) {
-        const currentNumDatasetEntries = await prisma.datasetEvalDatasetEntry.count({
-          where: { datasetEvalId: input.id },
-        });
-        if (currentNumDatasetEntries >= input.updates.numDatasetEntries) {
+      console.log("input.updates.numDatasetEntries", input.updates.numDatasetEntries);
+
+      const currentNumDatasetEntries = await prisma.datasetEvalDatasetEntry.count({
+        where: { datasetEvalId: input.id },
+      });
+
+      if (
+        input.updates.numDatasetEntries &&
+        input.updates.numDatasetEntries !== currentNumDatasetEntries
+      ) {
+        if (currentNumDatasetEntries > input.updates.numDatasetEntries) {
           const currentDatasetEvalDatasetEntries = await prisma.datasetEvalDatasetEntry.findMany({
             where: { datasetEvalId: input.id },
             select: { id: true },
@@ -222,6 +234,8 @@ export const datasetEvalsRouter = createTRPCRouter({
             currentDatasetEvalDatasetEntries.map((entry) => entry.id),
           ).slice(0, numEntriesToDelete);
 
+          console.log("datasetEvalDatasetEntriesToDelete", datasetEvalDatasetEntriesToDelete);
+
           await kysely
             .deleteFrom("DatasetEvalDatasetEntry")
             .where("id", "in", datasetEvalDatasetEntriesToDelete)
@@ -229,7 +243,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         } else {
           const currentlyExcludedDatasetEntries = await kysely
             .selectFrom("DatasetEntry")
-            .where("datasetId", "=", dataset.id)
+            .where("datasetId", "=", datasetEval.dataset.id)
             .where("split", "=", "TEST")
             .where("outdated", "=", false)
             .leftJoin(
