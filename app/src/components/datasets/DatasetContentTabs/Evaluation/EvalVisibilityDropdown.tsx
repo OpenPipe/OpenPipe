@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Icon,
   Popover,
@@ -12,7 +12,7 @@ import {
   Box,
   Switch,
 } from "@chakra-ui/react";
-import { BiCheck } from "react-icons/bi";
+import { FiEdit2 } from "react-icons/fi";
 import { BsPlusSquare } from "react-icons/bs";
 import { FaBalanceScale } from "react-icons/fa";
 
@@ -20,6 +20,12 @@ import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import AddEvalModal from "./AddEvalModal";
+import { useAppStore } from "~/state/store";
+
+type Option = {
+  key: string;
+  label: string;
+};
 
 const EvalVisibilityDropdown = () => {
   const { visibleEvalIds, toggleEvalVisiblity } = useVisibleEvalIds();
@@ -77,28 +83,7 @@ const EvalVisibilityDropdown = () => {
         <PopoverContent boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);" minW={0} w="auto">
           <VStack spacing={0} maxH={400} overflowY="auto">
             {editableEvalOptions?.map((option, index) => (
-              <HStack
-                key={index}
-                as={Button}
-                onClick={() => toggleEvalVisiblity(option.key)}
-                w="full"
-                minH={10}
-                variant="ghost"
-                justifyContent="space-between"
-                fontWeight="semibold"
-                borderRadius={0}
-                colorScheme="blue"
-                color="black"
-                fontSize="sm"
-                borderBottomWidth={1}
-              >
-                <Text mr={16}>{option.label}</Text>
-                <Box w={5}>
-                  {visibleEvalIds.includes(option.key) && (
-                    <Icon as={BiCheck} color="blue.500" boxSize={5} />
-                  )}
-                </Box>
-              </HStack>
+              <EditableEvalOption key={index} option={option} />
             ))}
             {toggleableEvalOptions?.map((option, index) => (
               <HStack
@@ -146,6 +131,46 @@ const EvalVisibilityDropdown = () => {
       </Popover>
       <AddEvalModal disclosure={addEvalModal} />
     </>
+  );
+};
+
+const EditableEvalOption = ({ option }: { option: Option }) => {
+  const { visibleEvalIds, toggleEvalVisiblity } = useVisibleEvalIds();
+
+  const setDatasetEvalIdToEdit = useAppStore(
+    (state) => state.evaluationsSlice.setDatasetEvalIdToEdit,
+  );
+
+  const [toggleHovered, setToggleHovered] = useState(false);
+  return (
+    <HStack
+      as={Button}
+      onClick={() => {
+        if (!toggleHovered) setDatasetEvalIdToEdit(option.key);
+      }}
+      w="full"
+      minH={10}
+      variant="ghost"
+      justifyContent="space-between"
+      fontWeight="semibold"
+      borderRadius={0}
+      colorScheme={toggleHovered ? "blue" : "gray"}
+      color="black"
+      fontSize="sm"
+      borderBottomWidth={1}
+    >
+      <Text mr={16}>{option.label}</Text>
+      <HStack>
+        <Icon as={FiEdit2} color="gray.500" />
+        <Switch
+          isChecked={visibleEvalIds.includes(option.key)}
+          onChange={() => toggleEvalVisiblity(option.key)}
+          size="sm"
+          onMouseEnter={() => setToggleHovered(true)}
+          onMouseLeave={() => setToggleHovered(false)}
+        />
+      </HStack>
+    </HStack>
   );
 };
 
