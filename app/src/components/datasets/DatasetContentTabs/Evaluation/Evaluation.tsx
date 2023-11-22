@@ -10,7 +10,8 @@ import { useTestingEntries } from "~/utils/hooks";
 import EvaluationPaginator from "./EvaluationTable/EvaluationPaginator";
 import { useFilters } from "~/components/Filters/useFilters";
 import EvalVisibilityDropdown from "./EvalVisibilityDropdown";
-import OutputEvaluationDetailsModal from "./OutputEvaluationDetailsModal";
+import HeadToHeadComparisonModal from "./ComparisonModals/HeadToHeadComparisonModal";
+import FieldComparisonModal from "./ComparisonModals/FieldComparisonModal";
 
 const Evaluation = () => {
   const filters = useFilters().filters;
@@ -43,7 +44,8 @@ const Evaluation = () => {
       <Box px={8} position="sticky" left={0} w="full">
         <EvaluationPaginator py={8} />
       </Box>
-      <OutputEvaluationDetailsModal />
+      <FieldComparisonModal />
+      <HeadToHeadComparisonModal />
     </>
   );
 };

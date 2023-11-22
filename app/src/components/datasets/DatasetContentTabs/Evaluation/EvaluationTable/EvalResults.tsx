@@ -93,7 +93,12 @@ const EvalResults = ({
             px={2}
             onClick={() => {
               if (modelId && datasetEntryId)
-                setComparisonCriteria({ modelId, datasetEntryId, datasetEvalId: evalWithScore.id });
+                setComparisonCriteria({
+                  modelId,
+                  datasetEntryId,
+                  datasetEvalId: evalWithScore.id,
+                  type: evalWithScore.type,
+                });
             }}
           >
             <Text fontWeight="bold" fontSize="xs" color="gray.500">

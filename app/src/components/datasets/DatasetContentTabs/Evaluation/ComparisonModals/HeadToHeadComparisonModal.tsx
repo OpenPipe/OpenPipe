@@ -20,12 +20,11 @@ import type { ChatCompletionMessage } from "openai/resources/chat";
 
 import { type RouterOutputs, api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import FormattedMessage from "./FormattedMessage";
-import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
-import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
+import FormattedMessage from "../FormattedMessage";
 import { isNumber } from "lodash-es";
+import { getOutputTitle } from "./getOutputTitle";
 
-const OutputEvaluationDetailsModal = () => {
+const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
@@ -35,21 +34,21 @@ const OutputEvaluationDetailsModal = () => {
     (state) => state.evaluationsSlice.setDatasetEvalIdToEdit,
   );
 
-  const { data } = api.datasetEvals.getComparisonDetails.useQuery(
+  const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD" && !datasetEvalIdToEdit;
+  const onClose = () => {
+    setComparisonCriteria(null);
+  };
+
+  const { data } = api.datasetEvals.getHeadToHeadComparisonDetails.useQuery(
     {
       datasetEvalId: comparisonCriteria?.datasetEvalId ?? "",
       datasetEntryId: comparisonCriteria?.datasetEntryId ?? "",
       modelId: comparisonCriteria?.modelId ?? "",
     },
     {
-      enabled: !!comparisonCriteria,
+      enabled: isOpen,
     },
   );
-
-  const isOpen = !!comparisonCriteria && !datasetEvalIdToEdit;
-  const onClose = () => {
-    setComparisonCriteria(null);
-  };
 
   const [numWins, numTies, numLosses] = useMemo(() => {
     if (!data?.entry) return [0, 0, 0];
@@ -93,36 +92,33 @@ const OutputEvaluationDetailsModal = () => {
               <Text>{data.datasetEval.instructions}</Text>
             </VStack>
             <HStack w="full" justifyContent="space-between" alignItems="flex-start" spacing={8}>
-              <VStack flex="1" alignItems="flex-start">
-                <VStack
-                  align="flex-start"
-                  spacing={2}
-                  borderWidth={1}
-                  borderColor="gray.300"
-                  borderRadius={8}
-                  padding={4}
-                  bgColor="white"
-                >
-                  <HStack justifyContent="space-between" w="full">
-                    <Text fontWeight="bold" color="orange.500" fontSize="xs">
-                      {getOutputTitle(data.entry.modelId, data.entry.slug)}
+              <VStack
+                flex="1"
+                align="flex-start"
+                spacing={2}
+                borderWidth={1}
+                borderColor="gray.300"
+                borderRadius={8}
+                padding={4}
+                bgColor="white"
+              >
+                <HStack justifyContent="space-between" w="full">
+                  <Text fontWeight="bold" color="orange.500" fontSize="xs">
+                    {getOutputTitle(data.entry.modelId, data.entry.slug)}
+                  </Text>
+                  <HStack fontSize="xs">
+                    <Text color="green.500" fontWeight="bold">
+                      {numWins} WINS
                     </Text>
-                    <HStack fontSize="xs">
-                      <Text color="green.500" fontWeight="bold">
-                        {numWins} WINS
-                      </Text>
-                      <Text color="gray.500" fontWeight="bold">
-                        {numTies} TIES
-                      </Text>
-                      <Text color="red.500" fontWeight="bold">
-                        {numLosses} LOSSES
-                      </Text>
-                    </HStack>
+                    <Text color="gray.500" fontWeight="bold">
+                      {numTies} TIES
+                    </Text>
+                    <Text color="red.500" fontWeight="bold">
+                      {numLosses} LOSSES
+                    </Text>
                   </HStack>
-                  <FormattedMessage
-                    message={data.entry.output as unknown as ChatCompletionMessage}
-                  />
-                </VStack>
+                </HStack>
+                <FormattedMessage message={data.entry.output as unknown as ChatCompletionMessage} />
               </VStack>
 
               <VStack flex="1" alignItems="flex-start" maxH="60vh" overflowY="scroll">
@@ -154,15 +150,18 @@ const OutputEvaluationDetailsModal = () => {
 };
 
 type ComparisonResult =
-  RouterOutputs["datasetEvals"]["getComparisonDetails"]["entry"]["comparisonResults"][number];
+  RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"]["comparisonResults"][number];
 
 const CollapsibleResult = ({ result }: { result: ComparisonResult }) => {
   const comparisonText = useMemo(() => {
+    if (result.status === "PENDING") return <Text color="gray.500">PENDING</Text>;
+    if (result.status === "IN_PROGRESS") return <Text color="gray.500">IN PROGRESS</Text>;
+    if (result.status === "ERROR") return <Text color="red.500">ERROR</Text>;
     if (!isNumber(result.score)) return null;
     if (result.score < 0.5) return <Text color="green.500">WIN</Text>;
     if (result.score === 0.5) return <Text color="gray.500">TIE</Text>;
     if (result.score > 0.5) return <Text color="red.500">LOSS</Text>;
-  }, [result.score]);
+  }, [result.score, result.status]);
 
   const [explanationExpanded, setExplanationExpanded] = useState(false);
   return (
@@ -183,39 +182,37 @@ const CollapsibleResult = ({ result }: { result: ComparisonResult }) => {
       </HStack>
       <FormattedMessage message={result.output as unknown as ChatCompletionMessage} />
       <VStack w="full" alignItems="flex-start" spacing={0}>
-        <HStack
-          color="gray.500"
-          py={2}
-          spacing={0.5}
-          _hover={{ textDecor: "underline" }}
-          cursor="pointer"
-          onClick={() => setExplanationExpanded(!explanationExpanded)}
-        >
-          <Text fontWeight="bold" fontSize="sm">
-            Explanation
-          </Text>
-          <Icon as={explanationExpanded ? FiChevronUp : FiChevronDown} mt={0.5} strokeWidth={3} />
-        </HStack>
-        <Collapse in={explanationExpanded} unmountOnExit={true}>
-          <VStack align="flex-start" spacing={2}>
-            <Text fontStyle="italic">{result.explanation}</Text>
-          </VStack>
-        </Collapse>
+        {result.errorMessage && <Text>{result.errorMessage}</Text>}
+
+        {result.explanation && (
+          <>
+            <HStack
+              color="gray.500"
+              py={2}
+              spacing={0.5}
+              _hover={{ textDecor: "underline" }}
+              cursor="pointer"
+              onClick={() => setExplanationExpanded(!explanationExpanded)}
+            >
+              <Text fontWeight="bold" fontSize="sm">
+                Explanation
+              </Text>
+              <Icon
+                as={explanationExpanded ? FiChevronUp : FiChevronDown}
+                mt={0.5}
+                strokeWidth={3}
+              />
+            </HStack>
+            <Collapse in={explanationExpanded} unmountOnExit={true}>
+              <VStack align="flex-start" spacing={2}>
+                <Text fontStyle="italic">{result.explanation}</Text>
+              </VStack>
+            </Collapse>
+          </>
+        )}
       </VStack>
     </VStack>
   );
 };
 
-const getOutputTitle = (modelId: string | null, slug: string | null) => {
-  let title = null;
-  if (modelId === ORIGINAL_MODEL_ID) {
-    title = "Original Model";
-  } else if (modelId && isComparisonModel(modelId)) {
-    title = getComparisonModelName(modelId);
-  } else if (slug) {
-    title = "openpipe:" + slug;
-  }
-  return title;
-};
-
-export default OutputEvaluationDetailsModal;
+export default HeadToHeadComparisonModal;

@@ -1,6 +1,7 @@
 import { UsageType, type ComparisonModel, type Prisma } from "@prisma/client";
 import { type JsonValue } from "type-fest";
 import { type ChatCompletionCreateParams, type ChatCompletion } from "openai/resources/chat";
+import { isNumber } from "lodash-es";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
@@ -130,7 +131,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
 
       const fieldComparisonScore = calculateFieldComparisonScore(datasetEntry, choice.message);
 
-      if (fieldComparisonScore) {
+      if (isNumber(fieldComparisonScore)) {
         await saveFieldComparisonScore(
           datasetEntry.datasetId,
           datasetEntry.id,

@@ -280,7 +280,48 @@ export const datasetEvalsRouter = createTRPCRouter({
       return success("Dataset eval deleted");
     }),
 
-  getComparisonDetails: protectedProcedure
+  getFieldComparisonDetails: protectedProcedure
+    .input(z.object({ datasetEvalId: z.string(), datasetEntryId: z.string(), modelId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const datasetEval = await prisma.datasetEval.findUniqueOrThrow({
+        where: {
+          id: input.datasetEvalId,
+        },
+        include: {
+          dataset: {
+            select: {
+              projectId: true,
+            },
+          },
+        },
+      });
+
+      await requireCanViewProject(datasetEval.dataset.projectId, ctx);
+
+      const entry = await kysely
+        .selectFrom("DatasetEntry as de")
+        .where("de.id", "=", input.datasetEntryId)
+        .leftJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEntryId", "de.id")
+        .where("dede.datasetEvalId", "=", input.datasetEvalId)
+        .leftJoin("DatasetEvalResult as der", "der.datasetEvalDatasetEntryId", "dede.id")
+        .leftJoin("DatasetEvalOutputSource as deos", "deos.id", "der.datasetEvalOutputSourceId")
+        .where("deos.modelId", "=", input.modelId)
+        .leftJoin("FineTuneTestingEntry as ftte", "ftte.datasetEntryId", "de.id")
+        .where("ftte.modelId", "=", input.modelId)
+        .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
+        .select([
+          "ft.slug",
+          "de.output as originalOutput",
+          "ftte.output as output",
+          "ftte.modelId",
+          "der.score",
+        ])
+        .executeTakeFirst();
+
+      return { datasetEval, entry };
+    }),
+
+  getHeadToHeadComparisonDetails: protectedProcedure
     .input(z.object({ datasetEvalId: z.string(), datasetEntryId: z.string(), modelId: z.string() }))
     .query(async ({ input, ctx }) => {
       const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.findUniqueOrThrow({
@@ -366,6 +407,8 @@ export const datasetEvalsRouter = createTRPCRouter({
               .select([
                 "comparisonDer.score",
                 "comparisonDer.explanation",
+                "comparisonDer.status",
+                "comparisonDer.errorMessage",
                 "comparisonDeos.modelId",
                 "comparisonFtte.output as output",
                 "comparisonFt.slug as slug",

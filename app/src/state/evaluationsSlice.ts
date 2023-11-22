@@ -1,6 +1,9 @@
+import type { DatasetEvalType } from "@prisma/client";
+
 import { type SliceCreator } from "./store";
 
 type ComparisonCriteria = {
+  type: DatasetEvalType;
   modelId: string;
   datasetEntryId: string;
   datasetEvalId: string;
