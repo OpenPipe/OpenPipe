@@ -288,13 +288,14 @@ const formatDatasetEntryInputInstructions = (datasetEntry: DatasetEntry) => {
   return instructions + "\nTASK END\n";
 };
 
-export const queueEvalJobsForTestingEntry = async (
+export const queueHeadToHeadEvalJobsForTestingEntry = async (
   testingEntry: FineTuneTestingEntry,
   datasetId: string,
 ) => {
   const evalForDatasetEntry = await kysely
     .selectFrom("DatasetEval as eval")
     .where("eval.datasetId", "=", datasetId)
+    .where("eval.type", "=", "HEAD_TO_HEAD")
     .innerJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEvalId", "eval.id")
     .where("dede.datasetEntryId", "=", testingEntry.datasetEntryId)
     .select((eb) => [
@@ -303,8 +304,8 @@ export const queueEvalJobsForTestingEntry = async (
         eb
           .selectFrom("DatasetEvalOutputSource as deos")
           .select(["deos.id", "deos.modelId"])
-          .whereRef("datasetEvalId", "=", "eval.id")
-          .leftJoin("FineTuneTestingEntry as ftte", "ftte.modelId", "deos.modelId")
+          .whereRef("deos.datasetEvalId", "=", "eval.id")
+          .leftJoin("FineTuneTestingEntry as ftte", "ftte.datasetEntryId", "dede.datasetEntryId")
           .where((eb) => {
             // Ensure output source already has output loaded
             return eb.or([
@@ -359,7 +360,7 @@ export const queueEvalJobsForTestingEntry = async (
 };
 
 export const queueEvalJobsForEval = async (datasetEvalId: string) => {
-  console.log(0);
+  console.log("queueEvalJobsForEval", datasetEvalId);
   const datasetEvals = await kysely
     .selectFrom("DatasetEval as eval")
     .where("eval.id", "=", datasetEvalId)

@@ -18,7 +18,7 @@ import {
 } from "../utils/calculateFieldComparisonScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
-import { queueEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
+import { queueHeadToHeadEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
@@ -170,7 +170,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         },
       });
 
-      await queueEvalJobsForTestingEntry(updatedEntry, datasetEntry.datasetId);
+      await queueHeadToHeadEvalJobsForTestingEntry(updatedEntry, datasetEntry.datasetId);
     } catch (e: unknown) {
       const typedError = e as { message?: string; error?: { message: string } };
       await prisma.fineTuneTestingEntry.update({

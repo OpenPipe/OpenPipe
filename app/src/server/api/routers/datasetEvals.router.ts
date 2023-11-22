@@ -329,6 +329,7 @@ export const datasetEvalsRouter = createTRPCRouter({
           "ftte.output as output",
           "ftte.modelId",
           "der.score",
+          "der.errorMessage",
         ])
         .executeTakeFirst();
 

@@ -135,7 +135,15 @@ const FieldComparisonModal = () => {
                     <ColoredPercent value={data.entry.score} />
                   </HStack>
                 </HStack>
-                <FormattedMessage message={data.entry.output as unknown as ChatCompletionMessage} />
+                {data.entry.output ? (
+                  <FormattedMessage
+                    message={data.entry.output as unknown as ChatCompletionMessage}
+                  />
+                ) : data.entry.errorMessage ? (
+                  <Text>{data.entry.errorMessage}</Text>
+                ) : (
+                  <Text as="i">Pending</Text>
+                )}
               </VStack>
             </HStack>
           </VStack>
