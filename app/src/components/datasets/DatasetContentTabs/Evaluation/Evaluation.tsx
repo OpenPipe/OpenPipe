@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { VStack, HStack, Box, Text } from "@chakra-ui/react";
 import { FiFilter } from "react-icons/fi";
 
@@ -16,7 +16,12 @@ import EditEvalModal from "./EditEvalModal";
 
 const Evaluation = () => {
   const filters = useFilters().filters;
-  const [filtersShown, setFiltersShown] = useState(filters.length > 0);
+  const filtersShown = useFilters().filtersShown;
+  const setFiltersShown = useFilters().setFiltersShown;
+
+  useEffect(() => {
+    if (filters.length) setFiltersShown(true);
+  }, [filters.length, setFiltersShown]);
 
   const count = useTestingEntries().data?.count;
 

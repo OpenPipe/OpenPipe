@@ -31,6 +31,8 @@ import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { getComparisonModelName } from "~/utils/baseModels";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
+import { useFilters } from "~/components/Filters/useFilters";
+import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -85,6 +87,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   ]);
 
   const ensureEvalShown = useVisibleEvalIds().ensureEvalShown;
+  const addFilter = useFilters().addFilter;
 
   const [onCreationConfirm, creationInProgress] = useHandledAsyncCallback(async () => {
     if (!dataset?.id || !name || !instructions || !numDatasetEntries || includedModelIds.length < 2)
@@ -101,8 +104,15 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     await utils.datasets.get.invalidate();
 
     ensureEvalShown(resp.payload);
+    addFilter({
+      id: Date.now().toString(),
+      field: EvaluationFiltersDefaultFields.EvalApplied,
+      comparator: "=",
+      value: resp.payload,
+    });
+
     disclosure.onClose();
-  }, [mutation, dataset?.id, disclosure.onClose, name, instructions]);
+  }, [mutation, dataset?.id, disclosure.onClose, name, instructions, ensureEvalShown, addFilter]);
 
   return (
     <Modal {...disclosure} size="xl">
