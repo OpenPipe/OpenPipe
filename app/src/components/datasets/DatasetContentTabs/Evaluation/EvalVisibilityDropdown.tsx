@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import {
   Icon,
   Popover,
@@ -51,13 +51,6 @@ const EvalVisibilityDropdown = () => {
   );
 
   const numAvailableEvals = editableEvalOptions.length + toggleableEvalOptions.length;
-
-  const ensureEvalShown = useCallback(
-    (evalId: string) => {
-      if (!visibleEvalIds.includes(evalId)) toggleEvalVisiblity(evalId);
-    },
-    [visibleEvalIds, toggleEvalVisiblity],
-  );
 
   const isClientRehydrated = useIsClientRehydrated();
   if (!isClientRehydrated) return null;
@@ -151,13 +144,7 @@ const EvalVisibilityDropdown = () => {
           </VStack>
         </PopoverContent>
       </Popover>
-      <AddEvalModal
-        disclosure={addEvalModal}
-        onClose={(newEvalId?: string) => {
-          addEvalModal.onClose();
-          if (newEvalId) ensureEvalShown(newEvalId);
-        }}
-      />
+      <AddEvalModal disclosure={addEvalModal} />
     </>
   );
 };

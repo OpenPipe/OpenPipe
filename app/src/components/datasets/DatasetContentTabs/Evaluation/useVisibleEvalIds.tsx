@@ -13,6 +13,15 @@ export const useVisibleEvalIds = () => {
 
   const allDatasetEvalIds = dataset?.datasetEvals?.map((datasetEval) => datasetEval.id) || [];
 
+  const ensureEvalShown = (evalId: string) => {
+    if (visibleEvalIds.length === 0 || visibleEvalIds.includes(evalId)) return;
+    if (visibleEvalIds.includes(EMPTY_EVALS_KEY)) {
+      setVisibleEvalIds([evalId]);
+    } else {
+      setVisibleEvalIds([...visibleEvalIds, evalId]);
+    }
+  };
+
   const toggleEvalVisiblity = (evalId: string) => {
     if (visibleEvalIds.length === 0) {
       // All evals were visible, so we're only hiding this one.
@@ -43,15 +52,16 @@ export const useVisibleEvalIds = () => {
     }
   };
 
-  let returnedVisibleEvalIds = visibleEvalIds;
+  let completeVisibleEvalIds = visibleEvalIds;
   if (visibleEvalIds.includes(EMPTY_EVALS_KEY)) {
-    returnedVisibleEvalIds = [];
+    completeVisibleEvalIds = [];
   } else if (visibleEvalIds.length === 0) {
-    returnedVisibleEvalIds = allDatasetEvalIds;
+    completeVisibleEvalIds = allDatasetEvalIds;
   }
 
   return {
-    visibleEvalIds: returnedVisibleEvalIds,
+    visibleEvalIds: completeVisibleEvalIds,
     toggleEvalVisiblity,
+    ensureEvalShown,
   };
 };

@@ -30,14 +30,9 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { getComparisonModelName } from "~/utils/baseModels";
+import { useVisibleEvalIds } from "./useVisibleEvalIds";
 
-const AddEvalModal = ({
-  disclosure,
-  onClose,
-}: {
-  disclosure: UseDisclosureReturn;
-  onClose: (newEvalId?: string) => void;
-}) => {
+const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
   const utils = api.useContext();
 
@@ -89,6 +84,8 @@ const AddEvalModal = ({
     testingCount,
   ]);
 
+  const ensureEvalShown = useVisibleEvalIds().ensureEvalShown;
+
   const [onCreationConfirm, creationInProgress] = useHandledAsyncCallback(async () => {
     if (!dataset?.id || !name || !instructions || !numDatasetEntries || includedModelIds.length < 2)
       return;
@@ -103,11 +100,12 @@ const AddEvalModal = ({
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
 
-    onClose(resp.payload);
-  }, [mutation, dataset?.id, onClose, name, instructions]);
+    ensureEvalShown(resp.payload);
+    disclosure.onClose();
+  }, [mutation, dataset?.id, disclosure.onClose, name, instructions]);
 
   return (
-    <Modal {...disclosure} onClose={onClose} size="xl">
+    <Modal {...disclosure} size="xl">
       <ModalOverlay />
       <ModalContent w={1200}>
         <ModalHeader>
@@ -194,7 +192,7 @@ const AddEvalModal = ({
 
         <ModalFooter>
           <HStack>
-            <Button colorScheme="gray" onClick={() => onClose()} minW={24}>
+            <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
               Cancel
             </Button>
             <Button

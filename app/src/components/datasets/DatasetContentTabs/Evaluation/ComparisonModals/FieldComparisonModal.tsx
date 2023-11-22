@@ -56,7 +56,7 @@ const FieldComparisonModal = () => {
         <ModalHeader>
           <HStack>
             <Icon as={FaBalanceScale} />
-            <Text>{data.datasetEval.name} - Head To Head Comparison</Text>
+            <Text>{data.datasetEval.name}</Text>
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
