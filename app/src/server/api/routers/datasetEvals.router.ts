@@ -151,6 +151,8 @@ export const datasetEvalsRouter = createTRPCRouter({
       });
       await requireCanModifyProject(datasetEval.dataset.projectId, ctx);
 
+      let shouldQueueEvalJobs = false;
+
       const numTestDatasetEntries = await prisma.datasetEntry.count({
         where: { datasetId: datasetEval.dataset.id, split: "TEST", outdated: false },
       });
@@ -163,8 +165,6 @@ export const datasetEvalsRouter = createTRPCRouter({
         );
       }
 
-      console.log(1);
-
       await prisma.datasetEval.update({
         where: { id: input.id },
         data: {
@@ -173,18 +173,14 @@ export const datasetEvalsRouter = createTRPCRouter({
         },
       });
 
-      console.log(2);
-
       if (input.updates.instructions && input.updates.instructions !== datasetEval.instructions) {
         await kysely
           .deleteFrom("DatasetEvalResult as der")
           .innerJoin("DatasetEvalOutputSource as deos", "deos.id", "der.datasetEvalOutputSourceId")
           .where("deos.datasetEvalId", "=", input.id)
           .execute();
-        await queueEvalJobsForEval(input.id);
+        shouldQueueEvalJobs = true;
       }
-
-      console.log(3);
 
       if (input.updates.modelIds) {
         const updatedModelIds = input.updates.modelIds;
@@ -212,10 +208,8 @@ export const datasetEvalsRouter = createTRPCRouter({
             modelId,
           })),
         });
-        await queueEvalJobsForEval(input.id);
+        shouldQueueEvalJobs = true;
       }
-
-      console.log("input.updates.numDatasetEntries", input.updates.numDatasetEntries);
 
       const currentNumDatasetEntries = await prisma.datasetEvalDatasetEntry.count({
         where: { datasetEvalId: input.id },
@@ -245,17 +239,17 @@ export const datasetEvalsRouter = createTRPCRouter({
             .execute();
         } else {
           const currentlyExcludedDatasetEntries = await kysely
-            .selectFrom("DatasetEntry")
+            .selectFrom("DatasetEntry as de")
             .where("datasetId", "=", datasetEval.dataset.id)
             .where("split", "=", "TEST")
             .where("outdated", "=", false)
             .leftJoin("DatasetEvalDatasetEntry as dede", (join) =>
               join
-                .onRef("dede.datasetEntryId", "=", "dede.id")
+                .onRef("dede.datasetEntryId", "=", "de.id")
                 .on("dede.datasetEvalId", "=", input.id),
             )
             .where("dede.id", "is", null)
-            .select("DatasetEntry.id")
+            .select("de.id")
             .execute();
 
           const numEntriesToCreate = input.updates.numDatasetEntries - currentNumDatasetEntries;
@@ -272,6 +266,10 @@ export const datasetEvalsRouter = createTRPCRouter({
           });
         }
 
+        shouldQueueEvalJobs = true;
+      }
+
+      if (shouldQueueEvalJobs) {
         await queueEvalJobsForEval(input.id);
       }
 
