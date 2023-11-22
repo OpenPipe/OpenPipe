@@ -1,25 +1,14 @@
-import { Text, VStack, HStack } from "@chakra-ui/react";
+import { Text, VStack } from "@chakra-ui/react";
 import type { ChatCompletionMessageToolCall, ChatCompletionMessage } from "openai/resources/chat";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
-import ColoredPercent from "~/components/ColoredPercent";
-
-const FormattedMessage = ({
-  message,
-  score,
-}: {
-  message: ChatCompletionMessage;
-  score?: number | null;
-}) => {
+const FormattedMessage = ({ message }: { message: ChatCompletionMessage }) => {
   if (message.tool_calls) {
     return (
       <VStack alignItems="flex-start" whiteSpace="pre-wrap" w="full">
         {message.tool_calls.map((toolCall, index) => (
           <FormattedToolCall key={index} toolCall={toolCall} />
         ))}
-        <HStack justifyContent="flex-end" w="full">
-          {score !== null && score !== undefined && <ColoredPercent value={score} />}
-        </HStack>
       </VStack>
     );
   }

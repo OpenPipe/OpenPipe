@@ -264,7 +264,7 @@ export const FormattedOutput = ({ entry }: { entry: FTEntry }) => {
   const message = entry.output as unknown as ChatCompletionMessage;
   return (
     <>
-      <FormattedMessage message={message} score={entry.score} />
+      <FormattedMessage message={message} />
       {entry.finishReason === "length" && (
         <Alert status="warning" mt={4} zIndex={0}>
           <AlertIcon />
