@@ -95,10 +95,10 @@ export interface DatasetEval {
   id: string;
   name: string;
   instructions: string | null;
+  type: Generated<"FIELD_COMPARISON" | "HEAD_TO_HEAD">;
   datasetId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  type: Generated<"FIELD_COMPARISON" | "HEAD_TO_HEAD">;
 }
 
 export interface DatasetEvalDatasetEntry {
@@ -111,10 +111,10 @@ export interface DatasetEvalDatasetEntry {
 
 export interface DatasetEvalOutputSource {
   id: string;
+  modelId: string;
   datasetEvalId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  modelId: string;
 }
 
 export interface DatasetEvalResult {
@@ -123,12 +123,12 @@ export interface DatasetEvalResult {
   explanation: string | null;
   errorMessage: string | null;
   status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  comparisonResultId: string | null;
+  comparisonOutputSourceId: string | null;
   datasetEvalDatasetEntryId: string;
   datasetEvalOutputSourceId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  comparisonResultId: string | null;
-  comparisonOutputSourceId: string | null;
 }
 
 export interface DatasetFileUpload {

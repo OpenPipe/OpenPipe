@@ -1,26 +1,21 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "DatasetEvalType" AS ENUM ('FIELD_COMPARISON', 'HEAD_TO_HEAD');
 
-  - You are about to drop the `DatasetEvalScore` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "DatasetEvalResultStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETE', 'ERROR');
 
--- DropForeignKey
-ALTER TABLE "DatasetEvalScore" DROP CONSTRAINT "DatasetEvalScore_datasetEntryId_fkey";
+-- CreateTable
+CREATE TABLE "DatasetEval" (
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "instructions" TEXT,
+    "type" "DatasetEvalType" NOT NULL DEFAULT 'HEAD_TO_HEAD',
+    "datasetId" UUID NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
--- DropForeignKey
-ALTER TABLE "DatasetEvalScore" DROP CONSTRAINT "DatasetEvalScore_datasetEvalId_fkey";
-
--- DropForeignKey
-ALTER TABLE "DatasetEvalScore" DROP CONSTRAINT "DatasetEvalScore_fineTuneId_fkey";
-
--- DropForeignKey
-ALTER TABLE "DatasetEvalScore" DROP CONSTRAINT "DatasetEvalScore_fineTuneTestingEntryId_fkey";
-
--- DropTable
-DROP TABLE "DatasetEvalScore";
+    CONSTRAINT "DatasetEval_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "DatasetEvalDatasetEntry" (
@@ -36,7 +31,7 @@ CREATE TABLE "DatasetEvalDatasetEntry" (
 -- CreateTable
 CREATE TABLE "DatasetEvalOutputSource" (
     "id" UUID NOT NULL,
-    "outputSourceId" TEXT,
+    "modelId" TEXT NOT NULL,
     "datasetEvalId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -49,9 +44,10 @@ CREATE TABLE "DatasetEvalResult" (
     "id" UUID NOT NULL,
     "score" DOUBLE PRECISION,
     "explanation" TEXT,
-    "evalRunId" TEXT,
     "errorMessage" TEXT,
     "status" "DatasetEvalResultStatus" NOT NULL DEFAULT 'PENDING',
+    "comparisonResultId" UUID,
+    "comparisonOutputSourceId" UUID,
     "datasetEvalDatasetEntryId" UUID NOT NULL,
     "datasetEvalOutputSourceId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -61,16 +57,25 @@ CREATE TABLE "DatasetEvalResult" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "DatasetEval_datasetId_name_key" ON "DatasetEval"("datasetId", "name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "DatasetEvalDatasetEntry_datasetEvalId_datasetEntryId_key" ON "DatasetEvalDatasetEntry"("datasetEvalId", "datasetEntryId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "DatasetEvalOutputSource_datasetEvalId_outputSourceId_key" ON "DatasetEvalOutputSource"("datasetEvalId", "outputSourceId");
+CREATE UNIQUE INDEX "DatasetEvalOutputSource_datasetEvalId_modelId_key" ON "DatasetEvalOutputSource"("datasetEvalId", "modelId");
 
 -- CreateIndex
-CREATE INDEX "DatasetEvalResult_evalRunId_idx" ON "DatasetEvalResult"("evalRunId");
+CREATE INDEX "DatasetEvalResult_comparisonResultId_idx" ON "DatasetEvalResult"("comparisonResultId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "DatasetEvalResult_datasetEvalDatasetEntryId_datasetEvalOutp_key" ON "DatasetEvalResult"("datasetEvalDatasetEntryId", "datasetEvalOutputSourceId");
+CREATE UNIQUE INDEX "DatasetEvalResult_datasetEvalDatasetEntryId_datasetEvalOutp_key" ON "DatasetEvalResult"("datasetEvalDatasetEntryId", "datasetEvalOutputSourceId", "comparisonOutputSourceId");
+
+-- CreateIndex
+CREATE INDEX "DatasetEntry_persistentId_createdAt_idx" ON "DatasetEntry"("persistentId", "createdAt");
+
+-- AddForeignKey
+ALTER TABLE "DatasetEval" ADD CONSTRAINT "DatasetEval_datasetId_fkey" FOREIGN KEY ("datasetId") REFERENCES "Dataset"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DatasetEvalDatasetEntry" ADD CONSTRAINT "DatasetEvalDatasetEntry_datasetEvalId_fkey" FOREIGN KEY ("datasetEvalId") REFERENCES "DatasetEval"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -80,6 +85,9 @@ ALTER TABLE "DatasetEvalDatasetEntry" ADD CONSTRAINT "DatasetEvalDatasetEntry_da
 
 -- AddForeignKey
 ALTER TABLE "DatasetEvalOutputSource" ADD CONSTRAINT "DatasetEvalOutputSource_datasetEvalId_fkey" FOREIGN KEY ("datasetEvalId") REFERENCES "DatasetEval"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DatasetEvalResult" ADD CONSTRAINT "DatasetEvalResult_comparisonOutputSourceId_fkey" FOREIGN KEY ("comparisonOutputSourceId") REFERENCES "DatasetEvalOutputSource"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DatasetEvalResult" ADD CONSTRAINT "DatasetEvalResult_datasetEvalDatasetEntryId_fkey" FOREIGN KEY ("datasetEvalDatasetEntryId") REFERENCES "DatasetEvalDatasetEntry"("id") ON DELETE CASCADE ON UPDATE CASCADE;
