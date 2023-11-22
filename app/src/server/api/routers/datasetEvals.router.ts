@@ -18,6 +18,9 @@ export const datasetEvalsRouter = createTRPCRouter({
       .where("eval.id", "=", input.id)
       .leftJoin("Dataset as d", "d.id", "eval.datasetId")
       .leftJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEvalId", "eval.id")
+      .leftJoin("DatasetEntry as de", "de.id", "dede.datasetEntryId")
+      .where("de.split", "=", "TEST")
+      .where("de.outdated", "=", false)
       .select((eb) => [
         "eval.name",
         "eval.instructions",

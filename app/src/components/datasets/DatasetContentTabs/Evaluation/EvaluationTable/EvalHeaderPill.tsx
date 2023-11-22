@@ -80,6 +80,24 @@ const EvalHeaderPill = ({
         mt={-1}
       >
         <VStack w="full" spacing={0}>
+          {datasetEval.type !== "FIELD_COMPARISON" && (
+            <HStack
+              as={Button}
+              w="full"
+              colorScheme="blue"
+              color="gray.500"
+              variant="ghost"
+              justifyContent="space-between"
+              h={8}
+              px={2}
+              onClick={() => setDatasetEvalIdToEdit(datasetEval.id)}
+              borderRadius={0}
+              borderBottomWidth={1}
+            >
+              <Text fontSize="xs">Edit Eval</Text>
+              <Icon as={FiEdit2} color="gray.500" />
+            </HStack>
+          )}
           <HStack
             as={Button}
             w="full"
@@ -96,22 +114,6 @@ const EvalHeaderPill = ({
             <Text fontSize="xs">Hide Eval</Text>
             <Icon as={FaEyeSlash} color="gray.500" />
           </HStack>
-          {datasetEval.type !== "FIELD_COMPARISON" && (
-            <HStack
-              as={Button}
-              w="full"
-              colorScheme="blue"
-              color="gray.500"
-              variant="ghost"
-              justifyContent="space-between"
-              h={8}
-              px={2}
-              onClick={() => setDatasetEvalIdToEdit(datasetEval.id)}
-            >
-              <Text fontSize="xs">Edit Eval</Text>
-              <Icon as={FiEdit2} color="gray.500" />
-            </HStack>
-          )}
         </VStack>
       </PopoverContent>
     </Popover>

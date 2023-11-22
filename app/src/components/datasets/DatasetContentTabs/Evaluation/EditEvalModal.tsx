@@ -204,7 +204,9 @@ const EditEvalModal = () => {
                     <Input
                       value={numDatasetEntries}
                       type="number"
-                      onChange={(e) => setNumDatasetEntries(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setNumDatasetEntries(parseInt(e.target.value.match(/\d+/g)?.[0] ?? ""))
+                      }
                       placeholder="100"
                       w="full"
                     />
