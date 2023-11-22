@@ -39,7 +39,7 @@ const EvalResults = ({
       };
       // Ensure that the map has an entry for this datasetEvalId
       acc.set(result.datasetEvalId, currentGroup);
-      if (result.status === "PENDING") {
+      if (result.status === "PENDING" || result.status === "IN_PROGRESS") {
         acc.set(result.datasetEvalId, { ...currentGroup, isPending: true });
         return acc;
       }
