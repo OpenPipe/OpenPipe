@@ -13,28 +13,27 @@ import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 
 export const datasetEvalsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    const datasetEvals = await kysely
-      .selectFrom("DatasetEval as de")
-      .where("id", "=", input.id)
-      .leftJoin("Dataset as d", "d.id", "de.datasetId")
-      .leftJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEvalId", "de.id")
+    const datasetEval = await kysely
+      .selectFrom("DatasetEval as eval")
+      .where("eval.id", "=", input.id)
+      .leftJoin("Dataset as d", "d.id", "eval.datasetId")
+      .leftJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEvalId", "eval.id")
       .select((eb) => [
-        "de.name",
-        "de.instructions",
+        "eval.name",
+        "eval.instructions",
         "d.projectId",
         jsonArrayFrom(
           eb
-            .selectFrom("DatasetEvalOutputSource")
-            .where("datasetEvalId", "=", input.id)
-            .select(["id", "modelId"])
-            .orderBy("id", "asc"),
+            .selectFrom("DatasetEvalOutputSource as deos")
+            .where("deos.datasetEvalId", "=", input.id)
+            .select(["deos.id", "deos.modelId"])
+            .orderBy("deos.createdAt", "asc"),
         ).as("outputSources"),
         eb.fn.count<number>("dede.id").as("numDatasetEntries"),
       ])
-      .groupBy("de.id")
-      .execute();
+      .groupBy(["eval.id", "d.projectId"])
+      .executeTakeFirst();
 
-    const datasetEval = datasetEvals[0];
     if (!datasetEval?.projectId)
       throw new TRPCError({ message: "Dataset eval not found", code: "NOT_FOUND" });
 
