@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Fragment } from "react";
 import {
   Drawer,
   DrawerBody,
@@ -200,10 +200,9 @@ function DatasetEntryEditorDrawer({
                 <Text fontWeight="bold">Input</Text>
                 {inputMessagesToSave.map((message, i) => {
                   return (
-                    <>
-                      <Divider key={`divider-${i}`} my={4} />
+                    <Fragment key={i}>
+                      <Divider my={4} />
                       <EditableMessage
-                        key={i}
                         message={message}
                         onEdit={(message) => {
                           const newInputMessages = [...inputMessagesToSave];
@@ -217,7 +216,7 @@ function DatasetEntryEditorDrawer({
                         }}
                         ruleMatches={datasetEntry?.matchedRules}
                       />
-                    </>
+                    </Fragment>
                   );
                 })}
                 <Divider my={4} />
