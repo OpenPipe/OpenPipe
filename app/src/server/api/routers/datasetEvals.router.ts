@@ -174,8 +174,14 @@ export const datasetEvalsRouter = createTRPCRouter({
       if (input.updates.instructions && input.updates.instructions !== datasetEval.instructions) {
         await kysely
           .deleteFrom("DatasetEvalResult as der")
-          .innerJoin("DatasetEvalOutputSource as deos", "deos.id", "der.datasetEvalOutputSourceId")
-          .where("deos.datasetEvalId", "=", input.id)
+          .where(({ exists, selectFrom }) =>
+            exists(
+              selectFrom("DatasetEvalOutputSource as deos")
+                .select(["deos.id", "deos.datasetEvalId"])
+                .where("deos.datasetEvalId", "=", input.id)
+                .whereRef("deos.id", "=", "der.datasetEvalOutputSourceId"),
+            ),
+          )
           .execute();
         shouldQueueEvalJobs = true;
       }
