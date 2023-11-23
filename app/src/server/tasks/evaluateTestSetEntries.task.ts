@@ -5,6 +5,7 @@ import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { captureException } from "@sentry/node";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import type { JsonObject } from "type-fest";
 
 import { kysely, prisma } from "~/server/db";
 import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
@@ -137,55 +138,15 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
     const instructions = firstResult.datasetEvalDatasetEntry.datasetEval.instructions;
 
-    const functionParamsSchema = z.object({
-      explanation: z.string().describe("An explanation of why you chose the response you did"),
-      judgement: z
-        .enum(JUDGEMENT_OPTIONS)
-        .describe("Whose response is better in the context of the task?"),
-    });
-
-    const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSchema")
-      .definitions?.["functionParamsSchema"] as FunctionParameters;
-
     let args;
 
     try {
-      const input: ChatCompletionCreateParams = {
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an intelligent and fair judge of chatbots. Evaluate the following two chatbot responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
-              (instructions
-                ? `\n\n The user has provided the following instructions on what you should evaluate the outputs on: ${instructions}`
-                : ""),
-          },
-          {
-            role: "user",
-            content: formatDatasetEntryInputInstructions(
-              firstResult.datasetEvalDatasetEntry.datasetEntry,
-            ),
-          },
-          {
-            role: "user",
-            content: `This is what Alice said:\n\n${JSON.stringify(firstEntry.output)}`,
-          },
-          {
-            role: "user",
-            content: `This is what Bob said:\n\n${JSON.stringify(secondEntry.output)}`,
-          },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "record_score",
-              parameters: functionParams,
-            },
-          },
-        ],
-      };
+      const input = constructJudgementInput(
+        firstResult.datasetEvalDatasetEntry.datasetEntry,
+        firstEntry.output as JsonObject,
+        secondEntry.output as JsonObject,
+        instructions,
+      );
 
       const response = await getOpenaiCompletion(
         firstResult.datasetEvalDatasetEntry.datasetEntry.dataset.projectId,
@@ -263,6 +224,68 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
     priority: 5,
   },
 });
+
+const functionParamsSchema = z.object({
+  explanation: z.string().describe("An explanation of why you chose the response you did"),
+  judgement: z
+    .enum(JUDGEMENT_OPTIONS)
+    .describe("Whose response is better in the context of the task?"),
+});
+
+const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSchema").definitions?.[
+  "functionParamsSchema"
+] as FunctionParameters;
+
+const constructJudgementInput = (
+  datasetEntry: DatasetEntry,
+  firstOutput: JsonObject,
+  secondOutput: JsonObject,
+  instructions: string | null,
+) => {
+  const input: ChatCompletionCreateParams = {
+    model: "gpt-4",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are an intelligent and fair judge of chatbots. Evaluate the following two chatbot responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
+          (instructions
+            ? `\n\n The user has provided the following instructions on what you should evaluate the outputs on: ${instructions}`
+            : ""),
+      },
+      {
+        role: "user",
+        content: formatDatasetEntryInputInstructions(datasetEntry),
+      },
+      {
+        role: "user",
+        content: `This is what Alice said:\n\n${JSON.stringify(firstOutput)}`,
+      },
+      {
+        role: "user",
+        content: `This is what Bob said:\n\n${JSON.stringify(secondOutput)}`,
+      },
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "record_score",
+          parameters: functionParams,
+        },
+      },
+    ],
+  };
+
+  if (instructions) {
+    input.messages.push({
+      role: "user",
+      content: `Remember to pay attention to the user's instructions: ${instructions}`,
+    });
+  }
+
+  return input;
+};
 
 const formatDatasetEntryInputInstructions = (datasetEntry: DatasetEntry) => {
   const { messages, tool_choice, tools } = typedDatasetEntry(datasetEntry);
