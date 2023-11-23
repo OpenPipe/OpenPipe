@@ -181,7 +181,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   <Input
                     value={numDatasetEntries}
                     onChange={(e) => setNumDatasetEntries(Number(e.target.value) || 0)}
-                    placeholder="100"
+                    placeholder="10"
                     w="full"
                   />
                 </VStack>

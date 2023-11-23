@@ -1,8 +1,10 @@
 import type { DatasetEntry, FineTuneTestingEntry, Prisma } from "@prisma/client";
-import type { ChatCompletionCreateParams } from "openai/resources";
+import type { ChatCompletionCreateParams, FunctionParameters } from "openai/resources";
 import { v4 as uuidv4 } from "uuid";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
-import * as Sentry from "@sentry/nextjs";
+import { captureException } from "@sentry/node";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 import { kysely, prisma } from "~/server/db";
 import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
@@ -135,6 +137,16 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
     const instructions = firstResult.datasetEvalDatasetEntry.datasetEval.instructions;
 
+    const functionParamsSchema = z.object({
+      explanation: z.string().describe("An explanation of why you chose the response you did"),
+      judgement: z
+        .enum(JUDGEMENT_OPTIONS)
+        .describe("Whose response is better in the context of the task?"),
+    });
+
+    const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSchema")
+      .definitions?.["functionParamsSchema"] as FunctionParameters;
+
     try {
       const input: ChatCompletionCreateParams = {
         model: "gpt-4",
@@ -167,21 +179,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
             type: "function",
             function: {
               name: "record_score",
-              parameters: {
-                type: "object",
-                properties: {
-                  explanation: {
-                    type: "string",
-                    description: "An explanation of why you chose the response you did",
-                  },
-                  judgement: {
-                    type: "string",
-                    enum: JUDGEMENT_OPTIONS,
-                    description: "Whose response is better in the context of the task?",
-                  },
-                },
-                required: ["explanation", "judgement"],
-              },
+              parameters: functionParams,
             },
           },
         ],
@@ -196,21 +194,14 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
       if (!args) throw new Error("No arguments returned" + JSON.stringify(response));
 
-      const parsedArgs = JSON.parse(args);
+      const jsonArgs = JSON.parse(args);
+      const parsedArgs = functionParamsSchema.parse(jsonArgs);
 
-      if (!parsedArgs["explanation"] || !parsedArgs["judgement"]) {
-        throw new Error("No explanation or judgement returned" + JSON.stringify(response));
-      }
-
-      explanation = parsedArgs["explanation"] as string;
-      judgement = parsedArgs["judgement"] as (typeof JUDGEMENT_OPTIONS)[number];
-
-      if (!JUDGEMENT_OPTIONS.includes(judgement)) {
-        throw new Error("Invalid judgement returned" + JSON.stringify(response));
-      }
+      explanation = parsedArgs.explanation;
+      judgement = parsedArgs.judgement;
     } catch (e) {
       console.error("error getting judgement", e);
-      Sentry.captureException(e);
+      captureException(e);
       await prisma.datasetEvalResult.updateMany({
         where: {
           id: {
