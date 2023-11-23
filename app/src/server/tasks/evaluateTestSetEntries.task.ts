@@ -275,6 +275,7 @@ const constructJudgementInput = (
         },
       },
     ],
+    tool_choice: { type: "function", function: { name: "record_score" } },
   };
 
   if (instructions) {

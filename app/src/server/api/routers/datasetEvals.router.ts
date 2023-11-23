@@ -224,8 +224,6 @@ export const datasetEvalsRouter = createTRPCRouter({
         .select("dede.id")
         .execute();
 
-      console.log("datasetEntriesCount", currentDatasetEvalDatasetEntries.length);
-
       const currentNumDatasetEntries = currentDatasetEvalDatasetEntries.length;
 
       if (
@@ -238,8 +236,6 @@ export const datasetEvalsRouter = createTRPCRouter({
           const datasetEvalDatasetEntriesToDelete = shuffle(
             currentDatasetEvalDatasetEntries.map((entry) => entry.id),
           ).slice(0, numEntriesToDelete);
-
-          console.log("datasetEvalDatasetEntriesToDelete", datasetEvalDatasetEntriesToDelete);
 
           await kysely
             .deleteFrom("DatasetEvalDatasetEntry")
