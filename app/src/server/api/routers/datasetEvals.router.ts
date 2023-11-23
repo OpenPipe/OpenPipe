@@ -94,8 +94,6 @@ export const datasetEvalsRouter = createTRPCRouter({
         input.numDatasetEntries,
       );
 
-      console.log("shuffledEntryIds", shuffledEntryIds);
-
       let datasetEval;
       try {
         datasetEval = await prisma.datasetEval.create({
