@@ -107,9 +107,10 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
         }),
       ]);
 
+      await updatePruningRuleMatches(datasetEntry.datasetId, new Date(0), [newDatasetEntry.id]);
+
       if (newDatasetEntry.split === "TEST") {
         await copyDatasetEvalDatasetEntries(datasetEntry.id, newDatasetEntry.id);
-        await updatePruningRuleMatches(datasetEntry.datasetId, new Date(0), [newDatasetEntry.id]);
         await startDatasetEntryTestJobs(newDatasetEntry.id);
       }
     } catch (e) {
