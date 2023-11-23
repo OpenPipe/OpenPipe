@@ -147,6 +147,8 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
     const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSchema")
       .definitions?.["functionParamsSchema"] as FunctionParameters;
 
+    let args;
+
     try {
       const input: ChatCompletionCreateParams = {
         model: "gpt-4",
@@ -190,7 +192,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         input,
       );
 
-      const args = response.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      args = response.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
 
       if (!args) throw new Error("No arguments returned" + JSON.stringify(response));
 
@@ -200,8 +202,8 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       explanation = parsedArgs.explanation;
       judgement = parsedArgs.judgement;
     } catch (e) {
-      console.error("error getting judgement", e);
-      captureException(e);
+      console.error("error getting judgement", args, e);
+      captureException(e, { extra: { args } });
       await prisma.datasetEvalResult.updateMany({
         where: {
           id: {
@@ -292,16 +294,20 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
       jsonArrayFrom(
         eb
           .selectFrom("DatasetEvalOutputSource as deos")
-          .select(["deos.id", "deos.modelId"])
           .whereRef("deos.datasetEvalId", "=", "eval.id")
-          .leftJoin("FineTuneTestingEntry as ftte", "ftte.datasetEntryId", "dede.datasetEntryId")
+          .leftJoin("FineTuneTestingEntry as ftte", (join) =>
+            join
+              .onRef("ftte.modelId", "=", "deos.modelId")
+              .onRef("ftte.datasetEntryId", "=", "dede.datasetEntryId"),
+          )
           .where((eb) => {
             // Ensure output source already has output loaded
             return eb.or([
               eb("deos.modelId", "=", ORIGINAL_MODEL_ID),
               eb("ftte.output", "is not", null),
             ]);
-          }),
+          })
+          .select(["deos.id", "deos.modelId", "ftte.output"]),
       ).as("outputSourcesWithOutput"),
     ])
     .execute();
