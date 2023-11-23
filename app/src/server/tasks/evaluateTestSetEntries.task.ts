@@ -1,13 +1,14 @@
 import type { DatasetEntry, FineTuneTestingEntry, Prisma } from "@prisma/client";
 import type { ChatCompletionCreateParams } from "openai/resources";
 import { v4 as uuidv4 } from "uuid";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
+import * as Sentry from "@sentry/nextjs";
 
 import { kysely, prisma } from "~/server/db";
 import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
-import { jsonArrayFrom } from "kysely/helpers/postgres";
 
 export type EvaluateTestSetEntriesJob = {
   firstResultId: string;
@@ -140,9 +141,11 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         messages: [
           {
             role: "system",
-            content: `You are an intelligent and fair judge of chatbots. Evaluate the following two chatbot responses and choose which one is better in the following way: ${
-              instructions ?? ""
-            }`,
+            content:
+              "You are an intelligent and fair judge of chatbots. Evaluate the following two chatbot responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
+              (instructions
+                ? `\n\n The user has provided the following instructions on what you should evaluate the outputs on: ${instructions}`
+                : ""),
           },
           {
             role: "user",
@@ -157,12 +160,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           {
             role: "user",
             content: `This is what Bob said:\n\n${JSON.stringify(secondEntry.output)}`,
-          },
-          {
-            role: "user",
-            content: `Which response is better in the context of the task? Remember to pay attention to the following: ${
-              instructions ?? ""
-            }`,
           },
         ],
         tools: [
@@ -213,6 +210,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       }
     } catch (e) {
       console.error("error getting judgement", e);
+      Sentry.captureException(e);
       await prisma.datasetEvalResult.updateMany({
         where: {
           id: {

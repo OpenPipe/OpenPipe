@@ -116,7 +116,13 @@ const HeadToHeadComparisonModal = () => {
                     </Text>
                   </HStack>
                 </HStack>
-                <FormattedMessage message={data.entry.output as unknown as ChatCompletionMessage} />
+                {data.entry.output ? (
+                  <FormattedMessage
+                    message={data.entry.output as unknown as ChatCompletionMessage}
+                  />
+                ) : (
+                  <Text as="i">Pending</Text>
+                )}
               </VStack>
 
               <VStack flex="1" alignItems="flex-start" maxH="60vh" overflowY="scroll">
