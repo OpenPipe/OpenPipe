@@ -178,7 +178,11 @@ const CollapsibleResult = ({ result }: { result: ComparisonResult }) => {
         <Text>{getOutputTitle(result.modelId, result.slug)}</Text>
         {comparisonText}
       </HStack>
-      <FormattedMessage message={result.output as unknown as ChatCompletionMessage} />
+      {result.output ? (
+        <FormattedMessage message={result.output as unknown as ChatCompletionMessage} />
+      ) : (
+        <Text as="i">Pending</Text>
+      )}
       <VStack w="full" alignItems="flex-start" spacing={0}>
         {result.errorMessage && <Text>{result.errorMessage}</Text>}
 
