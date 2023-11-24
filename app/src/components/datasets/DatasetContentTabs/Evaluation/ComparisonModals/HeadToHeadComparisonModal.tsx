@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useLayoutEffect } from "react";
 import {
   Button,
   Collapse,
@@ -13,6 +13,7 @@ import {
   ModalOverlay,
   Text,
   VStack,
+  Box,
 } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
@@ -125,7 +126,7 @@ const HeadToHeadComparisonModal = () => {
                 )}
               </VStack>
 
-              <VStack flex="1" alignItems="flex-start" maxH="60vh" overflowY="scroll">
+              <VStack flex="1" alignItems="flex-start" overflowY="scroll">
                 {data.entry.comparisonResults.map((result) => (
                   <CollapsibleResult key={result.modelId} result={result} />
                 ))}
@@ -153,6 +154,9 @@ const HeadToHeadComparisonModal = () => {
   );
 };
 
+const MAX_OUTPUT_HEIGHT = 400;
+const VERTICAL_PADDING = 32;
+
 type ComparisonResult =
   RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"]["comparisonResults"][number];
 
@@ -167,7 +171,20 @@ const CollapsibleResult = ({ result }: { result: ComparisonResult }) => {
     if (result.score > 0.5) return <Text color="red.500">LOSS</Text>;
   }, [result.score, result.status]);
 
+  const outputRef = useRef<HTMLDivElement>(null);
+  const [innerOutputHeight, setInnerOutputHeight] = useState(0);
+  useLayoutEffect(() => {
+    if (!outputRef.current) return;
+    const height = outputRef.current.getBoundingClientRect().height;
+    if (height > 0) {
+      setInnerOutputHeight(height);
+    }
+  }, [outputRef, setInnerOutputHeight]);
+
+  const [outputExpanded, setOutputExpanded] = useState(false);
   const [explanationExpanded, setExplanationExpanded] = useState(false);
+
+  const expandable = innerOutputHeight > MAX_OUTPUT_HEIGHT;
   return (
     <VStack
       align="flex-start"
@@ -184,11 +201,56 @@ const CollapsibleResult = ({ result }: { result: ComparisonResult }) => {
         <Text>{getOutputTitle(result.modelId, result.slug)}</Text>
         {comparisonText}
       </HStack>
-      {result.output ? (
-        <FormattedMessage message={result.output as unknown as ChatCompletionMessage} />
-      ) : (
-        <Text as="i">Pending</Text>
-      )}
+      <Box
+        w="full"
+        position="relative"
+        h={
+          !expandable
+            ? innerOutputHeight
+            : outputExpanded
+            ? innerOutputHeight + 52
+            : MAX_OUTPUT_HEIGHT + VERTICAL_PADDING
+        }
+        transition="height 0.5s ease-in-out"
+        overflow="hidden"
+      >
+        <VStack ref={outputRef}>
+          {result.output ? (
+            <FormattedMessage message={result.output as unknown as ChatCompletionMessage} />
+          ) : (
+            <Text as="i">Pending</Text>
+          )}
+        </VStack>
+        {expandable && (
+          <VStack position="absolute" bottom={0} w="full" spacing={0}>
+            {!outputExpanded && (
+              <Box
+                w="full"
+                h={16}
+                background="linear-gradient(to bottom, transparent, white)"
+                pointerEvents="none"
+              />
+            )}
+            <HStack
+              color="gray.500"
+              py={2}
+              spacing={0.5}
+              _hover={{ textDecor: "underline" }}
+              cursor="pointer"
+              bgColor="white"
+              w="full"
+              alignItems="center"
+              onClick={() => setOutputExpanded(!outputExpanded)}
+            >
+              <Text fontWeight="bold" fontSize="sm">
+                {outputExpanded ? "Show less" : "Show more"}
+              </Text>
+              <Icon as={outputExpanded ? FiChevronUp : FiChevronDown} mt={0.5} strokeWidth={3} />
+            </HStack>
+          </VStack>
+        )}
+      </Box>
+
       <VStack w="full" alignItems="flex-start" spacing={0}>
         {result.errorMessage && <Text>{result.errorMessage}</Text>}
 
