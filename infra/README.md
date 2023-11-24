@@ -1,6 +1,4 @@
 Infra for OpenPipe
 
 Notes:
- - install pulumi
- - install kubectl
- - install docker
+ - refer to the Dockerfile to see required dependencies

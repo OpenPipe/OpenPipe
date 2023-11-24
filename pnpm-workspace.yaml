@@ -1,4 +1,3 @@
 packages:
   - app
   - client-libs/typescript
-  - infra

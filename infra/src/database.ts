@@ -16,7 +16,6 @@ const appClass = "app-v1";
 const environment = new kubernetes.core.v1.Secret(
   nm("app"),
   {
-    metadata: { name: appClass },
     stringData: {
       DATABASE_URL: getSecret("DATABASE_URL"),
       OPENAI_API_KEY: getSecret("OPENAI_API_KEY"),
@@ -38,7 +37,7 @@ const environment = new kubernetes.core.v1.Secret(
       SMTP_LOGIN: getConfig("SMTP_LOGIN"),
       AZURE_STORAGE_CONTAINER_NAME: getConfig("AZURE_STORAGE_CONTAINER_NAME"),
       AZURE_STORAGE_ACCOUNT_NAME: getConfig("AZURE_STORAGE_ACCOUNT_NAME"),
-      MODAL_ENVIRONMENT: getConfig("MODAL_ENVIRONMENT"),
+      MODAL_ENVIRONMENT: getConfig("MODAL_ENVIRONMENT") + "tmp-delete!",
       SMTP_HOST: getConfig("SMTP_HOST"),
       SENDER_EMAIL: getConfig("SENDER_EMAIL"),
       NEXT_PUBLIC_HOST: getConfig("NEXT_PUBLIC_HOST"),
@@ -51,18 +50,14 @@ const environment = new kubernetes.core.v1.Secret(
 const deployment = new kubernetes.apps.v1.Deployment(
   nm("app"),
   {
-    metadata: {
-      labels: { appClass },
-    },
+    metadata: { labels: { appClass } },
     spec: {
       replicas: 2,
       selector: {
         matchLabels: { appClass },
       },
       template: {
-        metadata: {
-          labels: { appClass },
-        },
+        metadata: { labels: { appClass } },
         spec: {
           containers: [
             {
@@ -75,10 +70,11 @@ const deployment = new kubernetes.apps.v1.Deployment(
                   path: "/api/healthcheck",
                   port: 80,
                 },
-                // start checking immediately but wait 30 seconds before failing
                 initialDelaySeconds: 0,
-                periodSeconds: 10,
-                failureThreshold: (5 * 60) / 10,
+                periodSeconds: 5,
+                // Wait 5 minutes before failing because we do db migrations on
+                // startup
+                failureThreshold: (5 * 60) / 5,
               },
               livenessProbe: {
                 httpGet: {
@@ -92,7 +88,7 @@ const deployment = new kubernetes.apps.v1.Deployment(
       },
     },
   },
-  { provider: eksProvider },
+  { provider: eksProvider, deleteBeforeReplace: false },
 );
 
 export const service = new kubernetes.core.v1.Service(

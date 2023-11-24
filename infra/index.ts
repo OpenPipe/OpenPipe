@@ -1,8 +1,9 @@
-import { cluster } from "./cluster";
-import "./app-image";
-import { vpc } from "./vpc";
-import { service } from "./app-service";
-import "./dns";
+import { cluster } from "./src/cluster";
+import { vpc } from "./src/vpc";
+import "./src/app-image";
+import { service } from "./src/app-service";
+import "./src/app-worker";
+import "./src/dns";
 
 export const kubeconfig = cluster.kubeconfig;
 export const vpcId = vpc.vpcId;

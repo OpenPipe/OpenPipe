@@ -128,7 +128,7 @@ const NavSidebar = () => {
         >
           <Icon as={BsGithub} boxSize={6} />
         </ChakraLink>
-        <Tooltip label="View Documentation" aria-label="View Documentation">
+        <Tooltip label="View Docs">
           <ChakraLink
             href="https://docs.openpipe.ai"
             target="_blank"
