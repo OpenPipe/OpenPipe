@@ -263,7 +263,7 @@ export const FormattedOutput = ({ entry }: { entry: FTEntry }) => {
 
   const message = entry.output as unknown as ChatCompletionMessage;
   return (
-    <>
+    <VStack w="full">
       <FormattedMessage message={message} />
       {entry.finishReason === "length" && (
         <Alert status="warning" mt={4} zIndex={0}>
@@ -275,7 +275,7 @@ export const FormattedOutput = ({ entry }: { entry: FTEntry }) => {
           </AlertDescription>
         </Alert>
       )}
-    </>
+    </VStack>
   );
 };
 
