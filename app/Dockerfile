@@ -28,7 +28,8 @@ WORKDIR /code
 COPY --from=deps /code/node_modules ./node_modules
 COPY --from=deps /code/app/node_modules ./app/node_modules
 COPY --from=deps /code/client-libs/typescript/node_modules ./client-libs/typescript/node_modules
-COPY . .
+COPY app /code/app
+COPY client-libs/typescript /code/client-libs/typescript
 RUN cd app && SKIP_ENV_VALIDATION=1 pnpm build
 
 # RUNNER
@@ -40,8 +41,8 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 COPY --from=builder /code/ /code/
 
-EXPOSE 3000
-ENV PORT 3000
+EXPOSE 80
+ENV PORT 80
 
 # Run the "run-prod.sh" script
 CMD /code/app/scripts/run-prod.sh

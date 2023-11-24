@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as awsx from "@pulumi/awsx";
 import { nm } from "./helpers";
-import "./repo";
+import "./app-image";
 
 const config = new pulumi.Config();
 const vpcNetworkCidr = config.get("vpcNetworkCidr") || "10.0.0.0/16";

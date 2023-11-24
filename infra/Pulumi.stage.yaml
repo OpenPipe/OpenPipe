@@ -1,6 +1,6 @@
 config:
-  aws:region: us-west-2
   aws-native:region: us-west-2
+  aws:region: us-west-2
   openpipe:ANTHROPIC_API_KEY:
     secure: AAABAIib0LJsmJHL2E/qDWve1ex9U0ky6eZNS8MwZEcx0VdpjY588ZRzyDx84t20iC/6XzwENvN9tkbaIEx2uznP1AXuoWoD7HTw+B09hc8i0ScTCfE8WDXfbgPF7xIU3f+OIxNs1ltBhXJ7AjoMWQxrXw==
   openpipe:APP_SUBDOMAIN: stage
@@ -11,19 +11,19 @@ config:
   openpipe:AZURE_STORAGE_ACCOUNT_NAME: openpipestorage
   openpipe:AZURE_STORAGE_CONTAINER_NAME: uploadedtrainingdata
   openpipe:DATABASE_URL:
-    secure: AAABAO39UTO64OlSnTkBC7sdtQ2F5bZnOhn1yHkL+7IG0115gZ8ufqNOifr79MDkH2WmVQEcLFcVfsIeBVbwr37s8SnKz6Yt0+pDo81N6JxfYjVhqOdPo+XOMloGEUgsZ5Avg4DqqKJnVbkGmVNRGnnBpmbu9nu8
+    secure: AAABAAUsJsOv1yWpOwxJCVSXaroTaYbH8+7LAquYE5b2k7+m0965RI29a3y8JH621pws1IHdAnOPPcWTgm945l99GrtR8NDe+Asx2wb/sdoJhnof12fnyP4UEWr5GFF9O5woej5fjswQtoHYtU/5ppvOk6pmDzx7sIcpFbIznbpiL1Mf4j7oydbiQZTciEcwH6403398PUKzCsx7fUnYX8SI2qRDdg==
   openpipe:GITHUB_CLIENT_ID:
-    secure: AAABAL3M8C6FeKUWaF27HoshIihiTB/YVt2ZT/4JVF2sFPq43RiEcFvQSXJlrQxNf1nVWA==
+    secure: AAABAJm9aaD9Lun17P1sC8iLXyO2T/qcKxVvURkyNVuqgn5yZ1C/qfRsod2yMkDRNiLzNQ==
   openpipe:GITHUB_CLIENT_SECRET:
-    secure: AAABADd205NeuFdUsxeK/eMCOEC/FB14/o6iZ2XTCOGFS463ztOvAN2oAm60HYuJOyV1yO1o08jtgpVyPjEHiy3fgQfFxOXP
+    secure: AAABABlrDVTEPwFbH+lRBsVfYvJZplScryCWJr6VxG+aL8/x9CUQIlle2ttg8ElILmHk4LmI/wW+99vKwtw1N2EiBgT7B0qb
   openpipe:MODAL_ENVIRONMENT: prod
-  openpipe:NEXT_PUBLIC_HOST: https://app.openpipe.ai
+  openpipe:NEXT_PUBLIC_HOST: https://app.openpipestage.com
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_2tc3AQ798TowPA9FtW2uljz4dKzdiFwpa7EyhPUdKWg
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/48
   openpipe:NEXT_PUBLIC_SOCKET_URL: https://querykey-prod-wss.onrender.com
   openpipe:NEXTAUTH_SECRET:
     secure: AAABAKKJBI/ho0yyHuRiI/zImyHNq1ZsQGFmBkBkIHhFUD8UzqW68YaKbLKC+hMU3drGuDHKuR883vTP6MOBRgEFPIMnUFD37V/VMQ==
-  openpipe:NEXTAUTH_URL: https://app.openpipe.ai
+  openpipe:NEXTAUTH_URL: https://app.openpipestage.com
   openpipe:NODE_ENV: production
   openpipe:OPENAI_API_KEY:
     secure: AAABADqUKEHXX4xWkxl8vWi0/RjkpVTEKy0p96sJiwgEtvVYsfT/qzZui456iTmUJ3USbx/h6hwzOrwoEKzbiV/464HcXiauFJCmipEx3V3S3WM=

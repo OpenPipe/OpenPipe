@@ -1,5 +1,5 @@
 import { cluster } from "./cluster";
-import "./repo";
+import "./app-image";
 import { vpc } from "./vpc";
 import { service } from "./app-service";
 import "./dns";
