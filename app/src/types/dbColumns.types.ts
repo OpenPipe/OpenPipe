@@ -51,3 +51,5 @@ export const typedFineTuneTestingEntry = <T>(
 ): T & z.infer<typeof fineTuneTestingEntrySchema> =>
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
   fineTuneTestingEntrySchema.parse(input);
+
+export const ORIGINAL_MODEL_ID = "original";

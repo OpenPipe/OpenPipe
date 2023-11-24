@@ -7,6 +7,8 @@ import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { countLlamaOutputTokens } from "~/utils/countTokens";
 import { startDatasetEntryTestJobs } from "../utils/startTestJobs";
+import { copyDatasetEvalDatasetEntries } from "../utils/copyDatasetEvalDatasetEntries";
+import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
 
 export type RelabelDatasetEntryJob = {
   authoringUserId: string;
@@ -105,7 +107,10 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
         }),
       ]);
 
+      await updatePruningRuleMatches(datasetEntry.datasetId, new Date(0), [newDatasetEntry.id]);
+
       if (newDatasetEntry.split === "TEST") {
+        await copyDatasetEvalDatasetEntries(datasetEntry.id, newDatasetEntry.id);
         await startDatasetEntryTestJobs(newDatasetEntry.id);
       }
     } catch (e) {

@@ -1,7 +1,7 @@
 import { Button } from "@chakra-ui/react";
 import Link from "next/link";
 import { DATASET_EVALUATION_TAB_KEY } from "../DatasetContentTabs";
-import { EVALUATION_COLUMNS_KEY } from "./useVisibleEvaluationColumns";
+import { EVALUATION_COLUMNS_KEY } from "./useVisibleOutputColumns";
 
 const ViewEvaluationButton = ({
   datasetId,

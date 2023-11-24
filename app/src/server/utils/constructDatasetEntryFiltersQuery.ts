@@ -3,7 +3,7 @@ import { type Expression, type SqlBool, sql } from "kysely";
 
 import { kysely } from "~/server/db";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
-import { textComparatorToSqlExpression } from "./constructLoggedCallFiltersQuery";
+import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
 export const constructDatasetEntryFiltersQuery = (
   filters: z.infer<typeof filtersSchema>,

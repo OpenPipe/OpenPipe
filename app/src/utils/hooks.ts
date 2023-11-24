@@ -248,7 +248,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
 
   const { page, pageSize } = usePageParams();
 
-  const { sortModelSlug, sortOrder } = useTestEntrySortOrder();
+  const { testEntrySortOrder } = useTestEntrySortOrder();
 
   const { data, isFetching, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
     {
@@ -256,7 +256,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
       filters,
       page,
       pageSize,
-      sort: { sortModelSlug: sortModelSlug ?? undefined, sortOrder: sortOrder ?? undefined },
+      sortOrder: testEntrySortOrder ?? undefined,
     },
     { enabled: !!dataset?.id, refetchInterval },
   );
@@ -368,6 +368,10 @@ export const useFineTune = () => {
   );
 
   return fineTune;
+};
+
+export const useDatasetEval = (datasetEvalId: string | null) => {
+  return api.datasetEvals.get.useQuery({ id: datasetEvalId ?? "" }, { enabled: !!datasetEvalId });
 };
 
 export const usePruningRules = () => {

@@ -4,7 +4,7 @@ import { Card, Grid, HStack, Box, Text } from "@chakra-ui/react";
 import { useDataset, useTestingEntries } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
 import { ORIGINAL_OUTPUT_COLUMN_KEY } from "../ColumnVisibilityDropdown";
-import { useVisibleEvaluationColumns } from "../useVisibleEvaluationColumns";
+import { useVisibleOutputColumns } from "../useVisibleOutputColumns";
 import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 
 const EvaluationTable = () => {
@@ -17,7 +17,7 @@ const EvaluationTable = () => {
     [entries?.pageIncomplete],
   );
 
-  const { visibleColumns } = useVisibleEvaluationColumns();
+  const { visibleColumns } = useVisibleOutputColumns();
 
   const [showOriginalOutput, visibleModelIds] = useMemo(() => {
     const showOriginalOutput =

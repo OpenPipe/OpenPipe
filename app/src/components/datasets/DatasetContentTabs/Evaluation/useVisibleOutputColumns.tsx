@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 
 export const EVALUATION_COLUMNS_KEY = "compare";
 
-export const useVisibleEvaluationColumns = () => {
+export const useVisibleOutputColumns = () => {
   const router = useRouter();
 
   // Split the "compare" query by commas to get the array of strings.

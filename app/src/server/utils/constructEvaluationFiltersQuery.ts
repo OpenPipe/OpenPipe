@@ -3,8 +3,8 @@ import { type Expression, type SqlBool, sql } from "kysely";
 
 import { kysely } from "~/server/db";
 import { EVALUATION_FILTERS_OUTPUT_APPENDIX, type filtersSchema } from "~/types/shared.types";
-import { textComparatorToSqlExpression } from "./constructLoggedCallFiltersQuery";
 import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
+import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
 export const constructEvaluationFiltersQuery = (
   filters: z.infer<typeof filtersSchema>,
@@ -52,12 +52,12 @@ export const constructEvaluationFiltersQuery = (
   for (let i = 0; i < modelOutputFilters.length; i++) {
     const filter = modelOutputFilters[i];
     if (!filter?.value) continue;
-    const tableAlias = `te${i}`;
     const filterExpression = textComparatorToSqlExpression(
       filter.comparator,
       filter.value as string,
     );
 
+    const tableAlias = `te${i}`;
     updatedBaseQuery = updatedBaseQuery
       .leftJoin(`FineTuneTestingEntry as ${tableAlias}`, (join) =>
         join
@@ -67,6 +67,33 @@ export const constructEvaluationFiltersQuery = (
       .where(
         filterExpression(sql.raw(`${tableAlias}.output::text`)),
       ) as unknown as typeof baseQuery;
+  }
+
+  // Add select filters
+  const selectFilters = filters.filter(
+    (filter) => filter.field === EvaluationFiltersDefaultFields.EvalApplied,
+  );
+
+  for (let i = 0; i < selectFilters.length; i++) {
+    const filter = selectFilters[i];
+    if (!filter?.value) continue;
+
+    updatedBaseQuery = updatedBaseQuery.where((eb) => {
+      const wheres: Expression<SqlBool>[] = [];
+
+      if (filter.field === EvaluationFiltersDefaultFields.EvalApplied) {
+        const existsClause = eb.exists(
+          eb
+            .selectFrom("DatasetEvalDatasetEntry as dede")
+            .whereRef("de.id", "=", "dede.datasetEntryId")
+            .innerJoin("DatasetEval as eval", "eval.id", "dede.datasetEvalId")
+            .where("eval.id", "=", filter.value as string),
+        );
+        wheres.push(filter.comparator === "=" ? existsClause : eb.not(existsClause));
+      }
+
+      return eb.and(wheres);
+    }) as unknown as typeof baseQuery;
   }
 
   return updatedBaseQuery;

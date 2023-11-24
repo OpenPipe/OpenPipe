@@ -88,6 +88,47 @@ export interface DatasetEntry {
   provenance: "RELABELED_BY_HUMAN" | "RELABELED_BY_MODEL" | "REQUEST_LOG" | "UPLOAD";
   tool_choice: Json | null;
   tools: Json | null;
+  response_format: Json | null;
+}
+
+export interface DatasetEval {
+  id: string;
+  name: string;
+  instructions: string | null;
+  type: Generated<"FIELD_COMPARISON" | "HEAD_TO_HEAD">;
+  datasetId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface DatasetEvalDatasetEntry {
+  id: string;
+  datasetEvalId: string;
+  datasetEntryId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface DatasetEvalOutputSource {
+  id: string;
+  modelId: string;
+  datasetEvalId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface DatasetEvalResult {
+  id: string;
+  score: number | null;
+  explanation: string | null;
+  errorMessage: string | null;
+  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  comparisonResultId: string | null;
+  comparisonOutputSourceId: string | null;
+  datasetEvalDatasetEntryId: string;
+  datasetEvalOutputSourceId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
 }
 
 export interface DatasetFileUpload {
@@ -419,6 +460,10 @@ export interface DB {
   ApiKey: ApiKey;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
+  DatasetEval: DatasetEval;
+  DatasetEvalDatasetEntry: DatasetEvalDatasetEntry;
+  DatasetEvalOutputSource: DatasetEvalOutputSource;
+  DatasetEvalResult: DatasetEvalResult;
   DatasetFileUpload: DatasetFileUpload;
   Evaluation: Evaluation;
   Experiment: Experiment;

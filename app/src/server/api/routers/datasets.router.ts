@@ -25,6 +25,11 @@ export const datasetsRouter = createTRPCRouter({
             createdAt: "desc",
           },
         },
+        datasetEvals: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
       },
     });
 

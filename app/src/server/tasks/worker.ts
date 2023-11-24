@@ -9,7 +9,8 @@ import { importDatasetEntries } from "./importDatasetEntries.task";
 import { trainFineTune } from "./fineTuning/trainFineTune.task";
 import { checkFineTuneStatus } from "./fineTuning/checkFineTuneStatus.task";
 import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatus.task";
-import { evaluateTestSetEntry } from "./evaluateTestSetEntry.task";
+import { generateTestSetEntry } from "./generateTestSetEntry.task";
+import { evaluateTestSetEntries } from "./evaluateTestSetEntries.task";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
 import { relabelDatasetEntry } from "./relabelDatasetEntryTask";
 import type defineTask from "./defineTask";
@@ -27,7 +28,8 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   trainFineTune,
   checkFineTuneStatus,
   checkOpenaiFineTuneStatus,
-  evaluateTestSetEntry,
+  generateTestSetEntry,
+  evaluateTestSetEntries,
   countDatasetEntryTokens,
   relabelDatasetEntry,
 ];

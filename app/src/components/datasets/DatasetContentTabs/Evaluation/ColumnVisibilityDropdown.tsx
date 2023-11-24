@@ -17,7 +17,7 @@ import { ComparisonModel } from "@prisma/client";
 
 import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
-import { useVisibleEvaluationColumns } from "./useVisibleEvaluationColumns";
+import { useVisibleOutputColumns } from "./useVisibleOutputColumns";
 import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
 import AddComparisonModelDialog from "./AddComparisonModelDialog";
 
@@ -25,7 +25,7 @@ export const EMPTY_OUTPUT_COLUMNS_KEY = "empty";
 export const ORIGINAL_OUTPUT_COLUMN_KEY = "original";
 
 const ColumnVisibilityDropdown = () => {
-  const { visibleColumns, setVisibleColumns } = useVisibleEvaluationColumns();
+  const { visibleColumns, setVisibleColumns } = useVisibleOutputColumns();
   const dataset = useDataset().data;
   const fineTuneSlugs = useMemo(
     () => dataset?.deployedFineTunes?.map((ft) => ft.slug) || [],

@@ -125,6 +125,7 @@
     "vite-tsconfig-paths": "^4.2.0",
     "yargs": "^17.7.2",
     "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.22.0",
     "zustand": "^4.3.9"
   },
   "devDependencies": {

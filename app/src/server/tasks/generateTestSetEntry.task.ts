@@ -1,6 +1,16 @@
-import { UsageType, type ComparisonModel, type Prisma } from "@prisma/client";
-import { type JsonValue } from "type-fest";
-import { type ChatCompletionCreateParams, type ChatCompletion } from "openai/resources/chat";
+import {
+  UsageType,
+  type ComparisonModel,
+  type Prisma,
+  type FineTuneTestingEntry,
+} from "@prisma/client";
+import type { JsonValue } from "type-fest";
+import type {
+  ChatCompletionCreateParams,
+  ChatCompletion,
+  ChatCompletionMessage,
+} from "openai/resources/chat";
+import { isNumber } from "lodash-es";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
@@ -11,18 +21,22 @@ import {
   calculateFineTuneUsageCost,
   isComparisonModel,
 } from "~/utils/baseModels";
-import { calculateEntryScore } from "../utils/calculateEntryScore";
+import {
+  saveFieldComparisonScore,
+  calculateFieldComparisonScore,
+} from "../utils/calculateFieldComparisonScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
+import { queueHeadToHeadEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
 
-export type EvaluateTestSetEntryJob = {
+export type GenerateTestSetEntryJob = {
   modelId: string;
   datasetEntryId: string;
   skipCache?: boolean;
 };
 
-export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
-  id: "evaluateTestSetEntry",
+export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
+  id: "generateTestSetEntry",
   handler: async (task) => {
     const { modelId, datasetEntryId, skipCache } = task;
 
@@ -79,7 +93,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       });
 
       if (matchingTestEntry?.output) {
-        await prisma.fineTuneTestingEntry.update({
+        const newTestEntry = await prisma.fineTuneTestingEntry.update({
           where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
           data: {
             output: matchingTestEntry.output,
@@ -87,6 +101,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
             errorMessage: null,
           },
         });
+        await triggerEvals(datasetEntry, newTestEntry);
         return;
       }
     }
@@ -118,10 +133,8 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
       }
 
       const choice = completion.choices[0];
-      const completionMessage = completion.choices[0]?.message;
       if (!choice) throw new Error("No completion returned");
-
-      const score = calculateEntryScore(datasetEntry, choice.message);
+      const completionMessage = choice.message;
 
       if (fineTune) {
         const inputTokens = completion.usage?.prompt_tokens ?? 0;
@@ -141,7 +154,7 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
         });
       }
 
-      await prisma.fineTuneTestingEntry.update({
+      const updatedFineTuneTestingEntry = await prisma.fineTuneTestingEntry.update({
         where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
         data: {
           cacheKey,
@@ -149,10 +162,11 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
           finishReason: choice.finish_reason,
           prunedInputTokens: completion.usage?.prompt_tokens,
           outputTokens: completion.usage?.completion_tokens,
-          score,
           errorMessage: null,
         },
       });
+
+      await triggerEvals(datasetEntry, updatedFineTuneTestingEntry);
     } catch (e: unknown) {
       const typedError = e as { message?: string; error?: { message: string } };
       await prisma.fineTuneTestingEntry.update({
@@ -169,3 +183,24 @@ export const evaluateTestSetEntry = defineTask<EvaluateTestSetEntryJob>({
     priority: 5,
   },
 });
+
+const triggerEvals = async (
+  datasetEntry: ReturnType<typeof typedDatasetEntry> & { id: string; datasetId: string },
+  fineTuneTestingEntry: FineTuneTestingEntry,
+) => {
+  const fieldComparisonScore = calculateFieldComparisonScore(
+    datasetEntry,
+    fineTuneTestingEntry as unknown as ChatCompletionMessage,
+  );
+
+  if (isNumber(fieldComparisonScore)) {
+    await saveFieldComparisonScore(
+      datasetEntry.datasetId,
+      datasetEntry.id,
+      fieldComparisonScore,
+      fineTuneTestingEntry.modelId,
+    );
+  }
+
+  await queueHeadToHeadEvalJobsForTestingEntry(fineTuneTestingEntry, datasetEntry.datasetId);
+};

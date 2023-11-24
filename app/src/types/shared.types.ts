@@ -200,7 +200,8 @@ export const dateComparators = [
   "AFTER",
   "RANGE",
 ] as const;
-export const comparators = [...textComparators, ...dateComparators] as const;
+export const selectComparators = ["=", "!="] as const;
+export const comparators = [...textComparators, ...dateComparators, ...selectComparators] as const;
 export type ComparatorsSubsetType = typeof textComparators | typeof dateComparators;
 
 export const filtersSchema = z.array(
@@ -230,6 +231,7 @@ export enum EvaluationFiltersDefaultFields {
   Input = "Input",
   OriginalOutput = "Original Output",
   ImportId = "Import ID",
+  EvalApplied = "Eval Applied",
 }
 
 export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";

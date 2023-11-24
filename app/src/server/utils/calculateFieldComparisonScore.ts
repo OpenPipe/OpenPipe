@@ -1,8 +1,79 @@
 import { isEqual, mean } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import { type typedDatasetEntry } from "~/types/dbColumns.types";
+import { prisma } from "../db";
 
-export const calculateEntryScore = (
+export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
+
+export const saveFieldComparisonScore = async (
+  datasetId: string,
+  datasetEntryId: string,
+  score: number,
+  modelId: string,
+) => {
+  const datasetEval = await prisma.datasetEval.upsert({
+    where: {
+      datasetId_name: { datasetId: datasetId, name: FIELD_COMPARISON_EVAL_NAME },
+    },
+    create: {
+      datasetId,
+      name: FIELD_COMPARISON_EVAL_NAME,
+      type: "FIELD_COMPARISON",
+    },
+    update: {},
+  });
+
+  const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.upsert({
+    where: {
+      datasetEvalId_datasetEntryId: { datasetEvalId: datasetEval.id, datasetEntryId },
+    },
+    create: {
+      datasetEvalId: datasetEval.id,
+      datasetEntryId,
+    },
+    update: {},
+  });
+
+  const datasetEvalOutputSource = await prisma.datasetEvalOutputSource.upsert({
+    where: {
+      datasetEvalId_modelId: { datasetEvalId: datasetEval.id, modelId },
+    },
+    create: {
+      datasetEvalId: datasetEval.id,
+      modelId,
+    },
+    update: {},
+  });
+
+  const datasetEvalResult = await prisma.datasetEvalResult.findFirst({
+    where: {
+      datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+      datasetEvalOutputSourceId: datasetEvalOutputSource.id,
+    },
+  });
+
+  // Prisma doesn't support upserting for records with a foreign key that contains a nullable value
+  if (datasetEvalResult) {
+    await prisma.datasetEvalResult.update({
+      where: { id: datasetEvalResult.id },
+      data: {
+        score,
+        status: "COMPLETE",
+      },
+    });
+  } else {
+    await prisma.datasetEvalResult.create({
+      data: {
+        datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+        datasetEvalOutputSourceId: datasetEvalOutputSource.id,
+        score,
+        status: "COMPLETE",
+      },
+    });
+  }
+};
+
+export const calculateFieldComparisonScore = (
   datasetEntry: ReturnType<typeof typedDatasetEntry>,
   generatedMessage: ChatCompletionMessage,
 ) => {

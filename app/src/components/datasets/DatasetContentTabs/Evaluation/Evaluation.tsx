@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { VStack, HStack, Box, Text } from "@chakra-ui/react";
 import { FiFilter } from "react-icons/fi";
 
@@ -9,18 +9,28 @@ import EvaluationFilters from "./EvaluationFilters";
 import { useTestingEntries } from "~/utils/hooks";
 import EvaluationPaginator from "./EvaluationTable/EvaluationPaginator";
 import { useFilters } from "~/components/Filters/useFilters";
+import EvalVisibilityDropdown from "./EvalVisibilityDropdown";
+import HeadToHeadComparisonModal from "./ComparisonModals/HeadToHeadComparisonModal";
+import FieldComparisonModal from "./ComparisonModals/FieldComparisonModal";
+import EditEvalModal from "./EditEvalModal";
 
 const Evaluation = () => {
   const filters = useFilters().filters;
-  const [filtersShown, setFiltersShown] = useState(filters.length > 0);
+  const filtersShown = useFilters().filtersShown;
+  const setFiltersShown = useFilters().setFiltersShown;
 
-  const { data } = useTestingEntries();
+  useEffect(() => {
+    if (filters.length) setFiltersShown(true);
+  }, [filters.length, setFiltersShown]);
+
+  const count = useTestingEntries().data?.count;
 
   return (
     <>
       <VStack px={8} position="sticky" left={0} w="full" alignItems="flex-start" pb={4} zIndex={5}>
         <HStack w="full">
           <ColumnVisibilityDropdown />
+          <EvalVisibilityDropdown />
           <ActionButton
             onClick={() => {
               setFiltersShown(!filtersShown);
@@ -31,7 +41,7 @@ const Evaluation = () => {
         </HStack>
         {filtersShown && <EvaluationFilters />}
         <Text fontWeight="bold" fontSize="lg" pt={8}>
-          Results {data?.count !== undefined ? `(${data.count})` : ""}
+          Results {count !== undefined ? `(${count})` : ""}
         </Text>
       </VStack>
       <Box w="full" flex={1}>
@@ -40,6 +50,9 @@ const Evaluation = () => {
       <Box px={8} position="sticky" left={0} w="full">
         <EvaluationPaginator py={8} />
       </Box>
+      <FieldComparisonModal />
+      <HeadToHeadComparisonModal />
+      <EditEvalModal />
     </>
   );
 };

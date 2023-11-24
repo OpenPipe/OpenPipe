@@ -11,7 +11,7 @@ import { z } from "zod";
 import { type JsonValue } from "type-fest";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
-import { evaluateTestSetEntry } from "~/server/tasks/evaluateTestSetEntry.task";
+import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import hashObject from "~/server/utils/hashObject";
@@ -21,12 +21,7 @@ import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatche
 import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
 import { SortOrder, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
-import {
-  COMPARISON_MODEL_NAMES,
-  getComparisonModel,
-  isComparisonModel,
-  isComparisonModelName,
-} from "~/utils/baseModels";
+import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/baseModels";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
@@ -34,6 +29,7 @@ import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluat
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntryTask";
+import { copyDatasetEvalDatasetEntries } from "~/server/utils/copyDatasetEvalDatasetEntries";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -443,6 +439,10 @@ export const datasetEntriesRouter = createTRPCRouter({
         },
       });
 
+      if (newEntry.split === "TEST") {
+        await copyDatasetEvalDatasetEntries(prevEntry.id, newEntry.id);
+      }
+
       await updatePruningRuleMatches(dataset.id, new Date(0), [newEntry.id]);
 
       if (newEntry.split === "TEST") {
@@ -453,13 +453,13 @@ export const datasetEntriesRouter = createTRPCRouter({
           },
         });
         for (const fineTune of fineTunes) {
-          await evaluateTestSetEntry.enqueue({
+          await generateTestSetEntry.enqueue({
             modelId: fineTune.id,
             datasetEntryId: newEntry.id,
           });
         }
         for (const comparisonModel of dataset.enabledComparisonModels) {
-          await evaluateTestSetEntry.enqueue({
+          await generateTestSetEntry.enqueue({
             modelId: comparisonModel,
             datasetEntryId: newEntry.id,
           });
@@ -612,16 +612,17 @@ export const datasetEntriesRouter = createTRPCRouter({
         filters: filtersSchema,
         page: z.number(),
         pageSize: z.number(),
-        sort: z
+        sortOrder: z
           .object({
-            sortModelSlug: z.string().optional(),
-            sortOrder: z.string().optional(),
+            modelId: z.string(),
+            evalId: z.string(),
+            order: z.enum([SortOrder.ASC, SortOrder.DESC]),
           })
           .optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { datasetId, filters, page, pageSize, sort } = input;
+      const { datasetId, filters, page, pageSize, sortOrder } = input;
 
       const dataset = await prisma.dataset.findUnique({
         where: {
@@ -632,38 +633,45 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
-      let sortModelId = "";
-      if (sort?.sortModelSlug && isComparisonModelName(sort?.sortModelSlug)) {
-        sortModelId = getComparisonModel(sort?.sortModelSlug) ?? "";
-      } else if (sort?.sortModelSlug) {
-        const fineTune = await prisma.fineTune.findFirst({
-          where: {
-            slug: sort?.sortModelSlug,
-          },
-          select: {
-            id: true,
-          },
-        });
-        sortModelId = fineTune?.id ?? "";
-      }
-
-      let scoreSortOrder: SortOrder = SortOrder.DESC;
-      if (sort?.sortOrder === "asc") {
-        scoreSortOrder = SortOrder.ASC;
-      }
-
       const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
 
-      const entries = await baseQuery
-        .leftJoin(
-          (eb) =>
-            eb
-              .selectFrom("FineTuneTestingEntry")
-              .select(["modelId", "score", "datasetEntryId"])
-              .where("modelId", "=", sortModelId)
-              .as("sftte"),
-          (join) => join.onRef("sftte.datasetEntryId", "=", "de.id"),
-        )
+      let updatedQuery = baseQuery;
+
+      if (sortOrder) {
+        updatedQuery = updatedQuery
+          .leftJoin(
+            (eb) =>
+              eb
+                .selectFrom("DatasetEvalDatasetEntry as dede")
+                .where("dede.datasetEvalId", "=", sortOrder.evalId)
+                .leftJoin("DatasetEvalResult as der", "der.datasetEvalDatasetEntryId", "dede.id")
+                .leftJoin(
+                  "DatasetEvalOutputSource as deos",
+                  "deos.id",
+                  "der.datasetEvalOutputSourceId",
+                )
+                .where("deos.modelId", "=", sortOrder.modelId)
+                .select((eb) => [
+                  "dede.datasetEntryId as datasetEntryId",
+                  eb.fn.agg<number>("AVG", [`der.score`]).as("score"),
+                ])
+                .groupBy("dede.datasetEntryId")
+                .as("averageScoreForEval"),
+            (join) => join.onRef("averageScoreForEval.datasetEntryId", "=", "de.id"),
+          )
+          // Ensure that rows with the sort eval applied are always shown first
+          .orderBy(() =>
+            sql.raw(
+              `CASE
+                WHEN "averageScoreForEval"."datasetEntryId" IS NULL THEN 1
+                ELSE 0
+              END`,
+            ),
+          )
+          .orderBy(`averageScoreForEval.score`, sortOrder.order) as unknown as typeof baseQuery;
+      }
+
+      const entries = await updatedQuery
         .select((eb) => [
           "de.id as id",
           "de.messages as messages",
@@ -672,7 +680,8 @@ export const datasetEntriesRouter = createTRPCRouter({
             eb
               .selectFrom("FineTuneTestingEntry as ftte")
               .select([
-                "modelId",
+                "id",
+                "ftte.modelId",
                 "output",
                 "score",
                 "errorMessage",
@@ -682,16 +691,19 @@ export const datasetEntriesRouter = createTRPCRouter({
               ])
               .whereRef("ftte.datasetEntryId", "=", "de.id"),
           ).as("fineTuneTestDatasetEntries"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("DatasetEvalResult as der")
+              .leftJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEntryId", "de.id")
+              .leftJoin(
+                "DatasetEvalOutputSource as deos",
+                "deos.id",
+                "der.datasetEvalOutputSourceId",
+              )
+              .select(["der.score", "der.status", "deos.datasetEvalId", "deos.modelId"])
+              .whereRef("der.datasetEvalDatasetEntryId", "=", "dede.id"),
+          ).as("datasetEvalResults"),
         ])
-        .orderBy(() =>
-          sql.raw(
-            `CASE
-             WHEN sftte.score IS NULL THEN 1
-             ELSE 0
-           END`,
-          ),
-        )
-        .orderBy("sftte.score", scoreSortOrder)
         .orderBy("de.sortKey", "desc")
         .offset((page - 1) * pageSize)
         .limit(pageSize)
@@ -702,8 +714,12 @@ export const datasetEntriesRouter = createTRPCRouter({
         .execute()
         .then((rows) => rows.length);
 
-      const pageIncomplete = !!entries.find((entry) =>
-        entry.fineTuneTestDatasetEntries.find((entry) => !entry.output),
+      const pageIncomplete = entries.some(
+        (entry) =>
+          entry.fineTuneTestDatasetEntries.some((entry) => !entry.output) ||
+          entry.datasetEvalResults.some(
+            (entry) => entry.status === "PENDING" || entry.status === "IN_PROGRESS",
+          ),
       );
 
       return {
@@ -721,6 +737,9 @@ export const datasetEntriesRouter = createTRPCRouter({
         where: {
           id: datasetId,
         },
+        include: {
+          datasetEvals: true,
+        },
       });
 
       const finishedCount = await kysely
@@ -735,15 +754,51 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
 
-      const averageScoreResult = await baseQuery
+      const baseScoreQuery = baseQuery
         .leftJoin("FineTuneTestingEntry as te", "de.id", "te.datasetEntryId")
         .where("te.modelId", "=", modelId)
-        .where(sql.raw(`te."output" is not null`))
-        .select(({ fn }) => ["te.modelId", fn.agg<number>("AVG", ["te.score"]).as("averageScore")])
+        .where(sql.raw(`te."output" is not null`));
+
+      let updatedScoreQuery = baseScoreQuery;
+
+      // Add average score for each dataset eval
+      for (const datasetEval of dataset?.datasetEvals ?? []) {
+        const alias = `averageScoreForEval_${datasetEval.id}`;
+        updatedScoreQuery = updatedScoreQuery
+          .leftJoin(
+            (eb) =>
+              eb
+                .selectFrom(`DatasetEvalDatasetEntry as dede`)
+                .where("dede.datasetEvalId", "=", datasetEval.id)
+                .leftJoin("DatasetEvalResult as der", "der.datasetEvalDatasetEntryId", "dede.id")
+                .leftJoin(
+                  "DatasetEvalOutputSource as deos",
+                  "deos.id",
+                  "der.datasetEvalOutputSourceId",
+                )
+                .where("deos.modelId", "=", modelId)
+                .select((eb) => [
+                  "dede.datasetEntryId as datasetEntryId",
+                  eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval_${datasetEval.id}`),
+                ])
+                .groupBy("dede.datasetEntryId")
+                .as(alias),
+            (join) => join.onRef(`${alias}.datasetEntryId`, "=", sql.raw("de.id")),
+          )
+          .select((eb) => [
+            eb.fn
+              .agg<number>("AVG", [`${alias}.scoreForEval_${datasetEval.id}`])
+              .as(datasetEval.id),
+          ]) as unknown as typeof baseScoreQuery;
+      }
+
+      const averageScoresResult = await updatedScoreQuery
+        .select("te.modelId")
+        .select((eb) => eb.fn.agg<number>("AVG", ["te.score"]).as("averageScore"))
         .groupBy("te.modelId")
         .execute();
 
-      const averageScore = averageScoreResult[0] ? averageScoreResult[0].averageScore : null;
+      const averageScores = averageScoresResult[0];
 
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
@@ -768,7 +823,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         baseModel,
         isComparisonModel: isComparisonModel(modelId),
         finishedCount: finishedCount.length,
-        averageScore,
+        averageScores: averageScores as typeof averageScores & Record<string, number>,
       };
     }),
 });

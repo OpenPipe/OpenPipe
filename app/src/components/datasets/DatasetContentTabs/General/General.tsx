@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { VStack, HStack } from "@chakra-ui/react";
 
 import ActionButton from "~/components/ActionButton";
@@ -14,11 +14,12 @@ import RelabelButton from "./RelabelButton";
 
 const General = () => {
   const filters = useFilters().filters;
-  const [filtersShown, setFiltersShown] = useState(filters.length > 0);
+  const filtersShown = useFilters().filtersShown;
+  const setFiltersShown = useFilters().setFiltersShown;
 
   useEffect(() => {
-    if (filters.length > 0) setFiltersShown(true);
-  }, [filters.length]);
+    if (filters.length) setFiltersShown(true);
+  }, [filters.length, setFiltersShown]);
 
   return (
     <VStack pb={8} px={8} alignItems="flex-start" spacing={4} w="full">
