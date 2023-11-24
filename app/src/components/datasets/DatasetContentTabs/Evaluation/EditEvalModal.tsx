@@ -206,7 +206,7 @@ const EditEvalModal = () => {
                   </VStack>
                   <VStack alignItems="flex-start" w="full">
                     <Text fontWeight="bold">Models</Text>
-                    <HStack>
+                    <HStack flexWrap="wrap">
                       {modelOptions.map((model) => (
                         <Button
                           key={model.id}
