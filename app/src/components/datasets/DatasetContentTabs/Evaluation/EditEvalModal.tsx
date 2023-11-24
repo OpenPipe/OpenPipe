@@ -133,6 +133,35 @@ const EditEvalModal = () => {
     numDatasetEntries !== datasetEval?.numDatasetEntries ||
     includedModelIds.length !== datasetEval?.outputSources.length;
 
+  const numAddedComparisons = useMemo(() => {
+    if (!datasetEval?.outputSources) return 0;
+
+    const numPersistedRows = Math.min(datasetEval.numDatasetEntries, numDatasetEntries || 0);
+
+    const numNewModelIds = includedModelIds.filter(
+      (id) => !datasetEval?.outputSources.some((source) => source.modelId === id),
+    ).length;
+    const numPersistedRowPersistedComparisons =
+      ((includedModelIds.length - numNewModelIds) *
+        (includedModelIds.length - numNewModelIds - 1)) /
+      2;
+    const numRowFinalComparisons = (includedModelIds.length * (includedModelIds.length - 1)) / 2;
+
+    const newComparisonsFromAddedModels =
+      numPersistedRows * (numRowFinalComparisons - numPersistedRowPersistedComparisons);
+
+    const numNewRows = Math.max(numDatasetEntries - datasetEval.numDatasetEntries, 0);
+
+    const newComparisonsFromAddedRows = numNewRows * numRowFinalComparisons;
+
+    return newComparisonsFromAddedModels + newComparisonsFromAddedRows;
+  }, [
+    datasetEval?.numDatasetEntries,
+    numDatasetEntries,
+    datasetEval?.outputSources,
+    includedModelIds,
+  ]);
+
   return (
     <>
       <Modal isOpen={!!datasetEvalIdToEdit} onClose={() => setDatasetEvalIdToEdit(null)} size="xl">
@@ -210,6 +239,17 @@ const EditEvalModal = () => {
                       placeholder="100"
                       w="full"
                     />
+                    <Text
+                      bgColor="orange.50"
+                      borderColor="orange.500"
+                      borderRadius={4}
+                      borderWidth={1}
+                      p={2}
+                    >
+                      These changes eval will add <b>{numAddedComparisons}</b> head-to-head
+                      comparisons and cost approximately{" "}
+                      <b>${(numAddedComparisons * 0.06).toFixed(2)}</b>.
+                    </Text>
                   </VStack>
                   <VStack alignItems="flex-start" w="full">
                     <Text fontWeight="bold">Instructions</Text>

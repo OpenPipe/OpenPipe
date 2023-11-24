@@ -114,6 +114,11 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     disclosure.onClose();
   }, [mutation, dataset?.id, disclosure.onClose, name, instructions, ensureEvalShown, addFilter]);
 
+  const numComparisons = useMemo(
+    () => ((numDatasetEntries || 0) * includedModelIds.length * (includedModelIds.length - 1)) / 2,
+    [numDatasetEntries, includedModelIds],
+  );
+
   return (
     <Modal {...disclosure} size="xl">
       <ModalOverlay />
@@ -184,6 +189,16 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                     placeholder="10"
                     w="full"
                   />
+                  <Text
+                    bgColor="orange.50"
+                    borderColor="orange.500"
+                    borderRadius={4}
+                    borderWidth={1}
+                    p={2}
+                  >
+                    Your eval will run <b>{numComparisons}</b> head-to-head comparisons and cost
+                    approximately <b>${(numComparisons * 0.06).toFixed(2)}</b>.
+                  </Text>
                 </VStack>
                 <VStack alignItems="flex-start" w="full">
                   <Text fontWeight="bold">Instructions</Text>
