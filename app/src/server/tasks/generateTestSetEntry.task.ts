@@ -1,9 +1,4 @@
-import {
-  UsageType,
-  type ComparisonModel,
-  type Prisma,
-  type FineTuneTestingEntry,
-} from "@prisma/client";
+import { UsageType, type ComparisonModel, Prisma, type FineTuneTestingEntry } from "@prisma/client";
 import type { JsonValue } from "type-fest";
 import type { ChatCompletionCreateParams, ChatCompletion } from "openai/resources/chat";
 import { isNumber } from "lodash-es";
@@ -62,7 +57,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
       where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
     });
 
-    if (existingTestEntry?.output && !skipCache) return;
+    if (existingTestEntry?.output && !existingTestEntry.errorMessage && !skipCache) return;
 
     if (!existingTestEntry) {
       await prisma.fineTuneTestingEntry.create({
@@ -97,7 +92,18 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
             errorMessage: null,
           },
         });
-        await triggerEvals(datasetEntry, newTestEntry);
+        try {
+          await triggerEvals(datasetEntry, newTestEntry);
+        } catch (e) {
+          await prisma.fineTuneTestingEntry.update({
+            where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
+            data: {
+              output: Prisma.JsonNull,
+              outputTokens: null,
+              errorMessage: "Error evaluating model output, will retry",
+            },
+          });
+        }
         return;
       }
     }

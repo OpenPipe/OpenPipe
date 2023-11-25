@@ -11,17 +11,28 @@ export const saveFieldComparisonScore = async (
   score: number,
   modelId: string,
 ) => {
-  const datasetEval = await prisma.datasetEval.upsert({
-    where: {
-      datasetId_name: { datasetId: datasetId, name: FIELD_COMPARISON_EVAL_NAME },
-    },
-    create: {
-      datasetId,
-      name: FIELD_COMPARISON_EVAL_NAME,
-      type: "FIELD_COMPARISON",
-    },
-    update: {},
-  });
+  let datasetEval;
+  let numDatasetEvalTries = 0;
+  while (!datasetEval && numDatasetEvalTries < 2) {
+    try {
+      datasetEval = await prisma.datasetEval.upsert({
+        where: {
+          datasetId_name: { datasetId: datasetId, name: FIELD_COMPARISON_EVAL_NAME },
+        },
+        create: {
+          datasetId,
+          name: FIELD_COMPARISON_EVAL_NAME,
+          type: "FIELD_COMPARISON",
+        },
+        update: {},
+      });
+    } catch (e) {
+      // If we attempt to create the same eval from multiple processes at the same time, we may get a unique constraint error.
+      numDatasetEvalTries++;
+    }
+  }
+
+  if (!datasetEval) throw new Error("Error retrieving dataset eval");
 
   const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.upsert({
     where: {
@@ -34,16 +45,26 @@ export const saveFieldComparisonScore = async (
     update: {},
   });
 
-  const datasetEvalOutputSource = await prisma.datasetEvalOutputSource.upsert({
-    where: {
-      datasetEvalId_modelId: { datasetEvalId: datasetEval.id, modelId },
-    },
-    create: {
-      datasetEvalId: datasetEval.id,
-      modelId,
-    },
-    update: {},
-  });
+  let datasetEvalOutputSource;
+  let numDatatsetEvalOutputSourceTries = 0;
+  while (!datasetEvalOutputSource && numDatatsetEvalOutputSourceTries < 2) {
+    try {
+      datasetEvalOutputSource = await prisma.datasetEvalOutputSource.upsert({
+        where: {
+          datasetEvalId_modelId: { datasetEvalId: datasetEval.id, modelId },
+        },
+        create: {
+          datasetEvalId: datasetEval.id,
+          modelId,
+        },
+        update: {},
+      });
+    } catch (e) {
+      numDatatsetEvalOutputSourceTries++;
+    }
+  }
+
+  if (!datasetEvalOutputSource) throw new Error("Error retrieving dataset eval details");
 
   const datasetEvalResult = await prisma.datasetEvalResult.findFirst({
     where: {
