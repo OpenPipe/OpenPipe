@@ -42,7 +42,7 @@ export const typedLoggedCallModelResponse = <T extends Pick<LoggedCallModelRespo
 
 const fineTuneTestingEntrySchema = z
   .object({
-    output: chatCompletionMessage.passthrough().optional(),
+    output: chatCompletionMessage.optional(),
   })
   .passthrough();
 

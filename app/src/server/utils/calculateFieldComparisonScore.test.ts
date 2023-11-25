@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
-import {
+import type {
   ChatCompletionAssistantMessageParam,
-  type ChatCompletionMessageParam,
+  ChatCompletionMessageParam,
 } from "openai/resources/chat";
 import { calculateFieldComparisonScore } from "./calculateFieldComparisonScore";
 
@@ -98,15 +98,7 @@ const generatedMismatchingNames: ChatCompletionMessageParam = {
 it("calculates 1 for perfect match", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMatchingArgs },
-    // @ts-expect-error - TODO: align types
-    { output: generatedMatchingArgs, modelId: "test" },
-    // {
-    //   output: {
-    //     role: "assistant",
-    //     content: "",
-    //   },
-    //   modelId: "test",
-    // },
+    { output: generatedMatchingArgs },
   );
 
   expect(score).toBe(1);
@@ -115,8 +107,7 @@ it("calculates 1 for perfect match", () => {
 it("calculates 0 for mismatching names", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMismatchingNames },
-    // @ts-expect-error - TODO: align types
-    { output: generatedMismatchingNames, modelId: "test" },
+    { output: generatedMismatchingNames },
   );
 
   expect(score).toBe(0);
@@ -125,8 +116,7 @@ it("calculates 0 for mismatching names", () => {
 it("calculates 0 for no matching args", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMismatchingArgs },
-    // @ts-expect-error - TODO: align types
-    { output: generatedMismatchingArgs, modelId: "test" },
+    { output: generatedMismatchingArgs },
   );
 
   expect(score).toBe(0);
