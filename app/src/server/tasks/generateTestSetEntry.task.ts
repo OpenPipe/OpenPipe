@@ -1,21 +1,12 @@
-import {
-  UsageType,
-  type ComparisonModel,
-  type Prisma,
-  type FineTuneTestingEntry,
-} from "@prisma/client";
+import { UsageType, type ComparisonModel, Prisma, type FineTuneTestingEntry } from "@prisma/client";
 import type { JsonValue } from "type-fest";
-import type {
-  ChatCompletionCreateParams,
-  ChatCompletion,
-  ChatCompletionMessage,
-} from "openai/resources/chat";
+import type { ChatCompletionCreateParams, ChatCompletion } from "openai/resources/chat";
 import { isNumber } from "lodash-es";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
-import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { typedDatasetEntry, typedFineTuneTestingEntry } from "~/types/dbColumns.types";
 import {
   COMPARISON_MODEL_NAMES,
   calculateFineTuneUsageCost,
@@ -66,7 +57,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
       where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
     });
 
-    if (existingTestEntry?.output && !skipCache) return;
+    if (existingTestEntry?.output && !existingTestEntry.errorMessage && !skipCache) return;
 
     if (!existingTestEntry) {
       await prisma.fineTuneTestingEntry.create({
@@ -101,7 +92,18 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
             errorMessage: null,
           },
         });
-        await triggerEvals(datasetEntry, newTestEntry);
+        try {
+          await triggerEvals(datasetEntry, newTestEntry);
+        } catch (e) {
+          await prisma.fineTuneTestingEntry.update({
+            where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
+            data: {
+              output: Prisma.JsonNull,
+              outputTokens: null,
+              errorMessage: "Error evaluating model output, will retry",
+            },
+          });
+        }
         return;
       }
     }
@@ -188,10 +190,11 @@ const triggerEvals = async (
   datasetEntry: ReturnType<typeof typedDatasetEntry> & { id: string; datasetId: string },
   fineTuneTestingEntry: FineTuneTestingEntry,
 ) => {
-  const fieldComparisonScore = calculateFieldComparisonScore(
-    datasetEntry,
-    fineTuneTestingEntry as unknown as ChatCompletionMessage,
-  );
+  const typedTestingEntry = typedFineTuneTestingEntry(fineTuneTestingEntry);
+
+  if (!typedTestingEntry.output) throw new Error("No completion returned");
+
+  const fieldComparisonScore = calculateFieldComparisonScore(datasetEntry, typedTestingEntry);
 
   if (isNumber(fieldComparisonScore)) {
     await saveFieldComparisonScore(

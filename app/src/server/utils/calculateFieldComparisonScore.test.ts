@@ -1,8 +1,11 @@
 import { expect, it } from "vitest";
-import { type ChatCompletionMessageParam } from "openai/resources/chat";
+import type {
+  ChatCompletionAssistantMessageParam,
+  ChatCompletionMessageParam,
+} from "openai/resources/chat";
 import { calculateFieldComparisonScore } from "./calculateFieldComparisonScore";
 
-const originalMatchingArgs: ChatCompletionMessageParam = {
+const originalMatchingArgs: ChatCompletionAssistantMessageParam = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -17,7 +20,7 @@ const originalMatchingArgs: ChatCompletionMessageParam = {
   ],
 };
 
-const generatedMatchingArgs: ChatCompletionMessageParam = {
+const generatedMatchingArgs: ChatCompletionAssistantMessageParam = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -95,7 +98,7 @@ const generatedMismatchingNames: ChatCompletionMessageParam = {
 it("calculates 1 for perfect match", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMatchingArgs },
-    generatedMatchingArgs,
+    { output: generatedMatchingArgs },
   );
 
   expect(score).toBe(1);
@@ -104,7 +107,7 @@ it("calculates 1 for perfect match", () => {
 it("calculates 0 for mismatching names", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMismatchingNames },
-    generatedMismatchingNames,
+    { output: generatedMismatchingNames },
   );
 
   expect(score).toBe(0);
@@ -113,7 +116,7 @@ it("calculates 0 for mismatching names", () => {
 it("calculates 0 for no matching args", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMismatchingArgs },
-    generatedMismatchingArgs,
+    { output: generatedMismatchingArgs },
   );
 
   expect(score).toBe(0);
