@@ -1,6 +1,6 @@
 import { isEqual, mean } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources/chat";
-import { type typedDatasetEntry } from "~/types/dbColumns.types";
+import { type typedFineTuneTestingEntry, type typedDatasetEntry } from "~/types/dbColumns.types";
 import { prisma } from "../db";
 
 export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
@@ -75,16 +75,16 @@ export const saveFieldComparisonScore = async (
 
 export const calculateFieldComparisonScore = (
   datasetEntry: ReturnType<typeof typedDatasetEntry>,
-  generatedMessage: ChatCompletionMessage,
+  fineTuneTestingEntry: ReturnType<typeof typedFineTuneTestingEntry>,
 ) => {
   if (datasetEntry.response_format?.type === "json_object" && !datasetEntry.output?.tool_calls) {
     return calculateToolCallScore(
       { name: "content", arguments: datasetEntry.output?.content ?? "" },
-      { name: "content", arguments: generatedMessage.content ?? "" },
+      { name: "content", arguments: fineTuneTestingEntry.output?.content ?? "" },
     );
   } else if (datasetEntry.output?.tool_calls) {
     const generatedToolCalls = Object.fromEntries(
-      generatedMessage.tool_calls?.map((toolCall) => [
+      fineTuneTestingEntry.output?.tool_calls?.map((toolCall) => [
         toolCall.function.name,
         toolCall.function.arguments,
       ]) ?? [],

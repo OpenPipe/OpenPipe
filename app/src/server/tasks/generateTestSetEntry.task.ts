@@ -5,17 +5,13 @@ import {
   type FineTuneTestingEntry,
 } from "@prisma/client";
 import type { JsonValue } from "type-fest";
-import type {
-  ChatCompletionCreateParams,
-  ChatCompletion,
-  ChatCompletionMessage,
-} from "openai/resources/chat";
+import type { ChatCompletionCreateParams, ChatCompletion } from "openai/resources/chat";
 import { isNumber } from "lodash-es";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
-import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { typedDatasetEntry, typedFineTuneTestingEntry } from "~/types/dbColumns.types";
 import {
   COMPARISON_MODEL_NAMES,
   calculateFineTuneUsageCost,
@@ -188,10 +184,11 @@ const triggerEvals = async (
   datasetEntry: ReturnType<typeof typedDatasetEntry> & { id: string; datasetId: string },
   fineTuneTestingEntry: FineTuneTestingEntry,
 ) => {
-  const fieldComparisonScore = calculateFieldComparisonScore(
-    datasetEntry,
-    fineTuneTestingEntry as unknown as ChatCompletionMessage,
-  );
+  const typedTestingEntry = typedFineTuneTestingEntry(fineTuneTestingEntry);
+
+  if (!typedTestingEntry.output) throw new Error("No completion returned");
+
+  const fieldComparisonScore = calculateFieldComparisonScore(datasetEntry, typedTestingEntry);
 
   if (isNumber(fieldComparisonScore)) {
     await saveFieldComparisonScore(

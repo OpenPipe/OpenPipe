@@ -1,8 +1,11 @@
 import { expect, it } from "vitest";
-import { type ChatCompletionMessageParam } from "openai/resources/chat";
+import {
+  ChatCompletionAssistantMessageParam,
+  type ChatCompletionMessageParam,
+} from "openai/resources/chat";
 import { calculateFieldComparisonScore } from "./calculateFieldComparisonScore";
 
-const originalMatchingArgs: ChatCompletionMessageParam = {
+const originalMatchingArgs: ChatCompletionAssistantMessageParam = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -17,7 +20,7 @@ const originalMatchingArgs: ChatCompletionMessageParam = {
   ],
 };
 
-const generatedMatchingArgs: ChatCompletionMessageParam = {
+const generatedMatchingArgs: ChatCompletionAssistantMessageParam = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -95,7 +98,15 @@ const generatedMismatchingNames: ChatCompletionMessageParam = {
 it("calculates 1 for perfect match", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMatchingArgs },
-    generatedMatchingArgs,
+    // @ts-expect-error - TODO: align types
+    { output: generatedMatchingArgs, modelId: "test" },
+    // {
+    //   output: {
+    //     role: "assistant",
+    //     content: "",
+    //   },
+    //   modelId: "test",
+    // },
   );
 
   expect(score).toBe(1);
@@ -104,7 +115,8 @@ it("calculates 1 for perfect match", () => {
 it("calculates 0 for mismatching names", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMismatchingNames },
-    generatedMismatchingNames,
+    // @ts-expect-error - TODO: align types
+    { output: generatedMismatchingNames, modelId: "test" },
   );
 
   expect(score).toBe(0);
@@ -113,7 +125,8 @@ it("calculates 0 for mismatching names", () => {
 it("calculates 0 for no matching args", () => {
   const score = calculateFieldComparisonScore(
     { messages: [], output: originalMismatchingArgs },
-    generatedMismatchingArgs,
+    // @ts-expect-error - TODO: align types
+    { output: generatedMismatchingArgs, modelId: "test" },
   );
 
   expect(score).toBe(0);
