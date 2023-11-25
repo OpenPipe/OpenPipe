@@ -1,40 +1,33 @@
-import {
-  useQueryParam,
-  JsonParam,
-  BooleanParam,
-  withDefault,
-  encodeQueryParams,
-} from "use-query-params";
+import { useQueryParam, JsonParam, withDefault, encodeQueryParams } from "use-query-params";
 
 import { type FilterDataType } from "./types";
 
-export const useFilters = () => {
-  const [filters, setFilters] = useQueryParam<FilterDataType[]>(
+export const useFilters = (defaultShown?: boolean) => {
+  const [filterData, setFilterData] = useQueryParam<{ shown: boolean; filters: FilterDataType[] }>(
     "filters",
-    withDefault(JsonParam, []),
+    withDefault(JsonParam, { shown: !!defaultShown, filters: [] }),
   );
-  const [filtersShown, setFiltersShown] = useQueryParam<boolean>(
-    "filtersShown",
-    withDefault(BooleanParam, false),
-  );
+
+  const setFiltersShown = (shown: boolean) => setFilterData({ ...filterData, shown });
 
   const addFilter = (filter: FilterDataType) => {
-    setFilters([...filters, filter]);
-    setFiltersShown(true);
+    setFilterData({ shown: true, filters: [...filterData.filters, filter] });
   };
   const updateFilter = (filter: FilterDataType) =>
-    setFilters(filters.map((f) => (f.id === filter.id ? filter : f)));
+    setFilterData({
+      shown: true,
+      filters: filterData.filters.map((f) => (f.id === filter.id ? filter : f)),
+    });
 
   const removeFilter = (filter: FilterDataType) =>
-    setFilters(filters.filter((f) => f.id !== filter.id));
+    setFilterData({ ...filterData, filters: filterData.filters.filter((f) => f.id !== filter.id) });
 
   return {
-    filters,
-    setFilters,
+    filters: filterData.filters,
+    filtersShown: filterData.shown,
     addFilter,
     updateFilter,
     removeFilter,
-    filtersShown,
     setFiltersShown,
   };
 };

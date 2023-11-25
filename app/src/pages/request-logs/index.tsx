@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Text, VStack, HStack, Box, IconButton, Icon, keyframes } from "@chakra-ui/react";
 import { BiRefresh } from "react-icons/bi";
 import { FiFilter } from "react-icons/fi";
@@ -13,6 +12,7 @@ import ExportButton from "~/components/requestLogs/ExportButton";
 import AddToDatasetButton from "~/components/requestLogs/AddToDatasetButton";
 import { api } from "~/utils/api";
 import { useLoggedCalls } from "~/utils/hooks";
+import { useFilters } from "~/components/Filters/useFilters";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -20,7 +20,8 @@ const spin = keyframes`
 `;
 
 export default function LoggedCalls() {
-  const [filtersShown, setFiltersShown] = useState(true);
+  const filtersShown = useFilters(true).filtersShown;
+  const setFiltersShown = useFilters(true).setFiltersShown;
 
   const utils = api.useContext();
 
