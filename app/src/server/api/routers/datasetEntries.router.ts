@@ -757,12 +757,12 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
 
-      let updatedScoreQuery = baseQuery;
+      let updatedPerformanceQuery = baseQuery;
 
       // Add average score for each dataset eval
       for (const datasetEval of dataset?.datasetEvals ?? []) {
         const alias = `averageScoreForEval_${datasetEval.id}`;
-        updatedScoreQuery = updatedScoreQuery
+        updatedPerformanceQuery = updatedPerformanceQuery
           .leftJoin(
             (eb) =>
               eb
@@ -778,6 +778,15 @@ export const datasetEntriesRouter = createTRPCRouter({
                 .select((eb) => [
                   "dede.datasetEntryId as datasetEntryId",
                   eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval_${datasetEval.id}`),
+                  sql
+                    .raw("CAST(COUNT(CASE WHEN der.score = 1 THEN 1 ELSE NULL END) AS INT)")
+                    .as(`wins_${datasetEval.id}`),
+                  sql
+                    .raw("COUNT(CASE WHEN der.score = .5 THEN 1 ELSE NULL END)")
+                    .as(`ties_${datasetEval.id}`),
+                  sql
+                    .raw("COUNT(CASE WHEN der.score = 0 THEN 1 ELSE NULL END)")
+                    .as(`losses_${datasetEval.id}`),
                 ])
                 .groupBy("dede.datasetEntryId")
                 .as(alias),
@@ -786,14 +795,52 @@ export const datasetEntriesRouter = createTRPCRouter({
           .select((eb) => [
             eb.fn
               .agg<number>("AVG", [`${alias}.scoreForEval_${datasetEval.id}`])
-              .as(datasetEval.id),
+              .as(`score_${datasetEval.id}`),
+            sql
+              .raw(`CAST(SUM("${alias}"."wins_${datasetEval.id}") AS INT)`)
+              .as(`totalWins_${datasetEval.id}`),
+            sql
+              .raw(`CAST(SUM("${alias}"."ties_${datasetEval.id}") AS INT)`)
+              .as(`totalTies_${datasetEval.id}`),
+            sql
+              .raw(`CAST(SUM("${alias}"."losses_${datasetEval.id}") AS INT)`)
+              .as(`totalLosses_${datasetEval.id}`),
+            sql
+              .raw(`CAST(COUNT("${alias}"."datasetEntryId") AS INT)`)
+              .as(`totalCount_${datasetEval.id}`),
           ]) as unknown as typeof baseQuery;
       }
 
-      const averageScores = await updatedScoreQuery
+      const performance = await updatedPerformanceQuery
         .select("de.datasetId")
         .groupBy("de.datasetId")
-        .executeTakeFirst();
+        .executeTakeFirst()
+        .then((result) => result as typeof result & Record<string, number>);
+
+      const evalPerformances: Record<
+        string,
+        {
+          score: number;
+          totalWins: number | null;
+          totalTies: number | null;
+          totalLosses: number | null;
+        }
+      > = {};
+
+      for (const datasetEval of dataset?.datasetEvals ?? []) {
+        if (
+          !performance ||
+          !(`totalCount_${datasetEval.id}` in performance) ||
+          !performance[`totalCount_${datasetEval.id}`]
+        )
+          continue;
+        evalPerformances[datasetEval.id] = {
+          score: performance[`score_${datasetEval.id}`] ?? 0,
+          totalWins: performance[`totalWins_${datasetEval.id}`] ?? null,
+          totalTies: performance[`totalTies_${datasetEval.id}`] ?? null,
+          totalLosses: performance[`totalLosses_${datasetEval.id}`] ?? null,
+        };
+      }
 
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
@@ -815,7 +862,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         slug,
         baseModel,
         finishedCount: finishedCount.length,
-        averageScores: averageScores as typeof averageScores & Record<string, number>,
+        evalPerformances,
       };
     }),
 });
