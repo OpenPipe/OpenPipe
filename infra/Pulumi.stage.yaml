@@ -11,7 +11,7 @@ config:
   openpipe:AZURE_STORAGE_ACCOUNT_NAME: openpipestorage
   openpipe:AZURE_STORAGE_CONTAINER_NAME: uploadedtrainingdata
   openpipe:DATABASE_URL:
-    secure: AAABAAUsJsOv1yWpOwxJCVSXaroTaYbH8+7LAquYE5b2k7+m0965RI29a3y8JH621pws1IHdAnOPPcWTgm945l99GrtR8NDe+Asx2wb/sdoJhnof12fnyP4UEWr5GFF9O5woej5fjswQtoHYtU/5ppvOk6pmDzx7sIcpFbIznbpiL1Mf4j7oydbiQZTciEcwH6403398PUKzCsx7fUnYX8SI2qRDdg==
+    secure: AAABAOzeRikbaG+ebUnzNa93fwTtjrabsY5iRybewrgzUmz2CRnbxEd0NLNpT0ok7Ll5A99ZE2SeYb+X71HginddkFwAOk1sde/414B/xsfz4EDdLBBJ510CsdfLIdofG9wesmCxeW2npBqj0mDS9yDdlzNxsXcolEwJLBbTZkAO17mv57Zj/UFpl+oPZhETzznX8Mq8JqnprVhfPoUNhvzd0dwHuExfIYg=
   openpipe:GITHUB_CLIENT_ID:
     secure: AAABAJm9aaD9Lun17P1sC8iLXyO2T/qcKxVvURkyNVuqgn5yZ1C/qfRsod2yMkDRNiLzNQ==
   openpipe:GITHUB_CLIENT_SECRET:
@@ -36,6 +36,6 @@ config:
   openpipe:SMTP_LOGIN: founders@openpipe.ai
   openpipe:SMTP_PASSWORD:
     secure: AAABAOEiU4VL50BHLBNMrsyuNZPI/YDtxrDQr73KU3fVUPp09Z+Cd0tFPs+KloUu
-  openpipe:WORKER_CONCURRENCY: 10
-  openpipe:WORKER_MAX_POOL_SIZE: 30
+  openpipe:WORKER_CONCURRENCY: "10"
+  openpipe:WORKER_MAX_POOL_SIZE: "30"
   openpipe:deployDomain: openpipestage.com
