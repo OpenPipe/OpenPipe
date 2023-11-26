@@ -1,4 +1,3 @@
-import { type ComparisonModel } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { sql } from "kysely";
@@ -18,10 +17,14 @@ import hashObject from "~/server/utils/hashObject";
 import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
-import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
+import {
+  ORIGINAL_MODEL_ID,
+  typedDatasetEntry,
+  typedLoggedCallModelResponse,
+} from "~/types/dbColumns.types";
 import { SortOrder, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
-import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/baseModels";
+import { isComparisonModel } from "~/utils/baseModels";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
@@ -754,12 +757,7 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
 
-      const baseScoreQuery = baseQuery
-        .leftJoin("FineTuneTestingEntry as te", "de.id", "te.datasetEntryId")
-        .where("te.modelId", "=", modelId)
-        .where(sql.raw(`te."output" is not null`));
-
-      let updatedScoreQuery = baseScoreQuery;
+      let updatedScoreQuery = baseQuery;
 
       // Add average score for each dataset eval
       for (const datasetEval of dataset?.datasetEvals ?? []) {
@@ -789,25 +787,20 @@ export const datasetEntriesRouter = createTRPCRouter({
             eb.fn
               .agg<number>("AVG", [`${alias}.scoreForEval_${datasetEval.id}`])
               .as(datasetEval.id),
-          ]) as unknown as typeof baseScoreQuery;
+          ]) as unknown as typeof baseQuery;
       }
 
-      const averageScoresResult = await updatedScoreQuery
-        .select("te.modelId")
-        .select((eb) => eb.fn.agg<number>("AVG", ["te.score"]).as("averageScore"))
-        .groupBy("te.modelId")
-        .execute();
-
-      const averageScores = averageScoresResult[0];
+      const averageScores = await updatedScoreQuery
+        .select("de.datasetId")
+        .groupBy("de.datasetId")
+        .executeTakeFirst();
 
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
       let slug;
       let baseModel;
-      if (isComparisonModel(modelId)) {
-        slug = COMPARISON_MODEL_NAMES[modelId as ComparisonModel];
-      } else {
+      if (modelId !== ORIGINAL_MODEL_ID && !isComparisonModel(modelId)) {
         const fineTune = await prisma.fineTune.findUnique({
           where: {
             id: modelId,
@@ -821,7 +814,6 @@ export const datasetEntriesRouter = createTRPCRouter({
       return {
         slug,
         baseModel,
-        isComparisonModel: isComparisonModel(modelId),
         finishedCount: finishedCount.length,
         averageScores: averageScores as typeof averageScores & Record<string, number>,
       };

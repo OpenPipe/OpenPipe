@@ -6,6 +6,8 @@ import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hoo
 import { displayBaseModel } from "~/utils/baseModels";
 import EvalHeaderPill from "./EvalHeaderPill";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
+import { getOutputTitle } from "../getOutputTitle";
+import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 
 const ModelHeader = ({ modelId }: { modelId: string }) => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -34,11 +36,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
   return (
     <VStack alignItems="flex-start" justifyContent="space-between" h="full" spacing={0}>
       <HStack w="full" justifyContent="space-between">
-        {stats.isComparisonModel ? (
-          <Text fontWeight="bold" color="gray.500">
-            {stats.slug}
-          </Text>
-        ) : (
+        {stats.slug ? (
           <Text
             as={Link}
             href={{ pathname: "/fine-tunes/[id]", query: { id: modelId } }}
@@ -46,11 +44,15 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
             fontWeight="bold"
             color="gray.500"
           >
-            openpipe:{stats.slug}
+            {getOutputTitle(modelId, stats.slug)}
+          </Text>
+        ) : (
+          <Text fontWeight="bold" color="gray.500">
+            {getOutputTitle(modelId)}
           </Text>
         )}
         <HStack>
-          {stats.finishedCount < entries.count && (
+          {modelId !== ORIGINAL_MODEL_ID && stats.finishedCount < entries.count && (
             <Text>
               {stats.finishedCount}/{entries.count}
             </Text>

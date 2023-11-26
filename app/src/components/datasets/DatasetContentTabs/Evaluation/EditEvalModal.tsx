@@ -28,10 +28,10 @@ import {
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
-import { getComparisonModelName } from "~/utils/baseModels";
 import { useAppStore } from "~/state/store";
 import DeleteEvalDialog from "./DeleteEvalDialog";
 import InfoCircle from "~/components/InfoCircle";
+import { getOutputTitle } from "./getOutputTitle";
 
 const EditEvalModal = () => {
   const utils = api.useContext();
@@ -56,7 +56,7 @@ const EditEvalModal = () => {
     const options = [
       {
         id: ORIGINAL_MODEL_ID,
-        name: "Original",
+        name: getOutputTitle(ORIGINAL_MODEL_ID) ?? "",
       },
     ];
     if (!dataset) return options;
@@ -64,11 +64,11 @@ const EditEvalModal = () => {
       ...options,
       ...dataset.enabledComparisonModels.map((comparisonModelId) => ({
         id: comparisonModelId,
-        name: getComparisonModelName(comparisonModelId) || "Comparison Model",
+        name: getOutputTitle(comparisonModelId) ?? "",
       })),
       ...dataset.deployedFineTunes.map((model) => ({
         id: model.id,
-        name: "openpipe:" + model.slug,
+        name: getOutputTitle(model.id, model.slug) ?? "",
       })),
     ];
   }, [dataset]);
@@ -246,9 +246,8 @@ const EditEvalModal = () => {
                       borderWidth={1}
                       p={2}
                     >
-                      These changes eval will add <b>{numAddedComparisons}</b> head-to-head
-                      comparisons and cost approximately{" "}
-                      <b>${(numAddedComparisons * 0.06).toFixed(2)}</b>.
+                      These changes will add <b>{numAddedComparisons}</b> head-to-head comparisons
+                      and cost approximately <b>${(numAddedComparisons * 0.06).toFixed(2)}</b>.
                     </Text>
                   </VStack>
                   <VStack alignItems="flex-start" w="full">
