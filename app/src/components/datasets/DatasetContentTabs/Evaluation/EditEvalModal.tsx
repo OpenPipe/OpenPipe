@@ -136,6 +136,13 @@ const EditEvalModal = () => {
   const numAddedComparisons = useMemo(() => {
     if (!datasetEval?.outputSources) return 0;
 
+    const numRowFinalComparisons = (includedModelIds.length * (includedModelIds.length - 1)) / 2;
+
+    // If the instructions have changed, we need to re-evaluate all comparisons
+    if (instructions !== datasetEval.instructions) {
+      return numRowFinalComparisons * numDatasetEntries;
+    }
+
     const numPersistedRows = Math.min(datasetEval.numDatasetEntries, numDatasetEntries || 0);
 
     const numNewModelIds = includedModelIds.filter(
@@ -145,7 +152,6 @@ const EditEvalModal = () => {
       ((includedModelIds.length - numNewModelIds) *
         (includedModelIds.length - numNewModelIds - 1)) /
       2;
-    const numRowFinalComparisons = (includedModelIds.length * (includedModelIds.length - 1)) / 2;
 
     const newComparisonsFromAddedModels =
       numPersistedRows * (numRowFinalComparisons - numPersistedRowPersistedComparisons);
@@ -160,6 +166,8 @@ const EditEvalModal = () => {
     numDatasetEntries,
     datasetEval?.outputSources,
     includedModelIds,
+    datasetEval?.instructions,
+    instructions,
   ]);
 
   return (
