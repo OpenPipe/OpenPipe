@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Icon,
   Popover,
@@ -17,20 +17,16 @@ import { ComparisonModel } from "@prisma/client";
 
 import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
-import { useVisibleOutputColumns } from "./useVisibleOutputColumns";
-import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
+import { useVisibleModelIds } from "./useVisibleModelIds";
 import AddComparisonModelDialog from "./AddComparisonModelDialog";
+import { getOutputTitle } from "./getOutputTitle";
+import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 
 export const EMPTY_OUTPUT_COLUMNS_KEY = "empty";
-export const ORIGINAL_OUTPUT_COLUMN_KEY = "original";
 
 const ColumnVisibilityDropdown = () => {
-  const { visibleColumns, setVisibleColumns } = useVisibleOutputColumns();
+  const { visibleModelIds, toggleModelVisiblity, ensureModelShown } = useVisibleModelIds();
   const dataset = useDataset().data;
-  const fineTuneSlugs = useMemo(
-    () => dataset?.deployedFineTunes?.map((ft) => ft.slug) || [],
-    [dataset?.deployedFineTunes],
-  );
 
   const popover = useDisclosure();
   const addComparisonModelDialog = useDisclosure();
@@ -42,62 +38,28 @@ const ColumnVisibilityDropdown = () => {
   const columnVisibilityOptions = useMemo(() => {
     const options: { label: string; key: string }[] = [
       {
-        label: "Original Output",
-        key: ORIGINAL_OUTPUT_COLUMN_KEY,
+        label: getOutputTitle(ORIGINAL_MODEL_ID) ?? "",
+        key: ORIGINAL_MODEL_ID,
       },
     ];
-    for (const comparisonModel of dataset?.enabledComparisonModels ?? []) {
-      options.push({
-        label: COMPARISON_MODEL_NAMES[comparisonModel],
-        key: COMPARISON_MODEL_NAMES[comparisonModel],
-      });
-    }
-    for (const slug of fineTuneSlugs ?? []) {
-      options.push({
-        label: slug,
-        key: slug,
-      });
-    }
+    if (!dataset) return options;
+    options.push(
+      ...dataset.enabledComparisonModels.map((comparisonModelId) => ({
+        label: getOutputTitle(comparisonModelId) ?? "",
+        key: comparisonModelId,
+      })),
+    );
+    options.push(
+      ...dataset.deployedFineTunes.map((ft) => ({
+        label: getOutputTitle(ft.id, ft.slug) ?? "",
+        key: ft.id,
+      })),
+    );
     return options;
-  }, [dataset?.enabledComparisonModels, fineTuneSlugs]);
-
-  const toggleColumnVisibility = useCallback(
-    (key: string) => {
-      let newVisibleColumns = [];
-      if (visibleColumns.length === 1 && visibleColumns[0] === EMPTY_OUTPUT_COLUMNS_KEY) {
-        newVisibleColumns = [key];
-      } else if (!visibleColumns.length) {
-        newVisibleColumns = columnVisibilityOptions
-          .map((option) => option.key)
-          .filter((column) => column !== key);
-      } else if (visibleColumns.includes(key)) {
-        // If key is present, remove it
-        newVisibleColumns = visibleColumns.filter((column) => column !== key);
-      } else {
-        // If key is not present, add it
-        newVisibleColumns = [...visibleColumns, key];
-      }
-      if (!newVisibleColumns.length) newVisibleColumns = [EMPTY_OUTPUT_COLUMNS_KEY];
-      setVisibleColumns(newVisibleColumns);
-    },
-    [visibleColumns, columnVisibilityOptions, setVisibleColumns],
-  );
-
-  const ensureColumnShown = useCallback(
-    (columnKey: string) => {
-      if (visibleColumns.length && !visibleColumns.includes(columnKey))
-        toggleColumnVisibility(columnKey);
-    },
-    [visibleColumns, toggleColumnVisibility],
-  );
+  }, [dataset]);
 
   const isClientRehydrated = useIsClientRehydrated();
   if (!isClientRehydrated) return null;
-
-  // If visibleColumns is empty, all columns are visible
-  const numVisibleColumns = visibleColumns.includes(EMPTY_OUTPUT_COLUMNS_KEY)
-    ? 0
-    : visibleColumns.length || columnVisibilityOptions.length;
 
   return (
     <>
@@ -110,7 +72,7 @@ const ColumnVisibilityDropdown = () => {
         <PopoverTrigger>
           <Box>
             <ActionButton
-              label={`Show Models (${numVisibleColumns}/${columnVisibilityOptions.length})`}
+              label={`Show Models (${visibleModelIds.length}/${columnVisibilityOptions.length})`}
               icon={BsToggles}
             />
           </Box>
@@ -121,7 +83,7 @@ const ColumnVisibilityDropdown = () => {
               <HStack
                 key={index}
                 as={Button}
-                onClick={() => toggleColumnVisibility(option.key)}
+                onClick={() => toggleModelVisiblity(option.key)}
                 w="full"
                 minH={10}
                 variant="ghost"
@@ -135,7 +97,7 @@ const ColumnVisibilityDropdown = () => {
               >
                 <Text mr={16}>{option.label}</Text>
                 <Box w={5}>
-                  {(!visibleColumns.length || visibleColumns.includes(option.key)) && (
+                  {visibleModelIds.includes(option.key) && (
                     <Icon as={BiCheck} color="blue.500" boxSize={5} />
                   )}
                 </Box>
@@ -171,7 +133,7 @@ const ColumnVisibilityDropdown = () => {
         disclosure={addComparisonModelDialog}
         onClose={() => {
           addComparisonModelDialog.onClose();
-          ensureColumnShown(COMPARISON_MODEL_NAMES[comparisonModelIdToAdd as ComparisonModel]);
+          if (comparisonModelIdToAdd) ensureModelShown(comparisonModelIdToAdd);
           setComparisonModelIdToAdd(null);
         }}
       />

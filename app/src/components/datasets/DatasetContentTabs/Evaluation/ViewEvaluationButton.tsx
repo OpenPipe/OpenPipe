@@ -1,15 +1,20 @@
 import { Button } from "@chakra-ui/react";
 import Link from "next/link";
 import { DATASET_EVALUATION_TAB_KEY } from "../DatasetContentTabs";
-import { EVALUATION_COLUMNS_KEY } from "./useVisibleOutputColumns";
+import { constructVisibleModelIdsQueryParams } from "./useVisibleModelIds";
+import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 
 const ViewEvaluationButton = ({
   datasetId,
-  fineTuneSlug,
+  fineTuneId,
 }: {
   datasetId: string;
-  fineTuneSlug: string;
+  fineTuneId: string;
 }) => {
+  const visibleModelIdsQueryParams = constructVisibleModelIdsQueryParams([
+    ORIGINAL_MODEL_ID,
+    fineTuneId,
+  ]);
   return (
     <Button
       as={Link}
@@ -18,7 +23,7 @@ const ViewEvaluationButton = ({
         query: {
           id: datasetId,
           tab: DATASET_EVALUATION_TAB_KEY,
-          [EVALUATION_COLUMNS_KEY]: ["original", fineTuneSlug].join(","),
+          ...visibleModelIdsQueryParams,
         },
       }}
       variant="link"
