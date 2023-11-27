@@ -759,9 +759,10 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       let updatedPerformanceQuery = baseQuery;
 
+      let i = 0;
       // Add average score for each dataset eval
       for (const datasetEval of dataset?.datasetEvals ?? []) {
-        const alias = `averageScoreForEval_${datasetEval.id}`;
+        const alias = `eval${i++}`;
         updatedPerformanceQuery = updatedPerformanceQuery
           .leftJoin(
             (eb) =>
@@ -777,34 +778,20 @@ export const datasetEntriesRouter = createTRPCRouter({
                 .where("deos.modelId", "=", modelId)
                 .select((eb) => [
                   "dede.datasetEntryId as datasetEntryId",
-                  eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval_${datasetEval.id}`),
-                  sql
-                    .raw("CAST(COUNT(CASE WHEN der.score = 1 THEN 1 ELSE NULL END) AS INT)")
-                    .as(`wins_${datasetEval.id}`),
-                  sql
-                    .raw("COUNT(CASE WHEN der.score = .5 THEN 1 ELSE NULL END)")
-                    .as(`ties_${datasetEval.id}`),
-                  sql
-                    .raw("COUNT(CASE WHEN der.score = 0 THEN 1 ELSE NULL END)")
-                    .as(`losses_${datasetEval.id}`),
+                  eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval`),
+                  sql`COUNT(CASE WHEN der.score = 1 THEN 1 ELSE NULL END)`.as(`wins`),
+                  sql`COUNT(CASE WHEN der.score = .5 THEN 1 ELSE NULL END)`.as(`ties`),
+                  sql`COUNT(CASE WHEN der.score = 0 THEN 1 ELSE NULL END)`.as(`losses`),
                 ])
                 .groupBy("dede.datasetEntryId")
                 .as(alias),
             (join) => join.onRef(`${alias}.datasetEntryId`, "=", sql.raw("de.id")),
           )
           .select((eb) => [
-            eb.fn
-              .agg<number>("AVG", [`${alias}.scoreForEval_${datasetEval.id}`])
-              .as(`score_${datasetEval.id}`),
-            sql
-              .raw(`CAST(SUM("${alias}"."wins_${datasetEval.id}") AS INT)`)
-              .as(`totalWins_${datasetEval.id}`),
-            sql
-              .raw(`CAST(SUM("${alias}"."ties_${datasetEval.id}") AS INT)`)
-              .as(`totalTies_${datasetEval.id}`),
-            sql
-              .raw(`CAST(SUM("${alias}"."losses_${datasetEval.id}") AS INT)`)
-              .as(`totalLosses_${datasetEval.id}`),
+            eb.fn.agg<number>("AVG", [`${alias}.scoreForEval`]).as(`score_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.wins) AS INT)`).as(`totalWins_${datasetEval.id}`),
+            sql.raw(`CAST(SUM("${alias}"."ties") AS INT)`).as(`totalTies_${datasetEval.id}`),
+            sql.raw(`CAST(SUM("${alias}"."losses") AS INT)`).as(`totalLosses_${datasetEval.id}`),
             sql
               .raw(`CAST(COUNT("${alias}"."datasetEntryId") AS INT)`)
               .as(`totalCount_${datasetEval.id}`),
