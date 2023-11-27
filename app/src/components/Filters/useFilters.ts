@@ -4,7 +4,7 @@ import { type FilterDataType } from "./types";
 
 export const useFilters = (defaultShown?: boolean) => {
   const [filterData, setFilterData] = useQueryParam<{ shown: boolean; filters: FilterDataType[] }>(
-    "filters",
+    "filterData",
     withDefault(JsonParam, { shown: !!defaultShown, filters: [] }),
   );
 
