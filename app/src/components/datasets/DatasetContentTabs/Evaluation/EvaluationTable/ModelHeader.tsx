@@ -16,12 +16,18 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
   const entries = useTestingEntries().data;
 
   useEffect(() => {
-    if (!stats?.finishedCount || !entries?.count || stats?.finishedCount < entries?.count) {
+    if (
+      !stats ||
+      !stats.finishedCount ||
+      !entries?.count ||
+      stats.finishedCount < entries.count ||
+      stats.resultsPending
+    ) {
       setRefetchInterval(5000);
     } else {
       setRefetchInterval(0);
     }
-  }, [stats?.finishedCount, entries?.count]);
+  }, [stats, entries?.count]);
 
   const visibleEvalIds = useVisibleEvalIds().visibleEvalIds;
 

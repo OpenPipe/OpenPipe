@@ -782,6 +782,12 @@ export const datasetEntriesRouter = createTRPCRouter({
                   sql`COUNT(CASE WHEN der.score = 1 THEN 1 ELSE NULL END)`.as(`wins`),
                   sql`COUNT(CASE WHEN der.score = .5 THEN 1 ELSE NULL END)`.as(`ties`),
                   sql`COUNT(CASE WHEN der.score = 0 THEN 1 ELSE NULL END)`.as(`losses`),
+                  sql`COUNT(CASE WHEN der.status = 'PENDING' OR der.status = 'IN_PROGRESS' THEN 1 ELSE NULL END)`.as(
+                    `pending`,
+                  ),
+                  sql`COUNT(CASE WHEN der.status = 'COMPLETE' OR der.status = 'ERROR' THEN 1 ELSE NULL END)`.as(
+                    `complete`,
+                  ),
                 ])
                 .groupBy("dede.datasetEntryId")
                 .as(alias),
@@ -790,10 +796,12 @@ export const datasetEntriesRouter = createTRPCRouter({
           .select((eb) => [
             eb.fn.agg<number>("AVG", [`${alias}.scoreForEval`]).as(`score_${datasetEval.id}`),
             sql.raw(`CAST(SUM(${alias}.wins) AS INT)`).as(`totalWins_${datasetEval.id}`),
-            sql.raw(`CAST(SUM("${alias}"."ties") AS INT)`).as(`totalTies_${datasetEval.id}`),
-            sql.raw(`CAST(SUM("${alias}"."losses") AS INT)`).as(`totalLosses_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.ties) AS INT)`).as(`totalTies_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.losses) AS INT)`).as(`totalLosses_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.pending) AS INT)`).as(`totalPending_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.complete) AS INT)`).as(`totalComplete_${datasetEval.id}`),
             sql
-              .raw(`CAST(COUNT("${alias}"."datasetEntryId") AS INT)`)
+              .raw(`CAST(COUNT(${alias}."datasetEntryId") AS INT)`)
               .as(`totalCount_${datasetEval.id}`),
           ]) as unknown as typeof baseQuery;
       }
@@ -807,7 +815,10 @@ export const datasetEntriesRouter = createTRPCRouter({
       const evalPerformances: Record<
         string,
         {
-          score: number;
+          totalCount: number;
+          numPending: number;
+          numComplete: number;
+          score: number | null;
           totalWins: number | null;
           totalTies: number | null;
           totalLosses: number | null;
@@ -822,7 +833,10 @@ export const datasetEntriesRouter = createTRPCRouter({
         )
           continue;
         evalPerformances[datasetEval.id] = {
-          score: performance[`score_${datasetEval.id}`] ?? 0,
+          totalCount: performance[`totalCount_${datasetEval.id}`] ?? 0,
+          numPending: performance[`totalPending_${datasetEval.id}`] ?? 0,
+          numComplete: performance[`totalComplete_${datasetEval.id}`] ?? 0,
+          score: performance[`score_${datasetEval.id}`] ?? null,
           totalWins: performance[`totalWins_${datasetEval.id}`] ?? null,
           totalTies: performance[`totalTies_${datasetEval.id}`] ?? null,
           totalLosses: performance[`totalLosses_${datasetEval.id}`] ?? null,
@@ -845,11 +859,16 @@ export const datasetEntriesRouter = createTRPCRouter({
         baseModel = fineTune.baseModel;
       }
 
+      const resultsPending = Object.values(evalPerformances).some(
+        (performance) => performance.numPending > 0,
+      );
+
       return {
         slug,
         baseModel,
         finishedCount: finishedCount.length,
         evalPerformances,
+        resultsPending,
       };
     }),
 });

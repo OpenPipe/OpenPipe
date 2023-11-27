@@ -13,6 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { FiChevronDown, FiEdit2 } from "react-icons/fi";
 import { FaArrowDown, FaArrowUp, FaEyeSlash } from "react-icons/fa";
+import { isNumber } from "lodash-es";
 
 import { useModelTestingStats, useDataset } from "~/utils/hooks";
 import ColoredPercent from "~/components/ColoredPercent";
@@ -81,7 +82,10 @@ const EvalHeaderPill = ({
             <Text fontWeight="bold" color="gray.500">
               {datasetEval.name}
             </Text>
-            <ColoredPercent value={modelEvalStats.score} />
+            {isNumber(modelEvalStats.score) && <ColoredPercent value={modelEvalStats.score} />}
+            {modelEvalStats.numPending && (
+              <Box bgColor="yellow.300" borderRadius={4} mt={0.5} px={1} py={1} />
+            )}
             {isSortingAscending && <Icon as={FaArrowUp} boxSize={3} strokeWidth={2} />}
             {isSortingDescending && <Icon as={FaArrowDown} boxSize={3} strokeWidth={2} />}
             <Icon as={FiChevronDown} boxSize={3} strokeWidth={2} />

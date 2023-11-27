@@ -101,6 +101,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     });
     if (maybeReportError(resp)) return;
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
+    await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
 
     ensureEvalShown(resp.payload);
