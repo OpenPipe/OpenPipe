@@ -68,7 +68,6 @@ export const useVisibleModelIds = () => {
   }
 
   return {
-    allModelIds,
     visibleModelIds: completeVisibleModelIds,
     toggleModelVisiblity,
     ensureModelShown,

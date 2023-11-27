@@ -732,9 +732,16 @@ export const datasetEntriesRouter = createTRPCRouter({
       };
     }),
   testingStats: protectedProcedure
-    .input(z.object({ datasetId: z.string(), filters: filtersSchema, modelId: z.string() }))
+    .input(
+      z.object({
+        datasetId: z.string(),
+        filters: filtersSchema,
+        modelId: z.string(),
+        visibleModelIds: z.string().array(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const { datasetId, filters, modelId } = input;
+      const { datasetId, filters, modelId, visibleModelIds } = input;
 
       const dataset = await prisma.dataset.findUnique({
         where: {
@@ -776,6 +783,17 @@ export const datasetEntriesRouter = createTRPCRouter({
                   "der.datasetEvalOutputSourceId",
                 )
                 .where("deos.modelId", "=", modelId)
+                .leftJoin(
+                  "DatasetEvalOutputSource as comparisonDeos",
+                  "comparisonDeos.id",
+                  "der.comparisonOutputSourceId",
+                )
+                .where((eb) =>
+                  eb.or([
+                    eb("der.comparisonOutputSourceId", "is", null),
+                    eb("comparisonDeos.modelId", "in", visibleModelIds),
+                  ]),
+                )
                 .select((eb) => [
                   "dede.datasetEntryId as datasetEntryId",
                   eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval`),
