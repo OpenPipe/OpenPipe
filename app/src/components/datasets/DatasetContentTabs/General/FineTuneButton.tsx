@@ -167,8 +167,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             )}
             {needsMissingBetaAccess && (
               <Text>
-                LLama2 fine-tuning is currently in beta. To receive early access to beta-only
-                features,{" "}
+                LLama2 and Mistral fine-tuning is currently in beta. To receive early access to
+                beta-only features,{" "}
                 <ChakraLink
                   href="https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc#email=${email}"
                   target="_blank"

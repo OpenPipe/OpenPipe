@@ -30,8 +30,8 @@ const BetaBanner = () => {
       <HStack>
         <Icon as={BsStars} color="orange.400" />
         <Text>
-          Fine-tuning Llama2 models is currently in beta. To receive early access to beta-only
-          features,{" "}
+          Fine-tuning Llama2 and Mistral models is currently in beta. To receive early access to
+          beta-only features,{" "}
           <Link
             href={`https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc#email=${email}`}
             target="_blank"
