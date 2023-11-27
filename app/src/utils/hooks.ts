@@ -257,6 +257,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
     {
       datasetId: dataset?.id || "",
       filters,
+      visibleModelIds,
       page,
       pageSize,
       sortOrder: testEntrySortOrder ?? undefined,
