@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Button,
+  Checkbox,
   HStack,
   Icon,
   Input,
@@ -186,13 +187,9 @@ const EditEvalModal = () => {
           <ModalBody maxW="unset">
             <VStack spacing={8}>
               <Text>
-                Use evaluations to ask specific questions about the outputs of your fine-tuned
-                models. GPT-4 will compare each model's output head-to-head and assign scores based
-                on which it thinks is better.
-              </Text>
-              <Text>
-                Avoid mentioning model names in the instructions, as GPT-4 will not have access to
-                the names of the models it is evaluating.
+                Use your eval to compare model outputs using GPT-4. We'll compare each pair of
+                outputs and calculate the "win rate" of each model relative to all the other models
+                you select.
               </Text>
               {needsMissingOpenaiKey ? (
                 <Text>
@@ -209,19 +206,21 @@ const EditEvalModal = () => {
                     <Input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Evaluation 1"
+                      placeholder="Eval1"
                       w="full"
                     />
                   </VStack>
                   <VStack alignItems="flex-start" w="full">
-                    <Text fontWeight="bold">Models</Text>
-                    <HStack flexWrap="wrap">
+                    <Text fontWeight="bold" pb={2}>
+                      Included Models
+                    </Text>
+                    <VStack alignItems="flex-start">
                       {modelOptions.map((model) => (
-                        <Button
+                        <Checkbox
                           key={model.id}
-                          variant={includedModelIds.includes(model.id) ? "solid" : "outline"}
+                          isChecked={includedModelIds.includes(model.id)}
                           colorScheme="blue"
-                          onClick={() =>
+                          onChange={() =>
                             setIncludedModelIds((ids) =>
                               ids.includes(model.id)
                                 ? ids.filter((id) => id !== model.id)
@@ -229,15 +228,15 @@ const EditEvalModal = () => {
                             )
                           }
                         >
-                          {model.name}
-                        </Button>
+                          <Text>{model.name}</Text>
+                        </Checkbox>
                       ))}
-                    </HStack>
+                    </VStack>
                   </VStack>
                   <VStack alignItems="flex-start" w="full">
                     <HStack>
                       <Text fontWeight="bold">Dataset Entries </Text>
-                      <InfoCircle tooltipText="The number of randomly selected evaluation dataset entries to apply this eval to." />
+                      <InfoCircle tooltipText="The number of randomly selected dataset entries to apply this eval to." />
                     </HStack>
                     <Input
                       value={numDatasetEntries}
@@ -264,7 +263,7 @@ const EditEvalModal = () => {
                     <AutoResizeTextArea
                       value={instructions}
                       onChange={(e) => setInstructions(e.target.value)}
-                      placeholder="Whose output is more friendly?"
+                      placeholder="Which model's output better matches the prompt?"
                       w="full"
                       minH={32}
                     />
