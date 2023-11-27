@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   Button,
+  Checkbox,
   HStack,
   Icon,
   Input,
@@ -32,6 +33,7 @@ import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import { useFilters } from "~/components/Filters/useFilters";
 import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
+import InfoCircle from "~/components/InfoCircle";
 import { getOutputTitle } from "./getOutputTitle";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
@@ -72,8 +74,8 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   useEffect(() => {
     if (disclosure.isOpen) {
-      setName("");
-      setInstructions("");
+      setName("Eval1");
+      setInstructions("Which model’s output better matches the prompt?");
       setNumDatasetEntries(Math.min(10, testingCount || 0));
       setIncludedModelIds([ORIGINAL_MODEL_ID]);
     }
@@ -134,13 +136,9 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         <ModalBody maxW="unset">
           <VStack spacing={8}>
             <Text>
-              Use evaluations to ask specific questions about the outputs of your fine-tuned models.
-              GPT-4 will compare each model's output head-to-head and assign scores based on which
-              it thinks is better.
-            </Text>
-            <Text>
-              Avoid mentioning model names in the instructions, as GPT-4 will not have access to the
-              names of the models it is evaluating.
+              Add an eval to compare model outputs using GPT-4. We'll compare each pair of outputs
+              and calculate the "win rate" of each model relative to all the other models you
+              select.
             </Text>
             {needsMissingOpenaiKey ? (
               <Text>
@@ -157,19 +155,21 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Evaluation 1"
+                    placeholder="Eval1"
                     w="full"
                   />
                 </VStack>
                 <VStack alignItems="flex-start" w="full">
-                  <Text fontWeight="bold">Models</Text>
-                  <HStack flexWrap="wrap">
+                  <Text fontWeight="bold" pb={2}>
+                    Included Models
+                  </Text>
+                  <VStack alignItems="flex-start">
                     {modelOptions.map((model) => (
-                      <Button
+                      <Checkbox
                         key={model.id}
-                        variant={includedModelIds.includes(model.id) ? "solid" : "outline"}
+                        isChecked={includedModelIds.includes(model.id)}
                         colorScheme="blue"
-                        onClick={() =>
+                        onChange={() =>
                           setIncludedModelIds((ids) =>
                             ids.includes(model.id)
                               ? ids.filter((id) => id !== model.id)
@@ -177,13 +177,16 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                           )
                         }
                       >
-                        {model.name}
-                      </Button>
+                        <Text>{model.name}</Text>
+                      </Checkbox>
                     ))}
-                  </HStack>
+                  </VStack>
                 </VStack>
                 <VStack alignItems="flex-start" w="full">
-                  <Text fontWeight="bold">Dataset Entries</Text>
+                  <HStack>
+                    <Text fontWeight="bold">Dataset Entries </Text>
+                    <InfoCircle tooltipText="The number of randomly selected dataset entries to apply this eval to." />
+                  </HStack>
                   <Input
                     value={numDatasetEntries}
                     onChange={(e) => setNumDatasetEntries(Number(e.target.value) || 0)}
@@ -206,7 +209,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   <AutoResizeTextArea
                     value={instructions}
                     onChange={(e) => setInstructions(e.target.value)}
-                    placeholder="Whose output is more friendly?"
+                    placeholder="Which model's output better matches the prompt?"
                     w="full"
                     minH={32}
                   />
