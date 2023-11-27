@@ -1,4 +1,3 @@
-import { type ComparisonModel } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { sql } from "kysely";
@@ -18,10 +17,14 @@ import hashObject from "~/server/utils/hashObject";
 import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
-import { typedDatasetEntry, typedLoggedCallModelResponse } from "~/types/dbColumns.types";
+import {
+  ORIGINAL_MODEL_ID,
+  typedDatasetEntry,
+  typedLoggedCallModelResponse,
+} from "~/types/dbColumns.types";
 import { SortOrder, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
-import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/baseModels";
+import { isComparisonModel } from "~/utils/baseModels";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
@@ -754,17 +757,13 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
 
-      const baseScoreQuery = baseQuery
-        .leftJoin("FineTuneTestingEntry as te", "de.id", "te.datasetEntryId")
-        .where("te.modelId", "=", modelId)
-        .where(sql.raw(`te."output" is not null`));
+      let updatedPerformanceQuery = baseQuery;
 
-      let updatedScoreQuery = baseScoreQuery;
-
+      let i = 0;
       // Add average score for each dataset eval
       for (const datasetEval of dataset?.datasetEvals ?? []) {
-        const alias = `averageScoreForEval_${datasetEval.id}`;
-        updatedScoreQuery = updatedScoreQuery
+        const alias = `eval${i++}`;
+        updatedPerformanceQuery = updatedPerformanceQuery
           .leftJoin(
             (eb) =>
               eb
@@ -779,35 +778,77 @@ export const datasetEntriesRouter = createTRPCRouter({
                 .where("deos.modelId", "=", modelId)
                 .select((eb) => [
                   "dede.datasetEntryId as datasetEntryId",
-                  eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval_${datasetEval.id}`),
+                  eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval`),
+                  sql`COUNT(CASE WHEN der.score = 1 THEN 1 ELSE NULL END)`.as(`wins`),
+                  sql`COUNT(CASE WHEN der.score = .5 THEN 1 ELSE NULL END)`.as(`ties`),
+                  sql`COUNT(CASE WHEN der.score = 0 THEN 1 ELSE NULL END)`.as(`losses`),
+                  sql`COUNT(CASE WHEN der.status = 'PENDING' OR der.status = 'IN_PROGRESS' THEN 1 ELSE NULL END)`.as(
+                    `pending`,
+                  ),
+                  sql`COUNT(CASE WHEN der.status = 'COMPLETE' OR der.status = 'ERROR' THEN 1 ELSE NULL END)`.as(
+                    `complete`,
+                  ),
                 ])
                 .groupBy("dede.datasetEntryId")
                 .as(alias),
             (join) => join.onRef(`${alias}.datasetEntryId`, "=", sql.raw("de.id")),
           )
           .select((eb) => [
-            eb.fn
-              .agg<number>("AVG", [`${alias}.scoreForEval_${datasetEval.id}`])
-              .as(datasetEval.id),
-          ]) as unknown as typeof baseScoreQuery;
+            eb.fn.agg<number>("AVG", [`${alias}.scoreForEval`]).as(`score_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.wins) AS INT)`).as(`totalWins_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.ties) AS INT)`).as(`totalTies_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.losses) AS INT)`).as(`totalLosses_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.pending) AS INT)`).as(`totalPending_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.complete) AS INT)`).as(`totalComplete_${datasetEval.id}`),
+            sql
+              .raw(`CAST(COUNT(${alias}."datasetEntryId") AS INT)`)
+              .as(`totalCount_${datasetEval.id}`),
+          ]) as unknown as typeof baseQuery;
       }
 
-      const averageScoresResult = await updatedScoreQuery
-        .select("te.modelId")
-        .select((eb) => eb.fn.agg<number>("AVG", ["te.score"]).as("averageScore"))
-        .groupBy("te.modelId")
-        .execute();
+      const performance = await updatedPerformanceQuery
+        .select("de.datasetId")
+        .groupBy("de.datasetId")
+        .executeTakeFirst()
+        .then((result) => result as typeof result & Record<string, number>);
 
-      const averageScores = averageScoresResult[0];
+      const evalPerformances: Record<
+        string,
+        {
+          totalCount: number;
+          numPending: number;
+          numComplete: number;
+          score: number | null;
+          totalWins: number | null;
+          totalTies: number | null;
+          totalLosses: number | null;
+        }
+      > = {};
+
+      for (const datasetEval of dataset?.datasetEvals ?? []) {
+        if (
+          !performance ||
+          !(`totalCount_${datasetEval.id}` in performance) ||
+          !performance[`totalCount_${datasetEval.id}`]
+        )
+          continue;
+        evalPerformances[datasetEval.id] = {
+          totalCount: performance[`totalCount_${datasetEval.id}`] ?? 0,
+          numPending: performance[`totalPending_${datasetEval.id}`] ?? 0,
+          numComplete: performance[`totalComplete_${datasetEval.id}`] ?? 0,
+          score: performance[`score_${datasetEval.id}`] ?? null,
+          totalWins: performance[`totalWins_${datasetEval.id}`] ?? null,
+          totalTies: performance[`totalTies_${datasetEval.id}`] ?? null,
+          totalLosses: performance[`totalLosses_${datasetEval.id}`] ?? null,
+        };
+      }
 
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
       let slug;
       let baseModel;
-      if (isComparisonModel(modelId)) {
-        slug = COMPARISON_MODEL_NAMES[modelId as ComparisonModel];
-      } else {
+      if (modelId !== ORIGINAL_MODEL_ID && !isComparisonModel(modelId)) {
         const fineTune = await prisma.fineTune.findUnique({
           where: {
             id: modelId,
@@ -818,12 +859,16 @@ export const datasetEntriesRouter = createTRPCRouter({
         baseModel = fineTune.baseModel;
       }
 
+      const resultsPending = Object.values(evalPerformances).some(
+        (performance) => performance.numPending > 0,
+      );
+
       return {
         slug,
         baseModel,
-        isComparisonModel: isComparisonModel(modelId),
         finishedCount: finishedCount.length,
-        averageScores: averageScores as typeof averageScores & Record<string, number>,
+        evalPerformances,
+        resultsPending,
       };
     }),
 });

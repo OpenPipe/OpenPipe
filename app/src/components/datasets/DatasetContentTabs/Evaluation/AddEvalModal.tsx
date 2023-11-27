@@ -29,10 +29,10 @@ import {
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
-import { getComparisonModelName } from "~/utils/baseModels";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import { useFilters } from "~/components/Filters/useFilters";
 import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
+import { getOutputTitle } from "./getOutputTitle";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -48,7 +48,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     const options = [
       {
         id: ORIGINAL_MODEL_ID,
-        name: "Original",
+        name: getOutputTitle(ORIGINAL_MODEL_ID) ?? "",
       },
     ];
     if (!dataset) return options;
@@ -56,11 +56,11 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       ...options,
       ...dataset.enabledComparisonModels.map((comparisonModelId) => ({
         id: comparisonModelId,
-        name: getComparisonModelName(comparisonModelId) || "Comparison Model",
+        name: getOutputTitle(comparisonModelId) ?? "",
       })),
       ...dataset.deployedFineTunes.map((model) => ({
         id: model.id,
-        name: "openpipe:" + model.slug,
+        name: getOutputTitle(model.id, model.slug) ?? "",
       })),
     ];
   }, [dataset]);
@@ -101,6 +101,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     });
     if (maybeReportError(resp)) return;
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
+    await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
 
     ensureEvalShown(resp.payload);

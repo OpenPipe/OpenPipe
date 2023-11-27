@@ -1,10 +1,10 @@
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 
-export const getOutputTitle = (modelId: string | null, slug: string | null) => {
+export const getOutputTitle = (modelId: string | null, slug?: string | null) => {
   let title = null;
   if (modelId === ORIGINAL_MODEL_ID) {
-    title = "Original Model";
+    title = "Original Output";
   } else if (modelId && isComparisonModel(modelId)) {
     title = getComparisonModelName(modelId);
   } else if (slug) {

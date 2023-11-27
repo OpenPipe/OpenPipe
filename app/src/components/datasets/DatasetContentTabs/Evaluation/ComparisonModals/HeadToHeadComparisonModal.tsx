@@ -23,7 +23,7 @@ import { type RouterOutputs, api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import FormattedMessage from "../FormattedMessage";
 import { isNumber } from "lodash-es";
-import { getOutputTitle } from "./getOutputTitle";
+import { getOutputTitle } from "../getOutputTitle";
 
 const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);
@@ -154,7 +154,7 @@ const HeadToHeadComparisonModal = () => {
   );
 };
 
-const MAX_OUTPUT_HEIGHT = 400;
+const MAX_OUTPUT_HEIGHT = 200;
 const VERTICAL_PADDING = 32;
 
 type ComparisonResult =
@@ -208,7 +208,7 @@ const CollapsibleResult = ({ result }: { result: ComparisonResult }) => {
           !expandable
             ? innerOutputHeight
             : outputExpanded
-            ? innerOutputHeight + 52
+            ? innerOutputHeight + 120
             : MAX_OUTPUT_HEIGHT + VERTICAL_PADDING
         }
         transition="height 0.5s ease-in-out"

@@ -44,9 +44,7 @@ export const TableHeader = ({
       </GridItem>
       {showOriginalOutput && (
         <GridItem sx={sharedProps} borderLeftWidth={1}>
-          <Text fontWeight="bold" color="gray.500">
-            Original Output
-          </Text>
+          <ModelHeader modelId={ORIGINAL_MODEL_ID} />
         </GridItem>
       )}
       {visibleModelIds.map((modelId, i) => (

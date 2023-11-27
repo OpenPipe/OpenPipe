@@ -11,9 +11,9 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@chakra-ui/react";
-import { isNumber } from "lodash-es";
 import { FiChevronDown, FiEdit2 } from "react-icons/fi";
 import { FaArrowDown, FaArrowUp, FaEyeSlash } from "react-icons/fa";
+import { isNumber } from "lodash-es";
 
 import { useModelTestingStats, useDataset } from "~/utils/hooks";
 import ColoredPercent from "~/components/ColoredPercent";
@@ -48,10 +48,10 @@ const EvalHeaderPill = ({
     ];
   }, [testEntrySortOrder, modelId, datasetEval]);
 
-  const score = useMemo(() => {
-    if (!stats?.averageScores || !(datasetEval.id in stats?.averageScores)) return null;
-    return stats.averageScores[datasetEval.id];
-  }, [stats?.averageScores, datasetEval]);
+  const modelEvalStats = useMemo(() => {
+    if (!stats?.evalPerformances) return null;
+    return stats.evalPerformances[datasetEval.id];
+  }, [stats?.evalPerformances, datasetEval]);
 
   const buttonRef = useRef<HTMLDivElement>(null);
   const [buttonWidth, setButtonWidth] = useState(0);
@@ -61,7 +61,7 @@ const EvalHeaderPill = ({
     setButtonWidth(buttonRef.current.offsetWidth);
   }, [buttonRef, setButtonWidth]);
 
-  if (!isNumber(score)) return null;
+  if (!modelEvalStats) return null;
 
   return (
     <Popover placement="bottom-end">
@@ -82,7 +82,10 @@ const EvalHeaderPill = ({
             <Text fontWeight="bold" color="gray.500">
               {datasetEval.name}
             </Text>
-            <ColoredPercent value={score} />
+            {isNumber(modelEvalStats.score) && <ColoredPercent value={modelEvalStats.score} />}
+            {modelEvalStats.numPending && (
+              <Box bgColor="yellow.300" borderRadius={4} mt={0.5} px={1} py={1} />
+            )}
             {isSortingAscending && <Icon as={FaArrowUp} boxSize={3} strokeWidth={2} />}
             {isSortingDescending && <Icon as={FaArrowDown} boxSize={3} strokeWidth={2} />}
             <Icon as={FiChevronDown} boxSize={3} strokeWidth={2} />
@@ -96,6 +99,20 @@ const EvalHeaderPill = ({
         mt={-1}
       >
         <VStack w="full" spacing={0}>
+          {datasetEval.type === "HEAD_TO_HEAD" && (
+            <HStack
+              w="full"
+              justifyContent="space-between"
+              fontWeight="bold"
+              fontSize="2xs"
+              p={2}
+              bgColor="gray.100"
+            >
+              <Text color="green.500">{modelEvalStats.totalWins} WINS</Text>
+              <Text color="gray.500">{modelEvalStats.totalTies} TIES</Text>
+              <Text color="red.500">{modelEvalStats.totalLosses} LOSSES</Text>
+            </HStack>
+          )}
           <HStack
             as={Button}
             w="full"
