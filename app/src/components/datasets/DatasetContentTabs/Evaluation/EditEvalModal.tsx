@@ -122,7 +122,7 @@ const EditEvalModal = () => {
     await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
 
-    ensureEvalShown(resp.payload);
+    ensureEvalShown(datasetEvalIdToEdit);
     addFilter({
       id: Date.now().toString(),
       field: EvaluationFiltersDefaultFields.EvalApplied,
