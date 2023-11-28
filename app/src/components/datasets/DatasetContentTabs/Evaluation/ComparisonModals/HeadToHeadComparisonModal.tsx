@@ -25,6 +25,7 @@ import { useAppStore } from "~/state/store";
 import FormattedMessage from "../FormattedMessage";
 import { isNumber } from "lodash-es";
 import { getOutputTitle } from "../getOutputTitle";
+import { useVisibleModelIds } from "../useVisibleModelIds";
 
 const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);
@@ -39,11 +40,14 @@ const HeadToHeadComparisonModal = () => {
   const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD" && !datasetEvalIdToEdit;
   const onClose = () => setComparisonCriteria(null);
 
+  const visibleModelIds = useVisibleModelIds().visibleModelIds;
+
   const { data } = api.datasetEvals.getHeadToHeadComparisonDetails.useQuery(
     {
       datasetEvalId: comparisonCriteria?.datasetEvalId ?? "",
       datasetEntryId: comparisonCriteria?.datasetEntryId ?? "",
       modelId: comparisonCriteria?.modelId ?? "",
+      visibleModelIds,
     },
     {
       enabled: isOpen,
@@ -63,9 +67,7 @@ const HeadToHeadComparisonModal = () => {
         <ModalHeader>
           <HStack>
             <Icon as={FaBalanceScale} />
-            <Text>
-              {data.datasetEval.name} - {selectedOutputTitle} - Head To Head Comparison
-            </Text>
+            <Text>{data.datasetEval.name} - Head To Head Comparison</Text>
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
