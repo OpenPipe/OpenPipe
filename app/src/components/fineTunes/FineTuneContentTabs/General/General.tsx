@@ -58,7 +58,7 @@ const General = () => {
                 <Text color="gray.500">Pending</Text>
               )}
               {fineTune.status === "DEPLOYED" && (
-                <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneSlug={fineTune.slug} />
+                <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneId={fineTune.id} />
               )}
             </HStack>
             <HStack>

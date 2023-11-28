@@ -20,14 +20,12 @@ import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import EvalResults from "./EvalResults";
 import FormattedMessage from "../FormattedMessage";
+import { useVisibleModelIds } from "../useVisibleModelIds";
+import FormattedDatasetEntryInput from "../FormattedInput";
 
-export const TableHeader = ({
-  showOriginalOutput,
-  visibleModelIds,
-}: {
-  showOriginalOutput: boolean;
-  visibleModelIds: string[];
-}) => {
+export const TableHeader = () => {
+  const visibleModelIds = useVisibleModelIds().visibleModelIds;
+
   const sharedProps = {
     position: "sticky",
     top: 0,
@@ -37,16 +35,16 @@ export const TableHeader = ({
   };
   return (
     <>
-      <GridItem sx={sharedProps} bgColor="white" borderTopLeftRadius={4}>
+      <GridItem
+        sx={sharedProps}
+        bgColor="white"
+        borderTopLeftRadius={4}
+        borderTopRightRadius={visibleModelIds.length === 0 ? 4 : 0}
+      >
         <Text fontWeight="bold" color="gray.500">
           Input
         </Text>
       </GridItem>
-      {showOriginalOutput && (
-        <GridItem sx={sharedProps} borderLeftWidth={1}>
-          <ModelHeader modelId={ORIGINAL_MODEL_ID} />
-        </GridItem>
-      )}
       {visibleModelIds.map((modelId, i) => (
         <GridItem
           key={modelId}
@@ -63,24 +61,23 @@ export const TableHeader = ({
 
 type TestingEntry = RouterOutputs["datasetEntries"]["listTestingEntries"]["entries"][number];
 
-const EvaluationRow = ({
-  entry,
-  showOriginalOutput,
-  visibleModelIds,
-}: {
-  entry: TestingEntry;
-  showOriginalOutput: boolean;
-  visibleModelIds: string[];
-}) => {
-  const orderedModelEntries = visibleModelIds.map(
-    (modelId) =>
-      entry.fineTuneTestDatasetEntries.find((ft) => ft.modelId === modelId) || {
-        modelId,
-        output: null,
-        errorMessage: null,
-        score: null,
-      },
-  );
+const EvaluationRow = ({ entry }: { entry: TestingEntry }) => {
+  const visibleModelIds = useVisibleModelIds().visibleModelIds;
+
+  const orderedModelEntries = visibleModelIds.map((modelId) => {
+    if (modelId === ORIGINAL_MODEL_ID) {
+      return { modelId, output: entry.output, errorMessage: null, score: null };
+    } else {
+      return (
+        entry.fineTuneTestDatasetEntries.find((ft) => ft.modelId === modelId) || {
+          modelId,
+          output: null,
+          errorMessage: null,
+          score: null,
+        }
+      );
+    }
+  });
 
   const [maxOutputHeight, setMaxOutputHeight] = useState(0);
   const onHeightUpdated = useCallback(
@@ -95,14 +92,6 @@ const EvaluationRow = ({
   return (
     <>
       <FormattedInputGridItem entry={entry} maxOutputHeight={maxOutputHeight} />
-      {showOriginalOutput && (
-        <FormattedOutputGridItem
-          entry={{ modelId: ORIGINAL_MODEL_ID, output: entry.output }}
-          datasetEntryId={entry.id}
-          evalResults={entry.datasetEvalResults}
-          onHeightUpdated={onHeightUpdated}
-        />
-      )}
       {orderedModelEntries.map((ftEntry) => {
         return (
           <FormattedOutputGridItem
@@ -156,14 +145,7 @@ const FormattedInputGridItem = ({
       transition="height 0.5s ease-in-out"
     >
       <VStack ref={inputRef} alignItems="flex-start" spacing={8}>
-        {(entry.messages as unknown as ChatCompletionMessage[]).map((message, index) => (
-          <VStack key={index} alignItems="flex-start" w="full">
-            <Text fontWeight="bold" color="gray.500">
-              {message.role}
-            </Text>
-            <FormattedMessage message={message} />
-          </VStack>
-        ))}
+        <FormattedDatasetEntryInput messages={entry.messages} />
         <Text color="gray.500">
           <Text as="span" fontWeight="bold">
             ID:

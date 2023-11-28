@@ -1,7 +1,6 @@
 import { useMemo, useState, useRef, useLayoutEffect } from "react";
 import {
   Button,
-  Collapse,
   HStack,
   Icon,
   Modal,
@@ -14,6 +13,8 @@ import {
   Text,
   VStack,
   Box,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
@@ -24,6 +25,8 @@ import { useAppStore } from "~/state/store";
 import FormattedMessage from "../FormattedMessage";
 import { isNumber } from "lodash-es";
 import { getOutputTitle } from "../getOutputTitle";
+import { useVisibleModelIds } from "../useVisibleModelIds";
+import FormattedDatasetEntryInput from "../FormattedInput";
 
 const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);
@@ -38,35 +41,28 @@ const HeadToHeadComparisonModal = () => {
   const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD" && !datasetEvalIdToEdit;
   const onClose = () => setComparisonCriteria(null);
 
+  const visibleModelIds = useVisibleModelIds().visibleModelIds;
+
   const { data } = api.datasetEvals.getHeadToHeadComparisonDetails.useQuery(
     {
       datasetEvalId: comparisonCriteria?.datasetEvalId ?? "",
       datasetEntryId: comparisonCriteria?.datasetEntryId ?? "",
       modelId: comparisonCriteria?.modelId ?? "",
+      visibleModelIds,
     },
     {
       enabled: isOpen,
     },
   );
 
-  const [numWins, numTies, numLosses] = useMemo(() => {
-    if (!data?.entry) return [0, 0, 0];
-    const numWins = data.entry.comparisonResults.filter(
-      (result) => isNumber(result.score) && result.score < 0.5,
-    ).length;
-    const numTies = data.entry.comparisonResults.filter((result) => result.score === 0.5).length;
-    const numLosses = data.entry.comparisonResults.filter(
-      (result) => isNumber(result.score) && result.score > 0.5,
-    ).length;
-    return [numWins, numTies, numLosses];
-  }, [data?.entry]);
-
   if (!data || !data.entry) {
     return null;
   }
 
+  const selectedOutputTitle = getOutputTitle(data.entry.modelId, data.entry.slug) ?? "";
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xl", md: "5xl" }}>
+    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xl", md: "8xl" }}>
       <ModalOverlay />
       <ModalContent w={1200} backgroundColor="gray.50">
         <ModalHeader>
@@ -90,48 +86,30 @@ const HeadToHeadComparisonModal = () => {
               <Text fontWeight="bold">Evaluation Criteria</Text>
               <Text>{data.datasetEval.instructions}</Text>
             </VStack>
-            <HStack w="full" justifyContent="space-between" alignItems="flex-start" spacing={8}>
-              <VStack
-                flex="1"
-                align="flex-start"
-                spacing={2}
-                borderWidth={1}
-                borderColor="gray.300"
-                borderRadius={8}
-                padding={4}
-                bgColor="white"
-              >
-                <HStack justifyContent="space-between" w="full">
-                  <Text fontWeight="bold" color="orange.500" fontSize="xs">
-                    {getOutputTitle(data.entry.modelId, data.entry.slug)}
-                  </Text>
-                  <HStack fontSize="xs">
-                    <Text color="green.500" fontWeight="bold">
-                      {numWins} WINS
-                    </Text>
-                    <Text color="gray.500" fontWeight="bold">
-                      {numTies} TIES
-                    </Text>
-                    <Text color="red.500" fontWeight="bold">
-                      {numLosses} LOSSES
-                    </Text>
-                  </HStack>
-                </HStack>
-                {data.entry.output ? (
-                  <FormattedMessage
-                    message={data.entry.output as unknown as ChatCompletionMessage}
-                  />
-                ) : (
-                  <Text as="i">Pending</Text>
-                )}
-              </VStack>
-
-              <VStack flex="1" alignItems="flex-start" overflowY="scroll">
-                {data.entry.comparisonResults.map((result) => (
-                  <CollapsibleResult key={result.modelId} result={result} />
-                ))}
-              </VStack>
-            </HStack>
+            <Grid
+              display="grid"
+              gridTemplateColumns={`200px 200px 1fr 1fr`}
+              borderWidth={1}
+              borderColor="gray.300"
+              borderRadius={8}
+              bgColor="white"
+              sx={{
+                "> *": {
+                  borderColor: "gray.300",
+                  padding: 4,
+                },
+              }}
+            >
+              <ComparisonsHeader />
+              {data.entry.comparisonResults.map((result) => (
+                <ComparisonRow
+                  key={result.modelId}
+                  selectedOutputTitle={selectedOutputTitle}
+                  result={result}
+                />
+              ))}
+            </Grid>
+            <SelectedComparisonTable datasetEntry={data.entry} />
           </VStack>
         </ModalBody>
 
@@ -154,133 +132,267 @@ const HeadToHeadComparisonModal = () => {
   );
 };
 
-const MAX_OUTPUT_HEIGHT = 200;
-const VERTICAL_PADDING = 32;
+const leftBorderProps = {
+  borderLeftWidth: 1,
+  borderColor: "gray.300",
+};
+const topBorderProps = {
+  borderTopWidth: 1,
+  borderColor: "gray.300",
+};
+
+const ComparisonsHeader = () => (
+  <>
+    <GridItem>
+      <Text fontSize="xs" fontWeight="bold" color="gray.500">
+        COMPARISON MODEL
+      </Text>
+    </GridItem>
+    <GridItem {...leftBorderProps}>
+      <Text fontSize="xs" fontWeight="bold" color="gray.500">
+        RESULT
+      </Text>
+    </GridItem>
+    <GridItem {...leftBorderProps}>
+      <Text fontSize="xs" fontWeight="bold" color="gray.500">
+        EXPLANATION
+      </Text>
+    </GridItem>
+    <GridItem {...leftBorderProps}>
+      <Text fontSize="xs" fontWeight="bold" color="gray.500">
+        OUTPUT
+      </Text>
+    </GridItem>
+  </>
+);
 
 type ComparisonResult =
   RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"]["comparisonResults"][number];
 
-const CollapsibleResult = ({ result }: { result: ComparisonResult }) => {
+const VERTICAL_PADDING = 32;
+const MIN_EXPANDABLE_HEIGHT = 200;
+
+const ComparisonRow = ({
+  selectedOutputTitle,
+  result,
+}: {
+  selectedOutputTitle: string;
+  result: ComparisonResult;
+}) => {
+  const explanationRef = useRef<HTMLDivElement>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
+  const [explanationHeight, setExplanationHeight] = useState(0);
+  const [innerOutputHeight, setInnerOutputHeight] = useState(0);
+  useLayoutEffect(() => {
+    if (!explanationRef.current || !outputRef.current) return;
+    const explanationHeight = explanationRef.current.getBoundingClientRect().height;
+    if (explanationHeight > 0) {
+      setExplanationHeight(explanationHeight);
+    }
+    const outputHeight = outputRef.current.getBoundingClientRect().height;
+    if (outputHeight > 0) {
+      setInnerOutputHeight(outputHeight);
+    }
+  }, [explanationRef, outputRef, setInnerOutputHeight]);
+
+  const [outputExpanded, setOutputExpanded] = useState(false);
+  const expandable =
+    innerOutputHeight > explanationHeight + VERTICAL_PADDING &&
+    innerOutputHeight > MIN_EXPANDABLE_HEIGHT;
+
   const comparisonText = useMemo(() => {
     if (result.status === "PENDING") return <Text color="gray.500">PENDING</Text>;
     if (result.status === "IN_PROGRESS") return <Text color="gray.500">IN PROGRESS</Text>;
     if (result.status === "ERROR") return <Text color="red.500">ERROR</Text>;
     if (!isNumber(result.score)) return null;
-    if (result.score < 0.5) return <Text color="green.500">WIN</Text>;
-    if (result.score === 0.5) return <Text color="gray.500">TIE</Text>;
-    if (result.score > 0.5) return <Text color="red.500">LOSS</Text>;
-  }, [result.score, result.status]);
+    if (result.score < 0.5) return <Text color="green.500">{selectedOutputTitle} WON</Text>;
+    if (result.score === 0.5) return <Text color="gray.500">{selectedOutputTitle} TIED</Text>;
+    if (result.score > 0.5) return <Text color="red.500">{selectedOutputTitle} LOST</Text>;
+  }, [result.score, result.status, selectedOutputTitle]);
 
-  const outputRef = useRef<HTMLDivElement>(null);
-  const [innerOutputHeight, setInnerOutputHeight] = useState(0);
-  useLayoutEffect(() => {
-    if (!outputRef.current) return;
-    const height = outputRef.current.getBoundingClientRect().height;
-    if (height > 0) {
-      setInnerOutputHeight(height);
-    }
-  }, [outputRef, setInnerOutputHeight]);
-
-  const [outputExpanded, setOutputExpanded] = useState(false);
-  const [explanationExpanded, setExplanationExpanded] = useState(false);
-
-  const expandable = innerOutputHeight > MAX_OUTPUT_HEIGHT;
   return (
-    <VStack
-      align="flex-start"
-      spacing={2}
-      w="full"
-      borderWidth={1}
-      borderColor="gray.300"
-      borderRadius={8}
-      padding={4}
-      pb={2}
-      bgColor="white"
-    >
-      <HStack w="full" justifyContent="space-between" fontWeight="bold" fontSize="xs">
-        <Text>{getOutputTitle(result.modelId, result.slug)}</Text>
+    <>
+      <GridItem {...topBorderProps}>
+        <Text fontWeight="bold" fontSize="xs">
+          {getOutputTitle(result.modelId, result.slug)}
+        </Text>
+      </GridItem>
+      <GridItem fontWeight="bold" fontSize="xs" {...topBorderProps} {...leftBorderProps}>
         {comparisonText}
-      </HStack>
-      <Box
-        w="full"
-        position="relative"
-        h={
-          !expandable
-            ? innerOutputHeight
-            : outputExpanded
-            ? innerOutputHeight + 120
-            : MAX_OUTPUT_HEIGHT + VERTICAL_PADDING
-        }
-        transition="height 0.5s ease-in-out"
-        overflow="hidden"
-      >
-        <VStack ref={outputRef}>
-          {result.output ? (
-            <FormattedMessage message={result.output as unknown as ChatCompletionMessage} />
+      </GridItem>
+      <GridItem {...topBorderProps} {...leftBorderProps}>
+        <Box ref={explanationRef}>
+          {result.errorMessage ? (
+            <Text color="red.500">{result.errorMessage}</Text>
           ) : (
-            <Text as="i">Pending</Text>
+            <Text>{result.explanation}</Text>
           )}
-        </VStack>
-        {expandable && (
-          <VStack position="absolute" bottom={0} w="full" spacing={0}>
-            {!outputExpanded && (
-              <Box
-                w="full"
-                h={16}
-                background="linear-gradient(to bottom, transparent, white)"
-                pointerEvents="none"
-              />
+        </Box>
+      </GridItem>
+      <GridItem {...topBorderProps} {...leftBorderProps}>
+        <Box
+          w="full"
+          position="relative"
+          h={
+            !expandable
+              ? innerOutputHeight
+              : outputExpanded
+              ? innerOutputHeight + 160
+              : explanationHeight + VERTICAL_PADDING
+          }
+          transition="height 0.5s ease-in-out"
+          overflow="hidden"
+        >
+          <Box ref={outputRef}>
+            {result.output ? (
+              <FormattedMessage message={result.output as unknown as ChatCompletionMessage} />
+            ) : (
+              <Text as="i">Pending</Text>
             )}
-            <HStack
-              color="gray.500"
-              py={2}
-              spacing={0.5}
-              _hover={{ textDecor: "underline" }}
-              cursor="pointer"
-              bgColor="white"
+          </Box>
+          {expandable && (
+            <VStack position="absolute" bottom={0} w="full" spacing={0}>
+              {!outputExpanded && (
+                <Box
+                  w="full"
+                  h={16}
+                  background="linear-gradient(to bottom, transparent, white)"
+                  pointerEvents="none"
+                />
+              )}
+              <HStack
+                color="gray.500"
+                py={2}
+                spacing={0.5}
+                _hover={{ textDecor: "underline" }}
+                cursor="pointer"
+                bgColor="white"
+                w="full"
+                alignItems="center"
+                justifyContent="center"
+                onClick={() => setOutputExpanded(!outputExpanded)}
+              >
+                <Text fontWeight="bold" fontSize="sm">
+                  {outputExpanded ? "Show less" : "Show more"}
+                </Text>
+                <Icon as={outputExpanded ? FiChevronUp : FiChevronDown} mt={0.5} strokeWidth={3} />
+              </HStack>
+            </VStack>
+          )}
+        </Box>
+      </GridItem>
+    </>
+  );
+};
+
+type ComparisonEntry = RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"];
+
+const MIN_HEIGHT = 200;
+
+const SelectedComparisonTable = ({ datasetEntry }: { datasetEntry: ComparisonEntry }) => {
+  const inputRef = useRef<HTMLDivElement>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
+
+  const [maxHeight, setMaxHeight] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!inputRef.current || !outputRef.current) return;
+    const inputHeight = inputRef.current.getBoundingClientRect().height;
+    const outputHeight = outputRef.current.getBoundingClientRect().height;
+    setMaxHeight(Math.max(inputHeight, outputHeight));
+  }, [inputRef, outputRef, setMaxHeight]);
+
+  const expandable = maxHeight > MIN_HEIGHT;
+
+  const contentProps = {
+    maxH: !expandable ? maxHeight : expanded ? maxHeight + 160 : MIN_HEIGHT,
+    overflow: "hidden",
+    transition: "max-height 0.5s ease-in-out",
+  };
+
+  return (
+    <VStack w="full" position="relative" pb={8}>
+      <Grid
+        display="grid"
+        gridTemplateColumns={`1fr 1fr`}
+        borderWidth={1}
+        borderColor="gray.300"
+        borderRadius={8}
+        bgColor="white"
+        sx={{
+          "> *": {
+            borderColor: "gray.300",
+            padding: 4,
+          },
+        }}
+      >
+        <GridItem>
+          <Text fontSize="xs" fontWeight="bold" color="gray.500">
+            SELECTED INPUT
+          </Text>
+        </GridItem>
+        <GridItem {...leftBorderProps}>
+          <Text fontSize="xs" fontWeight="bold" color="gray.500">
+            SELECTED OUTPUT
+          </Text>
+        </GridItem>
+        <GridItem position="relative" {...contentProps} {...topBorderProps}>
+          <Box ref={inputRef}>
+            <FormattedDatasetEntryInput messages={datasetEntry.messages} />
+          </Box>
+          {expandable && !expanded && (
+            <Box
+              position="absolute"
               w="full"
-              alignItems="center"
-              onClick={() => setOutputExpanded(!outputExpanded)}
-            >
-              <Text fontWeight="bold" fontSize="sm">
-                {outputExpanded ? "Show less" : "Show more"}
-              </Text>
-              <Icon as={outputExpanded ? FiChevronUp : FiChevronDown} mt={0.5} strokeWidth={3} />
-            </HStack>
-          </VStack>
-        )}
-      </Box>
-
-      <VStack w="full" alignItems="flex-start" spacing={0}>
-        {result.errorMessage && <Text>{result.errorMessage}</Text>}
-
-        {result.explanation && (
-          <>
-            <HStack
-              color="gray.500"
-              py={2}
-              spacing={0.5}
-              _hover={{ textDecor: "underline" }}
-              cursor="pointer"
-              onClick={() => setExplanationExpanded(!explanationExpanded)}
-            >
-              <Text fontWeight="bold" fontSize="sm">
-                Explanation
-              </Text>
-              <Icon
-                as={explanationExpanded ? FiChevronUp : FiChevronDown}
-                mt={0.5}
-                strokeWidth={3}
-              />
-            </HStack>
-            <Collapse in={explanationExpanded} unmountOnExit={true}>
-              <VStack align="flex-start" spacing={2}>
-                <Text fontStyle="italic">{result.explanation}</Text>
-              </VStack>
-            </Collapse>
-          </>
-        )}
-      </VStack>
+              bottom={0}
+              left={0}
+              h={16}
+              background="linear-gradient(to bottom, transparent, white)"
+              pointerEvents="none"
+              borderBottomLeftRadius={8}
+            />
+          )}
+        </GridItem>
+        <GridItem position="relative" {...contentProps} {...leftBorderProps} {...topBorderProps}>
+          <Box ref={outputRef}>
+            <FormattedMessage message={datasetEntry.output as unknown as ChatCompletionMessage} />
+          </Box>
+          {expandable && !expanded && (
+            <Box
+              position="absolute"
+              w="full"
+              bottom={0}
+              left={0}
+              h={16}
+              background="linear-gradient(to bottom, transparent, white)"
+              pointerEvents="none"
+              borderBottomRightRadius={8}
+            />
+          )}
+        </GridItem>
+      </Grid>
+      {expandable && (
+        <VStack position="absolute" bottom={0} w="full" spacing={0}>
+          <HStack
+            color="gray.500"
+            pt={2}
+            mb={0}
+            spacing={0.5}
+            _hover={{ textDecor: "underline" }}
+            cursor="pointer"
+            w="full"
+            alignItems="center"
+            justifyContent="center"
+            onClick={() => setExpanded(!expanded)}
+          >
+            <Text fontWeight="bold" fontSize="sm">
+              {expanded ? "Show less" : "Show more"}
+            </Text>
+            <Icon as={expanded ? FiChevronUp : FiChevronDown} mt={0.5} strokeWidth={3} />
+          </HStack>
+        </VStack>
+      )}
     </VStack>
   );
 };

@@ -18,10 +18,18 @@ export const startDatasetEntryTestJobs = async (datasetEntryId: string) => {
   if (!datasetEntry?.dataset) return;
 
   for (const fineTune of datasetEntry.dataset.fineTunes) {
-    await generateTestSetEntry.enqueue({ modelId: fineTune.id, datasetEntryId });
+    await generateTestSetEntry.enqueue({
+      modelId: fineTune.id,
+      datasetEntryId,
+      numPreviousTries: 0,
+    });
   }
   for (const comparisonModel of datasetEntry.dataset.enabledComparisonModels) {
-    await generateTestSetEntry.enqueue({ modelId: comparisonModel, datasetEntryId });
+    await generateTestSetEntry.enqueue({
+      modelId: comparisonModel,
+      datasetEntryId,
+      numPreviousTries: 0,
+    });
   }
 };
 
@@ -56,6 +64,6 @@ export const startTestJobs = async (datasetId: string, modelId: string) => {
   });
 
   for (const entry of datasetEntries) {
-    await generateTestSetEntry.enqueue({ modelId, datasetEntryId: entry.id });
+    await generateTestSetEntry.enqueue({ modelId, datasetEntryId: entry.id, numPreviousTries: 0 });
   }
 };

@@ -1,10 +1,7 @@
-import { useEffect } from "react";
 import { VStack, HStack, Box, Text } from "@chakra-ui/react";
-import { FiFilter } from "react-icons/fi";
 
 import EvaluationTable from "./EvaluationTable/EvaluationTable";
-import ColumnVisibilityDropdown from "./ColumnVisibilityDropdown";
-import ActionButton from "~/components/ActionButton";
+import ModelVisibilityDropdown from "./ModelVisibilityDropdown";
 import EvaluationFilters from "./EvaluationFilters";
 import { useTestingEntries } from "~/utils/hooks";
 import EvaluationPaginator from "./EvaluationTable/EvaluationPaginator";
@@ -13,15 +10,10 @@ import EvalVisibilityDropdown from "./EvalVisibilityDropdown";
 import HeadToHeadComparisonModal from "./ComparisonModals/HeadToHeadComparisonModal";
 import FieldComparisonModal from "./ComparisonModals/FieldComparisonModal";
 import EditEvalModal from "./EditEvalModal";
+import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 
 const Evaluation = () => {
-  const filters = useFilters().filters;
   const filtersShown = useFilters().filtersShown;
-  const setFiltersShown = useFilters().setFiltersShown;
-
-  useEffect(() => {
-    if (filters.length) setFiltersShown(true);
-  }, [filters.length, setFiltersShown]);
 
   const count = useTestingEntries().data?.count;
 
@@ -29,15 +21,9 @@ const Evaluation = () => {
     <>
       <VStack px={8} position="sticky" left={0} w="full" alignItems="flex-start" pb={4} zIndex={5}>
         <HStack w="full">
-          <ColumnVisibilityDropdown />
+          <ModelVisibilityDropdown />
           <EvalVisibilityDropdown />
-          <ActionButton
-            onClick={() => {
-              setFiltersShown(!filtersShown);
-            }}
-            label={filtersShown ? "Hide Filters" : "Show Filters"}
-            icon={FiFilter}
-          />
+          <ToggleFiltersButton />
         </HStack>
         {filtersShown && <EvaluationFilters />}
         <Text fontWeight="bold" fontSize="lg" pt={8}>

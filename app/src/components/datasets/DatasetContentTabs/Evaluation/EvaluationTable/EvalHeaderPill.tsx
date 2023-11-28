@@ -11,7 +11,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@chakra-ui/react";
-import { FiChevronDown, FiEdit2 } from "react-icons/fi";
+import { FiChevronDown, FiEdit2, FiFilter } from "react-icons/fi";
 import { FaArrowDown, FaArrowUp, FaEyeSlash } from "react-icons/fa";
 import { isNumber } from "lodash-es";
 
@@ -20,7 +20,8 @@ import ColoredPercent from "~/components/ColoredPercent";
 import { useAppStore } from "~/state/store";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import { useTestEntrySortOrder } from "../useTestEntrySortOrder";
-import { SortOrder } from "~/types/shared.types";
+import { EvaluationFiltersDefaultFields, SortOrder } from "~/types/shared.types";
+import { useFilters } from "~/components/Filters/useFilters";
 
 const EvalHeaderPill = ({
   datasetEval,
@@ -35,6 +36,7 @@ const EvalHeaderPill = ({
     (state) => state.evaluationsSlice.setDatasetEvalIdToEdit,
   );
   const toggleEvalVisiblity = useVisibleEvalIds().toggleEvalVisiblity;
+  const addFilter = useFilters().addFilter;
 
   const { testEntrySortOrder, setTestEntrySortOrder } = useTestEntrySortOrder();
 
@@ -160,6 +162,29 @@ const EvalHeaderPill = ({
             <HStack>
               <Icon as={FaArrowDown} color={isSortingDescending ? "blue.500" : "gray.500"} />
             </HStack>
+          </HStack>
+          <HStack
+            as={Button}
+            w="full"
+            colorScheme="blue"
+            color="gray.500"
+            variant="ghost"
+            justifyContent="space-between"
+            h={8}
+            px={2}
+            onClick={() =>
+              addFilter({
+                id: Date.now().toString(),
+                field: EvaluationFiltersDefaultFields.EvalApplied,
+                comparator: "=",
+                value: datasetEval.id,
+              })
+            }
+            borderRadius={0}
+            borderBottomWidth={1}
+          >
+            <Text fontSize="xs">Filter by Eval</Text>
+            <Icon as={FiFilter} color="gray.500" />
           </HStack>
           {datasetEval.type !== "FIELD_COMPARISON" && (
             <HStack

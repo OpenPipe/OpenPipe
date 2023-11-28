@@ -34,10 +34,13 @@ export const useFilters = (defaultShown?: boolean) => {
 
 export const constructFiltersQueryParams = (filters: FilterDataType[]): Record<string, any> => {
   const queryParams = {
-    filters,
+    filterData: {
+      shown: true,
+      filters,
+    },
   };
 
-  const encodedParams = encodeQueryParams({ filters: JsonParam }, queryParams);
+  const encodedParams = encodeQueryParams({ filterData: JsonParam }, queryParams);
 
   return Object.fromEntries(
     Object.entries(encodedParams).map(([key, value]) => [key, value?.toString()]),

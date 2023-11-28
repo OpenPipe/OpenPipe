@@ -37,6 +37,12 @@ export const calculateFineTuneUsageCost = ({
   return training * trainingTokens + input * inputTokens + output * outputTokens;
 };
 
+export const comparisonModels: readonly ComparisonModel[] = [
+  ComparisonModel.GPT_3_5_TURBO,
+  ComparisonModel.GPT_4_0613,
+  ComparisonModel.GPT_4_1106_PREVIEW,
+] as const;
+
 export const isComparisonModel = (modelId: string) =>
   ComparisonModel[modelId as keyof typeof ComparisonModel] !== undefined;
 
@@ -45,6 +51,8 @@ export const isComparisonModelName = (modelName: string) =>
 
 export const COMPARISON_MODEL_NAMES: Record<ComparisonModel, string> = {
   GPT_3_5_TURBO: "gpt-3.5-turbo-1106",
+  GPT_4_1106_PREVIEW: "gpt-4-1106-preview",
+  GPT_4_0613: "gpt-4-0613",
 };
 
 export const getComparisonModel = (modelName: string) => {

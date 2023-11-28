@@ -440,12 +440,14 @@ export const datasetEntriesRouter = createTRPCRouter({
           await generateTestSetEntry.enqueue({
             modelId: fineTune.id,
             datasetEntryId: newEntry.id,
+            numPreviousTries: 0,
           });
         }
         for (const comparisonModel of dataset.enabledComparisonModels) {
           await generateTestSetEntry.enqueue({
             modelId: comparisonModel,
             datasetEntryId: newEntry.id,
+            numPreviousTries: 0,
           });
         }
       }
@@ -594,6 +596,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       z.object({
         datasetId: z.string(),
         filters: filtersSchema,
+        visibleModelIds: z.string().array(),
         page: z.number(),
         pageSize: z.number(),
         sortOrder: z
@@ -606,7 +609,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { datasetId, filters, page, pageSize, sortOrder } = input;
+      const { datasetId, filters, visibleModelIds, page, pageSize, sortOrder } = input;
 
       const dataset = await prisma.dataset.findUnique({
         where: {
@@ -673,7 +676,8 @@ export const datasetEntriesRouter = createTRPCRouter({
                 "inputTokens",
                 "outputTokens",
               ])
-              .whereRef("ftte.datasetEntryId", "=", "de.id"),
+              .whereRef("ftte.datasetEntryId", "=", "de.id")
+              .where("ftte.modelId", "in", visibleModelIds),
           ).as("fineTuneTestDatasetEntries"),
           jsonArrayFrom(
             eb
@@ -684,8 +688,19 @@ export const datasetEntriesRouter = createTRPCRouter({
                 "deos.id",
                 "der.datasetEvalOutputSourceId",
               )
+              .leftJoin(
+                "DatasetEvalOutputSource as comparisonDeos",
+                "comparisonDeos.id",
+                "der.comparisonOutputSourceId",
+              )
               .select(["der.score", "der.status", "deos.datasetEvalId", "deos.modelId"])
-              .whereRef("der.datasetEvalDatasetEntryId", "=", "dede.id"),
+              .whereRef("der.datasetEvalDatasetEntryId", "=", "dede.id")
+              .where((eb) =>
+                eb.or([
+                  eb("der.comparisonOutputSourceId", "is", null),
+                  eb("comparisonDeos.modelId", "in", visibleModelIds),
+                ]),
+              ),
           ).as("datasetEvalResults"),
         ])
         .orderBy("de.sortKey", "desc")
@@ -713,9 +728,16 @@ export const datasetEntriesRouter = createTRPCRouter({
       };
     }),
   testingStats: protectedProcedure
-    .input(z.object({ datasetId: z.string(), filters: filtersSchema, modelId: z.string() }))
+    .input(
+      z.object({
+        datasetId: z.string(),
+        filters: filtersSchema,
+        modelId: z.string(),
+        visibleModelIds: z.string().array(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const { datasetId, filters, modelId } = input;
+      const { datasetId, filters, modelId, visibleModelIds } = input;
 
       const dataset = await prisma.dataset.findUnique({
         where: {
@@ -757,6 +779,17 @@ export const datasetEntriesRouter = createTRPCRouter({
                   "der.datasetEvalOutputSourceId",
                 )
                 .where("deos.modelId", "=", modelId)
+                .leftJoin(
+                  "DatasetEvalOutputSource as comparisonDeos",
+                  "comparisonDeos.id",
+                  "der.comparisonOutputSourceId",
+                )
+                .where((eb) =>
+                  eb.or([
+                    eb("der.comparisonOutputSourceId", "is", null),
+                    eb("comparisonDeos.modelId", "in", visibleModelIds),
+                  ]),
+                )
                 .select((eb) => [
                   "dede.datasetEntryId as datasetEntryId",
                   eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval`),

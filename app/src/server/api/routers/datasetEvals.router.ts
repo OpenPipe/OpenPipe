@@ -341,7 +341,14 @@ export const datasetEvalsRouter = createTRPCRouter({
     }),
 
   getHeadToHeadComparisonDetails: protectedProcedure
-    .input(z.object({ datasetEvalId: z.string(), datasetEntryId: z.string(), modelId: z.string() }))
+    .input(
+      z.object({
+        datasetEvalId: z.string(),
+        datasetEntryId: z.string(),
+        modelId: z.string(),
+        visibleModelIds: z.string().array(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.findUniqueOrThrow({
         where: {
@@ -374,7 +381,7 @@ export const datasetEvalsRouter = createTRPCRouter({
 
       await requireCanViewProject(datasetEvalDatasetEntry.datasetEntry.dataset.projectId, ctx);
 
-      const entries = await kysely
+      const entry = await kysely
         .selectFrom("DatasetEvalDatasetEntry as dede")
         .where("dede.datasetEvalId", "=", input.datasetEvalId)
         .where("dede.datasetEntryId", "=", input.datasetEntryId)
@@ -398,6 +405,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         )
         .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
         .select((eb) => [
+          "de.messages as messages",
           "deos.modelId",
           "ftte.output as output",
           "ft.slug as slug",
@@ -416,6 +424,7 @@ export const datasetEvalsRouter = createTRPCRouter({
                 "comparisonDeos.id",
                 "comparisonDer.datasetEvalOutputSourceId",
               )
+              .where("comparisonDeos.modelId", "in", input.visibleModelIds)
               .leftJoin("FineTuneTestingEntry as comparisonFtte", (join) =>
                 join
                   .on("comparisonFtte.datasetEntryId", "=", input.datasetEntryId)
@@ -434,9 +443,7 @@ export const datasetEvalsRouter = createTRPCRouter({
               ]),
           ).as("comparisonResults"),
         ])
-        .execute();
-
-      const entry = entries[0];
+        .executeTakeFirst();
 
       if (!entry) {
         throw new TRPCError({

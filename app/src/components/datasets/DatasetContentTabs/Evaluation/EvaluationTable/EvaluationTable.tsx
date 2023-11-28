@@ -1,15 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Card, Grid, HStack, Box, Text } from "@chakra-ui/react";
 
-import { useDataset, useTestingEntries } from "~/utils/hooks";
+import { useTestingEntries } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
-import { ORIGINAL_OUTPUT_COLUMN_KEY } from "../ColumnVisibilityDropdown";
-import { useVisibleOutputColumns } from "../useVisibleOutputColumns";
-import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
+import { useVisibleModelIds } from "../useVisibleModelIds";
 
 const EvaluationTable = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
-  const dataset = useDataset().data;
   const entries = useTestingEntries(refetchInterval).data;
 
   useEffect(
@@ -17,29 +14,7 @@ const EvaluationTable = () => {
     [entries?.pageIncomplete],
   );
 
-  const { visibleColumns } = useVisibleOutputColumns();
-
-  const [showOriginalOutput, visibleModelIds] = useMemo(() => {
-    const showOriginalOutput =
-      !visibleColumns.length || visibleColumns.includes(ORIGINAL_OUTPUT_COLUMN_KEY);
-    const combinedColumnIds: string[] = [];
-
-    if (!dataset?.enabledComparisonModels || !dataset?.deployedFineTunes)
-      return [showOriginalOutput, combinedColumnIds];
-
-    combinedColumnIds.push(
-      ...dataset.enabledComparisonModels.filter(
-        (cm) => !visibleColumns.length || visibleColumns.includes(COMPARISON_MODEL_NAMES[cm]),
-      ),
-    );
-    combinedColumnIds.push(
-      ...dataset.deployedFineTunes
-        .filter((ft) => !visibleColumns.length || visibleColumns.includes(ft.slug))
-        .map((ft) => ft.id),
-    );
-    return [showOriginalOutput, combinedColumnIds];
-  }, [dataset?.enabledComparisonModels, dataset?.deployedFineTunes, visibleColumns]);
-  const numOutputColumns = visibleModelIds.length + (showOriginalOutput ? 1 : 0);
+  const { visibleModelIds } = useVisibleModelIds();
 
   if (!entries) return null;
 
@@ -48,7 +23,7 @@ const EvaluationTable = () => {
       <Card flex={1} minW="fit-content" variant="outline">
         <Grid
           display="grid"
-          gridTemplateColumns={`minmax(600px, 1fr) repeat(${numOutputColumns}, 480px)`}
+          gridTemplateColumns={`minmax(600px, 1fr) repeat(${visibleModelIds.length}, 480px)`}
           sx={{
             "> *": {
               borderColor: "gray.300",
@@ -56,14 +31,9 @@ const EvaluationTable = () => {
             },
           }}
         >
-          <TableHeader showOriginalOutput={showOriginalOutput} visibleModelIds={visibleModelIds} />
+          <TableHeader />
           {entries.entries.map((entry) => (
-            <EvaluationRow
-              key={entry.id}
-              entry={entry}
-              showOriginalOutput={showOriginalOutput}
-              visibleModelIds={visibleModelIds}
-            />
+            <EvaluationRow key={entry.id} entry={entry} />
           ))}
           {!entries.entries.length && (
             <Box gridColumn="1 / -1" textAlign="center" py={6}>

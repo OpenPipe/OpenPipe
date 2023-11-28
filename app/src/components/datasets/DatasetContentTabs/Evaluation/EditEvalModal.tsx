@@ -33,6 +33,9 @@ import { useAppStore } from "~/state/store";
 import DeleteEvalDialog from "./DeleteEvalDialog";
 import InfoCircle from "~/components/InfoCircle";
 import { getOutputTitle } from "./getOutputTitle";
+import { useVisibleEvalIds } from "./useVisibleEvalIds";
+import { useFilters } from "~/components/Filters/useFilters";
+import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
 
 const EditEvalModal = () => {
   const utils = api.useContext();
@@ -91,6 +94,8 @@ const EditEvalModal = () => {
 
   useEffect(() => reset(), [datasetEval, reset]);
 
+  const ensureEvalShown = useVisibleEvalIds().ensureEvalShown;
+  const addFilter = useFilters().addFilter;
   const saveMutation = api.datasetEvals.update.useMutation();
 
   const [onSaveConfirm, saveInProgress] = useHandledAsyncCallback(async () => {
@@ -117,10 +122,20 @@ const EditEvalModal = () => {
     await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
 
+    ensureEvalShown(datasetEvalIdToEdit);
+    addFilter({
+      id: Date.now().toString(),
+      field: EvaluationFiltersDefaultFields.EvalApplied,
+      comparator: "=",
+      value: datasetEvalIdToEdit,
+    });
+
     setDatasetEvalIdToEdit(null);
     setComparisonCriteria(null);
   }, [
     saveMutation,
+    ensureEvalShown,
+    addFilter,
     dataset?.id,
     datasetEvalIdToEdit,
     setDatasetEvalIdToEdit,
