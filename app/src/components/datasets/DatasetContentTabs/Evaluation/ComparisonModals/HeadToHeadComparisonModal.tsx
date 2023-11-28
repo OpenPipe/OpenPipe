@@ -346,9 +346,11 @@ const SelectedComparisonTable = ({ datasetEntry }: { datasetEntry: ComparisonEnt
               position="absolute"
               w="full"
               bottom={0}
+              left={0}
               h={16}
               background="linear-gradient(to bottom, transparent, white)"
               pointerEvents="none"
+              borderBottomLeftRadius={8}
             />
           )}
         </GridItem>
@@ -361,9 +363,11 @@ const SelectedComparisonTable = ({ datasetEntry }: { datasetEntry: ComparisonEnt
               position="absolute"
               w="full"
               bottom={0}
+              left={0}
               h={16}
               background="linear-gradient(to bottom, transparent, white)"
               pointerEvents="none"
+              borderBottomRightRadius={8}
             />
           )}
         </GridItem>
