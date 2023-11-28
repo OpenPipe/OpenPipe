@@ -459,12 +459,14 @@ export const datasetEntriesRouter = createTRPCRouter({
           await generateTestSetEntry.enqueue({
             modelId: fineTune.id,
             datasetEntryId: newEntry.id,
+            numPreviousTries: 0,
           });
         }
         for (const comparisonModel of dataset.enabledComparisonModels) {
           await generateTestSetEntry.enqueue({
             modelId: comparisonModel,
             datasetEntryId: newEntry.id,
+            numPreviousTries: 0,
           });
         }
       }

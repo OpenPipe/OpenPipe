@@ -19,7 +19,7 @@ const MAX_AUTO_RETRIES = 50;
 const MIN_DELAY = 500; // milliseconds
 const MAX_DELAY = 15000; // milliseconds
 
-function calculateDelay(numPreviousTries: number): number {
+export function calculateQueryDelay(numPreviousTries: number): number {
   const baseDelay = Math.min(MAX_DELAY, MIN_DELAY * Math.pow(2, numPreviousTries));
   const jitter = Math.random() * baseDelay;
   return baseDelay + jitter;
@@ -135,7 +135,7 @@ export const queryModel = defineTask<QueryModelJob>({
       await runEvalsForOutput(variant.experimentId, scenario, modelResponse, prompt.modelProvider);
     } else {
       const shouldRetry = response.autoRetry && numPreviousTries < MAX_AUTO_RETRIES;
-      const delay = calculateDelay(numPreviousTries);
+      const delay = calculateQueryDelay(numPreviousTries);
       const retryTime = new Date(Date.now() + delay);
 
       await prisma.modelResponse.update({

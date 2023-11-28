@@ -235,7 +235,7 @@ const ComparisonRow = ({
             !expandable
               ? innerOutputHeight
               : outputExpanded
-              ? innerOutputHeight + 2 * VERTICAL_PADDING
+              ? innerOutputHeight + 160
               : explanationHeight + VERTICAL_PADDING
           }
           transition="height 0.5s ease-in-out"

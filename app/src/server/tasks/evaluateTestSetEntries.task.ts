@@ -12,94 +12,118 @@ import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
+import { calculateQueryDelay } from "./queryModel.task";
 
 export type EvaluateTestSetEntriesJob = {
   firstResultId: string;
   secondResultId: string;
+  numPreviousTries: number;
 };
+
+const MAX_TRIES = 25;
 
 const JUDGEMENT_OPTIONS = ["ALICE_BETTER", "EQUAL", "BOB_BETTER"] as const;
 
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
   handler: async (task) => {
-    const { firstResultId, secondResultId } = task;
+    try {
+      const { firstResultId, secondResultId } = task;
 
-    const [firstResult, secondResult] = await prisma.datasetEvalResult.findMany({
-      where: {
-        id: {
-          in: [firstResultId, secondResultId],
-        },
-      },
-      include: {
-        datasetEvalDatasetEntry: {
-          include: {
-            datasetEntry: {
-              include: {
-                dataset: true,
-              },
-            },
-            datasetEval: true,
+      const [firstResult, secondResult] = await prisma.datasetEvalResult.findMany({
+        where: {
+          id: {
+            in: [firstResultId, secondResultId],
           },
         },
-        datasetEvalOutputSource: true,
-      },
-    });
-
-    if (
-      !firstResult ||
-      !secondResult ||
-      (firstResult.status !== "PENDING" &&
-        firstResult.status !== "ERROR" &&
-        secondResult.status !== "PENDING" &&
-        secondResult.status !== "ERROR")
-    )
-      return;
-
-    await prisma.datasetEvalResult.updateMany({
-      where: {
-        id: {
-          in: [firstResult.id, secondResult.id],
+        include: {
+          datasetEvalDatasetEntry: {
+            include: {
+              datasetEntry: {
+                include: {
+                  dataset: true,
+                },
+              },
+              datasetEval: true,
+            },
+          },
+          datasetEvalOutputSource: true,
         },
-      },
-      data: {
-        status: "IN_PROGRESS",
-        errorMessage: null,
-      },
-    });
+      });
 
-    const entries = [];
-    const entryIds = [];
+      if (
+        !firstResult ||
+        !secondResult ||
+        (firstResult.status !== "PENDING" &&
+          firstResult.status !== "ERROR" &&
+          secondResult.status !== "PENDING" &&
+          secondResult.status !== "ERROR")
+      )
+        return;
 
-    for (const result of [firstResult, secondResult]) {
-      try {
-        let entry;
-        if (result.datasetEvalOutputSource.modelId !== ORIGINAL_MODEL_ID) {
-          entry = await prisma.fineTuneTestingEntry.findUniqueOrThrow({
+      await prisma.datasetEvalResult.updateMany({
+        where: {
+          id: {
+            in: [firstResult.id, secondResult.id],
+          },
+        },
+        data: {
+          status: "IN_PROGRESS",
+          errorMessage: null,
+        },
+      });
+
+      const entries = [];
+      const entryIds = [];
+
+      for (const result of [firstResult, secondResult]) {
+        try {
+          let entry;
+          if (result.datasetEvalOutputSource.modelId !== ORIGINAL_MODEL_ID) {
+            entry = await prisma.fineTuneTestingEntry.findUniqueOrThrow({
+              where: {
+                modelId_datasetEntryId: {
+                  modelId: result.datasetEvalOutputSource.modelId,
+                  datasetEntryId: result.datasetEvalDatasetEntry.datasetEntryId,
+                },
+              },
+              include: {
+                fineTune: true,
+              },
+            });
+            if (isComparisonModel(entry.modelId)) {
+              entryIds.push(getComparisonModelName(entry.modelId));
+            } else if (entry.fineTune) {
+              entryIds.push("openpipe:" + entry.fineTune.slug);
+            } else {
+              throw new Error("No fineTune or comparison model found for entry");
+            }
+          } else {
+            entry = result.datasetEvalDatasetEntry.datasetEntry;
+            entryIds.push("the original model");
+          }
+          entries.push(entry);
+        } catch (e) {
+          console.error("error getting entry for result", result, e);
+          await prisma.datasetEvalResult.updateMany({
             where: {
-              modelId_datasetEntryId: {
-                modelId: result.datasetEvalOutputSource.modelId,
-                datasetEntryId: result.datasetEvalDatasetEntry.datasetEntryId,
+              id: {
+                in: [firstResult.id, secondResult.id],
               },
             },
-            include: {
-              fineTune: true,
+            data: {
+              status: "ERROR",
+              errorMessage: "Error retrieving relevant input for evaluation",
             },
           });
-          if (isComparisonModel(entry.modelId)) {
-            entryIds.push(getComparisonModelName(entry.modelId));
-          } else if (entry.fineTune) {
-            entryIds.push("openpipe:" + entry.fineTune.slug);
-          } else {
-            throw new Error("No fineTune or comparison model found for entry");
-          }
-        } else {
-          entry = result.datasetEvalDatasetEntry.datasetEntry;
-          entryIds.push("the original model");
+          return;
         }
-        entries.push(entry);
-      } catch (e) {
-        console.error("error getting entry for result", result, e);
+      }
+
+      const [firstEntry, secondEntry] = entries;
+      const [firstEntryId, secondEntryId] = entryIds;
+
+      if (!firstEntry?.output || !secondEntry?.output || !firstEntryId || !secondEntryId) {
         await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
@@ -108,117 +132,123 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           },
           data: {
             status: "ERROR",
-            errorMessage: "Error retrieving relevant input for evaluation",
+            errorMessage: "Error preparing for evaluation",
           },
         });
         return;
       }
-    }
 
-    const [firstEntry, secondEntry] = entries;
-    const [firstEntryId, secondEntryId] = entryIds;
+      let explanation;
+      let judgement;
 
-    if (!firstEntry?.output || !secondEntry?.output || !firstEntryId || !secondEntryId) {
-      await prisma.datasetEvalResult.updateMany({
-        where: {
-          id: {
-            in: [firstResult.id, secondResult.id],
+      const instructions = firstResult.datasetEvalDatasetEntry.datasetEval.instructions;
+
+      let args;
+
+      try {
+        const input = constructJudgementInput(
+          firstResult.datasetEvalDatasetEntry.datasetEntry,
+          firstEntry.output as JsonObject,
+          secondEntry.output as JsonObject,
+          instructions,
+        );
+
+        const response = await getOpenaiCompletion(
+          firstResult.datasetEvalDatasetEntry.datasetEntry.dataset.projectId,
+          input,
+        );
+
+        args = response.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
+
+        if (!args) throw new Error("No arguments returned" + JSON.stringify(response));
+
+        const jsonArgs = JSON.parse(args);
+        const parsedArgs = functionParamsSchema.parse(jsonArgs);
+
+        explanation = parsedArgs.explanation;
+        judgement = parsedArgs.judgement;
+      } catch (e) {
+        console.error("error getting judgement", args, e);
+        captureException(e, { extra: { args } });
+        await prisma.datasetEvalResult.updateMany({
+          where: {
+            id: {
+              in: [firstResult.id, secondResult.id],
+            },
           },
+          data: {
+            status: "ERROR",
+            errorMessage: "Error getting judgement",
+          },
+        });
+        throw e;
+      }
+
+      explanation = explanation.replaceAll("Alice", firstEntryId).replaceAll("Bob", secondEntryId);
+
+      let score1, score2;
+
+      switch (judgement) {
+        case "ALICE_BETTER":
+          score1 = 1;
+          score2 = 0;
+          break;
+        case "EQUAL":
+          score1 = 0.5;
+          score2 = 0.5;
+          break;
+        case "BOB_BETTER":
+          score1 = 0;
+          score2 = 1;
+          break;
+      }
+
+      await prisma.datasetEvalResult.update({
+        where: {
+          id: firstResult.id,
         },
         data: {
-          status: "ERROR",
-          errorMessage: "Error preparing for evaluation",
+          status: "COMPLETE",
+          explanation,
+          score: score1,
         },
       });
+
+      await prisma.datasetEvalResult.update({
+        where: {
+          id: secondResult.id,
+        },
+        data: {
+          status: "COMPLETE",
+          explanation,
+          score: score2,
+        },
+      });
+    } catch (e) {
+      console.error("error in evaluateTestSetEntries", e);
+      if (task.numPreviousTries < MAX_TRIES) {
+        await evaluateTestSetEntries.enqueue(
+          {
+            ...task,
+            numPreviousTries: task.numPreviousTries + 1,
+          },
+          { runAt: new Date(Date.now() + calculateQueryDelay(task.numPreviousTries)), priority: 3 },
+        );
+      } else {
+        await prisma.datasetEvalResult.updateMany({
+          where: {
+            id: {
+              in: [task.firstResultId, task.secondResultId],
+            },
+          },
+          data: {
+            status: "ERROR",
+            errorMessage: "Unable to evaluate test set entries",
+          },
+        });
+      }
       return;
     }
-
-    let explanation;
-    let judgement;
-
-    const instructions = firstResult.datasetEvalDatasetEntry.datasetEval.instructions;
-
-    let args;
-
-    try {
-      const input = constructJudgementInput(
-        firstResult.datasetEvalDatasetEntry.datasetEntry,
-        firstEntry.output as JsonObject,
-        secondEntry.output as JsonObject,
-        instructions,
-      );
-
-      const response = await getOpenaiCompletion(
-        firstResult.datasetEvalDatasetEntry.datasetEntry.dataset.projectId,
-        input,
-      );
-
-      args = response.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
-
-      if (!args) throw new Error("No arguments returned" + JSON.stringify(response));
-
-      const jsonArgs = JSON.parse(args);
-      const parsedArgs = functionParamsSchema.parse(jsonArgs);
-
-      explanation = parsedArgs.explanation;
-      judgement = parsedArgs.judgement;
-    } catch (e) {
-      console.error("error getting judgement", args, e);
-      captureException(e, { extra: { args } });
-      await prisma.datasetEvalResult.updateMany({
-        where: {
-          id: {
-            in: [firstResult.id, secondResult.id],
-          },
-        },
-        data: {
-          status: "ERROR",
-          errorMessage: "Error getting judgement",
-        },
-      });
-      throw e;
-    }
-
-    explanation = explanation.replaceAll("Alice", firstEntryId).replaceAll("Bob", secondEntryId);
-
-    let score1, score2;
-
-    switch (judgement) {
-      case "ALICE_BETTER":
-        score1 = 1;
-        score2 = 0;
-        break;
-      case "EQUAL":
-        score1 = 0.5;
-        score2 = 0.5;
-        break;
-      case "BOB_BETTER":
-        score1 = 0;
-        score2 = 1;
-        break;
-    }
-
-    await prisma.datasetEvalResult.update({
-      where: {
-        id: firstResult.id,
-      },
-      data: {
-        status: "COMPLETE",
-        explanation,
-        score: score1,
-      },
-    });
-
-    await prisma.datasetEvalResult.update({
-      where: {
-        id: secondResult.id,
-      },
-      data: {
-        status: "COMPLETE",
-        explanation,
-        score: score2,
-      },
-    });
   },
   specDefaults: {
     priority: 5,
@@ -365,6 +395,7 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
       jobsToEnqueue.push({
         firstResultId,
         secondResultId,
+        numPreviousTries: 0,
       });
     }
   }
@@ -431,6 +462,7 @@ export const queueEvalJobsForEval = async (datasetEvalId: string) => {
         jobsToEnqueue.push({
           firstResultId,
           secondResultId,
+          numPreviousTries: 0,
         });
       }
     }
