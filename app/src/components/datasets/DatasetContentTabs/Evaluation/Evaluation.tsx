@@ -3,7 +3,7 @@ import { VStack, HStack, Box, Text } from "@chakra-ui/react";
 import { FiFilter } from "react-icons/fi";
 
 import EvaluationTable from "./EvaluationTable/EvaluationTable";
-import ColumnVisibilityDropdown from "./ColumnVisibilityDropdown";
+import ModelVisibilityDropdown from "./ModelVisibilityDropdown";
 import ActionButton from "~/components/ActionButton";
 import EvaluationFilters from "./EvaluationFilters";
 import { useTestingEntries } from "~/utils/hooks";
@@ -29,7 +29,7 @@ const Evaluation = () => {
     <>
       <VStack px={8} position="sticky" left={0} w="full" alignItems="flex-start" pb={4} zIndex={5}>
         <HStack w="full">
-          <ColumnVisibilityDropdown />
+          <ModelVisibilityDropdown />
           <EvalVisibilityDropdown />
           <ActionButton
             onClick={() => {

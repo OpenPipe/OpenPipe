@@ -21,13 +21,17 @@ export const useVisibleModelIds = () => {
     return modelIds;
   }, [dataset]);
 
-  const ensureModelShown = (modelId: string) => {
-    if (visibleModelIds.length === 0 || visibleModelIds.includes(modelId)) return;
-    if (visibleModelIds.includes(EMPTY_MODELS_KEY)) {
-      setVisibleModelIds([modelId]);
-    } else {
-      setVisibleModelIds([...visibleModelIds, modelId]);
+  const ensureModelsShown = (modelIdsToShow: string[]) => {
+    let newVisibleModelIds = [...visibleModelIds];
+    for (const modelId of modelIdsToShow) {
+      if (newVisibleModelIds.includes(modelId) || newVisibleModelIds.length === 0) continue;
+      if (newVisibleModelIds.includes(EMPTY_MODELS_KEY)) {
+        newVisibleModelIds = [modelId];
+      } else if (!newVisibleModelIds.includes(modelId)) {
+        newVisibleModelIds.push(modelId);
+      }
     }
+    setVisibleModelIds(newVisibleModelIds);
   };
 
   const toggleModelVisiblity = (modelId: string) => {
@@ -70,7 +74,7 @@ export const useVisibleModelIds = () => {
   return {
     visibleModelIds: completeVisibleModelIds,
     toggleModelVisiblity,
-    ensureModelShown,
+    ensureModelsShown,
   };
 };
 

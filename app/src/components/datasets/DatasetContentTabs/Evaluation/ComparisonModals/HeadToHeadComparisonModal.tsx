@@ -87,7 +87,7 @@ const HeadToHeadComparisonModal = () => {
             </VStack>
             <Grid
               display="grid"
-              gridTemplateColumns={`200px 200px 1fr 2fr`}
+              gridTemplateColumns={`200px 200px 1fr 1fr`}
               borderWidth={1}
               borderColor="gray.300"
               borderRadius={8}
@@ -217,7 +217,11 @@ const ComparisonRow = ({
       </GridItem>
       <GridItem {...topBorderProps} {...leftBorderProps}>
         <Box ref={explanationRef}>
-          <Text>{result.explanation}</Text>
+          {result.errorMessage ? (
+            <Text color="red.500">{result.errorMessage}</Text>
+          ) : (
+            <Text>{result.explanation}</Text>
+          )}
         </Box>
       </GridItem>
       <GridItem {...topBorderProps} {...leftBorderProps}>

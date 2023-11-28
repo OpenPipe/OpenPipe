@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Icon,
   Popover,
@@ -13,27 +13,22 @@ import {
 } from "@chakra-ui/react";
 import { BiCheck } from "react-icons/bi";
 import { BsPlusSquare, BsToggles } from "react-icons/bs";
-import { ComparisonModel } from "@prisma/client";
 
 import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleModelIds } from "./useVisibleModelIds";
-import AddComparisonModelDialog from "./AddComparisonModelDialog";
+import ConfigureComparisonModelsModal from "./ConfigureComparisonModelsModal";
 import { getOutputTitle } from "./getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 
 export const EMPTY_OUTPUT_COLUMNS_KEY = "empty";
 
-const ColumnVisibilityDropdown = () => {
-  const { visibleModelIds, toggleModelVisiblity, ensureModelShown } = useVisibleModelIds();
+const ModelVisibilityDropdown = () => {
+  const { visibleModelIds, toggleModelVisiblity } = useVisibleModelIds();
   const dataset = useDataset().data;
 
   const popover = useDisclosure();
-  const addComparisonModelDialog = useDisclosure();
-
-  const [comparisonModelIdToAdd, setComparisonModelIdToAdd] = useState<ComparisonModel | null>(
-    null,
-  );
+  const configureComparisonModelsModal = useDisclosure();
 
   const columnVisibilityOptions = useMemo(() => {
     const options: { label: string; key: string }[] = [
@@ -103,42 +98,29 @@ const ColumnVisibilityDropdown = () => {
                 </Box>
               </HStack>
             ))}
-            {!dataset?.enabledComparisonModels.includes(ComparisonModel.GPT_3_5_TURBO) && (
-              <HStack
-                as={Button}
-                w="full"
-                minH={10}
-                variant="ghost"
-                justifyContent="space-between"
-                fontWeight="semibold"
-                borderRadius={0}
-                colorScheme="orange"
-                color="black"
-                fontSize="sm"
-                borderBottomWidth={1}
-                onClick={() => {
-                  setComparisonModelIdToAdd(ComparisonModel.GPT_3_5_TURBO);
-                  addComparisonModelDialog.onOpen();
-                }}
-              >
-                <Text mr={4}>Add gpt-3.5-turbo comparison</Text>
-                <Icon as={BsPlusSquare} color="orange.400" boxSize={5} />
-              </HStack>
-            )}
+            <HStack
+              as={Button}
+              w="full"
+              minH={10}
+              variant="ghost"
+              justifyContent="space-between"
+              fontWeight="semibold"
+              borderRadius={0}
+              colorScheme="orange"
+              color="black"
+              fontSize="sm"
+              borderBottomWidth={1}
+              onClick={configureComparisonModelsModal.onOpen}
+            >
+              <Text mr={4}>Configure comparison models</Text>
+              <Icon as={BsPlusSquare} color="orange.400" boxSize={5} />
+            </HStack>
           </VStack>
         </PopoverContent>
       </Popover>
-      <AddComparisonModelDialog
-        modelId={comparisonModelIdToAdd}
-        disclosure={addComparisonModelDialog}
-        onClose={() => {
-          addComparisonModelDialog.onClose();
-          if (comparisonModelIdToAdd) ensureModelShown(comparisonModelIdToAdd);
-          setComparisonModelIdToAdd(null);
-        }}
-      />
+      <ConfigureComparisonModelsModal disclosure={configureComparisonModelsModal} />
     </>
   );
 };
 
-export default ColumnVisibilityDropdown;
+export default ModelVisibilityDropdown;

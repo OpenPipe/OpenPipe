@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { sql } from "kysely";
-import { ComparisonModel } from "@prisma/client";
+import type { ComparisonModel } from "@prisma/client";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
@@ -10,33 +10,43 @@ import { generateBlobUploadUrl } from "~/utils/azure/server";
 import { importDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
 import { env } from "~/env.mjs";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
+import { comparisonModels } from "~/utils/baseModels";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    const dataset = await prisma.dataset.findUniqueOrThrow({
-      where: { id: input.id },
-      include: {
-        project: true,
-        fineTunes: {
-          where: {
-            status: "DEPLOYED",
+    const [dataset, numTestDatasetEntries] = await prisma.$transaction([
+      prisma.dataset.findUniqueOrThrow({
+        where: { id: input.id },
+        include: {
+          project: true,
+          fineTunes: {
+            where: {
+              status: "DEPLOYED",
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
           },
-          orderBy: {
-            createdAt: "desc",
+          datasetEvals: {
+            orderBy: {
+              createdAt: "desc",
+            },
           },
         },
-        datasetEvals: {
-          orderBy: {
-            createdAt: "desc",
-          },
+      }),
+      prisma.datasetEntry.count({
+        where: {
+          datasetId: input.id,
+          outdated: false,
+          split: "TEST",
         },
-      },
-    });
+      }),
+    ]);
 
     await requireCanViewProject(dataset.projectId, ctx);
 
     const { fineTunes, ...rest } = dataset;
-    return { deployedFineTunes: fineTunes, ...rest };
+    return { deployedFineTunes: fineTunes, numTestDatasetEntries, ...rest };
   }),
   list: protectedProcedure
     .input(z.object({ projectId: z.string() }))
@@ -88,7 +98,9 @@ export const datasetsRouter = createTRPCRouter({
         id: z.string(),
         updates: z.object({
           name: z.string().optional(),
-          enabledComparisonModels: z.array(z.enum([ComparisonModel.GPT_3_5_TURBO])).optional(),
+          enabledComparisonModels: z
+            .array(z.enum(comparisonModels as [ComparisonModel, ...ComparisonModel[]]))
+            .optional(),
         }),
       }),
     )
