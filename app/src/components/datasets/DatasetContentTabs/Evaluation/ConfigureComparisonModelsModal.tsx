@@ -120,8 +120,8 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
                     p={4}
                   >
                     <Text>
-                      Outputs from selected models will be computed for your current{" "}
-                      <b>{dataset.numTestDatasetEntries}</b> and all future test entries.
+                      Outputs from selected models will be computed for your{" "}
+                      <b>{dataset.numTestDatasetEntries}</b> current and all future test entries.
                     </Text>
                   </VStack>
                   <VStack alignItems="flex-start">
