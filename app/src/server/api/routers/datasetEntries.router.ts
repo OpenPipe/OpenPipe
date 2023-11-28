@@ -54,52 +54,33 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const baseQuery = constructDatasetEntryFiltersQuery(filters, datasetId);
 
-      const entries = (
-        await baseQuery
-          .select((eb) => [
-            "de.id as id",
-            "de.messages as messages",
-            "de.output as output",
-            "de.inputTokens as inputTokens",
-            "de.outputTokens as outputTokens",
-            "de.split as split",
-            "de.sortKey as sortKey",
-            "de.authoringUserId as authoringUserId",
-            "de.persistentId as persistentId",
-            "de.createdAt as createdAt",
-            "de.updatedAt as updatedAt",
-            "de.outdated as outdated",
-            "de.datasetId as datasetId",
-            jsonArrayFrom(
-              eb
-                .selectFrom("RelabelRequest as rr")
-                .select(["rr.status"])
-                .orderBy("rr.createdAt", "desc")
-                .whereRef("rr.datasetEntryPersistentId", "=", "de.persistentId"),
-            ).as("relabelStatuses"),
-            jsonArrayFrom(
-              eb
-                .selectFrom("PruningRuleMatch as prm")
-                .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
-                .select(["pr.textToMatch", "pr.tokensInText"])
-                .whereRef("prm.datasetEntryId", "=", "de.id"),
-            ).as("matchedRules"),
-          ])
-          .orderBy("de.sortKey", "desc")
-          .limit(pageSize)
-          .offset((page - 1) * pageSize)
-          .execute()
-      ).map((entry) => ({
-        ...entry,
-        inputTokens: entry.inputTokens
-          ? entry.inputTokens -
-            entry.matchedRules.reduce((acc, match) => acc + (match.tokensInText ?? 0), 0)
-          : null,
-        matchedRules: entry.matchedRules.map((match) => ({
-          textToMatch: match.textToMatch as string,
-          tokensInText: match.tokensInText as number,
-        })),
-      }));
+      const entries = await baseQuery
+        .select((eb) => [
+          "de.id as id",
+          "de.messages as messages",
+          "de.output as output",
+          "de.inputTokens as inputTokens",
+          "de.outputTokens as outputTokens",
+          "de.split as split",
+          "de.sortKey as sortKey",
+          "de.authoringUserId as authoringUserId",
+          "de.persistentId as persistentId",
+          "de.createdAt as createdAt",
+          "de.updatedAt as updatedAt",
+          "de.outdated as outdated",
+          "de.datasetId as datasetId",
+          jsonArrayFrom(
+            eb
+              .selectFrom("RelabelRequest as rr")
+              .select(["rr.status"])
+              .orderBy("rr.createdAt", "desc")
+              .whereRef("rr.datasetEntryPersistentId", "=", "de.persistentId"),
+          ).as("relabelStatuses"),
+        ])
+        .orderBy("de.sortKey", "desc")
+        .limit(pageSize)
+        .offset((page - 1) * pageSize)
+        .execute();
 
       const matchingEntryIds = await baseQuery
         .select("de.id")

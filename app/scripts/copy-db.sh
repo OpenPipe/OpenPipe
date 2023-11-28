@@ -107,4 +107,3 @@ report_progress "Restoring data to dev database..."
 pg_restore -v --no-owner --no-privileges -d openpipe-dev --format=d --jobs=8 --data-only --disable-triggers "$CACHE_DIR"
 
 report_progress "Database copy complete."
-```
