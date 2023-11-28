@@ -41,7 +41,7 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
 
   const [selectedModels, setSelectedModels] = useState<ComparisonModel[]>([]);
 
-  const ensureModelsShown = useVisibleModelIds().ensureModelsShown;
+  const ensureCorrectModelsShown = useVisibleModelIds().ensureCorrectModelsShown;
 
   const reset = useCallback(() => {
     setSelectedModels(dataset?.enabledComparisonModels ?? []);
@@ -71,7 +71,7 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
 
-    ensureModelsShown(modelsToEnable);
+    ensureCorrectModelsShown(modelsToEnable, modelsToDisable);
 
     disclosure.onClose();
   }, [

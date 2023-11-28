@@ -21,7 +21,7 @@ export const useVisibleModelIds = () => {
     return modelIds;
   }, [dataset]);
 
-  const ensureModelsShown = (modelIdsToShow: string[]) => {
+  const ensureCorrectModelsShown = (modelIdsToShow: string[], modelIdsToRemove: string[]) => {
     let newVisibleModelIds = [...visibleModelIds];
     for (const modelId of modelIdsToShow) {
       if (newVisibleModelIds.includes(modelId) || newVisibleModelIds.length === 0) continue;
@@ -29,6 +29,15 @@ export const useVisibleModelIds = () => {
         newVisibleModelIds = [modelId];
       } else if (!newVisibleModelIds.includes(modelId)) {
         newVisibleModelIds.push(modelId);
+      }
+    }
+    // Remove any models that are no longer in the dataset.
+    for (const modelId of modelIdsToRemove) {
+      if (!newVisibleModelIds.includes(modelId)) continue;
+      if (newVisibleModelIds.length === 1) {
+        newVisibleModelIds = [EMPTY_MODELS_KEY];
+      } else {
+        newVisibleModelIds = newVisibleModelIds.filter((id) => id !== modelId);
       }
     }
     setVisibleModelIds(newVisibleModelIds);
@@ -64,17 +73,19 @@ export const useVisibleModelIds = () => {
     }
   };
 
-  let completeVisibleModelIds = visibleModelIds;
+  let completeVisibleModelIds: string[] = [];
   if (visibleModelIds.includes(EMPTY_MODELS_KEY)) {
     completeVisibleModelIds = [];
   } else if (visibleModelIds.length === 0) {
     completeVisibleModelIds = allModelIds;
+  } else {
+    completeVisibleModelIds = allModelIds.filter((id) => visibleModelIds.includes(id));
   }
 
   return {
     visibleModelIds: completeVisibleModelIds,
     toggleModelVisiblity,
-    ensureModelsShown,
+    ensureCorrectModelsShown,
   };
 };
 

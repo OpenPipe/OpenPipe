@@ -130,8 +130,6 @@ const HeadToHeadComparisonModal = () => {
   );
 };
 
-const VERTICAL_PADDING = 32;
-
 const leftBorderProps = {
   borderLeftWidth: 1,
   borderColor: "gray.300",
@@ -146,7 +144,7 @@ const ComparisonsHeader = () => (
     </GridItem>
     <GridItem {...leftBorderProps}>
       <Text fontSize="xs" fontWeight="bold" color="gray.500">
-        OUTCOME
+        RESULT
       </Text>
     </GridItem>
     <GridItem {...leftBorderProps}>
@@ -164,6 +162,9 @@ const ComparisonsHeader = () => (
 
 type ComparisonResult =
   RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"]["comparisonResults"][number];
+
+const VERTICAL_PADDING = 32;
+const MIN_EXPANDABLE_HEIGHT = 200;
 
 const ComparisonRow = ({
   selectedOutputTitle,
@@ -189,7 +190,9 @@ const ComparisonRow = ({
   }, [explanationRef, outputRef, setInnerOutputHeight]);
 
   const [outputExpanded, setOutputExpanded] = useState(false);
-  const expandable = innerOutputHeight > explanationHeight + VERTICAL_PADDING;
+  const expandable =
+    innerOutputHeight > explanationHeight + VERTICAL_PADDING &&
+    innerOutputHeight > MIN_EXPANDABLE_HEIGHT;
 
   const comparisonText = useMemo(() => {
     if (result.status === "PENDING") return <Text color="gray.500">PENDING</Text>;
@@ -232,7 +235,7 @@ const ComparisonRow = ({
             !expandable
               ? innerOutputHeight
               : outputExpanded
-              ? innerOutputHeight + 120
+              ? innerOutputHeight + 2 * VERTICAL_PADDING
               : explanationHeight + VERTICAL_PADDING
           }
           transition="height 0.5s ease-in-out"
