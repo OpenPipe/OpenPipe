@@ -405,6 +405,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         )
         .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
         .select((eb) => [
+          "de.messages as messages",
           "deos.modelId",
           "ftte.output as output",
           "ft.slug as slug",

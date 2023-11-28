@@ -21,6 +21,7 @@ import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import EvalResults from "./EvalResults";
 import FormattedMessage from "../FormattedMessage";
 import { useVisibleModelIds } from "../useVisibleModelIds";
+import FormattedDatasetEntryInput from "../FormattedInput";
 
 export const TableHeader = () => {
   const visibleModelIds = useVisibleModelIds().visibleModelIds;
@@ -144,14 +145,7 @@ const FormattedInputGridItem = ({
       transition="height 0.5s ease-in-out"
     >
       <VStack ref={inputRef} alignItems="flex-start" spacing={8}>
-        {(entry.messages as unknown as ChatCompletionMessage[]).map((message, index) => (
-          <VStack key={index} alignItems="flex-start" w="full">
-            <Text fontWeight="bold" color="gray.500">
-              {message.role}
-            </Text>
-            <FormattedMessage message={message} />
-          </VStack>
-        ))}
+        <FormattedDatasetEntryInput messages={entry.messages} />
         <Text color="gray.500">
           <Text as="span" fontWeight="bold">
             ID:
