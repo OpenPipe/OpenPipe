@@ -59,7 +59,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
         )}
         <HStack>
           {modelId !== ORIGINAL_MODEL_ID && stats.finishedCount < entries.count && (
-            <Text>
+            <Text fontSize="xs">
               {stats.finishedCount}/{entries.count}
             </Text>
           )}

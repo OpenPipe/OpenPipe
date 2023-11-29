@@ -18,11 +18,10 @@ import {
 } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
-import type { ChatCompletionMessage } from "openai/resources/chat";
 
 import { type RouterOutputs, api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import FormattedMessage from "../FormattedMessage";
+import { PotentiallyPendingFormattedMessage } from "../FormattedMessage";
 import { isNumber } from "lodash-es";
 import { getOutputTitle } from "../getOutputTitle";
 import { useVisibleModelIds } from "../useVisibleModelIds";
@@ -244,11 +243,7 @@ const ComparisonRow = ({
           overflow="hidden"
         >
           <Box ref={outputRef}>
-            {result.output ? (
-              <FormattedMessage message={result.output as unknown as ChatCompletionMessage} />
-            ) : (
-              <Text as="i">Pending</Text>
-            )}
+            <PotentiallyPendingFormattedMessage output={result.output} />
           </Box>
           {expandable && (
             <VStack position="absolute" bottom={0} w="full" spacing={0}>
@@ -356,7 +351,7 @@ const SelectedComparisonTable = ({ datasetEntry }: { datasetEntry: ComparisonEnt
         </GridItem>
         <GridItem position="relative" {...contentProps} {...leftBorderProps} {...topBorderProps}>
           <Box ref={outputRef}>
-            <FormattedMessage message={datasetEntry.output as unknown as ChatCompletionMessage} />
+            <PotentiallyPendingFormattedMessage output={datasetEntry.output} />
           </Box>
           {expandable && !expanded && (
             <Box
