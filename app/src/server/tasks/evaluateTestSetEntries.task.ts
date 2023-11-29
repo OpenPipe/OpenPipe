@@ -14,9 +14,18 @@ import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 import { calculateQueryDelay } from "./queryModel.task";
 
+// Accept result criteria instead of ids to recover from duplicate result creation attempts
 export type EvaluateTestSetEntriesJob = {
-  firstResultId: string;
-  secondResultId: string;
+  firstResultCriteria: {
+    datasetEvalOutputSourceId: string;
+    datasetEvalDatasetEntryId: string;
+    comparisonOutputSourceId: string | null;
+  };
+  secondResultCriteria: {
+    datasetEvalOutputSourceId: string;
+    datasetEvalDatasetEntryId: string;
+    comparisonOutputSourceId: string | null;
+  };
   numPreviousTries: number;
 };
 
@@ -27,14 +36,14 @@ const JUDGEMENT_OPTIONS = ["ALICE_BETTER", "EQUAL", "BOB_BETTER"] as const;
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
   handler: async (task) => {
-    try {
-      const { firstResultId, secondResultId } = task;
+    const { firstResultCriteria, secondResultCriteria } = task;
 
-      const [firstResult, secondResult] = await prisma.datasetEvalResult.findMany({
+    const [firstResult, secondResult] = await prisma.$transaction([
+      prisma.datasetEvalResult.findFirst({
         where: {
-          id: {
-            in: [firstResultId, secondResultId],
-          },
+          datasetEvalOutputSourceId: firstResultCriteria.datasetEvalOutputSourceId,
+          datasetEvalDatasetEntryId: firstResultCriteria.datasetEvalDatasetEntryId,
+          comparisonOutputSourceId: firstResultCriteria.comparisonOutputSourceId,
         },
         include: {
           datasetEvalDatasetEntry: {
@@ -49,18 +58,40 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           },
           datasetEvalOutputSource: true,
         },
-      });
+      }),
+      prisma.datasetEvalResult.findFirst({
+        where: {
+          datasetEvalOutputSourceId: secondResultCriteria.datasetEvalOutputSourceId,
+          datasetEvalDatasetEntryId: secondResultCriteria.datasetEvalDatasetEntryId,
+          comparisonOutputSourceId: secondResultCriteria.comparisonOutputSourceId,
+        },
+        include: {
+          datasetEvalDatasetEntry: {
+            include: {
+              datasetEntry: {
+                include: {
+                  dataset: true,
+                },
+              },
+              datasetEval: true,
+            },
+          },
+          datasetEvalOutputSource: true,
+        },
+      }),
+    ]);
 
-      if (
-        !firstResult ||
-        !secondResult ||
-        (firstResult.status !== "PENDING" &&
-          firstResult.status !== "ERROR" &&
-          secondResult.status !== "PENDING" &&
-          secondResult.status !== "ERROR")
-      )
-        return;
+    if (
+      !firstResult ||
+      !secondResult ||
+      (firstResult.status !== "PENDING" &&
+        firstResult.status !== "ERROR" &&
+        secondResult.status !== "PENDING" &&
+        secondResult.status !== "ERROR")
+    )
+      return;
 
+    try {
       await prisma.datasetEvalResult.updateMany({
         where: {
           id: {
@@ -121,9 +152,23 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       }
 
       const [firstEntry, secondEntry] = entries;
-      const [firstEntryId, secondEntryId] = entryIds;
+      if (!firstEntry?.output || !secondEntry?.output) {
+        // This job will be retried when the output is available
+        await prisma.datasetEvalResult.updateMany({
+          where: {
+            id: {
+              in: [firstResult.id, secondResult.id],
+            },
+          },
+          data: {
+            status: "PENDING",
+          },
+        });
+        return;
+      }
 
-      if (!firstEntry?.output || !secondEntry?.output || !firstEntryId || !secondEntryId) {
+      const [firstEntryId, secondEntryId] = entryIds;
+      if (!firstEntryId || !secondEntryId) {
         await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
@@ -238,7 +283,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
-              in: [task.firstResultId, task.secondResultId],
+              in: [firstResult.id, secondResult.id],
             },
           },
           data: {
@@ -343,6 +388,8 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
     .where("eval.type", "=", "HEAD_TO_HEAD")
     .innerJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEvalId", "eval.id")
     .where("dede.datasetEntryId", "=", testingEntry.datasetEntryId)
+    .innerJoin("DatasetEntry as de", "de.id", "dede.datasetEntryId")
+    .where("de.outdated", "=", false)
     .select((eb) => [
       "dede.id as datasetEvalDatasetEntryId",
       jsonArrayFrom(
@@ -393,8 +440,16 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
         comparisonOutputSourceId: outputSource.id,
       });
       jobsToEnqueue.push({
-        firstResultId,
-        secondResultId,
+        firstResultCriteria: {
+          datasetEvalOutputSourceId: outputSource.id,
+          datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
+          comparisonOutputSourceId: comparisonSource.id,
+        },
+        secondResultCriteria: {
+          datasetEvalOutputSourceId: comparisonSource.id,
+          datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
+          comparisonOutputSourceId: outputSource.id,
+        },
         numPreviousTries: 0,
       });
     }
@@ -410,15 +465,16 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
 };
 
 export const queueEvalJobsForEval = async (datasetEvalId: string) => {
-  console.log("queueEvalJobsForEval", datasetEvalId);
   const datasetEvals = await kysely
     .selectFrom("DatasetEval as eval")
     .where("eval.id", "=", datasetEvalId)
     .select((eb) => [
       jsonArrayFrom(
         eb
-          .selectFrom("DatasetEvalDatasetEntry")
-          .select(["id", "datasetEvalId"])
+          .selectFrom("DatasetEvalDatasetEntry as dede")
+          .innerJoin("DatasetEntry", "DatasetEntry.id", "dede.datasetEntryId")
+          .where("DatasetEntry.outdated", "=", false)
+          .select(["dede.id", "dede.datasetEvalId"])
           .whereRef("datasetEvalId", "=", "eval.id"),
       ).as("datasetEvalDatasetEntries"),
       jsonArrayFrom(
@@ -460,8 +516,16 @@ export const queueEvalJobsForEval = async (datasetEvalId: string) => {
           comparisonOutputSourceId: firstOutputSource.id,
         });
         jobsToEnqueue.push({
-          firstResultId,
-          secondResultId,
+          firstResultCriteria: {
+            datasetEvalOutputSourceId: firstOutputSource.id,
+            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+            comparisonOutputSourceId: secondOutputSource.id,
+          },
+          secondResultCriteria: {
+            datasetEvalOutputSourceId: secondOutputSource.id,
+            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+            comparisonOutputSourceId: firstOutputSource.id,
+          },
           numPreviousTries: 0,
         });
       }

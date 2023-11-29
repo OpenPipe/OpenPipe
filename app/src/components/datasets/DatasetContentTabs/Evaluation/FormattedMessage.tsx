@@ -1,6 +1,18 @@
 import { Text, VStack } from "@chakra-ui/react";
+import type { DatasetEntry } from "@prisma/client";
 import type { ChatCompletionMessageToolCall, ChatCompletionMessage } from "openai/resources/chat";
 import SyntaxHighlighter from "react-syntax-highlighter";
+
+export const PotentiallyPendingFormattedMessage = ({
+  output,
+}: {
+  output: DatasetEntry["output"];
+}) => {
+  if (output) {
+    return <FormattedMessage message={output as unknown as ChatCompletionMessage} />;
+  }
+  return <Text color="gray.500">Pending</Text>;
+};
 
 const FormattedMessage = ({ message }: { message: ChatCompletionMessage }) => {
   if (message.tool_calls) {
