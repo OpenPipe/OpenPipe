@@ -32,9 +32,7 @@ const EvalHeaderPill = ({
 }) => {
   const dataset = useDataset().data;
   const stats = useModelTestingStats(dataset?.id, modelId).data;
-  const setDatasetEvalIdToEdit = useAppStore(
-    (state) => state.evaluationsSlice.setDatasetEvalIdToEdit,
-  );
+  const setDatasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.setShowEvalModalId);
   const toggleEvalVisiblity = useVisibleEvalIds().toggleEvalVisiblity;
   const addFilter = useFilters().addFilter;
 
@@ -83,6 +81,7 @@ const EvalHeaderPill = ({
           >
             <Text fontWeight="bold" color="gray.500">
               {datasetEval.name}
+              {datasetEval.type === "HEAD_TO_HEAD" && " WR"}
             </Text>
             {isNumber(modelEvalStats.score) && <ColoredPercent value={modelEvalStats.score} />}
             {modelEvalStats.numPending && (

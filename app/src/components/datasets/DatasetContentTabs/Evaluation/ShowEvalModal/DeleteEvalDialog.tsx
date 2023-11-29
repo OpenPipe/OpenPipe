@@ -28,7 +28,7 @@ const DeleteEvalDialog = ({
   onConfirm: () => void;
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const datasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.datasetEvalIdToEdit);
+  const showEvalModalId = useAppStore((state) => state.evaluationsSlice.showEvalModalId);
   const dataset = useDataset().data;
 
   const deleteMutation = api.datasetEvals.delete.useMutation();
@@ -36,14 +36,14 @@ const DeleteEvalDialog = ({
   const utils = api.useContext();
 
   const [onDeleteConfirm, deleteInProgress] = useHandledAsyncCallback(async () => {
-    if (!datasetEvalIdToEdit) return;
-    const resp = await deleteMutation.mutateAsync({ id: datasetEvalIdToEdit });
+    if (!showEvalModalId) return;
+    const resp = await deleteMutation.mutateAsync({ id: showEvalModalId });
     if (maybeReportError(resp)) return;
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset?.id });
     await utils.datasets.get.invalidate();
 
     onConfirm();
-  }, [deleteMutation, datasetEvalIdToEdit, dataset?.id, onConfirm]);
+  }, [deleteMutation, showEvalModalId, dataset?.id, onConfirm]);
 
   return (
     <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onCancel}>
