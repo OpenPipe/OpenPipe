@@ -32,10 +32,8 @@ const HeadToHeadComparisonModal = () => {
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
-  const datasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.datasetEvalIdToEdit);
-  const setDatasetEvalIdToEdit = useAppStore(
-    (state) => state.evaluationsSlice.setDatasetEvalIdToEdit,
-  );
+  const datasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.showEvalModalId);
+  const setDatasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.setShowEvalModalId);
 
   const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD" && !datasetEvalIdToEdit;
   const onClose = () => setComparisonCriteria(null);

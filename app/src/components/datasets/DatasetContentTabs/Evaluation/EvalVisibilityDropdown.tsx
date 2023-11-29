@@ -137,9 +137,7 @@ const EvalVisibilityDropdown = () => {
 const EditableEvalOption = ({ option }: { option: Option }) => {
   const { visibleEvalIds, toggleEvalVisiblity } = useVisibleEvalIds();
 
-  const setDatasetEvalIdToEdit = useAppStore(
-    (state) => state.evaluationsSlice.setDatasetEvalIdToEdit,
-  );
+  const setDatasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.setShowEvalModalId);
 
   const [toggleHovered, setToggleHovered] = useState(false);
   return (

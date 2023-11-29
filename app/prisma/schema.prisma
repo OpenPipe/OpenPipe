@@ -705,7 +705,8 @@ model DatasetEvalDatasetEntry {
     @@unique([datasetEvalId, datasetEntryId])
 }
 
-// Used to record whether the original output and which comparison and fine-tuned models should be evaluated for a given dataset eval
+// Used to record whether the original output and which comparison and
+// fine-tuned models should be evaluated for a given dataset eval
 model DatasetEvalOutputSource {
     id String @id @default(uuid()) @db.Uuid
 

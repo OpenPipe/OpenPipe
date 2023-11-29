@@ -10,6 +10,7 @@ import { shuffle } from "lodash-es";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { TRPCError } from "@trpc/server";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { sql } from "kysely";
 
 export const datasetEvalsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -117,7 +118,7 @@ export const datasetEvalsRouter = createTRPCRouter({
             datasetEvalDatasetEntries: true,
           },
         });
-        console.log("datasetEval", datasetEval);
+
         await queueEvalJobsForEval(datasetEval.id);
       } catch (e) {
         console.error("Failed to create dataset eval:", (e as { message: string }).message);
@@ -468,5 +469,52 @@ export const datasetEvalsRouter = createTRPCRouter({
         datasetEval: datasetEvalDatasetEntry.datasetEval,
         originalOutput: datasetEvalDatasetEntry?.datasetEntry?.output,
       };
+    }),
+
+  results: protectedProcedure
+    .input(z.object({ datasetEvalId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const datasetEval = await prisma.datasetEval.findUniqueOrThrow({
+        where: { id: input.datasetEvalId },
+        include: { dataset: { select: { projectId: true } } },
+      });
+      await requireCanViewProject(datasetEval.dataset.projectId, ctx);
+
+      const baseQuery = kysely
+        .selectFrom("DatasetEvalOutputSource as deos")
+        .innerJoin("DatasetEvalResult as der", "der.datasetEvalOutputSourceId", "deos.id")
+        .innerJoin("DatasetEvalDatasetEntry as dede", "dede.id", "der.datasetEvalDatasetEntryId")
+        .innerJoin("DatasetEntry as de", "de.id", "dede.datasetEntryId")
+        .leftJoin("FineTune as ft", (join) => join.onRef(sql`ft.id::text`, "=", "deos.modelId"))
+        .where("de.outdated", "=", false)
+        .where("dede.datasetEvalId", "=", input.datasetEvalId)
+        .select((eb) => [
+          "deos.modelId as modelId1",
+          "ft.slug as slug1",
+          eb.fn.avg<number>("der.score").as("winRate"),
+          sql<number>`count(case when der.score = 1 then 1 end)::int`.as("wins"),
+          sql<number>`count(case when der.score = .5 then 1 end)::int`.as("ties"),
+          sql<number>`count(case when der.score = 0 then 1 end)::int`.as("losses"),
+        ]);
+
+      const [leaderboard, headToHead] = await Promise.all([
+        baseQuery.groupBy(["modelId1", "slug1"]).orderBy("winRate", "desc").execute(),
+
+        baseQuery
+          .innerJoin("DatasetEvalResult as der2", "der2.id", "der.comparisonResultId")
+          .innerJoin(
+            "DatasetEvalOutputSource as deos2",
+            "deos2.id",
+            "der2.datasetEvalOutputSourceId",
+          )
+          .leftJoin("FineTune as ft2", (join) =>
+            join.onRef(sql`ft2.id::text`, "=", "deos2.modelId"),
+          )
+          .select(["deos2.modelId as modelId2", "ft2.slug as slug2"])
+          .groupBy(["modelId1", "slug1", "modelId2", "slug2"])
+          .execute(),
+      ]);
+
+      return { leaderboard, headToHead };
     }),
 });

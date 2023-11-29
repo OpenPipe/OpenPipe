@@ -6,16 +6,20 @@ import { useRouter, type NextRouter } from "next/router";
 const ContentTabs = ({
   tabs,
   headerProps,
+  trackTabInUrl = true,
 }: {
   tabs: { key: string; title: string; component: React.ReactElement }[];
   headerProps?: StackProps;
+  trackTabInUrl?: boolean;
 }) => {
   const [borderPosition, setBorderPosition] = useState({ left: "0", width: "0" });
   const headersRef = useRef<{ [key: string]: HTMLButtonElement }>({});
 
   const router = useRouter();
   const activeTabParam = router.query.tab as string;
-  const activeTabKey = activeTabParam || tabs[0]?.key || "";
+  const [activeTabState, setActiveTabState] = useState(tabs[0]?.key || "");
+
+  const activeTabKey = trackTabInUrl ? activeTabParam || tabs[0]?.key || "" : activeTabState;
 
   useEffect(() => {
     const activeTab = headersRef.current[activeTabKey];
@@ -27,6 +31,14 @@ const ContentTabs = ({
     }
   }, [activeTabKey]);
 
+  const handleTabChange = (newTabKey: string) => {
+    if (trackTabInUrl) {
+      setActiveTab(newTabKey, router);
+    } else {
+      setActiveTabState(newTabKey);
+    }
+  };
+
   return (
     <>
       <VStack w="full" alignItems="flex-start" spacing={0} pb={8} {...headerProps}>
@@ -36,7 +48,7 @@ const ContentTabs = ({
               key={tab.key}
               title={tab.title}
               isSelected={activeTabKey === tab.key}
-              onClick={() => setActiveTab(tab.key, router)}
+              onClick={() => handleTabChange(tab.key)}
               ref={(el) => {
                 if (el) headersRef.current[tab.key] = el;
               }}
@@ -86,8 +98,6 @@ export default ContentTabs;
 
 export const setActiveTab = (newTabKey: string, router: NextRouter) => {
   const id = router.query.id as string;
-
-  // Extract the base path without the dynamic segments
   const basePath = router.pathname.split("/").slice(0, -2).join("/") as "datasets";
 
   void router.push(

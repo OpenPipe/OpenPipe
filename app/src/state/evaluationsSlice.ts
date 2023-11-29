@@ -12,8 +12,8 @@ type ComparisonCriteria = {
 export type EvaluationsSlice = {
   comparisonCriteria: ComparisonCriteria | null;
   setComparisonCriteria: (criteria: ComparisonCriteria | null) => void;
-  datasetEvalIdToEdit: string | null;
-  setDatasetEvalIdToEdit: (id: string | null) => void;
+  showEvalModalId: string | null;
+  setShowEvalModalId: (id: string | null) => void;
   resetEvaluationsSlice: () => void;
 };
 
@@ -23,14 +23,14 @@ export const createEvaluationsSlice: SliceCreator<EvaluationsSlice> = (set) => (
     set((state) => {
       state.evaluationsSlice.comparisonCriteria = criteria;
     }),
-  datasetEvalIdToEdit: null,
-  setDatasetEvalIdToEdit: (id) =>
+  showEvalModalId: null,
+  setShowEvalModalId: (id) =>
     set((state) => {
-      state.evaluationsSlice.datasetEvalIdToEdit = id;
+      state.evaluationsSlice.showEvalModalId = id;
     }),
   resetEvaluationsSlice: () =>
     set((state) => {
       state.evaluationsSlice.comparisonCriteria = null;
-      state.evaluationsSlice.datasetEvalIdToEdit = null;
+      state.evaluationsSlice.showEvalModalId = null;
     }),
 });
