@@ -35,22 +35,22 @@ export const ResultsTab = () => {
         <Thead>
           <Tr>
             <Th>Model</Th>
-            <Th>Wins</Th>
-            <Th>Ties</Th>
-            <Th>Losses</Th>
             <Th isNumeric>Win Rate</Th>
+            <Th isNumeric>Wins</Th>
+            <Th isNumeric>Ties</Th>
+            <Th isNumeric>Losses</Th>
           </Tr>
         </Thead>
         <Tbody>
           {results?.leaderboard.map((model) => (
             <Tr key={model.modelId1}>
               <Td>{getOutputTitle(model.modelId1, model.slug1)}</Td>
-              <Td>{model.wins}</Td>
-              <Td>{model.ties}</Td>
-              <Td>{model.losses}</Td>
               <Td isNumeric>
                 <ColoredPercent value={model.winRate} />
               </Td>
+              <Td isNumeric>{model.wins}</Td>
+              <Td isNumeric>{model.ties}</Td>
+              <Td isNumeric>{model.losses}</Td>
             </Tr>
           ))}
         </Tbody>
@@ -64,8 +64,10 @@ export const ResultsTab = () => {
   );
 };
 
+const boxSize = "32px";
+
 const Heatmap = (props: { results: RouterOutputs["datasetEvals"]["results"] }) => {
-  const colors = useToken("colors", ["red.600", "white", "blue.600"]);
+  const colors = useToken("colors", ["red.300", "white", "blue.300"]);
   // Create a color scale
   const colorScale = chroma.scale(colors).mode("lrgb");
 
@@ -115,19 +117,19 @@ const Heatmap = (props: { results: RouterOutputs["datasetEvals"]["results"] }) =
           </Text>
           {labels.map((model2) => {
             const result = headToHead[model1.modelId1]?.[model2.modelId1];
-            if (!result) return <Box key={model2.modelId1} width="32px" height="32px" />;
+            if (!result) return <Box key={model2.modelId1} boxSize={boxSize} />;
             return (
               <Box
                 key={model2.modelId1}
                 bg={colorScale(result.winRate).hex()}
-                width="32px"
-                height="32px"
+                boxSize={boxSize}
                 textAlign="center"
-                lineHeight="32px"
-                fontSize="sm"
+                lineHeight={boxSize}
+                fontSize="xs"
+                fontWeight="bold"
                 borderRadius="md"
               >
-                {result.winRate.toFixed(2)}
+                {result.winRate?.toFixed(2)}
               </Box>
             );
           })}
