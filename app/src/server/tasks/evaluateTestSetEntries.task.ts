@@ -253,6 +253,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           status: "COMPLETE",
           explanation,
           score: score1,
+          wasFirst: true,
         },
       });
 
@@ -262,6 +263,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           status: "COMPLETE",
           explanation,
           score: score2,
+          wasFirst: false,
         },
       });
     } catch (e) {
