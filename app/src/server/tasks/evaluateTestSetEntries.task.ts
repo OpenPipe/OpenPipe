@@ -14,6 +14,7 @@ import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 import { calculateQueryDelay } from "./queryModel.task";
 import { isEqual } from "lodash-es";
+import { chatCompletionMessage } from "~/types/shared.types";
 
 // Accept result criteria instead of ids to recover from duplicate result creation attempts
 export type EvaluateTestSetEntriesJob = {
@@ -184,7 +185,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         return;
       }
 
-      if (isEqual(firstEntry.output, secondEntry.output)) {
+      if (outputsAreEqual(firstEntry.output, secondEntry.output)) {
         await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
@@ -193,7 +194,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           },
           data: {
             status: "COMPLETE",
-            explanation: "The outputs are identical",
+            explanation: "The outputs are identical.",
             score: 0.5,
           },
         });
@@ -378,6 +379,33 @@ const constructJudgementInput = (
   }
 
   return input;
+};
+
+const outputsAreEqual = (
+  firstOutput: DatasetEntry["output"],
+  secondOutput: DatasetEntry["output"],
+) => {
+  try {
+    const typedFirstOutput = chatCompletionMessage.parse(firstOutput);
+    const typedSecondOutput = chatCompletionMessage.parse(secondOutput);
+
+    typedFirstOutput.tool_calls = typedFirstOutput.tool_calls?.map((call) => ({
+      ...call,
+      // Remove ids, which are not relevant to the comparison
+      id: "",
+      // Ignore differences in the serialization of arguments
+      function: { ...call.function, arguments: JSON.parse(call.function.arguments) },
+    }));
+    typedSecondOutput.tool_calls = typedSecondOutput.tool_calls?.map((call) => ({
+      ...call,
+      id: "",
+      function: { ...call.function, arguments: JSON.parse(call.function.arguments) },
+    }));
+
+    return isEqual(typedFirstOutput, typedSecondOutput);
+  } catch {
+    return false;
+  }
 };
 
 const formatDatasetEntryInputInstructions = (datasetEntry: DatasetEntry) => {
