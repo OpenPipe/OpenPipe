@@ -13,73 +13,52 @@ import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 import { calculateQueryDelay } from "./queryModel.task";
-import { isEqual } from "lodash-es";
+import { isEqual, shuffle } from "lodash-es";
 import { chatCompletionMessage } from "~/types/shared.types";
+import { truthyFilter } from "~/utils/utils";
+
+type EvalKey = {
+  datasetEvalDatasetEntryId: string;
+  firstOutputSourceId: string;
+  secondOutputSourceId: string;
+};
 
 // Accept result criteria instead of ids to recover from duplicate result creation attempts
-export type EvaluateTestSetEntriesJob = {
-  firstResultCriteria: {
-    datasetEvalOutputSourceId: string;
-    datasetEvalDatasetEntryId: string;
-    comparisonOutputSourceId: string | null;
-  };
-  secondResultCriteria: {
-    datasetEvalOutputSourceId: string;
-    datasetEvalDatasetEntryId: string;
-    comparisonOutputSourceId: string | null;
-  };
-  numPreviousTries: number;
+export type EvaluateTestSetEntriesJob = EvalKey & {
+  numPreviousTries?: number;
 };
 
 const MAX_TRIES = 25;
 
-const JUDGEMENT_OPTIONS = ["ALICE_BETTER", "EQUAL", "BOB_BETTER"] as const;
-
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
   handler: async (task) => {
-    const { firstResultCriteria, secondResultCriteria } = task;
+    const { numPreviousTries = 0 } = task;
 
-    const [firstResult, secondResult] = await prisma.$transaction([
+    const findResult = (criteria: Prisma.DatasetEvalResultWhereInput) =>
       prisma.datasetEvalResult.findFirst({
-        where: {
-          datasetEvalOutputSourceId: firstResultCriteria.datasetEvalOutputSourceId,
-          datasetEvalDatasetEntryId: firstResultCriteria.datasetEvalDatasetEntryId,
-          comparisonOutputSourceId: firstResultCriteria.comparisonOutputSourceId,
-        },
+        where: criteria,
         include: {
           datasetEvalDatasetEntry: {
             include: {
-              datasetEntry: {
-                include: {
-                  dataset: true,
-                },
-              },
+              datasetEntry: { include: { dataset: true } },
               datasetEval: true,
             },
           },
           datasetEvalOutputSource: true,
         },
+      });
+
+    const [firstResult, secondResult] = await Promise.all([
+      findResult({
+        datasetEvalOutputSourceId: task.firstOutputSourceId,
+        datasetEvalDatasetEntryId: task.datasetEvalDatasetEntryId,
+        comparisonOutputSourceId: task.secondOutputSourceId,
       }),
-      prisma.datasetEvalResult.findFirst({
-        where: {
-          datasetEvalOutputSourceId: secondResultCriteria.datasetEvalOutputSourceId,
-          datasetEvalDatasetEntryId: secondResultCriteria.datasetEvalDatasetEntryId,
-          comparisonOutputSourceId: secondResultCriteria.comparisonOutputSourceId,
-        },
-        include: {
-          datasetEvalDatasetEntry: {
-            include: {
-              datasetEntry: {
-                include: {
-                  dataset: true,
-                },
-              },
-              datasetEval: true,
-            },
-          },
-          datasetEvalOutputSource: true,
-        },
+      findResult({
+        datasetEvalOutputSourceId: task.secondOutputSourceId,
+        datasetEvalDatasetEntryId: task.datasetEvalDatasetEntryId,
+        comparisonOutputSourceId: task.firstOutputSourceId,
       }),
     ]);
 
@@ -162,9 +141,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
               in: [firstResult.id, secondResult.id],
             },
           },
-          data: {
-            status: "PENDING",
-          },
+          data: { status: "PENDING" },
         });
         return;
       }
@@ -247,55 +224,57 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         throw e;
       }
 
-      explanation = explanation.replaceAll("Alice", firstEntryId).replaceAll("Bob", secondEntryId);
+      explanation = explanation
+        .replaceAll("response 1", firstEntryId)
+        .replaceAll("Response 1", firstEntryId)
+        .replaceAll("response 2", secondEntryId)
+        .replaceAll("Response 2", secondEntryId);
 
       let score1, score2;
 
       switch (judgement) {
-        case "ALICE_BETTER":
+        case "response 1":
           score1 = 1;
           score2 = 0;
           break;
-        case "EQUAL":
+        case "tie":
           score1 = 0.5;
           score2 = 0.5;
           break;
-        case "BOB_BETTER":
+        case "response 2":
           score1 = 0;
           score2 = 1;
           break;
       }
 
       await prisma.datasetEvalResult.update({
-        where: {
-          id: firstResult.id,
-        },
+        where: { id: firstResult.id },
         data: {
           status: "COMPLETE",
           explanation,
           score: score1,
+          wasFirst: true,
         },
       });
 
       await prisma.datasetEvalResult.update({
-        where: {
-          id: secondResult.id,
-        },
+        where: { id: secondResult.id },
         data: {
           status: "COMPLETE",
           explanation,
           score: score2,
+          wasFirst: false,
         },
       });
     } catch (e) {
       console.error("error in evaluateTestSetEntries", e);
-      if (task.numPreviousTries < MAX_TRIES) {
+      if (numPreviousTries < MAX_TRIES) {
         await evaluateTestSetEntries.enqueue(
           {
             ...task,
-            numPreviousTries: task.numPreviousTries + 1,
+            numPreviousTries: numPreviousTries + 1,
           },
-          { runAt: new Date(Date.now() + calculateQueryDelay(task.numPreviousTries)), priority: 3 },
+          { runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries)), priority: 3 },
         );
       } else {
         await prisma.datasetEvalResult.updateMany({
@@ -321,8 +300,8 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 const functionParamsSchema = z.object({
   explanation: z.string().describe("An explanation of why you chose the response you did"),
   judgement: z
-    .enum(JUDGEMENT_OPTIONS)
-    .describe("Whose response is better in the context of the task?"),
+    .enum(["response 1", "response 2", "tie"])
+    .describe("Which response is better in the context of the task?"),
 });
 
 const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSchema").definitions?.[
@@ -336,12 +315,12 @@ const constructJudgementInput = (
   instructions: string | null,
 ) => {
   const input: ChatCompletionCreateParams = {
-    model: "gpt-4",
+    model: "gpt-4-0613",
     messages: [
       {
         role: "system",
         content:
-          "You are an intelligent and fair judge of chatbots. Evaluate the following two chatbot responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
+          "You are an intelligent and fair judge of chatbots. Evaluate the following two responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
           (instructions
             ? `\n\n The user has provided the following instructions on what you should evaluate the outputs on: ${instructions}`
             : ""),
@@ -352,11 +331,11 @@ const constructJudgementInput = (
       },
       {
         role: "user",
-        content: `This is what Alice said:\n\n${JSON.stringify(firstOutput)}`,
+        content: `This is response 1:\n\n${JSON.stringify(firstOutput)}`,
       },
       {
         role: "user",
-        content: `This is what Bob said:\n\n${JSON.stringify(secondOutput)}`,
+        content: `This is response 2:\n\n${JSON.stringify(secondOutput)}`,
       },
     ],
     tools: [
@@ -413,7 +392,7 @@ const formatDatasetEntryInputInstructions = (datasetEntry: DatasetEntry) => {
   let instructions = "Here is the task that each chatbot was given:\n\nTASK START:\n";
   instructions += JSON.stringify(messages);
   if (tools?.length) {
-    instructions += "\n\nThese are the tools that Alice and Bob were given to use:\n";
+    instructions += "\n\nThese are the tools that the models were given to use:\n";
     instructions += JSON.stringify(tools);
   }
   if (tool_choice) {
@@ -458,8 +437,7 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
     ])
     .execute();
 
-  const datasetEvalResultsToCreate: Prisma.DatasetEvalResultCreateManyInput[] = [];
-  const jobsToEnqueue: EvaluateTestSetEntriesJob[] = [];
+  const evalsToRun: EvalKey[] = [];
 
   for (const datasetEval of evalForDatasetEntry) {
     const outputSource = datasetEval.outputSourcesWithOutput.find(
@@ -468,45 +446,16 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
     if (!outputSource) continue;
     for (const comparisonSource of datasetEval.outputSourcesWithOutput) {
       if (comparisonSource.modelId === testingEntry.modelId) continue;
-      const firstResultId = uuidv4();
-      const secondResultId = uuidv4();
-      datasetEvalResultsToCreate.push({
-        id: firstResultId,
-        datasetEvalOutputSourceId: outputSource.id,
+
+      evalsToRun.push({
         datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-        comparisonResultId: secondResultId,
-        comparisonOutputSourceId: comparisonSource.id,
-      });
-      datasetEvalResultsToCreate.push({
-        id: secondResultId,
-        datasetEvalOutputSourceId: comparisonSource.id,
-        datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-        comparisonResultId: firstResultId,
-        comparisonOutputSourceId: outputSource.id,
-      });
-      jobsToEnqueue.push({
-        firstResultCriteria: {
-          datasetEvalOutputSourceId: outputSource.id,
-          datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-          comparisonOutputSourceId: comparisonSource.id,
-        },
-        secondResultCriteria: {
-          datasetEvalOutputSourceId: comparisonSource.id,
-          datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-          comparisonOutputSourceId: outputSource.id,
-        },
-        numPreviousTries: 0,
+        firstOutputSourceId: outputSource.id,
+        secondOutputSourceId: comparisonSource.id,
       });
     }
   }
-  await prisma.datasetEvalResult.createMany({
-    data: datasetEvalResultsToCreate,
-    skipDuplicates: true,
-  });
 
-  for (const job of jobsToEnqueue) {
-    await evaluateTestSetEntries.enqueue(job);
-  }
+  await queueAllHeadToHeadEvaluations(evalsToRun);
 };
 
 export const queueEvalJobsForEval = async (datasetEvalId: string) => {
@@ -534,55 +483,61 @@ export const queueEvalJobsForEval = async (datasetEvalId: string) => {
   const datasetEval = datasetEvals[0];
   if (!datasetEval) return;
 
-  const datasetEvalResultsToCreate: Prisma.DatasetEvalResultCreateManyInput[] = [];
-  const jobsToEnqueue: EvaluateTestSetEntriesJob[] = [];
+  const evalsToRun: EvalKey[] = [];
 
   for (const datasetEvalDatasetEntry of datasetEval.datasetEvalDatasetEntries) {
     for (let i = 0; i < datasetEval.outputSources.length; i++) {
       for (let j = i + 1; j < datasetEval.outputSources.length; j++) {
-        const firstOutputSource = datasetEval.outputSources[i];
-        const secondOutputSource = datasetEval.outputSources[j];
-        if (!firstOutputSource || !secondOutputSource) continue;
-        const firstResultId = uuidv4();
-        const secondResultId = uuidv4();
-
-        datasetEvalResultsToCreate.push({
-          id: firstResultId,
-          datasetEvalOutputSourceId: firstOutputSource.id,
+        evalsToRun.push({
+          firstOutputSourceId: datasetEval.outputSources[i]?.id as string,
+          secondOutputSourceId: datasetEval.outputSources[j]?.id as string,
           datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-          comparisonResultId: secondResultId,
-          comparisonOutputSourceId: secondOutputSource.id,
-        });
-        datasetEvalResultsToCreate.push({
-          id: secondResultId,
-          datasetEvalOutputSourceId: secondOutputSource.id,
-          datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-          comparisonResultId: firstResultId,
-          comparisonOutputSourceId: firstOutputSource.id,
-        });
-        jobsToEnqueue.push({
-          firstResultCriteria: {
-            datasetEvalOutputSourceId: firstOutputSource.id,
-            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-            comparisonOutputSourceId: secondOutputSource.id,
-          },
-          secondResultCriteria: {
-            datasetEvalOutputSourceId: secondOutputSource.id,
-            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-            comparisonOutputSourceId: firstOutputSource.id,
-          },
-          numPreviousTries: 0,
         });
       }
     }
   }
 
+  await queueAllHeadToHeadEvaluations(evalsToRun);
+};
+
+async function queueAllHeadToHeadEvaluations(evalKeys: EvalKey[]) {
+  const results = evalKeys
+    .map((evalKey) => {
+      const [firstOutputSourceId, secondOutputSourceId] = shuffle([
+        evalKey.firstOutputSourceId,
+        evalKey.secondOutputSourceId,
+      ]);
+      if (!firstOutputSourceId || !secondOutputSourceId) return null;
+
+      return {
+        firstResultId: uuidv4(),
+        secondResultId: uuidv4(),
+        evalKey,
+      };
+    })
+    .filter(truthyFilter);
+
   await prisma.datasetEvalResult.createMany({
-    data: datasetEvalResultsToCreate,
-    skipDuplicates: true,
+    data: results.flatMap((comparison) => [
+      {
+        id: comparison.firstResultId,
+        datasetEvalOutputSourceId: comparison.evalKey.firstOutputSourceId,
+        datasetEvalDatasetEntryId: comparison.evalKey.datasetEvalDatasetEntryId,
+        comparisonResultId: comparison.secondResultId,
+        comparisonOutputSourceId: comparison.evalKey.secondOutputSourceId,
+      },
+      {
+        id: comparison.secondResultId,
+        datasetEvalOutputSourceId: comparison.evalKey.secondOutputSourceId,
+        datasetEvalDatasetEntryId: comparison.evalKey.datasetEvalDatasetEntryId,
+        comparisonResultId: comparison.firstResultId,
+        comparisonOutputSourceId: comparison.evalKey.firstOutputSourceId,
+      },
+    ]),
   });
 
-  for (const job of jobsToEnqueue) {
-    await evaluateTestSetEntries.enqueue(job);
+  // Shuffle so all models get results run at roughly the same rate
+  for (const result of shuffle(results)) {
+    await evaluateTestSetEntries.enqueue(result.evalKey);
   }
-};
+}

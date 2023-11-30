@@ -740,6 +740,10 @@ model DatasetEvalResult {
     errorMessage String?
     status       DatasetEvalResultStatus @default(PENDING)
 
+    // For comparative evaluations, whether this was the first option presented
+    // to the judge
+    wasFirst Boolean?
+
     comparisonResultId String? @db.Uuid // The id of the DatasetEvalResult to compare against
 
     comparisonOutputSourceId String?                  @db.Uuid // The id of the DatasetEvalOutputSource to compare against
