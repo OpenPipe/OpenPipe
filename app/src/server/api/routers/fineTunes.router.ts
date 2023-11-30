@@ -28,15 +28,15 @@ export const fineTunesRouter = createTRPCRouter({
       const fineTunes = await kysely
         .selectFrom("FineTune as ft")
         .where("ft.projectId", "=", projectId)
-        .selectAll()
+        .leftJoin("Dataset as d", "ft.datasetId", "d.id")
+        .selectAll("ft")
         .select(() => [
+          "d.name as datasetName",
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select avg("score") from "FineTuneTestingEntry" where "fineTuneId" = ft.id)`.as(
-            "averageScore",
-          ),
         ])
+        .orderBy("d.createdAt", "desc")
         .orderBy("ft.createdAt", "desc")
         .execute();
 
@@ -83,9 +83,6 @@ export const fineTunesRouter = createTRPCRouter({
           sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
             "numPruningRules",
           ),
-          sql<number>`(select avg("score") from "FineTuneTestingEntry" where "fineTuneId" = ft.id)`.as(
-            "averageScore",
-          ),
         ])
         .orderBy("ft.createdAt", "desc")
         .execute();
@@ -114,9 +111,6 @@ export const fineTunesRouter = createTRPCRouter({
           ),
           sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
             "numPruningRules",
-          ),
-          sql<number>`(select avg("score") from "FineTuneTestingEntry" where "fineTuneId" = ft.id)`.as(
-            "averageScore",
           ),
         ])
         .executeTakeFirst();

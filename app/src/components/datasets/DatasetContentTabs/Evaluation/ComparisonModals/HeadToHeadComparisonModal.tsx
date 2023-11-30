@@ -85,6 +85,7 @@ const HeadToHeadComparisonModal = () => {
             </VStack>
             <Grid
               display="grid"
+              w="full"
               gridTemplateColumns={`200px 200px 1fr 1fr`}
               borderWidth={1}
               borderColor="gray.300"

@@ -1,7 +1,6 @@
 import { Card, VStack, HStack, Text, Button } from "@chakra-ui/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import ColoredPercent from "~/components/ColoredPercent";
 import { setActiveTab } from "~/components/ContentTabs";
 import { getStatusColor } from "~/components/fineTunes/FineTunesTable";
 import { displayBaseModel } from "~/utils/baseModels";
@@ -61,12 +60,9 @@ const Models = () => {
             <HStack>
               <Text w={180}>Test Set Performance</Text>
               {fineTune.status === "DEPLOYED" ? (
-                <ColoredPercent value={fineTune.averageScore} />
+                <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneId={fineTune.id} />
               ) : (
                 <Text color="gray.500">Pending</Text>
-              )}
-              {fineTune.status === "DEPLOYED" && (
-                <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneId={fineTune.id} />
               )}
             </HStack>
             <HStack>

@@ -1,10 +1,10 @@
 import { VStack, HStack, Text, Table, Tbody } from "@chakra-ui/react";
-import Link from "next/link";
 
 import { useFineTune, useTrainingEntries } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";
 import TrainingDataRow, { TableHeader } from "./TrainingDataRow";
 import TrainingDataPaginator from "./TrainingDataPaginator";
+import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 
 const TrainingData = () => {
   const fineTune = useFineTune().data;
@@ -22,11 +22,11 @@ const TrainingData = () => {
             <Text fontWeight="bold" pb={2}>
               Training Data ({count} rows)
             </Text>
-            <Link href={{ pathname: "/datasets/[id]", query: { id: fineTune.datasetId } }}>
-              <Text color="blue.600" px={2}>
-                View Dataset
-              </Text>
-            </Link>
+            <ViewDatasetButton
+              buttonText="View Dataset"
+              datasetId={fineTune.datasetId}
+              fontWeight="500"
+            />
           </HStack>
 
           <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
