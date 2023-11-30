@@ -13,7 +13,7 @@ import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 import { calculateQueryDelay } from "./queryModel.task";
-import { isEqual } from "lodash-es";
+import { isEqual, shuffle } from "lodash-es";
 import { chatCompletionMessage } from "~/types/shared.types";
 
 // Accept result criteria instead of ids to recover from duplicate result creation attempts
@@ -32,8 +32,6 @@ export type EvaluateTestSetEntriesJob = {
 };
 
 const MAX_TRIES = 25;
-
-const JUDGEMENT_OPTIONS = ["ALICE_BETTER", "EQUAL", "BOB_BETTER"] as const;
 
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
@@ -247,29 +245,31 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         throw e;
       }
 
-      explanation = explanation.replaceAll("Alice", firstEntryId).replaceAll("Bob", secondEntryId);
+      explanation = explanation
+        .replaceAll("response 1", firstEntryId)
+        .replaceAll("Response 1", firstEntryId)
+        .replaceAll("response 2", secondEntryId)
+        .replaceAll("Response 2", secondEntryId);
 
       let score1, score2;
 
       switch (judgement) {
-        case "ALICE_BETTER":
+        case "response 1":
           score1 = 1;
           score2 = 0;
           break;
-        case "EQUAL":
+        case "tie":
           score1 = 0.5;
           score2 = 0.5;
           break;
-        case "BOB_BETTER":
+        case "response 2":
           score1 = 0;
           score2 = 1;
           break;
       }
 
       await prisma.datasetEvalResult.update({
-        where: {
-          id: firstResult.id,
-        },
+        where: { id: firstResult.id },
         data: {
           status: "COMPLETE",
           explanation,
@@ -278,9 +278,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       });
 
       await prisma.datasetEvalResult.update({
-        where: {
-          id: secondResult.id,
-        },
+        where: { id: secondResult.id },
         data: {
           status: "COMPLETE",
           explanation,
@@ -321,8 +319,8 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 const functionParamsSchema = z.object({
   explanation: z.string().describe("An explanation of why you chose the response you did"),
   judgement: z
-    .enum(JUDGEMENT_OPTIONS)
-    .describe("Whose response is better in the context of the task?"),
+    .enum(["response 1", "response 2", "tie"])
+    .describe("Which response is better in the context of the task?"),
 });
 
 const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSchema").definitions?.[
@@ -336,12 +334,12 @@ const constructJudgementInput = (
   instructions: string | null,
 ) => {
   const input: ChatCompletionCreateParams = {
-    model: "gpt-4",
+    model: "gpt-4-0613",
     messages: [
       {
         role: "system",
         content:
-          "You are an intelligent and fair judge of chatbots. Evaluate the following two chatbot responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
+          "You are an intelligent and fair judge of LLMs. Evaluate the following two responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
           (instructions
             ? `\n\n The user has provided the following instructions on what you should evaluate the outputs on: ${instructions}`
             : ""),
@@ -352,11 +350,11 @@ const constructJudgementInput = (
       },
       {
         role: "user",
-        content: `This is what Alice said:\n\n${JSON.stringify(firstOutput)}`,
+        content: `This is response 1:\n\n${JSON.stringify(firstOutput)}`,
       },
       {
         role: "user",
-        content: `This is what Bob said:\n\n${JSON.stringify(secondOutput)}`,
+        content: `This is response 2:\n\n${JSON.stringify(secondOutput)}`,
       },
     ],
     tools: [
@@ -413,7 +411,7 @@ const formatDatasetEntryInputInstructions = (datasetEntry: DatasetEntry) => {
   let instructions = "Here is the task that each chatbot was given:\n\nTASK START:\n";
   instructions += JSON.stringify(messages);
   if (tools?.length) {
-    instructions += "\n\nThese are the tools that Alice and Bob were given to use:\n";
+    instructions += "\n\nThese are the tools that the models were given to use:\n";
     instructions += JSON.stringify(tools);
   }
   if (tool_choice) {
@@ -540,8 +538,10 @@ export const queueEvalJobsForEval = async (datasetEvalId: string) => {
   for (const datasetEvalDatasetEntry of datasetEval.datasetEvalDatasetEntries) {
     for (let i = 0; i < datasetEval.outputSources.length; i++) {
       for (let j = i + 1; j < datasetEval.outputSources.length; j++) {
-        const firstOutputSource = datasetEval.outputSources[i];
-        const secondOutputSource = datasetEval.outputSources[j];
+        const [firstOutputSource, secondOutputSource] = shuffle([
+          datasetEval.outputSources[i],
+          datasetEval.outputSources[j],
+        ]);
         if (!firstOutputSource || !secondOutputSource) continue;
         const firstResultId = uuidv4();
         const secondResultId = uuidv4();
@@ -582,7 +582,7 @@ export const queueEvalJobsForEval = async (datasetEvalId: string) => {
     skipDuplicates: true,
   });
 
-  for (const job of jobsToEnqueue) {
+  for (const job of shuffle(jobsToEnqueue)) {
     await evaluateTestSetEntries.enqueue(job);
   }
 };
