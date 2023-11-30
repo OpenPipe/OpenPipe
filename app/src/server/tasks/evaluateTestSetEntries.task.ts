@@ -13,6 +13,7 @@ import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 import { calculateQueryDelay } from "./queryModel.task";
+import { isEqual } from "lodash-es";
 
 // Accept result criteria instead of ids to recover from duplicate result creation attempts
 export type EvaluateTestSetEntriesJob = {
@@ -178,6 +179,22 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           data: {
             status: "ERROR",
             errorMessage: "Error preparing for evaluation",
+          },
+        });
+        return;
+      }
+
+      if (isEqual(firstEntry.output, secondEntry.output)) {
+        await prisma.datasetEvalResult.updateMany({
+          where: {
+            id: {
+              in: [firstResult.id, secondResult.id],
+            },
+          },
+          data: {
+            status: "COMPLETE",
+            explanation: "The outputs are identical",
+            score: 0.5,
           },
         });
         return;
