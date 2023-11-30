@@ -61,12 +61,9 @@ const Models = () => {
             <HStack>
               <Text w={180}>Test Set Performance</Text>
               {fineTune.status === "DEPLOYED" ? (
-                <ColoredPercent value={fineTune.averageScore} />
+                <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneId={fineTune.id} />
               ) : (
                 <Text color="gray.500">Pending</Text>
-              )}
-              {fineTune.status === "DEPLOYED" && (
-                <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneId={fineTune.id} />
               )}
             </HStack>
             <HStack>

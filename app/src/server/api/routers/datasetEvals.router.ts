@@ -501,12 +501,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         baseQuery.groupBy(["modelId1", "slug1"]).orderBy("winRate", "desc").execute(),
 
         baseQuery
-          .innerJoin("DatasetEvalResult as der2", "der2.id", "der.comparisonResultId")
-          .innerJoin(
-            "DatasetEvalOutputSource as deos2",
-            "deos2.id",
-            "der2.datasetEvalOutputSourceId",
-          )
+          .innerJoin("DatasetEvalOutputSource as deos2", "deos2.id", "der.comparisonOutputSourceId")
           .leftJoin("FineTune as ft2", (join) =>
             join.onRef(sql`ft2.id::text`, "=", "deos2.modelId"),
           )

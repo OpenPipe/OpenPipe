@@ -6,7 +6,7 @@ import Link from "next/link";
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
 import { displayBaseModel } from "~/utils/baseModels";
-import ColoredPercent from "../ColoredPercent";
+import ViewDatasetButton from "../datasets/ViewDatasetButton";
 
 const FineTunesTable = ({}) => {
   const query = useFineTunes(10000);
@@ -25,7 +25,7 @@ const FineTunesTable = ({}) => {
               <Th>Created At</Th>
               <Th>Base Model</Th>
               <Th>Training Size</Th>
-              <Th>Accuracy</Th>
+              <Th>Dataset</Th>
               <Th>Status</Th>
             </Tr>
           </Thead>
@@ -42,7 +42,10 @@ const FineTunesTable = ({}) => {
                   <Td>{displayBaseModel(fineTune.baseModel)}</Td>
                   <Td>{fineTune.numTrainingEntries.toLocaleString()}</Td>
                   <Td>
-                    <ColoredPercent value={fineTune.averageScore} />
+                    <ViewDatasetButton
+                      buttonText={fineTune.datasetName ?? ""}
+                      datasetId={fineTune.datasetId}
+                    />
                   </Td>
                   <Td fontSize="sm" fontWeight="bold">
                     <Text color={getStatusColor(fineTune.status)}>{fineTune.status}</Text>

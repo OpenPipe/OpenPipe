@@ -5,10 +5,9 @@ import ContentCard from "~/components/ContentCard";
 import FineTuneDangerZone from "./FineTuneDangerZone";
 import dayjs from "~/utils/dayjs";
 import { getStatusColor } from "../../FineTunesTable";
-import ColoredPercent from "~/components/ColoredPercent";
 import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
-import Link from "next/link";
+import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -38,9 +37,10 @@ const General = () => {
             </HStack>
             <HStack>
               <Text w={180}>Dataset</Text>
-              <Link href={{ pathname: "/datasets/[id]", query: { id: fineTune.datasetId } }}>
-                <Text color="blue.600">{fineTune.datasetName}</Text>
-              </Link>
+              <ViewDatasetButton
+                buttonText={fineTune.datasetName ?? ""}
+                datasetId={fineTune.datasetId}
+              />
             </HStack>
             <HStack>
               <Text w={180}>Training Set Size</Text>
@@ -53,12 +53,9 @@ const General = () => {
             <HStack>
               <Text w={180}>Test Set Performance</Text>
               {fineTune.status === "DEPLOYED" ? (
-                <ColoredPercent value={fineTune.averageScore} />
+                <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneId={fineTune.id} />
               ) : (
                 <Text color="gray.500">Pending</Text>
-              )}
-              {fineTune.status === "DEPLOYED" && (
-                <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneId={fineTune.id} />
               )}
             </HStack>
             <HStack>
