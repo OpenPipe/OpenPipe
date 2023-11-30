@@ -106,7 +106,10 @@ const HeadToHeadComparisonModal = () => {
                 />
               ))}
             </Grid>
-            <SelectedComparisonTable datasetEntry={data.entry} />
+            <SelectedComparisonTable
+              datasetEntry={data.entry}
+              selectedOutputTitle={selectedOutputTitle}
+            />
           </VStack>
         </ModalBody>
 
@@ -147,7 +150,7 @@ const ComparisonsHeader = () => (
     </GridItem>
     <GridItem {...leftBorderProps}>
       <Text fontSize="xs" fontWeight="bold" color="gray.500">
-        RESULT
+        WINNER
       </Text>
     </GridItem>
     <GridItem {...leftBorderProps}>
@@ -202,19 +205,18 @@ const ComparisonRow = ({
     if (result.status === "IN_PROGRESS") return <Text color="gray.500">IN PROGRESS</Text>;
     if (result.status === "ERROR") return <Text color="red.500">ERROR</Text>;
     if (!isNumber(result.score)) return null;
-    if (result.score < 0.5) return <Text color="green.500">{selectedOutputTitle} WON</Text>;
-    if (result.score === 0.5) return <Text color="gray.500">{selectedOutputTitle} TIED</Text>;
-    if (result.score > 0.5) return <Text color="red.500">{selectedOutputTitle} LOST</Text>;
-  }, [result.score, result.status, selectedOutputTitle]);
+    if (result.score < 0.5) return <Text color="green.500">{selectedOutputTitle}</Text>;
+    if (result.score === 0.5) return <Text color="gray.500">TIE</Text>;
+    if (result.score > 0.5)
+      return <Text color="red.500">{getOutputTitle(result.modelId, result.slug)}</Text>;
+  }, [result, selectedOutputTitle]);
 
   return (
     <>
       <GridItem {...topBorderProps}>
-        <Text fontWeight="bold" fontSize="xs">
-          {getOutputTitle(result.modelId, result.slug)}
-        </Text>
+        <Text fontWeight="bold">{getOutputTitle(result.modelId, result.slug)}</Text>
       </GridItem>
-      <GridItem fontWeight="bold" fontSize="xs" {...topBorderProps} {...leftBorderProps}>
+      <GridItem fontWeight="bold" {...topBorderProps} {...leftBorderProps}>
         {comparisonText}
       </GridItem>
       <GridItem {...topBorderProps} {...leftBorderProps}>
@@ -282,7 +284,13 @@ type ComparisonEntry = RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDet
 
 const MIN_HEIGHT = 200;
 
-const SelectedComparisonTable = ({ datasetEntry }: { datasetEntry: ComparisonEntry }) => {
+const SelectedComparisonTable = ({
+  datasetEntry,
+  selectedOutputTitle,
+}: {
+  datasetEntry: ComparisonEntry;
+  selectedOutputTitle: string;
+}) => {
   const inputRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -321,13 +329,13 @@ const SelectedComparisonTable = ({ datasetEntry }: { datasetEntry: ComparisonEnt
         }}
       >
         <GridItem>
-          <Text fontSize="xs" fontWeight="bold" color="gray.500">
-            SELECTED INPUT
+          <Text fontWeight="bold" color="gray.500">
+            Input
           </Text>
         </GridItem>
         <GridItem {...leftBorderProps}>
-          <Text fontSize="xs" fontWeight="bold" color="gray.500">
-            SELECTED OUTPUT
+          <Text fontWeight="bold" color="gray.500">
+            {selectedOutputTitle}
           </Text>
         </GridItem>
         <GridItem position="relative" {...contentProps} {...topBorderProps}>
