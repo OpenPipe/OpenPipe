@@ -1,5 +1,4 @@
 import { VStack, HStack, Text, Table, Tbody } from "@chakra-ui/react";
-import Link from "next/link";
 
 import { useFineTune, useTrainingEntries } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";

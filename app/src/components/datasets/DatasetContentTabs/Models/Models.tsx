@@ -1,7 +1,6 @@
 import { Card, VStack, HStack, Text, Button } from "@chakra-ui/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import ColoredPercent from "~/components/ColoredPercent";
 import { setActiveTab } from "~/components/ContentTabs";
 import { getStatusColor } from "~/components/fineTunes/FineTunesTable";
 import { displayBaseModel } from "~/utils/baseModels";
