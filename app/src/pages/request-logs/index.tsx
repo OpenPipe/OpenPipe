@@ -23,7 +23,7 @@ export default function LoggedCalls() {
 
   const utils = api.useContext();
 
-  const { isFetching } = useLoggedCalls(true);
+  const { isFetching, isLoading } = useLoggedCalls(true);
 
   return (
     <AppShell title="Request Logs" requireAuth>
@@ -41,10 +41,10 @@ export default function LoggedCalls() {
                   as={BiRefresh}
                   boxSize={8}
                   color="gray.400"
-                  animation={isFetching ? `${spin} 1s linear infinite` : undefined}
+                  animation={isFetching || isLoading ? `${spin} 1s linear infinite` : undefined}
                 />
               }
-              isDisabled={isFetching}
+              isDisabled={isFetching || isLoading}
               onClick={() => void utils.loggedCalls.list.invalidate()}
             />
           </HStack>
