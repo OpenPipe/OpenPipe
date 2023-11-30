@@ -40,7 +40,7 @@
     {
       "group": "Features",
       "pages": [
-        "features/log-filters",
+        "features/request-logs",
         "features/importing-data",
         "features/exporting-data",
         "features/fine-tuning",

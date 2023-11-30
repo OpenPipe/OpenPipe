@@ -32,8 +32,11 @@ from openpipe import OpenAI
 
 ## Adding Searchable Tags
 
-OpenPipe has a concept of "tagging." This is very useful for grouping a certain set of completions together.
-When you're using a dataset for fine-tuning, you can select all the prompts that match a certain set of tags. Here's how you can use the tagging feature:
+OpenPipe has a concept of "tagging." You can use tags in the [Request Logs](/features/request-logs) view to narrow down the data your model will train on.
+We recommend assigning a unique tag to each of your prompts.
+These tags will help you find all the input/output pairs associated with a certain prompt and fine-tune a model to replace it.
+
+Here's how you can use the tagging feature:
 
 ```python
 from openpipe import OpenAI
@@ -87,8 +90,11 @@ import OpenAI from "openpipe/openai";
 
 ## Adding Searchable Tags
 
-OpenPipe has a concept of "tagging." This is very useful for grouping a certain set of completions together.
-When you're using a dataset for fine-tuning, you can select all the prompts that match a certain set of tags. Here's how you can use the tagging feature:
+OpenPipe has a concept of "tagging." You can use tags in the [Request Logs](/features/request-logs) view to narrow down the data your model will train on.
+We recommend assigning a unique tag to each of your prompts.
+These tags will help you find all the input/output pairs associated with a certain prompt and fine-tune a model to replace it.
+
+Here's how you can use the tagging feature:
 
 ```typescript
 // Fully compatible with original OpenAI initialization
