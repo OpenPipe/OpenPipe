@@ -15,20 +15,17 @@ import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
 import { calculateQueryDelay } from "./queryModel.task";
 import { isEqual, shuffle } from "lodash-es";
 import { chatCompletionMessage } from "~/types/shared.types";
+import { truthyFilter } from "~/utils/utils";
+
+type EvalKey = {
+  datasetEvalDatasetEntryId: string;
+  firstOutputSourceId: string;
+  secondOutputSourceId: string;
+};
 
 // Accept result criteria instead of ids to recover from duplicate result creation attempts
-export type EvaluateTestSetEntriesJob = {
-  firstResultCriteria: {
-    datasetEvalOutputSourceId: string;
-    datasetEvalDatasetEntryId: string;
-    comparisonOutputSourceId: string | null;
-  };
-  secondResultCriteria: {
-    datasetEvalOutputSourceId: string;
-    datasetEvalDatasetEntryId: string;
-    comparisonOutputSourceId: string | null;
-  };
-  numPreviousTries: number;
+export type EvaluateTestSetEntriesJob = EvalKey & {
+  numPreviousTries?: number;
 };
 
 const MAX_TRIES = 25;
@@ -36,48 +33,32 @@ const MAX_TRIES = 25;
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
   handler: async (task) => {
-    const { firstResultCriteria, secondResultCriteria } = task;
+    const { numPreviousTries = 0 } = task;
 
-    const [firstResult, secondResult] = await prisma.$transaction([
+    const findResult = (criteria: Prisma.DatasetEvalResultWhereInput) =>
       prisma.datasetEvalResult.findFirst({
-        where: {
-          datasetEvalOutputSourceId: firstResultCriteria.datasetEvalOutputSourceId,
-          datasetEvalDatasetEntryId: firstResultCriteria.datasetEvalDatasetEntryId,
-          comparisonOutputSourceId: firstResultCriteria.comparisonOutputSourceId,
-        },
+        where: criteria,
         include: {
           datasetEvalDatasetEntry: {
             include: {
-              datasetEntry: {
-                include: {
-                  dataset: true,
-                },
-              },
+              datasetEntry: { include: { dataset: true } },
               datasetEval: true,
             },
           },
           datasetEvalOutputSource: true,
         },
+      });
+
+    const [firstResult, secondResult] = await Promise.all([
+      findResult({
+        datasetEvalOutputSourceId: task.firstOutputSourceId,
+        datasetEvalDatasetEntryId: task.datasetEvalDatasetEntryId,
+        comparisonOutputSourceId: task.secondOutputSourceId,
       }),
-      prisma.datasetEvalResult.findFirst({
-        where: {
-          datasetEvalOutputSourceId: secondResultCriteria.datasetEvalOutputSourceId,
-          datasetEvalDatasetEntryId: secondResultCriteria.datasetEvalDatasetEntryId,
-          comparisonOutputSourceId: secondResultCriteria.comparisonOutputSourceId,
-        },
-        include: {
-          datasetEvalDatasetEntry: {
-            include: {
-              datasetEntry: {
-                include: {
-                  dataset: true,
-                },
-              },
-              datasetEval: true,
-            },
-          },
-          datasetEvalOutputSource: true,
-        },
+      findResult({
+        datasetEvalOutputSourceId: task.secondOutputSourceId,
+        datasetEvalDatasetEntryId: task.datasetEvalDatasetEntryId,
+        comparisonOutputSourceId: task.firstOutputSourceId,
       }),
     ]);
 
@@ -160,9 +141,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
               in: [firstResult.id, secondResult.id],
             },
           },
-          data: {
-            status: "PENDING",
-          },
+          data: { status: "PENDING" },
         });
         return;
       }
@@ -287,13 +266,13 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       });
     } catch (e) {
       console.error("error in evaluateTestSetEntries", e);
-      if (task.numPreviousTries < MAX_TRIES) {
+      if (numPreviousTries < MAX_TRIES) {
         await evaluateTestSetEntries.enqueue(
           {
             ...task,
-            numPreviousTries: task.numPreviousTries + 1,
+            numPreviousTries: numPreviousTries + 1,
           },
-          { runAt: new Date(Date.now() + calculateQueryDelay(task.numPreviousTries)), priority: 3 },
+          { runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries)), priority: 3 },
         );
       } else {
         await prisma.datasetEvalResult.updateMany({
@@ -339,7 +318,7 @@ const constructJudgementInput = (
       {
         role: "system",
         content:
-          "You are an intelligent and fair judge of LLMs. Evaluate the following two responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
+          "You are an intelligent and fair judge of chatbots. Evaluate the following two responses and choose which one is better. If the outputs are of similar quality, you can mark them as EQUAL." +
           (instructions
             ? `\n\n The user has provided the following instructions on what you should evaluate the outputs on: ${instructions}`
             : ""),
@@ -456,8 +435,7 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
     ])
     .execute();
 
-  const datasetEvalResultsToCreate: Prisma.DatasetEvalResultCreateManyInput[] = [];
-  const jobsToEnqueue: EvaluateTestSetEntriesJob[] = [];
+  const evalsToRun: EvalKey[] = [];
 
   for (const datasetEval of evalForDatasetEntry) {
     const outputSource = datasetEval.outputSourcesWithOutput.find(
@@ -466,45 +444,16 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
     if (!outputSource) continue;
     for (const comparisonSource of datasetEval.outputSourcesWithOutput) {
       if (comparisonSource.modelId === testingEntry.modelId) continue;
-      const firstResultId = uuidv4();
-      const secondResultId = uuidv4();
-      datasetEvalResultsToCreate.push({
-        id: firstResultId,
-        datasetEvalOutputSourceId: outputSource.id,
+
+      evalsToRun.push({
         datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-        comparisonResultId: secondResultId,
-        comparisonOutputSourceId: comparisonSource.id,
-      });
-      datasetEvalResultsToCreate.push({
-        id: secondResultId,
-        datasetEvalOutputSourceId: comparisonSource.id,
-        datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-        comparisonResultId: firstResultId,
-        comparisonOutputSourceId: outputSource.id,
-      });
-      jobsToEnqueue.push({
-        firstResultCriteria: {
-          datasetEvalOutputSourceId: outputSource.id,
-          datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-          comparisonOutputSourceId: comparisonSource.id,
-        },
-        secondResultCriteria: {
-          datasetEvalOutputSourceId: comparisonSource.id,
-          datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-          comparisonOutputSourceId: outputSource.id,
-        },
-        numPreviousTries: 0,
+        firstOutputSourceId: outputSource.id,
+        secondOutputSourceId: comparisonSource.id,
       });
     }
   }
-  await prisma.datasetEvalResult.createMany({
-    data: datasetEvalResultsToCreate,
-    skipDuplicates: true,
-  });
 
-  for (const job of jobsToEnqueue) {
-    await evaluateTestSetEntries.enqueue(job);
-  }
+  await queueAllHeadToHeadEvaluations(evalsToRun);
 };
 
 export const queueEvalJobsForEval = async (datasetEvalId: string) => {
@@ -532,57 +481,61 @@ export const queueEvalJobsForEval = async (datasetEvalId: string) => {
   const datasetEval = datasetEvals[0];
   if (!datasetEval) return;
 
-  const datasetEvalResultsToCreate: Prisma.DatasetEvalResultCreateManyInput[] = [];
-  const jobsToEnqueue: EvaluateTestSetEntriesJob[] = [];
+  const evalsToRun: EvalKey[] = [];
 
   for (const datasetEvalDatasetEntry of datasetEval.datasetEvalDatasetEntries) {
     for (let i = 0; i < datasetEval.outputSources.length; i++) {
       for (let j = i + 1; j < datasetEval.outputSources.length; j++) {
-        const [firstOutputSource, secondOutputSource] = shuffle([
-          datasetEval.outputSources[i],
-          datasetEval.outputSources[j],
-        ]);
-        if (!firstOutputSource || !secondOutputSource) continue;
-        const firstResultId = uuidv4();
-        const secondResultId = uuidv4();
-
-        datasetEvalResultsToCreate.push({
-          id: firstResultId,
-          datasetEvalOutputSourceId: firstOutputSource.id,
+        evalsToRun.push({
+          firstOutputSourceId: datasetEval.outputSources[i]?.id as string,
+          secondOutputSourceId: datasetEval.outputSources[j]?.id as string,
           datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-          comparisonResultId: secondResultId,
-          comparisonOutputSourceId: secondOutputSource.id,
-        });
-        datasetEvalResultsToCreate.push({
-          id: secondResultId,
-          datasetEvalOutputSourceId: secondOutputSource.id,
-          datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-          comparisonResultId: firstResultId,
-          comparisonOutputSourceId: firstOutputSource.id,
-        });
-        jobsToEnqueue.push({
-          firstResultCriteria: {
-            datasetEvalOutputSourceId: firstOutputSource.id,
-            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-            comparisonOutputSourceId: secondOutputSource.id,
-          },
-          secondResultCriteria: {
-            datasetEvalOutputSourceId: secondOutputSource.id,
-            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-            comparisonOutputSourceId: firstOutputSource.id,
-          },
-          numPreviousTries: 0,
         });
       }
     }
   }
 
+  await queueAllHeadToHeadEvaluations(evalsToRun);
+};
+
+async function queueAllHeadToHeadEvaluations(evalKeys: EvalKey[]) {
+  const results = evalKeys
+    .map((evalKey) => {
+      const [firstOutputSourceId, secondOutputSourceId] = shuffle([
+        evalKey.firstOutputSourceId,
+        evalKey.secondOutputSourceId,
+      ]);
+      if (!firstOutputSourceId || !secondOutputSourceId) return null;
+
+      return {
+        firstResultId: uuidv4(),
+        secondResultId: uuidv4(),
+        evalKey,
+      };
+    })
+    .filter(truthyFilter);
+
   await prisma.datasetEvalResult.createMany({
-    data: datasetEvalResultsToCreate,
-    skipDuplicates: true,
+    data: results.flatMap((comparison) => [
+      {
+        id: comparison.firstResultId,
+        datasetEvalOutputSourceId: comparison.evalKey.firstOutputSourceId,
+        datasetEvalDatasetEntryId: comparison.evalKey.datasetEvalDatasetEntryId,
+        comparisonResultId: comparison.secondResultId,
+        comparisonOutputSourceId: comparison.evalKey.secondOutputSourceId,
+      },
+      {
+        id: comparison.secondResultId,
+        datasetEvalOutputSourceId: comparison.evalKey.secondOutputSourceId,
+        datasetEvalDatasetEntryId: comparison.evalKey.datasetEvalDatasetEntryId,
+        comparisonResultId: comparison.firstResultId,
+        comparisonOutputSourceId: comparison.evalKey.firstOutputSourceId,
+      },
+    ]),
   });
 
-  for (const job of shuffle(jobsToEnqueue)) {
-    await evaluateTestSetEntries.enqueue(job);
+  // Shuffle so all models get results run at roughly the same rate
+  for (const result of shuffle(results)) {
+    await evaluateTestSetEntries.enqueue(result.evalKey);
   }
-};
+}
