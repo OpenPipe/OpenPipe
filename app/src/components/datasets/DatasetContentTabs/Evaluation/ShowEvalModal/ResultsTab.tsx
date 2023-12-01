@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   Grid,
   Heading,
@@ -20,6 +21,7 @@ import { useMemo } from "react";
 import ColoredPercent from "~/components/ColoredPercent";
 import { useAppStore } from "~/state/store";
 import { getOutputTitle } from "../getOutputTitle";
+import Link from "next/link";
 
 export const ResultsTab = () => {
   const evalId = useAppStore((state) => state.evaluationsSlice.showEvalModalId);
@@ -42,17 +44,30 @@ export const ResultsTab = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {results?.leaderboard.map((model) => (
-            <Tr key={model.modelId1}>
-              <Td>{getOutputTitle(model.modelId1, model.slug1)}</Td>
-              <Td isNumeric>
-                <ColoredPercent value={model.winRate} />
-              </Td>
-              <Td isNumeric>{model.wins}</Td>
-              <Td isNumeric>{model.ties}</Td>
-              <Td isNumeric>{model.losses}</Td>
-            </Tr>
-          ))}
+          {results?.leaderboard.map((model) => {
+            const title = getOutputTitle(model.modelId1, model.slug1);
+            const titleElement = title?.startsWith("openpipe:") ? (
+              <Link href={{ pathname: "/fine-tunes/[id]", query: { id: model.modelId1 } }}>
+                {title.replace("openpipe:", "")}
+                <Badge colorScheme="blue" ml={2}>
+                  FT
+                </Badge>
+              </Link>
+            ) : (
+              title
+            );
+            return (
+              <Tr key={model.modelId1}>
+                <Td>{titleElement}</Td>
+                <Td isNumeric>
+                  <ColoredPercent value={model.winRate} />
+                </Td>
+                <Td isNumeric>{model.wins}</Td>
+                <Td isNumeric>{model.ties}</Td>
+                <Td isNumeric>{model.losses}</Td>
+              </Tr>
+            );
+          })}
         </Tbody>
       </Table>
 
