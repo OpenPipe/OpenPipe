@@ -129,6 +129,7 @@ export interface DatasetEvalResult {
   datasetEvalOutputSourceId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  wasFirst: boolean | null;
 }
 
 export interface DatasetFileUpload {

@@ -1,0 +1,274 @@
+import { Button, Checkbox, HStack, Input, VStack, Text, useDisclosure } from "@chakra-ui/react";
+import AutoResizeTextArea from "~/components/AutoResizeTextArea";
+import InfoCircle from "~/components/InfoCircle";
+import { api } from "~/utils/api";
+import { useDataset, useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
+import DeleteEvalDialog from "./DeleteEvalDialog";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { useFilters } from "~/components/Filters/useFilters";
+import { useAppStore } from "~/state/store";
+import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
+import ContentCard from "~/components/ContentCard";
+import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
+import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
+
+const Settings = () => {
+  const utils = api.useContext();
+
+  const saveMutation = api.datasetEvals.update.useMutation();
+
+  const datasetEval = useDatasetEval().data;
+  const dataset = useDataset(datasetEval?.datasetId).data;
+  const setComparisonCriteria = useAppStore(
+    (state) => state.evaluationsSlice.setComparisonCriteria,
+  );
+
+  const [name, setName] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [numDatasetEntries, setNumDatasetEntries] = useState(0);
+  const [includedModelIds, setIncludedModelIds] = useState<string[]>([]);
+
+  const addFilter = useFilters().addFilter;
+
+  const deleteEvalDialog = useDisclosure();
+
+  const [onSaveConfirm, saveInProgress] = useHandledAsyncCallback(async () => {
+    if (
+      !dataset?.id ||
+      !datasetEval?.id ||
+      !name ||
+      !instructions ||
+      !numDatasetEntries ||
+      includedModelIds.length < 2
+    )
+      return;
+    const resp = await saveMutation.mutateAsync({
+      id: datasetEval.id,
+      updates: {
+        name,
+        instructions,
+        numDatasetEntries,
+        modelIds: includedModelIds,
+      },
+    });
+    if (maybeReportError(resp)) return;
+    await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
+    await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
+    await utils.datasets.get.invalidate();
+    await utils.datasetEvals.get.invalidate({ id: datasetEval.id });
+
+    setComparisonCriteria(null);
+  }, [
+    saveMutation,
+    addFilter,
+    dataset?.id,
+    datasetEval?.id,
+    setComparisonCriteria,
+    name,
+    instructions,
+  ]);
+
+  const hasChanged =
+    name !== datasetEval?.name ||
+    instructions !== datasetEval?.instructions ||
+    numDatasetEntries !== datasetEval?.numDatasetEntries ||
+    includedModelIds.length !== datasetEval?.outputSources.length;
+
+  const numAddedComparisons = useMemo(() => {
+    if (!datasetEval?.outputSources) return 0;
+
+    const numRowFinalComparisons = (includedModelIds.length * (includedModelIds.length - 1)) / 2;
+
+    // If the instructions have changed, we need to re-evaluate all comparisons
+    if (instructions !== datasetEval.instructions) {
+      return numRowFinalComparisons * numDatasetEntries;
+    }
+
+    const numPersistedRows = Math.min(datasetEval.numDatasetEntries, numDatasetEntries || 0);
+
+    const numNewModelIds = includedModelIds.filter(
+      (id) => !datasetEval?.outputSources.some((source) => source.modelId === id),
+    ).length;
+    const numPersistedRowPersistedComparisons =
+      ((includedModelIds.length - numNewModelIds) *
+        (includedModelIds.length - numNewModelIds - 1)) /
+      2;
+
+    const newComparisonsFromAddedModels =
+      numPersistedRows * (numRowFinalComparisons - numPersistedRowPersistedComparisons);
+
+    const numNewRows = Math.max(numDatasetEntries - datasetEval.numDatasetEntries, 0);
+
+    const newComparisonsFromAddedRows = numNewRows * numRowFinalComparisons;
+
+    return newComparisonsFromAddedModels + newComparisonsFromAddedRows;
+  }, [
+    datasetEval?.numDatasetEntries,
+    numDatasetEntries,
+    datasetEval?.outputSources,
+    includedModelIds,
+    datasetEval?.instructions,
+    instructions,
+  ]);
+
+  const modelOptions = useMemo(() => {
+    const options = [
+      {
+        id: ORIGINAL_MODEL_ID,
+        name: getOutputTitle(ORIGINAL_MODEL_ID) ?? "",
+      },
+    ];
+    if (!dataset) return options;
+    return [
+      ...options,
+      ...dataset.enabledComparisonModels.map((comparisonModelId) => ({
+        id: comparisonModelId,
+        name: getOutputTitle(comparisonModelId) ?? "",
+      })),
+      ...dataset.deployedFineTunes.map((model) => ({
+        id: model.id,
+        name: getOutputTitle(model.id, model.slug) ?? "",
+      })),
+    ];
+  }, [dataset]);
+
+  const reset = useCallback(() => {
+    if (datasetEval) {
+      setName(datasetEval.name);
+      setInstructions(datasetEval.instructions ?? "");
+      setNumDatasetEntries(datasetEval.numDatasetEntries);
+      setIncludedModelIds(datasetEval.outputSources.map((source) => source.modelId));
+    }
+  }, [datasetEval, setName, setInstructions, setNumDatasetEntries, setIncludedModelIds]);
+
+  useEffect(() => reset(), [datasetEval, reset]);
+
+  if (!datasetEval?.datasetName) return null;
+
+  return (
+    <>
+      <VStack alignItems="flex-start" w="full" pb={16}>
+        <Text fontSize="2xl" fontWeight="bold">
+          Eval Settings
+        </Text>
+        <Text fontSize="sm">
+          Configure your eval settings. These settings only apply to <b>{datasetEval.name}</b>.
+        </Text>
+        <ContentCard>
+          <VStack alignItems="flex-start" w="full" spacing={8}>
+            <VStack alignItems="flex-start">
+              <Text fontWeight="bold">Dataset</Text>
+              <ViewDatasetButton
+                buttonText={datasetEval.datasetName}
+                datasetId={datasetEval.datasetId}
+                tabKey={DATASET_EVALUATION_TAB_KEY}
+                fontWeight="500"
+              />
+            </VStack>
+            <VStack alignItems="flex-start" w="full">
+              <Text fontWeight="bold">Name</Text>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Eval1"
+                w="full"
+              />
+            </VStack>
+            <VStack alignItems="flex-start" w="full">
+              <Text fontWeight="bold" pb={2}>
+                Included Models
+              </Text>
+              <VStack alignItems="flex-start">
+                {modelOptions.map((model) => (
+                  <Checkbox
+                    key={model.id}
+                    isChecked={includedModelIds.includes(model.id)}
+                    colorScheme="blue"
+                    onChange={() =>
+                      setIncludedModelIds((ids) =>
+                        ids.includes(model.id)
+                          ? ids.filter((id) => id !== model.id)
+                          : [...ids, model.id],
+                      )
+                    }
+                  >
+                    <Text>{model.name}</Text>
+                  </Checkbox>
+                ))}
+              </VStack>
+            </VStack>
+            <VStack alignItems="flex-start" w="full">
+              <HStack>
+                <Text fontWeight="bold">Dataset Entries</Text>
+                <InfoCircle tooltipText="The number of randomly selected dataset entries to apply this eval to." />
+              </HStack>
+              <Input
+                value={numDatasetEntries}
+                type="number"
+                onChange={(e) =>
+                  setNumDatasetEntries(parseInt(e.target.value.match(/\d+/g)?.[0] ?? ""))
+                }
+                placeholder="100"
+                w="full"
+              />
+              <Text
+                bgColor="orange.50"
+                borderColor="orange.500"
+                borderRadius={4}
+                borderWidth={1}
+                p={2}
+              >
+                These changes will add <b>{numAddedComparisons}</b> head-to-head comparisons and
+                cost approximately <b>${(numAddedComparisons * 0.06).toFixed(2)}</b>.
+              </Text>
+            </VStack>
+            <VStack alignItems="flex-start" w="full">
+              <Text fontWeight="bold">Instructions</Text>
+              <AutoResizeTextArea
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                placeholder="Which model's output better matches the prompt?"
+                w="full"
+                minH={32}
+              />
+            </VStack>
+            <HStack alignSelf="flex-end">
+              <Button
+                colorScheme="red"
+                variant="outline"
+                onClick={deleteEvalDialog.onOpen}
+                minW={24}
+              >
+                Delete
+              </Button>
+              <Button colorScheme="gray" onClick={reset} minW={24}>
+                Reset
+              </Button>
+              <Button
+                colorScheme="blue"
+                onClick={onSaveConfirm}
+                minW={24}
+                isLoading={saveInProgress}
+                isDisabled={
+                  !name ||
+                  !instructions ||
+                  !numDatasetEntries ||
+                  includedModelIds.length < 2 ||
+                  !hasChanged
+                }
+              >
+                Save
+              </Button>
+            </HStack>
+          </VStack>
+        </ContentCard>
+      </VStack>
+      <DeleteEvalDialog disclosure={deleteEvalDialog} />
+    </>
+  );
+};
+
+export default Settings;

@@ -9,7 +9,6 @@ import { useFilters } from "~/components/Filters/useFilters";
 import EvalVisibilityDropdown from "./EvalVisibilityDropdown";
 import HeadToHeadComparisonModal from "./ComparisonModals/HeadToHeadComparisonModal";
 import FieldComparisonModal from "./ComparisonModals/FieldComparisonModal";
-import ShowEvalModal from "./ShowEvalModal/ShowEvalModal";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 
 const Evaluation = () => {
@@ -38,7 +37,6 @@ const Evaluation = () => {
       </Box>
       <FieldComparisonModal />
       <HeadToHeadComparisonModal />
-      <ShowEvalModal />
     </>
   );
 };

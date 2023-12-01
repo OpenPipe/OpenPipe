@@ -15,12 +15,12 @@ import {
 import { FiEdit2 } from "react-icons/fi";
 import { BsPlusSquare } from "react-icons/bs";
 import { FaBalanceScale } from "react-icons/fa";
+import { useRouter } from "next/router";
 
 import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import AddEvalModal from "./AddEvalModal";
-import { useAppStore } from "~/state/store";
 
 type Option = {
   key: string;
@@ -137,14 +137,15 @@ const EvalVisibilityDropdown = () => {
 const EditableEvalOption = ({ option }: { option: Option }) => {
   const { visibleEvalIds, toggleEvalVisiblity } = useVisibleEvalIds();
 
-  const setDatasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.setShowEvalModalId);
+  const router = useRouter();
 
   const [toggleHovered, setToggleHovered] = useState(false);
   return (
     <HStack
       as={Button}
       onClick={() => {
-        if (!toggleHovered) setDatasetEvalIdToEdit(option.key);
+        if (!toggleHovered)
+          void router.push({ pathname: "/evals/[id]", query: { id: option.key } });
       }}
       w="full"
       minH={10}

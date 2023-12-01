@@ -19,7 +19,7 @@ import { useRouter } from "next/router";
 import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
-import { FaReadme } from "react-icons/fa";
+import { FaBalanceScale, FaReadme } from "react-icons/fa";
 import { signIn, useSession } from "next-auth/react";
 
 import ProjectMenu from "./ProjectMenu";
@@ -80,7 +80,7 @@ const NavSidebar = () => {
             <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" />
             <IconLink icon={AiOutlineDatabase} label="Datasets" href="/datasets" />
             <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" />
-            {/* <IconLink icon={RiFlaskLine} label="Experiments" href="/experiments" /> */}
+            <IconLink icon={FaBalanceScale} label="Evals" href="/evals" />
             <VStack w="full" alignItems="flex-start" spacing={0} pt={8}>
               <Text
                 pl={2}

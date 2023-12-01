@@ -9,44 +9,40 @@ import {
   Button,
   VStack,
   Text,
+  type UseDisclosureReturn,
 } from "@chakra-ui/react";
 
-import { api } from "~/utils/api";
-import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useAppStore } from "~/state/store";
+import { api } from "~/utils/api";
+import { useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
-const DeleteEvalDialog = ({
-  evalName,
-  isOpen,
-  onCancel,
-  onConfirm,
-}: {
-  evalName?: string;
-  isOpen: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) => {
+const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const showEvalModalId = useAppStore((state) => state.evaluationsSlice.showEvalModalId);
-  const dataset = useDataset().data;
+  const datasetEval = useDatasetEval().data;
+
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const deleteMutation = api.datasetEvals.delete.useMutation();
 
   const utils = api.useContext();
 
   const [onDeleteConfirm, deleteInProgress] = useHandledAsyncCallback(async () => {
-    if (!showEvalModalId) return;
-    const resp = await deleteMutation.mutateAsync({ id: showEvalModalId });
+    if (!selectedProjectId || !datasetEval?.id) return;
+    const resp = await deleteMutation.mutateAsync({ id: datasetEval.id });
     if (maybeReportError(resp)) return;
-    await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset?.id });
+    await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: datasetEval.datasetId });
     await utils.datasets.get.invalidate();
 
-    onConfirm();
-  }, [deleteMutation, showEvalModalId, dataset?.id, onConfirm]);
+    disclosure.onClose();
+
+    await utils.datasetEvals.list.invalidate({ projectId: selectedProjectId });
+  }, [deleteMutation, selectedProjectId, datasetEval?.id, disclosure.onClose]);
+
+  if (!datasetEval) return null;
 
   return (
-    <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onCancel}>
+    <AlertDialog leastDestructiveRef={cancelRef} {...disclosure}>
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
@@ -56,14 +52,14 @@ const DeleteEvalDialog = ({
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
-                Are you sure that you want to delete <b>{evalName}</b> and all of its associated
-                data?
+                Are you sure that you want to delete <b>{datasetEval.name}</b> and all of its
+                associated data?
               </Text>
             </VStack>
           </AlertDialogBody>
 
           <AlertDialogFooter>
-            <Button ref={cancelRef} isDisabled={deleteInProgress} onClick={onCancel}>
+            <Button ref={cancelRef} isDisabled={deleteInProgress} onClick={disclosure.onClose}>
               Cancel
             </Button>
             <Button colorScheme="red" ml={3} isLoading={deleteInProgress} onClick={onDeleteConfirm}>

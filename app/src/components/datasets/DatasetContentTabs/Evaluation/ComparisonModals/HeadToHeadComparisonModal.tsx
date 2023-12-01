@@ -18,25 +18,27 @@ import {
 } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
+import { useRouter } from "next/router";
 
 import { type RouterOutputs, api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { PotentiallyPendingFormattedMessage } from "../FormattedMessage";
 import { isNumber } from "lodash-es";
-import { getOutputTitle } from "../getOutputTitle";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { useVisibleModelIds } from "../useVisibleModelIds";
 import FormattedDatasetEntryInput from "../FormattedInput";
+import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
 
 const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
-  const datasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.showEvalModalId);
-  const setDatasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.setShowEvalModalId);
 
-  const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD" && !datasetEvalIdToEdit;
+  const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD";
   const onClose = () => setComparisonCriteria(null);
+
+  const router = useRouter();
 
   const visibleModelIds = useVisibleModelIds().visibleModelIds;
 
@@ -118,7 +120,14 @@ const HeadToHeadComparisonModal = () => {
           <HStack>
             <Button
               colorScheme="blue"
-              onClick={() => setDatasetEvalIdToEdit(data.datasetEval.id)}
+              onClick={() => {
+                if (comparisonCriteria?.datasetEvalId) {
+                  void router.push({
+                    pathname: "/evals/[id]/[tab]",
+                    query: { id: comparisonCriteria?.datasetEvalId, tab: EVAL_SETTINGS_TAB_KEY },
+                  });
+                }
+              }}
               minW={24}
             >
               Edit Eval
