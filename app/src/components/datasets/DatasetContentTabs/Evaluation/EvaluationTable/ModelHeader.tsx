@@ -6,7 +6,7 @@ import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hoo
 import { displayBaseModel } from "~/utils/baseModels";
 import EvalHeaderPill from "./EvalHeaderPill";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
-import { getOutputTitle } from "../getOutputTitle";
+import { getOutputTitle } from "../../../../../server/utils/getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 
 const ModelHeader = ({ modelId }: { modelId: string }) => {

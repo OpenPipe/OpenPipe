@@ -19,7 +19,7 @@ import type { ChatCompletionMessage } from "openai/resources/chat";
 
 import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
-import { getOutputTitle } from "../getOutputTitle";
+import { getOutputTitle } from "../../../../../server/utils/getOutputTitle";
 import FormattedMessage from "../FormattedMessage";
 import ColoredPercent from "~/components/ColoredPercent";
 

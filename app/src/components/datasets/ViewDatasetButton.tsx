@@ -6,10 +6,12 @@ import { DATASET_GENERAL_TAB_KEY } from "./DatasetContentTabs/DatasetContentTabs
 const ViewDatasetButton = ({
   buttonText,
   datasetId,
+  tabKey = DATASET_GENERAL_TAB_KEY,
   ...props
 }: {
   buttonText: string;
   datasetId: string;
+  tabKey?: string;
 } & ButtonProps) => {
   return (
     <Button
@@ -18,7 +20,7 @@ const ViewDatasetButton = ({
         pathname: "/datasets/[id]/[tab]",
         query: {
           id: datasetId,
-          tab: DATASET_GENERAL_TAB_KEY,
+          tab: tabKey,
         },
       }}
       variant="link"

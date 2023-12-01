@@ -183,12 +183,13 @@ export const useDatasets = () => {
   );
 };
 
-export const useDataset = () => {
+export const useDataset = (datasetId?: string) => {
   const router = useRouter();
-  const dataset = api.datasets.get.useQuery(
-    { id: router.query.id as string },
-    { enabled: !!router.query.id },
-  );
+
+  if (!datasetId) {
+    datasetId = router.query.id as string;
+  }
+  const dataset = api.datasets.get.useQuery({ id: datasetId }, { enabled: !!datasetId });
 
   return dataset;
 };
@@ -375,8 +376,22 @@ export const useFineTune = () => {
   return fineTune;
 };
 
-export const useDatasetEval = (datasetEvalId: string | null) => {
-  return api.datasetEvals.get.useQuery({ id: datasetEvalId ?? "" }, { enabled: !!datasetEvalId });
+export const useDatasetEval = () => {
+  const router = useRouter();
+  return api.datasetEvals.get.useQuery(
+    { id: router.query.id as string },
+    { enabled: !!router.query.id },
+  );
+};
+
+export const useDatasetEvals = () => {
+  const dataset = useDataset().data;
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+
+  return api.datasetEvals.list.useQuery(
+    { projectId: selectedProjectId as string },
+    { enabled: !!selectedProjectId },
+  );
 };
 
 export const usePruningRules = () => {

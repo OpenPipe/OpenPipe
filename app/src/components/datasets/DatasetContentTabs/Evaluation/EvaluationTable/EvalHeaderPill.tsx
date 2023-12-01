@@ -14,14 +14,15 @@ import {
 import { FiChevronDown, FiEdit2, FiFilter } from "react-icons/fi";
 import { FaArrowDown, FaArrowUp, FaEyeSlash } from "react-icons/fa";
 import { isNumber } from "lodash-es";
+import { useRouter } from "next/router";
 
 import { useModelTestingStats, useDataset } from "~/utils/hooks";
 import ColoredPercent from "~/components/ColoredPercent";
-import { useAppStore } from "~/state/store";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import { useTestEntrySortOrder } from "../useTestEntrySortOrder";
 import { EvaluationFiltersDefaultFields, SortOrder } from "~/types/shared.types";
 import { useFilters } from "~/components/Filters/useFilters";
+import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
 
 const EvalHeaderPill = ({
   datasetEval,
@@ -32,9 +33,10 @@ const EvalHeaderPill = ({
 }) => {
   const dataset = useDataset().data;
   const stats = useModelTestingStats(dataset?.id, modelId).data;
-  const setDatasetEvalIdToEdit = useAppStore((state) => state.evaluationsSlice.setShowEvalModalId);
   const toggleEvalVisiblity = useVisibleEvalIds().toggleEvalVisiblity;
   const addFilter = useFilters().addFilter;
+
+  const router = useRouter();
 
   const { testEntrySortOrder, setTestEntrySortOrder } = useTestEntrySortOrder();
 
@@ -195,7 +197,12 @@ const EvalHeaderPill = ({
               justifyContent="space-between"
               h={8}
               px={2}
-              onClick={() => setDatasetEvalIdToEdit(datasetEval.id)}
+              onClick={() =>
+                void router.push({
+                  pathname: "/evals/[id]/[tab]",
+                  query: { id: datasetEval.id, tab: EVAL_SETTINGS_TAB_KEY },
+                })
+              }
               borderRadius={0}
               borderBottomWidth={1}
             >
