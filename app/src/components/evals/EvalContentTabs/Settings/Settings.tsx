@@ -58,6 +58,7 @@ const Settings = () => {
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
     await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
+    await utils.datasetEvals.get.invalidate({ id: datasetEval.id });
 
     setComparisonCriteria(null);
   }, [

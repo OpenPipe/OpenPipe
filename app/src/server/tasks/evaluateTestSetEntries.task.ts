@@ -534,6 +534,7 @@ async function queueAllHeadToHeadEvaluations(evalKeys: EvalKey[]) {
         comparisonOutputSourceId: comparison.evalKey.firstOutputSourceId,
       },
     ]),
+    skipDuplicates: true,
   });
 
   // Shuffle so all models get results run at roughly the same rate

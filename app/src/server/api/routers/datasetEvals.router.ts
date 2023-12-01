@@ -303,7 +303,7 @@ export const datasetEvalsRouter = createTRPCRouter({
             modelId,
           })),
         });
-        shouldQueueEvalJobs = true;
+        if (modelIdsToAdd.length || modelIdsToDelete.length) shouldQueueEvalJobs = true;
       }
 
       const currentDatasetEvalDatasetEntries = await kysely
