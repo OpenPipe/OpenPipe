@@ -34,7 +34,7 @@ import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import { useFilters } from "~/components/Filters/useFilters";
 import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
 import InfoCircle from "~/components/InfoCircle";
-import { getOutputTitle } from "../../../../server/utils/getOutputTitle";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();

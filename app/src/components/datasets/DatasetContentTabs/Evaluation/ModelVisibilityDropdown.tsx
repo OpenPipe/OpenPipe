@@ -18,7 +18,7 @@ import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleModelIds } from "./useVisibleModelIds";
 import ConfigureComparisonModelsModal from "./ConfigureComparisonModelsModal";
-import { getOutputTitle } from "../../../../server/utils/getOutputTitle";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 
 export const EMPTY_OUTPUT_COLUMNS_KEY = "empty";

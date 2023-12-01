@@ -24,7 +24,7 @@ import { type RouterOutputs, api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { PotentiallyPendingFormattedMessage } from "../FormattedMessage";
 import { isNumber } from "lodash-es";
-import { getOutputTitle } from "../../../../../server/utils/getOutputTitle";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { useVisibleModelIds } from "../useVisibleModelIds";
 import FormattedDatasetEntryInput from "../FormattedInput";
 import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
