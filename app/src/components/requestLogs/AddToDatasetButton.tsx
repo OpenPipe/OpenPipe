@@ -88,7 +88,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
     }
   }, [disclosure.isOpen, existingDatasetOptions, maxSampleSize]);
 
-  const createDatasetEntriesMutation = api.datasetEntries.create.useMutation();
+  const createDatasetEntriesMutation = api.datasetEntries.createFromLoggedCalls.useMutation();
 
   const [addToDataset, addingInProgress] = useHandledAsyncCallback(async () => {
     if (

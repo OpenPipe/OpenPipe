@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import archiver from "archiver";
 import { sql } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
-import { pick, shuffle } from "lodash-es";
+import { pick } from "lodash-es";
 import { WritableStreamBuffer } from "stream-buffers";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -213,16 +213,11 @@ export const datasetEntriesRouter = createTRPCRouter({
 
     return { ...typedDatasetEntry(entry), history };
   }),
-  create: protectedProcedure
+  createFromLoggedCalls: protectedProcedure
     .input(
       z.object({
         datasetId: z.string().optional(),
-        newDatasetParams: z
-          .object({
-            projectId: z.string(),
-            name: z.string(),
-          })
-          .optional(),
+        newDatasetParams: z.object({ projectId: z.string(), name: z.string() }).optional(),
         filters: filtersSchema,
         defaultToSelected: z.boolean(),
         selectedLogIds: z.string().array(),
@@ -256,50 +251,39 @@ export const datasetEntriesRouter = createTRPCRouter({
         pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
       );
 
-      const loggedCallIds = (await baseQuery.select(["lc.id"]).execute()).map((row) => row.id);
+      const loggedCallsQuery = baseQuery
+        .innerJoin("LoggedCallModelResponse as mr", "mr.id", "lc.modelResponseId")
+        .where(
+          "lc.id",
+          "not in",
+          sql`(select "loggedCallId" from "DatasetEntry" where "datasetId" = ${datasetId} and "loggedCallId" is not null)`,
+        )
+        .select(["lc.id", "mr.reqPayload", "mr.respPayload", "mr.inputTokens", "mr.outputTokens"])
+        .orderBy(sql`random()`)
+        .limit(input.sampleSize);
 
-      if (!loggedCallIds.length) {
+      const loggedCalls = await loggedCallsQuery.execute();
+
+      if (!loggedCalls.length) {
         return error("No matching request logs");
       }
 
-      // randomly sample from the logged calls
-      const shuffledLoggedCallIds = shuffle(loggedCallIds);
-      const sampledLoggedCallIds = shuffledLoggedCallIds.slice(0, input.sampleSize);
-
-      const loggedCalls = await prisma.loggedCall.findMany({
-        where: {
-          id: {
-            in: sampledLoggedCallIds,
-          },
-          modelResponse: {
-            isNot: null,
-          },
-        },
-        include: {
-          modelResponse: {
-            select: {
-              reqPayload: true,
-              respPayload: true,
-              inputTokens: true,
-              outputTokens: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
       const rowsToConvert = loggedCalls
         .map((loggedCall) => {
-          const modelResponse =
-            loggedCall.modelResponse && typedLoggedCallModelResponse(loggedCall.modelResponse);
+          try {
+            const modelResponse = typedLoggedCallModelResponse(loggedCall);
 
-          const validated = validateRowToImport({
-            input: modelResponse?.reqPayload,
-            output: modelResponse?.respPayload?.choices[0]?.message,
-          });
+            const validated = validateRowToImport({
+              input: modelResponse.reqPayload,
+              output: modelResponse.respPayload?.choices?.[0]?.message,
+            });
 
-          if ("error" in validated) return null;
-          return validated;
+            if ("error" in validated) return null;
+            return validated;
+          } catch (e) {
+            console.error(e);
+            return null;
+          }
         })
         .filter(truthyFilter);
 

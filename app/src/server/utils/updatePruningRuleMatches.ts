@@ -1,4 +1,4 @@
-import { sql, type RawBuilder, type Expression, type SqlBool } from "kysely";
+import { sql, type Expression, type SqlBool } from "kysely";
 
 import { prisma, kysely } from "~/server/db";
 import { escapeString, escapeLikeString } from "~/utils/pruningRules";
@@ -39,7 +39,7 @@ export const updatePruningRuleMatches = async (
   });
 
   for (let i = numOmittedRules; i < allPruningRules.length; i++) {
-    let prunedInput: RawBuilder<string> = sql`CAST("DatasetEntry"."messages" AS TEXT)`;
+    let prunedInput = sql`CAST("DatasetEntry"."messages" AS TEXT)`;
 
     // For each rule to update, find all the dataset entries with matching prompts, after previous rules have been applied
     for (let j = 0; j < i; j++) {
