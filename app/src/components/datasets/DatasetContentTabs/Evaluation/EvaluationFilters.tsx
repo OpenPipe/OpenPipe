@@ -15,7 +15,7 @@ const EvaluationFilters = () => {
   const filterOptions = useMemo(
     () => [
       { field: EvaluationFiltersDefaultFields.Input },
-      { field: EvaluationFiltersDefaultFields.OriginalOutput },
+      { field: EvaluationFiltersDefaultFields.DatasetOutput },
       ...[
         ...(dataset?.enabledComparisonModels || []).map((cm) => ({
           field: COMPARISON_MODEL_NAMES[cm] + EVALUATION_FILTERS_OUTPUT_APPENDIX,

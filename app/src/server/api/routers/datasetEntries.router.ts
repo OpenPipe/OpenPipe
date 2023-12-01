@@ -631,21 +631,21 @@ export const datasetEntriesRouter = createTRPCRouter({
             (join) => join.onRef("averageScoreForEval.datasetEntryId", "=", "de.id"),
           )
           // Ensure that rows with the sort eval applied are always shown first
-          .orderBy(() =>
-            sql.raw(
-              `CASE
+          .orderBy(
+            () =>
+              sql`CASE
                 WHEN "averageScoreForEval"."datasetEntryId" IS NULL THEN 1
                 ELSE 0
               END`,
-            ),
           )
-          .orderBy(`averageScoreForEval.score`, sortOrder.order) as unknown as typeof baseQuery;
+          .orderBy(`averageScoreForEval.score`, sortOrder.order);
       }
 
       const entries = await updatedQuery
         .select((eb) => [
           "de.id as id",
           "de.messages as messages",
+          "de.response_format as response_format",
           "de.output as output",
           jsonArrayFrom(
             eb

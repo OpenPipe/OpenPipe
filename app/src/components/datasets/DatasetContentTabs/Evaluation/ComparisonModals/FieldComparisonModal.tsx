@@ -77,14 +77,14 @@ const FieldComparisonModal = () => {
                 original "gold" data. This is useful for structured data with known correct answers.
                 It's less useful if some of the data is subjective or open-ended.
               </Text>
-              <Text as="b">For each key in the original output, we check the following:</Text>
+              <Text as="b">For each key in the dataset output, we check the following:</Text>
               <UnorderedList>
                 <ListItem>Does the key exist in the generated output?</ListItem>
                 <ListItem>If the key does exist, is the value the same?</ListItem>
               </UnorderedList>
               <Text>
                 The total score of the dataset entry represents the percentage of keys in the
-                original output that match this criteria.
+                dataset output that match this criteria.
               </Text>
             </VStack>
             <HStack w="full" justifyContent="space-between" alignItems="flex-start" spacing={8}>
@@ -99,7 +99,7 @@ const FieldComparisonModal = () => {
                 bgColor="white"
               >
                 <Text fontWeight="bold" color="orange.500" fontSize="xs" h={6}>
-                  Original Output
+                  Dataset Output
                 </Text>
                 <FormattedMessage
                   message={data.entry.originalOutput as unknown as ChatCompletionMessage}
