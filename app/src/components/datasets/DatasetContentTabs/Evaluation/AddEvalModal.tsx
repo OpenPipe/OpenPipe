@@ -211,7 +211,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                     onChange={(e) => setInstructions(e.target.value)}
                     placeholder="Which model's output better matches the prompt?"
                     w="full"
-                    minH={32}
+                    minH={16}
                   />
                 </VStack>
               </VStack>

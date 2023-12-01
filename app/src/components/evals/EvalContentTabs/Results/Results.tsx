@@ -1,5 +1,6 @@
 import React, { useMemo, useLayoutEffect, useState } from "react";
 import {
+  Badge,
   Box,
   Grid,
   Heading,
@@ -15,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import chroma from "chroma-js";
 import { type RouterOutputs } from "~/utils/api";
+import Link from "next/link";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { useDatasetEval } from "~/utils/hooks";
@@ -44,17 +46,30 @@ const Results = () => {
               </Tr>
             </Thead>
             <Tbody>
-              {datasetEval.results.leaderboard.map((model) => (
-                <Tr key={model.modelId1} h={12}>
-                  <Td fontWeight="bold">{getOutputTitle(model.modelId1, model.slug1)}</Td>
-                  <Td isNumeric>
-                    <ColoredPercent value={model.winRate} />
-                  </Td>
-                  <Td isNumeric>{model.wins}</Td>
-                  <Td isNumeric>{model.ties}</Td>
-                  <Td isNumeric>{model.losses}</Td>
-                </Tr>
-              ))}
+              {datasetEval.results.leaderboard.map((model) => {
+                const title = getOutputTitle(model.modelId1, model.slug1);
+                const titleElement = title?.startsWith("openpipe:") ? (
+                  <Link href={{ pathname: "/fine-tunes/[id]", query: { id: model.modelId1 } }}>
+                    {title.replace("openpipe:", "")}
+                    <Badge colorScheme="blue" ml={2}>
+                      FT
+                    </Badge>
+                  </Link>
+                ) : (
+                  title
+                );
+                return (
+                  <Tr key={model.modelId1} h={12}>
+                    <Td fontWeight="bold">{titleElement}</Td>
+                    <Td isNumeric>
+                      <ColoredPercent value={model.winRate} />
+                    </Td>
+                    <Td isNumeric>{model.wins}</Td>
+                    <Td isNumeric>{model.ties}</Td>
+                    <Td isNumeric>{model.losses}</Td>
+                  </Tr>
+                );
+              })}
             </Tbody>
           </Table>
         </ContentCard>
