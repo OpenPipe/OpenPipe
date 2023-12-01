@@ -229,7 +229,7 @@ export enum GeneralFiltersDefaultFields {
 
 export enum EvaluationFiltersDefaultFields {
   Input = "Input",
-  OriginalOutput = "Original Output",
+  DatasetOutput = "Dataset Output",
   ImportId = "Import ID",
   EvalApplied = "Eval Applied",
 }

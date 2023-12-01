@@ -27,7 +27,7 @@ export const constructEvaluationFiltersQuery = (
       if (filter.field === EvaluationFiltersDefaultFields.Input) {
         wheres.push(filterExpression(sql.raw(`de."messages"::text`)));
       }
-      if (filter.field === EvaluationFiltersDefaultFields.OriginalOutput) {
+      if (filter.field === EvaluationFiltersDefaultFields.DatasetOutput) {
         wheres.push(filterExpression(sql.raw(`de."output"::text`)));
       }
       if (filter.field === EvaluationFiltersDefaultFields.ImportId) {

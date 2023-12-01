@@ -16,7 +16,7 @@ import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 import { type RouterOutputs } from "~/utils/api";
 import ModelHeader from "./ModelHeader";
-import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import EvalResults from "./EvalResults";
 import FormattedMessage from "../FormattedMessage";
@@ -79,6 +79,8 @@ const EvaluationRow = ({ entry }: { entry: TestingEntry }) => {
     }
   });
 
+  const preferJson = typedDatasetEntry(entry).response_format?.type === "json_object";
+
   const [maxOutputHeight, setMaxOutputHeight] = useState(0);
   const onHeightUpdated = useCallback(
     (height: number) => {
@@ -100,6 +102,7 @@ const EvaluationRow = ({ entry }: { entry: TestingEntry }) => {
             datasetEntryId={entry.id}
             evalResults={entry.datasetEvalResults}
             onHeightUpdated={onHeightUpdated}
+            preferJson={preferJson}
           />
         );
       })}
@@ -169,6 +172,7 @@ const FormattedInputGridItem = ({
               colorScheme="gray"
               py={2}
               onClick={() => setIsExpanded(!isExpanded)}
+              fontSize="inherit"
             >
               {isExpanded ? (
                 <HStack spacing={0}>
@@ -196,11 +200,13 @@ const FormattedOutputGridItem = ({
   datasetEntryId,
   evalResults,
   onHeightUpdated,
+  preferJson,
 }: {
   entry: FTEntry;
   datasetEntryId: string;
   evalResults: TestingEntry["datasetEvalResults"];
   onHeightUpdated: (height: number) => void;
+  preferJson: boolean;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -223,7 +229,7 @@ const FormattedOutputGridItem = ({
   return (
     <GridItem borderTopWidth={1} borderLeftWidth={1}>
       <VStack ref={ref} w="full" alignItems="flex-start" justifyContent="space-between" h="full">
-        <FormattedOutput entry={entry} />
+        <FormattedOutput entry={entry} preferJson={preferJson} />
         <EvalResults
           datasetEntryId={datasetEntryId}
           modelId={entry.modelId}
@@ -234,7 +240,7 @@ const FormattedOutputGridItem = ({
   );
 };
 
-export const FormattedOutput = ({ entry }: { entry: FTEntry }) => {
+export const FormattedOutput = ({ entry, preferJson }: { entry: FTEntry; preferJson: boolean }) => {
   if (entry.errorMessage) {
     return <Text color="red.500">{entry.errorMessage}</Text>;
   }
@@ -244,7 +250,7 @@ export const FormattedOutput = ({ entry }: { entry: FTEntry }) => {
   const message = entry.output as unknown as ChatCompletionMessage;
   return (
     <VStack w="full">
-      <FormattedMessage message={message} />
+      <FormattedMessage message={message} preferJson={preferJson} />
       {entry.finishReason === "length" && (
         <Alert status="warning" mt={4} zIndex={0}>
           <AlertIcon />

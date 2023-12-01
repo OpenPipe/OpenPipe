@@ -13,6 +13,7 @@ import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 
 const Evaluation = () => {
   const filtersShown = useFilters().filtersShown;
+  const filtersApplied = useFilters().filters.length > 0;
 
   const count = useTestingEntries().data?.count;
 
@@ -26,7 +27,8 @@ const Evaluation = () => {
         </HStack>
         {filtersShown && <EvaluationFilters />}
         <Text fontWeight="bold" fontSize="lg" pt={8}>
-          Results {count !== undefined ? `(${count})` : ""}
+          {filtersApplied && "Matching "}Test Set Entries{" "}
+          {count !== undefined ? `(${count.toLocaleString()})` : ""}
         </Text>
       </VStack>
       <Box w="full" flex={1}>

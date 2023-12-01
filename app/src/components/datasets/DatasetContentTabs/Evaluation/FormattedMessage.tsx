@@ -1,66 +1,79 @@
 import { Text, VStack } from "@chakra-ui/react";
 import type { DatasetEntry } from "@prisma/client";
-import type { ChatCompletionMessageToolCall, ChatCompletionMessage } from "openai/resources/chat";
+import type { ChatCompletionMessage } from "openai/resources/chat";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
 export const PotentiallyPendingFormattedMessage = ({
   output,
+  preferJson = false,
 }: {
   output: DatasetEntry["output"];
+  preferJson?: boolean;
 }) => {
   if (output) {
-    return <FormattedMessage message={output as unknown as ChatCompletionMessage} />;
+    return (
+      <FormattedMessage
+        message={output as unknown as ChatCompletionMessage}
+        preferJson={preferJson}
+      />
+    );
   }
   return <Text color="gray.500">Pending</Text>;
 };
 
-const FormattedMessage = ({ message }: { message: ChatCompletionMessage }) => {
+const FormattedMessage = ({
+  message,
+  preferJson = false,
+}: {
+  message: ChatCompletionMessage;
+  preferJson?: boolean;
+}) => {
   if (message.tool_calls) {
     return (
       <VStack alignItems="flex-start" whiteSpace="pre-wrap" w="full">
-        {message.tool_calls.map((toolCall, index) => (
-          <FormattedToolCall key={index} toolCall={toolCall} />
-        ))}
+        {message.tool_calls.map((toolCall, index) => {
+          const fn = toolCall.function;
+
+          return <HighlightedJson key={index} fnLabel={fn.name} json={fn.arguments} />;
+        })}
       </VStack>
     );
   }
+
+  if (preferJson) {
+    return <HighlightedJson json={message.content ?? ""} />;
+  }
+
   return <Text whiteSpace="pre-wrap">{message.content}</Text>;
 };
 
-const FormattedToolCall = ({ toolCall }: { toolCall: ChatCompletionMessageToolCall }) => {
-  const { name, arguments: args } = toolCall.function;
+const HighlightedJson = (props: { json: string; fnLabel?: string }) => {
+  let formattedJson = props.json;
 
-  let parsedArgs = null;
   try {
-    if (args) parsedArgs = JSON.parse(args);
-  } catch (e) {
-    // ignore
-  }
+    formattedJson = JSON.stringify(JSON.parse(props.json), null, 2);
+  } catch (e) {}
 
-  if (parsedArgs) {
-    return (
-      <VStack w="full" alignItems="flex-start">
-        <Text fontWeight="bold">{name}</Text>
-        <SyntaxHighlighter
-          customStyle={{
-            overflowX: "unset",
-            width: "100%",
-            flex: 1,
-            backgroundColor: "#f0f0f0",
-          }}
-          language="json"
-          lineProps={{
-            style: { wordBreak: "break-all", whiteSpace: "pre-wrap" },
-          }}
-          wrapLines
-        >
-          {JSON.stringify(JSON.parse(args), null, 4)}
-        </SyntaxHighlighter>
-      </VStack>
-    );
-  }
-
-  return <Text maxW="full">{args}</Text>;
+  return (
+    <VStack w="full" alignItems="flex-start">
+      <SyntaxHighlighter
+        customStyle={{
+          overflowX: "unset",
+          width: "100%",
+          flex: 1,
+          backgroundColor: "#f0f0f0",
+          borderRadius: 8,
+        }}
+        language="javascript"
+        lineProps={{
+          style: { wordBreak: "break-all", whiteSpace: "pre-wrap" },
+        }}
+        wrapLines
+      >
+        {props.fnLabel ? `${props.fnLabel}(${formattedJson})` : formattedJson}
+      </SyntaxHighlighter>
+    </VStack>
+  );
 };
 
 export default FormattedMessage;

@@ -23,13 +23,14 @@ const EvaluationTable = () => {
       <Card flex={1} minW="fit-content" variant="outline">
         <Grid
           display="grid"
-          gridTemplateColumns={`minmax(600px, 1fr) repeat(${visibleModelIds.length}, 480px)`}
+          gridTemplateColumns={`minmax(500px, 1fr) repeat(${visibleModelIds.length}, 400px)`}
           sx={{
             "> *": {
               borderColor: "gray.300",
               padding: 4,
             },
           }}
+          fontSize="sm"
         >
           <TableHeader />
           {entries.entries.map((entry) => (
