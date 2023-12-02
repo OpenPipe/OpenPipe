@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://app.openpipe.ai/">Hosted App</a> - <a href="#running-locally">Running Locally</a> - <a href="#sample-experiments">Experiments</a>
+  <a href="https://app.openpipe.ai/">Hosted App</a> - <a href="#running-locally">Running Locally</a> - <a href="https://docs.openpipe.ai">Docs</a>
 </p>
 
 <br>
