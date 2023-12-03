@@ -9,28 +9,23 @@ Upload a JSONL file populated with a list of training examples.
 
 <Frame>![](/images/features/importing-data.png)</Frame>
 
-Each line of the file should have an input and output key. The input should be an OpenAI [chat completion](https://platform.openai.com/docs/api-reference/chat/object), and the output should be formatted as an OpenAI assistant message.
+Each line of the file should be compatible with the OpenAI [chat format](https://platform.openai.com/docs/api-reference/chat/object), with additional optional fields.
 
-### Input
+### OpenAI Fields
 
-- **`messages`**: Required. Formatted as a list of OpenAI [chat completion messages](https://platform.openai.com/docs/guides/gpt/chat-completions-api).
-- **`function_call`**: Optional. Just like with OpenAI function calling, you can set this to `{ "name": "your_function_call_name" }` to indicate that the model should be required to call the given function. For more information read OpenAI's [function calling docs](https://platform.openai.com/docs/guides/gpt/function-calling).
-- **`functions`**: Optional. An array of functions available for the model to call. If you set the `function_call` argument, the function you asked it to call must be defined here. For more information read OpenAI's [function calling docs](https://platform.openai.com/docs/guides/gpt/function-calling).
+- **`messages`: Required** - Formatted as a list of OpenAI [chat completion messages](https://platform.openai.com/docs/guides/gpt/chat-completions-api). The list should end with an assistant message.
+- **`function_call`: Optional** - Just like with OpenAI function calling, you can set this to `{ "name": "your_function_call_name" }` to indicate that the model should be required to call the given function. For more information read OpenAI's [function calling docs](https://platform.openai.com/docs/guides/gpt/function-calling).
+- **`functions`: Optional** - An array of functions available for the model to call. If you set the `function_call` argument, the function you asked it to call must be defined here. For more information read OpenAI's [function calling docs](https://platform.openai.com/docs/guides/gpt/function-calling).
 
 You can include other parameters from the OpenAI chat completion input format (eg. temperature), but they will be ignored since they aren't relevant for training.
 
-### Output
+### Additional Fields
 
-- **`role`**: Must be `assistant` for OpenAI compatibility.
-- **`content`** or **`function_call`**: must be set in the same way as OpenAI's [chat completion response format](https://platform.openai.com/docs/guides/gpt/chat-completions-api).
-
-### Other Fields
-
-- **`split`**: Optional. One of "TRAIN" or "TEST". If you don't set this field we'll automatically divide your inputs into train and test splits with a target ratio of 80:20.
+- **`split`: Optional** - One of "TRAIN" or "TEST". If you don't set this field we'll automatically divide your inputs into train and test splits with a target ratio of 80:20.
 
 ```jsonl
 ...
-{"input":{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Tasmania?"}],"functions":[{"name":"log_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]},"output":{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Hobart\"}"}}}
-{"input":{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Sweden?"}],"functions":[{"name":"log_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]},"output":{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Stockholm\"}"}}}
+{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Tasmania?"},{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Hobart\"}"}}],"functions":[{"name":"log_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]}
+{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Sweden?"},{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Stockholm\"}"}}],"functions":[{"name":"log_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]}
 ...
 ```
