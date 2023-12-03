@@ -207,11 +207,11 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       posthog-js:
-        specifier: ^1.84.1
-        version: 1.84.1
+        specifier: ^1.93.3
+        version: 1.93.3
       posthog-node:
-        specifier: ^3.1.2
-        version: 3.1.2
+        specifier: ^3.1.3
+        version: 3.1.3
       prettier:
         specifier: ^3.0.0
         version: 3.0.0
@@ -4123,11 +4123,12 @@ packages:
       - debug
     dev: false
 
-  /axios@0.27.2:
-    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
+  /axios@1.6.2:
+    resolution: {integrity: sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==}
     dependencies:
       follow-redirects: 1.15.3(debug@4.3.2)
       form-data: 4.0.0
+      proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
     dev: false
@@ -8097,17 +8098,17 @@ packages:
   /postgres-range@1.1.3:
     resolution: {integrity: sha512-VdlZoocy5lCP0c/t66xAfclglEapXPCIVhqqJRncYpvbCgImF0w67aPKfbqUMr72tO2k5q0TdTZwCLjPTI6C9g==}
 
-  /posthog-js@1.84.1:
-    resolution: {integrity: sha512-VWf6Hj9qBCyXBahIeUiOF/P8EuMfuD3db7QiS5hlytmJt0n5KwroIkN+oP6GrYBa3fzt9OWNLFVyRZ2wNE/vrg==}
+  /posthog-js@1.93.3:
+    resolution: {integrity: sha512-jEOWwaQpTRbqLPrDLY6eZr7t95h+LyXqN7Yq1/K6u3V0Y1C9xHtYhpuGzYamirVnCDTbVq22RM++OBUaIpp9Wg==}
     dependencies:
       fflate: 0.4.8
     dev: false
 
-  /posthog-node@3.1.2:
-    resolution: {integrity: sha512-atPGYjiK+QvtseKKsrUxMrzN84sIVs9jTa7nx5hl999gJly1S3J5r0DApwZ69NKfJkVIeLTCJyT0kyS+7WqDSw==}
+  /posthog-node@3.1.3:
+    resolution: {integrity: sha512-UaOOoWEUYTcaaDe1w0fgHW/sXvFr3RO0l7yI7RUDzkZNZCfwXNO9r3pc14d1EtNppF/SHBrV5hNiZZATpf/vUw==}
     engines: {node: '>=15.0.0'}
     dependencies:
-      axios: 0.27.2
+      axios: 1.6.2
       rusha: 0.8.14
     transitivePeerDependencies:
       - debug
