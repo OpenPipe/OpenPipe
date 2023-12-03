@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  test-deploy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /code/infra/scripts/test-deploy.sh
+    env_file:
+      - .env
+    volumes:
+      - ..:/code/
+    working_dir: /code/

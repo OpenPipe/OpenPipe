@@ -11,11 +11,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Cache NPM dependencies
       - name: Cache NPM dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: infra/node_modules
           key: ${{ runner.os }}-npm-${{ hashFiles('infra/package-lock.json') }}

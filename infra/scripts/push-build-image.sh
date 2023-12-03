@@ -25,6 +25,6 @@ echo $GITHUB_PAT | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
 
 
 # Build the Docker image
-docker buildx build --platform linux/arm64 -t $IMAGE_FULL_NAME --push .
+docker buildx build --platform linux/amd64 -t $IMAGE_FULL_NAME --push .
 
 echo "Docker image pushed to GitHub Container Registry"
