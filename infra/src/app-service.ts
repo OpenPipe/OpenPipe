@@ -4,7 +4,7 @@ import { imageUri } from "./app-image";
 import { eksProvider } from "./cluster";
 import { certificateArn, zone } from "./dns";
 import { nm } from "./helpers";
-import { environment } from "./app-env";
+import { appSubdomain, environment } from "./app-env";
 
 const appService = "app-v1";
 
@@ -85,7 +85,7 @@ export const service = new kubernetes.core.v1.Service(
 
 new aws.route53.Record(nm("app"), {
   zoneId: zone.id,
-  name: "app",
+  name: appSubdomain,
   type: "CNAME",
   ttl: 300,
   records: [service.status.loadBalancer.ingress[0].hostname],

@@ -36,6 +36,6 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   skipFinalSnapshot: true,
 });
 
-export const connectionString = pulumi.secret(
+export const dbConnectionString = pulumi.secret(
   pulumi.interpolate`postgresql://${dbInstance.username}:${dbInstance.password}@${dbInstance.address}:${dbInstance.port}/${dbName}`,
 );

@@ -14,6 +14,7 @@ import { evaluateTestSetEntries } from "./evaluateTestSetEntries.task";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
 import { relabelDatasetEntry } from "./relabelDatasetEntryTask";
 import type defineTask from "./defineTask";
+import { pgPool } from "../db";
 
 console.log("Starting worker...");
 
@@ -41,9 +42,8 @@ const taskList = registeredTasks.reduce((acc, task) => {
 
 // Run a worker to execute jobs:
 const runner = await run({
-  connectionString: env.DATABASE_URL,
+  pgPool,
   concurrency: env.WORKER_CONCURRENCY,
-  maxPoolSize: env.WORKER_MAX_POOL_SIZE,
   // Install signal handlers for graceful shutdown on SIGINT, SIGTERM, etc
   noHandleSignals: false,
   pollInterval: 1000,

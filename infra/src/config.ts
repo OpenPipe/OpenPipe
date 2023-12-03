@@ -17,7 +17,7 @@ type SecretKey =
 
 type ConfigKey =
   | "WORKER_CONCURRENCY"
-  | "WORKER_MAX_POOL_SIZE"
+  | "PG_MAX_POOL_SIZE"
   | "NODE_ENV"
   | "NEXT_PUBLIC_SENTRY_DSN"
   | "NEXT_PUBLIC_POSTHOG_KEY"
@@ -27,9 +27,8 @@ type ConfigKey =
   | "AZURE_STORAGE_ACCOUNT_NAME"
   | "MODAL_ENVIRONMENT"
   | "SMTP_HOST"
+  | "NEXT_PUBLIC_DEPLOY_ENV"
   | "SENDER_EMAIL"
-  | "NEXT_PUBLIC_HOST"
-  | "NEXTAUTH_URL"
   | "deployDomain";
 
 export const getSecret = (key: SecretKey) => cfg.requireSecret(key);

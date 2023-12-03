@@ -33,7 +33,7 @@ export const env = createEnv({
       .string()
       .default("10")
       .transform((val) => parseInt(val)),
-    WORKER_MAX_POOL_SIZE: z
+    PG_MAX_POOL_SIZE: z
       .string()
       .default("10")
       .transform((val) => parseInt(val)),
@@ -55,6 +55,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SOCKET_URL: z.string().url().default("http://localhost:3318"),
     NEXT_PUBLIC_HOST: z.string().url().default("http://localhost:3000"),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+    NEXT_PUBLIC_DEPLOY_ENV: z.string().default("development"),
   },
 
   /**
@@ -86,10 +87,11 @@ export const env = createEnv({
     AZURE_STORAGE_ACCOUNT_KEY: process.env.AZURE_STORAGE_ACCOUNT_KEY,
     AZURE_STORAGE_CONTAINER_NAME: process.env.AZURE_STORAGE_CONTAINER_NAME,
     WORKER_CONCURRENCY: process.env.WORKER_CONCURRENCY,
-    WORKER_MAX_POOL_SIZE: process.env.WORKER_MAX_POOL_SIZE,
+    PG_MAX_POOL_SIZE: process.env.PG_MAX_POOL_SIZE,
     LOCAL_HOST_PUBLIC_URL: process.env.LOCAL_HOST_PUBLIC_URL,
     MODAL_ENVIRONMENT: process.env.MODAL_ENVIRONMENT,
     MODAL_USE_LOCAL_DEPLOYMENTS: process.env.MODAL_USE_LOCAL_DEPLOYMENTS,
+    NEXT_PUBLIC_DEPLOY_ENV: process.env.NEXT_PUBLIC_DEPLOY_ENV,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

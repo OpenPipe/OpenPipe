@@ -17,13 +17,11 @@ config:
   openpipe:GITHUB_CLIENT_SECRET:
     secure: AAABABlrDVTEPwFbH+lRBsVfYvJZplScryCWJr6VxG+aL8/x9CUQIlle2ttg8ElILmHk4LmI/wW+99vKwtw1N2EiBgT7B0qb
   openpipe:MODAL_ENVIRONMENT: prod
-  openpipe:NEXT_PUBLIC_HOST: https://app.openpipestage.com
-  openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_2tc3AQ798TowPA9FtW2uljz4dKzdiFwpa7EyhPUdKWg
-  openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/48
+  openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
+  openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
   openpipe:NEXT_PUBLIC_SOCKET_URL: https://querykey-prod-wss.onrender.com
   openpipe:NEXTAUTH_SECRET:
     secure: AAABAKKJBI/ho0yyHuRiI/zImyHNq1ZsQGFmBkBkIHhFUD8UzqW68YaKbLKC+hMU3drGuDHKuR883vTP6MOBRgEFPIMnUFD37V/VMQ==
-  openpipe:NEXTAUTH_URL: https://app.openpipestage.com
   openpipe:NODE_ENV: production
   openpipe:OPENAI_API_KEY:
     secure: AAABADqUKEHXX4xWkxl8vWi0/RjkpVTEKy0p96sJiwgEtvVYsfT/qzZui456iTmUJ3USbx/h6hwzOrwoEKzbiV/464HcXiauFJCmipEx3V3S3WM=
@@ -37,5 +35,6 @@ config:
   openpipe:SMTP_PASSWORD:
     secure: AAABAOEiU4VL50BHLBNMrsyuNZPI/YDtxrDQr73KU3fVUPp09Z+Cd0tFPs+KloUu
   openpipe:WORKER_CONCURRENCY: "10"
-  openpipe:WORKER_MAX_POOL_SIZE: "30"
+  openpipe:PG_MAX_POOL_SIZE: "30"
+  openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
   openpipe:deployDomain: openpipestage.com

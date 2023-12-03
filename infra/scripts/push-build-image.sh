@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+cd "$(dirname "$0")/../"
 
 # Load environment variables from .env file
 if [ -f .env ]; then
@@ -24,9 +25,6 @@ echo $GITHUB_PAT | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
 
 
 # Build the Docker image
-docker build -t $IMAGE_FULL_NAME .
-
-# Push the Docker image to GitHub Container Registry
-docker push $IMAGE_FULL_NAME
+docker buildx build --platform linux/arm64 -t $IMAGE_FULL_NAME --push .
 
 echo "Docker image pushed to GitHub Container Registry"
