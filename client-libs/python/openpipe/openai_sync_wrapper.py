@@ -31,7 +31,9 @@ class CompletionsWrapper(Completions):
         super().__init__(client)
         self.openpipe_client = openpipe_client
 
-    def create(cls, *args, **kwargs) -> ChatCompletion | Stream[ChatCompletionChunk]:
+    def create(
+        cls, *args, **kwargs
+    ) -> Union[ChatCompletion, Stream[ChatCompletionChunk]]:
         openpipe_options = kwargs.pop("openpipe", {})
 
         requested_at = int(time.time() * 1000)
@@ -141,14 +143,14 @@ class OpenAIWrapper(OriginalOpenAI):
         self,
         *,
         openpipe: Optional[Dict[str, str]] = None,
-        api_key: str | None = None,
-        organization: str | None = None,
-        base_url: str | httpx.URL | None = None,
+        api_key: Union[str, None] = None,
+        organization: Union[str, None] = None,
+        base_url: Union[str, httpx.URL, None] = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        default_headers: Mapping[str, str] | None = None,
-        default_query: Mapping[str, object] | None = None,
-        http_client: httpx.Client | None = None,
+        default_headers: Union[Mapping[str, str], None] = None,
+        default_query: Union[Mapping[str, object], None] = None,
+        http_client: Union[httpx.Client, None] = None,
         _strict_response_validation: bool = False,
     ) -> None:
         super().__init__(
