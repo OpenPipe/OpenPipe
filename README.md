@@ -8,7 +8,7 @@
 </h1>
 
 <p align="center">
-  <i>Turn expensive prompts into cheap fine-tuned models.</i>
+  <i>Open-source fine-tuning and model-hosting platform.</i>
 </p>
 
 <p align="center">
