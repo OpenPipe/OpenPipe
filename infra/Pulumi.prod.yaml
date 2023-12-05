@@ -1,0 +1,43 @@
+config:
+  aws-native:region: us-west-2
+  aws:region: us-west-2
+  openpipe:ANTHROPIC_API_KEY:
+    secure: AAABAG5PApLpxIrXlau1/D5VPnS7yxwv88kXog0O1T7xBxsmlcfoYWByoJ3Mw3wtM3ZXXUcrdbt/jJA5UM3Ke5Dm78lclNpoLcizDYVZ6i3+n/sRFNXXfA8musbQX6dsUAvh1Nja8mqkAp9di1IMz+eweyfHLiFPPmhrngBaD6SVc0iU9iq8dFsSPSg=
+  openpipe:AUTHENTICATED_SYSTEM_KEY:
+    secure: AAABAMGIdgqKubQRFA5iR3kY+m+Fxi7U/tpBIOVN8dakWLXAzLsB0Zy8XDmrjY8X8C5HmY3ukj4rxv3dnD7juA==
+  openpipe:AZURE_STORAGE_ACCOUNT_KEY:
+    secure: AAABAPmVZbYTa4pA/2Tle5POwA+VMA9iyd0NvaBaxU8dAWvZWz60VpkdmlnknP4xV00Drm+wKxnTTJKBRCFbAmqNUx3SP+i+2suCJqgZF2WJfT/N1CiWX/7JI2BR15V+zv4sbEFbpWpfEzf2kCvFRXsAhIyD+pNk
+  openpipe:AZURE_STORAGE_ACCOUNT_NAME: openpipestorage
+  openpipe:AZURE_STORAGE_CONTAINER_NAME: uploadedtrainingdata
+  openpipe:DATABASE_URL:
+    secure: AAABAF/wSE4f7jtFeT5DbflebyOWQzFucV0aNwdJSt9FbBC6rAKfrJpnVfQ3wDdaflnnkbT67XKxmA7s3VCY2mpOqBBFwwDwiH3IEiLw7Eoocyi/k5+3ApZIwPhAmWF1TCXqERjiTWBun7ze6iIAAZCN1JBMk0z3hD52McsoWj7TLr0omtgsp5DwOzn2gQ9Ds/YJApBcufgr/WhRnxsVkhQEL9CFPw==
+  openpipe:GITHUB_CLIENT_ID:
+    secure: AAABANRbnlcfg+gQ5WafloCEN5CyAyRhS2M1UfefNLY0S6i8feC4iwESdQUyi6bimgSkiw==
+  openpipe:GITHUB_CLIENT_SECRET:
+    secure: AAABAF9WqvlslNnWvQibqYWDdHXmz+h5QJQcFOunA+o1nSwbkS4SyA9LZWH2HlDZg7asTJdB9bsf6CNIDlNvOn4yyi22sHH8
+  openpipe:MODAL_ENVIRONMENT: prod
+  openpipe:NEXT_PUBLIC_DEPLOY_ENV: production
+  openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_2tc3AQ798TowPA9FtW2uljz4dKzdiFwpa7EyhPUdKWg
+  openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
+  openpipe:NEXT_PUBLIC_SOCKET_URL: https://querykey-prod-wss.onrender.com
+  openpipe:NEXTAUTH_SECRET:
+    secure: AAABAAwE72UToj4bFNPEVHdP77QeT3uAQKd1ZHYQF72nuJguH78AkZOAlaue+o4=
+  openpipe:NODE_ENV: production
+  openpipe:OPENAI_API_KEY:
+    secure: AAABAAz1hfybJpysrRY/mYD98K9hApMRci9L0P5cDRdWNjtj+IzEDiEy9LloVTkTjyct1xdLoKwVYr8EONQ7WZe9/2Bmfn+63hJvqPf3CNzE02g=
+  openpipe:OPENPIPE_API_KEY:
+    secure: AAABANLs9A3yFWHZljpbTh9FJaaHtq8A/mw2RUQ9mXbL8Em6VEZZnzFU7BvqfanPxSRWMyntLMXi51jf8rSKAIDxmji56TMXDHGdT2/L
+  openpipe:PG_MAX_POOL_SIZE: "30"
+  openpipe:REPLICATE_API_TOKEN:
+    secure: AAABAMekEht+1F61q6J8oGSHaJFhHzG9wKrAYYiUcnrZjXEQiGLY/HrllVZHWx5GNBkopBxXePPb0uA89OJmowa7+YMfXDP9
+  openpipe:SENDER_EMAIL: noreply@email.openpipe.ai
+  openpipe:SENTRY_AUTH_TOKEN:
+    secure: AAABACd/UK1/r1DL2/nd+0RaAU8Pyt8sLqZcNbIVJ4WqMpIFC5zx9gx6mdMK1cMlwTD3fcOSOfJiAPuqsCzhHFgxkcSysSGHv0sy2EOpuMVgj76E1qOrnrFQUfQ+g/MJcxxwZcRpz/gBjonP25jc4EuU3AcI/Odu+EsuE2VpGcB98hSQSu8SHPaVTvNHSJfqIq/jufbudoH5NdAegx6EIFthd33nNmYYhYPfImi2Lh/kd9iBbDmfW8+ogU65XUKMqjxFRCWlCA1OWcQQ/robF7SQDT9uGj2VwW6wQVQXdw==
+  openpipe:SMTP_HOST: smtp-relay.brevo.com
+  openpipe:SMTP_LOGIN:
+    secure: AAABAMO3Taxr4V3nKLUrah/KqFR6hB3j2T4P+GzoeHS5cAMDYV8pAyLmJPC+Ro3wWWwd1w==
+  openpipe:SMTP_PASSWORD:
+    secure: AAABAKH7k2nM2PVrFFZu/XpVy1L0TnYwemK1NeMuO8vOM1JHsb2sEpU3pxPHIjxL
+  openpipe:SMTP_PORT: "587"
+  openpipe:WORKER_CONCURRENCY: "10"
+  openpipe:deployDomain: openpipe.ai

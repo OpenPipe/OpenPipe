@@ -4,9 +4,15 @@ on:
   push:
     branches: [stage]
 
+# Only run workflow for the latest commit
+concurrency: 
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   deploy-stage:
     runs-on: ubuntu-latest
+    environment: stage
     container: ghcr.io/openpipe/deploy-infra
 
     steps:
@@ -25,11 +31,25 @@ jobs:
       - name: Install Pulumi deps
         run: npm install
         working-directory: infra
-
+      
       - name: Run Pulumi
-        run: pulumi up --stack=stage -f
-        working-directory: infra
+        uses: pulumi/actions@v3
+        with:
+          command: up
+          stack-name: openpipe/stage
+          work-dir: infra
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          
+          # Lol I can't believe this is necessary but without it the AWS fails with cryptic errors.
+          # https://github.com/aws/aws-cli/issues/5234#issuecomment-705831465
+          AWS_EC2_METADATA_DISABLED: true
+
+      - name: Cancel Pulumi if the run was stopped
+        if: ${{ cancelled() }}
+        run: pulumi cancel --stack=openpipe/stage --yes
+        working-directory: infra
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}

@@ -3,7 +3,6 @@ config:
   aws:region: us-west-2
   openpipe:ANTHROPIC_API_KEY:
     secure: AAABAIib0LJsmJHL2E/qDWve1ex9U0ky6eZNS8MwZEcx0VdpjY588ZRzyDx84t20iC/6XzwENvN9tkbaIEx2uznP1AXuoWoD7HTw+B09hc8i0ScTCfE8WDXfbgPF7xIU3f+OIxNs1ltBhXJ7AjoMWQxrXw==
-  openpipe:APP_SUBDOMAIN: stage
   openpipe:AUTHENTICATED_SYSTEM_KEY:
     secure: AAABAIF/+V67LPOdOL1TJ6vYspfsshXqklCatXW4iwT9xkQiS5iQpIexXPiFAp2tFWwSi8w63gPExslbwltxbg==
   openpipe:AZURE_STORAGE_ACCOUNT_KEY:
@@ -11,12 +10,13 @@ config:
   openpipe:AZURE_STORAGE_ACCOUNT_NAME: openpipestorage
   openpipe:AZURE_STORAGE_CONTAINER_NAME: uploadedtrainingdata
   openpipe:DATABASE_URL:
-    secure: AAABAOzeRikbaG+ebUnzNa93fwTtjrabsY5iRybewrgzUmz2CRnbxEd0NLNpT0ok7Ll5A99ZE2SeYb+X71HginddkFwAOk1sde/414B/xsfz4EDdLBBJ510CsdfLIdofG9wesmCxeW2npBqj0mDS9yDdlzNxsXcolEwJLBbTZkAO17mv57Zj/UFpl+oPZhETzznX8Mq8JqnprVhfPoUNhvzd0dwHuExfIYg=
+    secure: AAABAAwzXuqjPr+HSDt3fQ23k5QIu1MK9rPJeh0c9t+jPg8s3QFswtobBIcm3A6u5/eDd+HIH1SasZK4ntm1/deL97OeqlEpMpaIMGQo0CiZTaciFAFXQroLcrWYk2dQSJ6RCQijDmeBS4TcviWghmHW3nbQgoiFA9jQrY199ynUjno8jgPS5qpJfagtKKgvJXo8rzNvWpeM4yJgJSjENYA=
   openpipe:GITHUB_CLIENT_ID:
     secure: AAABAJm9aaD9Lun17P1sC8iLXyO2T/qcKxVvURkyNVuqgn5yZ1C/qfRsod2yMkDRNiLzNQ==
   openpipe:GITHUB_CLIENT_SECRET:
     secure: AAABABlrDVTEPwFbH+lRBsVfYvJZplScryCWJr6VxG+aL8/x9CUQIlle2ttg8ElILmHk4LmI/wW+99vKwtw1N2EiBgT7B0qb
   openpipe:MODAL_ENVIRONMENT: prod
+  openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
   openpipe:NEXT_PUBLIC_SOCKET_URL: https://querykey-prod-wss.onrender.com
@@ -27,6 +27,7 @@ config:
     secure: AAABADqUKEHXX4xWkxl8vWi0/RjkpVTEKy0p96sJiwgEtvVYsfT/qzZui456iTmUJ3USbx/h6hwzOrwoEKzbiV/464HcXiauFJCmipEx3V3S3WM=
   openpipe:OPENPIPE_API_KEY:
     secure: AAABAPSWKH34/0X6RC5yTtNuPRncI3JTDVoWWRNoMGcB6J9hFr2X15IZzYWIIhpffkio87wr89eVv517/rEd6JLrT6yJprqn/zxBMXFB
+  openpipe:PG_MAX_POOL_SIZE: "30"
   openpipe:SENDER_EMAIL: noreply@email.openpipe.ai
   openpipe:SENTRY_AUTH_TOKEN:
     secure: AAABAPbMI/z2KEIz3utl0SaDBjiSUWWyrrHghP4qEfYQgwx7g9Oj55dPoag8zfOEjJ+qrCIW0dAmRNgNKsPgkxEbrC5WKMQBWc3VVxW0nBdxkLHasS/8d3UC+D7bzurjEVOJAvaqSyjvBt70Bs9A+T2XvGtQt/mpCSV7pdoa1dM1stdBvcBkDmnkdfNST916KWfGvg3i2x2HZgSDTo3wsNtqcT7O479yQZHGpIfRSa5NYcXaqKa4+AVhOQvmIPGiUSJFlLolwuUMmq3oK6Zk6tLKEBtDzCYEO1D3KnaNoA==
@@ -35,6 +36,4 @@ config:
   openpipe:SMTP_PASSWORD:
     secure: AAABAOEiU4VL50BHLBNMrsyuNZPI/YDtxrDQr73KU3fVUPp09Z+Cd0tFPs+KloUu
   openpipe:WORKER_CONCURRENCY: "10"
-  openpipe:PG_MAX_POOL_SIZE: "30"
-  openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
   openpipe:deployDomain: openpipestage.com

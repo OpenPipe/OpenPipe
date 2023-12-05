@@ -5,9 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: /code/infra/scripts/test-deploy.sh
+    # command: pulumi refresh --stack=stage --skip-preview
+    command: sleep 100000
+    # command: /code/infra/scripts/test-deploy.sh
     env_file:
       - .env
     volumes:
       - ..:/code/
-    working_dir: /code/
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /code/infra
+    platform: linux/amd64

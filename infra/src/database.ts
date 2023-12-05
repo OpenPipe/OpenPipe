@@ -3,6 +3,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as random from "@pulumi/random";
 import { nm } from "./helpers";
 import { vpc } from "./vpc";
+import { getSecret } from "./config";
 
 const dbSecurityGroup = new aws.ec2.SecurityGroup(nm("app-db"), {
   vpcId: vpc.vpcId,
@@ -25,7 +26,8 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   password: password.result,
   dbName,
   instanceClass: "db.m5.large",
-  allocatedStorage: 256,
+  allocatedStorage: 50,
+  maxAllocatedStorage: 1024,
   engine: "postgres",
   engineVersion: "15.5",
   parameterGroupName: "default.postgres15",
@@ -33,9 +35,14 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   vpcSecurityGroupIds: [dbSecurityGroup.id],
   publiclyAccessible: true,
   applyImmediately: true,
-  skipFinalSnapshot: true,
+  backupRetentionPeriod: 30,
+  performanceInsightsEnabled: true,
+  // multiAz: true,
+  // monitoringInterval: 60,
+  // skipFinalSnapshot: true,
 });
 
 export const dbConnectionString = pulumi.secret(
   pulumi.interpolate`postgresql://${dbInstance.username}:${dbInstance.password}@${dbInstance.address}:${dbInstance.port}/${dbName}`,
 );
+// export const dbConnectionString = getSecret("DATABASE_URL");

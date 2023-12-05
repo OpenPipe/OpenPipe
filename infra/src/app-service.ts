@@ -43,8 +43,8 @@ const deployment = new kubernetes.apps.v1.Deployment(
                 },
               },
               resources: {
-                requests: { memory: "4Gi", cpu: "1000m" },
-                limits: { memory: "8Gi" },
+                requests: { memory: "16Gi", cpu: "4000m" },
+                limits: { memory: "16Gi" },
               },
             },
           ],

@@ -5,6 +5,7 @@ import "./src/app-worker";
 import "./src/dns";
 export * from "./src/metrics";
 export { dbConnectionString } from "./src/database";
+export { deployAccessKeyId, deployAccessKeySecret } from "./src/deployUser";
 
 export const kubeconfig = cluster.kubeconfig;
 export const vpcId = vpc.vpcId;
