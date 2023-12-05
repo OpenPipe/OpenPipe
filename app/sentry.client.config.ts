@@ -21,6 +21,8 @@ if (env.NEXT_PUBLIC_SENTRY_DSN) {
     // in development and sample at a lower rate in production
     replaysSessionSampleRate: 0.1,
 
+    environment: env.NEXT_PUBLIC_DEPLOY_ENV,
+
     // You can remove this option if you're not planning to use the Sentry Session Replay feature:
     integrations: [
       new Sentry.Replay({

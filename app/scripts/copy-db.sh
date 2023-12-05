@@ -28,16 +28,17 @@ dump_prod_db() {
     mkdir -p "$CACHE_DIR"
     export PGPASSWORD="$PASSWORD"
     
+
     pg_dump \
       -v \
       -Fd \
       -f "$CACHE_DIR" \
+      --jobs=8 \
+      --strict-names \
       --exclude-table-data '"LoggedCallModelResponse"' \
       --exclude-table-data '"LoggedCall"' \
       --exclude-table-data '"LoggedCallTag"' \
       --exclude-table-data 'graphile_worker.jobs' \
-      --jobs=8 \
-      --strict-names \
       -h "$HOST" \
       -U "$DB_USERNAME" \
       -d "$DB_NAME"
