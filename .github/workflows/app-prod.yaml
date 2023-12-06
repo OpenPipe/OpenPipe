@@ -2,7 +2,8 @@ name: Deploy Prod
 
 on:
   push:
-    branches: [prod]
+    branches: [main]
+  
 
 # Only run workflow for the latest commit
 concurrency: 
