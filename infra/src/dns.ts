@@ -29,14 +29,14 @@ const dnsRecord = new aws.route53.Record(nm("validationRecord"), {
 });
 
 // To ensure the certificate is validated before it's used
-// const validatedWildcardCert = new aws.acm.CertificateValidation(
-//   nm("certValidation"),
-//   {
-//     certificateArn: wildcardCert.arn,
-//     validationRecordFqdns: [dnsRecord.fqdn],
-//   },
-//   { dependsOn: [dnsRecord] },
-// );
+const validatedWildcardCert = new aws.acm.CertificateValidation(
+  nm("certValidation"),
+  {
+    certificateArn: wildcardCert.arn,
+    validationRecordFqdns: [dnsRecord.fqdn],
+  },
+  { dependsOn: [dnsRecord] },
+);
 
-// export const certificateArn = validatedWildcardCert.certificateArn;
-export const certificateArn = wildcardCert.arn;
+export const certificateArn = validatedWildcardCert.certificateArn;
+// export const certificateArn = wildcardCert.arn;
