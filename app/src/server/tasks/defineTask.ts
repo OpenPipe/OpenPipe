@@ -1,13 +1,13 @@
 import { type Helpers, type Task, makeWorkerUtils, type TaskSpec } from "graphile-worker";
 import { merge } from "lodash-es";
-import { env } from "~/env.mjs";
+import { pgPool } from "../db";
 
 let workerUtilsPromise: ReturnType<typeof makeWorkerUtils> | null = null;
 
 function workerUtils() {
   if (!workerUtilsPromise) {
     workerUtilsPromise = makeWorkerUtils({
-      connectionString: env.DATABASE_URL,
+      pgPool,
     });
   }
   return workerUtilsPromise;

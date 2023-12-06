@@ -25,9 +25,9 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   username: "openpipe",
   password: password.result,
   dbName,
-  instanceClass: "db.m5.large",
-  allocatedStorage: 50,
-  maxAllocatedStorage: 1024,
+  instanceClass: "db.m7g.2xlarge",
+  allocatedStorage: 200,
+  maxAllocatedStorage: 1000,
   engine: "postgres",
   engineVersion: "15.5",
   parameterGroupName: "default.postgres15",
@@ -37,8 +37,7 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   applyImmediately: true,
   backupRetentionPeriod: 30,
   performanceInsightsEnabled: true,
-  // multiAz: true,
-  // monitoringInterval: 60,
+  multiAz: true,
   // skipFinalSnapshot: true,
 });
 

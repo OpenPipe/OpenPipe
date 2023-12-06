@@ -41,9 +41,7 @@ export const pgPool = new Pool({
 });
 
 export const kysely = new Kysely<DB>({
-  dialect: new PostgresDialect({
-    pool: pgPool,
-  }),
+  dialect: new PostgresDialect({ pool: pgPool }),
 });
 
 if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
