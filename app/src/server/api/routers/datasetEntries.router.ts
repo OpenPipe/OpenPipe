@@ -208,7 +208,7 @@ export const datasetEntriesRouter = createTRPCRouter({
             .whereRef("User.id", "=", "DatasetEntry.authoringUserId"),
         ).as("authoringUser"),
       ])
-      .orderBy("sortKey", "desc")
+      .orderBy("createdAt", "desc")
       .execute();
 
     return { ...typedDatasetEntry(entry), history };
