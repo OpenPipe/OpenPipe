@@ -1,13 +1,14 @@
 import { useRouter } from "next/router";
 import { type Query } from "nextjs-routes";
-import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
-import { api } from "~/utils/api";
-import { useAppStore } from "~/state/store";
-import { useTestEntrySortOrder } from "~/components/datasets/DatasetContentTabs/Evaluation/useTestEntrySortOrder";
 import { useFilters } from "~/components/Filters/useFilters";
 import { useMappedModelIdFilters } from "~/components/datasets/DatasetContentTabs/Evaluation/useMappedModelIdFilters";
+import { useTestEntrySortOrder } from "~/components/datasets/DatasetContentTabs/Evaluation/useTestEntrySortOrder";
 import { useVisibleModelIds } from "~/components/datasets/DatasetContentTabs/Evaluation/useVisibleModelIds";
+import { useSortOrder } from "~/components/sorting";
+import { useAppStore } from "~/state/store";
+import { type RouterInputs, api } from "~/utils/api";
 
 export const useExperiments = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
@@ -201,8 +202,12 @@ export const useDatasetEntries = (refetchInterval = 0) => {
 
   const { page, pageSize } = usePageParams();
 
+  const sort =
+    useSortOrder<NonNullable<RouterInputs["datasetEntries"]["list"]["sortOrder"]>["field"]>()
+      .params;
+
   const { data, isFetching, ...rest } = api.datasetEntries.list.useQuery(
-    { datasetId: dataset?.id ?? "", filters, page, pageSize },
+    { datasetId: dataset?.id ?? "", filters, page, pageSize, sortOrder: sort },
     { enabled: !!dataset?.id, refetchInterval },
   );
 
@@ -403,11 +408,4 @@ export const usePruningRules = () => {
   );
 };
 
-export const useIsClientRehydrated = () => {
-  const isRehydrated = useAppStore((state) => state.isRehydrated);
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-  return isRehydrated && isMounted;
-};
+export const useIsClientRehydrated = () => useAppStore((state) => state.isRehydrated);

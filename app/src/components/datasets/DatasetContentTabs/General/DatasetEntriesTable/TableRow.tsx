@@ -3,13 +3,28 @@ import Link from "next/link";
 import { DatasetEntrySplit, RelabelRequestStatus } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
-import { type RouterOutputs } from "~/utils/api";
+import { type RouterInputs, type RouterOutputs } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { useIsClientRehydrated, useDatasetEntries } from "~/utils/hooks";
 import { useMemo } from "react";
 import { useFilters } from "~/components/Filters/useFilters";
+import { useSortOrder, SortArrows } from "~/components/sorting";
 
 type DatasetEntry = RouterOutputs["datasetEntries"]["list"]["entries"][0];
+
+type SortableField = NonNullable<RouterInputs["datasetEntries"]["list"]["sortOrder"]>["field"];
+
+const SortableHeader = (props: { title: string; field: SortableField; isNumeric?: boolean }) => {
+  const sortOrder = useSortOrder<SortableField>();
+
+  return (
+    <Th onClick={() => sortOrder.toggle(props.field)} cursor="pointer">
+      <HStack justify={props.isNumeric ? "end" : undefined}>
+        <Text>{props.title}</Text> <SortArrows<SortableField> field={props.field} />
+      </HStack>
+    </Th>
+  );
+};
 
 export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColumn: boolean }) => {
   const matchingDatasetEntryIds = useDatasetEntries().data?.matchingEntryIds;
@@ -44,11 +59,11 @@ export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColu
             </Text>
           </HStack>
         </Th>
-        <Th>Created At</Th>
+        <SortableHeader title="Created At" field="createdAt" />
         {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
-        <Th isNumeric>Input tokens</Th>
-        <Th isNumeric>Output tokens</Th>
-        <Th isNumeric>Split</Th>
+        <SortableHeader isNumeric title="Input Tokens" field="inputTokens" />
+        <SortableHeader isNumeric title="Output Tokens" field="outputTokens" />
+        <SortableHeader isNumeric title="Split" field="split" />
       </Tr>
     </Thead>
   );

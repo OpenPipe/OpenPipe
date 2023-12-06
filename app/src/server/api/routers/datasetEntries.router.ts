@@ -42,6 +42,13 @@ export const datasetEntriesRouter = createTRPCRouter({
         filters: filtersSchema,
         page: z.number(),
         pageSize: z.number(),
+
+        sortOrder: z
+          .object({
+            field: z.enum(["createdAt", "inputTokens", "outputTokens", "split"]),
+            order: z.enum(["asc", "desc"]),
+          })
+          .optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -54,7 +61,7 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       const baseQuery = constructDatasetEntryFiltersQuery(filters, datasetId);
 
-      const entries = await baseQuery
+      let entriesQuery = baseQuery
         .select((eb) => [
           "de.id as id",
           "de.messages as messages",
@@ -77,10 +84,16 @@ export const datasetEntriesRouter = createTRPCRouter({
               .whereRef("rr.datasetEntryPersistentId", "=", "de.persistentId"),
           ).as("relabelStatuses"),
         ])
-        .orderBy("de.sortKey", "desc")
         .limit(pageSize)
-        .offset((page - 1) * pageSize)
-        .execute();
+        .offset((page - 1) * pageSize);
+
+      if (input.sortOrder) {
+        entriesQuery = entriesQuery.orderBy(`de.${input.sortOrder.field}`, input.sortOrder.order);
+      } else {
+        entriesQuery = entriesQuery.orderBy("de.sortKey", "desc");
+      }
+
+      const entries = await entriesQuery.execute();
 
       const matchingEntryIds = await baseQuery
         .select("de.id")
