@@ -44,7 +44,11 @@ const FormattedMessage = ({
     return <HighlightedJson json={message.content ?? ""} />;
   }
 
-  return <Text whiteSpace="pre-wrap">{message.content}</Text>;
+  return (
+    <Text whiteSpace="pre-wrap" maxW="full">
+      {message.content}
+    </Text>
+  );
 };
 
 const HighlightedJson = (props: { json: string; fnLabel?: string }) => {
