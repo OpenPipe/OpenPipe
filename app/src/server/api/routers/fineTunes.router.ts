@@ -142,9 +142,7 @@ export const fineTunesRouter = createTRPCRouter({
       }
 
       const existingFineTune = await prisma.fineTune.findFirst({
-        where: {
-          slug: input.slug,
-        },
+        where: { slug: input.slug },
       });
 
       if (existingFineTune) {
@@ -159,30 +157,6 @@ export const fineTunesRouter = createTRPCRouter({
           datasetId: input.datasetId,
           pipelineVersion: CURRENT_PIPELINE_VERSION,
         },
-        include: {
-          dataset: {
-            include: {
-              datasetEntries: {
-                select: {
-                  id: true,
-                  split: true,
-                },
-                where: {
-                  outdated: false,
-                  split: "TRAIN",
-                },
-              },
-              pruningRules: {
-                select: {
-                  id: true,
-                  textToMatch: true,
-                  tokensInText: true,
-                  matches: true,
-                },
-              },
-            },
-          },
-        },
       });
       if (!fineTune) return error("Error creating fine tune");
 
@@ -194,30 +168,6 @@ export const fineTunesRouter = createTRPCRouter({
         input.baseModel,
       );
 
-      await prisma.fineTuneTrainingEntry.createMany({
-        data: fineTune.dataset.datasetEntries.map((datasetEntry) => ({
-          fineTuneId: fineTune.id,
-          datasetEntryId: datasetEntry.id,
-        })),
-      });
-
-      // Can't use createMany because of the matches
-      await prisma.$transaction(
-        fineTune.dataset.pruningRules.map((rule) =>
-          prisma.pruningRule.create({
-            data: {
-              fineTuneId: fineTune.id,
-              textToMatch: rule.textToMatch,
-              tokensInText: rule.tokensInText,
-              matches: {
-                create: rule.matches.map((match) => ({
-                  datasetEntryId: match.datasetEntryId,
-                })),
-              },
-            },
-          }),
-        ),
-      );
       await trainFineTune.enqueue({ fineTuneId: fineTune.id });
 
       return success();

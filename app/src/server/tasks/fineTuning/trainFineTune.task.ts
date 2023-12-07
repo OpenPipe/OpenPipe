@@ -35,14 +35,24 @@ const trainModalFineTune = async (fineTuneId: string) => {
   const fineTune = await prisma.fineTune.findUnique({
     where: { id: fineTuneId },
     include: {
-      trainingEntries: {
-        select: {
-          datasetEntry: {
+      dataset: {
+        include: {
+          datasetEntries: {
             select: {
+              id: true,
               messages: true,
               function_call: true,
               functions: true,
               output: true,
+            },
+            where: { outdated: false, split: "TRAIN" },
+          },
+          pruningRules: {
+            select: {
+              id: true,
+              textToMatch: true,
+              tokensInText: true,
+              matches: true,
             },
           },
         },
@@ -58,11 +68,35 @@ const trainModalFineTune = async (fineTuneId: string) => {
     },
   });
 
+  await prisma.fineTuneTrainingEntry.createMany({
+    data: fineTune.dataset.datasetEntries.map((datasetEntry) => ({
+      fineTuneId: fineTune.id,
+      datasetEntryId: datasetEntry.id,
+    })),
+  });
+
+  await prisma.$transaction(
+    fineTune.dataset.pruningRules.map((rule) =>
+      prisma.pruningRule.create({
+        data: {
+          fineTuneId: fineTune.id,
+          textToMatch: rule.textToMatch,
+          tokensInText: rule.tokensInText,
+          matches: {
+            create: rule.matches.map((match) => ({
+              datasetEntryId: match.datasetEntryId,
+            })),
+          },
+        },
+      }),
+    ),
+  );
+
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
-  const trainingRows = fineTune.trainingEntries
+  const trainingRows = fineTune.dataset.datasetEntries
     .map((entry) => {
-      const dsEntry = typedDatasetEntry(entry.datasetEntry);
+      const dsEntry = typedDatasetEntry(entry);
       if (!dsEntry.output) return null;
       return {
         instruction: serializeChatInput(
