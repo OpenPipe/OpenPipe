@@ -47,8 +47,8 @@ export type ParsedRow = ParseError | RowToImport;
 
 export type ContentChatCompletionMessage = Omit<ChatCompletionMessageParam, "function_call">;
 
-export const parseRowsToImport = (jsonlString: string): ParsedRow[] => {
-  const lines = jsonlString.trim().split("\n");
+export const parseRowsToImport = (rawRows: string[]): ParsedRow[] => {
+  const lines = rawRows.map((row) => row.trim()).filter((row) => row.length > 0);
 
   const parsedRows = [];
 
