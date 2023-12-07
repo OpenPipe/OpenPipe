@@ -58,7 +58,7 @@ export const uploadTrainingDataFile = async (contents: string) => {
   return blobName;
 };
 
-export async function downloadBlobToString(
+export async function downloadBlobToStrings(
   blobName: string,
   onProgress?: (progress: number) => Promise<void>,
   chunkInterval?: number,
@@ -71,36 +71,49 @@ export async function downloadBlobToString(
   if (!downloadResponse.readableStreamBody)
     throw Error("downloadResponse.readableStreamBody not found");
 
-  const downloaded = await streamToBuffer(
-    downloadResponse.readableStreamBody,
-    onProgress,
-    chunkInterval,
-  );
-  return downloaded.toString();
+  return await streamToNdStrings(downloadResponse.readableStreamBody, onProgress, chunkInterval);
 }
 
-async function streamToBuffer(
+// Splits the stream into individual chunks split on newlines
+async function streamToNdStrings(
   readableStream: NodeJS.ReadableStream,
   onProgress?: (progress: number) => Promise<void>,
   chunkInterval = 1048576, // send progress every 1MB
-): Promise<Buffer> {
+): Promise<string[]> {
   return new Promise((resolve, reject) => {
-    const chunks: Uint8Array[] = [];
+    const lines: string[] = [];
     let bytesDownloaded = 0;
     let lastReportedByteCount = 0;
+    let tempBuffer: Buffer = Buffer.alloc(0);
 
-    readableStream.on("data", (data: ArrayBuffer) => {
-      chunks.push(data instanceof Buffer ? data : Buffer.from(data));
-      bytesDownloaded += data.byteLength;
+    readableStream.on("data", (chunk: Buffer) => {
+      bytesDownloaded += chunk.byteLength;
 
+      // Report progress
       if (onProgress && bytesDownloaded - lastReportedByteCount >= chunkInterval) {
-        void onProgress(bytesDownloaded); // progress in Bytes
+        void onProgress(bytesDownloaded);
         lastReportedByteCount = bytesDownloaded;
       }
+
+      // Combine with leftover buffer from previous chunk
+      chunk = Buffer.concat([tempBuffer, chunk]);
+
+      let newlineIndex;
+      while ((newlineIndex = chunk.indexOf(0x0a)) !== -1) {
+        const line = chunk.slice(0, newlineIndex).toString("utf-8");
+        lines.push(line);
+        chunk = chunk.slice(newlineIndex + 1);
+      }
+
+      // Save leftover data for next chunk
+      tempBuffer = chunk;
     });
 
     readableStream.on("end", () => {
-      resolve(Buffer.concat(chunks));
+      if (tempBuffer.length > 0) {
+        lines.push(tempBuffer.toString("utf-8")); // add the last part
+      }
+      resolve(lines);
     });
 
     readableStream.on("error", reject);
