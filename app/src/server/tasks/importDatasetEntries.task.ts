@@ -5,7 +5,7 @@ import {
   parseRowsToImport,
 } from "~/components/datasets/parseRowsToImport";
 import { prisma } from "~/server/db";
-import { downloadBlobToString } from "~/utils/azure/server";
+import { downloadBlobToStrings } from "~/utils/azure/server";
 import { prepareDatasetEntriesForImport } from "../utils/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "../utils/startTestJobs";
 import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
@@ -45,13 +45,13 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     const onBlobDownloadProgress = async (progress: number) => {
       await updateDatasetFileUpload({
-        progress: 5 + Math.floor((progress / datasetFileUpload.fileSize) * 25),
+        progress: 5 + Math.floor((progress / datasetFileUpload.fileSize) * 60),
       });
     };
 
-    const jsonlStr = await downloadBlobToString(datasetFileUpload.blobName, onBlobDownloadProgress);
+    const rawRows = await downloadBlobToStrings(datasetFileUpload.blobName, onBlobDownloadProgress);
 
-    const rowsToImport = parseRowsToImport(jsonlStr);
+    const rowsToImport = parseRowsToImport(rawRows);
 
     const errorRows = rowsToImport.filter(isParseError);
     const goodRows = rowsToImport.filter(isRowToImport);
@@ -71,7 +71,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     await updateDatasetFileUpload({
       status: "PROCESSING",
-      progress: 30,
+      progress: 60,
     });
 
     const importId = new Date().toISOString();
@@ -96,12 +96,15 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     await updateDatasetFileUpload({
       status: "SAVING",
-      progress: 75,
+      progress: 70,
     });
 
-    await prisma.datasetEntry.createMany({
-      data: datasetEntriesToCreate,
-    });
+    // split datasetEntriesToCreate into chunks of 1000 because if we try too many at once Prisma throws a `RangeError: Invalid string length`
+    for (let i = 0; i < datasetEntriesToCreate.length; i += 1000) {
+      await prisma.datasetEntry.createMany({
+        data: datasetEntriesToCreate.slice(i, i + 1000),
+      });
+    }
 
     await updateDatasetFileUpload({ progress: 80 });
 
