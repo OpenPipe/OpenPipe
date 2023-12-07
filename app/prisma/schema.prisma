@@ -374,10 +374,22 @@ model ProjectUser {
 model LoggedCall {
     id String @id @default(uuid()) @db.Uuid
 
-    requestedAt DateTime
+    requestedAt  DateTime
+    receivedAt   DateTime?
+    reqPayload   Json?
+    respPayload  Json?
+    // The HTTP status returned by the model provider
+    statusCode   Int?
+    // Should be null if the request was successful, and some string if the request failed.
+    errorMessage String?
 
-    // True if this call was served from the cache, false otherwise
-    cacheHit Boolean
+    // Derived fields
+    durationMs   Int?
+    inputTokens  Int?
+    outputTokens Int?
+    finishReason String?
+    completionId String?
+    cost         Float?
 
     // A LoggedCall is always associated with a LoggedCallModelResponse. If this
     // is a cache miss, we create a new LoggedCallModelResponse.
@@ -395,11 +407,15 @@ model LoggedCall {
     tags           LoggedCallTag[]
     datasetEntries DatasetEntry[]
 
+    // temporary field for migration
+    migrated Boolean @default(false)
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index(projectId)
     @@index([projectId, requestedAt])
+    @@index([createdAt, migrated])
 }
 
 model LoggedCallModelResponse {

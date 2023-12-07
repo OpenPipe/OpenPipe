@@ -1,6 +1,7 @@
+import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { type Query } from "nextjs-routes";
-import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
+import type { UseQueryResult } from "@tanstack/react-query";
 
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
@@ -201,46 +202,43 @@ export const useDatasetEntries = (refetchInterval = 0) => {
 
   const { page, pageSize } = usePageParams();
 
-  const { data, isFetching, ...rest } = api.datasetEntries.list.useQuery(
+  const result = api.datasetEntries.list.useQuery(
     { datasetId: dataset?.id ?? "", filters, page, pageSize },
     { enabled: !!dataset?.id, refetchInterval },
   );
 
-  const [stableData, setStableData] = useState(data);
+  return useStableData(result);
+};
+
+// Prevent annoying flashes while loading from the server
+const useStableData = <TData, TError>(result: UseQueryResult<TData, TError>) => {
+  const { data, isFetching } = result;
+  const [stableData, setStableData] = useState(result.data);
 
   useEffect(() => {
-    // Prevent annoying flashes while logs are loading from the server
     if (!isFetching) {
       setStableData(data);
     }
   }, [data, isFetching]);
 
-  return { data: stableData, isFetching, ...rest };
+  return { ...result, data: stableData };
 };
 
 export const useDatasetEntry = (entryId: string | null) => {
-  return api.datasetEntries.get.useQuery({ id: entryId as string }, { enabled: !!entryId });
+  const result = api.datasetEntries.get.useQuery({ id: entryId as string }, { enabled: !!entryId });
+  return useStableData(result);
 };
 
 export const useTrainingEntries = () => {
   const fineTune = useFineTune().data;
   const { page, pageSize } = usePageParams();
 
-  const { data, isFetching, ...rest } = api.datasetEntries.listTrainingEntries.useQuery(
+  const result = api.datasetEntries.listTrainingEntries.useQuery(
     { fineTuneId: fineTune?.id ?? "", page, pageSize },
     { enabled: !!fineTune?.id },
   );
 
-  const [stableData, setStableData] = useState(data);
-
-  useEffect(() => {
-    // Prevent annoying flashes while logs are loading from the server
-    if (!isFetching) {
-      setStableData(data);
-    }
-  }, [data, isFetching]);
-
-  return { data: stableData, isFetching, ...rest };
+  return useStableData(result);
 };
 
 export const useTestingEntries = (refetchInterval?: number) => {
@@ -254,7 +252,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
 
   const { testEntrySortOrder } = useTestEntrySortOrder();
 
-  const { data, isFetching, ...rest } = api.datasetEntries.listTestingEntries.useQuery(
+  const result = api.datasetEntries.listTestingEntries.useQuery(
     {
       datasetId: dataset?.id || "",
       filters,
@@ -266,16 +264,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
     { enabled: !!dataset?.id, refetchInterval },
   );
 
-  const [stableData, setStableData] = useState(data);
-
-  useEffect(() => {
-    // Prevent annoying flashes while entries are loading from the server
-    if (!isFetching) {
-      setStableData(data);
-    }
-  }, [data, isFetching]);
-
-  return { data: stableData, isFetching, ...rest };
+  return useStableData(result);
 };
 
 export const useModelTestingStats = (
@@ -286,21 +275,12 @@ export const useModelTestingStats = (
   const filters = useMappedModelIdFilters();
   const visibleModelIds = useVisibleModelIds().visibleModelIds;
 
-  const { data, isFetching, ...rest } = api.datasetEntries.testingStats.useQuery(
+  const result = api.datasetEntries.testingStats.useQuery(
     { datasetId: datasetId ?? "", filters, modelId: modelId ?? "", visibleModelIds },
     { enabled: !!datasetId && !!modelId, refetchInterval },
   );
 
-  const [stableData, setStableData] = useState(data);
-
-  useEffect(() => {
-    // Prevent annoying flashes while stats are loading from the server
-    if (!isFetching) {
-      setStableData(data);
-    }
-  }, [data, isFetching]);
-
-  return { data: stableData, isFetching, ...rest };
+  return useStableData(result);
 };
 
 export const useLoggedCalls = (applyFilters = true) => {
@@ -309,22 +289,16 @@ export const useLoggedCalls = (applyFilters = true) => {
   const filters = useFilters().filters;
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
-  const { data, isFetching, ...rest } = api.loggedCalls.list.useQuery(
+  const result = api.loggedCalls.list.useQuery(
     { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? filters : [] },
     { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
   );
 
-  const [stableData, setStableData] = useState(data);
-
   useEffect(() => {
-    // Prevent annoying flashes while logs are loading from the server
-    if (!isFetching) {
-      setStableData(data);
-      setMatchingLogsCount(data?.count ?? 0);
-    }
-  }, [data, isFetching, setMatchingLogsCount]);
+    if (!result.isFetching) setMatchingLogsCount(result.data?.count ?? 0);
+  }, [result, setMatchingLogsCount]);
 
-  return { data: stableData, isFetching, ...rest };
+  return useStableData(result);
 };
 
 export const useTotalNumLogsSelected = () => {
@@ -385,7 +359,6 @@ export const useDatasetEval = () => {
 };
 
 export const useDatasetEvals = () => {
-  const dataset = useDataset().data;
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
   return api.datasetEvals.list.useQuery(
