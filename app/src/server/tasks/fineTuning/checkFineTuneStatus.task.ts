@@ -1,7 +1,7 @@
 import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { startTestJobs } from "~/server/utils/startTestJobs";
-import { trainerv1 } from "~/server/modal-rpc/clients";
+import { trainerv1 } from "~/server/fine-tuning/modal-rpc/clients";
 import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 
 // import dayjs duration

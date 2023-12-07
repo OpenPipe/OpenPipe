@@ -50,7 +50,9 @@
                         "MISTRAL_7b",
                         "LLAMA2_7b",
                         "LLAMA2_13b",
-                        "GPT_3_5_TURBO"
+                        "GPT_3_5_TURBO",
+                        "OPENHERMES_2_5",
+                        "ZEPHYR_7B_BETA"
                       ]
                     },
                     "projectName": {

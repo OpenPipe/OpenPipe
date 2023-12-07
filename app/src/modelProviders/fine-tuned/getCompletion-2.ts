@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { type FineTune } from "@prisma/client";
 import type {
   ChatCompletionMessage,
@@ -7,7 +6,7 @@ import type {
 } from "openai/resources/chat";
 
 import { omit } from "lodash-es";
-import { runInference } from "~/server/modal-rpc/clients";
+import { runInference } from "~/server/fine-tuning/modal-rpc/clients";
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";

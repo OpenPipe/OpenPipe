@@ -55,7 +55,7 @@ export default function Settings() {
 
   return (
     <>
-      <AppShell requireAuth>
+      <AppShell requireAuth title="Project Settings">
         <PageHeaderContainer px={{ base: 4, md: 8 }}>
           <Breadcrumb>
             <BreadcrumbItem>

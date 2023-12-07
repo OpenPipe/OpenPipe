@@ -1,6 +1,6 @@
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
-import { trainerv1 } from "~/server/modal-rpc/clients";
+import { trainerv1 } from "~/server/fine-tuning/modal-rpc/clients";
 import { uploadTrainingDataFile } from "~/utils/azure/server";
 import defineTask from "../defineTask";
 import { trainOpenaiFineTune } from "./trainOpenaiFineTune";

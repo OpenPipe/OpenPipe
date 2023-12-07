@@ -84,7 +84,7 @@ export default function Experiment() {
           />
         </Head>
       )}
-      <AppShell title={experiment.data?.label}>
+      <AppShell title={experiment.data?.label ?? "Experiment"}>
         <VStack h="full">
           <PageHeaderContainer>
             <Breadcrumb>

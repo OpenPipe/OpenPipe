@@ -16,7 +16,7 @@ export default function SignIn() {
   }, [session, router]);
 
   return (
-    <AppShell>
+    <AppShell title="Sign In">
       <div />
     </AppShell>
   );

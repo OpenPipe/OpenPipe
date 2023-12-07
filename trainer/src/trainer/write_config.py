@@ -91,7 +91,7 @@ def write_config(
 ):
     if "Llama-2" in base_model:
         config = base_llama2_config
-    elif "mistral" in base_model:
+    elif any(sub in base_model for sub in ['Mistral-7B-v0.1', 'OpenHermes-2.5-Mistral-7B', 'zephyr-7b-beta']):
         config = base_mistral_config
     else:
         raise ValueError(f"Unknown base model {base_model}")

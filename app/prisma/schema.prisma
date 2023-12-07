@@ -571,6 +571,8 @@ enum BaseModel {
     LLAMA2_13b
     // LLAMA2_70b
     GPT_3_5_TURBO
+    OPENHERMES_2_5
+    ZEPHYR_7B_BETA
 }
 
 model FineTune {

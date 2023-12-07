@@ -51,7 +51,7 @@ export default function Dataset() {
   }
 
   return (
-    <AppShell title={dataset.data?.name} containerProps={{ position: "relative" }}>
+    <AppShell title={dataset.data?.name ?? "Dataset"} containerProps={{ position: "relative" }}>
       <VStack position="sticky" left={0} right={0} w="full">
         <BetaBanner />
         <PageHeaderContainer>

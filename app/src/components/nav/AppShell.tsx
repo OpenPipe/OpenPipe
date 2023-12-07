@@ -153,7 +153,7 @@ export default function AppShell({
   containerProps,
 }: {
   children: React.ReactNode;
-  title?: string;
+  title: string;
   requireAuth?: boolean;
   requireBeta?: boolean;
   containerProps?: BoxProps;

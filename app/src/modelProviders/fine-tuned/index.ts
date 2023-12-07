@@ -7,34 +7,13 @@ import inputSchema from "../openai-ChatCompletion/codegen/input.schema.json";
 import { type ModelProvider } from "../types";
 import frontendModelProvider from "./frontend";
 import getCompletionForExperiments from "./getCompletionForExperiments";
+import { BASE_MODEL_PRICES } from "~/utils/baseModels";
 
 export type FineTunedModelProvider = ModelProvider<
   string,
   ChatCompletionCreateParams,
   ChatCompletion
 >;
-
-const baseModelPrices: Record<
-  BaseModel,
-  { promptTokenPrice: number; completionTokenPrice: number } | undefined
-> = {
-  MISTRAL_7b: {
-    promptTokenPrice: 0.0000012,
-    completionTokenPrice: 0.0000016,
-  },
-  LLAMA2_7b: {
-    promptTokenPrice: 0.0000012,
-    completionTokenPrice: 0.0000016,
-  },
-  LLAMA2_13b: {
-    promptTokenPrice: 0.0000024,
-    completionTokenPrice: 0.0000032,
-  },
-  GPT_3_5_TURBO: {
-    promptTokenPrice: 0.000008,
-    completionTokenPrice: 0.000012,
-  },
-};
 
 const modelProvider: FineTunedModelProvider = {
   getModel: (input) => {
@@ -62,13 +41,12 @@ const modelProvider: FineTunedModelProvider = {
 
     let cost = undefined;
     const baseModel = opts?.baseModel as BaseModel | undefined;
-    const baseModelPrice = baseModel ? baseModelPrices[baseModel] : undefined;
+    const baseModelPrice = baseModel ? BASE_MODEL_PRICES[baseModel] : undefined;
     if (baseModelPrice) {
-      const { promptTokenPrice, completionTokenPrice } = baseModelPrice;
-      cost = inputTokens * promptTokenPrice + outputTokens * completionTokenPrice;
+      cost = inputTokens * baseModelPrice.input + outputTokens * baseModelPrice.output;
     }
 
-    return { inputTokens: inputTokens, outputTokens: outputTokens, cost };
+    return { inputTokens, outputTokens, cost };
   },
   ...frontendModelProvider,
 };
