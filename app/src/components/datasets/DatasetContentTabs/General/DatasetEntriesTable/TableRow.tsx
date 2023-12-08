@@ -5,7 +5,7 @@ import { DatasetEntrySplit, RelabelRequestStatus } from "@prisma/client";
 import dayjs from "~/utils/dayjs";
 import { type RouterInputs, type RouterOutputs } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import { useIsClientRehydrated, useDatasetEntries } from "~/utils/hooks";
+import { useIsClientInitialized, useDatasetEntries } from "~/utils/hooks";
 import { useMemo } from "react";
 import { useFilters } from "~/components/Filters/useFilters";
 import { useSortOrder, SortArrows } from "~/components/sorting";
@@ -35,8 +35,8 @@ export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColu
     if (!matchingDatasetEntryIds || !matchingDatasetEntryIds.length) return false;
     return matchingDatasetEntryIds.every((id) => selectedDatasetEntryIds.has(id));
   }, [matchingDatasetEntryIds, selectedDatasetEntryIds]);
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <Thead>
@@ -86,8 +86,8 @@ export const TableRow = ({
   const isChecked = useAppStore((s) => s.selectedDatasetEntries.selectedIds.has(datasetEntry.id));
   const toggleChecked = useAppStore((s) => s.selectedDatasetEntries.toggleSelectedId);
 
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <Tr

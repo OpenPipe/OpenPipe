@@ -14,7 +14,7 @@ import { BiCheck } from "react-icons/bi";
 import { BsToggles } from "react-icons/bs";
 import { useMemo } from "react";
 
-import { useIsClientRehydrated, useTagNames } from "~/utils/hooks";
+import { useIsClientInitialized, useTagNames } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import ActionButton from "../ActionButton";
@@ -73,8 +73,8 @@ const ColumnVisibilityDropdown = () => {
   );
   const toggleColumnVisibility = useAppStore((s) => s.columnVisibility.toggleColumnVisibility);
 
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <Popover

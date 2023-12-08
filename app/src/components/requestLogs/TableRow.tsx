@@ -20,7 +20,7 @@ import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "../FormattedJson";
 import { useAppStore } from "~/state/store";
 import {
-  useIsClientRehydrated,
+  useIsClientInitialized,
   useLoggedCalls,
   useTotalNumLogsSelected,
   useTagNames,
@@ -40,8 +40,8 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
 
   const totalNumLogsSelected = useTotalNumLogsSelected();
 
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <Thead>
@@ -109,8 +109,8 @@ export const TableRow = ({
     return tagNames?.filter((tagName) => visibleColumns.has(tagName)) ?? [];
   }, [tagNames, visibleColumns]);
 
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <>
