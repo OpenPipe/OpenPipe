@@ -230,10 +230,10 @@ export const v1ApiRouter = createOpenApiRouter({
             model,
             receivedAt: new Date(input.receivedAt),
             reqPayload: (input.reqPayload === null
-              ? Prisma.DbNull
+              ? Prisma.JsonNull
               : input.reqPayload) as Prisma.InputJsonValue,
             respPayload: (input.respPayload === null
-              ? Prisma.DbNull
+              ? Prisma.JsonNull
               : input.respPayload) as Prisma.InputJsonValue,
             statusCode: input.statusCode,
             errorMessage: input.errorMessage,
