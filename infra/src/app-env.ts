@@ -12,8 +12,8 @@ export const environment = new kubernetes.core.v1.Secret(
   nm("app"),
   {
     stringData: {
-      // DATABASE_URL: dbConnectionString,
-      DATABASE_URL: getSecret("DATABASE_URL"),
+      DATABASE_URL: dbConnectionString,
+      // DATABASE_URL: getSecret("DATABASE_URL"),
       OPENAI_API_KEY: getSecret("OPENAI_API_KEY"),
       NEXTAUTH_SECRET: getSecret("NEXTAUTH_SECRET"),
       GITHUB_CLIENT_ID: getSecret("GITHUB_CLIENT_ID"),

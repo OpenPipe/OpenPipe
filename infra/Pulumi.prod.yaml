@@ -41,3 +41,4 @@ config:
   openpipe:SMTP_PORT: "587"
   openpipe:WORKER_CONCURRENCY: "10"
   openpipe:deployDomain: openpipe.ai
+  openpipe:numWorkers: "3"

@@ -1,8 +1,9 @@
-name: Deploy Stage
+name: Deploy Prod
 
 on:
   push:
-    branches: [stage]
+    branches: [main]
+  
 
 # Only run workflow for the latest commit
 concurrency: 
@@ -10,9 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy-stage:
+  deploy-prod:
     runs-on: ubuntu-latest
-    environment: stage
+    environment: prod
     container: ghcr.io/openpipe/deploy-infra
 
     steps:
@@ -36,20 +37,20 @@ jobs:
         uses: pulumi/actions@v3
         with:
           command: up
-          stack-name: openpipe/stage
+          stack-name: openpipe/prod
           work-dir: infra
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           
-          # Lol I can't believe this is necessary but without it the AWS fails with cryptic errors.
+          # Lol I can't believe this is necessary but without it the AWS CLI fails when running on Azure with cryptic errors.
           # https://github.com/aws/aws-cli/issues/5234#issuecomment-705831465
           AWS_EC2_METADATA_DISABLED: true
 
       - name: Cancel Pulumi if the run was stopped
         if: ${{ cancelled() }}
-        run: pulumi cancel --stack=openpipe/stage --yes
+        run: pulumi cancel --stack=openpipe/prod --yes
         working-directory: infra
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}

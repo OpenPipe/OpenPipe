@@ -6,7 +6,7 @@ config:
   openpipe:AUTHENTICATED_SYSTEM_KEY:
     secure: AAABAIF/+V67LPOdOL1TJ6vYspfsshXqklCatXW4iwT9xkQiS5iQpIexXPiFAp2tFWwSi8w63gPExslbwltxbg==
   openpipe:AZURE_STORAGE_ACCOUNT_KEY:
-    secure: AAABABtQu3Y61sRqvJ5PiXn4wKY+auh9/UsakESmwq/TSHSnUx3p6hfiYSzjxK/OeFW/7IWm29UE5M2d5CTP7qocXX0C0Ucydl4gQmvnFW8p9RIt64Ld/7PX4mAPhaSJBDDjtwOkQGjsNog=
+    secure: AAABAMwPLm693oU/r9EBRtopeQkZV2/kXQ0hZ7luT6pj3x11hahfVMaG+7/hqk6GCSnMdm3HvbILSLUU2Gbuvzm4bjrHVSYn4okrsn+CjeMnwv0HQXjDWvac5SWShIeFs03y0D/e/8ZRQlGLATd/sdymx174PgOj
   openpipe:AZURE_STORAGE_ACCOUNT_NAME: openpipestorage
   openpipe:AZURE_STORAGE_CONTAINER_NAME: uploadedtrainingdata
   openpipe:DATABASE_URL:
