@@ -1,16 +1,16 @@
 import { UsageType, type Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
-import { type JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import { captureException } from "@sentry/node";
+
 import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
 import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
-import { hashRequest } from "~/server/utils/hashObject";
 import {
-  chatCompletionInput,
+  chatCompletionInputReqPayload,
   chatCompletionOutput,
   chatMessage,
   functionCallInput,
@@ -21,7 +21,6 @@ import {
 import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
 import { calculateFineTuneUsageCost } from "~/utils/baseModels";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
-import { captureException } from "@sentry/nextjs";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -67,31 +66,9 @@ export const v1ApiRouter = createOpenApiRouter({
         respPayload: z.unknown().optional().describe("JSON-encoded response payload"),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      const reqPayload = await reqValidator.spa(input.reqPayload);
-      const cacheKey = hashRequest(ctx.key.projectId, reqPayload as JsonValue);
-
-      const existingResponse = await prisma.loggedCallModelResponse.findFirst({
-        where: { cacheKey },
-        include: { originalLoggedCall: true },
-        orderBy: { requestedAt: "desc" },
-      });
-
-      if (!existingResponse) return { respPayload: null };
-
-      const newCall = await prisma.loggedCall.create({
-        data: {
-          projectId: ctx.key.projectId,
-          requestedAt: new Date(input.requestedAt),
-          cacheHit: true,
-          modelResponseId: existingResponse.id,
-        },
-      });
-
-      await createTags(newCall.projectId, newCall.id, input.tags);
-      return {
-        respPayload: existingResponse.respPayload,
-      };
+    .mutation(({ input, ctx }) => {
+      // Return null
+      return { respPayload: null };
     }),
 
   createChatCompletion: openApiProtectedProc
@@ -107,7 +84,7 @@ export const v1ApiRouter = createOpenApiRouter({
       // TODO: replace this whole mess with just `chatCompletionInput` once
       // no one is using the `reqPayload` field anymore.
       z.object({
-        reqPayload: chatCompletionInput
+        reqPayload: chatCompletionInputReqPayload
           .optional()
           .describe("DEPRECATED. Use the top-level fields instead"),
         model: z.string().optional(),
@@ -128,8 +105,8 @@ export const v1ApiRouter = createOpenApiRouter({
 
       const inputPayload =
         "reqPayload" in input
-          ? chatCompletionInput.parse(input.reqPayload)
-          : chatCompletionInput.parse(input);
+          ? chatCompletionInputReqPayload.parse(input.reqPayload)
+          : chatCompletionInputReqPayload.parse(input);
 
       const modelSlug = inputPayload.model.replace("openpipe:", "");
       const fineTune = await prisma.fineTune.findUnique({
@@ -218,13 +195,11 @@ export const v1ApiRouter = createOpenApiRouter({
     )
     .output(z.object({ status: z.union([z.literal("ok"), z.literal("error")]) }))
     .mutation(async ({ input, ctx }) => {
+      console.log("\n\n!!!! report started !!!!\n\n");
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const respPayload = await respValidator.spa(input.respPayload);
 
-      const requestHash = hashRequest(ctx.key.projectId, reqPayload as JsonValue);
-
       const newLoggedCallId = uuidv4();
-      const newModelResponseId = uuidv4();
 
       let usage;
       let model;
@@ -247,44 +222,25 @@ export const v1ApiRouter = createOpenApiRouter({
         }
       }
 
-      await prisma.$transaction([
-        prisma.loggedCall.create({
-          data: {
-            id: newLoggedCallId,
-            projectId: ctx.key.projectId,
-            requestedAt: new Date(input.requestedAt),
-            cacheHit: false,
-            model,
-          },
-        }),
-        prisma.loggedCallModelResponse.create({
-          data: {
-            id: newModelResponseId,
-            originalLoggedCallId: newLoggedCallId,
-            requestedAt: new Date(input.requestedAt),
-            receivedAt: new Date(input.receivedAt),
-            reqPayload: input.reqPayload as Prisma.InputJsonValue,
-            respPayload: input.respPayload as Prisma.InputJsonValue,
-            statusCode: input.statusCode,
-            errorMessage: input.errorMessage,
-            durationMs: input.receivedAt - input.requestedAt,
-            cacheKey: respPayload.success ? requestHash : null,
-            inputTokens: usage?.inputTokens,
-            outputTokens: usage?.outputTokens,
-            cost: usage?.cost,
-            completionId: respPayload.success ? respPayload.data.id : null,
-          },
-        }),
-        // Avoid foreign key constraint error by updating the logged call after the model response is created
-        prisma.loggedCall.update({
-          where: {
-            id: newLoggedCallId,
-          },
-          data: {
-            modelResponseId: newModelResponseId,
-          },
-        }),
-      ]);
+      await prisma.loggedCall.create({
+        data: {
+          id: newLoggedCallId,
+          projectId: ctx.key.projectId,
+          requestedAt: new Date(input.requestedAt),
+          model,
+          receivedAt: new Date(input.receivedAt),
+          reqPayload: input.reqPayload as Prisma.InputJsonValue,
+          respPayload: input.respPayload as Prisma.InputJsonValue,
+          statusCode: input.statusCode,
+          errorMessage: input.errorMessage,
+          durationMs: input.receivedAt - input.requestedAt,
+          inputTokens: usage?.inputTokens,
+          outputTokens: usage?.outputTokens,
+          cost: usage?.cost,
+          completionId: respPayload.success ? respPayload.data.id : null,
+          migrated: true,
+        },
+      });
 
       await createTags(ctx.key.projectId, newLoggedCallId, input.tags);
       return { status: "ok" };
@@ -303,17 +259,11 @@ export const v1ApiRouter = createOpenApiRouter({
       z
         .object({
           createdAt: z.date(),
-          cacheHit: z.boolean(),
+          statusCode: z.number().nullable(),
+          errorMessage: z.string().nullable(),
+          reqPayload: z.unknown(),
+          respPayload: z.unknown(),
           tags: z.record(z.string().nullable()),
-          modelResponse: z
-            .object({
-              id: z.string(),
-              statusCode: z.number().nullable(),
-              errorMessage: z.string().nullable(),
-              reqPayload: z.unknown(),
-              respPayload: z.unknown(),
-            })
-            .nullable(),
         })
         .nullable(),
     )
@@ -327,18 +277,12 @@ export const v1ApiRouter = createOpenApiRouter({
         orderBy: { requestedAt: "desc" },
         select: {
           createdAt: true,
-          cacheHit: true,
           tags: true,
           id: true,
-          modelResponse: {
-            select: {
-              id: true,
-              statusCode: true,
-              errorMessage: true,
-              reqPayload: true,
-              respPayload: true,
-            },
-          },
+          statusCode: true,
+          errorMessage: true,
+          reqPayload: true,
+          respPayload: true,
         },
       });
 

@@ -34,17 +34,16 @@ export const loggedCallsRouter = createTRPCRouter({
           "lc.id as id",
           "lc.requestedAt as requestedAt",
           "model",
-          "cacheHit",
           "lc.requestedAt",
-          "receivedAt",
-          "reqPayload",
-          "respPayload",
-          "model",
-          "inputTokens",
-          "outputTokens",
-          "cost",
-          "statusCode",
-          "durationMs",
+          "lc.receivedAt",
+          "lc.reqPayload",
+          "lc.respPayload",
+          "lc.model",
+          "lc.inputTokens",
+          "lc.outputTokens",
+          "lc.cost",
+          "lc.statusCode",
+          "lc.durationMs",
           jsonArrayFrom(
             eb
               .selectFrom("LoggedCallTag")
@@ -69,18 +68,15 @@ export const loggedCallsRouter = createTRPCRouter({
         return {
           id: rawCall.id,
           requestedAt: rawCall.requestedAt,
+          receivedAt: rawCall.receivedAt,
+          reqPayload: rawCall.reqPayload,
+          respPayload: rawCall.respPayload,
+          inputTokens: rawCall.inputTokens,
+          outputTokens: rawCall.outputTokens,
+          cost: rawCall.cost,
+          statusCode: rawCall.statusCode,
+          durationMs: rawCall.durationMs,
           model: rawCall.model,
-          cacheHit: rawCall.cacheHit,
-          modelResponse: {
-            receivedAt: rawCall.receivedAt,
-            reqPayload: rawCall.reqPayload,
-            respPayload: rawCall.respPayload,
-            inputTokens: rawCall.inputTokens,
-            outputTokens: rawCall.outputTokens,
-            cost: rawCall.cost,
-            statusCode: rawCall.statusCode,
-            durationMs: rawCall.durationMs,
-          },
           tags: tagsObject,
         };
       });
@@ -131,7 +127,7 @@ export const loggedCallsRouter = createTRPCRouter({
       });
 
       const loggedCallsFromDb = await baseQuery
-        .select(["lcmr.reqPayload as reqPayload", "lcmr.respPayload as respPayload"])
+        .select(["lc.reqPayload", "lc.respPayload"])
         .orderBy("lc.requestedAt", "desc")
         .execute();
 

@@ -2,8 +2,6 @@ import { v4 as uuidv4 } from "uuid";
 import { type Prisma } from "@prisma/client";
 
 import { prisma } from "~/server/db";
-import { hashRequest } from "~/server/utils/hashObject";
-import { type JsonValue } from "type-fest";
 
 const MODEL_RESPONSE_TEMPLATES: {
   reqPayload: any;
@@ -317,8 +315,6 @@ const MODEL_RESPONSE_TEMPLATES: {
   },
 ];
 
-await prisma.loggedCallModelResponse.deleteMany();
-
 const project = await prisma.project.findFirst({
   where: {
     personalProjectUserId: {
@@ -336,12 +332,9 @@ if (!project) {
 }
 
 const loggedCallsToCreate: Prisma.LoggedCallCreateManyInput[] = [];
-const loggedCallModelResponsesToCreate: Prisma.LoggedCallModelResponseCreateManyInput[] = [];
-const loggedCallsToUpdate: Prisma.LoggedCallUpdateArgs[] = [];
 const loggedCallTagsToCreate: Prisma.LoggedCallTagCreateManyInput[] = [];
 for (let i = 0; i < 11437; i++) {
   const loggedCallId = uuidv4();
-  const loggedCallModelResponseId = uuidv4();
   const template =
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     MODEL_RESPONSE_TEMPLATES[Math.floor(Math.random() * MODEL_RESPONSE_TEMPLATES.length)]!;
@@ -352,14 +345,6 @@ for (let i = 0; i < 11437; i++) {
   const delay =
     model === "gpt-4" ? 1000 * 2 + Math.random() * 1000 * 8 : 1000 + Math.random() * 1000 * 4;
   const receivedAt = new Date(requestedAt.getTime() + delay);
-  loggedCallsToCreate.push({
-    id: loggedCallId,
-    cacheHit: false,
-    requestedAt,
-    projectId: project.id,
-    model: template.reqPayload.model,
-    createdAt: requestedAt,
-  });
 
   const { promptTokenPrice, completionTokenPrice } =
     model === "gpt-4"
@@ -372,31 +357,24 @@ for (let i = 0; i < 11437; i++) {
           completionTokenPrice: 0.000002,
         };
 
-  loggedCallModelResponsesToCreate.push({
-    id: loggedCallModelResponseId,
+  loggedCallsToCreate.push({
+    id: loggedCallId,
     requestedAt,
     receivedAt,
-    originalLoggedCallId: loggedCallId,
     reqPayload: template.reqPayload,
     respPayload: template.respPayload,
     statusCode: template.respStatus,
     errorMessage: template.error,
-    createdAt: requestedAt,
-    cacheKey: hashRequest(project.id, template.reqPayload as JsonValue),
     durationMs: receivedAt.getTime() - requestedAt.getTime(),
     inputTokens: template.inputTokens,
     outputTokens: template.outputTokens,
     finishReason: template.finishReason,
     cost: template.inputTokens * promptTokenPrice + template.outputTokens * completionTokenPrice,
+    projectId: project.id,
+    model: template.reqPayload.model,
+    createdAt: requestedAt,
   });
-  loggedCallsToUpdate.push({
-    where: {
-      id: loggedCallId,
-    },
-    data: {
-      modelResponseId: loggedCallModelResponseId,
-    },
-  });
+
   for (const tag of template.tags) {
     loggedCallTagsToCreate.push({
       projectId: project.id,
@@ -407,15 +385,6 @@ for (let i = 0; i < 11437; i++) {
   }
 }
 
-await prisma.$transaction([
-  prisma.loggedCall.createMany({
-    data: loggedCallsToCreate,
-  }),
-  prisma.loggedCallModelResponse.createMany({
-    data: loggedCallModelResponsesToCreate,
-  }),
-  ...loggedCallsToUpdate.map((update) => prisma.loggedCall.update(update)),
-  prisma.loggedCallTag.createMany({
-    data: loggedCallTagsToCreate,
-  }),
-]);
+await prisma.loggedCall.createMany({
+  data: loggedCallsToCreate,
+});

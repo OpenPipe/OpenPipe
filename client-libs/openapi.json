@@ -529,6 +529,31 @@
                       "temperature": {
                         "type": "number"
                       },
+                      "response_format": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "text"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "json_object"
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      },
                       "stream": {
                         "type": "boolean"
                       }
@@ -1302,47 +1327,29 @@
                       "type": "string",
                       "format": "date-time"
                     },
-                    "cacheHit": {
-                      "type": "boolean"
+                    "statusCode": {
+                      "type": "number",
+                      "nullable": true
                     },
+                    "errorMessage": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "reqPayload": {},
+                    "respPayload": {},
                     "tags": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "string",
                         "nullable": true
                       }
-                    },
-                    "modelResponse": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "statusCode": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "errorMessage": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "reqPayload": {},
-                        "respPayload": {}
-                      },
-                      "required": [
-                        "id",
-                        "statusCode",
-                        "errorMessage"
-                      ],
-                      "additionalProperties": false,
-                      "nullable": true
                     }
                   },
                   "required": [
                     "createdAt",
-                    "cacheHit",
-                    "tags",
-                    "modelResponse"
+                    "statusCode",
+                    "errorMessage",
+                    "tags"
                   ],
                   "additionalProperties": false,
                   "nullable": true

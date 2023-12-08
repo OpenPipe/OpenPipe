@@ -17,51 +17,48 @@ export const constructLoggedCallFiltersQuery = (
     deselectedLogIds: string[];
   },
 ) => {
-  const baseQuery = kysely
-    .selectFrom("LoggedCall as lc")
-    .leftJoin("LoggedCallModelResponse as lcmr", "lc.id", "lcmr.originalLoggedCallId")
-    .where((eb) => {
-      const wheres: Expression<SqlBool>[] = [eb("lc.projectId", "=", projectId)];
+  const baseQuery = kysely.selectFrom("LoggedCall as lc").where((eb) => {
+    const wheres: Expression<SqlBool>[] = [eb("lc.projectId", "=", projectId)];
 
-      const dateFilters = filters.filter(
-        (filter) => filter.field === LoggedCallsFiltersDefaultFields.SentAt,
+    const dateFilters = filters.filter(
+      (filter) => filter.field === LoggedCallsFiltersDefaultFields.SentAt,
+    );
+
+    // Add date-related filters first
+    for (const filter of dateFilters) {
+      const filterExpression = dateComparatorToSqlExpression(
+        filter.comparator,
+        filter.value as [number, number],
       );
 
-      // Add date-related filters first
-      for (const filter of dateFilters) {
-        const filterExpression = dateComparatorToSqlExpression(
-          filter.comparator,
-          filter.value as [number, number],
-        );
-
-        if (filter.field === LoggedCallsFiltersDefaultFields.SentAt) {
-          wheres.push(filterExpression(sql.raw(`lc."requestedAt"`)));
-        }
+      if (filter.field === LoggedCallsFiltersDefaultFields.SentAt) {
+        wheres.push(filterExpression(sql.raw(`lc."requestedAt"`)));
       }
+    }
 
-      for (const filter of filters) {
-        if (!filter.value) continue;
-        const filterExpression = textComparatorToSqlExpression(
-          filter.comparator,
-          filter.value as string,
-        );
+    for (const filter of filters) {
+      if (!filter.value) continue;
+      const filterExpression = textComparatorToSqlExpression(
+        filter.comparator,
+        filter.value as string,
+      );
 
-        if (filter.field === LoggedCallsFiltersDefaultFields.Request) {
-          wheres.push(filterExpression(sql.raw(`lcmr."reqPayload"::text`)));
-        }
-        if (filter.field === LoggedCallsFiltersDefaultFields.Response) {
-          wheres.push(filterExpression(sql.raw(`lcmr."respPayload"::text`)));
-        }
-        if (filter.field === LoggedCallsFiltersDefaultFields.Model) {
-          wheres.push(filterExpression(sql.raw(`lc."model"`)));
-        }
-        if (filter.field === LoggedCallsFiltersDefaultFields.StatusCode) {
-          wheres.push(filterExpression(sql.raw(`lcmr."statusCode"::text`)));
-        }
+      if (filter.field === LoggedCallsFiltersDefaultFields.Request) {
+        wheres.push(filterExpression(sql.raw(`lc."reqPayload"::text`)));
       }
+      if (filter.field === LoggedCallsFiltersDefaultFields.Response) {
+        wheres.push(filterExpression(sql.raw(`lc."respPayload"::text`)));
+      }
+      if (filter.field === LoggedCallsFiltersDefaultFields.Model) {
+        wheres.push(filterExpression(sql.raw(`lc."model"`)));
+      }
+      if (filter.field === LoggedCallsFiltersDefaultFields.StatusCode) {
+        wheres.push(filterExpression(sql.raw(`lc."statusCode"::text`)));
+      }
+    }
 
-      return eb.and(wheres);
-    });
+    return eb.and(wheres);
+  });
 
   const tagFilters = filters.filter(
     (filter) =>
@@ -100,7 +97,7 @@ export const constructLoggedCallFiltersQuery = (
         eb("lc.id", "in", selectionParams.selectedLogIds),
       );
     }
-    updatedBaseQuery = updatedBaseQuery.where((eb) => eb("lcmr.statusCode", "=", 200));
+    updatedBaseQuery = updatedBaseQuery.where((eb) => eb("lc.statusCode", "=", 200));
   }
 
   return updatedBaseQuery;

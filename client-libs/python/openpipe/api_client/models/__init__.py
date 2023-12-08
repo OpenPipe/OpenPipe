@@ -179,6 +179,15 @@ from .create_chat_completion_json_body_req_payload_messages_item_type_4_content_
 from .create_chat_completion_json_body_req_payload_messages_item_type_4_role import (
     CreateChatCompletionJsonBodyReqPayloadMessagesItemType4Role,
 )
+from .create_chat_completion_json_body_req_payload_response_format import (
+    CreateChatCompletionJsonBodyReqPayloadResponseFormat,
+)
+from .create_chat_completion_json_body_req_payload_response_format_type_type_0 import (
+    CreateChatCompletionJsonBodyReqPayloadResponseFormatTypeType0,
+)
+from .create_chat_completion_json_body_req_payload_response_format_type_type_1 import (
+    CreateChatCompletionJsonBodyReqPayloadResponseFormatTypeType1,
+)
 from .create_chat_completion_json_body_req_payload_tool_choice_type_0 import (
     CreateChatCompletionJsonBodyReqPayloadToolChoiceType0,
 )
@@ -256,9 +265,6 @@ from .create_chat_completion_response_200_choices_item_message_tool_calls_item_t
 from .create_chat_completion_response_200_object import CreateChatCompletionResponse200Object
 from .create_chat_completion_response_200_usage import CreateChatCompletionResponse200Usage
 from .local_testing_only_get_latest_logged_call_response_200 import LocalTestingOnlyGetLatestLoggedCallResponse200
-from .local_testing_only_get_latest_logged_call_response_200_model_response import (
-    LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse,
-)
 from .local_testing_only_get_latest_logged_call_response_200_tags import (
     LocalTestingOnlyGetLatestLoggedCallResponse200Tags,
 )
@@ -338,6 +344,9 @@ __all__ = (
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType4",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType4ContentType1",
     "CreateChatCompletionJsonBodyReqPayloadMessagesItemType4Role",
+    "CreateChatCompletionJsonBodyReqPayloadResponseFormat",
+    "CreateChatCompletionJsonBodyReqPayloadResponseFormatTypeType0",
+    "CreateChatCompletionJsonBodyReqPayloadResponseFormatTypeType1",
     "CreateChatCompletionJsonBodyReqPayloadToolChoiceType0",
     "CreateChatCompletionJsonBodyReqPayloadToolChoiceType1",
     "CreateChatCompletionJsonBodyReqPayloadToolChoiceType2",
@@ -373,7 +382,6 @@ __all__ = (
     "CreateChatCompletionResponse200Object",
     "CreateChatCompletionResponse200Usage",
     "LocalTestingOnlyGetLatestLoggedCallResponse200",
-    "LocalTestingOnlyGetLatestLoggedCallResponse200ModelResponse",
     "LocalTestingOnlyGetLatestLoggedCallResponse200Tags",
     "ReportJsonBody",
     "ReportJsonBodyTags",
