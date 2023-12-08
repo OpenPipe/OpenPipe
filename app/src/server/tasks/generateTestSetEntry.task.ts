@@ -19,7 +19,6 @@ import {
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { queueHeadToHeadEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
-import { calculateQueryDelay } from "./queryModel.task";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
@@ -29,6 +28,15 @@ export type GenerateTestSetEntryJob = {
 };
 
 const MAX_TRIES = 25;
+
+const MIN_DELAY = 500; // milliseconds
+const MAX_DELAY = 15000; // milliseconds
+
+export function calculateQueryDelay(numPreviousTries: number): number {
+  const baseDelay = Math.min(MAX_DELAY, MIN_DELAY * Math.pow(2, numPreviousTries));
+  const jitter = Math.random() * baseDelay;
+  return baseDelay + jitter;
+}
 
 export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
   id: "generateTestSetEntry",

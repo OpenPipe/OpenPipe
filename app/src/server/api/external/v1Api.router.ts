@@ -6,8 +6,8 @@ import { z } from "zod";
 import { captureException } from "@sentry/node";
 
 import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
-import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
+import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
 import {
   chatCompletionInputReqPayload,
@@ -212,7 +212,7 @@ export const v1ApiRouter = createOpenApiRouter({
           usage = fineTunedModelProvider.getUsage(
             input.reqPayload as ChatCompletionCreateParams,
             respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
-            { baseModel: fineTune?.baseModel },
+            fineTune?.baseModel,
           );
         } else {
           usage = openaAIModelProvider.getUsage(

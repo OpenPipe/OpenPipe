@@ -29,7 +29,6 @@ export const environment = new kubernetes.core.v1.Secret(
       NODE_ENV: getConfig("NODE_ENV"),
       NEXT_PUBLIC_SENTRY_DSN: getConfig("NEXT_PUBLIC_SENTRY_DSN"),
       NEXT_PUBLIC_POSTHOG_KEY: getConfig("NEXT_PUBLIC_POSTHOG_KEY"),
-      NEXT_PUBLIC_SOCKET_URL: getConfig("NEXT_PUBLIC_SOCKET_URL"),
       SMTP_LOGIN: getConfig("SMTP_LOGIN"),
       AZURE_STORAGE_CONTAINER_NAME: getConfig("AZURE_STORAGE_CONTAINER_NAME"),
       AZURE_STORAGE_ACCOUNT_NAME: getConfig("AZURE_STORAGE_ACCOUNT_NAME"),

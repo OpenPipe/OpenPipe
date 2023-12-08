@@ -4,7 +4,7 @@ import type { ChatCompletionMessageToolCall } from "openai/resources/chat";
 import { BsX } from "react-icons/bs";
 
 import { useAppStore } from "~/state/store";
-import { type CreatedEditor } from "~/state/sharedVariantEditor.slice";
+import { type CreatedEditor } from "~/state/sharedArgumentsEditor.slice";
 
 const ToolCallEditor = ({
   tool_call,

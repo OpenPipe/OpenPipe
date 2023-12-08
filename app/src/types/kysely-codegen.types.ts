@@ -170,7 +170,9 @@ export interface Experiment {
 export interface FineTune {
   id: string;
   slug: string;
-  status: Generated<"DEPLOYED" | "ERROR" | "PENDING" | "TRAINING" | "TRANSFERRING_TRAINING_DATA">;
+  status: Generated<
+    "DEPLOYED" | "ERROR" | "PENDING" | "STARTED" | "TRAINING" | "TRANSFERRING_TRAINING_DATA"
+  >;
   trainingStartedAt: Timestamp | null;
   trainingFinishedAt: Timestamp | null;
   deploymentStartedAt: Timestamp | null;
