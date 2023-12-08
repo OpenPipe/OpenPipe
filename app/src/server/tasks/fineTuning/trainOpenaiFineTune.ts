@@ -52,6 +52,8 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
 
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
+  // TODO: this will break for large datasets. Switch to the iterateTrainingRows
+  // approach we use in trainFineTune.
   const trainingEntries = fineTune.trainingEntries.map((entry) => {
     const outputMessage = chatCompletionMessage.parse(entry.datasetEntry.output);
     return {
