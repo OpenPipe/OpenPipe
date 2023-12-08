@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { type AppType } from "next/app";
@@ -9,11 +10,15 @@ import { SyncAppStore } from "~/state/sync";
 import NextAdapterPages from "next-query-params/pages";
 import { QueryParamProvider } from "use-query-params";
 import { FrontendAnalyticsProvider } from "~/utils/analytics/analytics";
+import { useAppStore } from "~/state/store";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
   pageProps: { session, ...pageProps },
 }) => {
+  const markMounted = useAppStore().markMounted;
+  useEffect(markMounted, [markMounted]);
+
   return (
     <>
       <Head>

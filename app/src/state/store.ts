@@ -26,6 +26,8 @@ enableMapSet();
 
 export type State = {
   isRehydrated: boolean;
+  isMounted: boolean;
+  markMounted: () => void;
   api: APIClient | null;
   setApi: (api: APIClient) => void;
   betaBannerDismissed: boolean;
@@ -50,6 +52,11 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
   persist(
     immer((set, get, ...rest) => ({
       isRehydrated: false,
+      isMounted: false,
+      markMounted: () =>
+        set((state) => {
+          state.isMounted = true;
+        }),
       api: null,
       setApi: (api) =>
         set((state) => {
