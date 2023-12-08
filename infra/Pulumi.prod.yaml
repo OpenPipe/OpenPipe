@@ -39,3 +39,5 @@ config:
   openpipe:WORKER_CONCURRENCY: "10"
   openpipe:deployDomain: openpipe.ai
   openpipe:numWorkers: "3"
+  openpipe:numAppInstances: "2"
+  openpipe:numK8sNodes: "2"
