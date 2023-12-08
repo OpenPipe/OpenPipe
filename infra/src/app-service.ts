@@ -1,5 +1,6 @@
 import * as aws from "@pulumi/aws";
 import * as kubernetes from "@pulumi/kubernetes";
+import * as pulumi from "@pulumi/pulumi";
 import { imageUri } from "./app-image";
 import { eksProvider } from "./cluster";
 import { certificateArn, zone } from "./dns";
@@ -8,11 +9,14 @@ import { appSubdomain, environment } from "./app-env";
 
 const appService = "app-v1";
 
+const cfg = new pulumi.Config();
+
 const deployment = new kubernetes.apps.v1.Deployment(
   nm("app"),
   {
     metadata: { labels: { appClass: appService } },
     spec: {
+      replicas: cfg.getNumber("numAppInstances") ?? 1,
       selector: {
         matchLabels: { appClass: appService },
       },
