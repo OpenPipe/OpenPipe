@@ -381,4 +381,5 @@ export const usePruningRules = () => {
   );
 };
 
-export const useIsClientRehydrated = () => useAppStore((state) => state.isRehydrated);
+export const useIsClientInitialized = () =>
+  useAppStore((state) => state.isRehydrated && state.isMounted);

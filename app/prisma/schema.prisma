@@ -575,6 +575,7 @@ model VerificationToken {
 
 enum FineTuneStatus {
     PENDING
+    STARTED
     TRANSFERRING_TRAINING_DATA
     TRAINING
     DEPLOYED
@@ -639,6 +640,7 @@ model FineTuneTrainingEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
+    @@unique([datasetEntryId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
 }
 

@@ -14,7 +14,7 @@ import {
 import { BiCheck } from "react-icons/bi";
 import { BsPlusSquare, BsToggles } from "react-icons/bs";
 
-import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
+import { useDataset, useIsClientInitialized } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleModelIds } from "./useVisibleModelIds";
 import ConfigureComparisonModelsModal from "./ConfigureComparisonModelsModal";
@@ -53,8 +53,8 @@ const ModelVisibilityDropdown = () => {
     return options;
   }, [dataset]);
 
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <>
