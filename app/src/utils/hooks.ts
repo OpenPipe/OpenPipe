@@ -10,28 +10,6 @@ import { useSortOrder } from "~/components/sorting";
 import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 
-export const useExperiments = () => {
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
-  return api.experiments.list.useQuery(
-    { projectId: selectedProjectId ?? "" },
-    { enabled: !!selectedProjectId },
-  );
-};
-
-export const useExperiment = () => {
-  const router = useRouter();
-  const experiment = api.experiments.get.useQuery(
-    { slug: router.query.experimentSlug as string },
-    { enabled: !!router.query.experimentSlug },
-  );
-
-  return experiment;
-};
-
-export const useExperimentAccess = () => {
-  return useExperiment().data?.access ?? { canView: false, canModify: false };
-};
-
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
 export function useHandledAsyncCallback<T extends unknown[], U>(
@@ -59,16 +37,6 @@ export function useHandledAsyncCallback<T extends unknown[], U>(
 
   return [wrappedCallback, loading > 0, error] as const;
 }
-
-// Have to do this ugly thing to convince Next not to try to access `navigator`
-// on the server side at build time, when it isn't defined.
-export const useModifierKeyLabel = () => {
-  const [label, setLabel] = useState("");
-  useEffect(() => {
-    setLabel(navigator?.platform?.startsWith("Mac") ? "⌘" : "Ctrl");
-  }, []);
-  return label;
-};
 
 interface Dimensions {
   left: number;
@@ -143,36 +111,11 @@ export const usePageParams = () => {
   return { page, pageSize, setPageParams };
 };
 
-export const useScenarios = () => {
-  const experiment = useExperiment();
-  const { page, pageSize } = usePageParams();
-
-  return api.scenarios.list.useQuery(
-    { experimentId: experiment.data?.id ?? "", page, pageSize },
-    { enabled: experiment.data?.id != null },
-  );
-};
-
-export const useScenario = (scenarioId: string) => {
-  return api.scenarios.get.useQuery({ id: scenarioId });
-};
-
-export const useVisibleScenarioIds = () => useScenarios().data?.scenarios.map((s) => s.id) ?? [];
-
 export const useSelectedProject = () => {
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   return api.projects.get.useQuery(
     { id: selectedProjectId ?? "" },
     { enabled: !!selectedProjectId },
-  );
-};
-
-export const useScenarioVars = () => {
-  const experiment = useExperiment();
-
-  return api.scenarioVars.list.useQuery(
-    { experimentId: experiment.data?.id ?? "" },
-    { enabled: experiment.data?.id != null },
   );
 };
 
@@ -390,7 +333,6 @@ export const useDatasetEval = () => {
 };
 
 export const useDatasetEvals = () => {
-  const dataset = useDataset().data;
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
   return api.datasetEvals.list.useQuery(

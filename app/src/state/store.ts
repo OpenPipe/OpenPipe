@@ -4,10 +4,6 @@ import { enableMapSet } from "immer";
 import { persist } from "zustand/middleware";
 import { createSelectors } from "./createSelectors";
 import {
-  type SharedVariantEditorSlice,
-  createVariantEditorSlice,
-} from "./sharedVariantEditor.slice";
-import {
   type SharedArgumentsEditorSlice,
   createArgumentsEditorSlice,
 } from "./sharedArgumentsEditor.slice";
@@ -30,7 +26,6 @@ export type State = {
   setApi: (api: APIClient) => void;
   betaBannerDismissed: boolean;
   dismissBetaBanner: () => void;
-  sharedVariantEditor: SharedVariantEditorSlice;
   sharedArgumentsEditor: SharedArgumentsEditorSlice;
   selectedProjectId: string | null;
   setSelectedProjectId: (id: string) => void;
@@ -60,7 +55,6 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
         set((state) => {
           state.betaBannerDismissed = true;
         }),
-      sharedVariantEditor: createVariantEditorSlice(set, get, ...rest),
       sharedArgumentsEditor: createArgumentsEditorSlice(set, get, ...rest),
       selectedProjectId: null,
       setSelectedProjectId: (id: string) =>

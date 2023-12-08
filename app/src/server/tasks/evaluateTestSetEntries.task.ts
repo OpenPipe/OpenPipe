@@ -12,10 +12,10 @@ import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
-import { calculateQueryDelay } from "./queryModel.task";
 import { isEqual, shuffle } from "lodash-es";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { truthyFilter } from "~/utils/utils";
+import { calculateQueryDelay } from "./generateTestSetEntry.task";
 
 type EvalKey = {
   datasetEvalDatasetEntryId: string;

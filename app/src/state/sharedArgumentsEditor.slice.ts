@@ -9,6 +9,8 @@ export type SharedArgumentsEditorSlice = {
   loadMonaco: () => Promise<void>;
 };
 
+export type CreatedEditor = ReturnType<Monaco["editor"]["create"]>;
+
 export const createArgumentsEditorSlice: SliceCreator<SharedArgumentsEditorSlice> = (set, get) => ({
   monaco: loader.__getMonacoInstance(),
   loadMonaco: async () => {
