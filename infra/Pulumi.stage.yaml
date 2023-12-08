@@ -1,8 +1,6 @@
 config:
   aws-native:region: us-west-2
   aws:region: us-west-2
-  openpipe:ANTHROPIC_API_KEY:
-    secure: AAABAIib0LJsmJHL2E/qDWve1ex9U0ky6eZNS8MwZEcx0VdpjY588ZRzyDx84t20iC/6XzwENvN9tkbaIEx2uznP1AXuoWoD7HTw+B09hc8i0ScTCfE8WDXfbgPF7xIU3f+OIxNs1ltBhXJ7AjoMWQxrXw==
   openpipe:AUTHENTICATED_SYSTEM_KEY:
     secure: AAABAIF/+V67LPOdOL1TJ6vYspfsshXqklCatXW4iwT9xkQiS5iQpIexXPiFAp2tFWwSi8w63gPExslbwltxbg==
   openpipe:AZURE_STORAGE_ACCOUNT_KEY:
@@ -19,7 +17,6 @@ config:
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
-  openpipe:NEXT_PUBLIC_SOCKET_URL: https://querykey-prod-wss.onrender.com
   openpipe:NEXTAUTH_SECRET:
     secure: AAABAKKJBI/ho0yyHuRiI/zImyHNq1ZsQGFmBkBkIHhFUD8UzqW68YaKbLKC+hMU3drGuDHKuR883vTP6MOBRgEFPIMnUFD37V/VMQ==
   openpipe:NODE_ENV: production

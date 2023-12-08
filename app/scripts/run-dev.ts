@@ -20,7 +20,6 @@ await concurrently(
   [
     { command: "pnpm dev:tunnel", name: "tunnel", prefixColor: "blue", env },
     { command: "pnpm dev:next", name: "next", prefixColor: "green", env },
-    { command: "pnpm dev:wss", name: "wss", prefixColor: "yellow", env },
     { command: "pnpm dev:worker", name: "worker", prefixColor: "magenta", env },
   ],
   {
