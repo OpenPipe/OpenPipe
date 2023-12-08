@@ -242,7 +242,18 @@ export interface LoggedCall {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   model: string | null;
-  cacheHit: boolean;
+  completionId: string | null;
+  cost: number | null;
+  durationMs: number | null;
+  errorMessage: string | null;
+  finishReason: string | null;
+  inputTokens: number | null;
+  migrated: Generated<boolean>;
+  outputTokens: number | null;
+  receivedAt: Timestamp | null;
+  reqPayload: Json | null;
+  respPayload: Json | null;
+  statusCode: number | null;
 }
 
 export interface LoggedCallModelResponse {
