@@ -118,6 +118,9 @@ export class DefaultService {
                 'n'?: number;
                 max_tokens?: number | null;
                 temperature?: number;
+                response_format?: {
+                    type: ('text' | 'json_object');
+                };
                 stream?: boolean;
             };
             model?: string;
@@ -279,15 +282,11 @@ export class DefaultService {
      */
     public localTestingOnlyGetLatestLoggedCall(): CancelablePromise<{
         createdAt: string;
-        cacheHit: boolean;
+        statusCode: number | null;
+        errorMessage: string | null;
+        reqPayload?: any;
+        respPayload?: any;
         tags: Record<string, string | null>;
-        modelResponse: {
-            id: string;
-            statusCode: number | null;
-            errorMessage: string | null;
-            reqPayload?: any;
-            respPayload?: any;
-        } | null;
     } | null> {
         return this.httpRequest.request({
             method: 'GET',

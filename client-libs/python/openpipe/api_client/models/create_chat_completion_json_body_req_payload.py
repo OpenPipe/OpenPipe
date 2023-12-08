@@ -38,6 +38,9 @@ if TYPE_CHECKING:
     from ..models.create_chat_completion_json_body_req_payload_messages_item_type_4 import (
         CreateChatCompletionJsonBodyReqPayloadMessagesItemType4,
     )
+    from ..models.create_chat_completion_json_body_req_payload_response_format import (
+        CreateChatCompletionJsonBodyReqPayloadResponseFormat,
+    )
     from ..models.create_chat_completion_json_body_req_payload_tool_choice_type_2 import (
         CreateChatCompletionJsonBodyReqPayloadToolChoiceType2,
     )
@@ -71,6 +74,7 @@ class CreateChatCompletionJsonBodyReqPayload:
         n (Union[Unset, float]):
         max_tokens (Union[Unset, None, float]):
         temperature (Union[Unset, float]):
+        response_format (Union[Unset, CreateChatCompletionJsonBodyReqPayloadResponseFormat]):
         stream (Union[Unset, bool]):
     """
 
@@ -101,6 +105,7 @@ class CreateChatCompletionJsonBodyReqPayload:
     n: Union[Unset, float] = UNSET
     max_tokens: Union[Unset, None, float] = UNSET
     temperature: Union[Unset, float] = UNSET
+    response_format: Union[Unset, "CreateChatCompletionJsonBodyReqPayloadResponseFormat"] = UNSET
     stream: Union[Unset, bool] = UNSET
 
     def to_dict(self) -> Dict[str, Any]:
@@ -196,6 +201,10 @@ class CreateChatCompletionJsonBodyReqPayload:
         n = self.n
         max_tokens = self.max_tokens
         temperature = self.temperature
+        response_format: Union[Unset, Dict[str, Any]] = UNSET
+        if not isinstance(self.response_format, Unset):
+            response_format = self.response_format.to_dict()
+
         stream = self.stream
 
         field_dict: Dict[str, Any] = {}
@@ -219,6 +228,8 @@ class CreateChatCompletionJsonBodyReqPayload:
             field_dict["max_tokens"] = max_tokens
         if temperature is not UNSET:
             field_dict["temperature"] = temperature
+        if response_format is not UNSET:
+            field_dict["response_format"] = response_format
         if stream is not UNSET:
             field_dict["stream"] = stream
 
@@ -246,6 +257,9 @@ class CreateChatCompletionJsonBodyReqPayload:
         )
         from ..models.create_chat_completion_json_body_req_payload_messages_item_type_4 import (
             CreateChatCompletionJsonBodyReqPayloadMessagesItemType4,
+        )
+        from ..models.create_chat_completion_json_body_req_payload_response_format import (
+            CreateChatCompletionJsonBodyReqPayloadResponseFormat,
         )
         from ..models.create_chat_completion_json_body_req_payload_tool_choice_type_2 import (
             CreateChatCompletionJsonBodyReqPayloadToolChoiceType2,
@@ -438,6 +452,13 @@ class CreateChatCompletionJsonBodyReqPayload:
 
         temperature = d.pop("temperature", UNSET)
 
+        _response_format = d.pop("response_format", UNSET)
+        response_format: Union[Unset, CreateChatCompletionJsonBodyReqPayloadResponseFormat]
+        if isinstance(_response_format, Unset):
+            response_format = UNSET
+        else:
+            response_format = CreateChatCompletionJsonBodyReqPayloadResponseFormat.from_dict(_response_format)
+
         stream = d.pop("stream", UNSET)
 
         create_chat_completion_json_body_req_payload = cls(
@@ -450,6 +471,7 @@ class CreateChatCompletionJsonBodyReqPayload:
             n=n,
             max_tokens=max_tokens,
             temperature=temperature,
+            response_format=response_format,
             stream=stream,
         )
 
