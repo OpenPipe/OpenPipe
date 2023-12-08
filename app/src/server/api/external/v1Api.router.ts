@@ -195,7 +195,6 @@ export const v1ApiRouter = createOpenApiRouter({
     )
     .output(z.object({ status: z.union([z.literal("ok"), z.literal("error")]) }))
     .mutation(async ({ input, ctx }) => {
-      console.log("\n\n!!!! report started !!!!\n\n");
       const reqPayload = await reqValidator.spa(input.reqPayload);
       const respPayload = await respValidator.spa(input.respPayload);
 
