@@ -5,13 +5,11 @@ import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
-import { useSyncVariantEditor } from "~/state/sync";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
 export default function Invitation() {
   const router = useRouter();
   const utils = api.useContext();
-  useSyncVariantEditor();
 
   const setSelectedProjectId = useAppStore((state) => state.setSelectedProjectId);
 

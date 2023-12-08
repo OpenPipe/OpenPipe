@@ -31,14 +31,6 @@ services:
       targetMemoryPercent: 60 # optional if targetCPUPercent is set (valid: 1-90)
       targetCPUPercent: 60 # optional if targetMemory is set (valid: 1-90)
 
-  - type: web
-    name: querykey-prod-wss
-    runtime: docker
-    dockerfilePath: ./app/Dockerfile
-    dockerContext: .
-    plan: free
-    dockerCommand: pnpm tsx src/wss-server.ts
-
   - type: worker
     name: querykey-prod-worker
     runtime: docker

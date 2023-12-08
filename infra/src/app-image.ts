@@ -9,7 +9,6 @@ export const appImage = new awsx.ecr.Image(nm("app"), {
   repositoryUrl: repo.url,
   args: {
     NEXT_PUBLIC_POSTHOG_KEY: getConfig("NEXT_PUBLIC_POSTHOG_KEY"),
-    NEXT_PUBLIC_SOCKET_URL: getConfig("NEXT_PUBLIC_SOCKET_URL"),
     NEXT_PUBLIC_HOST: appUrl,
     NEXT_PUBLIC_SENTRY_DSN: getConfig("NEXT_PUBLIC_SENTRY_DSN"),
     NEXT_PUBLIC_DEPLOY_ENV: getConfig("NEXT_PUBLIC_DEPLOY_ENV"),
