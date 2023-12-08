@@ -71,6 +71,7 @@
     "graphile-worker": "^0.13.0",
     "human-id": "^4.0.0",
     "immer": "^10.0.2",
+    "ix": "^5.0.0",
     "json-schema-to-typescript": "^13.0.2",
     "json-stringify-pretty-compact": "^4.0.0",
     "jsonschema": "^1.4.1",
