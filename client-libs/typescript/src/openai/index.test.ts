@@ -34,8 +34,8 @@ test("basic call", async () => {
   });
   await completion.openpipe.reportingFinished;
   const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.modelResponse?.reqPayload).toMatchObject(payload);
-  expect(completion).toMatchObject(lastLogged?.modelResponse?.respPayload);
+  expect(lastLogged?.reqPayload).toMatchObject(payload);
+  expect(completion).toMatchObject(lastLogged?.respPayload);
   expect(lastLogged?.tags).toMatchObject({ promptId: "test" });
 });
 
@@ -62,8 +62,8 @@ test("streaming", async () => {
   const lastLogged = await lastLoggedCall();
   await completion.openpipe.reportingFinished;
 
-  expect(merged).toMatchObject(lastLogged?.modelResponse?.respPayload);
-  expect(lastLogged?.modelResponse?.reqPayload.messages).toMatchObject([
+  expect(merged).toMatchObject(lastLogged?.respPayload);
+  expect(lastLogged?.reqPayload.messages).toMatchObject([
     { role: "system", content: "count to 3" },
   ]);
 });
@@ -79,10 +79,10 @@ test("bad call streaming", async () => {
     // @ts-expect-error need to check for error type
     await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
-    expect(lastLogged?.modelResponse?.errorMessage).toEqual(
+    expect(lastLogged?.errorMessage).toEqual(
       "404 The model `gpt-3.5-turbo-blaster` does not exist",
     );
-    expect(lastLogged?.modelResponse?.statusCode).toEqual(404);
+    expect(lastLogged?.statusCode).toEqual(404);
   }
 });
 
@@ -98,9 +98,7 @@ test("bad call", async () => {
     // @ts-expect-error need to check for error type
     await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
-    expect(lastLogged?.modelResponse?.errorMessage).toEqual(
-      "404 The model `gpt-3.5-turbo-buster` does not exist",
-    );
-    expect(lastLogged?.modelResponse?.statusCode).toEqual(404);
+    expect(lastLogged?.errorMessage).toEqual("404 The model `gpt-3.5-turbo-buster` does not exist");
+    expect(lastLogged?.statusCode).toEqual(404);
   }
 });

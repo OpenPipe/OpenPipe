@@ -1,4 +1,4 @@
-import { UsageType, type Prisma } from "@prisma/client";
+import { UsageType, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
@@ -221,25 +221,36 @@ export const v1ApiRouter = createOpenApiRouter({
         }
       }
 
-      await prisma.loggedCall.create({
-        data: {
-          id: newLoggedCallId,
-          projectId: ctx.key.projectId,
-          requestedAt: new Date(input.requestedAt),
-          model,
-          receivedAt: new Date(input.receivedAt),
-          reqPayload: input.reqPayload as Prisma.InputJsonValue,
-          respPayload: input.respPayload as Prisma.InputJsonValue,
-          statusCode: input.statusCode,
-          errorMessage: input.errorMessage,
-          durationMs: input.receivedAt - input.requestedAt,
-          inputTokens: usage?.inputTokens,
-          outputTokens: usage?.outputTokens,
-          cost: usage?.cost,
-          completionId: respPayload.success ? respPayload.data.id : null,
-          migrated: true,
-        },
-      });
+      try {
+        await prisma.loggedCall.create({
+          data: {
+            id: newLoggedCallId,
+            projectId: ctx.key.projectId,
+            requestedAt: new Date(input.requestedAt),
+            model,
+            receivedAt: new Date(input.receivedAt),
+            reqPayload: (input.reqPayload === null
+              ? Prisma.JsonNull
+              : input.reqPayload) as Prisma.InputJsonValue,
+            respPayload: (input.respPayload === null
+              ? Prisma.JsonNull
+              : input.respPayload) as Prisma.InputJsonValue,
+            statusCode: input.statusCode,
+            errorMessage: input.errorMessage,
+            durationMs: input.receivedAt - input.requestedAt,
+            inputTokens: usage?.inputTokens,
+            outputTokens: usage?.outputTokens,
+            cost: usage?.cost,
+            completionId: respPayload.success ? respPayload.data.id : null,
+            migrated: true,
+          },
+        });
+      } catch (e) {
+        throw new TRPCError({
+          message: `Failed to create logged call: ${(e as Error).message}`,
+          code: "BAD_REQUEST",
+        });
+      }
 
       await createTags(ctx.key.projectId, newLoggedCallId, input.tags);
       return { status: "ok" };
