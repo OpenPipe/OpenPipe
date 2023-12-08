@@ -1,8 +1,12 @@
 name: Deploy Stage
 
 on:
-  push:
-    branches: [stage]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
 
 # Only run workflow for the latest commit
 concurrency: 
