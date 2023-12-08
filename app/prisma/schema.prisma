@@ -162,6 +162,7 @@ model PruningRuleMatch {
     datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
     @@unique([pruningRuleId, datasetEntryId])
+    @@index([datasetEntryId])
 }
 
 model Project {
@@ -474,6 +475,7 @@ model FineTuneTrainingEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([datasetEntryId, fineTuneId])
+    @@index([datasetEntryId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
 }
 
@@ -511,6 +513,7 @@ model FineTuneTestingEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([modelId, datasetEntryId])
+    @@index([datasetEntryId])
     @@index([cacheKey])
 }
 
@@ -554,6 +557,7 @@ model DatasetEvalDatasetEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([datasetEvalId, datasetEntryId])
+    @@index([datasetEntryId])
 }
 
 // Used to record whether the dataset output and which comparison and
