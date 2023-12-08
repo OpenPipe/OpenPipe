@@ -9,6 +9,7 @@ import {
 } from "@azure/storage-blob";
 import { v4 as uuidv4 } from "uuid";
 import { env } from "~/env.mjs";
+import { Readable } from "stream";
 
 const accountName = env.AZURE_STORAGE_ACCOUNT_NAME;
 if (!accountName) throw Error("Azure Storage accountName not found");
@@ -49,11 +50,39 @@ export const generateSasToken = (permissions: string) => {
   return sasToken.startsWith("?") ? sasToken.substring(1) : sasToken;
 };
 
-export const uploadTrainingDataFile = async (contents: string) => {
+class JSONLStream extends Readable {
+  private jsonObjects: object[];
+  private currentIndex: number;
+
+  constructor(jsonObjects: object[]) {
+    super();
+    this.jsonObjects = jsonObjects;
+    this.currentIndex = 0;
+  }
+
+  _read() {
+    while (this.currentIndex < this.jsonObjects.length) {
+      const obj = this.jsonObjects[this.currentIndex];
+      const jsonlStr = JSON.stringify(obj) + "\n";
+      this.currentIndex++;
+
+      // Push each JSONL string into the stream
+      if (!this.push(Buffer.from(jsonlStr, "utf-8"))) {
+        // If push returns false, stop pushing until the stream is drained
+        return;
+      }
+    }
+
+    // Once all data is pushed, close the stream
+    this.push(null);
+  }
+}
+
+export const uploadTrainingDataFile = async (contents: object[]) => {
   const blobName = `${inverseDatePrefix()}-${uuidv4()}-training.jsonl`;
   const blobClient = containerClient.getBlockBlobClient(blobName);
 
-  await blobClient.upload(contents, contents.length);
+  await blobClient.uploadStream(new JSONLStream(contents));
 
   return blobName;
 };

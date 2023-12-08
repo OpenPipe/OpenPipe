@@ -1,7 +1,7 @@
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
 import { trainerv1 } from "~/server/modal-rpc/clients";
-import { uploadTrainingDataFile } from "~/utils/azure/server";
+import { uploadTrainingDataFile as uploadJsonl } from "~/utils/azure/server";
 import defineTask from "../defineTask";
 import { trainOpenaiFineTune } from "./trainOpenaiFineTune";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
@@ -63,17 +63,23 @@ const trainModalFineTune = async (fineTuneId: string) => {
 
   await prisma.fineTune.update({
     where: { id: fineTuneId },
-    data: {
-      status: "TRANSFERRING_TRAINING_DATA",
-    },
+    data: { status: "STARTED" },
   });
 
-  await prisma.fineTuneTrainingEntry.createMany({
-    data: fineTune.dataset.datasetEntries.map((datasetEntry) => ({
-      fineTuneId: fineTune.id,
-      datasetEntryId: datasetEntry.id,
-    })),
+  // check whether there are already training entries, which probably means the
+  // job restarted and we shouldn't recreate them.
+  const trainingEntryCount = await prisma.fineTuneTrainingEntry.count({
+    where: { fineTuneId: fineTune.id },
   });
+
+  if (trainingEntryCount === 0) {
+    await prisma.fineTuneTrainingEntry.createMany({
+      data: fineTune.dataset.datasetEntries.map((datasetEntry) => ({
+        fineTuneId: fineTune.id,
+        datasetEntryId: datasetEntry.id,
+      })),
+    });
+  }
 
   await prisma.$transaction(
     fineTune.dataset.pruningRules.map((rule) =>
@@ -112,9 +118,14 @@ const trainModalFineTune = async (fineTuneId: string) => {
     })
     .filter(truthyFilter);
 
-  const jsonlStr = trainingRows.map((row) => JSON.stringify(row)).join("\n");
+  await prisma.fineTune.update({
+    where: { id: fineTuneId },
+    data: {
+      status: "TRANSFERRING_TRAINING_DATA",
+    },
+  });
 
-  const blobName = await uploadTrainingDataFile(jsonlStr);
+  const blobName = await uploadJsonl(trainingRows);
 
   const huggingFaceModelId = `OpenPipe/ft-${env.NODE_ENV}-${fineTuneId}-${fineTune.slug}`;
 
