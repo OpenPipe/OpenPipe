@@ -84,10 +84,9 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
         importId,
         authoringUserId,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
+    } catch (e: unknown) {
       await updateDatasetFileUpload({
-        errorMessage: `Error preparing rows: ${e.message as string}`,
+        errorMessage: `Error preparing rows: ${(e as Error).message}`,
         status: "ERROR",
         visible: true,
       });
