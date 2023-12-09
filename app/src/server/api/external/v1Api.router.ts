@@ -242,7 +242,6 @@ export const v1ApiRouter = createOpenApiRouter({
             outputTokens: usage?.outputTokens,
             cost: usage?.cost,
             completionId: respPayload.success ? respPayload.data.id : null,
-            migrated: true,
           },
         });
       } catch (e) {
