@@ -5,10 +5,7 @@ import { prisma } from "~/server/db";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
-import { countLlamaOutputTokens } from "~/utils/countTokens";
-import { startDatasetEntryTestJobs } from "../utils/startTestJobs";
-import { copyDatasetEvalDatasetEntries } from "../utils/copyDatasetEvalDatasetEntries";
-import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
+import { copyEntryWithUpdates } from "~/server/utils/datasetEntryCreation/copyEntryWithUpdates";
 
 export type RelabelDatasetEntryJob = {
   authoringUserId: string;
@@ -75,44 +72,16 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
       const completionMessage = completion.choices[0]?.message;
       if (!completionMessage) throw new Error("No completion returned");
 
-      const [newDatasetEntry, _outdatedDatasetEntry, _relabelRequest] = await prisma.$transaction([
-        prisma.datasetEntry.create({
-          data: {
-            datasetId: datasetEntry.datasetId,
-            messages: datasetEntry.messages,
-            tool_choice: datasetEntry.tool_choice ?? undefined,
-            tools: datasetEntry.tools ?? undefined,
-            output: completionMessage as unknown as Prisma.InputJsonValue,
-            inputTokens: datasetEntry.inputTokens,
-            outputTokens: countLlamaOutputTokens(completionMessage),
-            split: datasetEntry.split,
-            sortKey: datasetEntry.sortKey,
-            provenance: "RELABELED_BY_MODEL",
-            authoringUserId,
-            importId: datasetEntry.importId,
-            persistentId: datasetEntry.persistentId,
-          },
-        }),
-        prisma.datasetEntry.update({
-          where: { id: datasetEntryId },
-          data: {
-            outdated: true,
-          },
-        }),
-        prisma.relabelRequest.update({
-          where: { id: relabelRequestId },
-          data: {
-            status: "COMPLETE",
-          },
-        }),
-      ]);
+      await copyEntryWithUpdates(datasetEntryId, authoringUserId, "RELABELED_BY_MODEL", {
+        output: completionMessage as unknown as Prisma.JsonValue,
+      });
 
-      await updatePruningRuleMatches(datasetEntry.datasetId, new Date(0), [newDatasetEntry.id]);
-
-      if (newDatasetEntry.split === "TEST") {
-        await copyDatasetEvalDatasetEntries(datasetEntry.id, newDatasetEntry.id);
-        await startDatasetEntryTestJobs(newDatasetEntry.id);
-      }
+      await prisma.relabelRequest.update({
+        where: { id: relabelRequestId },
+        data: {
+          status: "COMPLETE",
+        },
+      });
     } catch (e) {
       await prisma.relabelRequest.update({
         where: { id: relabelRequestId },

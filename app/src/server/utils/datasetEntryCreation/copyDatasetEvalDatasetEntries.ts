@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { prisma } from "../../db";
 
 export const copyDatasetEvalDatasetEntries = async (
   prevDatasetEntryId: string,

@@ -6,7 +6,7 @@ import {
 } from "~/components/datasets/parseRowsToImport";
 import { prisma } from "~/server/db";
 import { downloadBlobToStrings } from "~/utils/azure/server";
-import { prepareDatasetEntriesForImport } from "../utils/prepareDatasetEntriesForImport";
+import { prepareDatasetEntriesForImport } from "../utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "../utils/startTestJobs";
 import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
 import defineTask from "./defineTask";

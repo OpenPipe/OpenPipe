@@ -9,7 +9,7 @@ import {
   convertFunctionsToTools,
   convertFunctionMessageToToolCall,
   convertFunctionMessagesToToolCall,
-} from "./convertFunctionCalls";
+} from "../convertFunctionCalls";
 
 export const prepareDatasetEntriesForImport = async (
   datasetId: string,
