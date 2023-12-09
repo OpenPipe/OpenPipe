@@ -27,7 +27,6 @@ dump_prod_db() {
       -f "$CACHE_DIR" \
       --jobs=8 \
       --strict-names \
-      --exclude-table-data '"LoggedCallModelResponse"' \
       --exclude-table-data '"LoggedCall"' \
       --exclude-table-data '"LoggedCallTag"' \
       --exclude-table-data 'graphile_worker.jobs' \

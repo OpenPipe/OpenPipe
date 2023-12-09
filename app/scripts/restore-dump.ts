@@ -12,25 +12,8 @@ const argv = await yargs(hideBin(process.argv)).option("dump-file-path", {
 const dbName = "openpipe-dev";
 const templateDbName = `${dbName}_template`;
 
-const migrateTemplate = `
-delete from
-  "LoggedCall"
-where
-  id in (
-    SELECT
-      lc.id
-    FROM
-      "public"."LoggedCall" AS lc
-      LEFT JOIN "public"."LoggedCallModelResponse" AS lcmr ON lc."modelResponseId" = lcmr."id"
-    WHERE
-      lc."modelResponseId" IS NOT NULL
-      AND lcmr."id" IS NULL
-  );
-
-ALTER TABLE ONLY
-  "public"."LoggedCall"
-ADD
-  CONSTRAINT "LoggedCall_modelResponseId_fkey" FOREIGN KEY ("modelResponseId") REFERENCES "public"."LoggedCallModelResponse" ("id") ON UPDATE CASCADE ON DELETE CASCADE;`;
+// Include any migrations that need to be run after the dump is restored
+const migrateTemplate = ``;
 
 const terminateConnections = async (databaseName: string) => {
   console.log(`Terminating existing connections to ${databaseName} database...`);
