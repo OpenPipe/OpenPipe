@@ -1,8 +1,6 @@
 config:
   aws-native:region: us-west-2
   aws:region: us-west-2
-  openpipe:ANTHROPIC_API_KEY:
-    secure: AAABAG5PApLpxIrXlau1/D5VPnS7yxwv88kXog0O1T7xBxsmlcfoYWByoJ3Mw3wtM3ZXXUcrdbt/jJA5UM3Ke5Dm78lclNpoLcizDYVZ6i3+n/sRFNXXfA8musbQX6dsUAvh1Nja8mqkAp9di1IMz+eweyfHLiFPPmhrngBaD6SVc0iU9iq8dFsSPSg=
   openpipe:AUTHENTICATED_SYSTEM_KEY:
     secure: AAABAMGIdgqKubQRFA5iR3kY+m+Fxi7U/tpBIOVN8dakWLXAzLsB0Zy8XDmrjY8X8C5HmY3ukj4rxv3dnD7juA==
   openpipe:AZURE_STORAGE_ACCOUNT_KEY:
@@ -19,7 +17,6 @@ config:
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: production
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_2tc3AQ798TowPA9FtW2uljz4dKzdiFwpa7EyhPUdKWg
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
-  openpipe:NEXT_PUBLIC_SOCKET_URL: https://querykey-prod-wss.onrender.com
   openpipe:NEXTAUTH_SECRET:
     secure: AAABAAwE72UToj4bFNPEVHdP77QeT3uAQKd1ZHYQF72nuJguH78AkZOAlaue+o4=
   openpipe:NODE_ENV: production
@@ -42,3 +39,5 @@ config:
   openpipe:WORKER_CONCURRENCY: "10"
   openpipe:deployDomain: openpipe.ai
   openpipe:numWorkers: "3"
+  openpipe:numAppInstances: "2"
+  openpipe:numK8sNodes: "2"

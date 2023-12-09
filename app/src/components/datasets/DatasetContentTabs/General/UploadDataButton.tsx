@@ -88,7 +88,7 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     reader.onload = (e: ProgressEvent<FileReader>) => {
       const content = e.target?.result as string;
       try {
-        const resp = parseRowsToImport(content);
+        const resp = parseRowsToImport(content.trim().split("\n"));
 
         const errors = resp.filter(isParseError);
 

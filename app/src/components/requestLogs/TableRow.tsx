@@ -20,7 +20,7 @@ import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "../FormattedJson";
 import { useAppStore } from "~/state/store";
 import {
-  useIsClientRehydrated,
+  useIsClientInitialized,
   useLoggedCalls,
   useTotalNumLogsSelected,
   useTagNames,
@@ -40,8 +40,8 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
 
   const totalNumLogsSelected = useTotalNumLogsSelected();
 
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <Thead>
@@ -91,7 +91,7 @@ export const TableRow = ({
   onToggle: () => void;
   showOptions?: boolean;
 }) => {
-  const isError = loggedCall.modelResponse?.statusCode !== 200;
+  const isError = loggedCall.statusCode !== 200;
   const requestedAt = dayjs(loggedCall.requestedAt).format("MMMM D h:mm A");
   const fullTime = dayjs(loggedCall.requestedAt).toString();
 
@@ -109,8 +109,8 @@ export const TableRow = ({
     return tagNames?.filter((tagName) => visibleColumns.has(tagName)) ?? [];
   }, [tagNames, visibleColumns]);
 
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <>
@@ -163,46 +163,40 @@ export const TableRow = ({
           <Td key={tagName}>{loggedCall.tags[tagName]}</Td>
         ))}
         {visibleColumns.has(StaticColumnKeys.DURATION) && (
-          <Td isNumeric>
-            {loggedCall.cacheHit ? (
-              <Text color="gray.500">Cached</Text>
-            ) : (
-              ((loggedCall.modelResponse?.durationMs ?? 0) / 1000).toFixed(2) + "s"
-            )}
-          </Td>
+          <Td isNumeric>{((loggedCall.durationMs ?? 0) / 1000).toFixed(2)}s</Td>
         )}
         {visibleColumns.has(StaticColumnKeys.INPUT_TOKENS) && (
-          <Td isNumeric>{loggedCall.modelResponse?.inputTokens}</Td>
+          <Td isNumeric>{loggedCall.inputTokens}</Td>
         )}
         {visibleColumns.has(StaticColumnKeys.OUTPUT_TOKENS) && (
-          <Td isNumeric>{loggedCall.modelResponse?.outputTokens}</Td>
+          <Td isNumeric>{loggedCall.outputTokens}</Td>
         )}
         {visibleColumns.has(StaticColumnKeys.COST) && (
           <Td isNumeric>
-            {loggedCall.modelResponse?.cost && (
-              <Tooltip label={`$${loggedCall.modelResponse.cost.toFixed(6)}`}>
-                <Text>${loggedCall.modelResponse.cost.toFixed(3)}</Text>
+            {loggedCall.cost && (
+              <Tooltip label={`$${loggedCall.cost.toFixed(6)}`}>
+                <Text>${loggedCall.cost.toFixed(3)}</Text>
               </Tooltip>
             )}
           </Td>
         )}
         {visibleColumns.has(StaticColumnKeys.STATUS_CODE) && (
           <Td sx={{ color: isError ? "red.500" : "green.500", fontWeight: "semibold" }} isNumeric>
-            {loggedCall.modelResponse?.statusCode ?? "No response"}
+            {loggedCall.statusCode ?? "No response"}
           </Td>
         )}
       </Tr>
-      <Tr>
-        <Td colSpan={visibleColumns.size + 1} w="full" p={0}>
+      <Tr maxW="full">
+        <Td colSpan={visibleColumns.size + 1} w="full" maxW="full" p={0}>
           <Collapse in={isExpanded} unmountOnExit={true}>
             <HStack align="stretch" px={6} pt={2} pb={4} spacing={4}>
               <VStack flex={1} align="stretch">
                 <Heading size="sm">Input</Heading>
-                <FormattedJson json={loggedCall.modelResponse?.reqPayload} />
+                <FormattedJson json={loggedCall.reqPayload} />
               </VStack>
               <VStack flex={1} align="stretch">
                 <Heading size="sm">Output</Heading>
-                <FormattedJson json={loggedCall.modelResponse?.respPayload} />
+                <FormattedJson json={loggedCall.respPayload} />
               </VStack>
             </HStack>
           </Collapse>

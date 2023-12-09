@@ -3,8 +3,6 @@ import "dotenv/config";
 import "../../../sentry.server.config";
 
 import { env } from "~/env.mjs";
-import { queryModel } from "./queryModel.task";
-import { runNewEval } from "./runNewEval.task";
 import { importDatasetEntries } from "./importDatasetEntries.task";
 import { trainFineTune } from "./fineTuning/trainFineTune.task";
 import { checkFineTuneStatus } from "./fineTuning/checkFineTuneStatus.task";
@@ -23,8 +21,6 @@ console.log("Starting worker...");
 process.env.NO_LOG_SUCCESS = "true";
 
 const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
-  queryModel,
-  runNewEval,
   importDatasetEntries,
   trainFineTune,
   checkFineTuneStatus,

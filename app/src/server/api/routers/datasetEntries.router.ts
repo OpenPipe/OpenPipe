@@ -17,11 +17,7 @@ import hashObject from "~/server/utils/hashObject";
 import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
-import {
-  ORIGINAL_MODEL_ID,
-  typedDatasetEntry,
-  typedLoggedCallModelResponse,
-} from "~/types/dbColumns.types";
+import { ORIGINAL_MODEL_ID, typedDatasetEntry, typedLoggedCall } from "~/types/dbColumns.types";
 import { SortOrder, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { isComparisonModel } from "~/utils/baseModels";
@@ -258,24 +254,20 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(projectId, ctx);
 
-      const baseQuery = constructLoggedCallFiltersQuery(
+      const loggedCalls = await constructLoggedCallFiltersQuery(
         input.filters,
         projectId,
         pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
-      );
-
-      const loggedCallsQuery = baseQuery
-        .innerJoin("LoggedCallModelResponse as mr", "mr.id", "lc.modelResponseId")
+      )
         .where(
           "lc.id",
           "not in",
           sql`(select "loggedCallId" from "DatasetEntry" where "datasetId" = ${datasetId} and "loggedCallId" is not null)`,
         )
-        .select(["lc.id", "mr.reqPayload", "mr.respPayload", "mr.inputTokens", "mr.outputTokens"])
+        .select(["lc.id", "lc.reqPayload", "lc.respPayload", "lc.inputTokens", "lc.outputTokens"])
         .orderBy(sql`random()`)
-        .limit(input.sampleSize);
-
-      const loggedCalls = await loggedCallsQuery.execute();
+        .limit(input.sampleSize)
+        .execute();
 
       if (!loggedCalls.length) {
         return error("No matching request logs");
@@ -284,11 +276,11 @@ export const datasetEntriesRouter = createTRPCRouter({
       const rowsToConvert = loggedCalls
         .map((loggedCall) => {
           try {
-            const modelResponse = typedLoggedCallModelResponse(loggedCall);
+            const tLoggedCall = typedLoggedCall(loggedCall);
 
             const validated = validateRowToImport({
-              input: modelResponse.reqPayload,
-              output: modelResponse.respPayload?.choices?.[0]?.message,
+              input: tLoggedCall.reqPayload,
+              output: tLoggedCall.respPayload?.choices?.[0]?.message,
             });
 
             if ("error" in validated) return null;

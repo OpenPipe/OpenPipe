@@ -147,30 +147,12 @@ export interface DatasetFileUpload {
   updatedAt: Timestamp;
 }
 
-export interface Evaluation {
-  id: string;
-  label: string;
-  value: string;
-  evalType: "CONTAINS" | "DOES_NOT_CONTAIN" | "GPT4_EVAL";
-  experimentId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-}
-
-export interface Experiment {
-  id: string;
-  label: string;
-  sortIndex: Generated<number>;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  projectId: string;
-  slug: Generated<string>;
-}
-
 export interface FineTune {
   id: string;
   slug: string;
-  status: Generated<"DEPLOYED" | "ERROR" | "PENDING" | "TRAINING" | "TRANSFERRING_TRAINING_DATA">;
+  status: Generated<
+    "DEPLOYED" | "ERROR" | "PENDING" | "STARTED" | "TRAINING" | "TRANSFERRING_TRAINING_DATA"
+  >;
   trainingStartedAt: Timestamp | null;
   trainingFinishedAt: Timestamp | null;
   deploymentStartedAt: Timestamp | null;
@@ -255,12 +237,23 @@ export interface GraphileWorkerMigrations {
 export interface LoggedCall {
   id: string;
   requestedAt: Timestamp;
-  cacheHit: boolean;
   modelResponseId: string | null;
   projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   model: string | null;
+  completionId: string | null;
+  cost: number | null;
+  durationMs: number | null;
+  errorMessage: string | null;
+  finishReason: string | null;
+  inputTokens: number | null;
+  migrated: Generated<boolean>;
+  outputTokens: number | null;
+  receivedAt: Timestamp | null;
+  reqPayload: Json | null;
+  respPayload: Json | null;
+  statusCode: number | null;
 }
 
 export interface LoggedCallModelResponse {
@@ -291,34 +284,6 @@ export interface LoggedCallTag {
   projectId: string;
 }
 
-export interface ModelResponse {
-  id: string;
-  cacheKey: string;
-  respPayload: Json | null;
-  inputTokens: number | null;
-  outputTokens: number | null;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  scenarioVariantCellId: string;
-  cost: number | null;
-  requestedAt: Timestamp | null;
-  receivedAt: Timestamp | null;
-  statusCode: number | null;
-  errorMessage: string | null;
-  retryTime: Timestamp | null;
-  outdated: Generated<boolean>;
-}
-
-export interface OutputEvaluation {
-  id: string;
-  result: number;
-  details: string | null;
-  modelResponseId: string;
-  evaluationId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-}
-
 export interface Project {
   id: string;
   createdAt: Generated<Timestamp>;
@@ -334,21 +299,6 @@ export interface ProjectUser {
   userId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-}
-
-export interface PromptVariant {
-  id: string;
-  label: string;
-  uiId: string;
-  visible: Generated<boolean>;
-  sortIndex: Generated<number>;
-  experimentId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  promptConstructor: string;
-  model: string;
-  promptConstructorVersion: number;
-  modelProvider: string;
 }
 
 export interface PruningRule {
@@ -377,43 +327,11 @@ export interface RelabelRequest {
   updatedAt: Timestamp;
 }
 
-export interface ScenarioVariantCell {
-  id: string;
-  errorMessage: string | null;
-  promptVariantId: string;
-  testScenarioId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  retrievalStatus: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
-  prompt: Json | null;
-  jobQueuedAt: Timestamp | null;
-  jobStartedAt: Timestamp | null;
-}
-
 export interface Session {
   id: string;
   sessionToken: string;
   userId: string;
   expires: Timestamp;
-}
-
-export interface TemplateVariable {
-  id: string;
-  label: string;
-  experimentId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-}
-
-export interface TestScenario {
-  id: string;
-  variableValues: Json;
-  uiId: string;
-  visible: Generated<boolean>;
-  sortIndex: Generated<number>;
-  experimentId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
 }
 
 export interface UsageLog {
@@ -466,8 +384,6 @@ export interface DB {
   DatasetEvalOutputSource: DatasetEvalOutputSource;
   DatasetEvalResult: DatasetEvalResult;
   DatasetFileUpload: DatasetFileUpload;
-  Evaluation: Evaluation;
-  Experiment: Experiment;
   FineTune: FineTune;
   FineTuneTestingEntry: FineTuneTestingEntry;
   FineTuneTrainingEntry: FineTuneTrainingEntry;
@@ -478,18 +394,12 @@ export interface DB {
   LoggedCall: LoggedCall;
   LoggedCallModelResponse: LoggedCallModelResponse;
   LoggedCallTag: LoggedCallTag;
-  ModelResponse: ModelResponse;
-  OutputEvaluation: OutputEvaluation;
   Project: Project;
   ProjectUser: ProjectUser;
-  PromptVariant: PromptVariant;
   PruningRule: PruningRule;
   PruningRuleMatch: PruningRuleMatch;
   RelabelRequest: RelabelRequest;
-  ScenarioVariantCell: ScenarioVariantCell;
   Session: Session;
-  TemplateVariable: TemplateVariable;
-  TestScenario: TestScenario;
   UsageLog: UsageLog;
   User: User;
   UserInvitation: UserInvitation;

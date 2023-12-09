@@ -21,6 +21,8 @@ const password = new random.RandomPassword(nm("app-db-password"), {
   special: false,
 });
 
+const isProd = pulumi.getStack().includes("prod");
+
 const dbInstance = new aws.rds.Instance(nm("app"), {
   username: "openpipe",
   password: password.result,
@@ -37,11 +39,12 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   applyImmediately: true,
   backupRetentionPeriod: 30,
   performanceInsightsEnabled: true,
-  multiAz: true,
-  // skipFinalSnapshot: true,
+  multiAz: isProd,
+  skipFinalSnapshot: !isProd,
+  snapshotIdentifier: isProd ? undefined : "rds:app-pl-prod2de906e-2023-12-07-08-43",
+  finalSnapshotIdentifier: nm("app-db-final-snapshot"),
 });
 
 export const dbConnectionString = pulumi.secret(
   pulumi.interpolate`postgresql://${dbInstance.username}:${dbInstance.password}@${dbInstance.address}:${dbInstance.port}/${dbName}`,
 );
-// export const dbConnectionString = getSecret("DATABASE_URL");

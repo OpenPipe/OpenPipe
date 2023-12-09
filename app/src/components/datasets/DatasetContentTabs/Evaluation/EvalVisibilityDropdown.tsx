@@ -17,7 +17,7 @@ import { BsPlusSquare } from "react-icons/bs";
 import { FaBalanceScale } from "react-icons/fa";
 import { useRouter } from "next/router";
 
-import { useDataset, useIsClientRehydrated } from "~/utils/hooks";
+import { useDataset, useIsClientInitialized } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import AddEvalModal from "./AddEvalModal";
@@ -58,8 +58,8 @@ const EvalVisibilityDropdown = () => {
 
   const numAvailableEvals = editableEvalOptions.length + toggleableEvalOptions.length;
 
-  const isClientRehydrated = useIsClientRehydrated();
-  if (!isClientRehydrated) return null;
+  const isClientInitialized = useIsClientInitialized();
+  if (!isClientInitialized) return null;
 
   return (
     <>

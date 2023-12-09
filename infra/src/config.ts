@@ -4,7 +4,6 @@ const cfg = new pulumi.Config();
 
 type SecretKey =
   | "DATABASE_URL"
-  | "ANTHROPIC_API_KEY"
   | "OPENAI_API_KEY"
   | "NEXTAUTH_SECRET"
   | "GITHUB_CLIENT_ID"
@@ -21,7 +20,6 @@ type ConfigKey =
   | "NODE_ENV"
   | "NEXT_PUBLIC_SENTRY_DSN"
   | "NEXT_PUBLIC_POSTHOG_KEY"
-  | "NEXT_PUBLIC_SOCKET_URL"
   | "SMTP_LOGIN"
   | "AZURE_STORAGE_CONTAINER_NAME"
   | "AZURE_STORAGE_ACCOUNT_NAME"

@@ -1,4 +1,4 @@
-import { type DatasetEntry, type LoggedCallModelResponse } from "@prisma/client";
+import type { LoggedCall, DatasetEntry } from "@prisma/client";
 import { z } from "zod";
 
 import {
@@ -27,18 +27,18 @@ export const typedDatasetEntry = <T extends Pick<DatasetEntry, "messages">>(
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
 ): Omit<T, "messages"> & z.infer<typeof datasetEntrySchema> => datasetEntrySchema.parse(input);
 
-const loggedCallModelResponseSchema = z
+const loggedCall = z
   .object({
     reqPayload: chatCompletionInput,
     respPayload: chatCompletionOutput.passthrough().optional().nullable(),
   })
   .passthrough();
 
-export const typedLoggedCallModelResponse = <T extends Pick<LoggedCallModelResponse, "reqPayload">>(
+export const typedLoggedCall = <T extends Pick<LoggedCall, "reqPayload">>(
   input: T,
-): Omit<T, "reqPayload" | "respPayload"> & z.infer<typeof loggedCallModelResponseSchema> =>
+): Omit<T, "reqPayload" | "respPayload"> & z.infer<typeof loggedCall> =>
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
-  loggedCallModelResponseSchema.parse(input);
+  loggedCall.parse(input);
 
 const fineTuneTestingEntrySchema = z
   .object({

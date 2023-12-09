@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
-  Heading,
   VStack,
   Icon,
   HStack,
@@ -9,7 +8,6 @@ import {
   Box,
   Link as ChakraLink,
   Flex,
-  useBreakpointValue,
   Tooltip,
   type BoxProps,
 } from "@chakra-ui/react";
@@ -28,17 +26,10 @@ import IconLink from "./IconLink";
 import { BetaModal } from "../BetaModal";
 import { useIsMissingBetaAccess } from "~/utils/hooks";
 
-const Divider = () => <Box h="1px" bgColor="gray.300" w="full" />;
+const Divider = (props: BoxProps) => <Box h="1px" bgColor="gray.300" w="full" {...props} />;
 
 const NavSidebar = () => {
   const user = useSession().data;
-
-  // Hack to get around initial flash, see https://github.com/chakra-ui/chakra-ui/issues/6452
-  const isMobile = useBreakpointValue({ base: true, md: false, ssr: false });
-  const renderCount = useRef(0);
-  renderCount.current++;
-
-  const displayLogo = isMobile && renderCount.current > 1;
 
   return (
     <VStack
@@ -52,24 +43,18 @@ const NavSidebar = () => {
       borderRightWidth={1}
       borderColor="gray.300"
     >
-      {displayLogo && (
-        <>
-          <HStack
-            as={Link}
-            href="/"
-            _hover={{ textDecoration: "none" }}
-            spacing={{ base: 1, md: 0 }}
-            mx={2}
-            py={{ base: 1, md: 2 }}
-          >
-            <Image src="/logo.svg" alt="" boxSize={6} mr={4} ml={{ base: 0.5, md: 0 }} />
-            <Heading size="md" fontFamily="inconsolata, monospace">
-              OpenPipe
-            </Heading>
-          </HStack>
-          <Divider />
-        </>
-      )}
+      <HStack
+        as={Link}
+        href="/"
+        _hover={{ textDecoration: "none" }}
+        spacing={{ base: 1, md: 0 }}
+        mx={2}
+        py={{ base: 1, md: 2 }}
+        display={{ md: "none" }}
+      >
+        <Image src="/logo.svg" alt="" boxSize={6} mr={4} ml={0.5} />
+      </HStack>
+      <Divider display={{ md: "none" }} />
 
       <VStack align="flex-start" overflowY="auto" overflowX="hidden" flex={1}>
         {user != null && (
