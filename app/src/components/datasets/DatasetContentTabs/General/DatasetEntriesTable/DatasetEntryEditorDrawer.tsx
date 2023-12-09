@@ -74,7 +74,7 @@ function DatasetEntryEditorDrawer({
     const resp = await updateMutation.mutateAsync({
       id: datasetEntryId,
       updates: {
-        input: JSON.stringify(inputMessagesToSave),
+        messages: JSON.stringify(inputMessagesToSave),
         output: JSON.stringify(outputMessageToSave),
       },
     });

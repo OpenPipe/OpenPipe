@@ -10,25 +10,23 @@ import { z } from "zod";
 import { type JsonValue } from "type-fest";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
-import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import hashObject from "~/server/utils/hashObject";
-import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
+import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import { ORIGINAL_MODEL_ID, typedDatasetEntry, typedLoggedCall } from "~/types/dbColumns.types";
-import { SortOrder, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
+import { SortOrder, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { isComparisonModel } from "~/utils/baseModels";
-import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
 import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntryTask";
-import { copyDatasetEvalDatasetEntries } from "~/server/utils/copyDatasetEvalDatasetEntries";
+import { copyEntryWithUpdates } from "~/server/utils/datasetEntryCreation/copyEntryWithUpdates";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -336,7 +334,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         id: z.string(),
         updates: z.object({
           split: z.enum(["TRAIN", "TEST"]).optional(),
-          input: z.string().optional(),
+          messages: z.string().optional(),
           output: z.string().optional(),
         }),
       }),
@@ -355,91 +353,35 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(dataset.projectId, ctx);
 
-      const prevEntry = await prisma.datasetEntry.update({
-        where: { id: input.id },
-        data: {
-          outdated: true,
-        },
-        include: {
-          matchedRules: {
-            select: {
-              pruningRuleId: true,
-            },
-          },
-        },
-      });
-
-      let parsedMessages = prevEntry.messages;
-
-      if (input.updates.input) {
-        parsedMessages = JSON.parse(input.updates.input);
-      }
-
-      let newOutput = prevEntry.output;
-      // The client might send "null" as a string, so we need to check for that
-      if (input.updates.output && input.updates.output !== "null") {
-        newOutput = JSON.parse(input.updates.output);
-      }
-      const validatedOutput = chatCompletionMessage.parse(newOutput);
-
-      const inputFields = typedDatasetEntry({
-        messages: parsedMessages,
-        functions: prevEntry.functions ?? undefined,
-        function_call: prevEntry.function_call ?? undefined,
-        tool_choice: prevEntry.tool_choice ?? undefined,
-        tools: prevEntry.tools ?? undefined,
-        response_format: prevEntry.response_format ?? undefined,
-      });
-
-      const newEntry = await prisma.datasetEntry.create({
-        data: {
-          ...inputFields,
-          output: validatedOutput,
-          inputTokens: countLlamaInputTokens(inputFields),
-          outputTokens: countLlamaOutputTokens(validatedOutput),
-          split: input.updates.split ?? prevEntry.split,
-          datasetId: prevEntry.datasetId,
-          sortKey: prevEntry.sortKey,
-          provenance: "RELABELED_BY_HUMAN",
-          authoringUserId: ctx.session?.user.id,
-          persistentId: prevEntry.persistentId,
-          importId: prevEntry.importId,
-          matchedRules: {
-            create: prevEntry.matchedRules.map((match) => ({
-              pruningRuleId: match.pruningRuleId,
-            })),
-          },
-        },
-      });
-
-      if (newEntry.split === "TEST") {
-        await copyDatasetEvalDatasetEntries(prevEntry.id, newEntry.id);
-      }
-
-      await updatePruningRuleMatches(dataset.id, new Date(0), [newEntry.id]);
-
-      if (newEntry.split === "TEST") {
-        const fineTunes = await prisma.fineTune.findMany({
-          where: {
-            datasetId: dataset.id,
-            status: "DEPLOYED",
-          },
-        });
-        for (const fineTune of fineTunes) {
-          await generateTestSetEntry.enqueue({
-            modelId: fineTune.id,
-            datasetEntryId: newEntry.id,
-            numPreviousTries: 0,
-          });
+      let updatedMessages = undefined;
+      try {
+        if (input.updates.messages) {
+          updatedMessages = JSON.parse(input.updates.messages);
         }
-        for (const comparisonModel of dataset.enabledComparisonModels) {
-          await generateTestSetEntry.enqueue({
-            modelId: comparisonModel,
-            datasetEntryId: newEntry.id,
-            numPreviousTries: 0,
-          });
-        }
+      } catch (e) {
+        return error("Invalid JSON for messages");
       }
+
+      let updatedOutput = undefined;
+      try {
+        // The client might send "null" as a string, so we need to check for that
+        if (input.updates.output && input.updates.output !== "null") {
+          updatedOutput = JSON.parse(input.updates.output);
+        }
+      } catch (e) {
+        return error("Invalid JSON for output");
+      }
+
+      const newEntry = await copyEntryWithUpdates(
+        input.id,
+        ctx.session.user.id,
+        "RELABELED_BY_HUMAN",
+        {
+          split: input.updates.split,
+          messages: updatedMessages,
+          output: updatedOutput,
+        },
+      );
 
       return success(newEntry.id);
     }),

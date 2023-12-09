@@ -59,7 +59,7 @@ export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColu
             </Text>
           </HStack>
         </Th>
-        <SortableHeader title="Created At" field="createdAt" />
+        <SortableHeader title="Updated At" field="createdAt" />
         {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
         <SortableHeader isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader isNumeric title="Output Tokens" field="outputTokens" />
