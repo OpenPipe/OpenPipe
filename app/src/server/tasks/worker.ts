@@ -10,7 +10,7 @@ import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatu
 import { generateTestSetEntry } from "./generateTestSetEntry.task";
 import { evaluateTestSetEntries } from "./evaluateTestSetEntries.task";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
-import { relabelDatasetEntry } from "./relabelDatasetEntryTask";
+import { relabelDatasetEntry } from "./relabelDatasetEntry.task";
 import type defineTask from "./defineTask";
 import { pgPool } from "../db";
 

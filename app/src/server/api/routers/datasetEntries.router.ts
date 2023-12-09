@@ -25,7 +25,7 @@ import { truthyFilter } from "~/utils/utils";
 import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
-import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntryTask";
+import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntry.task";
 import { copyEntryWithUpdates } from "~/server/utils/datasetEntryCreation/copyEntryWithUpdates";
 
 export const datasetEntriesRouter = createTRPCRouter({
