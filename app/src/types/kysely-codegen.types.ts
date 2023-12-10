@@ -237,7 +237,6 @@ export interface GraphileWorkerMigrations {
 export interface LoggedCall {
   id: string;
   requestedAt: Timestamp;
-  modelResponseId: string | null;
   projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
@@ -248,32 +247,11 @@ export interface LoggedCall {
   errorMessage: string | null;
   finishReason: string | null;
   inputTokens: number | null;
-  migrated: Generated<boolean>;
   outputTokens: number | null;
   receivedAt: Timestamp | null;
   reqPayload: Json | null;
   respPayload: Json | null;
   statusCode: number | null;
-}
-
-export interface LoggedCallModelResponse {
-  id: string;
-  reqPayload: Json;
-  statusCode: number | null;
-  respPayload: Json | null;
-  errorMessage: string | null;
-  requestedAt: Timestamp;
-  receivedAt: Timestamp;
-  cacheKey: string | null;
-  durationMs: number | null;
-  inputTokens: number | null;
-  outputTokens: number | null;
-  finishReason: string | null;
-  completionId: string | null;
-  cost: number | null;
-  originalLoggedCallId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
 }
 
 export interface LoggedCallTag {
@@ -392,7 +370,6 @@ export interface DB {
   "graphile_worker.known_crontabs": GraphileWorkerKnownCrontabs;
   "graphile_worker.migrations": GraphileWorkerMigrations;
   LoggedCall: LoggedCall;
-  LoggedCallModelResponse: LoggedCallModelResponse;
   LoggedCallTag: LoggedCallTag;
   Project: Project;
   ProjectUser: ProjectUser;
