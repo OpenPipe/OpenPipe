@@ -1,6 +1,6 @@
 import { sql } from "kysely";
 
-import { kysely } from "../db";
+import { kysely, prisma } from "../db";
 
 console.log("copying fields from LoggedCallModelResponse to LoggedCall");
 
@@ -63,9 +63,9 @@ while (totalProcessed < numLoggedCalls) {
     promises.push(
       (async () => {
         try {
-          await kysely
-            .updateTable("LoggedCall")
-            .set(() => ({
+          await prisma.loggedCall.update({
+            where: { id: loggedCall.id },
+            data: {
               errorMessage: loggedCall.errorMessage,
               receivedAt: loggedCall.receivedAt,
               reqPayload: loggedCall.reqPayload as string,
@@ -78,9 +78,8 @@ while (totalProcessed < numLoggedCalls) {
               completionId: loggedCall.completionId,
               cost: loggedCall.cost,
               migrated: true,
-            }))
-            .where("id", "=", loggedCall.id)
-            .execute();
+            },
+          });
         } catch (e) {
           console.error("error updating logged call", e);
         }
