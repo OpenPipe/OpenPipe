@@ -10,7 +10,7 @@ import { generateBlobUploadUrl } from "~/utils/azure/server";
 import { importDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
 import { env } from "~/env.mjs";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
-import { comparisonModels } from "~/utils/baseModels";
+import { comparisonModels } from "~/utils/comparisonModels";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {

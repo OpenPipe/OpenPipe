@@ -8,25 +8,30 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { type JsonValue } from "type-fest";
+import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
+import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntry.task";
+import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
+import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
-import hashObject from "~/server/utils/hashObject";
+import { copyEntryWithUpdates } from "~/server/utils/datasetEntryCreation/copyEntryWithUpdates";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
+import hashObject from "~/server/utils/hashObject";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
-import { ORIGINAL_MODEL_ID, typedDatasetEntry, typedLoggedCall } from "~/types/dbColumns.types";
+import {
+  ORIGINAL_MODEL_ID,
+  typedDatasetEntry,
+  typedFineTune,
+  typedLoggedCall,
+} from "~/types/dbColumns.types";
 import { SortOrder, filtersSchema, toolsInput } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
-import { isComparisonModel } from "~/utils/baseModels";
+import { isComparisonModel } from "~/utils/comparisonModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
-import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
-import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
-import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
-import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntry.task";
-import { copyEntryWithUpdates } from "~/server/utils/datasetEntryCreation/copyEntryWithUpdates";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -697,7 +702,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         .where("FineTuneTestingEntry.modelId", "=", modelId)
         .where("DatasetEntry.outdated", "=", false)
         .where("DatasetEntry.datasetId", "=", datasetId)
-        .where(sql.raw(`"FineTuneTestingEntry"."output" is not null`))
+        .where(sql`"FineTuneTestingEntry"."output" is not null`)
         .select(["FineTuneTestingEntry.id"])
         .execute();
 
@@ -803,17 +808,18 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
-      let slug;
-      let baseModel;
+      let fineTune;
       if (modelId !== ORIGINAL_MODEL_ID && !isComparisonModel(modelId)) {
-        const fineTune = await prisma.fineTune.findUnique({
-          where: {
-            id: modelId,
-          },
-        });
-        if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
-        slug = fineTune.slug;
-        baseModel = fineTune.baseModel;
+        fineTune = typedFineTune(
+          await prisma.fineTune.findFirstOrThrow({
+            where: { id: modelId },
+            select: {
+              slug: true,
+              baseModel: true,
+              provider: true,
+            },
+          }),
+        );
       }
 
       const resultsPending = Object.values(evalPerformances).some(
@@ -821,8 +827,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       );
 
       return {
-        slug,
-        baseModel,
+        fineTune,
         finishedCount: finishedCount.length,
         evalPerformances,
         resultsPending,

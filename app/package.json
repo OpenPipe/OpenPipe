@@ -26,7 +26,7 @@
     "test": "pnpm vitest",
     "repl": "tsx scripts/repl.ts",
     "repl:watch": "tsx --watch scripts/repl.ts",
-    "dev:modal": "cd ../trainer && concurrently 'poetry run modal serve src/inference_server/main.py' 'poetry run modal serve src/trainer/main.py' --kill-others"
+    "dev:modal": "cd ../trainer && MODAL_ENVIRONMENT='dev' concurrently 'poetry run modal serve src/inference_server/main.py' 'poetry run modal serve src/trainer/main.py' --kill-others"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^10.1.0",

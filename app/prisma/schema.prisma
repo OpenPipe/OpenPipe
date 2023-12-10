@@ -362,27 +362,32 @@ enum FineTuneStatus {
     ERROR
 }
 
-enum BaseModel {
-    MISTRAL_7b
-    LLAMA2_7b
-    LLAMA2_13b
-    // LLAMA2_70b
-    GPT_3_5_TURBO
+// enum BaseArch {
+//     MISTRAL_7b
+//     LLAMA2_7b
+//     LLAMA2_13b
+//     // LLAMA2_70b
+//     GPT_3_5_TURBO
+// }
+
+enum FineTuneProvider {
+    openpipe
+    openai
 }
 
 model FineTune {
     id String @id @default(uuid()) @db.Uuid
 
-    slug                 String         @unique
-    baseModel            BaseModel
-    status               FineTuneStatus @default(PENDING)
+    slug                 String           @unique
+    provider             FineTuneProvider
+    baseModel            String
+    status               FineTuneStatus   @default(PENDING)
     errorMessage         String?
     trainingBlobName     String?
     trainingStartedAt    DateTime?
     trainingFinishedAt   DateTime?
     deploymentStartedAt  DateTime?
     deploymentFinishedAt DateTime?
-    inferenceUrls        String[]       @default([])
 
     trainingEntries FineTuneTrainingEntry[]
     testingEntries  FineTuneTestingEntry[]
@@ -397,9 +402,6 @@ model FineTune {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-
-    // Keep a GPU instance running for this fine-tune at all times. Expensive.
-    keepWarm Boolean @default(false)
 
     modalTrainingJobId  String?
     huggingFaceModelId  String?

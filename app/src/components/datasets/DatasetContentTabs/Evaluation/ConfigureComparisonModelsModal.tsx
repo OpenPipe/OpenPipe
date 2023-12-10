@@ -26,7 +26,7 @@ import {
 } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useVisibleModelIds } from "./useVisibleModelIds";
-import { comparisonModels } from "~/utils/baseModels";
+import { comparisonModels } from "~/utils/comparisonModels";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 
 const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {

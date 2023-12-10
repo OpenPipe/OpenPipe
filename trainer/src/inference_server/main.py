@@ -33,7 +33,7 @@ APP_NAME = "inference-server-v1"
 stub = modal.Stub(APP_NAME, image=image)
 stub.volume = volume
 
-if stub.is_inside():
+with image.run_inside():
     from vllm import SamplingParams
     from vllm.utils import random_uuid
     from vllm.outputs import RequestOutput

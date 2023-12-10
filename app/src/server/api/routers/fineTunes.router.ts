@@ -4,14 +4,14 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
+import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
+import { typedFineTune } from "~/types/dbColumns.types";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
-import { SUPPORTED_BASE_MODELS, isComparisonModelName } from "~/utils/baseModels";
+import { isComparisonModelName } from "~/utils/comparisonModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
-
-const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
 
 export const fineTunesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -47,7 +47,7 @@ export const fineTunesRouter = createTRPCRouter({
       });
 
       return {
-        fineTunes,
+        fineTunes: fineTunes.map(typedFineTune),
         count,
       };
     }),
@@ -87,7 +87,7 @@ export const fineTunesRouter = createTRPCRouter({
         .orderBy("ft.createdAt", "desc")
         .execute();
 
-      return fineTunes;
+      return fineTunes.map(typedFineTune);
     }),
   get: protectedProcedure
     .input(
@@ -119,14 +119,14 @@ export const fineTunesRouter = createTRPCRouter({
 
       await requireCanViewProject(fineTune.projectId, ctx);
 
-      return fineTune;
+      return typedFineTune(fineTune);
     }),
   create: protectedProcedure
     .input(
       z.object({
         datasetId: z.string(),
         slug: z.string(),
-        baseModel: BaseModelEnum,
+        baseModel: baseModel,
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -153,7 +153,8 @@ export const fineTunesRouter = createTRPCRouter({
         data: {
           projectId,
           slug: input.slug,
-          baseModel: input.baseModel,
+          provider: input.baseModel.provider,
+          baseModel: input.baseModel.baseModel,
           datasetId: input.datasetId,
           pipelineVersion: CURRENT_PIPELINE_VERSION,
         },
@@ -165,7 +166,7 @@ export const fineTunesRouter = createTRPCRouter({
         fineTune.projectId,
         input.datasetId,
         input.slug,
-        input.baseModel,
+        input.baseModel.baseModel,
       );
 
       await trainFineTune.enqueue({ fineTuneId: fineTune.id });

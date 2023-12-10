@@ -47,10 +47,9 @@
                     "baseModel": {
                       "type": "string",
                       "enum": [
-                        "MISTRAL_7b",
-                        "LLAMA2_7b",
-                        "LLAMA2_13b",
-                        "GPT_3_5_TURBO"
+                        "mistralai/Mistral-7B-v0.1",
+                        "meta-llama/Llama-2-13b-hf",
+                        "meta-llama/Llama-2-7b-hf"
                       ]
                     },
                     "projectName": {

@@ -2,10 +2,9 @@ from enum import Enum
 
 
 class GetTrainingInfoResponse200BaseModel(str, Enum):
-    GPT_3_5_TURBO = "GPT_3_5_TURBO"
-    LLAMA2_13B = "LLAMA2_13b"
-    LLAMA2_7B = "LLAMA2_7b"
-    MISTRAL_7B = "MISTRAL_7b"
+    META_LLAMALLAMA_2_13B_HF = "meta-llama/Llama-2-13b-hf"
+    META_LLAMALLAMA_2_7B_HF = "meta-llama/Llama-2-7b-hf"
+    MISTRALAIMISTRAL_7B_V0_1 = "mistralai/Mistral-7B-v0.1"
 
     def __str__(self) -> str:
         return str(self.value)

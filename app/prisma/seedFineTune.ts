@@ -79,11 +79,11 @@ await prisma.fineTune.create({
   data: {
     id: fineTuneId,
     slug: process.env.FINE_TUNE_SLUG || "test-fine-tune",
-    baseModel: "LLAMA2_7b",
+    provider: "openpipe",
+    baseModel: "meta-llama/Llama-2-7b-hf",
     status: "PENDING",
     projectId: project.id,
     datasetId: dataset.id,
-    inferenceUrls: process.env.FINE_TUNE_INFERENCE_URL ? [process.env.FINE_TUNE_INFERENCE_URL] : [],
     pipelineVersion: 1,
   },
 });

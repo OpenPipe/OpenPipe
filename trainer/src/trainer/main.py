@@ -47,7 +47,7 @@ stub.volume = modal.Volume.persisted("openpipe-model-cache")
 
 web_app = fastapi.FastAPI(title=APP_NAME)
 
-if stub.is_inside():
+with image.run_inside():
     from huggingface_hub import HfApi
 
     hf_api = HfApi()

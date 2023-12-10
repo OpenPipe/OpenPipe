@@ -21,8 +21,8 @@ import Link from "next/link";
 
 import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
+import { modelInfo } from "~/server/fineTuningProviders/modelInfo";
 import { api } from "~/utils/api";
-import { displayBaseModel } from "~/utils/baseModels";
 import { useSelectedProject } from "~/utils/hooks";
 
 const numberWithDefault = (num: number | string | bigint | null, defaultValue = 0) =>
@@ -103,7 +103,7 @@ export default function Usage() {
                         <Text color="blue.600">openpipe:{model.slug}</Text>
                       </Link>
                     </Td>
-                    <Td>{displayBaseModel(model.baseModel)}</Td>
+                    <Td>{modelInfo(model).name}</Td>
                     <Td isNumeric>{numberWithDefault(model.numQueries).toLocaleString()}</Td>
                     <Td isNumeric>{numberWithDefault(model.inputTokens).toLocaleString()}</Td>
                     <Td isNumeric>{numberWithDefault(model.outputTokens).toLocaleString()}</Td>

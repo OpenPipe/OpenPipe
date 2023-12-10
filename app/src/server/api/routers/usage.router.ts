@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
+import { typedFineTune } from "~/types/dbColumns.types";
 import { requireCanViewProject } from "~/utils/accessControl";
 import dayjs from "~/utils/dayjs";
 
@@ -37,7 +38,7 @@ export const usageRouter = createTRPCRouter({
         )
         .innerJoin("FineTune as ft", "ft.id", "stats.ftId")
         .selectAll("stats")
-        .select(["ft.baseModel", "ft.slug"])
+        .select(["ft.baseModel", "ft.provider", "ft.slug"])
         .orderBy("numQueries", "desc");
 
       const [periods, totals, fineTunes] = await Promise.all([
@@ -90,6 +91,6 @@ export const usageRouter = createTRPCRouter({
         dayToMatch = dayToMatch.subtract(1, "day");
       }
 
-      return { periods: backfilledPeriods, totals, fineTunes };
+      return { periods: backfilledPeriods, totals, fineTunes: fineTunes.map(typedFineTune) };
     }),
 });
