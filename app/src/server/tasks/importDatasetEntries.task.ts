@@ -84,10 +84,9 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
         importId,
         authoringUserId,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
+    } catch (e: unknown) {
       await updateDatasetFileUpload({
-        errorMessage: `Error preparing rows: ${e.message as string}`,
+        errorMessage: `Error preparing rows: ${(e as Error).message}`,
         status: "ERROR",
         visible: true,
       });
@@ -101,24 +100,25 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     // split datasetEntriesToCreate into chunks of 1000 because if we try too many at once Prisma throws a `RangeError: Invalid string length`
     for (let i = 0; i < datasetEntriesToCreate.length; i += 1000) {
+      const chunk = datasetEntriesToCreate.slice(i, i + 1000);
       await prisma.datasetEntry.createMany({
-        data: datasetEntriesToCreate.slice(i, i + 1000),
+        data: chunk,
       });
+
+      await updatePruningRuleMatches(
+        datasetFileUpload.datasetId,
+        new Date(0),
+        chunk.map((entry) => entry.id),
+      );
+
+      await updateDatasetFileUpload({ progress: 70 + 25 * (i / datasetEntriesToCreate.length) });
     }
 
-    await updateDatasetFileUpload({ progress: 80 });
-
-    await updatePruningRuleMatches(
-      datasetFileUpload.datasetId,
-      new Date(0),
-      datasetEntriesToCreate.map((entry) => entry.id),
-    );
-
-    await updateDatasetFileUpload({ progress: 85 });
+    await updateDatasetFileUpload({ progress: 95 });
 
     await startDatasetTestJobs(datasetFileUpload.datasetId);
 
-    await updateDatasetFileUpload({ progress: 90 });
+    await updateDatasetFileUpload({ progress: 99 });
 
     await countDatasetEntryTokens.enqueue();
 
