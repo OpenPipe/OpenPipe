@@ -249,7 +249,7 @@ export const FormattedOutput = ({ entry, preferJson }: { entry: FTEntry; preferJ
 
   const message = entry.output as unknown as ChatCompletionMessage;
   return (
-    <VStack w="full">
+    <VStack w="full" alignItems="flex-start">
       <FormattedMessage message={message} preferJson={preferJson} />
       {entry.finishReason === "length" && (
         <Alert status="warning" mt={4} zIndex={0}>

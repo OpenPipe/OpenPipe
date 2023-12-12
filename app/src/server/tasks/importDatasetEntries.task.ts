@@ -112,7 +112,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
       );
 
       await updateDatasetFileUpload({
-        progress: 70 + Math.round(25 * (i / datasetEntriesToCreate.length)),
+        progress: 70 + Math.floor(25 * (i / datasetEntriesToCreate.length)),
       });
     }
 

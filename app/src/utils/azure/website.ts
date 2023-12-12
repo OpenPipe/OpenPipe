@@ -2,6 +2,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { v4 as uuidv4 } from "uuid";
 
 import { useAppStore } from "~/state/store";
+import { inverseDatePrefix } from "./utils";
 
 export const uploadDatasetEntryFile = async (file: File) => {
   const { selectedProjectId: projectId, api } = useAppStore.getState();
@@ -19,7 +20,7 @@ export const uploadDatasetEntryFile = async (file: File) => {
   const basename = file.name.split("/").pop()?.split(".").shift();
   if (!basename) throw Error("basename not found");
 
-  const blobName = `${basename}-${uuidv4()}.jsonl`;
+  const blobName = `${inverseDatePrefix()}-${basename}-${uuidv4()}-uploaded.jsonl`;
   // create blob client
   const blobClient = containerClient.getBlockBlobClient(blobName);
 
