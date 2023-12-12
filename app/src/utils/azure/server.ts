@@ -9,7 +9,8 @@ import {
 } from "@azure/storage-blob";
 import { v4 as uuidv4 } from "uuid";
 import { env } from "~/env.mjs";
-import { Readable } from "stream";
+import { type Readable } from "stream";
+import { inverseDatePrefix } from "./utils";
 
 const accountName = env.AZURE_STORAGE_ACCOUNT_NAME;
 if (!accountName) throw Error("Azure Storage accountName not found");
@@ -120,8 +121,3 @@ async function streamToNdStrings(
     readableStream.on("error", reject);
   });
 }
-
-// Ensure blobs are sorted by date in descending order
-const inverseDatePrefix = () => {
-  return new Date(2070, 0, 1).getTime() - new Date().getTime();
-};
