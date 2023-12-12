@@ -6,62 +6,99 @@ export const EMPTY_EVALS_KEY = "_empty_";
 
 export const useVisibleEvalIds = () => {
   const dataset = useDataset().data;
-  const [visibleEvalIds, setVisibleEvalIds] = useQueryParam<string[]>(
-    "evals",
-    withDefault(JsonParam, []),
+  const [visibleEvals, setVisibleEvals] = useQueryParam<{
+    hthEvalIds: string[];
+    showFieldComparison: boolean;
+  }>(
+    "visibleEvals",
+    withDefault(JsonParam, {
+      hthEvalIds: [],
+      showFieldComparison: false,
+    }),
   );
 
-  const allDatasetEvalIds = dataset?.datasetEvals?.map((datasetEval) => datasetEval.id) || [];
+  const hthEvalIds = visibleEvals.hthEvalIds;
+  const setVisibleHthEvalIds = (newVisibleEvalIds: string[]) => {
+    setVisibleEvals({
+      hthEvalIds: newVisibleEvalIds,
+      showFieldComparison: visibleEvals.showFieldComparison,
+    });
+  };
+
+  const allHthEvalIds =
+    dataset?.datasetEvals
+      .filter((datasetEval) => datasetEval.type === "HEAD_TO_HEAD")
+      ?.map((datasetEval) => datasetEval.id) || [];
+
+  const allFieldComparisonEvalIds =
+    dataset?.datasetEvals
+      .filter((datasetEval) => datasetEval.type === "FIELD_COMPARISON")
+      ?.map((datasetEval) => datasetEval.id) || [];
 
   const ensureEvalShown = (evalId: string) => {
-    if (visibleEvalIds.length === 0 || visibleEvalIds.includes(evalId)) return;
-    if (visibleEvalIds.includes(EMPTY_EVALS_KEY)) {
-      setVisibleEvalIds([evalId]);
+    if (hthEvalIds.length === 0 || hthEvalIds.includes(evalId)) return;
+    if (hthEvalIds.includes(EMPTY_EVALS_KEY)) {
+      setVisibleHthEvalIds([evalId]);
     } else {
-      setVisibleEvalIds([...visibleEvalIds, evalId]);
+      setVisibleHthEvalIds([...hthEvalIds, evalId]);
     }
   };
 
   const toggleEvalVisiblity = (evalId: string) => {
-    if (visibleEvalIds.length === 0) {
+    if (allFieldComparisonEvalIds.includes(evalId)) {
+      setVisibleEvals({
+        hthEvalIds,
+        showFieldComparison: !visibleEvals.showFieldComparison,
+      });
+      return;
+    }
+
+    if (hthEvalIds.length === 0) {
       // All evals were visible, so we're only hiding this one.
-      if (allDatasetEvalIds.length === 1) {
+      if (allHthEvalIds.length === 1) {
         // There's only one eval, so we're hiding all of them.
-        setVisibleEvalIds([EMPTY_EVALS_KEY]);
+        setVisibleHthEvalIds([EMPTY_EVALS_KEY]);
       } else {
-        setVisibleEvalIds(allDatasetEvalIds.filter((id) => id != evalId));
+        setVisibleHthEvalIds(allHthEvalIds.filter((id) => id != evalId));
       }
-    } else if (visibleEvalIds.includes(EMPTY_EVALS_KEY)) {
+    } else if (hthEvalIds.includes(EMPTY_EVALS_KEY)) {
       // All evals were hidden, so we're only showing this one.
-      setVisibleEvalIds([evalId]);
-    } else if (
-      visibleEvalIds.length === allDatasetEvalIds.length - 1 &&
-      !visibleEvalIds.includes(evalId)
-    ) {
+      setVisibleHthEvalIds([evalId]);
+    } else if (hthEvalIds.length === allHthEvalIds.length - 1 && !hthEvalIds.includes(evalId)) {
       // This was the only hidden eval, so we're now showing all of them
-      setVisibleEvalIds([]);
-    } else if (visibleEvalIds.length === 1 && visibleEvalIds.includes(evalId)) {
+      setVisibleHthEvalIds([]);
+    } else if (hthEvalIds.length === 1 && hthEvalIds.includes(evalId)) {
       // This is the only visible eval, so we're hiding it.
-      setVisibleEvalIds([EMPTY_EVALS_KEY]);
-    } else if (visibleEvalIds.includes(evalId)) {
+      setVisibleHthEvalIds([EMPTY_EVALS_KEY]);
+    } else if (hthEvalIds.includes(evalId)) {
       // This eval was visible, so we're hiding it.
-      setVisibleEvalIds(visibleEvalIds.filter((id) => id !== evalId));
-    } else if (!visibleEvalIds.includes(evalId)) {
+      setVisibleHthEvalIds(hthEvalIds.filter((id) => id !== evalId));
+    } else if (!hthEvalIds.includes(evalId)) {
       // This eval was hidden, so we're showing it.
-      setVisibleEvalIds([...visibleEvalIds, evalId]);
+      setVisibleHthEvalIds([...hthEvalIds, evalId]);
     }
   };
 
-  let completeVisibleEvalIds = visibleEvalIds;
-  if (visibleEvalIds.includes(EMPTY_EVALS_KEY)) {
+  let completeVisibleEvalIds = hthEvalIds;
+  if (hthEvalIds.includes(EMPTY_EVALS_KEY)) {
     completeVisibleEvalIds = [];
-  } else if (visibleEvalIds.length === 0) {
-    completeVisibleEvalIds = allDatasetEvalIds;
+  } else if (hthEvalIds.length === 0) {
+    completeVisibleEvalIds = allHthEvalIds;
+  }
+
+  if (visibleEvals.showFieldComparison) {
+    completeVisibleEvalIds = completeVisibleEvalIds.concat(allFieldComparisonEvalIds);
   }
 
   return {
     visibleEvalIds: completeVisibleEvalIds,
     toggleEvalVisiblity,
+    toggleFieldComparisonVisiblity: () => {
+      setVisibleEvals({
+        hthEvalIds,
+        showFieldComparison: !visibleEvals.showFieldComparison,
+      });
+    },
     ensureEvalShown,
   };
 };
