@@ -16,7 +16,7 @@ import {
   Icon,
   Collapse,
 } from "@chakra-ui/react";
-import { type ChatCompletionMessageParam } from "openai/resources/chat";
+import type { ChatCompletionMessageParam } from "openai/resources/chat";
 import { BsPlus } from "react-icons/bs";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { type DatasetEntrySplit } from "@prisma/client";
@@ -30,6 +30,7 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import dayjs from "~/utils/dayjs";
 import DatasetEntryHistoryRow from "./DatasetEntryHistoryRow";
 import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
+import ToolsEditor from "./ToolsEditor";
 
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
@@ -46,9 +47,11 @@ function DatasetEntryEditorDrawer({
   const { data: datasetEntry, isLoading } = useDatasetEntry(datasetEntryId);
 
   const savedInputMessages = useMemo(() => datasetEntry?.messages, [datasetEntry]);
+  const savedTools = useMemo(() => datasetEntry?.tools, [datasetEntry]);
   const savedOutputMessage = useMemo(() => datasetEntry?.output, [datasetEntry]);
 
   const [inputMessagesToSave, setInputMessagesToSave] = useState<ChatCompletionMessageParam[]>([]);
+  const [toolsToSave, setToolsToSave] = useState<string>(JSON.stringify([]));
   const [outputMessageToSave, setOutputMessageToSave] = useState<ChatCompletionMessageParam | null>(
     null,
   );
@@ -57,15 +60,17 @@ function DatasetEntryEditorDrawer({
   useEffect(() => {
     if (savedInputMessages && savedOutputMessage) {
       setInputMessagesToSave(savedInputMessages);
+      setToolsToSave(JSON.stringify(savedTools || []));
       setOutputMessageToSave(savedOutputMessage);
     }
-  }, [savedInputMessages, savedOutputMessage]);
+  }, [savedInputMessages, savedTools, savedOutputMessage]);
 
   const hasUpdates = useMemo(
     () =>
       !isEqual(datasetEntry?.messages, inputMessagesToSave) ||
+      !isEqual(JSON.stringify(datasetEntry?.tools || []), toolsToSave) ||
       !isEqual(datasetEntry?.output, outputMessageToSave),
-    [datasetEntry, inputMessagesToSave, outputMessageToSave],
+    [datasetEntry, inputMessagesToSave, toolsToSave, outputMessageToSave],
   );
 
   const updateMutation = api.datasetEntries.update.useMutation();
@@ -75,6 +80,7 @@ function DatasetEntryEditorDrawer({
       id: datasetEntryId,
       updates: {
         messages: JSON.stringify(inputMessagesToSave),
+        tools: toolsToSave,
         output: JSON.stringify(outputMessageToSave),
       },
     });
@@ -86,6 +92,7 @@ function DatasetEntryEditorDrawer({
     datasetEntryId,
     setDatasetEntryId,
     inputMessagesToSave,
+    toolsToSave,
     outputMessageToSave,
     utils,
   ]);
@@ -184,7 +191,9 @@ function DatasetEntryEditorDrawer({
               </VStack>
             )}
             <VStack w="full" alignItems="flex-start">
-              <Text fontWeight="bold">Input</Text>
+              <Text fontWeight="bold" fontSize="xl">
+                Input
+              </Text>
               {inputMessagesToSave.map((message, i) => {
                 return (
                   <Fragment key={i}>
@@ -222,8 +231,11 @@ function DatasetEntryEditorDrawer({
                 </HStack>
               </Button>
             </VStack>
+            <ToolsEditor value={toolsToSave} onEdit={setToolsToSave} />
             <VStack w="full" alignItems="flex-start">
-              <Text fontWeight="bold">Output</Text>
+              <Text fontWeight="bold" fontSize="xl">
+                Output
+              </Text>
               <Divider my={4} />
               <EditableMessage
                 message={outputMessageToSave}
@@ -239,6 +251,7 @@ function DatasetEntryEditorDrawer({
               isDisabled={isLoading || !hasUpdates}
               onClick={() => {
                 savedInputMessages && setInputMessagesToSave(savedInputMessages);
+                savedTools && setToolsToSave(JSON.stringify(savedTools));
                 savedOutputMessage && setOutputMessageToSave(savedOutputMessage);
               }}
             >

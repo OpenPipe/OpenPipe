@@ -17,7 +17,7 @@ import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreat
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import { ORIGINAL_MODEL_ID, typedDatasetEntry, typedLoggedCall } from "~/types/dbColumns.types";
-import { SortOrder, filtersSchema } from "~/types/shared.types";
+import { SortOrder, filtersSchema, toolsInput } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { isComparisonModel } from "~/utils/baseModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
@@ -335,6 +335,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         updates: z.object({
           split: z.enum(["TRAIN", "TEST"]).optional(),
           messages: z.string().optional(),
+          tools: z.string().optional(),
           output: z.string().optional(),
         }),
       }),
@@ -362,6 +363,16 @@ export const datasetEntriesRouter = createTRPCRouter({
         return error("Invalid JSON for messages");
       }
 
+      let updatedTools = undefined;
+      try {
+        if (input.updates.tools) {
+          updatedTools = JSON.parse(input.updates.tools);
+          toolsInput.parse(updatedTools);
+        }
+      } catch (e) {
+        return error("Invalid tools format");
+      }
+
       let updatedOutput = undefined;
       try {
         // The client might send "null" as a string, so we need to check for that
@@ -379,6 +390,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         {
           split: input.updates.split,
           messages: updatedMessages,
+          tools: updatedTools,
           output: updatedOutput,
         },
       );
