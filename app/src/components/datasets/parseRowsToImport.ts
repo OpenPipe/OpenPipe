@@ -74,7 +74,7 @@ export const validateRowToImport = (row: unknown): ParseError | RowToImport => {
     "output" in row &&
     isObject(row.output) &&
     !("content" in row.output) &&
-    "function_call" in row.output
+    ("function_call" in row.output || "tool_calls" in row.output)
   ) {
     // @ts-expect-error we're about to check this with Zod anyway
     row.output.content = null;

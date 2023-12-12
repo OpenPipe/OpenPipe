@@ -165,7 +165,9 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                   <Text fontSize={32} color="gray.500" fontWeight="bold">
                     Error
                   </Text>
-                  <Text color="gray.500">{validationError}</Text>
+                  <Text color="gray.500" maxH="160" overflowY="auto">
+                    {validationError}
+                  </Text>
                 </VStack>
                 <Text
                   as="span"
