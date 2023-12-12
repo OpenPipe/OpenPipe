@@ -1,4 +1,4 @@
-import { useQueryParam, JsonParam, withDefault } from "use-query-params";
+import { useQueryParam, JsonParam, withDefault, encodeQueryParams } from "use-query-params";
 
 import { useDataset } from "~/utils/hooks";
 
@@ -101,4 +101,19 @@ export const useVisibleEvalIds = () => {
     },
     ensureEvalShown,
   };
+};
+
+export const constructVisibleEvalIdsQueryParams = (hthEvalIds: string[]): Record<string, any> => {
+  const queryParams = {
+    visibleEvals: {
+      hthEvalIds,
+      showFieldComparison: false,
+    },
+  };
+
+  const encodedParams = encodeQueryParams({ visibleEvals: JsonParam }, queryParams);
+
+  return Object.fromEntries(
+    Object.entries(encodedParams).map(([key, value]) => [key, value?.toString()]),
+  );
 };
