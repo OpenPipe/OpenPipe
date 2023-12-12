@@ -111,7 +111,9 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
         chunk.map((entry) => entry.id),
       );
 
-      await updateDatasetFileUpload({ progress: 70 + 25 * (i / datasetEntriesToCreate.length) });
+      await updateDatasetFileUpload({
+        progress: 70 + Math.round(25 * (i / datasetEntriesToCreate.length)),
+      });
     }
 
     await updateDatasetFileUpload({ progress: 95 });
