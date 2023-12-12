@@ -15,6 +15,7 @@ export const copyEntryWithUpdates = async (
   updates: {
     split?: "TRAIN" | "TEST";
     messages?: Prisma.JsonValue;
+    tools?: Prisma.JsonValue;
     output?: Prisma.JsonValue;
   },
 ) => {
@@ -39,10 +40,10 @@ export const copyEntryWithUpdates = async (
 
   const inputFields = typedDatasetEntry({
     messages: updates.messages ?? prevEntry.messages,
+    tools: updates.tools ?? prevEntry.tools ?? undefined,
+    tool_choice: prevEntry.tool_choice ?? undefined,
     functions: prevEntry.functions ?? undefined,
     function_call: prevEntry.function_call ?? undefined,
-    tool_choice: prevEntry.tool_choice ?? undefined,
-    tools: prevEntry.tools ?? undefined,
     response_format: prevEntry.response_format ?? undefined,
   });
 

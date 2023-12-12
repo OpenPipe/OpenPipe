@@ -1,10 +1,8 @@
-import { useRef, useMemo, useEffect, useLayoutEffect, useState } from "react";
-import { VStack, HStack, Text, Input, Box, Tooltip, IconButton, Icon } from "@chakra-ui/react";
+import { VStack, HStack, Text, Input, Tooltip, IconButton, Icon } from "@chakra-ui/react";
 import type { ChatCompletionMessageToolCall } from "openai/resources/chat";
 import { BsX } from "react-icons/bs";
 
-import { useAppStore } from "~/state/store";
-import { type CreatedEditor } from "~/state/sharedArgumentsEditor.slice";
+import JsonEditor from "./JsonEditor";
 
 const ToolCallEditor = ({
   tool_call,
@@ -15,105 +13,7 @@ const ToolCallEditor = ({
   onEdit: (tool_call: ChatCompletionMessageToolCall) => void;
   onDelete: () => void;
 }) => {
-  const monaco = useAppStore.use.sharedArgumentsEditor.monaco();
-  const editorRef = useRef<CreatedEditor | null>(null);
-  const editorId = useMemo(() => `editor_${Math.random().toString(36).substring(7)}`, []);
-
   const { function: function_call } = tool_call;
-
-  const [editor, setEditor] = useState<CreatedEditor | null>(null);
-
-  useLayoutEffect(() => {
-    const container = document.getElementById(editorId) as HTMLElement;
-
-    let newEditor: CreatedEditor | null = null;
-    if (container && monaco) {
-      newEditor = monaco.editor.create(container, {
-        language: "json",
-        theme: "customTheme",
-        lineNumbers: "off",
-        minimap: { enabled: false },
-        wrappingIndent: "indent",
-        wrappingStrategy: "advanced",
-        wordWrap: "on",
-        folding: false,
-        scrollbar: {
-          alwaysConsumeMouseWheel: false,
-          verticalScrollbarSize: 0,
-        },
-        wordWrapBreakAfterCharacters: "",
-        wordWrapBreakBeforeCharacters: "",
-        quickSuggestions: true,
-        renderLineHighlight: "none",
-        fontSize: 14,
-        scrollBeyondLastLine: false,
-      });
-
-      setEditor(newEditor);
-    }
-    return () => {
-      if (newEditor) newEditor.dispose();
-    };
-  }, [!!monaco, editorId]);
-
-  useEffect(() => {
-    if (editor) {
-      const container = document.getElementById(editorId) as HTMLElement;
-
-      editor.setValue(function_call.arguments);
-
-      editorRef.current = editor;
-
-      const updateHeight = () => {
-        const contentHeight = editor.getContentHeight();
-        container.style.height = `${contentHeight}px`;
-        editor.layout();
-      };
-
-      const attemptDocumentFormat = () => {
-        const action = editor.getAction("editor.action.formatDocument");
-        if (action) {
-          action
-            .run()
-            .then(updateHeight)
-            .catch((error) => {
-              console.error("Error running formatDocument:", error);
-            });
-          return true;
-        }
-        return false;
-      };
-
-      editor.onDidBlurEditorText(() => {
-        attemptDocumentFormat();
-        onEdit({
-          ...tool_call,
-          function: { name: function_call.name, arguments: editor.getValue() },
-        });
-      });
-
-      // Interval function to check for action availability
-      const checkForActionInterval = setInterval(() => {
-        const formatted = attemptDocumentFormat();
-        if (formatted) {
-          clearInterval(checkForActionInterval); // Clear the interval once the action is found and run
-        }
-      }, 100); // Check every 100ms
-
-      // Add content change listener
-      const contentChangeListener = editor.onDidChangeModelContent(updateHeight);
-
-      const resizeObserver = new ResizeObserver(() => {
-        editor.layout();
-      });
-      resizeObserver.observe(container);
-
-      return () => {
-        contentChangeListener.dispose();
-        resizeObserver.disconnect();
-      };
-    }
-  }, [editor, editorId, function_call.name, function_call.arguments, tool_call, onEdit]);
 
   return (
     <VStack
@@ -162,7 +62,15 @@ const ToolCallEditor = ({
         py={1}
         bgColor="white"
       >
-        <Box id={editorId} w="full" />
+        <JsonEditor
+          value={function_call.arguments}
+          onEdit={(newValue) =>
+            onEdit({
+              ...tool_call,
+              function: { name: function_call.name, arguments: newValue },
+            })
+          }
+        />
       </VStack>
     </VStack>
   );
