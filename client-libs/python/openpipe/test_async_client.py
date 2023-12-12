@@ -23,11 +23,9 @@ async def test_async_content():
     )
 
     last_logged = last_logged_call(client)
+    assert last_logged.req_payload["messages"][0]["content"] == "count to 3"
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
-    )
-    assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
 
@@ -40,11 +38,9 @@ async def test_async_content_ft():
     )
 
     last_logged = last_logged_call(client)
+    assert last_logged.req_payload["messages"][0]["content"] == "count to 3"
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
-    )
-    assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
 
@@ -59,17 +55,14 @@ async def test_async_function_call():
     )
     last_logged = last_logged_call(client)
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
-        == "tell me the weather in SF"
+        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF"
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"][
-            "function_call"
-        ]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["function_call"]["name"]
         == "get_current_weather"
     )
 
@@ -84,17 +77,14 @@ async def test_async_function_call_ft():
     )
     last_logged = last_logged_call(client)
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
-        == "tell me the weather in SF"
+        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF"
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"][
-            "function_call"
-        ]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["function_call"]["name"]
         == "get_current_weather"
     )
 
@@ -115,17 +105,17 @@ async def test_async_tool_calls():
     )
     last_logged = last_logged_call(client)
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
+        last_logged.req_payload["messages"][0]["content"]
         == "tell me the weather in SF and Orlando"
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
-            0
-        ]["function"]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["tool_calls"][0]["function"][
+            "name"
+        ]
         == "get_current_weather"
     )
 
@@ -146,17 +136,17 @@ async def test_async_tool_calls_ft():
     )
     last_logged = last_logged_call(client)
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
+        last_logged.req_payload["messages"][0]["content"]
         == "tell me the weather in SF and Orlando"
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
-            0
-        ]["function"]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["tool_calls"][0]["function"][
+            "name"
+        ]
         == "get_current_weather"
     )
 
@@ -175,7 +165,7 @@ async def test_async_streaming_content():
 
     last_logged = last_logged_call(client)
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == merged.choices[0].message.content
     )
 
@@ -197,17 +187,14 @@ async def test_async_streaming_function_call():
     last_logged = last_logged_call(client)
 
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
-        == "tell me the weather in SF"
+        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF"
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == merged.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"][
-            "function_call"
-        ]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["function_call"]["name"]
         == merged.choices[0].message.function_call.name
     )
 
@@ -234,9 +221,9 @@ async def test_async_streaming_tool_calls():
 
     last_logged = last_logged_call(client)
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
-            0
-        ]["function"]["arguments"]
+        last_logged.resp_payload["choices"][0]["message"]["tool_calls"][0]["function"][
+            "arguments"
+        ]
         == merged.choices[0].message.tool_calls[0].function.arguments
     )
 
@@ -250,7 +237,7 @@ async def test_async_with_tags():
 
     last_logged = last_logged_call(client)
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     print(last_logged.tags)
@@ -270,10 +257,9 @@ async def test_bad_openai_call():
         pass
     last_logged = last_logged_call(client)
     assert (
-        last_logged.model_response.error_message
-        == "The model `gpt-3.5-turbo-blaster` does not exist"
+        last_logged.error_message == "The model `gpt-3.5-turbo-blaster` does not exist"
     )
-    assert last_logged.model_response.status_code == 404
+    assert last_logged.status_code == 404
 
 
 async def test_bad_openpipe_call():
@@ -287,5 +273,5 @@ async def test_bad_openpipe_call():
     except Exception:
         pass
     last_logged = last_logged_call(client)
-    assert last_logged.model_response.error_message == "The model does not exist"
-    assert last_logged.model_response.status_code == 404
+    assert last_logged.error_message == "The model does not exist"
+    assert last_logged.status_code == 404
