@@ -298,11 +298,11 @@ export const useFineTune = () => {
   return fineTune;
 };
 
-export const useDatasetEval = () => {
+export const useDatasetEval = (refetchInterval?: number) => {
   const router = useRouter();
   return api.datasetEvals.get.useQuery(
     { id: router.query.id as string },
-    { enabled: !!router.query.id },
+    { enabled: !!router.query.id, refetchInterval },
   );
 };
 
