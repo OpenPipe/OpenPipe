@@ -12,30 +12,29 @@ import {
   HStack,
   Button,
   Text,
-  Divider,
   Icon,
   Collapse,
 } from "@chakra-ui/react";
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
-import { BsPlus } from "react-icons/bs";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { type DatasetEntrySplit } from "@prisma/client";
 import { isEqual } from "lodash-es";
 
 import { api } from "~/utils/api";
 import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
-import EditableMessage from "./EditableMessage";
 import EntrySplitDropdown from "./EntrySplitDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import dayjs from "~/utils/dayjs";
-import DatasetEntryHistoryRow from "./DatasetEntryHistoryRow";
+import DatasetEntryHistoryRow from "../DatasetEntryHistoryRow";
 import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
+import InputEditor from "./InputEditor";
 import ToolsEditor from "./ToolsEditor";
+import OutputEditor from "./OutputEditor";
 
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
 
-function DatasetEntryEditorDrawer({
+function DatasetEntryDrawer({
   datasetEntryId,
   setDatasetEntryId,
 }: {
@@ -125,7 +124,7 @@ function DatasetEntryEditorDrawer({
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton mt={3} mr={6} />
-        <DrawerHeader bgColor="orange.50">
+        <DrawerHeader bgColor="gray.100">
           <VStack w="full" alignItems="flex-start">
             <HStack w="full" justifyContent="space-between" pr={12}>
               <Heading size="md">Dataset Entry</Heading>
@@ -135,15 +134,15 @@ function DatasetEntryEditorDrawer({
             </HStack>
           </VStack>
         </DrawerHeader>
-        <DrawerBody h="full" pb={4} bgColor="orange.50" id={CONTAINER_ID}>
-          <VStack w="full" spacing={12} pb={4} id={CONTENT_ID}>
+        <DrawerBody h="full" pb={4} bgColor="gray.100" id={CONTAINER_ID}>
+          <VStack w="full" spacing={4} pb={4} id={CONTENT_ID}>
             {datasetEntry && (
               <VStack
                 w="full"
                 alignItems="flex-start"
                 fontSize="xs"
-                bgColor="gray.50"
-                borderRadius={8}
+                bgColor="white"
+                borderRadius={4}
                 borderWidth={1}
                 borderColor="gray.200"
                 p={4}
@@ -190,62 +189,19 @@ function DatasetEntryEditorDrawer({
                 </VStack>
               </VStack>
             )}
-            <VStack w="full" alignItems="flex-start">
-              <Text fontWeight="bold" fontSize="xl">
-                Input
-              </Text>
-              {inputMessagesToSave.map((message, i) => {
-                return (
-                  <Fragment key={i}>
-                    <Divider my={4} />
-                    <EditableMessage
-                      message={message}
-                      onEdit={(message) => {
-                        const newInputMessages = [...inputMessagesToSave];
-                        newInputMessages[i] = message;
-                        setInputMessagesToSave(newInputMessages);
-                      }}
-                      onDelete={() => {
-                        const newInputMessages = [...inputMessagesToSave];
-                        newInputMessages.splice(i, 1);
-                        setInputMessagesToSave(newInputMessages);
-                      }}
-                      ruleMatches={datasetEntry?.matchedRules}
-                    />
-                  </Fragment>
-                );
-              })}
-              <Divider my={4} />
-              <Button
-                w="full"
-                onClick={() =>
-                  setInputMessagesToSave([...inputMessagesToSave, { role: "user", content: "" }])
-                }
-                variant="outline"
-                color="gray.500"
-                _hover={{ bgColor: "orange.100" }}
-              >
-                <HStack spacing={0}>
-                  <Text>Add Message</Text>
-                  <Icon as={BsPlus} boxSize={6} />
-                </HStack>
-              </Button>
-            </VStack>
-            <ToolsEditor value={toolsToSave} onEdit={setToolsToSave} />
-            <VStack w="full" alignItems="flex-start">
-              <Text fontWeight="bold" fontSize="xl">
-                Output
-              </Text>
-              <Divider my={4} />
-              <EditableMessage
-                message={outputMessageToSave}
-                onEdit={(message) => setOutputMessageToSave(message)}
-                isOutput
-              />
-            </VStack>
+            <InputEditor
+              inputMessagesToSave={inputMessagesToSave}
+              setInputMessagesToSave={setInputMessagesToSave}
+              matchedRules={datasetEntry?.matchedRules}
+            />
+            <ToolsEditor toolsToSave={toolsToSave} setToolsToSave={setToolsToSave} />
+            <OutputEditor
+              outputMessageToSave={outputMessageToSave}
+              setOutputMessageToSave={setOutputMessageToSave}
+            />
           </VStack>
         </DrawerBody>
-        <DrawerFooter bgColor="orange.50">
+        <DrawerFooter bgColor="gray.100">
           <HStack>
             <Button
               isDisabled={isLoading || !hasUpdates}
@@ -273,4 +229,4 @@ function DatasetEntryEditorDrawer({
 }
 
 // Ensure that drawer does not constantly re-render when parent polls dataset entry list
-export default React.memo(DatasetEntryEditorDrawer);
+export default React.memo(DatasetEntryDrawer);
