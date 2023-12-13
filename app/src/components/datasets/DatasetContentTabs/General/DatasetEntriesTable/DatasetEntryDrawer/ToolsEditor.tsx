@@ -30,7 +30,7 @@ const ToolsEditor = ({
           Tools
         </Text>
         <Button variant="ghost" color="gray.500" onClick={() => setExpanded(!expanded)}>
-          <HStack spacing={0}>
+          <HStack spacing={1}>
             <Text>{expanded ? "Hide" : "Show"}</Text>
             <Icon as={expanded ? FiChevronUp : FiChevronDown} boxSize={5} mt={0.5} />
           </HStack>

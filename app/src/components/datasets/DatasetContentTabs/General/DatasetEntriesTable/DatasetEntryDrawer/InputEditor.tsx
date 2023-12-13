@@ -16,7 +16,7 @@ const InputEditor = ({
   setInputMessagesToSave: (inputMessagesToSave: ChatCompletionMessageParam[]) => void;
   matchedRules?: RouterOutputs["datasetEntries"]["get"]["matchedRules"];
 }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <VStack
@@ -35,7 +35,7 @@ const InputEditor = ({
           Input Messages
         </Text>
         <Button variant="ghost" color="gray.500" onClick={() => setExpanded(!expanded)}>
-          <HStack spacing={0}>
+          <HStack spacing={1}>
             <Text>{expanded ? "Hide" : "Show"}</Text>
             <Icon as={expanded ? FiChevronUp : FiChevronDown} boxSize={5} mt={0.5} />
           </HStack>
