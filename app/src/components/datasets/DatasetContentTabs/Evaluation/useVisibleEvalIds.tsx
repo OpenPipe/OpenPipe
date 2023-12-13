@@ -7,25 +7,25 @@ export const EMPTY_EVALS_KEY = "_empty_";
 export const useVisibleEvalIds = () => {
   const dataset = useDataset().data;
   const [visibleEvals, setVisibleEvals] = useQueryParam<{
-    hthEvalIds: string[];
+    headToHeadEvalIds: string[];
     showFieldComparison: boolean;
   }>(
     "visibleEvals",
     withDefault(JsonParam, {
-      hthEvalIds: [],
+      headToHeadEvalIds: [],
       showFieldComparison: false,
     }),
   );
 
-  const hthEvalIds = visibleEvals.hthEvalIds;
-  const setVisibleHthEvalIds = (newVisibleEvalIds: string[]) => {
+  const headToHeadEvalIds = visibleEvals.headToHeadEvalIds;
+  const setVisibleHeadToHeadEvalIds = (newVisibleEvalIds: string[]) => {
     setVisibleEvals({
-      hthEvalIds: newVisibleEvalIds,
+      headToHeadEvalIds: newVisibleEvalIds,
       showFieldComparison: visibleEvals.showFieldComparison,
     });
   };
 
-  const allHthEvalIds =
+  const allHeadToHeadEvalIds =
     dataset?.datasetEvals
       .filter((datasetEval) => datasetEval.type === "HEAD_TO_HEAD")
       ?.map((datasetEval) => datasetEval.id) || [];
@@ -36,54 +36,57 @@ export const useVisibleEvalIds = () => {
       ?.map((datasetEval) => datasetEval.id) || [];
 
   const ensureEvalShown = (evalId: string) => {
-    if (hthEvalIds.length === 0 || hthEvalIds.includes(evalId)) return;
-    if (hthEvalIds.includes(EMPTY_EVALS_KEY)) {
-      setVisibleHthEvalIds([evalId]);
+    if (headToHeadEvalIds.length === 0 || headToHeadEvalIds.includes(evalId)) return;
+    if (headToHeadEvalIds.includes(EMPTY_EVALS_KEY)) {
+      setVisibleHeadToHeadEvalIds([evalId]);
     } else {
-      setVisibleHthEvalIds([...hthEvalIds, evalId]);
+      setVisibleHeadToHeadEvalIds([...headToHeadEvalIds, evalId]);
     }
   };
 
   const toggleEvalVisiblity = (evalId: string) => {
     if (allFieldComparisonEvalIds.includes(evalId)) {
       setVisibleEvals({
-        hthEvalIds,
+        headToHeadEvalIds,
         showFieldComparison: !visibleEvals.showFieldComparison,
       });
       return;
     }
 
-    if (hthEvalIds.length === 0) {
+    if (headToHeadEvalIds.length === 0) {
       // All evals were visible, so we're only hiding this one.
-      if (allHthEvalIds.length === 1) {
+      if (allHeadToHeadEvalIds.length === 1) {
         // There's only one eval, so we're hiding all of them.
-        setVisibleHthEvalIds([EMPTY_EVALS_KEY]);
+        setVisibleHeadToHeadEvalIds([EMPTY_EVALS_KEY]);
       } else {
-        setVisibleHthEvalIds(allHthEvalIds.filter((id) => id != evalId));
+        setVisibleHeadToHeadEvalIds(allHeadToHeadEvalIds.filter((id) => id != evalId));
       }
-    } else if (hthEvalIds.includes(EMPTY_EVALS_KEY)) {
+    } else if (headToHeadEvalIds.includes(EMPTY_EVALS_KEY)) {
       // All evals were hidden, so we're only showing this one.
-      setVisibleHthEvalIds([evalId]);
-    } else if (hthEvalIds.length === allHthEvalIds.length - 1 && !hthEvalIds.includes(evalId)) {
+      setVisibleHeadToHeadEvalIds([evalId]);
+    } else if (
+      headToHeadEvalIds.length === allHeadToHeadEvalIds.length - 1 &&
+      !headToHeadEvalIds.includes(evalId)
+    ) {
       // This was the only hidden eval, so we're now showing all of them
-      setVisibleHthEvalIds([]);
-    } else if (hthEvalIds.length === 1 && hthEvalIds.includes(evalId)) {
+      setVisibleHeadToHeadEvalIds([]);
+    } else if (headToHeadEvalIds.length === 1 && headToHeadEvalIds.includes(evalId)) {
       // This is the only visible eval, so we're hiding it.
-      setVisibleHthEvalIds([EMPTY_EVALS_KEY]);
-    } else if (hthEvalIds.includes(evalId)) {
+      setVisibleHeadToHeadEvalIds([EMPTY_EVALS_KEY]);
+    } else if (headToHeadEvalIds.includes(evalId)) {
       // This eval was visible, so we're hiding it.
-      setVisibleHthEvalIds(hthEvalIds.filter((id) => id !== evalId));
-    } else if (!hthEvalIds.includes(evalId)) {
+      setVisibleHeadToHeadEvalIds(headToHeadEvalIds.filter((id) => id !== evalId));
+    } else if (!headToHeadEvalIds.includes(evalId)) {
       // This eval was hidden, so we're showing it.
-      setVisibleHthEvalIds([...hthEvalIds, evalId]);
+      setVisibleHeadToHeadEvalIds([...headToHeadEvalIds, evalId]);
     }
   };
 
-  let completeVisibleEvalIds = hthEvalIds;
-  if (hthEvalIds.includes(EMPTY_EVALS_KEY)) {
+  let completeVisibleEvalIds = headToHeadEvalIds;
+  if (headToHeadEvalIds.includes(EMPTY_EVALS_KEY)) {
     completeVisibleEvalIds = [];
-  } else if (hthEvalIds.length === 0) {
-    completeVisibleEvalIds = allHthEvalIds;
+  } else if (headToHeadEvalIds.length === 0) {
+    completeVisibleEvalIds = allHeadToHeadEvalIds;
   }
 
   if (visibleEvals.showFieldComparison) {
@@ -95,7 +98,7 @@ export const useVisibleEvalIds = () => {
     toggleEvalVisiblity,
     toggleFieldComparisonVisiblity: () => {
       setVisibleEvals({
-        hthEvalIds,
+        headToHeadEvalIds,
         showFieldComparison: !visibleEvals.showFieldComparison,
       });
     },
@@ -103,10 +106,12 @@ export const useVisibleEvalIds = () => {
   };
 };
 
-export const constructVisibleEvalIdsQueryParams = (hthEvalIds: string[]): Record<string, any> => {
+export const constructVisibleEvalIdsQueryParams = (
+  headToHeadEvalIds: string[],
+): Record<string, any> => {
   const queryParams = {
     visibleEvals: {
-      hthEvalIds,
+      headToHeadEvalIds,
       showFieldComparison: false,
     },
   };
