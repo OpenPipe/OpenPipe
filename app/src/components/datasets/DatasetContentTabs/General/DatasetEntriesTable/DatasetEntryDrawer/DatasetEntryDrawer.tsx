@@ -124,7 +124,7 @@ function DatasetEntryDrawer({
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton mt={3} mr={6} />
-        <DrawerHeader bgColor="gray.50">
+        <DrawerHeader bgColor="gray.100">
           <VStack w="full" alignItems="flex-start">
             <HStack w="full" justifyContent="space-between" pr={12}>
               <Heading size="md">Dataset Entry</Heading>
@@ -134,7 +134,7 @@ function DatasetEntryDrawer({
             </HStack>
           </VStack>
         </DrawerHeader>
-        <DrawerBody h="full" pb={4} bgColor="gray.50" id={CONTAINER_ID}>
+        <DrawerBody h="full" pb={4} bgColor="gray.100" id={CONTAINER_ID}>
           <VStack w="full" spacing={4} pb={4} id={CONTENT_ID}>
             {datasetEntry && (
               <VStack
@@ -142,7 +142,7 @@ function DatasetEntryDrawer({
                 alignItems="flex-start"
                 fontSize="xs"
                 bgColor="white"
-                borderRadius={8}
+                borderRadius={4}
                 borderWidth={1}
                 borderColor="gray.200"
                 p={4}
@@ -201,7 +201,7 @@ function DatasetEntryDrawer({
             />
           </VStack>
         </DrawerBody>
-        <DrawerFooter bgColor="gray.50">
+        <DrawerFooter bgColor="gray.100">
           <HStack>
             <Button
               isDisabled={isLoading || !hasUpdates}

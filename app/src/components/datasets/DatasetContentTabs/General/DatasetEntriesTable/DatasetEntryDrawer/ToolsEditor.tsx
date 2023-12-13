@@ -22,9 +22,11 @@ const ToolsEditor = ({
       py={4}
       borderRadius={4}
       borderWidth={1}
+      bgColor="gray.50"
+      boxShadow="0 0 10px 1px rgba(0, 0, 0, 0.05);"
     >
       <HStack w="full" justifyContent="space-between">
-        <Text fontWeight="bold" fontSize="xl">
+        <Text fontWeight="bold" fontSize="lg">
           Tools
         </Text>
         <Button variant="ghost" color="gray.500" onClick={() => setExpanded(!expanded)}>

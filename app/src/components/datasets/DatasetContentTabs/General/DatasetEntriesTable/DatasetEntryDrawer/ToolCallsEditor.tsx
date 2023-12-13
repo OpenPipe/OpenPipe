@@ -47,7 +47,6 @@ const ToolCallsEditor = ({
         }
         variant="outline"
         color="gray.500"
-        _hover={{ bgColor: "orange.200" }}
       >
         <HStack spacing={0}>
           <Text>Add Tool Call</Text>
