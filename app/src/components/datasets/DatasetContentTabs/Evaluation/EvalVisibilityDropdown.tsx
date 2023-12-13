@@ -102,11 +102,7 @@ const EvalVisibilityDropdown = () => {
                 borderBottomWidth={1}
               >
                 <Text mr={16}>{option.label}</Text>
-                <Switch
-                  isChecked={visibleEvalIds.includes(option.key)}
-                  onChange={() => toggleEvalVisiblity(option.key)}
-                  size="sm"
-                />
+                <Switch isChecked={visibleEvalIds.includes(option.key)} size="sm" />
               </HStack>
             ))}
             <HStack

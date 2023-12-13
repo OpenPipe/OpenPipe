@@ -1,4 +1,4 @@
-import React, { useMemo, useLayoutEffect, useState } from "react";
+import React, { useMemo, useLayoutEffect, useState, useEffect } from "react";
 import {
   Badge,
   Box,
@@ -12,7 +12,9 @@ import {
   Thead,
   Tr,
   VStack,
+  HStack,
   useToken,
+  Tooltip,
 } from "@chakra-ui/react";
 import chroma from "chroma-js";
 import { type RouterOutputs } from "~/utils/api";
@@ -26,14 +28,33 @@ import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 
 const Results = () => {
-  const datasetEval = useDatasetEval().data;
+  const [refetchInterval, setRefetchInterval] = useState(0);
+  const datasetEval = useDatasetEval(refetchInterval).data;
+
+  const { completedComparisons, totalComparisons } = datasetEval?.results.completionCount || {};
+
+  const isComplete = completedComparisons === totalComparisons;
+
+  useEffect(() => setRefetchInterval(isComplete ? 0 : 3000), [isComplete]);
 
   if (!datasetEval) return null;
 
   return (
     <VStack w="full" alignItems="flex-start" spacing={12} pb={16}>
       <VStack alignItems="flex-start" w="full">
-        <Heading size="md">Overall Performance</Heading>
+        <HStack w="full" justifyContent="space-between">
+          <Heading size="md">Overall Performance</Heading>
+          {!isComplete && (
+            <Tooltip label="Evaluation running" fontSize="sm" shouldWrapChildren maxW={80}>
+              <HStack>
+                <Box borderRadius={8} bgColor="yellow.500" boxSize={3} />
+                <Text>
+                  {completedComparisons}/{totalComparisons}
+                </Text>
+              </HStack>
+            </Tooltip>
+          )}
+        </HStack>
         <ContentCard w="full" p={0}>
           <Table size="sm">
             <Thead>
