@@ -4,7 +4,7 @@ import { RelabelRequestStatus } from "@prisma/client";
 
 import { useDatasetEntries } from "~/utils/hooks";
 import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
-import DatasetEntryEditorDrawer from "./DatasetEntryEditorDrawer";
+import DatasetEntryDrawer from "./DatasetEntryDrawer/DatasetEntryDrawer";
 
 export default function DatasetEntriesTable() {
   const [expandedDatasetEntryId, setExpandedDatasetEntryId] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export default function DatasetEntriesTable() {
           </Tbody>
         </Table>
       </Card>
-      <DatasetEntryEditorDrawer
+      <DatasetEntryDrawer
         datasetEntryId={expandedDatasetEntryId}
         setDatasetEntryId={setExpandedDatasetEntryId}
       />
