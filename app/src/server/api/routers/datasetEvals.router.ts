@@ -84,7 +84,7 @@ export const datasetEvalsRouter = createTRPCRouter({
 
       resultsBaseQuery
         .select([
-          sql<number>`count(case when der.status = 'COMPLETE' or der.status = 'ERROR' then 1 end)::int`.as(
+          sql<number>`count(case when der.status = 'COMPLETE' then 1 end)::int`.as(
             "completedResults",
           ),
           sql<number>`count(*)::int`.as("totalResults"),

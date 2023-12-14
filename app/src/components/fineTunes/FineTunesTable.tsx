@@ -39,7 +39,16 @@ const FineTunesTable = ({}) => {
                     </Link>
                   </Td>
                   <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
-                  <Td>{displayBaseModel(fineTune.baseModel)}</Td>
+                  <Td>
+                    <Text
+                      color="orange.500"
+                      fontWeight="bold"
+                      fontSize="xs"
+                      textTransform="uppercase"
+                    >
+                      {displayBaseModel(fineTune.baseModel)}
+                    </Text>
+                  </Td>
                   <Td>{fineTune.numTrainingEntries.toLocaleString()}</Td>
                   <Td>
                     <ViewDatasetButton
