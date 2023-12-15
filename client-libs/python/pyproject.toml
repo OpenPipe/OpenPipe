@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "openpipe"
-version = "4.0.4"
+version = "4.1.0"
 description = "Python client library for the OpenPipe service"
 authors = ["Kyle Corbitt <kyle@openpipe.ai>"]
 license = "Apache-2.0"
@@ -18,7 +18,6 @@ openai = "1.3.3"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]
-openapi-python-client = "^0.15.0"
 black = "^23.7.0"
 isort = "^5.12.0"
 autoflake = "^2.2.0"

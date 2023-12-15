@@ -1,6 +1,4 @@
 from typing import Any, Optional, cast
-from types import SimpleNamespace
-import json
 from openai.types.chat import (
     ChatCompletion,
     ChatCompletionChunk,
