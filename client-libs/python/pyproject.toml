@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "openpipe"
-version = "4.0.4"
+version = "4.1.0"
 description = "Python client library for the OpenPipe service"
 authors = ["Kyle Corbitt <kyle@openpipe.ai>"]
 license = "Apache-2.0"

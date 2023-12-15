@@ -11,9 +11,6 @@ import json
 from typing import Union, Mapping, Optional, Dict
 import httpx
 
-# from .api_client.api.default import create_chat_completion
-# from .api_client import errors
-
 from .merge_openai_chunks import merge_openai_chunks
 from .shared import (
     report_async,
