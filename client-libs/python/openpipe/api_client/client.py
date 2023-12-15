@@ -37,7 +37,7 @@ class OpenPipeApi:
         base_url: typing.Optional[str] = None,
         environment: OpenPipeApiEnvironment = OpenPipeApiEnvironment.DEFAULT,
         token: typing.Union[str, typing.Callable[[], str]],
-        timeout: typing.Optional[float] = 180,
+        timeout: typing.Optional[float] = 240,
         httpx_client: typing.Optional[httpx.Client] = None,
     ):
         self._client_wrapper = SyncClientWrapper(
@@ -73,7 +73,7 @@ class OpenPipeApi:
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "check-cache"),
             json=jsonable_encoder(_request),
             headers=self._client_wrapper.get_headers(),
-            timeout=180,
+            timeout=240,
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(CheckCacheResponse, _response.json())  # type: ignore
@@ -152,7 +152,7 @@ class OpenPipeApi:
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "chat/completions"),
             json=jsonable_encoder(_request),
             headers=self._client_wrapper.get_headers(),
-            timeout=180,
+            timeout=240,
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(CreateChatCompletionResponse, _response.json())  # type: ignore
@@ -207,7 +207,7 @@ class OpenPipeApi:
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "report"),
             json=jsonable_encoder(_request),
             headers=self._client_wrapper.get_headers(),
-            timeout=180,
+            timeout=240,
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(ReportResponse, _response.json())  # type: ignore
@@ -227,7 +227,7 @@ class OpenPipeApi:
                 f"{self._client_wrapper.get_base_url()}/", "local-testing-only-get-latest-logged-call"
             ),
             headers=self._client_wrapper.get_headers(),
-            timeout=180,
+            timeout=240,
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(typing.Optional[LocalTestingOnlyGetLatestLoggedCallResponse], _response.json())  # type: ignore
@@ -245,7 +245,7 @@ class AsyncOpenPipeApi:
         base_url: typing.Optional[str] = None,
         environment: OpenPipeApiEnvironment = OpenPipeApiEnvironment.DEFAULT,
         token: typing.Union[str, typing.Callable[[], str]],
-        timeout: typing.Optional[float] = 180,
+        timeout: typing.Optional[float] = 240,
         httpx_client: typing.Optional[httpx.AsyncClient] = None,
     ):
         self._client_wrapper = AsyncClientWrapper(
@@ -281,7 +281,7 @@ class AsyncOpenPipeApi:
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "check-cache"),
             json=jsonable_encoder(_request),
             headers=self._client_wrapper.get_headers(),
-            timeout=180,
+            timeout=240,
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(CheckCacheResponse, _response.json())  # type: ignore
@@ -360,7 +360,7 @@ class AsyncOpenPipeApi:
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "chat/completions"),
             json=jsonable_encoder(_request),
             headers=self._client_wrapper.get_headers(),
-            timeout=180,
+            timeout=240,
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(CreateChatCompletionResponse, _response.json())  # type: ignore
@@ -415,7 +415,7 @@ class AsyncOpenPipeApi:
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "report"),
             json=jsonable_encoder(_request),
             headers=self._client_wrapper.get_headers(),
-            timeout=180,
+            timeout=240,
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(ReportResponse, _response.json())  # type: ignore
@@ -437,7 +437,7 @@ class AsyncOpenPipeApi:
                 f"{self._client_wrapper.get_base_url()}/", "local-testing-only-get-latest-logged-call"
             ),
             headers=self._client_wrapper.get_headers(),
-            timeout=180,
+            timeout=240,
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(typing.Optional[LocalTestingOnlyGetLatestLoggedCallResponse], _response.json())  # type: ignore

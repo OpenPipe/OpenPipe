@@ -1,4 +1,4 @@
-from .api_client_fern.client import OpenPipeApi, AsyncOpenPipeApi
+from .api_client.client import OpenPipeApi, AsyncOpenPipeApi
 
 from openai.types.chat import ChatCompletion
 import os
