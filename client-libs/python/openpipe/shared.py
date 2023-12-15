@@ -1,11 +1,3 @@
-from openpipe.api_client.api.default import (
-    report as api_report,
-)
-from openpipe.api_client.client import AuthenticatedClient
-from openpipe.api_client.models.report_json_body_tags import (
-    ReportJsonBodyTags,
-)
-
 from .api_client_fern.client import OpenPipeApi, AsyncOpenPipeApi
 
 from openai.types.chat import ChatCompletion
