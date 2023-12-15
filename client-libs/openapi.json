@@ -1256,9 +1256,6 @@
                     "default": {}
                   }
                 },
-                "required": [
-                  "requestedAt"
-                ],
                 "additionalProperties": false
               }
             }

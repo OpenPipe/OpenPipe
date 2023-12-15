@@ -239,7 +239,7 @@ export class DefaultService {
             /**
              * Unix timestamp in milliseconds
              */
-            requestedAt: number;
+            requestedAt?: number;
             /**
              * Unix timestamp in milliseconds
              */
