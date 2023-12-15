@@ -6,7 +6,7 @@ import Link from "next/link";
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
 import ViewDatasetButton from "../datasets/ViewDatasetButton";
-import { modelInfo } from "~/server/fineTuningProviders/modelInfo";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 
 const FineTunesTable = ({}) => {
   const query = useFineTunes(10000);

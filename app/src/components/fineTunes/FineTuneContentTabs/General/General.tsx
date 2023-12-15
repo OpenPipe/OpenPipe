@@ -7,7 +7,7 @@ import { getStatusColor } from "../../FineTunesTable";
 import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
-import { modelInfo } from "~/server/fineTuningProviders/modelInfo";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 
 const General = () => {
   const fineTune = useFineTune().data;

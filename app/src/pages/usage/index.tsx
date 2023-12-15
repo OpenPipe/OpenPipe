@@ -21,7 +21,7 @@ import Link from "next/link";
 
 import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
-import { modelInfo } from "~/server/fineTuningProviders/modelInfo";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { api } from "~/utils/api";
 import { useSelectedProject } from "~/utils/hooks";
 

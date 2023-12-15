@@ -25,7 +25,7 @@ export const v1ApiRouter = createOpenApiRouter({
       z.object({
         trainingDataUrl: z.string(),
         huggingFaceModelId: z.string(),
-        baseModel: supportedModels,
+        baseModel: z.string(),
         projectName: z.string(),
         modelSlug: z.string(),
       }),

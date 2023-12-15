@@ -8,7 +8,7 @@ import { z } from "zod";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { prisma } from "~/server/db";
-import { calculateCost } from "~/server/fineTuningProviders/modelInfo";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import {
   chatCompletionInputReqPayload,

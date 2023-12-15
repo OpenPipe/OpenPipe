@@ -7,7 +7,7 @@ import EvalHeaderPill from "./EvalHeaderPill";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
-import { modelInfo } from "~/server/fineTuningProviders/modelInfo";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 
 const ModelHeader = ({ modelId }: { modelId: string }) => {
   const [refetchInterval, setRefetchInterval] = useState(0);

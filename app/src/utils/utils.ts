@@ -1,3 +1,5 @@
+import { type Entries } from "type-fest";
+
 export const truthyFilter = <T>(x: T | null | undefined): x is T => Boolean(x);
 
 export const formatFileSize = (bytes: number, decimals = 2) => {
@@ -19,3 +21,5 @@ export const ensureDefaultExport = <T>(module: T) => {
   const defaultExport = module as unknown as { default: T };
   return defaultExport.default ?? module;
 };
+
+export const getEntries = <T extends object>(obj: T) => Object.entries(obj) as Entries<T>;

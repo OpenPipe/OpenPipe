@@ -8,7 +8,7 @@ import dayjs from "~/utils/dayjs";
 import { useDatasetFineTunes } from "~/utils/hooks";
 import { DATASET_GENERAL_TAB_KEY } from "../DatasetContentTabs";
 import ViewEvaluationButton from "../Evaluation/ViewEvaluationButton";
-import { modelInfo } from "~/server/fineTuningProviders/modelInfo";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 
 const Models = () => {
   const fineTunes = useDatasetFineTunes().data;

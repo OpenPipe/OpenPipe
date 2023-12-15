@@ -15,7 +15,7 @@ import {
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { queueHeadToHeadEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
-import { calculateCost } from "../fineTuningProviders/modelInfo";
+import { calculateCost } from "../fineTuningProviders/supportedModels";
 import { baseModel } from "../fineTuningProviders/types";
 
 export type GenerateTestSetEntryJob = {

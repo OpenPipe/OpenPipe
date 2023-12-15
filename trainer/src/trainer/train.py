@@ -1,7 +1,4 @@
 from ..api_client.api.default import get_training_info
-from ..api_client.models.get_training_info_response_200_base_model import (
-    GetTrainingInfoResponse200BaseModel as BaseModel,
-)
 from ..api_client.client import AuthenticatedClient
 from ..shared import model_cache_dir
 
@@ -40,7 +37,7 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     training_info = training_info_resp.parsed
     logging.info(f"Training info: {training_info.to_dict()}")
 
-    base_model = training_info.base_model.value
+    base_model = training_info.base_model
     config = AutoConfig.from_pretrained(base_model)
     
     logging.info("Downloading training data")

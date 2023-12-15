@@ -27,9 +27,12 @@ import { AiTwotoneThunderbolt } from "react-icons/ai";
 
 import ActionButton from "~/components/ActionButton";
 import InputDropdown from "~/components/InputDropdown";
-import { modelInfo } from "~/server/fineTuningProviders/modelInfo";
-import { supportedModels } from "~/server/fineTuningProviders/supportedModels";
-import { type BaseModel } from "~/server/fineTuningProviders/types";
+import {
+  modelInfo,
+  splitProvider,
+  supportedModels,
+} from "~/server/fineTuningProviders/supportedModels";
+import { type ProviderWithModel } from "~/server/fineTuningProviders/types";
 import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
@@ -39,6 +42,7 @@ import {
   useIsMissingBetaAccess,
   useSelectedProject,
 } from "~/utils/hooks";
+import { getEntries } from "~/utils/utils";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -62,6 +66,10 @@ const FineTuneButton = () => {
 
 export default FineTuneButton;
 
+const visibleModels = getEntries(supportedModels)
+  .filter(([_, model]) => model.trainable)
+  .map(([id, _]) => id) as [ProviderWithModel, ...[ProviderWithModel]];
+
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
@@ -70,19 +78,20 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const session = useSession();
   const isMissingBetaAccess = useIsMissingBetaAccess();
 
-  const [selectedBaseModel, setSelectedBaseModel] = useState<BaseModel>(supportedModels[0]);
+  const [selectedBaseModel, setSelectedBaseModel] = useState<ProviderWithModel>(visibleModels[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
 
   const needsMissingOpenaiKey =
-    !selectedProject?.condensedOpenAIKey && selectedBaseModel.provider === "openai";
+    !selectedProject?.condensedOpenAIKey && splitProvider(selectedBaseModel).provider === "openai";
 
-  const needsMissingBetaAccess = selectedBaseModel.provider === "openpipe" && isMissingBetaAccess;
+  const needsMissingBetaAccess =
+    splitProvider(selectedBaseModel).provider === "openpipe" && isMissingBetaAccess;
 
   const email = session.data?.user.email ?? "";
 
   useEffect(() => {
     if (disclosure.isOpen) {
-      setSelectedBaseModel(supportedModels[0]);
+      setSelectedBaseModel(visibleModels[0]);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
     }
   }, [disclosure.isOpen]);
@@ -96,7 +105,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     if (!modelSlug || !selectedBaseModel || !dataset) return;
     const resp = await createFineTuneMutation.mutateAsync({
       slug: modelSlug,
-      baseModel: selectedBaseModel,
+      baseModel: splitProvider(selectedBaseModel),
       datasetId: dataset.id,
     });
     if (maybeReportError(resp)) return;
@@ -149,8 +158,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   Base model:
                 </Text>
                 <InputDropdown
-                  options={supportedModels}
-                  getDisplayLabel={(option) => modelInfo(option).name}
+                  options={visibleModels}
+                  getDisplayLabel={(option) => modelInfo(splitProvider(option)).name}
                   selectedOption={selectedBaseModel}
                   onSelect={(option) => setSelectedBaseModel(option)}
                   inputGroupProps={{ w: 72 }}
