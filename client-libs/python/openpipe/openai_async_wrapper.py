@@ -18,8 +18,8 @@ from .shared import (
     get_chat_completion_json,
 )
 
-from .api_client_fern.client import AsyncOpenPipeApi
-from .api_client_fern.core.api_error import ApiError
+from .api_client.client import AsyncOpenPipeApi
+from .api_client.core.api_error import ApiError
 
 
 class AsyncCompletionsWrapper(AsyncCompletions):
