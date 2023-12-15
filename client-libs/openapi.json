@@ -1257,8 +1257,7 @@
                   }
                 },
                 "required": [
-                  "requestedAt",
-                  "receivedAt"
+                  "requestedAt"
                 ],
                 "additionalProperties": false
               }

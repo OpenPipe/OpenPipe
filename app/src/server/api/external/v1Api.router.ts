@@ -179,7 +179,7 @@ export const v1ApiRouter = createOpenApiRouter({
     .input(
       z.object({
         requestedAt: z.number().describe("Unix timestamp in milliseconds"),
-        receivedAt: z.number().describe("Unix timestamp in milliseconds"),
+        receivedAt: z.number().optional().describe("Unix timestamp in milliseconds"),
         reqPayload: z.unknown().describe("JSON-encoded request payload"),
         respPayload: z.unknown().optional().describe("JSON-encoded response payload"),
         statusCode: z.number().optional().describe("HTTP status code of response"),
@@ -228,7 +228,7 @@ export const v1ApiRouter = createOpenApiRouter({
             projectId: ctx.key.projectId,
             requestedAt: new Date(input.requestedAt),
             model,
-            receivedAt: new Date(input.receivedAt),
+            receivedAt: input.receivedAt ? new Date(input.receivedAt) : undefined,
             reqPayload: (input.reqPayload === null
               ? Prisma.JsonNull
               : input.reqPayload) as Prisma.InputJsonValue,
@@ -237,7 +237,7 @@ export const v1ApiRouter = createOpenApiRouter({
               : input.respPayload) as Prisma.InputJsonValue,
             statusCode: input.statusCode,
             errorMessage: input.errorMessage,
-            durationMs: input.receivedAt - input.requestedAt,
+            durationMs: input.receivedAt ? input.receivedAt - input.requestedAt : undefined,
             inputTokens: usage?.inputTokens,
             outputTokens: usage?.outputTokens,
             cost: usage?.cost,

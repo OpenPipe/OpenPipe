@@ -243,7 +243,7 @@ export class DefaultService {
             /**
              * Unix timestamp in milliseconds
              */
-            receivedAt: number;
+            receivedAt?: number;
             /**
              * JSON-encoded request payload
              */
