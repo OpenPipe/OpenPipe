@@ -5,6 +5,9 @@ from openpipe.api_client.client import AuthenticatedClient
 from openpipe.api_client.models.report_json_body_tags import (
     ReportJsonBodyTags,
 )
+
+from .api_client_fern.client import OpenPipeApi, AsyncOpenPipeApi
+
 from openai.types.chat import ChatCompletion
 import os
 import pkg_resources
@@ -12,27 +15,21 @@ import json
 from typing import Any, Dict, List, Union
 
 
-def configure_openpipe_client(openpipe_options={}) -> AuthenticatedClient:
-    configured_client = AuthenticatedClient(
-        base_url="https://app.openpipe.ai/api/v1",
-        token="",
-        raise_on_unexpected_status=True,
-    )
-
+def configure_openpipe_client(
+    client: Union[OpenPipeApi, AsyncOpenPipeApi], openpipe_options={}
+):
     if os.environ.get("OPENPIPE_API_KEY"):
-        configured_client.token = os.environ["OPENPIPE_API_KEY"]
+        client._client_wrapper._token = os.environ["OPENPIPE_API_KEY"]
 
     if os.environ.get("OPENPIPE_BASE_URL"):
-        configured_client._base_url = os.environ["OPENPIPE_BASE_URL"]
+        client._client_wrapper._base_url = os.environ["OPENPIPE_BASE_URL"]
 
-    if openpipe_options and "verify_ssl" in openpipe_options:
-        configured_client._verify_ssl = bool(openpipe_options["verify_ssl"])
+    # if openpipe_options and "verify_ssl" in openpipe_options:
+    #     client._client_wrapper._ = bool(openpipe_options["verify_ssl"])
     if openpipe_options and openpipe_options.get("api_key"):
-        configured_client.token = openpipe_options["api_key"]
+        client._client_wrapper._token = openpipe_options["api_key"]
     if openpipe_options and openpipe_options.get("base_url"):
-        configured_client._base_url = openpipe_options["base_url"]
-
-    return configured_client
+        client._client_wrapper._base_url = openpipe_options["base_url"]
 
 
 def _get_tags(openpipe_options):
@@ -40,18 +37,20 @@ def _get_tags(openpipe_options):
     tags["$sdk"] = "python"
     tags["$sdk.version"] = pkg_resources.get_distribution("openpipe").version
 
-    return ReportJsonBodyTags.from_dict(tags)
+    return tags
 
 
-def _should_log_request(configured_client: AuthenticatedClient, openpipe_options={}):
-    if configured_client.token == "":
+def _should_log_request(
+    configured_client: Union[OpenPipeApi, AsyncOpenPipeApi], openpipe_options={}
+):
+    if configured_client._client_wrapper._token == "":
         return False
 
     return openpipe_options.get("log_request", True)
 
 
 def report(
-    configured_client: AuthenticatedClient,
+    configured_client: OpenPipeApi,
     openpipe_options={},
     **kwargs,
 ):
@@ -59,12 +58,9 @@ def report(
         return
 
     try:
-        api_report.sync_detailed(
-            client=configured_client,
-            json_body=api_report.ReportJsonBody(
-                **kwargs,
-                tags=_get_tags(openpipe_options),
-            ),
+        configured_client.report(
+            **kwargs,
+            tags=_get_tags(openpipe_options),
         )
     except Exception as e:
         # We don't want to break client apps if our API is down for some reason
@@ -73,7 +69,7 @@ def report(
 
 
 async def report_async(
-    configured_client: AuthenticatedClient,
+    configured_client: AsyncOpenPipeApi,
     openpipe_options={},
     **kwargs,
 ):
@@ -81,12 +77,9 @@ async def report_async(
         return
 
     try:
-        await api_report.asyncio_detailed(
-            client=configured_client,
-            json_body=api_report.ReportJsonBody(
-                **kwargs,
-                tags=_get_tags(openpipe_options),
-            ),
+        await configured_client.report(
+            **kwargs,
+            tags=_get_tags(openpipe_options),
         )
     except Exception as e:
         # We don't want to break client apps if our API is down for some reason

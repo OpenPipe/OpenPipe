@@ -36,6 +36,6 @@ await generate({
 
 console.log("Generating Python client");
 
-execSync(path.join(clientLibsPath, "python/codegen.sh"));
+execSync(`cd ${clientLibsPath} && npx fern generate`);
 
 console.log("Done!");
