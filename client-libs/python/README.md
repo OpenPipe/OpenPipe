@@ -76,3 +76,18 @@ res = chain.invoke(
     {"query": "this is good"}
 )
 ```
+
+## Query client
+
+Query logged calls to process data in python.
+
+```python
+from openpipe.query_client import QueryClient, FilterCondition, QueryResponse
+
+client = QueryClient.create()
+res: QueryResponse = client.query_logged_calls(
+    filters=[
+        FilterCondition(field="chain_name", comparator="=", value="classify"),
+    ]
+)
+```

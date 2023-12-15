@@ -21,6 +21,9 @@ import {
 import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
 import { calculateFineTuneUsageCost } from "~/utils/baseModels";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
+import { filtersSchema } from "~/types/shared.types";
+import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -254,6 +257,90 @@ export const v1ApiRouter = createOpenApiRouter({
       await createTags(ctx.key.projectId, newLoggedCallId, input.tags);
       return { status: "ok" };
     }),
+
+  list: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/query/logged-calls",
+        description: "Query logged calls",
+        protect: true,
+      },
+    })
+    .input(
+      z.object({
+        page: z.number(),
+        pageSize: z.number(),
+        filters: filtersSchema,
+      }),
+    )
+    .output(z.any())
+    .query(async ({ input, ctx }) => {
+      const { page, pageSize } = input;
+
+      const baseQuery = constructLoggedCallFiltersQuery(input.filters, ctx.key.projectId);
+
+      const rawCalls = await baseQuery
+        .select((eb) => [
+          "lc.id as id",
+          "lc.requestedAt as requestedAt",
+          "model",
+          "lc.requestedAt",
+          "lc.receivedAt",
+          "lc.reqPayload",
+          "lc.respPayload",
+          "lc.model",
+          "lc.inputTokens",
+          "lc.outputTokens",
+          "lc.cost",
+          "lc.statusCode",
+          "lc.durationMs",
+          jsonArrayFrom(
+            eb
+              .selectFrom("LoggedCallTag")
+              .select(["name", "value"])
+              .whereRef("loggedCallId", "=", "lc.id"),
+          ).as("tags"),
+        ])
+        .orderBy("lc.requestedAt", "desc")
+        .limit(pageSize)
+        .offset((page - 1) * pageSize)
+        .execute();
+
+      const calls = rawCalls.map((rawCall) => {
+        const tagsObject = rawCall.tags.reduce(
+          (acc, tag) => {
+            acc[tag.name] = tag.value;
+            return acc;
+          },
+          {} as Record<string, string | null>,
+        );
+
+        return {
+          id: rawCall.id,
+          requestedAt: rawCall.requestedAt,
+          receivedAt: rawCall.receivedAt,
+          reqPayload: rawCall.reqPayload,
+          respPayload: rawCall.respPayload,
+          inputTokens: rawCall.inputTokens,
+          outputTokens: rawCall.outputTokens,
+          cost: rawCall.cost,
+          statusCode: rawCall.statusCode,
+          durationMs: rawCall.durationMs,
+          model: rawCall.model,
+          tags: tagsObject,
+        };
+      });
+
+      const count = (
+        await baseQuery
+          .select(({ fn }) => [fn.count("lc.id").as("match_count")])
+          .executeTakeFirstOrThrow()
+      )?.match_count;
+
+      return { calls, count: Number(count) };
+    }),
+
   localTestingOnlyGetLatestLoggedCall: openApiProtectedProc
     .meta({
       openapi: {
