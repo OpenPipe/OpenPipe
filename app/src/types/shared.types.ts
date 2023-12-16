@@ -93,7 +93,7 @@ const chatCompletionUserMessageParamSchema = z.object({
 
 const chatCompletionAssistantMessageParamSchema = z.object({
   role: z.literal("assistant"),
-  content: z.union([z.string(), z.null()]),
+  content: z.union([z.string(), z.null()]).default(null),
   function_call: functionCallOutput.optional(),
   tool_calls: toolCallsOutput.optional(),
 });
@@ -117,31 +117,6 @@ export const chatMessage = z.union([
   chatCompletionToolMessageParamSchema,
   chatCompletionFunctionMessageParamSchema,
 ]) satisfies z.ZodType<ChatCompletionMessageParam, any, any>;
-
-// Account for Azure API differences
-const chatCompletionAssistantMessageParamSchemaAzure = z.object({
-  role: z.literal("assistant"),
-  // Azure API doesn't return null content when returning a function call
-  content: z.union([z.string(), z.null()]).optional(),
-  function_call: functionCallOutput.optional(),
-  tool_calls: toolCallsOutput.optional(),
-});
-
-export const chatMessageAzure = z.union([
-  chatMessage,
-  chatCompletionAssistantMessageParamSchemaAzure,
-]);
-
-export const normalizeAzureMessage = (
-  azureMessage: z.infer<typeof chatMessageAzure>,
-): ChatCompletionMessageParam => {
-  if (azureMessage.role !== "assistant") return azureMessage as ChatCompletionMessageParam;
-
-  return {
-    ...azureMessage,
-    content: azureMessage.content ?? null,
-  };
-};
 
 export const chatCompletionMessage = chatCompletionAssistantMessageParamSchema;
 
