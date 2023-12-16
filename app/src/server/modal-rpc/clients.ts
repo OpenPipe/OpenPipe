@@ -1,6 +1,8 @@
 import { TrainerV1 } from "./trainerV1";
 import { env } from "~/env.mjs";
 import { z } from "zod";
+import { captureException } from "@sentry/node";
+import { pick } from "lodash-es";
 
 export const trainerv1 = new TrainerV1({
   BASE: `https://openpipe-${env.MODAL_ENVIRONMENT}--trainer-v1${
@@ -43,12 +45,40 @@ export const runInference = async (args: ModalInput) => {
     },
   });
 
-  const json = await resp.json();
+  const respText = await resp.text();
+  if (!resp.ok) {
+    captureException("Failed to run inference.", {
+      extra: {
+        response: respText,
+        ...pick(args, ["model", "n", "max_tokens", "temperature"]),
+      },
+    });
+    throw new Error("Failed to run inference");
+  }
+
+  let json;
+  try {
+    json = JSON.parse(respText);
+  } catch (e) {
+    // captureException
+    captureException("Failed to parse response from modal.", {
+      extra: {
+        response: respText,
+        ...pick(args, ["model", "n", "max_tokens", "temperature"]),
+      },
+    });
+    throw new Error("Failed to parse LLM response");
+  }
   const output = outputSchema.safeParse(json);
   if (output.success) {
     return output.data;
   } else {
-    console.error("Failed to parse output from modal. JSON: ", json, "Error:", output.error);
-    throw new Error("Failed to parse output from modal");
+    captureException("Failed to validate output from modal.", {
+      extra: {
+        response: respText,
+        ...pick(args, ["model", "n", "max_tokens", "temperature"]),
+      },
+    });
+    throw new Error("Failed to validate LLM response");
   }
 };
