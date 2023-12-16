@@ -13,22 +13,18 @@ import {
   Text,
   Button,
   Checkbox,
-  Collapse,
-  Flex,
   useDisclosure,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
 import { BiExport } from "react-icons/bi";
+import pluralize from "pluralize";
 
 import { useHandledAsyncCallback, useTotalNumLogsSelected } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "../ActionButton";
-import InputDropdown from "../InputDropdown";
-import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import InfoCircle from "../InfoCircle";
 import { useFilters } from "../Filters/useFilters";
-import { LOGGED_CALL_EXPORT_FORMATS } from "~/types/shared.types";
 
 const ExportButton = () => {
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -60,31 +56,28 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
   const resetLogSelection = useAppStore((s) => s.selectedLogs.resetLogSelection);
   const totalNumLogsSelected = useTotalNumLogsSelected();
 
-  const [selectedExportFormat, setSelectedExportFormat] = useState<
-    (typeof LOGGED_CALL_EXPORT_FORMATS)[number]
-  >(LOGGED_CALL_EXPORT_FORMATS[0]);
   const [removeDuplicates, setRemoveDuplicates] = useState(true);
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [excludeErrors, setExcludeErrors] = useState(true);
 
   useEffect(() => {
     if (disclosure.isOpen) {
-      setSelectedExportFormat(LOGGED_CALL_EXPORT_FORMATS[0]);
       setRemoveDuplicates(true);
+      setExcludeErrors(true);
     }
   }, [disclosure.isOpen]);
 
   const exportLogsMutation = api.loggedCalls.export.useMutation();
 
   const [exportLogs, exportInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId || !selectedExportFormat) return;
+    if (!selectedProjectId) return;
     const response = await exportLogsMutation.mutateAsync({
       projectId: selectedProjectId,
       filters,
       defaultToSelected,
       selectedLogIds: Array.from(selectedLogIds),
       deselectedLogIds: Array.from(deselectedLogIds),
-      selectedExportFormat,
       removeDuplicates,
+      excludeErrors,
     });
 
     const dataUrl = `data:application/pdf;base64,${response}`;
@@ -108,8 +101,8 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     selectedLogIds,
     deselectedLogIds,
     resetLogSelection,
-    selectedExportFormat,
     removeDuplicates,
+    excludeErrors,
   ]);
 
   return (
@@ -126,51 +119,35 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
-              We'll export the <b>{totalNumLogsSelected.toLocaleString()}</b> logs you have selected
-              in the format of your choice.
+              We'll export the <b>{totalNumLogsSelected.toLocaleString()}</b>{" "}
+              {pluralize("log", totalNumLogsSelected)} you have selected, including any associated
+              tags.
             </Text>
-            <VStack alignItems="flex-start" spacing={4}>
-              <Flex
-                flexDir={{ base: "column", md: "row" }}
-                alignItems={{ base: "flex-start", md: "center" }}
-              >
-                <HStack w={48} alignItems="center" spacing={1}>
-                  <Text fontWeight="bold">Format:</Text>
-                  <InfoCircle tooltipText="Format logs for for fine tuning or export them without formatting." />
-                </HStack>
-                <InputDropdown
-                  options={LOGGED_CALL_EXPORT_FORMATS}
-                  selectedOption={selectedExportFormat}
-                  onSelect={(option) => setSelectedExportFormat(option)}
-                  inputGroupProps={{ w: 48 }}
-                />
-              </Flex>
-            </VStack>
             <VStack alignItems="flex-start" spacing={0}>
-              <Button
-                variant="unstyled"
-                color="blue.600"
-                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-              >
+              <VStack align="stretch" pt={4}>
                 <HStack>
-                  <Text>Advanced Options</Text>
-                  <Icon as={showAdvancedOptions ? FiChevronUp : FiChevronDown} />
+                  <Checkbox
+                    colorScheme="blue"
+                    isChecked={removeDuplicates}
+                    onChange={(e) => setRemoveDuplicates(e.target.checked)}
+                  >
+                    <Text>Remove duplicates</Text>
+                  </Checkbox>
+                  <InfoCircle tooltipText="To avoid overfitting and speed up training, automatically deduplicate logs with matching input and output." />
                 </HStack>
-              </Button>
-              <Collapse in={showAdvancedOptions} unmountOnExit={true}>
-                <VStack align="stretch" pt={4}>
-                  <HStack>
-                    <Checkbox
-                      colorScheme="blue"
-                      isChecked={removeDuplicates}
-                      onChange={(e) => setRemoveDuplicates(e.target.checked)}
-                    >
-                      <Text>Remove duplicates</Text>
-                    </Checkbox>
-                    <InfoCircle tooltipText="To avoid overfitting and speed up training, automatically deduplicate logs with matching input and output." />
-                  </HStack>
-                </VStack>
-              </Collapse>
+              </VStack>
+              <VStack align="stretch" pt={4}>
+                <HStack>
+                  <Checkbox
+                    colorScheme="blue"
+                    isChecked={excludeErrors}
+                    onChange={(e) => setExcludeErrors(e.target.checked)}
+                  >
+                    <Text>Exclude errored logs</Text>
+                  </Checkbox>
+                  <InfoCircle tooltipText="Exclude logs with status codes other than 200." />
+                </HStack>
+              </VStack>
             </VStack>
           </VStack>
         </ModalBody>

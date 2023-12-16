@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { WritableStreamBuffer } from "stream-buffers";
-import type { ChatCompletionCreateParamsBase } from "openai/resources/chat/completions";
 import type { JsonValue } from "type-fest";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -9,12 +8,7 @@ import { kysely } from "~/server/db";
 import { requireCanViewProject } from "~/utils/accessControl";
 import hashObject from "~/server/utils/hashObject";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
-import { LOGGED_CALL_EXPORT_FORMATS, filtersSchema } from "~/types/shared.types";
-import { typedLoggedCall } from "~/types/dbColumns.types";
-import {
-  convertToolCallInputToFunctionInput,
-  convertToolCallMessageToFunction,
-} from "~/server/utils/convertFunctionCalls";
+import { filtersSchema } from "~/types/shared.types";
 
 export const loggedCallsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -116,8 +110,8 @@ export const loggedCallsRouter = createTRPCRouter({
         defaultToSelected: z.boolean(),
         selectedLogIds: z.string().array(),
         deselectedLogIds: z.string().array(),
-        selectedExportFormat: z.enum(LOGGED_CALL_EXPORT_FORMATS),
         removeDuplicates: z.boolean(),
+        excludeErrors: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -127,8 +121,7 @@ export const loggedCallsRouter = createTRPCRouter({
         defaultToSelected: input.defaultToSelected,
         selectedLogIds: input.selectedLogIds,
         deselectedLogIds: input.deselectedLogIds,
-        // Unless the user is exporting raw data, we don't want to export unsuccessful calls
-        removeUnsuccessful: input.selectedExportFormat !== "Raw",
+        removeUnsuccessful: input.excludeErrors,
       });
 
       const loggedCallsFromDb = await baseQuery
@@ -145,53 +138,21 @@ export const loggedCallsRouter = createTRPCRouter({
         .orderBy("lc.requestedAt", "desc")
         .execute();
 
-      let formattedLoggedCalls: (
-        | {
-            input: JsonValue;
-            output: JsonValue;
-            tags: Record<string, string | null>;
-          }
-        | {
-            messages: ChatCompletionCreateParamsBase["messages"];
-            function_call: ChatCompletionCreateParamsBase["function_call"];
-            functions: ChatCompletionCreateParamsBase["functions"];
-          }
-      )[] = [];
+      let formattedLoggedCalls = loggedCallsFromDb.map((loggedCall) => {
+        const tagsObject = loggedCall.tags.reduce(
+          (acc, tag) => {
+            acc[tag.name] = tag.value;
+            return acc;
+          },
+          {} as Record<string, string | null>,
+        );
 
-      if (input.selectedExportFormat === "Raw") {
-        formattedLoggedCalls = loggedCallsFromDb.map((loggedCall) => {
-          const tagsObject = loggedCall.tags.reduce(
-            (acc, tag) => {
-              acc[tag.name] = tag.value;
-              return acc;
-            },
-            {} as Record<string, string | null>,
-          );
-
-          return {
-            input: loggedCall.reqPayload as JsonValue,
-            output: loggedCall.respPayload as JsonValue,
-            tags: tagsObject,
-          };
-        });
-      } else {
-        loggedCallsFromDb.forEach((loggedCall) => {
-          if (!loggedCall.reqPayload) return;
-          try {
-            const typedCall = typedLoggedCall(loggedCall);
-            const input = convertToolCallInputToFunctionInput(typedCall.reqPayload);
-            const outputMessage = typedCall.respPayload?.choices?.[0]?.message;
-            if (!outputMessage) return;
-            formattedLoggedCalls.push({
-              messages: [...input.messages, convertToolCallMessageToFunction(outputMessage)],
-              function_call: input.function_call,
-              functions: input.functions,
-            });
-          } catch {
-            // pass
-          }
-        });
-      }
+        return {
+          input: loggedCall.reqPayload as JsonValue,
+          output: loggedCall.respPayload as JsonValue,
+          tags: tagsObject,
+        };
+      });
 
       if (input.removeDuplicates) {
         const deduplicatedLoggedCalls = [];

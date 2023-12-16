@@ -2,16 +2,12 @@
 title: "Export Data"
 sidebarTitle: "Export Data"
 description: "
-Export your past requests as a JSONL file in their raw form or in the OpenAI fine-tuning format."
+Export your past requests as a JSONL file in their raw form."
 ---
 
 <Frame>![](/images/features/exporting-data.png)</Frame>
 
-Once your request logs are recorded, you can export them at any time. We offer two export formats, `Raw` and `OpenAI Fine-Tuning`.
-
-## Raw
-
-This format contains all the data that we've collected from your logged calls, including tags and errors.
+Once your request logs are recorded, you can export them at any time. The exported jsonl contains all the data that we've collected from your logged calls, including tags and errors.
 
 ### Fields
 
@@ -24,25 +20,4 @@ This format contains all the data that we've collected from your logged calls, i
 ```jsonl
 {"input":{"model":"openpipe:test-tool-calls-ft","tools":[{"type":"function","function":{"name":"get_current_weather","parameters":{"type":"object","required":["location"],"properties":{"unit":{"enum":["celsius","fahrenheit"],"type":"string"},"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"}}},"description":"Get the current weather in a given location"}}],"messages":[{"role":"system","content":"tell me the weather in SF and Orlando"}]},"output":{"id":"c7670af0d71648b0bd829fa1901ac6c5","model":"openpipe:test-tool-calls-ft","usage":{"total_tokens":106,"prompt_tokens":47,"completion_tokens":59},"object":"chat.completion","choices":[{"index":0,"message":{"role":"assistant","content":null,"tool_calls":[{"id":"","type":"function","function":{"name":"get_current_weather","arguments":"{\"location\": \"San Francisco, CA\", \"unit\": \"celsius\"}"}},{"id":"","type":"function","function":{"name":"get_current_weather","arguments":"{\"location\": \"Orlando, FL\", \"unit\": \"celsius\"}"}}]},"finish_reason":"stop"}],"created":1702666185703},"tags":{"promptId":"test_sync_tool_calls_ft","$sdk":"python","$sdk.version":"4.1.0"}}
 {"input":{"model":"openpipe:test-content-ft","messages":[{"role":"system","content":"count to 3"}]},"output":{"id":"47116eaa9dad4238bf12e32135f9c147","model":"openpipe:test-content-ft","usage":{"total_tokens":38,"prompt_tokens":29,"completion_tokens":9},"object":"chat.completion","choices":[{"index":0,"message":{"role":"assistant","content":"1, 2, 3"},"finish_reason":"stop"}],"created":1702666036923},"tags":{"promptId":"test_sync_content_ft","$sdk":"python","$sdk.version":"4.1.0"}}
-```
-
-## OpenAI Fine-Tuning
-
-Use this format to export your logs in the [OpenAI fine-tuning spec](https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset), so you shouldn't have to do any extra work to fine-tune your model.
-
-Of course, you can always fine-tune OpenAI models on-platform (see [Fine Tuning](/features/fine-tuning)).
-
-### Fields
-
-- **`messages`:** The list of messages, including the final assistant message output.
-- **`function_call`:** The function that the model should use, if any.
-- **`functions`:** The functions provided to the model for fulfilling the user's instructions.
-
-**Important Note**: If your requests contain tool calls, those calls will automatically be converted into function calls when exported to `OpenAI Fine-Tuning`. This conversion will remain necessary until OpenAI adds support for tool calls in GPT 3.5 fine-tuning.
-
-### Example
-
-```jsonl
-{"messages":[{"role":"system","content":"tell me the weather in SF and Orlando"},{"role":"assistant","content":null,"function_call":{"name":"get_current_weather","arguments":"{\"location\": \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"functions":[{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","required":["location"],"properties":{"unit":{"enum":["celsius","fahrenheit"],"type":"string"},"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"}}}}]}
-{"messages":[{"role":"system","content":"count to 3"},{"role":"assistant","content":"1, 2, 3"}]}
 ```
