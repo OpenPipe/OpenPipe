@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import fastapi
 from typing import Union, Literal
 import os
-from ..shared import model_cache_dir, logging
+from ..shared import merged_model_cache_dir, logging
 
 
 def cache_model_weights():
@@ -11,6 +11,7 @@ def cache_model_weights():
 
     # Images seem to be cached really efficiently on Modal so let's just save
     # all our base model weights to the image to make training faster.
+    snapshot_download("OpenPipe/mistral-ft-optimized-1215")
     snapshot_download("mistralai/Mistral-7B-v0.1")
     snapshot_download("meta-llama/Llama-2-7b-hf")
     snapshot_download("meta-llama/Llama-2-13b-hf")
@@ -47,7 +48,7 @@ stub.volume = modal.Volume.persisted("openpipe-model-cache")
 
 web_app = fastapi.FastAPI(title=APP_NAME)
 
-if stub.is_inside():
+with image.run_inside():
     from huggingface_hub import HfApi
 
     hf_api = HfApi()
@@ -63,7 +64,7 @@ if stub.is_inside():
 def train(fine_tune_id: str, base_url: str):
     from .train import do_train
 
-    do_train(fine_tune_id, base_url, "/models")
+    do_train(fine_tune_id, base_url)
 
     # Save the model to the cache volume
     logging.info("Persisting model cache")
@@ -119,7 +120,7 @@ async def training_status(call_id: str) -> TSOutput:
 )
 async def do_persist_model_weights(model_name: str):
     logging.info(f"Backing up model weights for {model_name}")
-    model_path = model_cache_dir(model_name, "/models")
+    model_path = merged_model_cache_dir(model_name)
 
     # Check that the folder exists
     if not os.path.exists(model_path):

@@ -7,7 +7,7 @@ import {
   EVALUATION_FILTERS_OUTPUT_APPENDIX,
   EvaluationFiltersDefaultFields,
 } from "~/types/shared.types";
-import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
+import { COMPARISON_MODEL_NAMES } from "~/utils/comparisonModels";
 
 const EvaluationFilters = () => {
   const dataset = useDataset().data;

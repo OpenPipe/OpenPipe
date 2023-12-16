@@ -1,5 +1,4 @@
 import { VStack, HStack, Text, Button, Heading } from "@chakra-ui/react";
-import { displayBaseModel } from "~/utils/baseModels";
 import { useFineTune, useHandledAsyncCallback } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";
 import FineTuneDangerZone from "./FineTuneDangerZone";
@@ -8,6 +7,7 @@ import { getStatusColor } from "../../FineTunesTable";
 import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -33,7 +33,7 @@ const General = () => {
             </Heading>
             <HStack>
               <Text w={180}>Base Model</Text>
-              <Text color="gray.500">{displayBaseModel(fineTune.baseModel)}</Text>
+              <Text color="gray.500">{modelInfo(fineTune).name}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Dataset</Text>

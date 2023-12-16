@@ -83,18 +83,19 @@ base_mistral_config = {
 def write_config(
     config_path,
     base_model,
+    architecture,
     num_epochs,
     training_file,
     out_path,
     wandb_project,
     wandb_run_id,
 ):
-    if "Llama-2" in base_model:
-        config = base_llama2_config
-    elif "mistral" in base_model:
+    if architecture == "MistralForCausalLM":
         config = base_mistral_config
+    elif architecture == "LlamaForCausalLM":
+        config = base_llama2_config
     else:
-        raise ValueError(f"Unknown base model {base_model}")
+        raise ValueError(f"Unknown architecture {architecture}")
 
     config = config.copy()
 

@@ -45,13 +45,7 @@
                       "type": "string"
                     },
                     "baseModel": {
-                      "type": "string",
-                      "enum": [
-                        "MISTRAL_7b",
-                        "LLAMA2_7b",
-                        "LLAMA2_13b",
-                        "GPT_3_5_TURBO"
-                      ]
+                      "type": "string"
                     },
                     "projectName": {
                       "type": "string"

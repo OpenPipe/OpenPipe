@@ -2,8 +2,6 @@ from typing import Any, Dict, Type, TypeVar
 
 from attrs import define as _attrs_define
 
-from ..models.get_training_info_response_200_base_model import GetTrainingInfoResponse200BaseModel
-
 T = TypeVar("T", bound="GetTrainingInfoResponse200")
 
 
@@ -13,22 +11,21 @@ class GetTrainingInfoResponse200:
     Attributes:
         training_data_url (str):
         hugging_face_model_id (str):
-        base_model (GetTrainingInfoResponse200BaseModel):
+        base_model (str):
         project_name (str):
         model_slug (str):
     """
 
     training_data_url: str
     hugging_face_model_id: str
-    base_model: GetTrainingInfoResponse200BaseModel
+    base_model: str
     project_name: str
     model_slug: str
 
     def to_dict(self) -> Dict[str, Any]:
         training_data_url = self.training_data_url
         hugging_face_model_id = self.hugging_face_model_id
-        base_model = self.base_model.value
-
+        base_model = self.base_model
         project_name = self.project_name
         model_slug = self.model_slug
 
@@ -52,7 +49,7 @@ class GetTrainingInfoResponse200:
 
         hugging_face_model_id = d.pop("huggingFaceModelId")
 
-        base_model = GetTrainingInfoResponse200BaseModel(d.pop("baseModel"))
+        base_model = d.pop("baseModel")
 
         project_name = d.pop("projectName")
 

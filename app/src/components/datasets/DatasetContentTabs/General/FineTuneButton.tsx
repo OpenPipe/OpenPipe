@@ -1,31 +1,40 @@
-import { useState, useEffect } from "react";
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  HStack,
-  VStack,
-  Icon,
-  Text,
   Button,
-  useDisclosure,
-  type UseDisclosureReturn,
+  Link as ChakraLink,
+  HStack,
+  Icon,
   Input,
   InputGroup,
   InputLeftAddon,
-  Link as ChakraLink,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Text,
+  VStack,
+  useDisclosure,
+  type UseDisclosureReturn,
 } from "@chakra-ui/react";
-import { AiTwotoneThunderbolt } from "react-icons/ai";
 import humanId from "human-id";
-import { useRouter } from "next/router";
-import { type BaseModel } from "@prisma/client";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { AiTwotoneThunderbolt } from "react-icons/ai";
 
+import ActionButton from "~/components/ActionButton";
+import InputDropdown from "~/components/InputDropdown";
+import {
+  modelInfo,
+  splitProvider,
+  supportedModels,
+} from "~/server/fineTuningProviders/supportedModels";
+import { type ProviderWithModel } from "~/server/fineTuningProviders/types";
+import { api } from "~/utils/api";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
   useDataset,
   useDatasetEntries,
@@ -33,11 +42,7 @@ import {
   useIsMissingBetaAccess,
   useSelectedProject,
 } from "~/utils/hooks";
-import { api } from "~/utils/api";
-import ActionButton from "~/components/ActionButton";
-import InputDropdown from "~/components/InputDropdown";
-import { SUPPORTED_BASE_MODELS, displayBaseModel } from "~/utils/baseModels";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { getEntries } from "~/utils/utils";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -61,6 +66,10 @@ const FineTuneButton = () => {
 
 export default FineTuneButton;
 
+const visibleModels = getEntries(supportedModels)
+  .filter(([_, model]) => model.trainable)
+  .map(([id, _]) => id) as [ProviderWithModel, ...[ProviderWithModel]];
+
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
@@ -69,19 +78,20 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const session = useSession();
   const isMissingBetaAccess = useIsMissingBetaAccess();
 
-  const [selectedBaseModel, setSelectedBaseModel] = useState<BaseModel>(SUPPORTED_BASE_MODELS[0]);
+  const [selectedBaseModel, setSelectedBaseModel] = useState<ProviderWithModel>(visibleModels[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
 
   const needsMissingOpenaiKey =
-    !selectedProject?.condensedOpenAIKey && selectedBaseModel === "GPT_3_5_TURBO";
+    !selectedProject?.condensedOpenAIKey && splitProvider(selectedBaseModel).provider === "openai";
 
-  const needsMissingBetaAccess = selectedBaseModel !== "GPT_3_5_TURBO" && isMissingBetaAccess;
+  const needsMissingBetaAccess =
+    splitProvider(selectedBaseModel).provider === "openpipe" && isMissingBetaAccess;
 
   const email = session.data?.user.email ?? "";
 
   useEffect(() => {
     if (disclosure.isOpen) {
-      setSelectedBaseModel(SUPPORTED_BASE_MODELS[0]);
+      setSelectedBaseModel(visibleModels[0]);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
     }
   }, [disclosure.isOpen]);
@@ -95,7 +105,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     if (!modelSlug || !selectedBaseModel || !dataset) return;
     const resp = await createFineTuneMutation.mutateAsync({
       slug: modelSlug,
-      baseModel: selectedBaseModel,
+      baseModel: splitProvider(selectedBaseModel),
       datasetId: dataset.id,
     });
     if (maybeReportError(resp)) return;
@@ -148,8 +158,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   Base model:
                 </Text>
                 <InputDropdown
-                  options={SUPPORTED_BASE_MODELS}
-                  getDisplayLabel={(option) => displayBaseModel(option)}
+                  options={visibleModels}
+                  getDisplayLabel={(option) => modelInfo(splitProvider(option)).name}
                   selectedOption={selectedBaseModel}
                   onSelect={(option) => setSelectedBaseModel(option)}
                   inputGroupProps={{ w: 72 }}

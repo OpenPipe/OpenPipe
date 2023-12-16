@@ -1,14 +1,15 @@
-import { UsageType, Prisma } from "@prisma/client";
+import { Prisma, UsageType } from "@prisma/client";
+import { captureException } from "@sentry/node";
 import { TRPCError } from "@trpc/server";
 import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { captureException } from "@sentry/node";
 
-import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
-import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
+import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { prisma } from "~/server/db";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { baseModel } from "~/server/fineTuningProviders/types";
 import {
   chatCompletionInputReqPayload,
   chatCompletionOutput,
@@ -19,7 +20,6 @@ import {
   toolsInput,
 } from "~/types/shared.types";
 import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
-import { calculateFineTuneUsageCost } from "~/utils/baseModels";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 
 const reqValidator = z.object({
@@ -127,11 +127,10 @@ export const v1ApiRouter = createOpenApiRouter({
         const completion = await getCompletion2(fineTune, inputPayload);
         const inputTokens = completion.usage?.prompt_tokens ?? 0;
         const outputTokens = completion.usage?.completion_tokens ?? 0;
-        const cost = calculateFineTuneUsageCost({
-          inputTokens,
-          outputTokens,
-          baseModel: fineTune.baseModel,
-        });
+
+        const base = baseModel.safeParse(fineTune);
+
+        const cost = base.success ? calculateCost(base.data, 0, inputTokens, outputTokens) : 0;
 
         // Don't `await` this to minimize latency
         prisma.usageLog
@@ -208,11 +207,19 @@ export const v1ApiRouter = createOpenApiRouter({
           const fineTune = await prisma.fineTune.findUnique({
             where: { slug: model.replace("openpipe:", "") },
           });
-          usage = fineTunedModelProvider.getUsage(
-            input.reqPayload as ChatCompletionCreateParams,
-            respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
-            fineTune?.baseModel,
-          );
+          const resp = chatCompletionOutput.safeParse(respPayload);
+          const base = baseModel.safeParse(fineTune);
+
+          const inputTokens = (resp.success ? resp.data.usage?.prompt_tokens : 0) ?? 0;
+          const outputTokens = (resp.success ? resp.data.usage?.completion_tokens : 0) ?? 0;
+
+          const cost = base.success ? calculateCost(base.data, 0, inputTokens, outputTokens) : 0;
+
+          usage = {
+            inputTokens,
+            outputTokens,
+            cost,
+          };
         } else {
           usage = openaAIModelProvider.getUsage(
             input.reqPayload as ChatCompletionCreateParams,

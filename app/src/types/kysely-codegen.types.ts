@@ -161,16 +161,15 @@ export interface FineTune {
   projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  inferenceUrls: Generated<string[] | null>;
   errorMessage: string | null;
   trainingBlobName: string | null;
-  baseModel: "GPT_3_5_TURBO" | "LLAMA2_13b" | "LLAMA2_7b" | "MISTRAL_7b";
+  baseModel: string;
   huggingFaceModelId: string | null;
-  keepWarm: Generated<boolean>;
   pipelineVersion: number;
   modalTrainingJobId: string | null;
   openaiModelId: string | null;
   openaiTrainingJobId: string | null;
+  provider: "openai" | "openpipe";
 }
 
 export interface FineTuneTestingEntry {

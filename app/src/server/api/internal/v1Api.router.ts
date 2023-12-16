@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { prisma } from "~/server/db";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { generateBlobDownloadUrl } from "~/utils/azure/server";
-import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
+import { supportedModels } from "~/server/fineTuningProviders/openpipe/types";
 
 export const v1ApiRouter = createOpenApiRouter({
   getTrainingInfo: openApiProtectedProc
@@ -25,7 +25,7 @@ export const v1ApiRouter = createOpenApiRouter({
       z.object({
         trainingDataUrl: z.string(),
         huggingFaceModelId: z.string(),
-        baseModel: z.enum(SUPPORTED_BASE_MODELS),
+        baseModel: z.string(),
         projectName: z.string(),
         modelSlug: z.string(),
       }),
@@ -52,7 +52,7 @@ export const v1ApiRouter = createOpenApiRouter({
       return {
         trainingDataUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),
         huggingFaceModelId: fineTune.huggingFaceModelId,
-        baseModel: fineTune.baseModel,
+        baseModel: supportedModels.parse(fineTune.baseModel),
         projectName: fineTune.project.name,
         modelSlug: fineTune.slug,
       };

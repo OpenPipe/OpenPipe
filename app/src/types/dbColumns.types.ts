@@ -1,6 +1,7 @@
-import type { LoggedCall, DatasetEntry } from "@prisma/client";
+import type { DatasetEntry, LoggedCall } from "@prisma/client";
 import { z } from "zod";
 
+import { baseModel } from "~/server/fineTuningProviders/types";
 import {
   chatCompletionInput,
   chatCompletionInputReqPayload,
@@ -21,6 +22,10 @@ export const datasetEntrySchema = z
     output: chatCompletionMessage.optional().nullable(),
   })
   .passthrough();
+
+export const typedFineTune = <T>(
+  input: T,
+): Omit<T, "baseModel" | "provider"> & z.infer<typeof baseModel> => baseModel.parse(input);
 
 export const typedDatasetEntry = <T extends Pick<DatasetEntry, "messages">>(
   input: T,

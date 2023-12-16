@@ -1,9 +1,12 @@
 from functools import reduce
 import pytest
 import time
+from dotenv import load_dotenv
 
 from . import OpenAI
 from .merge_openai_chunks import merge_openai_chunks
+
+load_dotenv()
 
 client = OpenAI()
 

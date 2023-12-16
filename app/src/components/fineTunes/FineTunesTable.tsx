@@ -5,8 +5,8 @@ import Link from "next/link";
 
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
-import { displayBaseModel } from "~/utils/baseModels";
 import ViewDatasetButton from "../datasets/ViewDatasetButton";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 
 const FineTunesTable = ({}) => {
   const query = useFineTunes(10000);
@@ -46,7 +46,7 @@ const FineTunesTable = ({}) => {
                       fontSize="xs"
                       textTransform="uppercase"
                     >
-                      {displayBaseModel(fineTune.baseModel)}
+                      {modelInfo(fineTune).name}
                     </Text>
                   </Td>
                   <Td>{fineTune.numTrainingEntries.toLocaleString()}</Td>

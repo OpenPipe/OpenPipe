@@ -7,11 +7,7 @@ import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
 import { typedDatasetEntry, typedFineTuneTestingEntry } from "~/types/dbColumns.types";
-import {
-  COMPARISON_MODEL_NAMES,
-  calculateFineTuneUsageCost,
-  isComparisonModel,
-} from "~/utils/baseModels";
+import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/comparisonModels";
 import {
   saveFieldComparisonScore,
   calculateFieldComparisonScore,
@@ -19,6 +15,8 @@ import {
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { queueHeadToHeadEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
+import { calculateCost } from "../fineTuningProviders/supportedModels";
+import { baseModel } from "../fineTuningProviders/types";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
@@ -154,17 +152,16 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         if (fineTune) {
           const inputTokens = completion.usage?.prompt_tokens ?? 0;
           const outputTokens = completion.usage?.completion_tokens ?? 0;
+
+          const model = baseModel.parse(fineTune);
+
           await prisma.usageLog.create({
             data: {
               fineTuneId: fineTune.id,
               type: UsageType.TESTING,
               inputTokens,
               outputTokens,
-              cost: calculateFineTuneUsageCost({
-                inputTokens,
-                outputTokens,
-                baseModel: fineTune.baseModel,
-              }),
+              cost: calculateCost(model, 0, inputTokens, outputTokens),
             },
           });
         }

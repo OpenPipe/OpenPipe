@@ -1,9 +1,6 @@
 from ..api_client.api.default import get_training_info
-from ..api_client.models.get_training_info_response_200_base_model import (
-    GetTrainingInfoResponse200BaseModel as BaseModel,
-)
 from ..api_client.client import AuthenticatedClient
-from ..shared import model_cache_dir
+from ..shared import merged_model_cache_dir, lora_model_cache_dir
 
 from .write_config import write_config
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -14,6 +11,8 @@ import torch
 import logging
 import os
 import subprocess
+import urllib.request
+from transformers import AutoConfig
 
 logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -22,7 +21,7 @@ logging.basicConfig(
 )
 
 
-def do_train(fine_tune_id: str, base_url: str, model_dir: str):
+def do_train(fine_tune_id: str, base_url: str):
     logging.info(f"Beginning training process for model {fine_tune_id}")
 
     training_info_resp = get_training_info.sync_detailed(
@@ -38,17 +37,9 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     training_info = training_info_resp.parsed
     logging.info(f"Training info: {training_info.to_dict()}")
 
-    model_map = {
-        BaseModel.LLAMA2_7B: "meta-llama/Llama-2-7b-hf",
-        BaseModel.LLAMA2_13B: "meta-llama/Llama-2-13b-hf",
-        BaseModel.MISTRAL_7B: "mistralai/Mistral-7B-v0.1",
-    }
-
-    base_model = model_map[training_info.base_model]
-
-    # Use urllib to download the training data
-    import urllib.request
-
+    base_model = training_info.base_model
+    config = AutoConfig.from_pretrained(base_model)
+    
     logging.info("Downloading training data")
     training_file = "/tmp/train.jsonl"
 
@@ -63,9 +54,10 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     logging.info(f"Samples: {num_lines}, Epochs: {num_epochs}")
 
     config_path = "/tmp/training-config.yaml"
-    lora_model_path = "/tmp/trained-model"
-    merged_model_path = model_cache_dir(training_info.hugging_face_model_id, model_dir)
+    lora_model_path = lora_model_cache_dir(training_info.hugging_face_model_id)
+    merged_model_path = merged_model_cache_dir(training_info.hugging_face_model_id)
 
+    os.makedirs(lora_model_path, exist_ok=True)
     os.makedirs(merged_model_path, exist_ok=True)
 
     # Clear the lora_model_path and merged_model_path directories
@@ -75,6 +67,7 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     write_config(
         config_path=config_path,
         base_model=base_model,
+        architecture=config.architectures[0],
         num_epochs=num_epochs,
         training_file=training_file,
         out_path=lora_model_path,
