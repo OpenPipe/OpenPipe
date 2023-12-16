@@ -252,11 +252,10 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(projectId, ctx);
 
-      const loggedCalls = await constructLoggedCallFiltersQuery(
-        input.filters,
-        projectId,
-        pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
-      )
+      const loggedCalls = await constructLoggedCallFiltersQuery(input.filters, projectId, {
+        ...pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
+        removeUnsuccessful: true,
+      })
         .where(
           "lc.id",
           "not in",

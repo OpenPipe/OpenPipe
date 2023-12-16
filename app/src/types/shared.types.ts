@@ -235,3 +235,5 @@ export enum EvaluationFiltersDefaultFields {
 }
 
 export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";
+
+export const LOGGED_CALL_EXPORT_FORMATS = ["Raw", "OpenAI Fine-Tune"] as const;

@@ -13,11 +13,6 @@ import {
   Text,
   Button,
   Checkbox,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
   Collapse,
   Flex,
   useDisclosure,
@@ -33,8 +28,7 @@ import InputDropdown from "../InputDropdown";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import InfoCircle from "../InfoCircle";
 import { useFilters } from "../Filters/useFilters";
-
-const SUPPORTED_EXPORT_FORMATS = ["alpaca-finetune", "openai-fine-tune", "unformatted"];
+import { LOGGED_CALL_EXPORT_FORMATS } from "~/types/shared.types";
 
 const ExportButton = () => {
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -66,15 +60,15 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
   const resetLogSelection = useAppStore((s) => s.selectedLogs.resetLogSelection);
   const totalNumLogsSelected = useTotalNumLogsSelected();
 
-  const [selectedExportFormat, setSelectedExportFormat] = useState(SUPPORTED_EXPORT_FORMATS[0]);
-  const [testingSplit, setTestingSplit] = useState(10);
+  const [selectedExportFormat, setSelectedExportFormat] = useState<
+    (typeof LOGGED_CALL_EXPORT_FORMATS)[number]
+  >(LOGGED_CALL_EXPORT_FORMATS[0]);
   const [removeDuplicates, setRemoveDuplicates] = useState(true);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   useEffect(() => {
     if (disclosure.isOpen) {
-      setSelectedExportFormat(SUPPORTED_EXPORT_FORMATS[0]);
-      setTestingSplit(10);
+      setSelectedExportFormat(LOGGED_CALL_EXPORT_FORMATS[0]);
       setRemoveDuplicates(true);
     }
   }, [disclosure.isOpen]);
@@ -89,7 +83,6 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
       defaultToSelected,
       selectedLogIds: Array.from(selectedLogIds),
       deselectedLogIds: Array.from(deselectedLogIds),
-      testingSplit,
       selectedExportFormat,
       removeDuplicates,
     });
@@ -100,7 +93,7 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     const a = document.createElement("a");
 
     a.href = url;
-    a.download = `data.zip`;
+    a.download = `exported.jsonl`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -115,7 +108,6 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     selectedLogIds,
     deselectedLogIds,
     resetLogSelection,
-    testingSplit,
     selectedExportFormat,
     removeDuplicates,
   ]);
@@ -147,35 +139,11 @@ const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                   <InfoCircle tooltipText="Format logs for for fine tuning or export them without formatting." />
                 </HStack>
                 <InputDropdown
-                  options={SUPPORTED_EXPORT_FORMATS}
+                  options={LOGGED_CALL_EXPORT_FORMATS}
                   selectedOption={selectedExportFormat}
                   onSelect={(option) => setSelectedExportFormat(option)}
                   inputGroupProps={{ w: 48 }}
                 />
-              </Flex>
-              <Flex
-                flexDir={{ base: "column", md: "row" }}
-                alignItems={{ base: "flex-start", md: "center" }}
-              >
-                <HStack w={48} alignItems="center" spacing={1}>
-                  <Text fontWeight="bold">Testing Split:</Text>
-                  <InfoCircle tooltipText="The percent of your logs that will be reserved for testing and saved in another file. Logs are split randomly." />
-                </HStack>
-                <HStack>
-                  <NumberInput
-                    defaultValue={10}
-                    onChange={(_, num) => setTestingSplit(num)}
-                    min={0}
-                    max={100}
-                    w={48}
-                  >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                      <NumberIncrementStepper />
-                      <NumberDecrementStepper />
-                    </NumberInputStepper>
-                  </NumberInput>
-                </HStack>
               </Flex>
             </VStack>
             <VStack alignItems="flex-start" spacing={0}>
