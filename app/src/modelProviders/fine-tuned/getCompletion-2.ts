@@ -16,9 +16,10 @@ import {
   convertToolCallInputToFunctionInput,
   convertToolCallMessageToFunction,
 } from "~/server/utils/convertFunctionCalls";
+import { TypedFineTune } from "~/types/dbColumns.types";
 
 export async function getCompletion2(
-  fineTune: FineTune,
+  fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion> {
   if (fineTune.pipelineVersion < 1 || fineTune.pipelineVersion > 2) {
@@ -32,7 +33,7 @@ export async function getCompletion2(
   const prunedMessages = pruneInputMessages(input.messages, stringsToPrune);
   const prunedInput = { messages: prunedMessages, ...omit(input, "messages") };
 
-  if (fineTune.baseModel === "GPT_3_5_TURBO") {
+  if (fineTune.provider === "openai") {
     const model = fineTune.openaiModelId;
 
     if (!model) throw new Error("No OpenAI model ID found");

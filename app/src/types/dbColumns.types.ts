@@ -1,4 +1,4 @@
-import type { DatasetEntry, LoggedCall } from "@prisma/client";
+import type { DatasetEntry, FineTune, LoggedCall } from "@prisma/client";
 import { z } from "zod";
 
 import { baseModel } from "~/server/fineTuningProviders/types";
@@ -22,10 +22,6 @@ export const datasetEntrySchema = z
     output: chatCompletionMessage.optional().nullable(),
   })
   .passthrough();
-
-export const typedFineTune = <T>(
-  input: T,
-): Omit<T, "baseModel" | "provider"> & z.infer<typeof baseModel> => baseModel.parse(input);
 
 export const typedDatasetEntry = <T extends Pick<DatasetEntry, "messages">>(
   input: T,
@@ -56,5 +52,24 @@ export const typedFineTuneTestingEntry = <T>(
 ): T & z.infer<typeof fineTuneTestingEntrySchema> =>
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
   fineTuneTestingEntrySchema.parse(input);
+
+const fineTuneSchema = z.intersection(
+  baseModel,
+  z
+    .object({
+      pipelineVersion: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+    })
+    .passthrough(),
+);
+
+// TODO: fix the passThroughNulls type from utils.ts to work with generics and
+// wrap this with that for better ergonomics.
+export function typedFineTune<
+  T extends Pick<FineTune, "baseModel" | "provider"> & Partial<Pick<FineTune, "pipelineVersion">>,
+>(input: T): Omit<T, "baseModel" | "provider"> & z.infer<typeof fineTuneSchema> {
+  return fineTuneSchema.parse(input);
+}
+
+export type TypedFineTune = ReturnType<typeof typedFineTune<FineTune>>;
 
 export const ORIGINAL_MODEL_ID = "original";
