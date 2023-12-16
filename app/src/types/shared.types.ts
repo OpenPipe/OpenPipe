@@ -121,7 +121,7 @@ export const chatMessage = z.union([
 // Account for Azure API differences
 const chatCompletionAssistantMessageParamSchemaAzure = z.object({
   role: z.literal("assistant"),
-  // Azure API doesn't return content for function calls
+  // Azure API doesn't return null content when returning a function call
   content: z.union([z.string(), z.null()]).optional(),
   function_call: functionCallOutput.optional(),
   tool_calls: toolCallsOutput.optional(),
