@@ -93,7 +93,7 @@ const chatCompletionUserMessageParamSchema = z.object({
 
 const chatCompletionAssistantMessageParamSchema = z.object({
   role: z.literal("assistant"),
-  content: z.union([z.string(), z.null()]),
+  content: z.union([z.string(), z.null()]).default(null),
   function_call: functionCallOutput.optional(),
   tool_calls: toolCallsOutput.optional(),
 });
