@@ -12,9 +12,10 @@ import { prisma } from "~/server/db";
 import {
   chatCompletionInputReqPayload,
   chatCompletionOutput,
-  chatMessage,
+  chatMessageAzure,
   functionCallInput,
   functionsInput,
+  normalizeAzureMessage,
   toolChoiceInput,
   toolsInput,
 } from "~/types/shared.types";
@@ -88,7 +89,7 @@ export const v1ApiRouter = createOpenApiRouter({
           .optional()
           .describe("DEPRECATED. Use the top-level fields instead"),
         model: z.string().optional(),
-        messages: z.array(chatMessage).optional(),
+        messages: z.array(chatMessageAzure).optional(),
         function_call: functionCallInput,
         functions: functionsInput,
         tool_choice: toolChoiceInput,
@@ -106,7 +107,10 @@ export const v1ApiRouter = createOpenApiRouter({
       const inputPayload =
         "reqPayload" in input
           ? chatCompletionInputReqPayload.parse(input.reqPayload)
-          : chatCompletionInputReqPayload.parse(input);
+          : chatCompletionInputReqPayload.parse({
+              ...input,
+              messages: input.messages ? input.messages.map(normalizeAzureMessage) : undefined,
+            });
 
       const modelSlug = inputPayload.model.replace("openpipe:", "");
       const fineTune = await prisma.fineTune.findUnique({
