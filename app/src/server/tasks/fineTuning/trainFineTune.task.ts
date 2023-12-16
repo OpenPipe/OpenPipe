@@ -6,7 +6,7 @@ import defineTask from "../defineTask";
 import { trainOpenaiFineTune } from "./trainOpenaiFineTune";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
-import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { sql } from "kysely";
@@ -21,23 +21,25 @@ export type TrainFineTuneJob = {
 export const trainFineTune = defineTask<TrainFineTuneJob>({
   id: "trainFineTune",
   handler: async (task) => {
-    const fineTune = await prisma.fineTune.findUnique({
-      where: { id: task.fineTuneId },
-      include: {
-        dataset: {
-          include: {
-            pruningRules: {
-              select: {
-                id: true,
-                textToMatch: true,
-                tokensInText: true,
-                matches: true,
+    const fineTune = await prisma.fineTune
+      .findUnique({
+        where: { id: task.fineTuneId },
+        include: {
+          dataset: {
+            include: {
+              pruningRules: {
+                select: {
+                  id: true,
+                  textToMatch: true,
+                  tokensInText: true,
+                  matches: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      })
+      .then((ft) => (ft ? typedFineTune(ft) : null));
 
     if (!fineTune) return;
 
@@ -78,7 +80,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>({
       ),
     );
 
-    if (fineTune.baseModel === "GPT_3_5_TURBO") {
+    if (fineTune.provider === "openai") {
       await trainOpenaiFineTune(fineTune.id);
     } else {
       await trainModalFineTune(fineTune.id);

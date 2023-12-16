@@ -23,3 +23,15 @@ export const ensureDefaultExport = <T>(module: T) => {
 };
 
 export const getEntries = <T extends object>(obj: T) => Object.entries(obj) as Entries<T>;
+
+export function passThroughNulls<T extends (arg: any) => any>(
+  func: T,
+): ((arg: null) => null) &
+  ((arg: NonNullable<Parameters<T>[0]>) => ReturnType<T>) &
+  ((arg: Parameters<T>[0] | null) => ReturnType<T> | null) {
+  return (arg: Parameters<T>[0] | null) => {
+    if (arg === null) return null;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return func(arg as NonNullable<Parameters<T>[0]>);
+  };
+}

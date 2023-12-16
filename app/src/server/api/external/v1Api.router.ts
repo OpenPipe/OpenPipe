@@ -21,6 +21,7 @@ import {
 } from "~/types/shared.types";
 import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
+import { typedFineTune } from "~/types/dbColumns.types";
 
 const reqValidator = z.object({
   model: z.string(),
@@ -116,7 +117,10 @@ export const v1ApiRouter = createOpenApiRouter({
       if (!fineTune) {
         throw new TRPCError({ message: "The model does not exist", code: "NOT_FOUND" });
       }
-      if (fineTune.projectId !== key.projectId) {
+
+      const typedFT = typedFineTune(fineTune);
+
+      if (typedFT.projectId !== key.projectId) {
         throw new TRPCError({
           message: "The model does not belong to this project",
           code: "FORBIDDEN",
@@ -124,13 +128,11 @@ export const v1ApiRouter = createOpenApiRouter({
       }
 
       try {
-        const completion = await getCompletion2(fineTune, inputPayload);
+        const completion = await getCompletion2(typedFT, inputPayload);
         const inputTokens = completion.usage?.prompt_tokens ?? 0;
         const outputTokens = completion.usage?.completion_tokens ?? 0;
 
-        const base = baseModel.safeParse(fineTune);
-
-        const cost = base.success ? calculateCost(base.data, 0, inputTokens, outputTokens) : 0;
+        const cost = calculateCost(typedFT, 0, inputTokens, outputTokens);
 
         // Don't `await` this to minimize latency
         prisma.usageLog

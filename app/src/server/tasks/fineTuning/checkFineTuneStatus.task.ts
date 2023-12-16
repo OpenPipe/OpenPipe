@@ -6,16 +6,19 @@ import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalyti
 
 // import dayjs duration
 import dayjs from "dayjs";
+import { typedFineTune } from "~/types/dbColumns.types";
 
 export const checkFineTuneStatus = defineTask({
   id: "checkFineTuneStatus",
   handler: async () => {
-    const trainingFineTunes = await prisma.fineTune.findMany({
-      where: {
-        status: { in: ["TRAINING"] },
-        modalTrainingJobId: { not: null },
-      },
-    });
+    const trainingFineTunes = await prisma.fineTune
+      .findMany({
+        where: {
+          status: { in: ["TRAINING"] },
+          provider: "openpipe",
+        },
+      })
+      .then((fts) => fts.map(typedFineTune));
 
     await Promise.all(
       trainingFineTunes.map(async (ft) => {

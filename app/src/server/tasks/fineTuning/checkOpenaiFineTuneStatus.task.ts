@@ -4,25 +4,26 @@ import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { startTestJobs } from "~/server/utils/startTestJobs";
 import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
+import { typedFineTune } from "~/types/dbColumns.types";
 
 const runOnce = async () => {
-  const trainingOpenaiFineTunes = await prisma.fineTune.findMany({
-    where: {
-      status: {
-        in: ["TRAINING"],
+  const trainingOpenaiFineTunes = await prisma.fineTune
+    .findMany({
+      where: {
+        status: {
+          in: ["TRAINING"],
+        },
+        provider: "openai",
       },
-      openaiTrainingJobId: {
-        not: null,
-      },
-    },
-    include: {
-      project: {
-        include: {
-          apiKeys: true,
+      include: {
+        project: {
+          include: {
+            apiKeys: true,
+          },
         },
       },
-    },
-  });
+    })
+    .then((fts) => fts.map(typedFineTune));
 
   await Promise.all(
     trainingOpenaiFineTunes.map(async (fineTune) => {
