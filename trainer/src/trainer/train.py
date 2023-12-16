@@ -1,6 +1,6 @@
 from ..api_client.api.default import get_training_info
 from ..api_client.client import AuthenticatedClient
-from ..shared import model_cache_dir
+from ..shared import merged_model_cache_dir, lora_model_cache_dir
 
 from .write_config import write_config
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 
 
-def do_train(fine_tune_id: str, base_url: str, model_dir: str):
+def do_train(fine_tune_id: str, base_url: str):
     logging.info(f"Beginning training process for model {fine_tune_id}")
 
     training_info_resp = get_training_info.sync_detailed(
@@ -54,9 +54,10 @@ def do_train(fine_tune_id: str, base_url: str, model_dir: str):
     logging.info(f"Samples: {num_lines}, Epochs: {num_epochs}")
 
     config_path = "/tmp/training-config.yaml"
-    lora_model_path = "/tmp/trained-model"
-    merged_model_path = model_cache_dir(training_info.hugging_face_model_id, model_dir)
+    lora_model_path = lora_model_cache_dir(training_info.hugging_face_model_id)
+    merged_model_path = merged_model_cache_dir(training_info.hugging_face_model_id)
 
+    os.makedirs(lora_model_path, exist_ok=True)
     os.makedirs(merged_model_path, exist_ok=True)
 
     # Clear the lora_model_path and merged_model_path directories

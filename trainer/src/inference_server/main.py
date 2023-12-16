@@ -7,7 +7,7 @@ from .api import (
     Usage,
 )
 from typing import Union
-from ..shared import model_cache_dir
+from ..shared import merged_model_cache_dir
 import os
 
 from concurrent.futures import ThreadPoolExecutor
@@ -96,7 +96,7 @@ def read_all_files(directory):
 )
 class Model:
     def __init__(self, huggingface_model_id: str):
-        model_dir = model_cache_dir(huggingface_model_id, "/models")
+        model_dir = merged_model_cache_dir(huggingface_model_id)
         cache_model_weights(huggingface_model_id, model_dir)
 
         logging.info("Preloading model")

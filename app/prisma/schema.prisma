@@ -362,14 +362,6 @@ enum FineTuneStatus {
     ERROR
 }
 
-// enum BaseArch {
-//     MISTRAL_7b
-//     LLAMA2_7b
-//     LLAMA2_13b
-//     // LLAMA2_70b
-//     GPT_3_5_TURBO
-// }
-
 enum FineTuneProvider {
     openpipe
     openai
