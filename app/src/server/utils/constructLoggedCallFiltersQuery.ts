@@ -15,6 +15,7 @@ export const constructLoggedCallFiltersQuery = (
     defaultToSelected: boolean;
     selectedLogIds: string[];
     deselectedLogIds: string[];
+    removeUnsuccessful: boolean;
   },
 ) => {
   const baseQuery = kysely.selectFrom("LoggedCall as lc").where((eb) => {
@@ -97,7 +98,8 @@ export const constructLoggedCallFiltersQuery = (
         eb("lc.id", "in", selectionParams.selectedLogIds),
       );
     }
-    updatedBaseQuery = updatedBaseQuery.where((eb) => eb("lc.statusCode", "=", 200));
+    if (selectionParams.removeUnsuccessful)
+      updatedBaseQuery = updatedBaseQuery.where((eb) => eb("lc.statusCode", "=", 200));
   }
 
   return updatedBaseQuery;
