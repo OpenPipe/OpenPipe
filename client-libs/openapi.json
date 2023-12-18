@@ -1256,10 +1256,6 @@
                     "default": {}
                   }
                 },
-                "required": [
-                  "requestedAt",
-                  "receivedAt"
-                ],
                 "additionalProperties": false
               }
             }
