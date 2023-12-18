@@ -102,9 +102,14 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     if (disclosure.isOpen) {
       setSelectedBaseModel(visibleModels[0]);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
-      setAppliedPruningRuleIds(pruningRules?.map((rule) => rule.id) ?? []);
     }
-  }, [disclosure.isOpen, pruningRules]);
+  }, [disclosure.isOpen]);
+
+  // Avoid resetting unrelated settings when pruning rules update
+  useEffect(
+    () => setAppliedPruningRuleIds(pruningRules?.map((rule) => rule.id) ?? []),
+    [pruningRules],
+  );
 
   const utils = api.useContext();
   const router = useRouter();
@@ -225,7 +230,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 >
                   <HStack>
                     <Text fontWeight="bold">Applied Pruning Rules</Text>{" "}
-                    <InfoCircle tooltipText="Use pruning rules to save tokens when sending inputs to your fine-tuned model." />
+                    <InfoCircle tooltipText="Use pruning rules to reduce the number of input token your fine-tuned model has to process." />
                   </HStack>
 
                   <VStack>
