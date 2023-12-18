@@ -13,6 +13,7 @@ import { sql } from "kysely";
 import { from } from "ix/asynciterable";
 import { filter, map } from "ix/asynciterable/operators";
 import { toNodeStream } from "ix/asynciterable/tonodestream";
+import { insertTrainingDataPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
@@ -24,20 +25,6 @@ export const trainFineTune = defineTask<TrainFineTuneJob>({
     const fineTune = await prisma.fineTune
       .findUnique({
         where: { id: task.fineTuneId },
-        include: {
-          dataset: {
-            include: {
-              pruningRules: {
-                select: {
-                  id: true,
-                  textToMatch: true,
-                  tokensInText: true,
-                  matches: true,
-                },
-              },
-            },
-          },
-        },
       })
       .then((ft) => (ft ? typedFineTune(ft) : null));
 
@@ -63,22 +50,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>({
       .onConflict((oc) => oc.columns(["datasetEntryId", "fineTuneId"]).doNothing())
       .execute();
 
-    await prisma.$transaction(
-      fineTune.dataset.pruningRules.map((rule) =>
-        prisma.pruningRule.create({
-          data: {
-            fineTuneId: fineTune.id,
-            textToMatch: rule.textToMatch,
-            tokensInText: rule.tokensInText,
-            matches: {
-              create: rule.matches.map((match) => ({
-                datasetEntryId: match.datasetEntryId,
-              })),
-            },
-          },
-        }),
-      ),
-    );
+    await insertTrainingDataPruningRuleMatches(fineTune.id);
 
     if (fineTune.provider === "openai") {
       await trainOpenaiFineTune(fineTune.id);

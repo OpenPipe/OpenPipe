@@ -17,6 +17,8 @@ import {
   VStack,
   useDisclosure,
   type UseDisclosureReturn,
+  Collapse,
+  Checkbox,
 } from "@chakra-ui/react";
 import humanId from "human-id";
 import { useSession } from "next-auth/react";
@@ -24,6 +26,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { AiTwotoneThunderbolt } from "react-icons/ai";
+import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 import ActionButton from "~/components/ActionButton";
 import InputDropdown from "~/components/InputDropdown";
@@ -40,9 +43,12 @@ import {
   useDatasetEntries,
   useHandledAsyncCallback,
   useIsMissingBetaAccess,
+  usePruningRules,
   useSelectedProject,
 } from "~/utils/hooks";
 import { getEntries } from "~/utils/utils";
+import InfoCircle from "~/components/InfoCircle";
+import { DATASET_SETTINGS_TAB_KEY } from "../DatasetContentTabs";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -74,12 +80,15 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const datasetEntries = useDatasetEntries().data;
   const selectedProject = useSelectedProject().data;
+  const pruningRules = usePruningRules().data;
 
   const session = useSession();
   const isMissingBetaAccess = useIsMissingBetaAccess();
 
   const [selectedBaseModel, setSelectedBaseModel] = useState<ProviderWithModel>(visibleModels[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [appliedPruningRuleIds, setAppliedPruningRuleIds] = useState<string[]>([]);
 
   const needsMissingOpenaiKey =
     !selectedProject?.condensedOpenAIKey && splitProvider(selectedBaseModel).provider === "openai";
@@ -93,8 +102,9 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     if (disclosure.isOpen) {
       setSelectedBaseModel(visibleModels[0]);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
+      setAppliedPruningRuleIds(pruningRules?.map((rule) => rule.id) ?? []);
     }
-  }, [disclosure.isOpen]);
+  }, [disclosure.isOpen, pruningRules]);
 
   const utils = api.useContext();
   const router = useRouter();
@@ -107,13 +117,14 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       slug: modelSlug,
       baseModel: splitProvider(selectedBaseModel),
       datasetId: dataset.id,
+      pruningRuleIds: appliedPruningRuleIds,
     });
     if (maybeReportError(resp)) return;
 
     await utils.fineTunes.list.invalidate();
     await router.push({ pathname: "/fine-tunes" });
     disclosure.onClose();
-  }, [createFineTuneMutation, modelSlug, selectedBaseModel]);
+  }, [createFineTuneMutation, modelSlug, selectedBaseModel, appliedPruningRuleIds]);
 
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
@@ -189,6 +200,73 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 . You'll receive an email at <b>{email}</b> when you're approved.
               </Text>
             )}
+            <VStack w="full" alignItems="flex-start" spacing={0}>
+              <Button
+                variant="unstyled"
+                color="blue.600"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              >
+                <HStack>
+                  <Text>Advanced Options</Text>
+                  <Icon as={showAdvancedOptions ? FiChevronUp : FiChevronDown} />
+                </HStack>
+              </Button>
+              <Collapse style={{ width: "100%" }} in={showAdvancedOptions} unmountOnExit={true}>
+                <VStack
+                  w="full"
+                  bgColor="orange.50"
+                  border="1px solid"
+                  borderColor="orange.300"
+                  borderRadius={4}
+                  p={4}
+                  alignItems="flex-start"
+                  pt={4}
+                  spacing={4}
+                >
+                  <HStack>
+                    <Text fontWeight="bold">Applied Pruning Rules</Text>{" "}
+                    <InfoCircle tooltipText="Use pruning rules to save tokens when sending inputs to your fine-tuned model." />
+                  </HStack>
+
+                  <VStack>
+                    {pruningRules?.map((rule, i) => (
+                      <Checkbox
+                        key={rule.id}
+                        colorScheme="orange"
+                        isChecked={appliedPruningRuleIds.includes(rule.id)}
+                        onChange={(e) =>
+                          setAppliedPruningRuleIds((ids) =>
+                            e.target.checked
+                              ? [...ids, rule.id]
+                              : ids.filter((id) => id !== rule.id),
+                          )
+                        }
+                      >
+                        <Text>Rule #{i + 1}</Text>
+                      </Checkbox>
+                    ))}
+                  </VStack>
+
+                  <Text>
+                    View available pruning rules or add a new one in your dataset's{" "}
+                    <Button
+                      variant="link"
+                      as={Link}
+                      colorScheme="blue"
+                      href={{
+                        pathname: `/datasets/[id]/[tab]`,
+                        query: { id: dataset?.id ?? "", tab: DATASET_SETTINGS_TAB_KEY },
+                      }}
+                      target="_blank"
+                      _hover={{ textDecor: "underline" }}
+                    >
+                      Settings
+                    </Button>{" "}
+                    tab.
+                  </Text>
+                </VStack>
+              </Collapse>
+            </VStack>
           </VStack>
         </ModalBody>
         <ModalFooter>

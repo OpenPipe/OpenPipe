@@ -126,15 +126,19 @@ export const fineTunesRouter = createTRPCRouter({
         datasetId: z.string(),
         slug: z.string(),
         baseModel: baseModel,
+        pruningRuleIds: z.array(z.string()),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+      const dataset = await prisma.dataset.findUniqueOrThrow({
         where: {
           id: input.datasetId,
         },
+        include: {
+          pruningRules: true,
+        },
       });
-      await requireCanModifyProject(projectId, ctx);
+      await requireCanModifyProject(dataset.projectId, ctx);
 
       if (isComparisonModelName(input.slug)) {
         return error("Fine tune IDs cannot match any base model names");
@@ -150,7 +154,7 @@ export const fineTunesRouter = createTRPCRouter({
 
       const fineTune = await prisma.fineTune.create({
         data: {
-          projectId,
+          projectId: dataset.projectId,
           slug: input.slug,
           provider: input.baseModel.provider,
           baseModel: input.baseModel.baseModel,
@@ -159,6 +163,21 @@ export const fineTunesRouter = createTRPCRouter({
         },
       });
       if (!fineTune) return error("Error creating fine tune");
+
+      // Copy relevant pruning rules from dataset
+      await prisma.$transaction(
+        dataset.pruningRules
+          .filter((rule) => input.pruningRuleIds.includes(rule.id))
+          .map((rule) =>
+            prisma.pruningRule.create({
+              data: {
+                fineTuneId: fineTune.id,
+                textToMatch: rule.textToMatch,
+                tokensInText: rule.tokensInText,
+              },
+            }),
+          ),
+      );
 
       captureFineTuneCreation(
         ctx.session,
