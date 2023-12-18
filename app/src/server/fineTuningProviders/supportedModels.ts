@@ -19,7 +19,7 @@ const sevenBCosts = {
 // Do not remove models from this list if any users still have them in production.
 // Instead, mark them as `trainable: false` so no one else can create new models.
 export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
-  "openpipe:OpenPipe/mistral-ft-optimized-1215": {
+  "openpipe:OpenPipe/mistral-ft-optimized-1218": {
     name: "Mistral 7B Optimized",
     cost: sevenBCosts,
     trainable: true,

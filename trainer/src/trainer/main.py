@@ -11,7 +11,7 @@ def cache_model_weights():
 
     # Images seem to be cached really efficiently on Modal so let's just save
     # all our base model weights to the image to make training faster.
-    snapshot_download("OpenPipe/mistral-ft-optimized-1215")
+    snapshot_download("OpenPipe/mistral-ft-optimized-1218")
     snapshot_download("mistralai/Mistral-7B-v0.1")
     snapshot_download("meta-llama/Llama-2-7b-hf")
     snapshot_download("meta-llama/Llama-2-13b-hf")
@@ -32,7 +32,7 @@ image = (
     )
     .pip_install(
         "httpx==0.24.1",
-        "huggingface-hub==0.17.3",
+        "huggingface-hub==0.19.4",
         "hf-transfer~=0.1",
         "flash-attn==2.3.3",
     )
