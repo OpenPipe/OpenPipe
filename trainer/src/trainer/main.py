@@ -14,7 +14,7 @@ def cache_model_weights():
     snapshot_download("OpenPipe/mistral-ft-optimized-1218")
     snapshot_download("mistralai/Mistral-7B-v0.1")
     snapshot_download("meta-llama/Llama-2-7b-hf")
-    snapshot_download("meta-llama/Llama-2-13b-hf")
+    # snapshot_download("meta-llama/Llama-2-13b-hf")
 
     print("Model weights cached")
 

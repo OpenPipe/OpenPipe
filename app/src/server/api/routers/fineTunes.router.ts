@@ -36,7 +36,6 @@ export const fineTunesRouter = createTRPCRouter({
             "numTrainingEntries",
           ),
         ])
-        .orderBy("d.createdAt", "desc")
         .orderBy("ft.createdAt", "desc")
         .execute();
 
