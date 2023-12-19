@@ -130,6 +130,7 @@ export interface DatasetEvalResult {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   wasFirst: boolean | null;
+  judge: string | null;
 }
 
 export interface DatasetFileUpload {
@@ -150,9 +151,7 @@ export interface DatasetFileUpload {
 export interface FineTune {
   id: string;
   slug: string;
-  status: Generated<
-    "DEPLOYED" | "ERROR" | "PENDING" | "STARTED" | "TRAINING" | "TRANSFERRING_TRAINING_DATA"
-  >;
+  status: Generated<"DEPLOYED" | "ERROR" | "PENDING" | "STARTED" | "TRAINING" | "TRANSFERRING_TRAINING_DATA">;
   trainingStartedAt: Timestamp | null;
   trainingFinishedAt: Timestamp | null;
   deploymentStartedAt: Timestamp | null;

@@ -186,8 +186,10 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
       let args;
 
+      let input: ChatCompletionCreateParams | null = null;
+
       try {
-        const input = constructJudgementInput(
+        input = constructJudgementInput(
           firstResult.datasetEvalDatasetEntry.datasetEntry,
           firstEntry.output as JsonObject,
           secondEntry.output as JsonObject,
@@ -220,6 +222,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           data: {
             status: "ERROR",
             errorMessage: "Error getting judgement",
+            judge: input?.model,
           },
         });
         throw e;
@@ -255,6 +258,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           explanation,
           score: score1,
           wasFirst: true,
+          judge: input?.model,
         },
       });
 
@@ -265,6 +269,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           explanation,
           score: score2,
           wasFirst: false,
+          judge: input?.model,
         },
       });
     } catch (e) {
