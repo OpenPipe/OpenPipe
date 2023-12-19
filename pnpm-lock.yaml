@@ -379,6 +379,12 @@ importers:
         specifier: ^2.3.1
         version: 2.3.1
 
+  client-libs:
+    dependencies:
+      fern-api:
+        specifier: ^0.16.11
+        version: 0.16.11
+
   client-libs/typescript:
     dependencies:
       encoding:
@@ -5686,6 +5692,11 @@ packages:
       format: 0.2.2
     dev: false
 
+  /fern-api@0.16.11:
+    resolution: {integrity: sha512-ywou4syfqD23z9BEz15HnUYdxLvj9bAfICRLv+Jxqt/kPonZe7ix1t0ZN2xEbnzdum+vhV51rbdiI5ufNuYk/Q==}
+    hasBin: true
+    dev: false
+
   /fflate@0.4.8:
     resolution: {integrity: sha512-FJqqoDBR00Mdj9ppamLa/Y7vxm+PRmNWA67N846RvsoYVMKB4q3y/de5PA7gUmRMYK/8CMz2GDZQmCRN1wBcWA==}
     dev: false
@@ -6647,7 +6658,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 18.18.8
+      '@types/node': 20.4.10
       merge-stream: 2.0.0
       supports-color: 8.1.1
 

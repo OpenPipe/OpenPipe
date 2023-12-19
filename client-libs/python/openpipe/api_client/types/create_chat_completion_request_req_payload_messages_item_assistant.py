@@ -21,7 +21,7 @@ except ImportError:
 
 
 class CreateChatCompletionRequestReqPayloadMessagesItemAssistant(pydantic.BaseModel):
-    content: CreateChatCompletionRequestReqPayloadMessagesItemAssistantContent
+    content: typing.Optional[CreateChatCompletionRequestReqPayloadMessagesItemAssistantContent]
     function_call: typing.Optional[CreateChatCompletionRequestReqPayloadMessagesItemAssistantFunctionCall]
     tool_calls: typing.Optional[typing.List[CreateChatCompletionRequestReqPayloadMessagesItemAssistantToolCallsItem]]
 

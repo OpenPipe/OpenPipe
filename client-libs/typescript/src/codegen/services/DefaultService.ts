@@ -189,6 +189,9 @@ export class DefaultService {
             max_tokens?: number | null;
             temperature?: number | null;
             stream?: boolean | null;
+            response_format?: {
+                type?: ('text' | 'json_object');
+            };
         },
     ): CancelablePromise<{
         id: string;

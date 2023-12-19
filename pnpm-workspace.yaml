@@ -1,3 +1,4 @@
 packages:
   - app
   - client-libs/typescript
+  - client-libs

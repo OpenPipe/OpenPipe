@@ -46,9 +46,11 @@ def test_sync_content():
     )
 
 
+@pytest.mark.focus
 def test_sync_content_ft():
     completion = client.chat.completions.create(
         model="openpipe:test-content-ft",
+        response_format={"type": "json_object"},
         messages=[{"role": "system", "content": "count to 3"}],
         openpipe={"tags": {"promptId": "test_sync_content_ft"}},
     )
@@ -272,7 +274,6 @@ def test_bad_openai_call():
     assert last_logged.status_code == 404
 
 
-@pytest.mark.focus
 def test_bad_openpipe_call():
     try:
         client.chat.completions.create(

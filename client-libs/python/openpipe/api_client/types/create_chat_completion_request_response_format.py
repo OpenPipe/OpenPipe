@@ -4,15 +4,7 @@ import datetime as dt
 import typing
 
 from ..core.datetime_utils import serialize_datetime
-from .create_chat_completion_request_messages_item_assistant_content import (
-    CreateChatCompletionRequestMessagesItemAssistantContent,
-)
-from .create_chat_completion_request_messages_item_assistant_function_call import (
-    CreateChatCompletionRequestMessagesItemAssistantFunctionCall,
-)
-from .create_chat_completion_request_messages_item_assistant_tool_calls_item import (
-    CreateChatCompletionRequestMessagesItemAssistantToolCallsItem,
-)
+from .create_chat_completion_request_response_format_type import CreateChatCompletionRequestResponseFormatType
 
 try:
     import pydantic.v1 as pydantic  # type: ignore
@@ -20,10 +12,8 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class CreateChatCompletionRequestMessagesItemAssistant(pydantic.BaseModel):
-    content: typing.Optional[CreateChatCompletionRequestMessagesItemAssistantContent]
-    function_call: typing.Optional[CreateChatCompletionRequestMessagesItemAssistantFunctionCall]
-    tool_calls: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItemAssistantToolCallsItem]]
+class CreateChatCompletionRequestResponseFormat(pydantic.BaseModel):
+    type: typing.Optional[CreateChatCompletionRequestResponseFormatType]
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
