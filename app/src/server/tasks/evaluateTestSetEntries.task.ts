@@ -16,6 +16,7 @@ import { isEqual, shuffle } from "lodash-es";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { truthyFilter } from "~/utils/utils";
 import { calculateQueryDelay } from "./generateTestSetEntry.task";
+import { countOpenAIChatTokens } from "~/utils/countTokens";
 
 type EvalKey = {
   datasetEvalDatasetEntryId: string;
@@ -355,6 +356,12 @@ const constructJudgementInput = (
       role: "user",
       content: `Remember to pay attention to the user's instructions: ${instructions}`,
     });
+  }
+
+  const approximateTokens = countOpenAIChatTokens("gpt-4-0613", input.messages);
+
+  if (approximateTokens > 7168) {
+    input.model = "gpt-4-1106-preview";
   }
 
   return input;
