@@ -147,6 +147,8 @@ from .create_chat_completion_request_req_payload_tools_item import CreateChatCom
 from .create_chat_completion_request_req_payload_tools_item_function import (
     CreateChatCompletionRequestReqPayloadToolsItemFunction,
 )
+from .create_chat_completion_request_response_format import CreateChatCompletionRequestResponseFormat
+from .create_chat_completion_request_response_format_type import CreateChatCompletionRequestResponseFormatType
 from .create_chat_completion_request_tool_choice import CreateChatCompletionRequestToolChoice
 from .create_chat_completion_request_tool_choice_function import CreateChatCompletionRequestToolChoiceFunction
 from .create_chat_completion_request_tool_choice_function_function import (
@@ -245,6 +247,8 @@ __all__ = [
     "CreateChatCompletionRequestReqPayloadToolChoiceFunctionFunction",
     "CreateChatCompletionRequestReqPayloadToolsItem",
     "CreateChatCompletionRequestReqPayloadToolsItemFunction",
+    "CreateChatCompletionRequestResponseFormat",
+    "CreateChatCompletionRequestResponseFormatType",
     "CreateChatCompletionRequestToolChoice",
     "CreateChatCompletionRequestToolChoiceFunction",
     "CreateChatCompletionRequestToolChoiceFunctionFunction",
