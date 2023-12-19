@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { sql } from "kysely";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -102,16 +103,20 @@ export const fineTunesRouter = createTRPCRouter({
         .leftJoin("Dataset as d", "ft.datasetId", "d.id")
         .select("d.name as datasetName")
         .selectAll("ft")
-        .select(() => [
+        .select((eb) => [
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
           sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "split" = 'TEST' and not outdated)::int`.as(
             "numTestingEntries",
           ),
-          sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
-            "numPruningRules",
-          ),
+          jsonArrayFrom(
+            eb
+              .selectFrom("PruningRule")
+              .select(["id", "textToMatch", "tokensInText"])
+              .whereRef("fineTuneId", "=", "ft.id")
+              .orderBy("createdAt", "asc"),
+          ).as("pruningRules"),
         ])
         .executeTakeFirst();
 
