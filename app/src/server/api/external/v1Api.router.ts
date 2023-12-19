@@ -100,7 +100,7 @@ export const v1ApiRouter = createOpenApiRouter({
         stream: z.boolean().nullable().optional(),
         response_format: z
           .object({
-            type: z.union([z.literal("text"), z.literal("json_object")]),
+            type: z.union([z.literal("text"), z.literal("json_object")]).optional(),
           })
           .optional(),
       }),
