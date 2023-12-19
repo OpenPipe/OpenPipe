@@ -534,6 +534,7 @@ model DatasetEvalResult {
     explanation  String?
     errorMessage String?
     status       DatasetEvalResultStatus @default(PENDING)
+    judge        String?
 
     // For comparative evaluations, whether this was the first option presented
     // to the judge

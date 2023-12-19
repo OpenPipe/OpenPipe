@@ -130,6 +130,7 @@ export interface DatasetEvalResult {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   wasFirst: boolean | null;
+  judge: string | null;
 }
 
 export interface DatasetFileUpload {
