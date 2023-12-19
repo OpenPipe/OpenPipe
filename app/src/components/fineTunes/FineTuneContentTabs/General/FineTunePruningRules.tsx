@@ -23,8 +23,9 @@ const FineTunePruningRules = () => {
               <Text as="span" fontWeight="bold">
                 {fineTune.datasetName}
               </Text>{" "}
-              dataset will not affect this model. The rule numbers provided below are specific to
-              this model, and are not guaranteed to match pruning rule numbers in the dataset view.
+              dataset will not affect <Text as="b">openpipe:{fineTune.slug}</Text>. The rule numbers
+              provided below are specific to this model, and may not match pruning rule numbers in
+              the dataset view.
             </Text>
             {pruningRules.map((rule, index) => (
               <VStack alignItems="flex-start" w="full" key={index}>

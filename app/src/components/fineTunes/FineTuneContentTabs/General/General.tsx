@@ -25,8 +25,8 @@ const General = () => {
   if (!fineTune) return null;
 
   return (
-    <VStack w="full" h="full" justifyContent="space-between" pb={12}>
-      <VStack w="full" alignItems="flex-start" spacing={4}>
+    <VStack w="full" h="full">
+      <VStack w="full" alignItems="flex-start" spacing={4} pb={12}>
         <ContentCard>
           <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
             <Heading size="md" pb={4}>
