@@ -27,6 +27,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { AiTwotoneThunderbolt } from "react-icons/ai";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
+import { type PruningRule } from "@prisma/client";
 
 import ActionButton from "~/components/ActionButton";
 import InputDropdown from "~/components/InputDropdown";
@@ -219,9 +220,9 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
               <Collapse style={{ width: "100%" }} in={showAdvancedOptions} unmountOnExit={true}>
                 <VStack
                   w="full"
-                  bgColor="orange.50"
+                  bgColor="gray.50"
                   border="1px solid"
-                  borderColor="orange.300"
+                  borderColor="gray.300"
                   borderRadius={4}
                   p={4}
                   alignItems="flex-start"
@@ -230,25 +231,24 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 >
                   <HStack>
                     <Text fontWeight="bold">Applied Pruning Rules</Text>{" "}
-                    <InfoCircle tooltipText="Use pruning rules to reduce the number of input token your fine-tuned model has to process." />
+                    <InfoCircle tooltipText="Use pruning rules to reduce the number of input tokens your fine-tuned model has to process." />
                   </HStack>
 
-                  <VStack>
+                  <VStack w="full" alignItems="flex-start">
                     {pruningRules?.map((rule, i) => (
-                      <Checkbox
+                      <PruningRuleOption
                         key={rule.id}
-                        colorScheme="orange"
-                        isChecked={appliedPruningRuleIds.includes(rule.id)}
-                        onChange={(e) =>
+                        index={i}
+                        rule={rule}
+                        selected={appliedPruningRuleIds.includes(rule.id)}
+                        toggleSelected={() =>
                           setAppliedPruningRuleIds((ids) =>
-                            e.target.checked
-                              ? [...ids, rule.id]
-                              : ids.filter((id) => id !== rule.id),
+                            appliedPruningRuleIds.includes(rule.id)
+                              ? ids.filter((id) => id !== rule.id)
+                              : [...ids, rule.id],
                           )
                         }
-                      >
-                        <Text>Rule #{i + 1}</Text>
-                      </Checkbox>
+                      />
                     ))}
                   </VStack>
 
@@ -292,5 +292,46 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         </ModalFooter>
       </ModalContent>
     </Modal>
+  );
+};
+
+const PruningRuleOption = ({
+  index,
+  rule,
+  selected,
+  toggleSelected,
+}: {
+  index: number;
+  rule: Pick<PruningRule, "textToMatch">;
+  selected: boolean;
+  toggleSelected: () => void;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <VStack w="full" alignItems="flex-start" spacing={0}>
+      <HStack w="full" spacing={8}>
+        <Checkbox colorScheme="blue" isChecked={selected} onChange={toggleSelected}>
+          <Text>Rule #{index + 1}</Text>
+        </Checkbox>
+        <Button variant="unstyled" onClick={() => setExpanded(!expanded)}>
+          <HStack>
+            <Text>{expanded ? "Hide" : "Show"}</Text>
+            <Icon as={expanded ? FiChevronUp : FiChevronDown} />
+          </HStack>
+        </Button>
+      </HStack>
+      <Collapse style={{ width: "100%" }} in={expanded} unmountOnExit={true}>
+        <HStack
+          p={2}
+          bgColor="gray.100"
+          borderWidth={1}
+          borderRadius={4}
+          borderColor="gray.300"
+          w="full"
+        >
+          <Text as="i">"{rule.textToMatch}"</Text>
+        </HStack>
+      </Collapse>
+    </VStack>
   );
 };
