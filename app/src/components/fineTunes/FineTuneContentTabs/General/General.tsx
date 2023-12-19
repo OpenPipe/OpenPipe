@@ -8,6 +8,7 @@ import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import FineTunePruningRules from "./FineTunePruningRules";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -24,8 +25,8 @@ const General = () => {
   if (!fineTune) return null;
 
   return (
-    <VStack w="full" h="full" justifyContent="space-between" pb={12}>
-      <VStack w="full" alignItems="flex-start" spacing={4}>
+    <VStack w="full" h="full">
+      <VStack w="full" alignItems="flex-start" spacing={4} pb={12}>
         <ContentCard>
           <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
             <Heading size="md" pb={4}>
@@ -59,10 +60,6 @@ const General = () => {
               )}
             </HStack>
             <HStack>
-              <Text w={180}>Pruning Rules</Text>
-              <Text color="gray.500">{fineTune.numPruningRules}</Text>
-            </HStack>
-            <HStack>
               <Text w={180}>Created At</Text>
               <Text color="gray.500">{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Text>
             </HStack>
@@ -84,6 +81,7 @@ const General = () => {
             </HStack>
           </VStack>
         </ContentCard>
+        <FineTunePruningRules />
         <FineTuneDangerZone />
       </VStack>
     </VStack>
