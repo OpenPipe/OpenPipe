@@ -1025,9 +1025,6 @@
                         ]
                       }
                     },
-                    "required": [
-                      "type"
-                    ],
                     "additionalProperties": false
                   }
                 },

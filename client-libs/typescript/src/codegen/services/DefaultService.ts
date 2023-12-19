@@ -190,7 +190,7 @@ export class DefaultService {
             temperature?: number | null;
             stream?: boolean | null;
             response_format?: {
-                type: ('text' | 'json_object');
+                type?: ('text' | 'json_object');
             };
         },
     ): CancelablePromise<{
