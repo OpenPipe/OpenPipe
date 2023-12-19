@@ -29,7 +29,7 @@ export type EvaluateTestSetEntriesJob = EvalKey & {
   numPreviousTries?: number;
 };
 
-const MAX_TRIES = 25;
+const MAX_TRIES = 50;
 
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
