@@ -6,6 +6,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
+import { copyPruningRulesForFineTune } from "~/server/utils/updatePruningRuleMatches";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
@@ -126,15 +127,19 @@ export const fineTunesRouter = createTRPCRouter({
         datasetId: z.string(),
         slug: z.string(),
         baseModel: baseModel,
+        pruningRuleIds: z.array(z.string()),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+      const dataset = await prisma.dataset.findUniqueOrThrow({
         where: {
           id: input.datasetId,
         },
+        include: {
+          pruningRules: true,
+        },
       });
-      await requireCanModifyProject(projectId, ctx);
+      await requireCanModifyProject(dataset.projectId, ctx);
 
       if (isComparisonModelName(input.slug)) {
         return error("Fine tune IDs cannot match any base model names");
@@ -150,7 +155,7 @@ export const fineTunesRouter = createTRPCRouter({
 
       const fineTune = await prisma.fineTune.create({
         data: {
-          projectId,
+          projectId: dataset.projectId,
           slug: input.slug,
           provider: input.baseModel.provider,
           baseModel: input.baseModel.baseModel,
@@ -159,6 +164,8 @@ export const fineTunesRouter = createTRPCRouter({
         },
       });
       if (!fineTune) return error("Error creating fine tune");
+
+      await copyPruningRulesForFineTune(fineTune.id, input.pruningRuleIds);
 
       captureFineTuneCreation(
         ctx.session,

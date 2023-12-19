@@ -71,7 +71,7 @@ export class DefaultService {
                     })> | 'null' | null);
                 } | {
                     role: 'assistant';
-                    content: (string | 'null' | null);
+                    content?: (string | 'null' | null);
                     function_call?: {
                         name: string;
                         arguments: string;
@@ -141,7 +141,7 @@ export class DefaultService {
                 })> | 'null' | null);
             } | {
                 role: 'assistant';
-                content: (string | 'null' | null);
+                content?: (string | 'null' | null);
                 function_call?: {
                     name: string;
                     arguments: string;
@@ -200,7 +200,7 @@ export class DefaultService {
             index: number;
             message: {
                 role: 'assistant';
-                content: (string | 'null' | null);
+                content?: (string | 'null' | null);
                 function_call?: {
                     name: string;
                     arguments: string;
