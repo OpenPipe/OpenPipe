@@ -174,6 +174,7 @@ export const fineTunesRouter = createTRPCRouter({
                 fineTuneId: fineTune.id,
                 textToMatch: rule.textToMatch,
                 tokensInText: rule.tokensInText,
+                createdAt: rule.createdAt,
               },
             }),
           ),
