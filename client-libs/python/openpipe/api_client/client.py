@@ -15,6 +15,7 @@ from .types.create_chat_completion_request_function_call import CreateChatComple
 from .types.create_chat_completion_request_functions_item import CreateChatCompletionRequestFunctionsItem
 from .types.create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
 from .types.create_chat_completion_request_req_payload import CreateChatCompletionRequestReqPayload
+from .types.create_chat_completion_request_response_format import CreateChatCompletionRequestResponseFormat
 from .types.create_chat_completion_request_tool_choice import CreateChatCompletionRequestToolChoice
 from .types.create_chat_completion_request_tools_item import CreateChatCompletionRequestToolsItem
 from .types.create_chat_completion_response import CreateChatCompletionResponse
@@ -97,6 +98,7 @@ class OpenPipeApi:
         max_tokens: typing.Optional[float] = OMIT,
         temperature: typing.Optional[float] = OMIT,
         stream: typing.Optional[bool] = OMIT,
+        response_format: typing.Optional[CreateChatCompletionRequestResponseFormat] = OMIT,
     ) -> CreateChatCompletionResponse:
         """
         Create completion for a prompt
@@ -123,6 +125,8 @@ class OpenPipeApi:
             - temperature: typing.Optional[float].
 
             - stream: typing.Optional[bool].
+
+            - response_format: typing.Optional[CreateChatCompletionRequestResponseFormat].
         """
         _request: typing.Dict[str, typing.Any] = {}
         if req_payload is not OMIT:
@@ -147,6 +151,8 @@ class OpenPipeApi:
             _request["temperature"] = temperature
         if stream is not OMIT:
             _request["stream"] = stream
+        if response_format is not OMIT:
+            _request["response_format"] = response_format
         _response = self._client_wrapper.httpx_client.request(
             "POST",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "chat/completions"),
@@ -165,8 +171,8 @@ class OpenPipeApi:
     def report(
         self,
         *,
-        requested_at: float,
-        received_at: float,
+        requested_at: typing.Optional[float] = OMIT,
+        received_at: typing.Optional[float] = OMIT,
         req_payload: typing.Optional[typing.Any] = OMIT,
         resp_payload: typing.Optional[typing.Any] = OMIT,
         status_code: typing.Optional[float] = OMIT,
@@ -177,9 +183,9 @@ class OpenPipeApi:
         Report an API call
 
         Parameters:
-            - requested_at: float. Unix timestamp in milliseconds
+            - requested_at: typing.Optional[float]. Unix timestamp in milliseconds
 
-            - received_at: float. Unix timestamp in milliseconds
+            - received_at: typing.Optional[float]. Unix timestamp in milliseconds
 
             - req_payload: typing.Optional[typing.Any].
 
@@ -190,8 +196,19 @@ class OpenPipeApi:
             - error_message: typing.Optional[str]. User-friendly error message
 
             - tags: typing.Optional[typing.Dict[str, str]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+        ---
+        from OpenPipe.client import OpenPipeApi
+
+        client = OpenPipeApi(
+            token="YOUR_TOKEN",
+        )
+        client.report()
         """
-        _request: typing.Dict[str, typing.Any] = {"requestedAt": requested_at, "receivedAt": received_at}
+        _request: typing.Dict[str, typing.Any] = {}
+        if requested_at is not OMIT:
+            _request["requestedAt"] = requested_at
+        if received_at is not OMIT:
+            _request["receivedAt"] = received_at
         if req_payload is not OMIT:
             _request["reqPayload"] = req_payload
         if resp_payload is not OMIT:
@@ -305,6 +322,7 @@ class AsyncOpenPipeApi:
         max_tokens: typing.Optional[float] = OMIT,
         temperature: typing.Optional[float] = OMIT,
         stream: typing.Optional[bool] = OMIT,
+        response_format: typing.Optional[CreateChatCompletionRequestResponseFormat] = OMIT,
     ) -> CreateChatCompletionResponse:
         """
         Create completion for a prompt
@@ -331,6 +349,8 @@ class AsyncOpenPipeApi:
             - temperature: typing.Optional[float].
 
             - stream: typing.Optional[bool].
+
+            - response_format: typing.Optional[CreateChatCompletionRequestResponseFormat].
         """
         _request: typing.Dict[str, typing.Any] = {}
         if req_payload is not OMIT:
@@ -355,6 +375,8 @@ class AsyncOpenPipeApi:
             _request["temperature"] = temperature
         if stream is not OMIT:
             _request["stream"] = stream
+        if response_format is not OMIT:
+            _request["response_format"] = response_format
         _response = await self._client_wrapper.httpx_client.request(
             "POST",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "chat/completions"),
@@ -373,8 +395,8 @@ class AsyncOpenPipeApi:
     async def report(
         self,
         *,
-        requested_at: float,
-        received_at: float,
+        requested_at: typing.Optional[float] = OMIT,
+        received_at: typing.Optional[float] = OMIT,
         req_payload: typing.Optional[typing.Any] = OMIT,
         resp_payload: typing.Optional[typing.Any] = OMIT,
         status_code: typing.Optional[float] = OMIT,
@@ -385,9 +407,9 @@ class AsyncOpenPipeApi:
         Report an API call
 
         Parameters:
-            - requested_at: float. Unix timestamp in milliseconds
+            - requested_at: typing.Optional[float]. Unix timestamp in milliseconds
 
-            - received_at: float. Unix timestamp in milliseconds
+            - received_at: typing.Optional[float]. Unix timestamp in milliseconds
 
             - req_payload: typing.Optional[typing.Any].
 
@@ -398,8 +420,19 @@ class AsyncOpenPipeApi:
             - error_message: typing.Optional[str]. User-friendly error message
 
             - tags: typing.Optional[typing.Dict[str, str]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+        ---
+        from OpenPipe.client import AsyncOpenPipeApi
+
+        client = AsyncOpenPipeApi(
+            token="YOUR_TOKEN",
+        )
+        await client.report()
         """
-        _request: typing.Dict[str, typing.Any] = {"requestedAt": requested_at, "receivedAt": received_at}
+        _request: typing.Dict[str, typing.Any] = {}
+        if requested_at is not OMIT:
+            _request["requestedAt"] = requested_at
+        if received_at is not OMIT:
+            _request["receivedAt"] = received_at
         if req_payload is not OMIT:
             _request["reqPayload"] = req_payload
         if resp_payload is not OMIT:

@@ -98,6 +98,11 @@ export const v1ApiRouter = createOpenApiRouter({
         max_tokens: z.number().nullable().optional(),
         temperature: z.number().nullable().optional(),
         stream: z.boolean().nullable().optional(),
+        response_format: z
+          .object({
+            type: z.union([z.literal("text"), z.literal("json_object")]),
+          })
+          .optional(),
       }),
     )
     .output(chatCompletionOutput)

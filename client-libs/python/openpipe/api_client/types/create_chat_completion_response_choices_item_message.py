@@ -24,7 +24,7 @@ except ImportError:
 
 class CreateChatCompletionResponseChoicesItemMessage(pydantic.BaseModel):
     role: typing_extensions.Literal["assistant"]
-    content: CreateChatCompletionResponseChoicesItemMessageContent
+    content: typing.Optional[CreateChatCompletionResponseChoicesItemMessageContent]
     function_call: typing.Optional[CreateChatCompletionResponseChoicesItemMessageFunctionCall]
     tool_calls: typing.Optional[typing.List[CreateChatCompletionResponseChoicesItemMessageToolCallsItem]]
 

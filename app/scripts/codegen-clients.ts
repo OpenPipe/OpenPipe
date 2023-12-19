@@ -27,6 +27,10 @@ await generate({
   clientName: "OPClient",
   httpClient: "node",
 });
+
+execSync(`cp ${schemaPath} ${clientLibsPath}/fern/openapi/openapi.json`);
+
+execSync;
 // execSync(
 //   `pnpm run openapi generate --input "${schemaPath}" --output "${tsClientPath}" --name OPClient --client node`,
 //   {
@@ -36,6 +40,6 @@ await generate({
 
 console.log("Generating Python client");
 
-execSync(`cd ${clientLibsPath} && npx fern generate`);
+execSync(`cd ${clientLibsPath} && pnpm fern generate`);
 
 console.log("Done!");
