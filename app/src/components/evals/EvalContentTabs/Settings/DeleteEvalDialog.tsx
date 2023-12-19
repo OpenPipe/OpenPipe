@@ -11,11 +11,13 @@ import {
   Text,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 
 import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
 import { useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 
 const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -27,6 +29,8 @@ const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) =
 
   const utils = api.useContext();
 
+  const router = useRouter();
+
   const [onDeleteConfirm, deleteInProgress] = useHandledAsyncCallback(async () => {
     if (!selectedProjectId || !datasetEval?.id) return;
     const resp = await deleteMutation.mutateAsync({ id: datasetEval.id });
@@ -37,6 +41,11 @@ const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) =
     disclosure.onClose();
 
     await utils.datasetEvals.list.invalidate({ projectId: selectedProjectId });
+
+    await router.push({
+      pathname: "/datasets/[id]/[tab]",
+      query: { id: datasetEval.datasetId, tab: DATASET_EVALUATION_TAB_KEY },
+    });
   }, [deleteMutation, selectedProjectId, datasetEval?.id, disclosure.onClose]);
 
   if (!datasetEval) return null;

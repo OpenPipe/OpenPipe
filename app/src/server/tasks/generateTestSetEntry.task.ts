@@ -31,7 +31,7 @@ export type GenerateTestSetEntryJob = {
 const MAX_TRIES = 25;
 
 const MIN_DELAY = 500; // milliseconds
-const MAX_DELAY = 15000; // milliseconds
+const MAX_DELAY = 30000; // milliseconds
 
 export function calculateQueryDelay(numPreviousTries: number): number {
   const baseDelay = Math.min(MAX_DELAY, MIN_DELAY * Math.pow(2, numPreviousTries));
