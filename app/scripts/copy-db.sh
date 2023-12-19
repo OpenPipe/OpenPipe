@@ -58,16 +58,7 @@ create_db() {
 
 run_update_sql_on_temp_db() {
     report_progress "Running SQL update on temporary database..."
-    # Account for some logged calls that were not properly copied over
-    psql -d "$TEMP_DB_NAME" -c 'DELETE FROM "DatasetEntry"
-                WHERE "loggedCallId" IS NOT NULL 
-                AND NOT EXISTS (
-                    SELECT 1 
-                    FROM "LoggedCall" 
-                    WHERE "LoggedCall"."id" = "DatasetEntry"."loggedCallId"
-                );'
-    psql -d "$TEMP_DB_NAME" -c 'ALTER TABLE ONLY public."DatasetEntry"
-                ADD CONSTRAINT "DatasetEntry_loggedCallId_fkey" FOREIGN KEY ("loggedCallId") REFERENCES public."LoggedCall"(id) ON UPDATE CASCADE ON DELETE CASCADE;'
+    psql -d "$TEMP_DB_NAME" -c 'update "DatasetEntry" set "loggedCallId" = null;'
 }
 
 if [[ "$@" == *"--force-dump"* ]]; then
