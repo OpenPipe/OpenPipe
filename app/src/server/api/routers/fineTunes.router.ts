@@ -6,6 +6,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
+import { copyPruningRulesForFineTune } from "~/server/utils/updatePruningRuleMatches";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
@@ -164,21 +165,7 @@ export const fineTunesRouter = createTRPCRouter({
       });
       if (!fineTune) return error("Error creating fine tune");
 
-      // Copy relevant pruning rules from dataset
-      await prisma.$transaction(
-        dataset.pruningRules
-          .filter((rule) => input.pruningRuleIds.includes(rule.id))
-          .map((rule) =>
-            prisma.pruningRule.create({
-              data: {
-                fineTuneId: fineTune.id,
-                textToMatch: rule.textToMatch,
-                tokensInText: rule.tokensInText,
-                createdAt: rule.createdAt,
-              },
-            }),
-          ),
-      );
+      await copyPruningRulesForFineTune(fineTune.id, input.pruningRuleIds);
 
       captureFineTuneCreation(
         ctx.session,

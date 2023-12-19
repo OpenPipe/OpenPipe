@@ -77,6 +77,36 @@ export const updatePruningRuleMatches = async (
   }
 };
 
+export const copyPruningRulesForFineTune = async (fineTuneId: string, pruningRuleIds: string[]) => {
+  const fineTune = await prisma.fineTune.findUniqueOrThrow({
+    where: {
+      id: fineTuneId,
+    },
+    include: {
+      dataset: {
+        include: {
+          pruningRules: true,
+        },
+      },
+    },
+  });
+  // Copy relevant pruning rules from dataset
+  await prisma.$transaction(
+    fineTune.dataset.pruningRules
+      .filter((rule) => pruningRuleIds.includes(rule.id))
+      .map((rule) =>
+        prisma.pruningRule.create({
+          data: {
+            fineTuneId: fineTune.id,
+            textToMatch: rule.textToMatch,
+            tokensInText: rule.tokensInText,
+            createdAt: rule.createdAt,
+          },
+        }),
+      ),
+  );
+};
+
 export const insertTrainingDataPruningRuleMatches = async (fineTuneId: string) => {
   const pruningRules = await prisma.pruningRule.findMany({
     where: {

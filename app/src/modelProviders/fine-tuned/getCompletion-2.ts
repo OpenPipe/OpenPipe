@@ -16,7 +16,7 @@ import {
   convertToolCallInputToFunctionInput,
   convertToolCallMessageToFunction,
 } from "~/server/utils/convertFunctionCalls";
-import { TypedFineTune } from "~/types/dbColumns.types";
+import { type TypedFineTune } from "~/types/dbColumns.types";
 
 export async function getCompletion2(
   fineTune: TypedFineTune,
