@@ -6,6 +6,7 @@ import "./src/dns";
 export * from "./src/metrics";
 export { dbConnectionString } from "./src/database";
 export { deployAccessKeyId, deployAccessKeySecret } from "./src/deployUser";
+export * from "./src/vanta";
 
 export const kubeconfig = cluster.kubeconfig;
 export const vpcId = vpc.vpcId;
