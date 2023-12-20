@@ -36,6 +36,7 @@ declare module "nextjs-routes" {
     | StaticRoute<"/project/settings">
     | StaticRoute<"/request-logs">
     | StaticRoute<"/sentry-example-page">
+    | StaticRoute<"/swagger">
     | StaticRoute<"/usage">;
 
   interface StaticRoute<Pathname> {

@@ -8,7 +8,7 @@ import { generate } from "openapi-typescript-codegen";
 const scriptPath = import.meta.url.replace("file://", "");
 const clientLibsPath = path.join(path.dirname(scriptPath), "../../client-libs");
 
-const schemaPath = path.join(clientLibsPath, "openapi.json");
+const schemaPath = path.join(path.dirname(scriptPath), "../openapi.json");
 
 console.log(`Exporting public OpenAPI schema to ${schemaPath}`);
 
