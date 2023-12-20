@@ -1040,193 +1040,187 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "anyOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "object": {
-                          "type": "string",
-                          "enum": [
-                            "chat.completion"
-                          ]
-                        },
-                        "created": {
-                          "type": "number"
-                        },
-                        "model": {
-                          "type": "string"
-                        },
-                        "choices": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "finish_reason": {
-                                "anyOf": [
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "length"
-                                    ]
-                                  },
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "function_call"
-                                    ]
-                                  },
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "tool_calls"
-                                    ]
-                                  },
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "stop"
-                                    ]
-                                  },
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "content_filter"
-                                    ]
-                                  }
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "object": {
+                      "type": "string",
+                      "enum": [
+                        "chat.completion"
+                      ]
+                    },
+                    "created": {
+                      "type": "number"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "choices": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "finish_reason": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "length"
                                 ]
                               },
-                              "index": {
-                                "type": "number"
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "function_call"
+                                ]
                               },
-                              "message": {
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "tool_calls"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "stop"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "content_filter"
+                                ]
+                              }
+                            ]
+                          },
+                          "index": {
+                            "type": "number"
+                          },
+                          "message": {
+                            "type": "object",
+                            "properties": {
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "assistant"
+                                ]
+                              },
+                              "content": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "null"
+                                    ],
+                                    "nullable": true
+                                  }
+                                ],
+                                "default": null
+                              },
+                              "function_call": {
                                 "type": "object",
                                 "properties": {
-                                  "role": {
-                                    "type": "string",
-                                    "enum": [
-                                      "assistant"
-                                    ]
+                                  "name": {
+                                    "type": "string"
                                   },
-                                  "content": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "enum": [
-                                          "null"
-                                        ],
-                                        "nullable": true
-                                      }
-                                    ],
-                                    "default": null
-                                  },
-                                  "function_call": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string"
-                                      },
-                                      "arguments": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "name",
-                                      "arguments"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  "tool_calls": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string"
-                                        },
-                                        "function": {
-                                          "type": "object",
-                                          "properties": {
-                                            "name": {
-                                              "type": "string"
-                                            },
-                                            "arguments": {
-                                              "type": "string"
-                                            }
-                                          },
-                                          "required": [
-                                            "name",
-                                            "arguments"
-                                          ],
-                                          "additionalProperties": false
-                                        },
-                                        "type": {
-                                          "type": "string",
-                                          "enum": [
-                                            "function"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "id",
-                                        "function",
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
-                                    }
+                                  "arguments": {
+                                    "type": "string"
                                   }
                                 },
                                 "required": [
-                                  "role"
+                                  "name",
+                                  "arguments"
                                 ],
                                 "additionalProperties": false
+                              },
+                              "tool_calls": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "function": {
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "arguments": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "name",
+                                        "arguments"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "function"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "function",
+                                    "type"
+                                  ],
+                                  "additionalProperties": false
+                                }
                               }
                             },
                             "required": [
-                              "finish_reason",
-                              "index",
-                              "message"
+                              "role"
                             ],
                             "additionalProperties": false
                           }
                         },
-                        "usage": {
-                          "type": "object",
-                          "properties": {
-                            "prompt_tokens": {
-                              "type": "number"
-                            },
-                            "completion_tokens": {
-                              "type": "number"
-                            },
-                            "total_tokens": {
-                              "type": "number"
-                            }
-                          },
-                          "required": [
-                            "prompt_tokens",
-                            "completion_tokens",
-                            "total_tokens"
-                          ],
-                          "additionalProperties": false
+                        "required": [
+                          "finish_reason",
+                          "index",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "usage": {
+                      "type": "object",
+                      "properties": {
+                        "prompt_tokens": {
+                          "type": "number"
+                        },
+                        "completion_tokens": {
+                          "type": "number"
+                        },
+                        "total_tokens": {
+                          "type": "number"
                         }
                       },
                       "required": [
-                        "id",
-                        "object",
-                        "created",
-                        "model",
-                        "choices"
+                        "prompt_tokens",
+                        "completion_tokens",
+                        "total_tokens"
                       ],
-                      "additionalProperties": false,
-                      "nullable": true
-                    },
-                    {}
-                  ]
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "object",
+                    "created",
+                    "model",
+                    "choices"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }

@@ -34,18 +34,11 @@ test("basic call", async () => {
   });
   await completion.openpipe.reportingFinished;
   const lastLogged = await lastLoggedCall();
+
   expect(lastLogged?.reqPayload).toMatchObject(payload);
   expect(completion).toMatchObject(lastLogged?.respPayload);
   expect(lastLogged?.tags).toMatchObject({ promptId: "test" });
 });
-
-const randomString = (length: number) => {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from(
-    { length },
-    () => characters[Math.floor(Math.random() * characters.length)],
-  ).join("");
-};
 
 test("streaming", async () => {
   const completion = await oaiClient.chat.completions.create({
