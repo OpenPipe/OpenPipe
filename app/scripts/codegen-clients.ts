@@ -10,6 +10,16 @@ const clientLibsPath = path.join(path.dirname(scriptPath), "../../client-libs");
 
 const schemaPath = path.join(path.dirname(scriptPath), "../public/openapi.json");
 
+const docsPath = path.join(path.dirname(scriptPath), "../../docs");
+
+console.log("Updating docs");
+
+fs.writeFileSync(
+  path.join(docsPath, "openapi.json"),
+  JSON.stringify(openApiDocument, null, 2),
+  "utf-8",
+);
+
 console.log(`Exporting public OpenAPI schema to ${schemaPath}`);
 
 fs.writeFileSync(schemaPath, JSON.stringify(openApiDocument, null, 2), "utf-8");
