@@ -52,7 +52,7 @@ test("simple openai content call", async () => {
 
 test("simple ft content call", async () => {
   const payload: ChatCompletionCreateParams = {
-    model: "openpipe:test-content-ft",
+    model: "openpipe:test-content-mistral",
     messages: [{ role: "system", content: "count to 3" }],
   };
   const completion = await oaiClient.chat.completions.create(payload);
@@ -81,7 +81,7 @@ test("base client openai content call", async () => {
 
 test("base client ft content call", async () => {
   const payload: ChatCompletionCreateParams = {
-    model: "openpipe:test-content-ft",
+    model: "openpipe:test-content-mistral",
     messages: [{ role: "system", content: "count to 3" }],
   };
   const tags = { promptId: "base client ft content call" };
@@ -160,9 +160,26 @@ test("openai streaming base sdk does not log request", async () => {
   expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
 }, 10000);
 
-test.skip("ft streaming", async () => {
+test("35 ft streaming", async () => {
   const completion = await baseClient.chat.completions.create({
-    model: "openpipe:test-content-ft",
+    model: "openpipe:test-content-35",
+    messages: [{ role: "system", content: "count to 3" }],
+    stream: true,
+  });
+
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+}, 10000);
+
+test.skip("mistral ft streaming", async () => {
+  const completion = await baseClient.chat.completions.create({
+    model: "openpipe:test-content-mistral",
     messages: [{ role: "system", content: "count to 3" }],
     stream: true,
   });

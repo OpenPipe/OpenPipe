@@ -32,11 +32,11 @@ async def test_async_content():
     )
 
 
-async def test_async_content_ft():
+async def test_async_content_mistral():
     completion = await client.chat.completions.create(
-        model="openpipe:test-content-ft",
+        model="openpipe:test-content-mistral",
         messages=[{"role": "system", "content": "count to 3"}],
-        openpipe={"tags": {"promptId": "test_async_content_ft"}},
+        openpipe={"tags": {"promptId": "test_async_content_mistral"}},
     )
 
     last_logged = (
@@ -73,13 +73,13 @@ async def test_async_function_call():
     )
 
 
-async def test_async_function_call_ft():
+async def test_async_function_call_mistral():
     completion = await client.chat.completions.create(
-        model="openpipe:test-tool-calls-ft",
+        model="openpipe:test-tool-calls-mistral",
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
-        openpipe={"tags": {"promptId": "test_async_function_call_ft"}},
+        openpipe={"tags": {"promptId": "test_async_function_call_mistral"}},
     )
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
@@ -130,9 +130,9 @@ async def test_async_tool_calls():
     )
 
 
-async def test_async_tool_calls_ft():
+async def test_async_tool_calls_mistral():
     completion = await client.chat.completions.create(
-        model="openpipe:test-tool-calls-ft",
+        model="openpipe:test-tool-calls-mistral",
         messages=[
             {"role": "system", "content": "tell me the weather in SF and Orlando"}
         ],
@@ -142,7 +142,7 @@ async def test_async_tool_calls_ft():
                 "function": function,
             },
         ],
-        openpipe={"tags": {"promptId": "test_async_tool_calls_ft"}},
+        openpipe={"tags": {"promptId": "test_async_tool_calls_mistral"}},
     )
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
