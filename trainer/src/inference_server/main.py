@@ -12,18 +12,33 @@ import os
 
 from concurrent.futures import ThreadPoolExecutor
 
+
+def cache_weights_in_image_weights():
+    from huggingface_hub import snapshot_download
+
+    # Images seem to be cached really efficiently on Modal so let's just save
+    # all our base model weights to the image to make training faster.
+    snapshot_download("OpenPipe/mistral-ft-optimized-1218")
+
+
 image = (
     modal.Image.from_registry(
         "nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04",
         add_python="3.10",
     )
+    .apt_install("git", "clang")
     .pip_install(
-        "vllm==0.2.0",
-        "huggingface-hub==0.17.3",
+        "huggingface-hub==0.19.4",
         "hf-transfer~=0.1",
-        "transformers==4.34.0",
+        "transformers==4.36.1",
     )
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
+    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1", "VLLM_INSTALL_PUNICA_KERNELS": "1"})
+    .run_commands(
+        "git clone https://github.com/Yard1/vllm.git /vllm",
+        "cd /vllm && git checkout 2d72ae5 > /dev/null 2>&1",
+        "pip3 install -e '/vllm'",
+    )
+    .run_function(cache_weights_in_image_weights)
 )
 
 volume = modal.Volume.from_name("openpipe-model-cache")
