@@ -11,9 +11,10 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class CreateChatCompletionResponseChoicesItemMessageToolCallsItemFunction(pydantic.BaseModel):
-    name: str
-    arguments: str
+class CreateChatCompletionResponseChoicesUsage(pydantic.BaseModel):
+    prompt_tokens: float
+    completion_tokens: float
+    total_tokens: float
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

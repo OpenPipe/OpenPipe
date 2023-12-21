@@ -46,7 +46,6 @@ def test_sync_content():
     )
 
 
-@pytest.mark.focus
 def test_sync_content_mistral():
     completion = client.chat.completions.create(
         model="openpipe:test-content-mistral",

@@ -223,7 +223,7 @@ export class DefaultService {
             completion_tokens: number;
             total_tokens: number;
         };
-    }> {
+    } | null> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/chat/completions',

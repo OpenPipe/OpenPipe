@@ -3,11 +3,12 @@
 import datetime as dt
 import typing
 
-import typing_extensions
-
 from ..core.datetime_utils import serialize_datetime
-from .create_chat_completion_response_choices_item_message_tool_calls_item_function import (
-    CreateChatCompletionResponseChoicesItemMessageToolCallsItemFunction,
+from .create_chat_completion_response_choices_choices_item_finish_reason import (
+    CreateChatCompletionResponseChoicesChoicesItemFinishReason,
+)
+from .create_chat_completion_response_choices_choices_item_message import (
+    CreateChatCompletionResponseChoicesChoicesItemMessage,
 )
 
 try:
@@ -16,10 +17,10 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class CreateChatCompletionResponseChoicesItemMessageToolCallsItem(pydantic.BaseModel):
-    id: str
-    function: CreateChatCompletionResponseChoicesItemMessageToolCallsItemFunction
-    type: typing_extensions.Literal["function"]
+class CreateChatCompletionResponseChoicesChoicesItem(pydantic.BaseModel):
+    finish_reason: CreateChatCompletionResponseChoicesChoicesItemFinishReason
+    index: float
+    message: CreateChatCompletionResponseChoicesChoicesItemMessage
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

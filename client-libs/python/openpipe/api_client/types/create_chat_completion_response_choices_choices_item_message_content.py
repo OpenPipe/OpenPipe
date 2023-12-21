@@ -4,6 +4,6 @@ import typing
 
 import typing_extensions
 
-CreateChatCompletionResponseChoicesItemMessageContent = typing.Union[
+CreateChatCompletionResponseChoicesChoicesItemMessageContent = typing.Union[
     str, typing.Optional[typing_extensions.Literal["null"]]
 ]

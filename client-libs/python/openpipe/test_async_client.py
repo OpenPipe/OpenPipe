@@ -1,10 +1,15 @@
 from functools import reduce
 import pytest
+import os
+from openai import AsyncOpenAI as BaseAsyncOpenAI
 
 from . import AsyncOpenAI
 from .merge_openai_chunks import merge_openai_chunks
 from .test_sync_client import function_call, function
 
+base_client = BaseAsyncOpenAI(
+    base_url="http://localhost:3000/api/v1", api_key=os.environ["OPENPIPE_API_KEY"]
+)
 client = AsyncOpenAI()
 
 
@@ -169,6 +174,30 @@ async def test_async_streaming_content():
         messages=[{"role": "system", "content": "count to 4"}],
         stream=True,
         openpipe={"tags": {"promptId": "test_async_streaming_content"}},
+    )
+
+    merged = None
+    async for chunk in completion:
+        merged = merge_openai_chunks(merged, chunk)
+
+    last_logged = (
+        await client.openpipe_client.local_testing_only_get_latest_logged_call()
+    )
+    assert (
+        last_logged.resp_payload["choices"][0]["message"]["content"]
+        == merged.choices[0].message.content
+    )
+
+
+async def test_async_streaming_content_ft_35():
+    completion = await base_client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=[{"role": "system", "content": "count to 4"}],
+        stream=True,
+        extra_headers={
+            "op-log-request": "true",
+            "op-tags": '{"promptId": "test_async_streaming_content_ft_35"}',
+        },
     )
 
     merged = None

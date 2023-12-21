@@ -157,24 +157,27 @@ from .create_chat_completion_request_tool_choice_function_function import (
 from .create_chat_completion_request_tools_item import CreateChatCompletionRequestToolsItem
 from .create_chat_completion_request_tools_item_function import CreateChatCompletionRequestToolsItemFunction
 from .create_chat_completion_response import CreateChatCompletionResponse
-from .create_chat_completion_response_choices_item import CreateChatCompletionResponseChoicesItem
-from .create_chat_completion_response_choices_item_finish_reason import (
-    CreateChatCompletionResponseChoicesItemFinishReason,
+from .create_chat_completion_response_choices import CreateChatCompletionResponseChoices
+from .create_chat_completion_response_choices_choices_item import CreateChatCompletionResponseChoicesChoicesItem
+from .create_chat_completion_response_choices_choices_item_finish_reason import (
+    CreateChatCompletionResponseChoicesChoicesItemFinishReason,
 )
-from .create_chat_completion_response_choices_item_message import CreateChatCompletionResponseChoicesItemMessage
-from .create_chat_completion_response_choices_item_message_content import (
-    CreateChatCompletionResponseChoicesItemMessageContent,
+from .create_chat_completion_response_choices_choices_item_message import (
+    CreateChatCompletionResponseChoicesChoicesItemMessage,
 )
-from .create_chat_completion_response_choices_item_message_function_call import (
-    CreateChatCompletionResponseChoicesItemMessageFunctionCall,
+from .create_chat_completion_response_choices_choices_item_message_content import (
+    CreateChatCompletionResponseChoicesChoicesItemMessageContent,
 )
-from .create_chat_completion_response_choices_item_message_tool_calls_item import (
-    CreateChatCompletionResponseChoicesItemMessageToolCallsItem,
+from .create_chat_completion_response_choices_choices_item_message_function_call import (
+    CreateChatCompletionResponseChoicesChoicesItemMessageFunctionCall,
 )
-from .create_chat_completion_response_choices_item_message_tool_calls_item_function import (
-    CreateChatCompletionResponseChoicesItemMessageToolCallsItemFunction,
+from .create_chat_completion_response_choices_choices_item_message_tool_calls_item import (
+    CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItem,
 )
-from .create_chat_completion_response_usage import CreateChatCompletionResponseUsage
+from .create_chat_completion_response_choices_choices_item_message_tool_calls_item_function import (
+    CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItemFunction,
+)
+from .create_chat_completion_response_choices_usage import CreateChatCompletionResponseChoicesUsage
 from .local_testing_only_get_latest_logged_call_response import LocalTestingOnlyGetLatestLoggedCallResponse
 from .report_response import ReportResponse
 from .report_response_status import ReportResponseStatus
@@ -255,14 +258,15 @@ __all__ = [
     "CreateChatCompletionRequestToolsItem",
     "CreateChatCompletionRequestToolsItemFunction",
     "CreateChatCompletionResponse",
-    "CreateChatCompletionResponseChoicesItem",
-    "CreateChatCompletionResponseChoicesItemFinishReason",
-    "CreateChatCompletionResponseChoicesItemMessage",
-    "CreateChatCompletionResponseChoicesItemMessageContent",
-    "CreateChatCompletionResponseChoicesItemMessageFunctionCall",
-    "CreateChatCompletionResponseChoicesItemMessageToolCallsItem",
-    "CreateChatCompletionResponseChoicesItemMessageToolCallsItemFunction",
-    "CreateChatCompletionResponseUsage",
+    "CreateChatCompletionResponseChoices",
+    "CreateChatCompletionResponseChoicesChoicesItem",
+    "CreateChatCompletionResponseChoicesChoicesItemFinishReason",
+    "CreateChatCompletionResponseChoicesChoicesItemMessage",
+    "CreateChatCompletionResponseChoicesChoicesItemMessageContent",
+    "CreateChatCompletionResponseChoicesChoicesItemMessageFunctionCall",
+    "CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItem",
+    "CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItemFunction",
+    "CreateChatCompletionResponseChoicesUsage",
     "LocalTestingOnlyGetLatestLoggedCallResponse",
     "ReportResponse",
     "ReportResponseStatus",
