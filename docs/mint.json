@@ -49,6 +49,10 @@
       ]
     },
     {
+      "group": "API Reference",
+      "pages": ["api-reference/post-report", "api-reference/post-chatcompletions"]
+    },
+    {
       "group": "FAQ",
       "pages": ["faq/how-reporting-works"]
     }
@@ -63,5 +67,6 @@
     "twitter": "https://twitter.com/OpenPipeAI",
     "linkedin": "https://www.linkedin.com/company/openpipe/about/",
     "github": "https://github.com/OpenPipe/OpenPipe"
-  }
+  },
+  "openapi": ["openapi.json"]
 }

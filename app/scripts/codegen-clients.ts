@@ -8,11 +8,11 @@ import { generate } from "openapi-typescript-codegen";
 const scriptPath = import.meta.url.replace("file://", "");
 const clientLibsPath = path.join(path.dirname(scriptPath), "../../client-libs");
 
-const schemaPath = path.join(clientLibsPath, "openapi.json");
+const docsSchemaPath = path.join(path.dirname(scriptPath), "../../docs/openapi.json");
 
-console.log(`Exporting public OpenAPI schema to ${schemaPath}`);
+console.log(`Exporting public OpenAPI schema to ${docsSchemaPath}`);
 
-fs.writeFileSync(schemaPath, JSON.stringify(openApiDocument, null, 2), "utf-8");
+fs.writeFileSync(docsSchemaPath, JSON.stringify(openApiDocument, null, 2), "utf-8");
 
 console.log("Generating TypeScript client");
 
@@ -28,15 +28,7 @@ await generate({
   httpClient: "node",
 });
 
-execSync(`cp ${schemaPath} ${clientLibsPath}/fern/openapi/openapi.json`);
-
-execSync;
-// execSync(
-//   `pnpm run openapi generate --input "${schemaPath}" --output "${tsClientPath}" --name OPClient --client node`,
-//   {
-//     stdio: "inherit",
-//   },
-// );
+execSync(`cp ${docsSchemaPath} ${clientLibsPath}/fern/openapi/openapi.json`);
 
 console.log("Generating Python client");
 
