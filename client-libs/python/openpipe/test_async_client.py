@@ -271,6 +271,7 @@ async def test_bad_openai_call():
             model="gpt-3.5-turbo-blaster",
             messages=[{"role": "system", "content": "count to 10"}],
             stream=True,
+            openpipe={"tags": {"promptId": "test_bad_openai_call"}},
         )
         assert False
     except Exception:
@@ -290,6 +291,7 @@ async def test_bad_openpipe_call():
             model="openpipe:gpt-3.5-turbo-blaster",
             messages=[{"role": "system", "content": "count to 10"}],
             stream=True,
+            openpipe={"tags": {"promptId": "test_bad_openpipe_call"}},
         )
         assert False
     except Exception:

@@ -1,7 +1,14 @@
 import fs from "fs";
 import path from "path";
 import OpenAI, { type ClientOptions } from "openpipe/openai";
-import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
+import {
+  type ChatCompletionChunk,
+  type ChatCompletion,
+  type ChatCompletionCreateParams,
+  type ChatCompletionCreateParamsStreaming,
+  type ChatCompletionCreateParamsNonStreaming,
+} from "openai/resources/chat";
+import { type Stream } from "openai/streaming";
 
 import { env } from "~/env.mjs";
 import { prisma } from "../db";
@@ -26,8 +33,16 @@ export const openai = new OpenAI(config);
 
 export async function getOpenaiCompletion(
   projectId: string,
+  input: ChatCompletionCreateParamsNonStreaming,
+): Promise<ChatCompletion>;
+export async function getOpenaiCompletion(
+  projectId: string,
+  input: ChatCompletionCreateParamsStreaming,
+): Promise<Stream<ChatCompletionChunk>>;
+export async function getOpenaiCompletion(
+  projectId: string,
   input: ChatCompletionCreateParams,
-): Promise<ChatCompletion> {
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const apiKeys = await prisma.apiKey.findMany({
     where: { projectId: projectId },
   });
@@ -40,13 +55,5 @@ export async function getOpenaiCompletion(
 
   const openai = new OpenAI({ apiKey: openaiApiKey });
 
-  const resp = await openai.chat.completions.create({
-    ...input,
-    stream: false,
-  });
-
-  return {
-    ...resp,
-    model: input.model,
-  };
+  return await openai.chat.completions.create(input);
 }

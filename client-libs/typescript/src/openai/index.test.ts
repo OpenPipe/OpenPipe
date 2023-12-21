@@ -1,12 +1,20 @@
 import dotenv from "dotenv";
 import { expect, test } from "vitest";
-import OpenAI from "../openai";
+import BaseOpenAI from "openai";
+import { sleep } from "openai/core";
 import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat/completions";
-import { OPClient } from "../codegen";
-import mergeChunks from "./mergeChunks";
 import assert from "assert";
 
+import OpenAI from "../openai";
+import { OPClient } from "../codegen";
+import mergeChunks from "./mergeChunks";
+
 dotenv.config();
+
+const baseClient = new BaseOpenAI({
+  apiKey: process.env.OPENPIPE_API_KEY,
+  baseURL: "http://localhost:3000/api/v1",
+});
 
 const oaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -23,31 +31,75 @@ const opClient = new OPClient({
 
 const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
 
-test("basic call", async () => {
+test("simple openai content call", async () => {
   const payload: ChatCompletionCreateParams = {
     model: "gpt-3.5-turbo",
     messages: [{ role: "system", content: "count to 3" }],
   };
   const completion = await oaiClient.chat.completions.create({
     ...payload,
-    openpipe: { tags: { promptId: "test" } },
+    openpipe: { tags: { promptId: "simple openai content call" } },
   });
+
   await completion.openpipe.reportingFinished;
   const lastLogged = await lastLoggedCall();
   expect(lastLogged?.reqPayload).toMatchObject(payload);
   expect(completion).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.tags).toMatchObject({ promptId: "test" });
+  expect(lastLogged?.tags).toMatchObject({ promptId: "simple openai content call" });
+
+  console.log("simple openai content call ended");
 });
 
-const randomString = (length: number) => {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from(
-    { length },
-    () => characters[Math.floor(Math.random() * characters.length)],
-  ).join("");
-};
+test("simple ft content call", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "openpipe:test-content-ft",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+  const completion = await oaiClient.chat.completions.create(payload);
 
-test("streaming", async () => {
+  await sleep(100);
+  await completion.openpipe.reportingFinished;
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+  expect(completion).toMatchObject(lastLogged?.respPayload);
+}, 100000);
+
+test("base client openai content call", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+  const completion = await baseClient.chat.completions.create(payload, {
+    headers: { "op-log-request": "true" },
+  });
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.reqPayload).toMatchObject(payload);
+  expect(completion.id).toMatchObject(lastLogged?.respPayload.id);
+}, 10000);
+
+test("base client ft content call", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "openpipe:test-content-ft",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+  const tags = { promptId: "base client ft content call" };
+  const completion = await baseClient.chat.completions.create(payload, {
+    headers: {
+      "op-log-request": "true",
+      "op-tags": JSON.stringify(tags),
+    },
+  });
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.reqPayload).toMatchObject(payload);
+  expect(completion.id).toMatchObject(lastLogged?.respPayload.id);
+  expect(lastLogged?.tags).toMatchObject(tags);
+}, 10000);
+
+test("openai streaming", async () => {
   const completion = await oaiClient.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [{ role: "system", content: "count to 3" }],
@@ -59,6 +111,7 @@ test("streaming", async () => {
     merged = mergeChunks(merged, chunk);
   }
 
+  await completion.openpipe.reportingFinished;
   const lastLogged = await lastLoggedCall();
   await completion.openpipe.reportingFinished;
 
@@ -68,6 +121,61 @@ test("streaming", async () => {
   ]);
 });
 
+test("openai streaming base sdk", async () => {
+  const input: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "count to 4" }],
+    stream: true,
+  };
+  const completion = await baseClient.chat.completions.create(input, {
+    headers: { "op-log-request": "true" },
+  });
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(merged).toMatchObject(lastLogged?.respPayload);
+  expect(lastLogged?.reqPayload.messages).toMatchObject(input.messages);
+}, 10000);
+
+test("openai streaming base sdk does not log request", async () => {
+  const input: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "count to 4" }],
+    stream: true,
+  };
+  const completion = await baseClient.chat.completions.create(input, {
+    headers: { "op-log-request": "false" },
+  });
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+}, 10000);
+
+test.skip("ft streaming", async () => {
+  const completion = await baseClient.chat.completions.create({
+    model: "openpipe:test-content-ft",
+    messages: [{ role: "system", content: "count to 3" }],
+    stream: true,
+  });
+
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    console.log("chunk", chunk);
+    merged = mergeChunks(merged, chunk);
+  }
+
+  console.log("merged message", merged?.choices[0]?.message);
+}, 10000);
+
 test("bad call streaming", async () => {
   try {
     await oaiClient.chat.completions.create({
@@ -75,7 +183,9 @@ test("bad call streaming", async () => {
       messages: [{ role: "system", content: "count to 10" }],
       stream: true,
     });
-  } catch (e) {
+  } catch (e: unknown) {
+    // @ts-expect-error need to check for error type
+    assert("openpipe" in e);
     // @ts-expect-error need to check for error type
     await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
@@ -92,7 +202,7 @@ test("bad call", async () => {
       model: "gpt-3.5-turbo-buster",
       messages: [{ role: "system", content: "count to 10" }],
     });
-  } catch (e) {
+  } catch (e: unknown) {
     // @ts-expect-error need to check for error type
     assert("openpipe" in e);
     // @ts-expect-error need to check for error type

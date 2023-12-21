@@ -4,7 +4,9 @@ import type {
   ChatCompletionMessage,
   ChatCompletion,
   ChatCompletionCreateParams,
+  ChatCompletionChunk,
 } from "openai/resources/chat";
+import { type Stream } from "openai/streaming";
 
 import { omit } from "lodash-es";
 import { runInference } from "~/server/modal-rpc/clients";
@@ -21,7 +23,7 @@ import { type TypedFineTune } from "~/types/dbColumns.types";
 export async function getCompletion2(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
-): Promise<ChatCompletion> {
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   if (fineTune.pipelineVersion < 1 || fineTune.pipelineVersion > 2) {
     throw new Error(
       `Model was trained with pipeline version ${fineTune.pipelineVersion}, but only versions 1-2 are currently supported.`,
@@ -34,27 +36,42 @@ export async function getCompletion2(
   const prunedInput = { messages: prunedMessages, ...omit(input, "messages") };
 
   if (fineTune.provider === "openai") {
-    const model = fineTune.openaiModelId;
-
-    if (!model) throw new Error("No OpenAI model ID found");
-
-    // TODO: create pipeline without this conversion once OpenAI supports tool_calls for their fine-tuned models
-
-    const completion = await getOpenaiCompletion(fineTune.projectId, {
-      // convert tool call input to function call input
-      ...convertToolCallInputToFunctionInput(prunedInput),
-      model,
-    });
-    if (completion.choices[0]?.message && input.tools?.length) {
-      // convert function call output to tool call output
-      completion.choices[0].message = convertFunctionMessageToToolCall(
-        completion.choices[0].message,
-      ) as ChatCompletionMessage;
-    }
-    return completion;
+    return getOpenAIFineTuneCompletion(fineTune, prunedInput);
   } else {
     return getModalCompletion(fineTune, prunedInput);
   }
+}
+
+async function getOpenAIFineTuneCompletion(
+  fineTune: FineTune,
+  input: ChatCompletionCreateParams,
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
+  const model = fineTune.openaiModelId;
+
+  if (!model) throw new Error("No OpenAI model ID found");
+
+  if (input.stream) {
+    const completion = await getOpenaiCompletion(fineTune.projectId, {
+      ...input,
+      model,
+    });
+    return completion;
+  }
+
+  // TODO: create pipeline without this conversion once OpenAI supports tool_calls for their fine-tuned models
+  input = convertToolCallInputToFunctionInput(input);
+  const completion = await getOpenaiCompletion(fineTune.projectId, {
+    ...input,
+    stream: false,
+    model,
+  });
+  if (completion.choices[0]?.message && input.tools?.length) {
+    // convert function call output to tool call output
+    completion.choices[0].message = convertFunctionMessageToToolCall(
+      completion.choices[0].message,
+    ) as ChatCompletionMessage;
+  }
+  return completion;
 }
 
 async function getModalCompletion(

@@ -1,15 +1,10 @@
-import { Prisma, UsageType } from "@prisma/client";
-import { captureException } from "@sentry/node";
 import { TRPCError } from "@trpc/server";
-import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
-import { v4 as uuidv4 } from "uuid";
+import { type ChatCompletionChunk, type ChatCompletion } from "openai/resources/chat";
+import { Stream } from "openai/streaming";
 import { z } from "zod";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
-import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { prisma } from "~/server/db";
-import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
-import { baseModel } from "~/server/fineTuningProviders/types";
 import {
   chatCompletionInputReqPayload,
   chatCompletionOutput,
@@ -19,24 +14,17 @@ import {
   toolChoiceInput,
   toolsInput,
 } from "~/types/shared.types";
-import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { typedFineTune } from "~/types/dbColumns.types";
-
-const reqValidator = z.object({
-  model: z.string(),
-  messages: z.array(z.any()),
-});
-
-const respValidator = z.object({
-  id: z.string(),
-  model: z.string(),
-  choices: z.array(
-    z.object({
-      finish_reason: z.string(),
-    }),
-  ),
-});
+import {
+  type CalculatedUsage,
+  calculateUsage,
+  captureRecordUsage,
+  recordLoggedCall,
+  recordUsage,
+  reqValidator,
+} from "~/utils/recordRequest";
+import { getOpenaiCompletion } from "~/server/utils/openai";
 
 export const v1ApiRouter = createOpenApiRouter({
   checkCache: openApiProtectedProc
@@ -105,8 +93,8 @@ export const v1ApiRouter = createOpenApiRouter({
           .optional(),
       }),
     )
-    .output(chatCompletionOutput)
-    .mutation(async ({ input, ctx }): Promise<ChatCompletion> => {
+    .output(z.union([chatCompletionOutput.nullable(), z.any()]))
+    .mutation(async ({ input, ctx }): Promise<ChatCompletion | ReadableStream> => {
       const { key } = ctx;
 
       const inputPayload =
@@ -115,62 +103,89 @@ export const v1ApiRouter = createOpenApiRouter({
           : chatCompletionInputReqPayload.parse(input);
 
       const modelSlug = inputPayload.model.replace("openpipe:", "");
-      const fineTune = await prisma.fineTune.findUnique({
-        where: { slug: modelSlug },
+      const fineTune =
+        (await prisma.fineTune.findUnique({
+          where: { slug: modelSlug },
+        })) ?? undefined;
+
+      if (inputPayload.model.startsWith("openpipe:") && !fineTune) {
+        throw new TRPCError({
+          message: "The model does not exist",
+          code: "NOT_FOUND",
+        });
+      }
+
+      let completion: ChatCompletion | Stream<ChatCompletionChunk>;
+
+      if (fineTune) {
+        const typedFT = typedFineTune(fineTune);
+
+        if (typedFT && typedFT.projectId !== key.projectId) {
+          throw new TRPCError({
+            message: "The model does not belong to this project",
+            code: "FORBIDDEN",
+          });
+        }
+
+        try {
+          completion = await getCompletion2(typedFT, inputPayload);
+        } catch (error: unknown) {
+          console.error(error);
+          throw new TRPCError({
+            message: `Failed to get fine-tune completion: ${(error as Error).message}`,
+            code: "BAD_REQUEST",
+          });
+        }
+      } else {
+        try {
+          completion = await getOpenaiCompletion(key.projectId, {
+            ...inputPayload,
+            // @ts-expect-error gotta love overloads
+            stream: input.stream,
+          });
+        } catch (error: unknown) {
+          console.error(error);
+          throw new TRPCError({
+            message: `Failed to get OpenAI completion: ${(error as Error).message}`,
+            code: "BAD_REQUEST",
+            cause: error as Error,
+          });
+        }
+      }
+
+      const logRequest = ctx.headers["op-log-request"] === "true";
+      let tags: Record<string, string> = {};
+      if (ctx.headers["op-tags"]) {
+        try {
+          tags = JSON.parse(ctx.headers["op-tags"] as string);
+        } catch (error: unknown) {
+          // ignore
+        }
+      }
+
+      if (completion instanceof Stream) {
+        // split stream to avoid locking the read mutex
+        const [recordStream, outputStream] = completion.tee();
+        void captureRecordUsage({
+          projectId: key.projectId,
+          inputPayload,
+          completion: recordStream,
+          logRequest,
+          fineTune,
+          tags,
+        });
+        return outputStream.toReadableStream();
+      }
+
+      void recordUsage({
+        projectId: key.projectId,
+        inputPayload,
+        completion,
+        logRequest,
+        fineTune,
+        tags,
       });
-
-      if (!fineTune) {
-        throw new TRPCError({ message: "The model does not exist", code: "NOT_FOUND" });
-      }
-
-      const typedFT = typedFineTune(fineTune);
-
-      if (typedFT.projectId !== key.projectId) {
-        throw new TRPCError({
-          message: "The model does not belong to this project",
-          code: "FORBIDDEN",
-        });
-      }
-
-      try {
-        const completion = await getCompletion2(typedFT, inputPayload);
-        const inputTokens = completion.usage?.prompt_tokens ?? 0;
-        const outputTokens = completion.usage?.completion_tokens ?? 0;
-
-        const cost = calculateCost(typedFT, 0, inputTokens, outputTokens);
-
-        // Don't `await` this to minimize latency
-        prisma.usageLog
-          .create({
-            data: {
-              fineTuneId: fineTune.id,
-              type: UsageType.EXTERNAL,
-              inputTokens,
-              outputTokens,
-              cost,
-            },
-          })
-          .catch((error) => captureException(error));
-
-        posthogServerClient?.capture({
-          distinctId: fineTune.projectId,
-          event: "fine-tune-usage",
-          properties: {
-            model: inputPayload.model,
-            inputTokens,
-            outputTokens,
-            cost,
-          },
-        });
-
-        return completion;
-      } catch (error: unknown) {
-        console.error(error);
-        throw new TRPCError({
-          message: `Failed to get completion: ${(error as Error).message}`,
-          code: "BAD_REQUEST",
-        });
-      }
+      return completion;
     }),
 
   report: openApiProtectedProc
@@ -205,61 +220,33 @@ export const v1ApiRouter = createOpenApiRouter({
       if (!input.requestedAt) input.requestedAt = Date.now();
 
       const reqPayload = await reqValidator.spa(input.reqPayload);
-      const respPayload = await respValidator.spa(input.respPayload);
+      const respPayload = await chatCompletionOutput.spa(input.respPayload);
 
-      const newLoggedCallId = uuidv4();
+      let usage: CalculatedUsage | undefined;
 
-      let usage;
-      let model;
-      if (reqPayload.success) {
-        model = reqPayload.data.model;
-        if (model.startsWith("openpipe:")) {
-          const fineTune = await prisma.fineTune.findUnique({
-            where: { slug: model.replace("openpipe:", "") },
-          });
-          const resp = chatCompletionOutput.safeParse(respPayload);
-          const base = baseModel.safeParse(fineTune);
+      if (reqPayload.success && respPayload.success) {
+        const fineTune = await prisma.fineTune.findUnique({
+          where: { slug: reqPayload.data.model.replace("openpipe:", "") },
+        });
 
-          const inputTokens = (resp.success ? resp.data.usage?.prompt_tokens : 0) ?? 0;
-          const outputTokens = (resp.success ? resp.data.usage?.completion_tokens : 0) ?? 0;
-
-          const cost = base.success ? calculateCost(base.data, 0, inputTokens, outputTokens) : 0;
-
-          usage = {
-            inputTokens,
-            outputTokens,
-            cost,
-          };
-        } else {
-          usage = openaAIModelProvider.getUsage(
-            input.reqPayload as ChatCompletionCreateParams,
-            respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
-          );
-        }
+        usage = calculateUsage({
+          inputPayload: reqPayload.data,
+          completion: respPayload.data,
+          fineTune: fineTune ?? undefined,
+        });
       }
 
       try {
-        await prisma.loggedCall.create({
-          data: {
-            id: newLoggedCallId,
-            projectId: ctx.key.projectId,
-            requestedAt: new Date(input.requestedAt),
-            model,
-            receivedAt: input.receivedAt ? new Date(input.receivedAt) : undefined,
-            reqPayload: (input.reqPayload === null
-              ? Prisma.JsonNull
-              : input.reqPayload) as Prisma.InputJsonValue,
-            respPayload: (input.respPayload === null
-              ? Prisma.JsonNull
-              : input.respPayload) as Prisma.InputJsonValue,
-            statusCode: input.statusCode,
-            errorMessage: input.errorMessage,
-            durationMs: input.receivedAt ? input.receivedAt - input.requestedAt : undefined,
-            inputTokens: usage?.inputTokens,
-            outputTokens: usage?.outputTokens,
-            cost: usage?.cost,
-            completionId: respPayload.success ? respPayload.data.id : null,
-          },
+        await recordLoggedCall({
+          projectId: ctx.key.projectId,
+          usage,
+          requestedAt: input.requestedAt,
+          receivedAt: input.receivedAt,
+          reqPayload: input.reqPayload,
+          respPayload: input.respPayload,
+          statusCode: input.statusCode,
+          errorMessage: input.errorMessage,
+          tags: input.tags,
         });
       } catch (e) {
         throw new TRPCError({
@@ -268,7 +255,6 @@ export const v1ApiRouter = createOpenApiRouter({
         });
       }
 
-      await createTags(ctx.key.projectId, newLoggedCallId, input.tags);
       return { status: "ok" };
     }),
   localTestingOnlyGetLatestLoggedCall: openApiProtectedProc
@@ -320,15 +306,3 @@ export const v1ApiRouter = createOpenApiRouter({
       );
     }),
 });
-
-async function createTags(projectId: string, loggedCallId: string, tags: Record<string, string>) {
-  const tagsToCreate = Object.entries(tags).map(([name, value]) => ({
-    projectId,
-    loggedCallId,
-    name: name.replaceAll(/[^a-zA-Z0-9_$.]/g, "_"),
-    value,
-  }));
-  await prisma.loggedCallTag.createMany({
-    data: tagsToCreate,
-  });
-}
