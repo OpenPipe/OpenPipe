@@ -3,6 +3,8 @@ import { type FineTune } from "@prisma/client";
 import type {
   ChatCompletionMessage,
   ChatCompletion,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
   ChatCompletionCreateParams,
   ChatCompletionChunk,
 } from "openai/resources/chat";
@@ -20,6 +22,18 @@ import {
 } from "~/server/utils/convertFunctionCalls";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 
+export async function getCompletion2(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsNonStreaming,
+): Promise<ChatCompletion>;
+export async function getCompletion2(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsStreaming,
+): Promise<Stream<ChatCompletionChunk>>;
+export async function getCompletion2(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParams,
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
 export async function getCompletion2(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,

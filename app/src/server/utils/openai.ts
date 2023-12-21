@@ -42,6 +42,10 @@ export async function getOpenaiCompletion(
 export async function getOpenaiCompletion(
   projectId: string,
   input: ChatCompletionCreateParams,
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
+export async function getOpenaiCompletion(
+  projectId: string,
+  input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const apiKeys = await prisma.apiKey.findMany({
     where: { projectId: projectId },

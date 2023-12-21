@@ -1,5 +1,5 @@
 import type { ChatCompletion, ChatCompletionChunk } from "openai/resources";
-import { type Stream } from "openai/streaming";
+import { Stream } from "openai/streaming";
 import mergeChunks from "openpipe/openai/mergeChunks";
 import { z } from "zod";
 import { type FineTune, Prisma, UsageType } from "@prisma/client";
@@ -19,29 +19,6 @@ import {
 import { default as openAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { type BaseModel } from "~/server/fineTuningProviders/types";
 
-export const captureRecordUsage = async ({
-  projectId,
-  inputPayload,
-  completion,
-  logRequest,
-  fineTune,
-  tags,
-}: {
-  projectId: string;
-  inputPayload: z.infer<typeof chatCompletionInput>;
-  completion: Stream<ChatCompletionChunk>;
-  typedFT?: ReturnType<typeof typedFineTune> & { id: string; projectId: string };
-  logRequest?: boolean;
-  fineTune?: FineTune;
-  tags?: Record<string, string>;
-}) => {
-  let merged: ChatCompletion | null = null;
-  for await (const chunk of completion) {
-    merged = mergeChunks(merged, chunk);
-  }
-  await recordUsage({ projectId, inputPayload, completion: merged, logRequest, fineTune, tags });
-};
-
 export const recordUsage = async ({
   projectId,
   inputPayload,
@@ -58,6 +35,13 @@ export const recordUsage = async ({
   fineTune?: FineTune;
   tags?: Record<string, string>;
 }) => {
+  if (completion instanceof Stream) {
+    let merged: ChatCompletion | null = null;
+    for await (const chunk of completion) {
+      merged = mergeChunks(merged, chunk as ChatCompletionChunk);
+    }
+    completion = merged;
+  }
   const parsedCompletion = chatCompletionOutput.safeParse(completion);
   const usage = parsedCompletion.success
     ? calculateUsage({

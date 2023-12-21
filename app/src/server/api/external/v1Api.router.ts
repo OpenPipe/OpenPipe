@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { type ChatCompletionChunk, type ChatCompletion } from "openai/resources/chat";
 import { Stream } from "openai/streaming";
 import { z } from "zod";
+import { captureException } from "@sentry/node";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
@@ -19,7 +20,6 @@ import { typedFineTune } from "~/types/dbColumns.types";
 import {
   type CalculatedUsage,
   calculateUsage,
-  captureRecordUsage,
   recordLoggedCall,
   recordUsage,
   reqValidator,
@@ -140,7 +140,6 @@ export const v1ApiRouter = createOpenApiRouter({
         try {
           completion = await getOpenaiCompletion(key.projectId, {
             ...inputPayload,
-            // @ts-expect-error gotta love overloads
             stream: input.stream,
           });
         } catch (error: unknown) {
@@ -153,39 +152,45 @@ export const v1ApiRouter = createOpenApiRouter({
         }
       }
 
-      const logRequest = ctx.headers["op-log-request"] === "true";
+      // Default to true if we not using a fine-tuned model
+      const logRequest = ctx.headers["op-log-request"] === "true" || !fineTune;
       let tags: Record<string, string> = {};
       if (ctx.headers["op-tags"]) {
         try {
           tags = JSON.parse(ctx.headers["op-tags"] as string);
+          // validate that tags is a record of <string, string> using zod
+          z.record(z.string()).parse(tags);
         } catch (error: unknown) {
-          // ignore
+          throw new TRPCError({
+            message: `Failed to parse tags: ${(error as Error).message}`,
+            code: "BAD_REQUEST",
+          });
         }
       }
 
       if (completion instanceof Stream) {
         // split stream to avoid locking the read mutex
         const [recordStream, outputStream] = completion.tee();
-        void captureRecordUsage({
+        void recordUsage({
           projectId: key.projectId,
           inputPayload,
           completion: recordStream,
           logRequest,
           fineTune,
           tags,
-        });
+        }).catch((e) => captureException(e));
         return outputStream.toReadableStream();
+      } else {
+        void recordUsage({
+          projectId: key.projectId,
+          inputPayload,
+          completion,
+          logRequest,
+          fineTune,
+          tags,
+        }).catch((e) => captureException(e));
+        return completion;
       }
-
-      void recordUsage({
-        projectId: key.projectId,
-        inputPayload,
-        completion,
-        logRequest,
-        fineTune,
-        tags,
-      });
-      return completion;
     }),
 
   report: openApiProtectedProc
