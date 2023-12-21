@@ -65,6 +65,8 @@ async function getOpenAIFineTuneCompletion(
   if (!model) throw new Error("No OpenAI model ID found");
 
   if (input.stream) {
+    // Skip tool call conversion for streaming
+    // Hopefully OpenAI will support tool calls for fine-tuned models soon
     const completion = await getOpenaiCompletion(fineTune.projectId, {
       ...input,
       model,

@@ -161,11 +161,41 @@ test("openai streaming base sdk does not log request", async () => {
 }, 10000);
 
 test("35 ft streaming", async () => {
-  const completion = await baseClient.chat.completions.create({
-    model: "openpipe:test-content-35",
-    messages: [{ role: "system", content: "count to 3" }],
-    stream: true,
-  });
+  const completion = await baseClient.chat.completions.create(
+    {
+      model: "openpipe:test-content-35",
+      messages: [{ role: "system", content: "count to 3" }],
+      stream: true,
+    },
+    {
+      headers: {
+        "op-log-request": "true",
+        "op-tags": JSON.stringify({ promptId: "35 ft streaming" }),
+      },
+    },
+  );
+
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+}, 10000);
+
+test("defaults to not recording for fine-tuned models", async () => {
+  const completion = await baseClient.chat.completions.create(
+    {
+      model: "openpipe:test-content-35",
+      messages: [{ role: "system", content: "count to 3" }],
+      stream: true,
+    },
+    {
+      headers: { "op-tags": JSON.stringify({ promptId: "should not be recorded" }) },
+    },
+  );
 
   let merged: ChatCompletion | null = null;
   for await (const chunk of completion) {

@@ -30,7 +30,6 @@ export const recordUsage = async ({
   projectId: string;
   inputPayload: z.infer<typeof chatCompletionInput>;
   completion: unknown;
-  typedFT?: ReturnType<typeof typedFineTune> & { id: string; projectId: string };
   logRequest?: boolean;
   fineTune?: FineTune;
   tags?: Record<string, string>;

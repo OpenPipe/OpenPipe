@@ -3,6 +3,7 @@ import { type ChatCompletionChunk, type ChatCompletion } from "openai/resources/
 import { Stream } from "openai/streaming";
 import { z } from "zod";
 import { captureException } from "@sentry/node";
+import { type FineTune } from "@prisma/client";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
@@ -102,22 +103,23 @@ export const v1ApiRouter = createOpenApiRouter({
           ? chatCompletionInputReqPayload.parse(input.reqPayload)
           : chatCompletionInputReqPayload.parse(input);
 
-      const modelSlug = inputPayload.model.replace("openpipe:", "");
-      const fineTune =
-        (await prisma.fineTune.findUnique({
-          where: { slug: modelSlug },
-        })) ?? undefined;
-
-      if (inputPayload.model.startsWith("openpipe:") && !fineTune) {
-        throw new TRPCError({
-          message: "The model does not exist",
-          code: "NOT_FOUND",
-        });
-      }
-
       let completion: ChatCompletion | Stream<ChatCompletionChunk>;
+      let fineTune: FineTune | undefined = undefined;
 
-      if (fineTune) {
+      if (inputPayload.model.startsWith("openpipe:")) {
+        const modelSlug = inputPayload.model.replace("openpipe:", "");
+        fineTune =
+          (await prisma.fineTune.findUnique({
+            where: { slug: modelSlug },
+          })) ?? undefined;
+
+        if (!fineTune) {
+          throw new TRPCError({
+            message: "The model does not exist",
+            code: "NOT_FOUND",
+          });
+        }
+
         const typedFT = typedFineTune(fineTune);
 
         if (typedFT && typedFT.projectId !== key.projectId) {

@@ -140,7 +140,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         if (isComparisonModel(modelId)) {
           completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
         } else if (fineTune) {
-          completion = (await getCompletion2(fineTune, input)) as ChatCompletion;
+          completion = await getCompletion2(fineTune, input);
         } else {
           await prisma.fineTuneTestingEntry.update({
             where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
