@@ -71,7 +71,7 @@ test("simple openai content call", async () => {
   expect(lastLogged?.reqPayload).toMatchObject(payload);
   expect(completion).toMatchObject(lastLogged?.respPayload);
   expect(lastLogged?.tags).toMatchObject({ promptId: "simple openai content call" });
-});
+}, 10000);
 
 test("simple ft content call", async () => {
   const payload: ChatCompletionCreateParams = {
