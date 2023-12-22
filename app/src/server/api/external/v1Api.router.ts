@@ -154,8 +154,10 @@ export const v1ApiRouter = createOpenApiRouter({
         }
       }
 
-      // Default to true if we not using a fine-tuned model
-      const logRequest = ctx.headers["op-log-request"] === "true" || !fineTune;
+      // Default to true if not using a fine-tuned model
+      const logRequest =
+        (ctx.headers["op-log-request"] === "true" || !fineTune) &&
+        ctx.headers["op-log-request"] !== "false";
       let tags: Record<string, string> = {};
       if (ctx.headers["op-tags"]) {
         try {
