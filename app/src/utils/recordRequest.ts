@@ -81,6 +81,7 @@ export const recordUsage = async ({
       reqPayload: inputPayload,
       respPayload: completion,
       tags,
+      statusCode: 200,
     });
   }
 };

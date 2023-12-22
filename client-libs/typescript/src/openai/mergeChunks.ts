@@ -25,9 +25,11 @@ export default function mergeChunks(
           ...c,
           delta: {
             ...c.delta,
-            function_call: {
-              ...c.delta.function_call,
-            },
+            function_call: c.delta.function_call
+              ? {
+                  ...c.delta.function_call,
+                }
+              : undefined,
             tool_calls: c.delta.tool_calls?.map((tc) => ({
               ...tc,
               function: {

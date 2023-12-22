@@ -11,6 +11,7 @@ import mergeChunks from "./mergeChunks";
 
 dotenv.config();
 
+// const BASE_URL = "https://app.openpipe.ai/api/v1";
 // const BASE_URL = "https://app.openpipestage.com/api/v1";
 const BASE_URL = "http://localhost:3000/api/v1";
 
@@ -70,7 +71,7 @@ test("simple openai content call", async () => {
   expect(lastLogged?.reqPayload).toMatchObject(payload);
   expect(completion).toMatchObject(lastLogged?.respPayload);
   expect(lastLogged?.tags).toMatchObject({ promptId: "simple openai content call" });
-});
+}, 10000);
 
 test("simple ft content call", async () => {
   const payload: ChatCompletionCreateParams = {
