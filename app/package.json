@@ -88,7 +88,7 @@
     "nextjs-routes": "^2.0.1",
     "nodemailer": "^6.9.4",
     "openai": "^4.17.1",
-    "openpipe": "0.6.2",
+    "openpipe": "0.6.5",
     "openpipe-dev": "workspace:^",
     "openskill": "^3.1.0",
     "pg": "^8.11.2",

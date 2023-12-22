@@ -186,8 +186,8 @@ importers:
         specifier: ^4.17.1
         version: 4.17.1(encoding@0.1.13)
       openpipe:
-        specifier: 0.6.2
-        version: 0.6.2
+        specifier: 0.6.5
+        version: 0.6.5
       openpipe-dev:
         specifier: workspace:^
         version: link:../client-libs/typescript
@@ -409,9 +409,6 @@ importers:
       '@rollup/plugin-node-resolve':
         specifier: ^15.2.1
         version: 15.2.1(rollup@3.28.1)
-      '@types/lodash-es':
-        specifier: ^4.17.8
-        version: 4.17.8
       '@types/node':
         specifier: ^20.4.8
         version: 20.4.8
@@ -7241,7 +7238,7 @@ packages:
       acorn: 8.10.0
       pathe: 1.1.1
       pkg-types: 1.0.3
-      ufo: 1.2.0
+      ufo: 1.3.2
     dev: true
 
   /monaco-editor@0.40.0:
@@ -7659,8 +7656,8 @@ packages:
       oidc-token-hash: 5.0.3
     dev: false
 
-  /openpipe@0.6.2:
-    resolution: {integrity: sha512-BZf9VdfPeXswQOtfQyoA3kQwbdE1N+Z6gEYyownXjH2SehaNtI3EwB3D16Y982Pe5BabL0m+wx9PKt73wKLxtg==}
+  /openpipe@0.6.5:
+    resolution: {integrity: sha512-rYDdj8kLTDvo6wr8Iyo9VZsqnj5OW81mjbrcCpqrPU5F2Kd6nxkOFh/oUktuhR33HdBDaFzQ8VMBLxeDbSVMAg==}
     dependencies:
       encoding: 0.1.13
       form-data: 4.0.0
@@ -9498,13 +9495,8 @@ packages:
     engines: {node: '>=12.20'}
     hasBin: true
 
-  /ufo@1.2.0:
-    resolution: {integrity: sha512-RsPyTbqORDNDxqAdQPQBpgqhWle1VcTSou/FraClYlHf6TZnQcGslpLcAphNR+sQW4q5lLWLbOsRlh9j24baQg==}
-    dev: true
-
   /ufo@1.3.2:
     resolution: {integrity: sha512-o+ORpgGwaYQXgqGDwd+hkS4PuZ3QnmqMMxRuajK/a38L6fTpcE5GPIfrf+L/KemFzfUpeUQc1rRS1iDBozvnFA==}
-    dev: false
 
   /uglify-js@3.17.4:
     resolution: {integrity: sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==}

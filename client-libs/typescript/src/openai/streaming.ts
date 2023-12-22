@@ -1,5 +1,6 @@
 import type { ChatCompletion, ChatCompletionChunk } from "openai/resources/chat";
 import { Stream } from "openai/streaming";
+
 import { OpenPipeMeta } from "../shared";
 import mergeChunks from "./mergeChunks";
 

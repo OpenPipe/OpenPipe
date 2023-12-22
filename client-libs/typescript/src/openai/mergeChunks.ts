@@ -16,7 +16,28 @@ export default function mergeChunks(
   chunk: ChatCompletionChunk,
 ): ChatCompletion {
   if (base === null) {
-    return mergeChunks({ ...chunk, object: "chat.completion", choices: [] }, chunk);
+    return mergeChunks(
+      { ...chunk, object: "chat.completion", choices: [] },
+      // Prevent function call and tool call arguments from being double-merged
+      {
+        ...chunk,
+        choices: chunk.choices.map((c) => ({
+          ...c,
+          delta: {
+            ...c.delta,
+            function_call: {
+              ...c.delta.function_call,
+            },
+            tool_calls: c.delta.tool_calls?.map((tc) => ({
+              ...tc,
+              function: {
+                ...tc.function,
+              },
+            })),
+          },
+        })),
+      },
+    );
   }
 
   const choices = [...base.choices];
@@ -36,6 +57,23 @@ export default function mergeChunks(
         };
         fnCall.name = fnCall.name + (choice.delta.function_call.name ?? "");
         fnCall.arguments = fnCall.arguments + (choice.delta.function_call.arguments ?? "");
+      }
+      if (choice.delta?.tool_calls) {
+        const toolCalls = baseChoice.message.tool_calls ?? [];
+        const toolCallDelta = { ...choice.delta.tool_calls[0] };
+        if (toolCallDelta?.function?.name) {
+          toolCalls.push({
+            id: toolCallDelta.id as string,
+            type: "function",
+            function: {
+              name: toolCallDelta.function.name ?? "",
+              arguments: toolCallDelta.function.arguments ?? "",
+            },
+          });
+        } else if (toolCalls[toolCalls.length - 1] && toolCallDelta) {
+          toolCalls[toolCalls.length - 1]!.function.arguments +=
+            toolCallDelta.function?.arguments ?? "";
+        }
       }
     } else {
       // @ts-expect-error the types are correctly telling us that finish_reason

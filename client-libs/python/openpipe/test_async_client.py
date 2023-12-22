@@ -1,6 +1,7 @@
 from functools import reduce
 import pytest
 import os
+import asyncio
 from openai import AsyncOpenAI as BaseAsyncOpenAI
 
 from . import AsyncOpenAI
@@ -27,6 +28,7 @@ async def test_async_content():
         openpipe={"tags": {"promptId": "test_async_content"}},
     )
 
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -44,6 +46,7 @@ async def test_async_content_mistral():
         openpipe={"tags": {"promptId": "test_async_content_mistral"}},
     )
 
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -62,6 +65,8 @@ async def test_async_function_call():
         functions=[function],
         openpipe={"tags": {"promptId": "test_async_function_call"}},
     )
+
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -86,6 +91,8 @@ async def test_async_function_call_mistral():
         functions=[function],
         openpipe={"tags": {"promptId": "test_async_function_call_mistral"}},
     )
+
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -116,6 +123,8 @@ async def test_async_tool_calls():
         ],
         openpipe={"tags": {"promptId": "test_async_tool_calls"}},
     )
+
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -149,6 +158,8 @@ async def test_async_tool_calls_mistral():
         ],
         openpipe={"tags": {"promptId": "test_async_tool_calls_mistral"}},
     )
+
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -180,6 +191,7 @@ async def test_async_streaming_content():
     async for chunk in completion:
         merged = merge_openai_chunks(merged, chunk)
 
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -204,6 +216,7 @@ async def test_async_streaming_content_ft_35():
     async for chunk in completion:
         merged = merge_openai_chunks(merged, chunk)
 
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -227,6 +240,7 @@ async def test_async_streaming_function_call():
     async for chunk in completion:
         merged = merge_openai_chunks(merged, chunk)
 
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -264,6 +278,7 @@ async def test_async_streaming_tool_calls():
     async for chunk in completion:
         merged = merge_openai_chunks(merged, chunk)
 
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -282,6 +297,7 @@ async def test_async_with_tags():
         openpipe={"tags": {"promptId": "test_async_with_tags"}},
     )
 
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -305,6 +321,8 @@ async def test_bad_openai_call():
         assert False
     except Exception:
         pass
+
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )
@@ -325,6 +343,8 @@ async def test_bad_openpipe_call():
         assert False
     except Exception:
         pass
+
+    await asyncio.sleep(0.1)
     last_logged = (
         await client.openpipe_client.local_testing_only_get_latest_logged_call()
     )

@@ -11,23 +11,46 @@ import mergeChunks from "./mergeChunks";
 
 dotenv.config();
 
+// const BASE_URL = "https://app.openpipestage.com/api/v1";
+const BASE_URL = "http://localhost:3000/api/v1";
+
 const baseClient = new BaseOpenAI({
   apiKey: process.env.OPENPIPE_API_KEY,
-  baseURL: "http://localhost:3000/api/v1",
+  baseURL: BASE_URL,
 });
 
 const oaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   openpipe: {
     apiKey: process.env.OPENPIPE_API_KEY,
-    baseUrl: "http://localhost:3000/api/v1",
+    baseUrl: BASE_URL,
   },
 });
 
 const opClient = new OPClient({
-  BASE: "http://localhost:3000/api/v1",
+  BASE: BASE_URL,
   TOKEN: process.env.OPENPIPE_API_KEY,
 });
+
+const functionCall = { name: "get_current_weather" };
+const functionBody = {
+  name: "get_current_weather",
+  description: "Get the current weather in a given location",
+  parameters: {
+    type: "object",
+    properties: {
+      location: {
+        type: "string",
+        description: "The city and state, e.g. San Francisco, CA",
+      },
+      unit: {
+        type: "string",
+        enum: ["celsius", "fahrenheit"],
+      },
+    },
+    required: ["location"],
+  },
+};
 
 const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
 
@@ -42,12 +65,11 @@ test("simple openai content call", async () => {
   });
 
   await completion.openpipe.reportingFinished;
+
   const lastLogged = await lastLoggedCall();
   expect(lastLogged?.reqPayload).toMatchObject(payload);
   expect(completion).toMatchObject(lastLogged?.respPayload);
   expect(lastLogged?.tags).toMatchObject({ promptId: "simple openai content call" });
-
-  console.log("simple openai content call ended");
 });
 
 test("simple ft content call", async () => {
@@ -99,7 +121,7 @@ test("base client ft content call", async () => {
   expect(lastLogged?.tags).toMatchObject(tags);
 }, 10000);
 
-test("openai streaming", async () => {
+test("openai content streaming", async () => {
   const completion = await oaiClient.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [{ role: "system", content: "count to 3" }],
@@ -113,12 +135,138 @@ test("openai streaming", async () => {
 
   await completion.openpipe.reportingFinished;
   const lastLogged = await lastLoggedCall();
-  await completion.openpipe.reportingFinished;
-
   expect(merged).toMatchObject(lastLogged?.respPayload);
   expect(lastLogged?.reqPayload.messages).toMatchObject([
     { role: "system", content: "count to 3" },
   ]);
+});
+
+test("openai function call streaming", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "Tell me the weather in SF and Orlando" }],
+    functions: [functionBody],
+    stream: true,
+  };
+  const completion = await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: {
+      tags: { promptId: "openai function call streaming" },
+    },
+  });
+
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  console.log("merged", merged?.choices[0]?.message.function_call);
+
+  await completion.openpipe.reportingFinished;
+  const lastLogged = await lastLoggedCall();
+  expect(merged).toMatchObject(lastLogged?.respPayload);
+  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+});
+
+test("openai tool call streaming", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "Tell me the weather in SF and Orlando" }],
+    tools: [
+      {
+        type: "function",
+        function: functionBody,
+      },
+    ],
+    stream: true,
+  };
+  const completion = await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: {
+      tags: { promptId: "openai tool call streaming" },
+    },
+  });
+
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  console.log("merged", merged?.choices[0]?.message.tool_calls);
+
+  await completion.openpipe.reportingFinished;
+  const lastLogged = await lastLoggedCall();
+  expect(merged).toMatchObject(lastLogged?.respPayload);
+  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+});
+
+test("base sdk function call streaming", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "Tell me the weather in SF and Orlando" }],
+    functions: [functionBody],
+    stream: true,
+  };
+  const completion = await baseClient.chat.completions.create(
+    {
+      ...payload,
+    },
+    {
+      headers: {
+        "op-log-request": "true",
+        "op-tags": JSON.stringify({ promptId: "base sdk function call streaming" }),
+      },
+    },
+  );
+
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  console.log("merged", merged?.choices[0]?.message.function_call);
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(merged).toMatchObject(lastLogged?.respPayload);
+  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+});
+
+test("base sdk tool call streaming", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "Tell me the weather in SF and Orlando" }],
+    tools: [
+      {
+        type: "function",
+        function: functionBody,
+      },
+    ],
+    stream: true,
+  };
+  const completion = await baseClient.chat.completions.create(
+    {
+      ...payload,
+    },
+    {
+      headers: {
+        "op-log-request": "true",
+        "op-tags": JSON.stringify({ promptId: "base sdk tool call streaming" }),
+      },
+    },
+  );
+
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  console.log("merged", merged?.choices[0]?.message.tool_calls);
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(merged).toMatchObject(lastLogged?.respPayload);
+  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
 });
 
 test("openai streaming base sdk", async () => {
