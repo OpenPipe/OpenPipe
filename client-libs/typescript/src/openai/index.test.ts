@@ -11,6 +11,7 @@ import mergeChunks from "./mergeChunks";
 
 dotenv.config();
 
+// const BASE_URL = "https://app.openpipe.ai/api/v1";
 // const BASE_URL = "https://app.openpipestage.com/api/v1";
 const BASE_URL = "http://localhost:3000/api/v1";
 
