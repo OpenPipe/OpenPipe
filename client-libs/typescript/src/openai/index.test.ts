@@ -296,7 +296,7 @@ test("openai streaming base sdk logs request for base model", async () => {
     stream: true,
   };
   const completion = await baseClient.chat.completions.create(input, {
-    headers: { "op-log-request": "false" },
+    headers: { "op-log-request": "true" },
   });
   let merged: ChatCompletion | null = null;
   for await (const chunk of completion) {
@@ -306,6 +306,25 @@ test("openai streaming base sdk logs request for base model", async () => {
   await sleep(100);
   const lastLogged = await lastLoggedCall();
   expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+}, 10000);
+
+test("openai streaming base sdk does not log request if asked not to", async () => {
+  const input: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "count to 4" }],
+    stream: true,
+  };
+  const completion = await baseClient.chat.completions.create(input, {
+    headers: { "op-log-request": "false" },
+  });
+  let merged: ChatCompletion | null = null;
+  for await (const chunk of completion) {
+    merged = mergeChunks(merged, chunk);
+  }
+
+  await sleep(100);
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
 }, 10000);
 
 test("35 ft streaming", async () => {
