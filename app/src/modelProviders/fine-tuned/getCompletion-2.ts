@@ -75,9 +75,8 @@ async function getOpenAIFineTuneCompletion(
   }
 
   // TODO: create pipeline without this conversion once OpenAI supports tool_calls for their fine-tuned models
-  input = convertToolCallInputToFunctionInput(input);
   const completion = await getOpenaiCompletion(fineTune.projectId, {
-    ...input,
+    ...convertToolCallInputToFunctionInput(input),
     stream: false,
     model,
   });
