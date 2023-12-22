@@ -141,7 +141,7 @@ test("openai streaming base sdk", async () => {
   expect(lastLogged?.reqPayload.messages).toMatchObject(input.messages);
 }, 10000);
 
-test("openai streaming base sdk does not log request", async () => {
+test("openai streaming base sdk logs request for base model", async () => {
   const input: ChatCompletionCreateParams = {
     model: "gpt-3.5-turbo",
     messages: [{ role: "system", content: "count to 4" }],
@@ -157,7 +157,7 @@ test("openai streaming base sdk does not log request", async () => {
 
   await sleep(100);
   const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+  expect(lastLogged?.respPayload.id).toEqual(merged?.id);
 }, 10000);
 
 test("35 ft streaming", async () => {
