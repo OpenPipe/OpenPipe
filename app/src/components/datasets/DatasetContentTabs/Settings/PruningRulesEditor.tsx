@@ -1,4 +1,4 @@
-import { Divider, Heading, VStack, HStack, Text, Icon } from "@chakra-ui/react";
+import { Divider, Heading, VStack, HStack, Text, Icon, Button, Link } from "@chakra-ui/react";
 import { RiInformationFill } from "react-icons/ri";
 
 import { usePruningRules } from "~/utils/hooks";
@@ -31,6 +31,16 @@ const PruningRulesEditor = () => {
             save on tokens. Text will be removed from your prompts sequentially, so make sure to
             order your rules accordingly.
           </Text>
+          <Button
+            as={Link}
+            variant="link"
+            color="blue.600"
+            target="_blank"
+            href="https://docs.openpipe.ai/features/pruning-rules"
+            pt={2}
+          >
+            Learn more
+          </Button>
         </VStack>
         <Divider w="full" />
         {pruningRules &&
