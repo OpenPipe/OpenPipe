@@ -30,6 +30,9 @@ test("reports null response payload", async () => {
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
+    tags: {
+      promptId: "reports null response payload",
+    },
   });
 });
 
@@ -41,5 +44,10 @@ test("reports invalid request payload", async () => {
 
   const completionResp = await oaiClient.chat.completions.create({
     ...payload,
+    openpipe: {
+      tags: {
+        promptId: "reports invalid request payload",
+      },
+    },
   });
 });

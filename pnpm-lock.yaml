@@ -186,8 +186,8 @@ importers:
         specifier: ^4.17.1
         version: 4.17.1(encoding@0.1.13)
       openpipe:
-        specifier: 0.6.2
-        version: 0.6.2
+        specifier: 0.6.5
+        version: 0.6.5
       openpipe-dev:
         specifier: workspace:^
         version: link:../client-libs/typescript
@@ -246,8 +246,8 @@ importers:
         specifier: 1.12.2
         version: 1.12.2
       trpc-openapi:
-        specifier: ^1.2.0
-        version: 1.2.0(@trpc/server@10.26.0)(zod@3.22.4)
+        specifier: github:OpenPipe/trpc-openapi#build
+        version: github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b(@trpc/server@10.26.0)(zod@3.22.4)
       tsx:
         specifier: ^3.12.7
         version: 3.12.7
@@ -409,9 +409,6 @@ importers:
       '@rollup/plugin-node-resolve':
         specifier: ^15.2.1
         version: 15.2.1(rollup@3.28.1)
-      '@types/lodash-es':
-        specifier: ^4.17.8
-        version: 4.17.8
       '@types/node':
         specifier: ^20.4.8
         version: 20.4.8
@@ -3117,7 +3114,7 @@ packages:
   /@types/connect@3.4.35:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
-      '@types/node': 18.18.8
+      '@types/node': 20.4.10
     dev: true
 
   /@types/d3-array@3.0.5:
@@ -3223,7 +3220,7 @@ packages:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 18.18.8
+      '@types/node': 20.4.10
     dev: false
 
   /@types/hast@2.3.5:
@@ -3238,10 +3235,6 @@ packages:
 
   /@types/json-schema@7.0.12:
     resolution: {integrity: sha512-Hr5Jfhc9eYOQNPYO5WLDq/n4jqijdHNlDXjuAQkkt+mWdQR+XJToOHrsD4cPaMXpn6KO7y2+wM8AZEs8VpBLVA==}
-
-  /@types/json-schema@7.0.14:
-    resolution: {integrity: sha512-U3PUjAudAdJBeC2pgN8uTIKgxrb4nlDF3SF0++EldXQvQBGkpFZMSnwQiIoDU77tv45VgNkl/L4ouD+rEomujw==}
-    dev: true
 
   /@types/json-schema@7.0.15:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -3395,7 +3388,7 @@ packages:
     resolution: {integrity: sha512-whjk1EDJPcAR2kYHRbFl/lKeeKYTi05A15K9bnLInCVroNDCtXce57xKdI0/rQaA3K+6q0eFyUBPmqfSndUZdQ==}
     dependencies:
       '@types/caseless': 0.12.2
-      '@types/node': 18.18.8
+      '@types/node': 20.4.10
       '@types/tough-cookie': 4.0.2
       form-data: 2.5.1
     dev: false
@@ -3415,7 +3408,7 @@ packages:
     resolution: {integrity: sha512-Cwo8LE/0rnvX7kIIa3QHCkcuF21c05Ayb0ZfxPiv0W8VRiZiNW/WuRupHKpqqGVGf7SUA44QSOUKaEd9lIrd/Q==}
     dependencies:
       '@types/mime': 1.3.2
-      '@types/node': 18.18.8
+      '@types/node': 20.4.10
     dev: true
 
   /@types/serve-static@1.15.2:
@@ -3439,7 +3432,7 @@ packages:
   /@types/tunnel@0.0.3:
     resolution: {integrity: sha512-sOUTGn6h1SfQ+gbgqC364jLFBw2lnFqkgF3q0WovEHRLMrVD1sd5aufqi/aJObLekJO+Aq5z646U4Oxy6shXMA==}
     dependencies:
-      '@types/node': 18.18.8
+      '@types/node': 20.4.10
     dev: false
 
   /@types/unist@2.0.7:
@@ -3569,7 +3562,7 @@ packages:
       eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.40.0)
-      '@types/json-schema': 7.0.14
+      '@types/json-schema': 7.0.15
       '@types/semver': 7.5.0
       '@typescript-eslint/scope-manager': 5.59.6
       '@typescript-eslint/types': 5.59.6
@@ -4436,9 +4429,9 @@ packages:
   /co-body@6.1.0:
     resolution: {integrity: sha512-m7pOT6CdLN7FuXUcpuz/8lfQ/L77x8SchHCF4G0RBTJO20Wzmhn5Sp4/5WsKy8OSpifBSUrmg83qEqaDHdyFuQ==}
     dependencies:
-      inflation: 2.0.0
-      qs: 6.11.2
-      raw-body: 2.5.2
+      inflation: 2.1.0
+      qs: 6.11.0
+      raw-body: 2.5.1
       type-is: 1.6.18
     dev: false
 
@@ -4522,6 +4515,11 @@ packages:
       supports-color: 8.1.1
       tree-kill: 1.2.2
       yargs: 17.7.2
+    dev: false
+
+  /consola@3.2.3:
+    resolution: {integrity: sha512-I5qxpzLv+sJhTVEoLYNcTW+bThDCPsit0vLNKShZx6rLtpilNpmmeTPaeqJb9ZE9dV3DGaeby6Vuhrw38WjeyQ==}
+    engines: {node: ^14.18.0 || >=16.10.0}
     dev: false
 
   /content-disposition@0.5.4:
@@ -4874,8 +4872,8 @@ packages:
       has-property-descriptors: 1.0.0
       object-keys: 1.1.1
 
-  /defu@6.1.2:
-    resolution: {integrity: sha512-+uO4+qr7msjNNWKYPHqN/3+Dx3NFkmIzayk2L1MyZQlvgZb/J1A0fo410dpKrN2SnqFjt8n4JL8fDJE0wIgjFQ==}
+  /defu@6.1.3:
+    resolution: {integrity: sha512-Vy2wmG3NTkmHNg/kzpuvHhkqeIx3ODWqasgCRbKtbXEN0G+HpEEv9BtJLp7ZG1CZloFaC41Ah3ZFbq7aqCqMeQ==}
     dev: false
 
   /delayed-stream@1.0.0:
@@ -4897,8 +4895,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /destr@2.0.1:
-    resolution: {integrity: sha512-M1Ob1zPSIvlARiJUkKqvAZ3VAqQY6Jcuth/pBKQ2b1dX/Qx0OnJ8Vux6J2H5PTMQeRzWrrbTu70VxBfv/OPDJA==}
+  /destr@2.0.2:
+    resolution: {integrity: sha512-65AlobnZMiCET00KaFFjUefxDX0khFA/E4myqZ7a6Sq1yZtR8+FVIvilVX66vF2uobSumxooYZChiRPCKNqhmg==}
     dev: false
 
   /destroy@1.2.0:
@@ -6142,16 +6140,17 @@ packages:
       - pg-native
     dev: false
 
-  /h3@1.7.1:
-    resolution: {integrity: sha512-A9V2NEDNHet7v1gCg7CMwerSigLi0SRbhTy7C3lGb0N4YKIpPmLDjedTUopqp4dnn7COHfqUjjaz3zbtz4QduA==}
+  /h3@1.9.0:
+    resolution: {integrity: sha512-+F3ZqrNV/CFXXfZ2lXBINHi+rM4Xw3CDC5z2CDK3NMPocjonKipGLLDSkrqY9DOrioZNPTIdDMWfQKm//3X2DA==}
     dependencies:
       cookie-es: 1.0.0
-      defu: 6.1.2
-      destr: 2.0.1
-      iron-webcrypto: 0.7.1
-      radix3: 1.0.1
-      ufo: 1.2.0
+      defu: 6.1.3
+      destr: 2.0.2
+      iron-webcrypto: 1.0.0
+      radix3: 1.1.0
+      ufo: 1.3.2
       uncrypto: 0.1.3
+      unenv: 1.8.0
     dev: false
 
   /handlebars@4.7.8:
@@ -6363,8 +6362,8 @@ packages:
     engines: {node: '>=0.8.19'}
     dev: true
 
-  /inflation@2.0.0:
-    resolution: {integrity: sha512-m3xv4hJYR2oXw4o4Y5l6P5P16WYmazYof+el6Al3f+YlggGj6qT9kImBAnzDelRALnP5d3h4jGBPKzYCizjZZw==}
+  /inflation@2.1.0:
+    resolution: {integrity: sha512-t54PPJHG1Pp7VQvxyVCJ9mBbjG3Hqryges9bXoOO6GExCPa+//i/d5GSuFtpx3ALLd7lgIAur6zrIlBQyJuMlQ==}
     engines: {node: '>= 0.8.0'}
     dev: false
 
@@ -6402,8 +6401,8 @@ packages:
     engines: {node: '>= 0.10'}
     dev: false
 
-  /iron-webcrypto@0.7.1:
-    resolution: {integrity: sha512-K/UmlEhPCPXEHV5hAtH5C0tI5JnFuOrv4yO/j7ODPl3HaiiHBLbOLTde+ieUaAyfCATe4LoAnclyF+hmSCOVmQ==}
+  /iron-webcrypto@1.0.0:
+    resolution: {integrity: sha512-anOK1Mktt8U1Xi7fCM3RELTuYbnFikQY5VtrDj7kPgpejV7d43tWKhzgioO0zpkazLEL/j/iayRqnJhrGfqUsg==}
     dev: false
 
   /is-alphabetical@1.0.4:
@@ -7194,7 +7193,6 @@ packages:
     resolution: {integrity: sha512-jSCU7/VB1loIWBZe14aEYHU/+1UMEHoaO7qxCOVJOw9GgH72VAWppxNcjU+x9a2k3GSIBXNKxXQFqRvvZ7vr3A==}
     engines: {node: '>=10.0.0'}
     hasBin: true
-    dev: true
 
   /mimic-fn@2.1.0:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
@@ -7240,7 +7238,7 @@ packages:
       acorn: 8.10.0
       pathe: 1.1.1
       pkg-types: 1.0.3
-      ufo: 1.2.0
+      ufo: 1.3.2
     dev: true
 
   /monaco-editor@0.40.0:
@@ -7403,6 +7401,10 @@ packages:
     engines: {node: '>=10.5.0'}
     dev: false
 
+  /node-fetch-native@1.4.1:
+    resolution: {integrity: sha512-NsXBU0UgBxo2rQLOeWNZqS3fvflWePMECr8CoSWoSTqCqGbVVsvl9vZu1HfQicYN0g5piV9Gh8RTEvo/uP752w==}
+    dev: false
+
   /node-fetch@2.6.12(encoding@0.1.13):
     resolution: {integrity: sha512-C/fGU2E8ToujUivIO0H+tpQ6HWo4eEmchoPIoXtxCrVghxdKq+QOHqEZW7tuP3KlV3bC8FRMO5nMCC7Zm1VP6g==}
     engines: {node: 4.x || >=6.0.0}
@@ -7416,9 +7418,9 @@ packages:
       whatwg-url: 5.0.0
     dev: false
 
-  /node-mocks-http@1.12.2:
-    resolution: {integrity: sha512-xhWwC0dh35R9rf0j3bRZXuISXdHxxtMx0ywZQBwjrg3yl7KpRETzogfeCamUIjltpn0Fxvs/ZhGJul1vPLrdJQ==}
-    engines: {node: '>=0.6'}
+  /node-mocks-http@1.14.0:
+    resolution: {integrity: sha512-yOb3zNr9/5N27TAWxxMlrvWp4nNfRcrC0dAiqyj5NLyk6Jm80T95AhNj/YjThelkTkmTutS6RAB8pkmpkMofdA==}
+    engines: {node: '>=14'}
     dependencies:
       accepts: 1.3.8
       content-disposition: 0.5.4
@@ -7654,8 +7656,8 @@ packages:
       oidc-token-hash: 5.0.3
     dev: false
 
-  /openpipe@0.6.2:
-    resolution: {integrity: sha512-BZf9VdfPeXswQOtfQyoA3kQwbdE1N+Z6gEYyownXjH2SehaNtI3EwB3D16Y982Pe5BabL0m+wx9PKt73wKLxtg==}
+  /openpipe@0.6.5:
+    resolution: {integrity: sha512-rYDdj8kLTDvo6wr8Iyo9VZsqnj5OW81mjbrcCpqrPU5F2Kd6nxkOFh/oUktuhR33HdBDaFzQ8VMBLxeDbSVMAg==}
     dependencies:
       encoding: 0.1.13
       form-data: 4.0.0
@@ -7810,7 +7812,6 @@ packages:
 
   /pathe@1.1.1:
     resolution: {integrity: sha512-d+RQGp0MAYTIaDBIMmOfMwz3E+LOZnxx1HZd5R18mmCZY0QBlK0LDZfPc8FW8Ed2DlvsuE6PRjroDY+wg4+j/Q==}
-    dev: true
 
   /pathval@1.1.1:
     resolution: {integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==}
@@ -8145,13 +8146,6 @@ packages:
       side-channel: 1.0.4
     dev: false
 
-  /qs@6.11.2:
-    resolution: {integrity: sha512-tDNIz22aBzCDxLtVH++VnTfzxlfeK5CbqohpSqpJgj1Wg/cQbStNAz3NuqCs5vV+pjBsK4x4pN9HlVh7rcYRiA==}
-    engines: {node: '>=0.6'}
-    dependencies:
-      side-channel: 1.0.4
-    dev: false
-
   /qs@6.5.3:
     resolution: {integrity: sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==}
     engines: {node: '>=0.6'}
@@ -8161,8 +8155,8 @@ packages:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
     dev: true
 
-  /radix3@1.0.1:
-    resolution: {integrity: sha512-y+AcwZ3HcUIGc9zGsNVf5+BY/LxL+z+4h4J3/pp8jxSmy1STaCocPS3qrj4tA5ehUSzqtqK+0Aygvz/r/8vy4g==}
+  /radix3@1.1.0:
+    resolution: {integrity: sha512-pNsHDxbGORSvuSScqNJ+3Km6QAVqk8CfsCBIEoDgpqLrkD2f3QM4I7d1ozJJ172OmIcoUcerZaNWqtLkRXTV3A==}
     dev: false
 
   /ramda@0.29.0:
@@ -8181,16 +8175,6 @@ packages:
 
   /raw-body@2.5.1:
     resolution: {integrity: sha512-qqJBtEyVgS0ZmPGdCFPWJ3FreoqvG4MVQln/kCgF7Olq95IbOp0/BWyMwbdtn4VTvkM8Y7khCQ2Xgk/tcrCXig==}
-    engines: {node: '>= 0.8'}
-    dependencies:
-      bytes: 3.1.2
-      http-errors: 2.0.0
-      iconv-lite: 0.4.24
-      unpipe: 1.0.0
-    dev: false
-
-  /raw-body@2.5.2:
-    resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
     engines: {node: '>= 0.8'}
     dependencies:
       bytes: 3.1.2
@@ -9298,22 +9282,6 @@ packages:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
 
-  /trpc-openapi@1.2.0(@trpc/server@10.26.0)(zod@3.22.4):
-    resolution: {integrity: sha512-pfYoCd/3KYXWXvUPZBKJw455OOwngKN/6SIcj7Yit19OMLJ+8yVZkEvGEeg5wUSwfsiTdRsKuvqkRPXVSwV7ew==}
-    peerDependencies:
-      '@trpc/server': ^10.0.0
-      zod: ^3.14.4
-    dependencies:
-      '@trpc/server': 10.26.0
-      co-body: 6.1.0
-      h3: 1.7.1
-      lodash.clonedeep: 4.5.0
-      node-mocks-http: 1.12.2
-      openapi-types: 12.1.3
-      zod: 3.22.4
-      zod-to-json-schema: 3.22.0(zod@3.22.4)
-    dev: false
-
   /ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
@@ -9527,8 +9495,8 @@ packages:
     engines: {node: '>=12.20'}
     hasBin: true
 
-  /ufo@1.2.0:
-    resolution: {integrity: sha512-RsPyTbqORDNDxqAdQPQBpgqhWle1VcTSou/FraClYlHf6TZnQcGslpLcAphNR+sQW4q5lLWLbOsRlh9j24baQg==}
+  /ufo@1.3.2:
+    resolution: {integrity: sha512-o+ORpgGwaYQXgqGDwd+hkS4PuZ3QnmqMMxRuajK/a38L6fTpcE5GPIfrf+L/KemFzfUpeUQc1rRS1iDBozvnFA==}
 
   /uglify-js@3.17.4:
     resolution: {integrity: sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==}
@@ -9560,6 +9528,16 @@ packages:
     dependencies:
       busboy: 1.6.0
     dev: true
+
+  /unenv@1.8.0:
+    resolution: {integrity: sha512-uIGbdCWZfhRRmyKj1UioCepQ0jpq638j/Cf0xFTn4zD1nGJ2lSdzYHLzfdXN791oo/0juUiSWW1fBklXMTsuqg==}
+    dependencies:
+      consola: 3.2.3
+      defu: 6.1.3
+      mime: 3.0.0
+      node-fetch-native: 1.4.1
+      pathe: 1.1.1
+    dev: false
 
   /unicode-trie@2.0.0:
     resolution: {integrity: sha512-x7bc76x0bm4prf1VLg79uhAzKw8DVboClSN5VxJuQ+LKDOVEW9CdH+VY7SP+vX7xCYQqzzgQpFqz15zeLvAtZQ==}
@@ -10184,3 +10162,22 @@ packages:
       handlebars: 4.7.8
       json-schema-ref-parser: 9.0.9
     dev: true
+
+  github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b(@trpc/server@10.26.0)(zod@3.22.4):
+    resolution: {tarball: https://codeload.github.com/OpenPipe/trpc-openapi/tar.gz/92019064df7cb33b30a59ac4b890c0759fd8774b}
+    id: github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b
+    name: trpc-openapi
+    version: 1.2.0
+    peerDependencies:
+      '@trpc/server': ^10.0.0
+      zod: ^3.14.4
+    dependencies:
+      '@trpc/server': 10.26.0
+      co-body: 6.1.0
+      h3: 1.9.0
+      lodash.clonedeep: 4.5.0
+      node-mocks-http: 1.14.0
+      openapi-types: 12.1.3
+      zod: 3.22.4
+      zod-to-json-schema: 3.22.0(zod@3.22.4)
+    dev: false

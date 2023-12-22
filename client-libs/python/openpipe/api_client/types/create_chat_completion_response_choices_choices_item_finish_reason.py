@@ -6,7 +6,7 @@ import typing
 T_Result = typing.TypeVar("T_Result")
 
 
-class CreateChatCompletionResponseChoicesItemFinishReason(str, enum.Enum):
+class CreateChatCompletionResponseChoicesChoicesItemFinishReason(str, enum.Enum):
     LENGTH = "length"
     FUNCTION_CALL = "function_call"
     TOOL_CALLS = "tool_calls"
@@ -21,13 +21,13 @@ class CreateChatCompletionResponseChoicesItemFinishReason(str, enum.Enum):
         stop: typing.Callable[[], T_Result],
         content_filter: typing.Callable[[], T_Result],
     ) -> T_Result:
-        if self is CreateChatCompletionResponseChoicesItemFinishReason.LENGTH:
+        if self is CreateChatCompletionResponseChoicesChoicesItemFinishReason.LENGTH:
             return length()
-        if self is CreateChatCompletionResponseChoicesItemFinishReason.FUNCTION_CALL:
+        if self is CreateChatCompletionResponseChoicesChoicesItemFinishReason.FUNCTION_CALL:
             return function_call()
-        if self is CreateChatCompletionResponseChoicesItemFinishReason.TOOL_CALLS:
+        if self is CreateChatCompletionResponseChoicesChoicesItemFinishReason.TOOL_CALLS:
             return tool_calls()
-        if self is CreateChatCompletionResponseChoicesItemFinishReason.STOP:
+        if self is CreateChatCompletionResponseChoicesChoicesItemFinishReason.STOP:
             return stop()
-        if self is CreateChatCompletionResponseChoicesItemFinishReason.CONTENT_FILTER:
+        if self is CreateChatCompletionResponseChoicesChoicesItemFinishReason.CONTENT_FILTER:
             return content_filter()

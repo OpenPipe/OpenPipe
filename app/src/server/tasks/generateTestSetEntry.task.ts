@@ -1,6 +1,6 @@
 import { Prisma, UsageType, type ComparisonModel, type FineTuneTestingEntry } from "@prisma/client";
 import { isNumber } from "lodash-es";
-import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat";
+import type { ChatCompletion, ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat";
 import type { JsonValue } from "type-fest";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
@@ -125,7 +125,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
       }
 
       let completion: ChatCompletion;
-      const input: ChatCompletionCreateParams = {
+      const input: ChatCompletionCreateParamsNonStreaming = {
         model: fineTune
           ? `openpipe:${fineTune.slug}`
           : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
@@ -133,6 +133,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         tool_choice: datasetEntry.tool_choice ?? undefined,
         tools: datasetEntry.tools ?? undefined,
         response_format: datasetEntry.response_format ?? undefined,
+        stream: false,
       };
 
       try {

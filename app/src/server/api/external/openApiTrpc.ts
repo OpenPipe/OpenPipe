@@ -6,6 +6,7 @@ import superjson from "superjson";
 import { type OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
 import * as SentryModule from "@sentry/nextjs";
+import { type IncomingHttpHeaders } from "http";
 
 import { prisma } from "~/server/db";
 import { ensureDefaultExport } from "~/utils/utils";
@@ -18,6 +19,7 @@ type CreateContextOptions = {
         project: Project;
       })
     | null;
+  headers: IncomingHttpHeaders;
   res: NextApiResponse;
 };
 
@@ -34,6 +36,7 @@ type CreateContextOptions = {
 export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     key: opts.key,
+    headers: opts.headers,
     res: opts.res,
   };
 };
@@ -56,6 +59,7 @@ export const createOpenApiContext = async (opts: CreateNextContextOptions) => {
 
   return createInnerTRPCContext({
     key,
+    headers: req.headers,
     res,
   });
 };

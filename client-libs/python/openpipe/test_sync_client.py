@@ -46,13 +46,12 @@ def test_sync_content():
     )
 
 
-@pytest.mark.focus
-def test_sync_content_ft():
+def test_sync_content_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-content-ft",
+        model="openpipe:test-content-mistral",
         response_format={"type": "json_object"},
         messages=[{"role": "system", "content": "count to 3"}],
-        openpipe={"tags": {"promptId": "test_sync_content_ft"}},
+        openpipe={"tags": {"promptId": "test_sync_content_mistral"}},
     )
 
     last_logged = client.openpipe_client.local_testing_only_get_latest_logged_call()
@@ -85,13 +84,13 @@ def test_sync_function_call():
     )
 
 
-def test_sync_function_call_ft():
+def test_sync_function_call_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-tool-calls-ft",
+        model="openpipe:test-tool-calls-mistral",
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
-        openpipe={"tags": {"promptId": "test_sync_function_call_ft"}},
+        openpipe={"tags": {"promptId": "test_sync_function_call_mistral"}},
     )
     last_logged = client.openpipe_client.local_testing_only_get_latest_logged_call()
     assert (
@@ -138,9 +137,9 @@ def test_sync_tool_calls():
     )
 
 
-def test_sync_tool_calls_ft():
+def test_sync_tool_calls_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-tool-calls-ft",
+        model="openpipe:test-tool-calls-mistral",
         messages=[
             {"role": "system", "content": "tell me the weather in SF and Orlando"}
         ],
@@ -150,7 +149,7 @@ def test_sync_tool_calls_ft():
                 "function": function,
             },
         ],
-        openpipe={"tags": {"promptId": "test_sync_tool_calls_ft"}},
+        openpipe={"tags": {"promptId": "test_sync_tool_calls_mistral"}},
     )
     last_logged = client.openpipe_client.local_testing_only_get_latest_logged_call()
     assert (

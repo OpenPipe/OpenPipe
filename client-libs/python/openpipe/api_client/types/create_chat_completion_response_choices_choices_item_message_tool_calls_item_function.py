@@ -11,7 +11,7 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class CreateChatCompletionResponseChoicesItemMessageFunctionCall(pydantic.BaseModel):
+class CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItemFunction(pydantic.BaseModel):
     name: str
     arguments: str
 

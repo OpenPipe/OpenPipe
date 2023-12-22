@@ -6,14 +6,8 @@ import typing
 import typing_extensions
 
 from ..core.datetime_utils import serialize_datetime
-from .create_chat_completion_response_choices_item_message_content import (
-    CreateChatCompletionResponseChoicesItemMessageContent,
-)
-from .create_chat_completion_response_choices_item_message_function_call import (
-    CreateChatCompletionResponseChoicesItemMessageFunctionCall,
-)
-from .create_chat_completion_response_choices_item_message_tool_calls_item import (
-    CreateChatCompletionResponseChoicesItemMessageToolCallsItem,
+from .create_chat_completion_response_choices_choices_item_message_tool_calls_item_function import (
+    CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItemFunction,
 )
 
 try:
@@ -22,11 +16,10 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class CreateChatCompletionResponseChoicesItemMessage(pydantic.BaseModel):
-    role: typing_extensions.Literal["assistant"]
-    content: typing.Optional[CreateChatCompletionResponseChoicesItemMessageContent]
-    function_call: typing.Optional[CreateChatCompletionResponseChoicesItemMessageFunctionCall]
-    tool_calls: typing.Optional[typing.List[CreateChatCompletionResponseChoicesItemMessageToolCallsItem]]
+class CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItem(pydantic.BaseModel):
+    id: str
+    function: CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItemFunction
+    type: typing_extensions.Literal["function"]
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
