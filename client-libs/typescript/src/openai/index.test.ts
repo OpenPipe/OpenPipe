@@ -295,9 +295,7 @@ test("openai streaming base sdk logs request for base model", async () => {
     messages: [{ role: "system", content: "count to 4" }],
     stream: true,
   };
-  const completion = await baseClient.chat.completions.create(input, {
-    headers: { "op-log-request": "true" },
-  });
+  const completion = await baseClient.chat.completions.create(input);
   let merged: ChatCompletion | null = null;
   for await (const chunk of completion) {
     merged = mergeChunks(merged, chunk);
