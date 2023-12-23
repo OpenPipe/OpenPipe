@@ -99,28 +99,26 @@ export const datasetEntriesRouter = createTRPCRouter({
         .execute()
         .then((rows) => rows.map((row) => row.id));
 
-      const [trainingCount, testingCount] = await prisma.$transaction([
-        prisma.datasetEntry.count({
-          where: {
-            datasetId: datasetId,
-            outdated: false,
-            split: "TRAIN",
-          },
-        }),
-        prisma.datasetEntry.count({
-          where: {
-            datasetId: datasetId,
-            outdated: false,
-            split: "TEST",
-          },
-        }),
-      ]);
+      const matchingTrainingCount = await baseQuery
+        .where("de.split", "=", "TRAIN")
+        .where("de.output", "is not", null)
+        .select((eb) => [eb.fn.count("de.id").as("count")])
+        .executeTakeFirst()
+        .then((result) => parseInt(result?.count as string));
+
+      const totalTestingCount = await prisma.datasetEntry.count({
+        where: {
+          datasetId: datasetId,
+          outdated: false,
+          split: "TEST",
+        },
+      });
 
       return {
         entries,
         matchingEntryIds,
-        trainingCount,
-        testingCount,
+        matchingTrainingCount,
+        totalTestingCount,
       };
     }),
   listTrainingEntries: protectedProcedure
