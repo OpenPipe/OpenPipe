@@ -49,23 +49,43 @@ const TrainingEntryMeter = (props: StackProps) => {
       </HStack>
       <Text fontSize="sm">{helperText}</Text>
       <VStack w="full">
-        <Box
-          borderRadius={4}
-          borderWidth={1}
-          position="relative"
-          w="full"
-          h="20px"
-          bgColor="orange.500"
-        >
+        <HStack w="full" justifyContent="space-between">
+          {[10, 100, 1000, 10000, 100000].map((num, i) => (
+            <Text
+              key={num}
+              fontSize="2xs"
+              fontWeight="bold"
+              w={12}
+              textAlign={i > 2 ? "end" : undefined}
+            >
+              {num.toLocaleString()}
+            </Text>
+          ))}
+        </HStack>
+        <VStack w="full" spacing={0}>
+          <HStack w="full" justifyContent="space-between" px="1px">
+            {Array.from(Array(40)).map((_, i) => (
+              <Box key={i} h={2} w="1px" bgColor="gray.300" />
+            ))}
+          </HStack>
           <Box
-            position="absolute"
-            right={0}
-            bottom={0}
-            h="full"
-            w={`${100 - position}%`}
-            bgColor="white"
-          />
-        </Box>
+            borderRadius={4}
+            borderWidth={1}
+            position="relative"
+            w="full"
+            h="20px"
+            bgColor="orange.500"
+          >
+            <Box
+              position="absolute"
+              right={0}
+              bottom={0}
+              h="full"
+              w={`${100 - position}%`}
+              bgColor="white"
+            />
+          </Box>
+        </VStack>
         <HStack w="full" justifyContent="space-between" fontWeight="bold" fontSize="xs">
           <Text>Minimal</Text>
           <Text>Moderate</Text>
