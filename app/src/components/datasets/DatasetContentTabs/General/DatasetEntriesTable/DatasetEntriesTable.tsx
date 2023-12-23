@@ -11,17 +11,24 @@ export default function DatasetEntriesTable() {
   const [refetchInterval, setRefetchInterval] = useState(0);
   const datasetEntries = useDatasetEntries(refetchInterval).data?.entries;
 
-  const relabelingVisible = useMemo(() => {
-    return !!datasetEntries?.some(
-      (entry) =>
-        entry.relabelStatuses?.[0] &&
-        entry.relabelStatuses[0].status !== RelabelRequestStatus.COMPLETE,
-    );
-  }, [datasetEntries]);
+  const relabelingVisible = useMemo(
+    () =>
+      !!datasetEntries?.some(
+        (entry) =>
+          entry.relabelStatuses?.[0] &&
+          entry.relabelStatuses[0].status !== RelabelRequestStatus.COMPLETE,
+      ),
+    [datasetEntries],
+  );
+
+  const countingIncomplete = useMemo(
+    () => !!datasetEntries?.some((entry) => entry.inputTokens === null),
+    [datasetEntries],
+  );
 
   useEffect(
-    () => setRefetchInterval(relabelingVisible ? 5000 : 0),
-    [relabelingVisible, setRefetchInterval],
+    () => setRefetchInterval(relabelingVisible || countingIncomplete ? 5000 : 0),
+    [relabelingVisible, countingIncomplete, setRefetchInterval],
   );
 
   const toggleExpanded = useCallback(

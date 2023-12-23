@@ -159,14 +159,14 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 <Text fontWeight="bold" w={36}>
                   Training set:
                 </Text>
-                <Text>{numTrainingEntries} entries</Text>
+                <Text>{numTrainingEntries.toLocaleString()} entries</Text>
                 <InfoCircle tooltipText="Use filters to adjust the size and contents of your training set." />
               </HStack>
               <HStack spacing={2} h={8}>
                 <Text fontWeight="bold" w={36}>
                   Test set:
                 </Text>
-                <Text>{numTestingEntries} entries</Text>
+                <Text>{numTestingEntries.toLocaleString()} entries</Text>
                 <InfoCircle tooltipText="The test set is used to evaluate your model's performance and is shared by every model in the dataset." />
               </HStack>
               <HStack spacing={2} w="full">
