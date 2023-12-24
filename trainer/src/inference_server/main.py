@@ -16,8 +16,6 @@ from concurrent.futures import ThreadPoolExecutor
 def cache_weights_in_image_weights():
     from huggingface_hub import snapshot_download
 
-    # Images seem to be cached really efficiently on Modal so let's just save
-    # all our base model weights to the image to make training faster.
     snapshot_download("OpenPipe/mistral-ft-optimized-1218")
 
 
@@ -35,7 +33,7 @@ image = (
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1", "VLLM_INSTALL_PUNICA_KERNELS": "1"})
     .run_commands(
         "git clone https://github.com/Yard1/vllm.git /vllm",
-        "cd /vllm && git checkout 2d72ae5 > /dev/null 2>&1",
+        "cd /vllm && git checkout 4b2224e > /dev/null 2>&1",
         "pip3 install -e '/vllm'",
     )
     .run_function(cache_weights_in_image_weights)

@@ -12,7 +12,9 @@ from .api import (
 
 APP_NAME = "lora-experiments"
 
-MODEL_ID = "OpenPipe/ft-development-afb33201-e3d1-4b5a-9b9a-fe00a385bee3-e2e-1"
+MODEL_ID = (
+    "OpenPipe/ft-development-0b0f52d6-bc53-4443-bbad-4a6103c95501-pii-7b-optimized"
+)
 
 BASE_MODEL = "OpenPipe/mistral-ft-optimized-1218"
 
@@ -49,17 +51,18 @@ with image.run_inside():
     read_all_files(merged_dir)
     read_all_files(lora_dir)
 
-    logging.info(f"Loading base model {base_model}")
-    engine = AsyncLLMEngine.from_engine_args(
-        AsyncEngineArgs(
-            model=base_model,
-            enable_lora=RUN_LORA,
-            max_loras=20,
-            max_lora_rank=32,
-            max_cpu_loras=100,
-            max_num_seqs=20,
-        )
-    )
+    logging.info(f"Loading base model no lora {base_model}")
+    # engine = AsyncLLMEngine.from_engine_args(
+    #     AsyncEngineArgs(
+    #         model=base_model,
+    #         # enable_lora=False,
+    #         # max_loras=20,
+    #         # max_lora_rank=32,
+    #         # max_cpu_loras=100,
+    #         # max_num_seqs=20,
+    #     )
+    # )
+    logging.info("Base model loaded")
 
 
 @stub.function(
@@ -68,12 +71,39 @@ with image.run_inside():
     keep_warm=1,
     concurrency_limit=1,
     gpu=modal.gpu.A100(memory=40, count=1),
-    # secret=modal.Secret.from_name("openpipe"),
+    secret=modal.Secret.from_name("openpipe"),
     volumes={"/models": stub.volume},
 )
 @modal.web_endpoint(method="POST", label=APP_NAME)
 async def generate(request: Input) -> Output:
     logging.info(f"Generating for model {request.model}")
+
+    print("will upload now")
+    from huggingface_hub import HfApi
+
+    hf_api = HfApi()
+
+    MODEL_ID = (
+        "OpenPipe/ft-development-0b0f52d6-bc53-4443-bbad-4a6103c95501-pii-7b-optimized"
+    )
+
+    from ..shared import merged_model_cache_dir, lora_model_cache_dir
+
+    import os
+
+    # print("env", os.environ)
+
+    lora_dir = lora_model_cache_dir(MODEL_ID)
+
+    hf_api.create_repo(
+        "OpenPipe/sample-lora-pii-redaction", private=True, exist_ok=True
+    )
+
+    hf_api.upload_folder(
+        repo_id="OpenPipe/sample-lora-pii-redaction",
+        folder_path=lora_dir,
+        commit_message="Initial commit",
+    )
 
     sample_params = SamplingParams(
         n=request.n,
