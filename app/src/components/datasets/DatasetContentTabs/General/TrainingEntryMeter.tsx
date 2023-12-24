@@ -16,19 +16,15 @@ const TrainingEntryMeter = (props: StackProps) => {
   let helperText;
 
   if (numTrainingEntries < 10) {
-    helperText = "You need at least 10 training entries to train a model.";
+    helperText = `You need at least 10 training entries to train a model. We recommend at least 100 training entries for even simple tasks. For more complex tasks 2K+ entries are a good minimum. You can expect performance to continue improving into the 10K+ range, and even into the 50K+ range if there are difficult edge cases your model needs to learn.`;
   } else if (numTrainingEntries < 100) {
-    helperText = "You have a minimal amount of training data. This may be enough for simple tasks.";
-  } else if (numTrainingEntries < 500) {
-    helperText = "You have a low amount of training data. Complex tasks may require more.";
+    helperText = `We recommend at least 100 training entries for even simple tasks. For more complex tasks 2K+ entries are a good minimum. You can expect performance to continue improving into the 10K+ range, and even into the 50K+ range if there are difficult edge cases your model needs to learn.`;
   } else if (numTrainingEntries < 2000) {
-    helperText = "You have a moderate amount of training data. Add more to increase performance.";
-  } else if (numTrainingEntries < 5000) {
-    helperText = "You have a considerable amount of training data. Ensure it is high quality.";
-  } else if (numTrainingEntries < 20000) {
-    helperText = "You have a substantial amount of training data. Ensure it is high quality.";
+    helperText = `You may have enough training data for simple tasks, but for more complex tasks 2K+ entries are a good minimum. You can expect performance to continue improving into the 10K+ range, and even into the 50K+ range if there are difficult edge cases your model needs to learn.`;
+  } else if (numTrainingEntries < 10000) {
+    helperText = `This dataset is a good start. You can expect performance to continue improving into the 10K+ range, and even into the 50K+ range if there are difficult edge cases your model needs to learn.`;
   } else {
-    helperText = "You have an extensive amount of training data. Ensure it is high quality.";
+    helperText = `You have a large amount of training data. To continue improving model performance, you can continue adding more data. You should also ensure that your dataset is representative of the data you expect to see in production and that the outputs are high quality.`;
   }
 
   return (

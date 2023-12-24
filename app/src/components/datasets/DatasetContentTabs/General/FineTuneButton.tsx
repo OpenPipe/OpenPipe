@@ -160,7 +160,9 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   Training set:
                 </Text>
                 <Text>{numTrainingEntries.toLocaleString()} entries</Text>
-                <InfoCircle tooltipText="Use filters to adjust the size and contents of your training set." />
+                <InfoCircle
+                  tooltipText={`Your model will be trained on all ${numTrainingEntries.toLocaleString()} entries matching your current set of filters.`}
+                />
               </HStack>
               <HStack spacing={2} h={8}>
                 <Text fontWeight="bold" w={36}>
