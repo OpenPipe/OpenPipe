@@ -7,9 +7,10 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
+import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { copyPruningRulesForFineTune } from "~/server/utils/updatePruningRuleMatches";
 import { typedFineTune } from "~/types/dbColumns.types";
-import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
+import { CURRENT_PIPELINE_VERSION, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { isComparisonModelName } from "~/utils/comparisonModels";
@@ -132,6 +133,7 @@ export const fineTunesRouter = createTRPCRouter({
         datasetId: z.string(),
         slug: z.string(),
         baseModel: baseModel,
+        filters: filtersSchema,
         pruningRuleIds: z.array(z.string()),
       }),
     )
@@ -179,6 +181,23 @@ export const fineTunesRouter = createTRPCRouter({
         input.slug,
         input.baseModel.baseModel,
       );
+
+      await kysely
+        .insertInto("FineTuneTrainingEntry")
+        .columns(["id", "datasetEntryId", "fineTuneId", "updatedAt"])
+        .expression((eb) =>
+          constructDatasetEntryFiltersQuery(input.filters, fineTune.datasetId, eb)
+            .where("split", "=", "TRAIN")
+            .where("output", "is not", null)
+            .select([
+              sql`uuid_generate_v4()`.as("id"),
+              "id as datasetEntryId",
+              sql`${fineTune.id}`.as("fineTuneId"),
+              sql`now()`.as("updatedAt"),
+            ]),
+        )
+        .onConflict((oc) => oc.columns(["datasetEntryId", "fineTuneId"]).doNothing())
+        .execute();
 
       await trainFineTune.enqueue({ fineTuneId: fineTune.id });
 

@@ -1,5 +1,5 @@
 import { env } from "~/env.mjs";
-import { kysely, prisma } from "~/server/db";
+import { prisma } from "~/server/db";
 import { trainerv1 } from "~/server/modal-rpc/clients";
 import { uploadJsonl } from "~/utils/azure/server";
 import defineTask from "../defineTask";
@@ -9,7 +9,6 @@ import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-t
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
-import { sql } from "kysely";
 import { from } from "ix/asynciterable";
 import { filter, map } from "ix/asynciterable/operators";
 import { toNodeStream } from "ix/asynciterable/tonodestream";
@@ -29,26 +28,6 @@ export const trainFineTune = defineTask<TrainFineTuneJob>({
       .then((ft) => (ft ? typedFineTune(ft) : null));
 
     if (!fineTune) return;
-
-    await kysely
-      .insertInto("FineTuneTrainingEntry")
-      .columns(["id", "datasetEntryId", "fineTuneId", "updatedAt"])
-      .expression((eb) =>
-        eb
-          .selectFrom("DatasetEntry")
-          .where("datasetId", "=", fineTune.datasetId)
-          .where("split", "=", "TRAIN")
-          .where("outdated", "=", false)
-          .where("output", "is not", null)
-          .select([
-            sql`uuid_generate_v4()`.as("id"),
-            "id as datasetEntryId",
-            sql`${fineTune.id}`.as("fineTuneId"),
-            sql`now()`.as("updatedAt"),
-          ]),
-      )
-      .onConflict((oc) => oc.columns(["datasetEntryId", "fineTuneId"]).doNothing())
-      .execute();
 
     await insertTrainingDataPruningRuleMatches(fineTune.id);
 

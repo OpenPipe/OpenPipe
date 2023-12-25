@@ -1,15 +1,18 @@
 import { type z } from "zod";
-import { type Expression, type SqlBool, sql } from "kysely";
+import { type Expression, type SqlBool, sql, type ExpressionBuilder } from "kysely";
 
 import { kysely } from "~/server/db";
+import { type DB } from "~/types/kysely-codegen.types";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
 export const constructDatasetEntryFiltersQuery = (
   filters: z.infer<typeof filtersSchema>,
   datasetId: string,
+  ftteEB?: ExpressionBuilder<DB, "FineTuneTrainingEntry">,
 ) => {
-  const baseQuery = kysely.selectFrom("DatasetEntry as de").where((eb) => {
+  const queryBuilder = (ftteEB ?? kysely) as typeof kysely;
+  const baseQuery = queryBuilder.selectFrom("DatasetEntry as de").where((eb) => {
     const wheres: Expression<SqlBool>[] = [
       eb("de.datasetId", "=", datasetId),
       eb("de.outdated", "=", false),

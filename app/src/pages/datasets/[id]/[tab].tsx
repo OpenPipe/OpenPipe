@@ -1,11 +1,10 @@
-import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, Input, VStack } from "@chakra-ui/react";
+import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, VStack, Text } from "@chakra-ui/react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { AiOutlineDatabase } from "react-icons/ai";
 
 import AppShell from "~/components/nav/AppShell";
-import { api } from "~/utils/api";
-import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
+import { useDataset } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import { useAppStore } from "~/state/store";
@@ -14,31 +13,11 @@ import FileUploadsCard from "~/components/datasets/FileUploadsCard";
 import DatasetContentTabs from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 
 export default function Dataset() {
-  const utils = api.useContext();
-
   const dataset = useDataset();
-
-  const [name, setName] = useState(dataset.data?.name || "");
-  useEffect(() => {
-    setName(dataset.data?.name || "");
-  }, [dataset.data?.name]);
 
   useEffect(() => {
     useAppStore.getState().sharedArgumentsEditor.loadMonaco().catch(console.error);
   }, []);
-
-  const updateMutation = api.datasets.update.useMutation();
-  const [onSaveName] = useHandledAsyncCallback(async () => {
-    if (name && name !== dataset.data?.name && dataset.data?.id) {
-      await updateMutation.mutateAsync({
-        id: dataset.data.id,
-        updates: {
-          name,
-        },
-      });
-      await Promise.all([utils.datasets.list.invalidate(), utils.datasets.get.invalidate()]);
-    }
-  }, [updateMutation, dataset.data?.id, dataset.data?.name, name]);
 
   if (!dataset.isLoading && !dataset.data) {
     return (
@@ -67,20 +46,7 @@ export default function Dataset() {
               </Link>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
-              <Input
-                size="sm"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onBlur={onSaveName}
-                borderWidth={1}
-                borderColor="transparent"
-                fontSize={16}
-                px={0}
-                minW={{ base: 100, lg: 300 }}
-                flex={1}
-                _hover={{ borderColor: "gray.300" }}
-                _focus={{ borderColor: "blue.500", outline: "none" }}
-              />
+              <Text>{dataset.data?.name}</Text>
             </BreadcrumbItem>
           </Breadcrumb>
         </PageHeaderContainer>

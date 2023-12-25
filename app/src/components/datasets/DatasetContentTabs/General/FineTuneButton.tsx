@@ -50,6 +50,8 @@ import {
 import { getEntries } from "~/utils/utils";
 import InfoCircle from "~/components/InfoCircle";
 import { DATASET_SETTINGS_TAB_KEY } from "../DatasetContentTabs";
+import TrainingEntryMeter from "./TrainingEntryMeter";
+import { useFilters } from "~/components/Filters/useFilters";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -85,6 +87,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const session = useSession();
   const isMissingBetaAccess = useIsMissingBetaAccess();
+  const filters = useFilters().filters;
 
   const [selectedBaseModel, setSelectedBaseModel] = useState<ProviderWithModel>(visibleModels[0]);
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
@@ -96,6 +99,11 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const needsMissingBetaAccess =
     splitProvider(selectedBaseModel).provider === "openpipe" && isMissingBetaAccess;
+
+  const numTrainingEntries = datasetEntries?.matchingTrainingCount || 0;
+  const numTestingEntries = datasetEntries?.totalTestingCount || 0;
+
+  const needsMoreTrainingData = numTrainingEntries < 10;
 
   const email = session.data?.user.email ?? "";
 
@@ -123,6 +131,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       slug: modelSlug,
       baseModel: splitProvider(selectedBaseModel),
       datasetId: dataset.id,
+      filters,
       pruningRuleIds: appliedPruningRuleIds,
     });
     if (maybeReportError(resp)) return;
@@ -145,11 +154,23 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         <ModalCloseButton />
         <ModalBody maxW="unset">
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
-            <Text>
-              We'll train on <b>{datasetEntries?.trainingCount.toLocaleString()}</b> and test on{" "}
-              <b>{datasetEntries?.testingCount.toLocaleString()}</b> entries in this dataset.
-            </Text>
-            <VStack>
+            <VStack alignItems="flex-start" spacing={4}>
+              <HStack spacing={2} h={8}>
+                <Text fontWeight="bold" w={36}>
+                  Training set:
+                </Text>
+                <Text>{numTrainingEntries.toLocaleString()} entries</Text>
+                <InfoCircle
+                  tooltipText={`Your model will be trained on all ${numTrainingEntries.toLocaleString()} entries matching your current set of filters.`}
+                />
+              </HStack>
+              <HStack spacing={2} h={8}>
+                <Text fontWeight="bold" w={36}>
+                  Test set:
+                </Text>
+                <Text>{numTestingEntries.toLocaleString()} entries</Text>
+                <InfoCircle tooltipText="The test set is used to evaluate your model's performance and is shared by every model in the dataset." />
+              </HStack>
               <HStack spacing={2} w="full">
                 <Text fontWeight="bold" w={36}>
                   Model ID:
@@ -206,6 +227,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 . You'll receive an email at <b>{email}</b> when you're approved.
               </Text>
             )}
+            {!needsMissingOpenaiKey && !needsMissingBetaAccess && <TrainingEntryMeter mt={8} />}
             <VStack w="full" alignItems="flex-start" spacing={0}>
               <Button
                 variant="unstyled"
@@ -284,7 +306,12 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
               onClick={createFineTune}
               isLoading={creationInProgress}
               minW={24}
-              isDisabled={!modelSlug || needsMissingOpenaiKey || needsMissingBetaAccess}
+              isDisabled={
+                !modelSlug ||
+                needsMissingOpenaiKey ||
+                needsMissingBetaAccess ||
+                needsMoreTrainingData
+              }
             >
               Start Training
             </Button>

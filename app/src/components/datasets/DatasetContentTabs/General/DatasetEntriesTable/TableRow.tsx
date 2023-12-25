@@ -1,4 +1,4 @@
-import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox } from "@chakra-ui/react";
+import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox, Button } from "@chakra-ui/react";
 import Link from "next/link";
 import { DatasetEntrySplit, RelabelRequestStatus } from "@prisma/client";
 
@@ -203,13 +203,13 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
     <Tr>
       <Td w="full" colSpan={visibleColumns.size + 1}>
         <Text color="gray.500" textAlign="center" w="full" p={4}>
-          This dataset has no entries. Add some logs in the{" "}
-          <Link href="/request-logs">
+          This dataset has no entries. Import logs from the{" "}
+          <Button variant="link" as={Link} href="/request-logs">
             <Text as="span" color="blue.600">
               Request Logs
             </Text>
-          </Link>{" "}
-          tab.
+          </Button>{" "}
+          tab or upload a dataset.
         </Text>
       </Td>
     </Tr>
