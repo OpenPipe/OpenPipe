@@ -1,4 +1,4 @@
-import { VStack, HStack, Text, Button, Heading } from "@chakra-ui/react";
+import { VStack, HStack, Text, Button, Heading, Box, Flex } from "@chakra-ui/react";
 import { useFineTune, useHandledAsyncCallback } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";
 import FineTuneDangerZone from "./FineTuneDangerZone";
@@ -9,6 +9,7 @@ import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evalu
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import FineTunePruningRules from "./FineTunePruningRules";
+import InferenceCodeTabs from "./InferenceCodeTabs/InferenceCodeTabs";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -25,8 +26,15 @@ const General = () => {
   if (!fineTune) return null;
 
   return (
-    <VStack w="full" h="full">
-      <VStack w="full" alignItems="flex-start" spacing={4} pb={12}>
+    <Flex
+      h="fit-content"
+      position="relative"
+      w="full"
+      alignItems="flex-start"
+      pb={12}
+      flexDir={{ base: "column", md: "row" }}
+    >
+      <VStack w="full" alignItems="flex-start" spacing={4}>
         <ContentCard>
           <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
             <Heading size="md" pb={4}>
@@ -84,7 +92,10 @@ const General = () => {
         <FineTunePruningRules />
         <FineTuneDangerZone />
       </VStack>
-    </VStack>
+      <Box position="sticky" top={8} pl={{ base: 0, md: 8 }}>
+        <InferenceCodeTabs />
+      </Box>
+    </Flex>
   );
 };
 
