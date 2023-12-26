@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import SyntaxHighlighter from "react-syntax-highlighter";
-import { tomorrowNightBright } from "react-syntax-highlighter/dist/cjs/styles/hljs";
+import { srcery } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import { CopyIcon } from "lucide-react";
 
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
@@ -97,10 +97,11 @@ const CodeBlock = ({ code, language }: { code: string; language: string }) => {
   return (
     <SyntaxHighlighter
       language={language}
-      style={tomorrowNightBright}
+      style={srcery}
       customStyle={{
         backgroundColor: "#171923",
         padding: "32px",
+        fontSize: "14px",
       }}
     >
       {code}
