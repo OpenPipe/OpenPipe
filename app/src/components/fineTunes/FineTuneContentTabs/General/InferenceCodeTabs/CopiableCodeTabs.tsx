@@ -7,13 +7,14 @@ import {
   TabPanel,
   HStack,
   IconButton,
-  useToast,
   Text,
   Tooltip,
 } from "@chakra-ui/react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { tomorrowNightBright } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import { CopyIcon } from "lucide-react";
+
+import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
 
 export type CodeTab = {
   title: string;
@@ -24,24 +25,7 @@ export type CodeTab = {
 const CopiableCodeTabs = ({ tabs }: { tabs: CodeTab[] }) => {
   const [tabIndex, setTabIndex] = useState(0);
 
-  const toast = useToast();
-
-  const copyToClipboard = async (text?: string) => {
-    try {
-      await navigator.clipboard.writeText(text as string);
-      toast({
-        title: "Copied to clipboard",
-        status: "success",
-        duration: 2000,
-      });
-    } catch (err) {
-      toast({
-        title: "Failed to copy to clipboard",
-        status: "error",
-        duration: 2000,
-      });
-    }
-  };
+  const copyToClipboard = useCopyToClipboard();
 
   return (
     <Tabs

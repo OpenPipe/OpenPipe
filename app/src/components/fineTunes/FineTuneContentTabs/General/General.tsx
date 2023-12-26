@@ -92,9 +92,11 @@ const General = () => {
         <FineTunePruningRules />
         <FineTuneDangerZone />
       </VStack>
-      <Box position="sticky" top={8} pl={{ base: 0, md: 8 }}>
-        <InferenceCodeTabs />
-      </Box>
+      {fineTune.status === "DEPLOYED" && (
+        <Box position="sticky" top={8} pl={{ base: 0, md: 8 }}>
+          <InferenceCodeTabs />
+        </Box>
+      )}
     </Flex>
   );
 };

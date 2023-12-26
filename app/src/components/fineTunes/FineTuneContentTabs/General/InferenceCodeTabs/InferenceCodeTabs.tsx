@@ -22,7 +22,9 @@ const baseTabs: CodeTab[] = [
   {
     title: "Python",
     language: "python",
-    code: `from openpipe import OpenAI
+    code: `# pip install openpipe
+
+from openpipe import OpenAI
 
 client = OpenAI(
   openpipe={"api_key": "{{TEMPLATED_OPENPIPE_API_KEY}}"}
@@ -46,7 +48,9 @@ print(completion.choices[0].message)`,
   {
     title: "JavaScript",
     language: "javascript",
-    code: `import OpenAI from "openpipe/openai";
+    code: `// npm install openpipe
+
+import OpenAI from "openpipe/openai";
 
 const client = new OpenAI({
     openpipe: {
