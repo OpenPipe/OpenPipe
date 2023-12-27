@@ -1,29 +1,14 @@
-import { Box, IconButton, useToast } from "@chakra-ui/react";
+import { Box, IconButton } from "@chakra-ui/react";
 import { CopyIcon } from "lucide-react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atelierCaveLight } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
 
+import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
+
 const FormattedJson = ({ json }: { json: any }) => {
   const jsonString = stringify(json, { maxLength: 40 });
-  const toast = useToast();
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copied to clipboard",
-        status: "success",
-        duration: 2000,
-      });
-    } catch (err) {
-      toast({
-        title: "Failed to copy to clipboard",
-        status: "error",
-        duration: 2000,
-      });
-    }
-  };
+  const copyToClipboard = useCopyToClipboard();
 
   return (
     <Box position="relative" fontSize="sm" borderRadius="md" overflow="hidden">
