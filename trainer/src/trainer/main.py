@@ -11,9 +11,11 @@ def cache_model_weights():
 
     # Images seem to be cached really efficiently on Modal so let's just save
     # all our base model weights to the image to make training faster.
-    snapshot_download("OpenPipe/mistral-ft-optimized-1218")
+    snapshot_download("OpenPipe/mistral-ft-optimized-1227")
     snapshot_download("mistralai/Mistral-7B-v0.1")
     snapshot_download("meta-llama/Llama-2-7b-hf")
+
+    # This one is rarely used and quite large so just skip
     # snapshot_download("meta-llama/Llama-2-13b-hf")
 
     print("Model weights cached")
@@ -35,6 +37,7 @@ image = (
         "huggingface-hub==0.19.4",
         "hf-transfer~=0.1",
         "flash-attn==2.3.3",
+        "boto3==1.34.8",
     )
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
     .run_function(cache_model_weights, secret=modal.Secret.from_name("openpipe"))

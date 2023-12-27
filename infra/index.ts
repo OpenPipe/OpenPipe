@@ -7,7 +7,7 @@ export * from "./src/metrics";
 export { dbConnectionString } from "./src/database";
 export { deployAccessKeyId, deployAccessKeySecret } from "./src/deployUser";
 export * from "./src/vanta";
+export * from "./src/models";
 
 export const kubeconfig = cluster.kubeconfig;
 export const vpcId = vpc.vpcId;
-// export const serviceUrl = service.status.loadBalancer.ingress[0].hostname;

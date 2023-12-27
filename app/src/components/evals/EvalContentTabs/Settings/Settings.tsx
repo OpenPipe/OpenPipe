@@ -14,6 +14,7 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
+import { isEqual } from "lodash-es";
 
 const Settings = () => {
   const utils = api.useContext();
@@ -75,7 +76,10 @@ const Settings = () => {
     name !== datasetEval?.name ||
     instructions !== datasetEval?.instructions ||
     numDatasetEntries !== datasetEval?.numDatasetEntries ||
-    includedModelIds.length !== datasetEval?.outputSources.length;
+    !isEqual(
+      includedModelIds.sort(),
+      datasetEval?.outputSources.map((source) => source.modelId).sort(),
+    );
 
   const numAddedComparisons = useMemo(() => {
     if (!datasetEval?.outputSources) return 0;

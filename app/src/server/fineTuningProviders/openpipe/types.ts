@@ -20,4 +20,5 @@ export const supportedModels = z.enum([
   "HuggingFaceH4/zephyr-7b-beta",
   "Intel/neural-chat-7b-v3-3",
   "OpenPipe/mistral-ft-optimized-1218",
+  "OpenPipe/mistral-ft-optimized-1227",
 ]);
