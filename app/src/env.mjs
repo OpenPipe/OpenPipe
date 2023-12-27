@@ -27,6 +27,8 @@ export const env = createEnv({
     AZURE_STORAGE_ACCOUNT_NAME: z.string().default("placeholder"),
     AZURE_STORAGE_ACCOUNT_KEY: z.string().default("placeholder"),
     AZURE_STORAGE_CONTAINER_NAME: z.string().default("placeholder"),
+    ANYSCALE_INFERENCE_BASE_URL: z.string().url(),
+    ANYSCALE_INFERENCE_API_KEY: z.string(),
     WORKER_CONCURRENCY: z
       .string()
       .default("10")
@@ -86,6 +88,8 @@ export const env = createEnv({
     MODAL_ENVIRONMENT: process.env.MODAL_ENVIRONMENT,
     MODAL_USE_LOCAL_DEPLOYMENTS: process.env.MODAL_USE_LOCAL_DEPLOYMENTS,
     NEXT_PUBLIC_DEPLOY_ENV: process.env.NEXT_PUBLIC_DEPLOY_ENV,
+    ANYSCALE_INFERENCE_BASE_URL: process.env.ANYSCALE_INFERENCE_BASE_URL,
+    ANYSCALE_INFERENCE_API_KEY: process.env.ANYSCALE_INFERENCE_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

@@ -1,0 +1,16 @@
+name: inference-stage
+compute_config: openpipe-stage3
+cluster_env: llm-env:2
+
+ray_serve_config:
+  applications:
+  - name: OpenPipe--mistral-ft-optimized-1227
+    route_prefix: /
+    import_path: aviary_private_endpoints.backend.server.run:router_application
+    args:
+      models: []
+      multiplex_models:
+        - "./models/OpenPipe--mistral-ft-optimized-1227.yaml"
+      dynamic_lora_loading_path: s3://user-models-pl-stage-4c769c7/models/
+    runtime_env:
+      working_dir: .

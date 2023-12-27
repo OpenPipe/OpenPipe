@@ -12,7 +12,8 @@ type SecretKey =
   | "SMTP_PASSWORD"
   | "OPENPIPE_API_KEY"
   | "AUTHENTICATED_SYSTEM_KEY"
-  | "AZURE_STORAGE_ACCOUNT_KEY";
+  | "AZURE_STORAGE_ACCOUNT_KEY"
+  | "ANYSCALE_INFERENCE_API_KEY";
 
 type ConfigKey =
   | "WORKER_CONCURRENCY"
@@ -27,7 +28,8 @@ type ConfigKey =
   | "SMTP_HOST"
   | "NEXT_PUBLIC_DEPLOY_ENV"
   | "SENDER_EMAIL"
-  | "deployDomain";
+  | "deployDomain"
+  | "ANYSCALE_INFERENCE_BASE_URL";
 
 export const getSecret = (key: SecretKey) => cfg.requireSecret(key);
 export const getConfig = (key: ConfigKey) => cfg.require(key);

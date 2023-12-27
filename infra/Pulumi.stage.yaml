@@ -1,6 +1,9 @@
 config:
   aws-native:region: us-west-2
   aws:region: us-west-2
+  openpipe:ANYSCALE_INFERENCE_API_KEY:
+    secure: AAABAEkqA8a0Jud/Z2yjQXsRXwvmh54DwFWbDJarnNS3ZlhLpZdFO6pTwCW1EDlpY8nVSooHlmJZSZi5Y8tzwqpudYSt6lYYc8a4
+  openpipe:ANYSCALE_INFERENCE_BASE_URL: https://inference-stage-c6qyl.cld-tskg84t9kb3cr8ud.s.anyscaleuserdata.com/v1
   openpipe:AUTHENTICATED_SYSTEM_KEY:
     secure: AAABAIF/+V67LPOdOL1TJ6vYspfsshXqklCatXW4iwT9xkQiS5iQpIexXPiFAp2tFWwSi8w63gPExslbwltxbg==
   openpipe:AZURE_STORAGE_ACCOUNT_KEY:

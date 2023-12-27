@@ -2,8 +2,8 @@ deployment_config:
   autoscaling_config:
     min_replicas: 1
     initial_replicas: 1
-    max_replicas: 8
-    target_num_ongoing_requests_per_replica: 24
+    max_replicas: 12
+    target_num_ongoing_requests_per_replica: 10
     metrics_interval_s: 10.0
     look_back_period_s: 30.0
     smoothing_factor: 0.5
@@ -14,8 +14,8 @@ deployment_config:
     resources:
       accelerator_type_a10: 0.01
 engine_config:
-  model_id: OpenPipe/mistral-ft-optimized-1218
-  hf_model_id: OpenPipe/mistral-ft-optimized-1218
+  model_id: OpenPipe/mistral-ft-optimized-1227
+  hf_model_id: OpenPipe/mistral-ft-optimized-1227
   type: VLLMEngine
   engine_kwargs:
     trust_remote_code: true
@@ -24,11 +24,14 @@ engine_config:
     gpu_memory_utilization: 0.95
     enable_cuda_graph: true
     num_tokenizer_actors: 2
-    enable_lora: true  # <-- This is required to be used with the LoRA adapter
+    enable_lora: true
   max_total_tokens: 8192
   generation:
     prompt_format:
       system: "{instruction}"
+      assistant: "{instruction}"
+      user: "{instruction}"
+      trailing_assistant: ""
     stopping_sequences: ["<unk>", "</s>"]
 scaling_config:
   num_workers: 1
@@ -37,5 +40,6 @@ scaling_config:
   placement_strategy: "STRICT_PACK"
   resources_per_worker:
     accelerator_type_a10: 0.01
-multiplex_config:  # <-- This is required to be able to serve multiple LoRA adapters in the same replica
+multiplex_config:
+  # Number of LoRAs to serve concurrently
   max_num_models_per_replica: 24

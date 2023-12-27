@@ -100,7 +100,7 @@ def do_train(fine_tune_id: str, base_url: str):
     logging.info("Training complete. Uploading to S3.")
     upload_directory_to_s3(
         local_directory=lora_model_path,
-        destination=f"models/{fine_tune_id}",
+        destination=f"models/{training_info.base_model}:{fine_tune_id}:1",
         bucket=os.environ["USER_MODELS_BUCKET"],
     )
 

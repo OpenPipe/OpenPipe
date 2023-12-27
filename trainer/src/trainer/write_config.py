@@ -41,7 +41,7 @@ base_mistral_config = {
     "is_mistral_derived_model": True,
     "load_in_8bit": False,
     "load_in_4bit": True,
-    "adapter": "qlora",
+    "adapter": "lora",
     "sequence_len": 8192,
     "sample_packing": True,
     "pad_to_sequence_len": True,

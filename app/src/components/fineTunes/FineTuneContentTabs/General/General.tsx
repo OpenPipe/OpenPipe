@@ -68,6 +68,10 @@ const General = () => {
               )}
             </HStack>
             <HStack>
+              <Text w={180}>Pipeline Version</Text>
+              <Text color="gray.500">{fineTune.pipelineVersion}</Text>
+            </HStack>
+            <HStack>
               <Text w={180}>Created At</Text>
               <Text color="gray.500">{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Text>
             </HStack>

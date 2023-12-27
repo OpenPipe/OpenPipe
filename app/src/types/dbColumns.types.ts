@@ -53,11 +53,13 @@ export const typedFineTuneTestingEntry = <T>(
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
   fineTuneTestingEntrySchema.parse(input);
 
+export const pipelineVersion = z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]);
+
 const fineTuneSchema = z.intersection(
   baseModel,
   z
     .object({
-      pipelineVersion: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+      pipelineVersion: pipelineVersion.optional(),
     })
     .passthrough(),
 );

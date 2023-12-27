@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { type FineTune } from "@prisma/client";
 import type {
   ChatCompletionMessage,
   ChatCompletion,
@@ -21,29 +20,24 @@ import {
   convertToolCallMessageToFunction,
 } from "~/server/utils/convertFunctionCalls";
 import { type TypedFineTune } from "~/types/dbColumns.types";
+import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
 
-export async function getCompletion2(
+export async function getCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParamsNonStreaming,
 ): Promise<ChatCompletion>;
-export async function getCompletion2(
+export async function getCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParamsStreaming,
 ): Promise<Stream<ChatCompletionChunk>>;
-export async function getCompletion2(
+export async function getCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
-export async function getCompletion2(
+export async function getCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
-  if (fineTune.pipelineVersion < 1 || fineTune.pipelineVersion > 2) {
-    throw new Error(
-      `Model was trained with pipeline version ${fineTune.pipelineVersion}, but only versions 1-2 are currently supported.`,
-    );
-  }
-
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
   const prunedMessages = pruneInputMessages(input.messages, stringsToPrune);
@@ -52,12 +46,20 @@ export async function getCompletion2(
   if (fineTune.provider === "openai") {
     return getOpenAIFineTuneCompletion(fineTune, prunedInput);
   } else {
-    return getModalCompletion(fineTune, prunedInput);
+    switch (fineTune.pipelineVersion) {
+      case 1:
+      case 2:
+        return getModalCompletion(fineTune, prunedInput);
+      case 3:
+        return getAnyscaleCompletion(fineTune, prunedInput);
+      case 0:
+        throw new Error("Pipeline version 0 is not supported");
+    }
   }
 }
 
 async function getOpenAIFineTuneCompletion(
-  fineTune: FineTune,
+  fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const model = fineTune.openaiModelId;
@@ -90,7 +92,7 @@ async function getOpenAIFineTuneCompletion(
 }
 
 async function getModalCompletion(
-  fineTune: FineTune,
+  fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion> {
   const serializedInput = serializeChatInput(input, fineTune);
