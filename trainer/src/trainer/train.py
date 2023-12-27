@@ -1,6 +1,10 @@
 from ..api_client.api.default import get_training_info
 from ..api_client.client import AuthenticatedClient
-from ..shared import merged_model_cache_dir, lora_model_cache_dir
+from ..shared import (
+    merged_model_cache_dir,
+    lora_model_cache_dir,
+    upload_directory_to_s3,
+)
 
 from .write_config import write_config
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -39,7 +43,7 @@ def do_train(fine_tune_id: str, base_url: str):
 
     base_model = training_info.base_model
     config = AutoConfig.from_pretrained(base_model)
-    
+
     logging.info("Downloading training data")
     training_file = "/tmp/train.jsonl"
 
@@ -92,6 +96,13 @@ def do_train(fine_tune_id: str, base_url: str):
     except subprocess.CalledProcessError as e:
         logging.error(f"Training failed: {e}")
         raise e
+
+    logging.info("Training complete. Uploading to S3.")
+    upload_directory_to_s3(
+        local_directory=lora_model_path,
+        destination=f"models/{fine_tune_id}",
+        bucket=os.environ["USER_MODELS_BUCKET"],
+    )
 
     with torch.device("cuda:0"):
         logging.info("Reloading the base model")

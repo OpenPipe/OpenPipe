@@ -32,13 +32,13 @@ import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import { useFilters } from "~/components/Filters/useFilters";
-import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
 import InfoCircle from "~/components/InfoCircle";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
+import { useRouter } from "next/router";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
-  const utils = api.useContext();
+  const router = useRouter();
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
@@ -102,20 +102,12 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       modelIds: includedModelIds,
     });
     if (maybeReportError(resp)) return;
-    await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
-    await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
-    await utils.datasets.get.invalidate();
 
-    ensureEvalShown(resp.payload);
-    addFilter({
-      id: Date.now().toString(),
-      field: EvaluationFiltersDefaultFields.EvalApplied,
-      comparator: "=",
-      value: resp.payload,
+    await router.push({
+      pathname: "/evals/[id]/[tab]",
+      query: { id: resp.payload, tab: "results" },
     });
-
-    disclosure.onClose();
-  }, [mutation, dataset?.id, disclosure.onClose, name, instructions, ensureEvalShown, addFilter]);
+  }, [mutation, dataset?.id, name, instructions, ensureEvalShown, addFilter]);
 
   const numComparisons = useMemo(
     () => ((numDatasetEntries || 0) * includedModelIds.length * (includedModelIds.length - 1)) / 2,

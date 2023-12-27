@@ -148,7 +148,6 @@ export const datasetEvalsRouter = createTRPCRouter({
           eb.fn.count<string>("dede.id").as("numDatasetEntries"),
         ])
         .groupBy(["modelsSubquery.numModels", "eval.id", "d.id", "d.projectId"])
-        .orderBy("d.createdAt", "desc")
         .orderBy("eval.createdAt", "desc")
         .execute();
 
