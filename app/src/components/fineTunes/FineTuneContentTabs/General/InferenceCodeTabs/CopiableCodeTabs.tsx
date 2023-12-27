@@ -34,8 +34,7 @@ const CopiableCodeTabs = ({ tabs }: { tabs: CodeTab[] }) => {
       variant="unstyled"
       colorScheme="blue"
       bgColor="black"
-      borderTopLeftRadius={4}
-      borderTopRightRadius={4}
+      borderRadius="md"
       overflowY="hidden"
       minW={600}
     >
@@ -45,7 +44,7 @@ const CopiableCodeTabs = ({ tabs }: { tabs: CodeTab[] }) => {
             <StyledTab key={i} title={tab.title} />
           ))}
         </TabList>
-        <Tooltip label="Copy" placement="bottom" bgColor="orange.500" borderRadius={8}>
+        <Tooltip label="Copy" placement="bottom" bgColor="blue.500" borderRadius={8}>
           <IconButton
             aria-label="Copy"
             icon={<CopyIcon />}
@@ -78,8 +77,8 @@ const StyledTab = ({ title }: { title: string }) => {
       color="white"
       borderColor="black"
       borderBottomWidth={1}
-      _selected={{ color: "orange.500", borderColor: "orange.500" }}
-      _hover={{ color: "orange.500" }}
+      _selected={{ color: "blue.500", borderColor: "blue.500" }}
+      _hover={{ color: "blue.500" }}
       transition={"all 0s"}
       px={4}
       py={3}
