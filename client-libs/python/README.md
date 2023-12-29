@@ -46,6 +46,10 @@ completion = client.chat.completions.create(
 )
 ```
 
+#### Should I Wait to Enable Logging?
+
+We recommend keeping request logging turned on from the beginning. If you change your prompt you can just set a new `prompt_id` tag so you can select just the latest version when you're ready to create a dataset.
+
 ## Usage with langchain
 
 > Assuming you have created a project and have the openpipe key.
