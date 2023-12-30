@@ -1,5 +1,4 @@
 import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, VStack, Text } from "@chakra-ui/react";
-import Link from "next/link";
 import { useEffect } from "react";
 import { AiOutlineDatabase } from "react-icons/ai";
 
@@ -11,6 +10,7 @@ import { useAppStore } from "~/state/store";
 import BetaBanner from "~/components/BetaBanner";
 import FileUploadsCard from "~/components/datasets/FileUploadsCard";
 import DatasetContentTabs from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
+import { ProjectLink } from "~/components/ProjectLink";
 
 export default function Dataset() {
   const dataset = useDataset();
@@ -39,11 +39,11 @@ export default function Dataset() {
               <ProjectBreadcrumbContents projectName={dataset.data?.project?.name} />
             </BreadcrumbItem>
             <BreadcrumbItem>
-              <Link href="/datasets">
+              <ProjectLink href="/datasets">
                 <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
                   <Icon as={AiOutlineDatabase} boxSize={4} mr={2} /> Datasets
                 </Flex>
-              </Link>
+              </ProjectLink>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
               <Text>{dataset.data?.name}</Text>

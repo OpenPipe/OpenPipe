@@ -61,7 +61,6 @@ const NavSidebar = () => {
           <>
             <ProjectMenu />
             <Divider />
-
             <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" />
             <IconLink icon={AiOutlineDatabase} label="Datasets" href="/datasets" />
             <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" />
@@ -77,7 +76,7 @@ const NavSidebar = () => {
               >
                 CONFIGURATION
               </Text>
-              <IconLink icon={BsGearFill} label="Project Settings" href="/project/settings" />
+              <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
               <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
             </VStack>
           </>

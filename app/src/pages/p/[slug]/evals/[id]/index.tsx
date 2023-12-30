@@ -16,7 +16,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     redirect: {
-      destination: `/evals/${id}/${EVAL_RESULTS_TAB_KEY}`,
+      destination: `evals/${id}/${EVAL_RESULTS_TAB_KEY}`,
       permanent: true,
     },
   };

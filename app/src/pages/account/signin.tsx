@@ -9,7 +9,7 @@ export default function SignIn() {
 
   useEffect(() => {
     if (session) {
-      router.push("/request-logs").catch(console.error);
+      router.push("/").catch(console.error);
     } else if (session === null) {
       signIn("github").catch(console.error);
     }

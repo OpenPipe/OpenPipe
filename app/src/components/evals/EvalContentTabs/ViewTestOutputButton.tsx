@@ -1,5 +1,4 @@
 import { Button } from "@chakra-ui/react";
-import Link from "next/link";
 
 import { useDatasetEval } from "~/utils/hooks";
 import { constructVisibleModelIdsQueryParams } from "~/components/datasets/DatasetContentTabs/Evaluation/useVisibleModelIds";
@@ -7,6 +6,7 @@ import { constructVisibleEvalIdsQueryParams } from "~/components/datasets/Datase
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
 import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const ViewTestOutputButton = () => {
   const datasetEval = useDatasetEval().data;
@@ -30,7 +30,7 @@ const ViewTestOutputButton = () => {
 
   return (
     <Button
-      as={Link}
+      as={ProjectLink}
       variant="link"
       colorScheme="blue"
       href={{

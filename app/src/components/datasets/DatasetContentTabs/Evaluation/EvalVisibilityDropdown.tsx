@@ -17,7 +17,7 @@ import { BsPlusSquare } from "react-icons/bs";
 import { FaBalanceScale } from "react-icons/fa";
 import { useRouter } from "next/router";
 
-import { useDataset, useIsClientInitialized } from "~/utils/hooks";
+import { useDataset, useIsClientInitialized, useSelectedProject } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import AddEvalModal from "./AddEvalModal";
@@ -135,13 +135,18 @@ const EditableEvalOption = ({ option }: { option: Option }) => {
 
   const router = useRouter();
 
+  const selectedProject = useSelectedProject().data;
+
   const [toggleHovered, setToggleHovered] = useState(false);
   return (
     <HStack
       as={Button}
       onClick={() => {
         if (!toggleHovered)
-          void router.push({ pathname: "/evals/[id]", query: { id: option.key } });
+          void router.push({
+            pathname: "/p/[slug]/evals/[id]",
+            query: { slug: selectedProject?.slug || "", id: option.key },
+          });
       }}
       w="full"
       minH={10}

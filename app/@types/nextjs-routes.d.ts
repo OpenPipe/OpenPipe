@@ -22,21 +22,21 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/api/trpc/[trpc]", { "trpc": string }>
     | DynamicRoute<"/api/v1/[...trpc]", { "trpc": string[] }>
     | StaticRoute<"/api/v1/openapi">
-    | DynamicRoute<"/datasets/[id]/[tab]", { "id": string; "tab": string }>
-    | DynamicRoute<"/datasets/[id]", { "id": string }>
-    | StaticRoute<"/datasets">
-    | DynamicRoute<"/evals/[id]/[tab]", { "id": string; "tab": string }>
-    | DynamicRoute<"/evals/[id]", { "id": string }>
-    | StaticRoute<"/evals">
-    | DynamicRoute<"/fine-tunes/[id]/[tab]", { "id": string; "tab": string }>
-    | DynamicRoute<"/fine-tunes/[id]", { "id": string }>
-    | StaticRoute<"/fine-tunes">
     | StaticRoute<"/">
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>
-    | StaticRoute<"/project/settings">
-    | StaticRoute<"/request-logs">
-    | StaticRoute<"/sentry-example-page">
-    | StaticRoute<"/usage">;
+    | DynamicRoute<"/p/[slug]/datasets/[id]/[tab]", { "slug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[slug]/datasets/[id]", { "slug": string; "id": string }>
+    | DynamicRoute<"/p/[slug]/datasets", { "slug": string }>
+    | DynamicRoute<"/p/[slug]/evals/[id]/[tab]", { "slug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[slug]/evals/[id]", { "slug": string; "id": string }>
+    | DynamicRoute<"/p/[slug]/evals", { "slug": string }>
+    | DynamicRoute<"/p/[slug]/fine-tunes/[id]/[tab]", { "slug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[slug]/fine-tunes/[id]", { "slug": string; "id": string }>
+    | DynamicRoute<"/p/[slug]/fine-tunes", { "slug": string }>
+    | DynamicRoute<"/p/[slug]/request-logs", { "slug": string }>
+    | DynamicRoute<"/p/[slug]/settings", { "slug": string }>
+    | DynamicRoute<"/p/[slug]/usage", { "slug": string }>
+    | StaticRoute<"/sentry-example-page">;
 
   interface StaticRoute<Pathname> {
     pathname: Pathname;

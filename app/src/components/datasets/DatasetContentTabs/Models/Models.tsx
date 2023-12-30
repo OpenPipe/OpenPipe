@@ -1,5 +1,4 @@
 import { Card, VStack, HStack, Text, Button } from "@chakra-ui/react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { setActiveTab } from "~/components/ContentTabs";
 import { getStatusColor } from "~/components/fineTunes/FineTunesTable";
@@ -9,6 +8,7 @@ import { useDatasetFineTunes } from "~/utils/hooks";
 import { DATASET_GENERAL_TAB_KEY } from "../DatasetContentTabs";
 import ViewEvaluationButton from "../Evaluation/ViewEvaluationButton";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const Models = () => {
   const fineTunes = useDatasetFineTunes().data;
@@ -37,7 +37,7 @@ const Models = () => {
         <Card key={fineTune.id} w="full">
           <VStack alignItems="flex-start" p={4}>
             <Text
-              as={Link}
+              as={ProjectLink}
               href={{ pathname: "/fine-tunes/[id]", query: { id: fineTune.id } }}
               fontWeight="bold"
               _hover={{ textDecoration: "underline" }}

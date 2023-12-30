@@ -16,7 +16,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     redirect: {
-      destination: `/datasets/${id}/${DATASET_GENERAL_TAB_KEY}`,
+      destination: `datasets/${id}/${DATASET_GENERAL_TAB_KEY}`,
       permanent: true,
     },
   };

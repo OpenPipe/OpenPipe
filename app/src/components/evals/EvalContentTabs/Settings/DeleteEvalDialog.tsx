@@ -13,9 +13,8 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
-import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
-import { useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
+import { useDatasetEval, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 
@@ -23,7 +22,7 @@ const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) =
   const cancelRef = useRef<HTMLButtonElement>(null);
   const datasetEval = useDatasetEval().data;
 
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProject = useSelectedProject().data;
 
   const deleteMutation = api.datasetEvals.delete.useMutation();
 
@@ -32,7 +31,7 @@ const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) =
   const router = useRouter();
 
   const [onDeleteConfirm, deleteInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId || !datasetEval?.id) return;
+    if (!selectedProject?.id || !selectedProject?.slug || !datasetEval?.id) return;
     const resp = await deleteMutation.mutateAsync({ id: datasetEval.id });
     if (maybeReportError(resp)) return;
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: datasetEval.datasetId });
@@ -40,13 +39,17 @@ const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) =
 
     disclosure.onClose();
 
-    await utils.datasetEvals.list.invalidate({ projectId: selectedProjectId });
+    await utils.datasetEvals.list.invalidate({ projectId: selectedProject.id });
 
     await router.push({
-      pathname: "/datasets/[id]/[tab]",
-      query: { id: datasetEval.datasetId, tab: DATASET_EVALUATION_TAB_KEY },
+      pathname: "/p/[slug]/datasets/[id]/[tab]",
+      query: {
+        slug: selectedProject.slug,
+        id: datasetEval.datasetId,
+        tab: DATASET_EVALUATION_TAB_KEY,
+      },
     });
-  }, [deleteMutation, selectedProjectId, datasetEval?.id, disclosure.onClose]);
+  }, [deleteMutation, selectedProject, datasetEval?.id, disclosure.onClose]);
 
   if (!datasetEval) return null;
 

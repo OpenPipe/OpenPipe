@@ -1,5 +1,4 @@
 import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, Text, VStack } from "@chakra-ui/react";
-import Link from "next/link";
 import { FaBalanceScale } from "react-icons/fa";
 
 import AppShell from "~/components/nav/AppShell";
@@ -7,6 +6,7 @@ import { useDatasetEval } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import EvalContentTabs from "~/components/evals/EvalContentTabs/EvalContentTabs";
+import { ProjectLink } from "~/components/ProjectLink";
 
 export default function FineTune() {
   const datasetEval = useDatasetEval();
@@ -34,11 +34,11 @@ export default function FineTune() {
               <ProjectBreadcrumbContents />
             </BreadcrumbItem>
             <BreadcrumbItem>
-              <Link href="/evals">
+              <ProjectLink href="/evals">
                 <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
                   <Icon as={FaBalanceScale} boxSize={4} mr={1.5} mt={0.5} /> Evals
                 </Flex>
-              </Link>
+              </ProjectLink>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
               <Text size="sm">{name}</Text>

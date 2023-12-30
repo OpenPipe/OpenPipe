@@ -1,15 +1,34 @@
-import { type GetServerSideProps } from "next";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export const getServerSideProps: GetServerSideProps = async () => {
-  return {
-    redirect: {
-      destination: "/request-logs",
-      permanent: false,
-    },
-  };
+import { useProjects } from "~/utils/hooks";
+
+const Home = () => {
+  const router = useRouter();
+
+  const projects = useProjects().data;
+
+  const firstProjectSlug = projects?.[0]?.slug;
+
+  useEffect(() => {
+    const redirect = async () => {
+      try {
+        // Redirect to the first project's request logs
+        if (firstProjectSlug) {
+          await router.push({
+            pathname: "/p/[slug]/request-logs",
+            query: { slug: firstProjectSlug },
+          });
+        }
+      } catch (error) {
+        // User is not logged in
+      }
+    };
+
+    void redirect();
+  }, [router, firstProjectSlug]);
+
+  return null;
 };
 
-export default function Home() {
-  return null;
-}
+export default Home;

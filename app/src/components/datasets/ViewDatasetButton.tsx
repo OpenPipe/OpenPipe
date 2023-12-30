@@ -1,7 +1,7 @@
 import { Button, type ButtonProps } from "@chakra-ui/react";
-import Link from "next/link";
 
 import { DATASET_GENERAL_TAB_KEY } from "./DatasetContentTabs/DatasetContentTabs";
+import { ProjectLink } from "../ProjectLink";
 
 const ViewDatasetButton = ({
   buttonText,
@@ -15,7 +15,7 @@ const ViewDatasetButton = ({
 } & ButtonProps) => {
   return (
     <Button
-      as={Link}
+      as={ProjectLink}
       href={{
         pathname: "/datasets/[id]/[tab]",
         query: {

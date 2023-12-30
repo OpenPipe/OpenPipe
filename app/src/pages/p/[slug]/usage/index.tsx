@@ -17,7 +17,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { DollarSign, Hash } from "lucide-react";
-import Link from "next/link";
+import { ProjectLink } from "~/components/ProjectLink";
 
 import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
@@ -99,9 +99,11 @@ export default function Usage() {
                 {stats.data?.fineTunes.map((model) => (
                   <Tr key={model.ftId}>
                     <Td>
-                      <Link href={{ pathname: "/fine-tunes/[id]", query: { id: model.ftId } }}>
+                      <ProjectLink
+                        href={{ pathname: "/fine-tunes/[id]", query: { id: model.ftId } }}
+                      >
                         <Text color="blue.600">openpipe:{model.slug}</Text>
-                      </Link>
+                      </ProjectLink>
                     </Td>
                     <Td>{modelInfo(model).name}</Td>
                     <Td isNumeric>{numberWithDefault(model.numQueries).toLocaleString()}</Td>

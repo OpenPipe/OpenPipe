@@ -3,28 +3,30 @@ import { BsPlus } from "react-icons/bs";
 import { useRouter } from "next/router";
 
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback } from "~/utils/hooks";
-import { useAppStore } from "~/state/store";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 
 const NewDatasetButton = () => {
   const router = useRouter();
   const createDatasetMutation = api.datasets.create.useMutation();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProject = useSelectedProject().data;
   const utils = api.useContext();
 
   const [createDataset, creationInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId) return;
+    if (!selectedProject) return;
 
     const response = await createDatasetMutation.mutateAsync({
-      projectId: selectedProjectId,
+      projectId: selectedProject.id,
       name: "New Dataset",
     });
 
     const datasetId = response.payload;
 
-    await router.push({ pathname: "/datasets/[id]", query: { id: datasetId } });
+    await router.push({
+      pathname: "/p/[slug]/datasets/[id]",
+      query: { slug: selectedProject.slug, id: datasetId },
+    });
     await utils.datasets.list.invalidate();
-  }, [selectedProjectId, utils]);
+  }, [selectedProject, utils]);
 
   return (
     <Button colorScheme="blue" isLoading={creationInProgress} onClick={createDataset}>

@@ -18,7 +18,6 @@ import {
 } from "@chakra-ui/react";
 import chroma from "chroma-js";
 import { type RouterOutputs } from "~/utils/api";
-import Link from "next/link";
 
 import ColoredPercent from "~/components/ColoredPercent";
 import { useDatasetEval } from "~/utils/hooks";
@@ -26,6 +25,7 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const Results = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -70,12 +70,14 @@ const Results = () => {
               {datasetEval.results.leaderboard.map((model) => {
                 const title = getOutputTitle(model.modelId1, model.slug1);
                 const titleElement = title?.startsWith("openpipe:") ? (
-                  <Link href={{ pathname: "/fine-tunes/[id]", query: { id: model.modelId1 } }}>
+                  <ProjectLink
+                    href={{ pathname: "/fine-tunes/[id]", query: { id: model.modelId1 } }}
+                  >
                     {title.replace("openpipe:", "")}
                     <Badge colorScheme="blue" ml={2}>
                       FT
                     </Badge>
-                  </Link>
+                  </ProjectLink>
                 ) : (
                   title
                 );

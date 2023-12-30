@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { Text, VStack, HStack, GridItem } from "@chakra-ui/react";
-import Link from "next/link";
 
 import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hooks";
 import EvalHeaderPill from "./EvalHeaderPill";
@@ -8,6 +7,7 @@ import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const ModelHeader = ({ modelId }: { modelId: string }) => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -44,7 +44,7 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
       <HStack w="full" justifyContent="space-between">
         {stats.fineTune ? (
           <Text
-            as={Link}
+            as={ProjectLink}
             href={{ pathname: "/fine-tunes/[id]", query: { id: modelId } }}
             _hover={{ textDecoration: "underline" }}
             fontWeight="bold"

@@ -28,12 +28,15 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { useVisibleModelIds } from "../useVisibleModelIds";
 import FormattedDatasetEntryInput from "../FormattedInput";
 import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
+import { useSelectedProject } from "~/utils/hooks";
 
 const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
+
+  const selectedProject = useSelectedProject().data;
 
   const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD";
   const onClose = () => setComparisonCriteria(null);
@@ -123,8 +126,12 @@ const HeadToHeadComparisonModal = () => {
               onClick={() => {
                 if (comparisonCriteria?.datasetEvalId) {
                   void router.push({
-                    pathname: "/evals/[id]/[tab]",
-                    query: { id: comparisonCriteria?.datasetEvalId, tab: EVAL_SETTINGS_TAB_KEY },
+                    pathname: "/p/[slug]/evals/[id]/[tab]",
+                    query: {
+                      slug: selectedProject?.slug || "",
+                      id: comparisonCriteria?.datasetEvalId,
+                      tab: EVAL_SETTINGS_TAB_KEY,
+                    },
                   });
                 }
               }}

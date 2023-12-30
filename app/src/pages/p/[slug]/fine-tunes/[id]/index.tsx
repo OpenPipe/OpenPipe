@@ -15,7 +15,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     redirect: {
-      destination: `/fine-tunes/${id}/${FINE_TUNE_DATASET_GENERAL_TAB_KEY}`,
+      destination: `fine-tunes/${id}/${FINE_TUNE_DATASET_GENERAL_TAB_KEY}`,
       permanent: true,
     },
   };
