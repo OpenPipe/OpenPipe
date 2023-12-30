@@ -31,7 +31,7 @@ const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) =
   const router = useRouter();
 
   const [onDeleteConfirm, deleteInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProject?.id || !selectedProject?.slug || !datasetEval?.id) return;
+    if (!selectedProject || !datasetEval?.id) return;
     const resp = await deleteMutation.mutateAsync({ id: datasetEval.id });
     if (maybeReportError(resp)) return;
     await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: datasetEval.datasetId });

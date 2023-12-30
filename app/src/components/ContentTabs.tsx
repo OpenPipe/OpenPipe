@@ -109,9 +109,6 @@ export const setActiveTab = (newTabKey: string, router: NextRouter) => {
     .slice(0, -1)
     .join("/") as "/p/[projectSlug]/datasets/[id]";
 
-  console.log(router.pathname);
-  console.log(basePath);
-
   void router.push(
     { pathname: `${basePath}/[tab]`, query: { projectSlug: slug, id, tab: newTabKey } },
     undefined,
