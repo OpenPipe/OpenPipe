@@ -6,7 +6,7 @@ const NavSidebarOption = forwardRef<
   "div"
 >(({ activeHrefPattern, disableHoverEffect, ...props }, ref) => {
   const router = useRouter();
-  const isActive = activeHrefPattern && router.pathname.startsWith(activeHrefPattern);
+  const isActive = activeHrefPattern && router.pathname.includes(activeHrefPattern);
   return (
     <Box
       w="full"

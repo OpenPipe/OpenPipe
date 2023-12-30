@@ -1,8 +1,9 @@
 import { Button } from "@chakra-ui/react";
-import Link from "next/link";
+
 import { DATASET_EVALUATION_TAB_KEY } from "../DatasetContentTabs";
 import { constructVisibleModelIdsQueryParams } from "./useVisibleModelIds";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const ViewEvaluationButton = ({
   datasetId,
@@ -17,7 +18,7 @@ const ViewEvaluationButton = ({
   ]);
   return (
     <Button
-      as={Link}
+      as={ProjectLink}
       href={{
         pathname: "/datasets/[id]/[tab]",
         query: {

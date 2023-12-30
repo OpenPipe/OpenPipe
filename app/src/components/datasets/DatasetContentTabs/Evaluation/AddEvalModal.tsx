@@ -18,7 +18,7 @@ import {
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
-import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { api } from "~/utils/api";
 import {
@@ -34,7 +34,7 @@ import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import { useFilters } from "~/components/Filters/useFilters";
 import InfoCircle from "~/components/InfoCircle";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
-import { useRouter } from "next/router";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -92,7 +92,14 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const addFilter = useFilters().addFilter;
 
   const [onCreationConfirm, creationInProgress] = useHandledAsyncCallback(async () => {
-    if (!dataset?.id || !name || !instructions || !numDatasetEntries || includedModelIds.length < 2)
+    if (
+      !selectedProject ||
+      !dataset?.id ||
+      !name ||
+      !instructions ||
+      !numDatasetEntries ||
+      includedModelIds.length < 2
+    )
       return;
     const resp = await mutation.mutateAsync({
       datasetId: dataset.id,
@@ -104,10 +111,18 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     if (maybeReportError(resp)) return;
 
     await router.push({
-      pathname: "/evals/[id]/[tab]",
-      query: { id: resp.payload, tab: "results" },
+      pathname: "/p/[projectSlug]/evals/[id]/[tab]",
+      query: { projectSlug: selectedProject.slug, id: resp.payload, tab: "results" },
     });
-  }, [mutation, dataset?.id, name, instructions, ensureEvalShown, addFilter]);
+  }, [
+    mutation,
+    dataset?.id,
+    selectedProject?.slug,
+    name,
+    instructions,
+    ensureEvalShown,
+    addFilter,
+  ]);
 
   const numComparisons = useMemo(
     () => ((numDatasetEntries || 0) * includedModelIds.length * (includedModelIds.length - 1)) / 2,
@@ -135,7 +150,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             {needsMissingOpenaiKey ? (
               <Text>
                 To create evaluations, add your OpenAI API key on the{" "}
-                <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                <ChakraLink as={ProjectLink} href="/settings" target="_blank" color="blue.600">
                   <Text as="span">project settings</Text>
                 </ChakraLink>{" "}
                 page.

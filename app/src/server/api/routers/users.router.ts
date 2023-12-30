@@ -134,6 +134,13 @@ export const usersRouter = createTRPCRouter({
         where: {
           invitationToken: input.invitationToken,
         },
+        include: {
+          project: {
+            select: {
+              slug: true,
+            },
+          },
+        },
       });
 
       if (!invitation) {
@@ -154,7 +161,7 @@ export const usersRouter = createTRPCRouter({
         },
       });
 
-      return success(invitation.projectId);
+      return success(invitation.project.slug);
     }),
   cancelProjectInvitation: protectedProcedure
     .input(

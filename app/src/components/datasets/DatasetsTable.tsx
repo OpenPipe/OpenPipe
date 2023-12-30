@@ -1,9 +1,9 @@
 import { Card, Table, Thead, Tr, Th, Tbody, Td, VStack, Icon, Text } from "@chakra-ui/react";
 import { FaTable } from "react-icons/fa";
-import Link from "next/link";
 
 import dayjs from "~/utils/dayjs";
 import { useDatasets } from "~/utils/hooks";
+import { ProjectLink } from "../ProjectLink";
 
 const DatasetsTable = ({}) => {
   const query = useDatasets();
@@ -29,9 +29,9 @@ const DatasetsTable = ({}) => {
               return (
                 <Tr key={dataset.id}>
                   <Td>
-                    <Link href={{ pathname: "/datasets/[id]", query: { id: dataset.id } }}>
+                    <ProjectLink href={{ pathname: "/datasets/[id]", query: { id: dataset.id } }}>
                       <Text color="blue.600">{dataset.name}</Text>
-                    </Link>
+                    </ProjectLink>
                   </Td>
                   <Td>{dayjs(dataset.createdAt).format("MMMM D h:mm A")}</Td>
                   <Td>{dataset.fineTuneCount}</Td>

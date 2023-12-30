@@ -22,7 +22,6 @@ import {
 } from "@chakra-ui/react";
 import humanId from "human-id";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { AiTwotoneThunderbolt } from "react-icons/ai";
@@ -52,6 +51,7 @@ import InfoCircle from "~/components/InfoCircle";
 import { DATASET_SETTINGS_TAB_KEY } from "../DatasetContentTabs";
 import TrainingEntryMeter from "./TrainingEntryMeter";
 import { useFilters } from "~/components/Filters/useFilters";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -126,7 +126,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const createFineTuneMutation = api.fineTunes.create.useMutation();
 
   const [createFineTune, creationInProgress] = useHandledAsyncCallback(async () => {
-    if (!modelSlug || !selectedBaseModel || !dataset) return;
+    if (!selectedProject?.slug || !modelSlug || !selectedBaseModel || !dataset) return;
     const resp = await createFineTuneMutation.mutateAsync({
       slug: modelSlug,
       baseModel: splitProvider(selectedBaseModel),
@@ -137,9 +137,18 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     if (maybeReportError(resp)) return;
 
     await utils.fineTunes.list.invalidate();
-    await router.push({ pathname: "/fine-tunes" });
+    await router.push({
+      pathname: "/p/[projectSlug]/fine-tunes",
+      query: { projectSlug: selectedProject.slug },
+    });
     disclosure.onClose();
-  }, [createFineTuneMutation, modelSlug, selectedBaseModel, appliedPruningRuleIds]);
+  }, [
+    createFineTuneMutation,
+    selectedProject?.slug,
+    modelSlug,
+    selectedBaseModel,
+    appliedPruningRuleIds,
+  ]);
 
   return (
     <Modal size={{ base: "xl", md: "2xl" }} {...disclosure}>
@@ -207,7 +216,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             {needsMissingOpenaiKey && (
               <Text>
                 To train this model, add your OpenAI API key on the{" "}
-                <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                <ChakraLink as={ProjectLink} href="/settings" target="_blank" color="blue.600">
                   <Text as="span">project settings</Text>
                 </ChakraLink>{" "}
                 page.
@@ -278,7 +287,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                     View available pruning rules or add a new one in your dataset's{" "}
                     <Button
                       variant="link"
-                      as={Link}
+                      as={ProjectLink}
                       colorScheme="blue"
                       href={{
                         pathname: `/datasets/[id]/[tab]`,

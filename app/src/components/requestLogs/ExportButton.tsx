@@ -19,7 +19,11 @@ import {
 import { BiExport } from "react-icons/bi";
 import pluralize from "pluralize";
 
-import { useHandledAsyncCallback, useTotalNumLogsSelected } from "~/utils/hooks";
+import {
+  useHandledAsyncCallback,
+  useSelectedProject,
+  useTotalNumLogsSelected,
+} from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "../ActionButton";
@@ -47,7 +51,7 @@ const ExportButton = () => {
 export default ExportButton;
 
 const ExportLogsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useSelectedProject().data?.id;
   const filters = useFilters().filters;
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);

@@ -1,5 +1,4 @@
 import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox, Button } from "@chakra-ui/react";
-import Link from "next/link";
 import { DatasetEntrySplit, RelabelRequestStatus } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
@@ -9,6 +8,7 @@ import { useIsClientInitialized, useDatasetEntries } from "~/utils/hooks";
 import { useMemo } from "react";
 import { useFilters } from "~/components/Filters/useFilters";
 import { useSortOrder, SortArrows } from "~/components/sorting";
+import { ProjectLink } from "~/components/ProjectLink";
 
 type DatasetEntry = RouterOutputs["datasetEntries"]["list"]["entries"][0];
 
@@ -204,7 +204,7 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
       <Td w="full" colSpan={visibleColumns.size + 1}>
         <Text color="gray.500" textAlign="center" w="full" p={4}>
           This dataset has no entries. Import logs from the{" "}
-          <Button variant="link" as={Link} href="/request-logs">
+          <Button variant="link" as={ProjectLink} href="/request-logs">
             <Text as="span" color="blue.600">
               Request Logs
             </Text>

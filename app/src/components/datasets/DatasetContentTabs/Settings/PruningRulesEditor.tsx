@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Divider, Heading, VStack, HStack, Text, Icon, Button, Link } from "@chakra-ui/react";
 import { RiInformationFill } from "react-icons/ri";
 
@@ -45,10 +46,10 @@ const PruningRulesEditor = () => {
         <Divider w="full" />
         {pruningRules &&
           pruningRules.map((rule, index) => (
-            <>
-              <EditablePruningRule key={rule.id} index={index} rule={rule} />
-              <Divider key={`divider-${rule.id}`} w="full" />
-            </>
+            <Fragment key={rule.id}>
+              <EditablePruningRule index={index} rule={rule} />
+              <Divider w="full" />
+            </Fragment>
           ))}
         <PruningRuleCreator index={pruningRules?.length ?? 1} />
       </VStack>

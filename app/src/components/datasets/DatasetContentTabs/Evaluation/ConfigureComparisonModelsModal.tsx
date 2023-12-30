@@ -15,7 +15,6 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import { type ComparisonModel } from "@prisma/client";
-import Link from "next/link";
 
 import { api } from "~/utils/api";
 import {
@@ -28,6 +27,7 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useVisibleModelIds } from "./useVisibleModelIds";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
@@ -105,7 +105,7 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
               {needsMissingOpenaiKey ? (
                 <Text>
                   To include comparison models, add your OpenAI API key on the{" "}
-                  <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                  <ChakraLink as={ProjectLink} href="/settings" target="_blank" color="blue.600">
                     <Text as="span">project settings</Text>
                   </ChakraLink>{" "}
                   page.

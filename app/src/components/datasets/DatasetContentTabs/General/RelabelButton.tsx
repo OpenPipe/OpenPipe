@@ -16,7 +16,6 @@ import {
 } from "@chakra-ui/react";
 import { AiOutlineEdit } from "react-icons/ai";
 import { useRef, useState, useEffect } from "react";
-import Link from "next/link";
 import pluralize from "pluralize";
 
 import { api } from "~/utils/api";
@@ -26,6 +25,7 @@ import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useFilters } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const RelabelButton = () => {
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
@@ -107,7 +107,7 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
               {needsMissingOpenaiKey ? (
                 <Text>
                   To relabel these entries, add your OpenAI API key on the{" "}
-                  <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                  <ChakraLink as={ProjectLink} href="/settings" target="_blank" color="blue.600">
                     <Text as="span">project settings</Text>
                   </ChakraLink>{" "}
                   page.

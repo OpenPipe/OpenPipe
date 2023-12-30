@@ -29,8 +29,6 @@ export type State = {
   betaBannerDismissed: boolean;
   dismissBetaBanner: () => void;
   sharedArgumentsEditor: SharedArgumentsEditorSlice;
-  selectedProjectId: string | null;
-  setSelectedProjectId: (id: string) => void;
   selectedLogs: SelectedLogsSlice;
   selectedDatasetEntries: SelectedDatasetEntriesSlice;
   columnVisibility: ColumnVisibilitySlice;
@@ -63,11 +61,6 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
           state.betaBannerDismissed = true;
         }),
       sharedArgumentsEditor: createArgumentsEditorSlice(set, get, ...rest),
-      selectedProjectId: null,
-      setSelectedProjectId: (id: string) =>
-        set((state) => {
-          state.selectedProjectId = id;
-        }),
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),
       selectedDatasetEntries: createSelectedDatasetEntriesSlice(set, get, ...rest),
       columnVisibility: createColumnVisibilitySlice(set, get, ...rest),

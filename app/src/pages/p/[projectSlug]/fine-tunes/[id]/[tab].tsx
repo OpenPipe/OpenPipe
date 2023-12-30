@@ -1,5 +1,4 @@
 import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, Text, VStack } from "@chakra-ui/react";
-import Link from "next/link";
 import { AiOutlineThunderbolt } from "react-icons/ai";
 
 import AppShell from "~/components/nav/AppShell";
@@ -7,6 +6,7 @@ import { useFineTune } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import FineTuneContentTabs from "~/components/fineTunes/FineTuneContentTabs/FineTuneContentTabs";
+import { ProjectLink } from "~/components/ProjectLink";
 
 export default function FineTune() {
   const fineTune = useFineTune();
@@ -34,11 +34,11 @@ export default function FineTune() {
               <ProjectBreadcrumbContents />
             </BreadcrumbItem>
             <BreadcrumbItem>
-              <Link href="/fine-tunes">
+              <ProjectLink href="/fine-tunes">
                 <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
                   <Icon as={AiOutlineThunderbolt} boxSize={4} mr={1.5} mt={0.5} /> Fine Tunes
                 </Flex>
-              </Link>
+              </ProjectLink>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
               <Text size="sm">openpipe:{slug}</Text>

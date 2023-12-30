@@ -167,6 +167,7 @@ model PruningRuleMatch {
 
 model Project {
     id   String @id @default(uuid()) @db.Uuid
+    slug String @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
     name String @default("Project 1")
 
     personalProjectUserId String? @unique @db.Uuid

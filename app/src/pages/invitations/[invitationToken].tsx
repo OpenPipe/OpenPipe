@@ -1,17 +1,15 @@
 import { Center, Text, VStack, HStack, Button, Card } from "@chakra-ui/react";
-
 import { useRouter } from "next/router";
+import Link from "next/link";
+
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
-import { useAppStore } from "~/state/store";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
 export default function Invitation() {
   const router = useRouter();
   const utils = api.useContext();
-
-  const setSelectedProjectId = useAppStore((state) => state.setSelectedProjectId);
 
   const invitationToken = router.query.invitationToken as string | undefined;
 
@@ -38,9 +36,11 @@ export default function Invitation() {
       });
       if (!maybeReportError(resp) && resp) {
         await utils.projects.list.invalidate();
-        setSelectedProjectId(resp.payload);
+        await router.replace({
+          pathname: "/p/[projectSlug]/request-logs",
+          query: { projectSlug: resp.payload },
+        });
       }
-      await router.replace("/");
     }
   }, [acceptMutation, invitationToken]);
 
@@ -58,10 +58,15 @@ export default function Invitation() {
     return (
       <AppShell requireAuth title="Invalid invitation token">
         <Center h="full">
-          <Text>
-            The invitation you've received is invalid or expired. Please ask your project admin for
-            a new token.
-          </Text>
+          <VStack spacing={8}>
+            <Text>
+              The invitation you've received is invalid or expired. Please ask your project admin
+              for a new token.
+            </Text>
+            <Button as={Link} variant="link" href="/" colorScheme="blue">
+              Go Home
+            </Button>
+          </VStack>
         </Center>
       </AppShell>
     );

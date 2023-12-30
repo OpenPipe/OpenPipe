@@ -1,10 +1,10 @@
 import { Card, Table, Thead, Tr, Th, Tbody, Td, VStack, Icon, Text } from "@chakra-ui/react";
 import { FaTable } from "react-icons/fa";
-import Link from "next/link";
 
 import dayjs from "~/utils/dayjs";
 import { useDatasetEvals } from "~/utils/hooks";
 import ViewDatasetButton from "../datasets/ViewDatasetButton";
+import { ProjectLink } from "../ProjectLink";
 
 const EvalsTable = ({}) => {
   const datasetEvals = useDatasetEvals().data;
@@ -29,9 +29,9 @@ const EvalsTable = ({}) => {
               return (
                 <Tr key={datasetEval.id}>
                   <Td>
-                    <Link href={{ pathname: "/evals/[id]", query: { id: datasetEval.id } }}>
+                    <ProjectLink href={{ pathname: "/evals/[id]", query: { id: datasetEval.id } }}>
                       <Text color="blue.600">{datasetEval.name}</Text>
-                    </Link>
+                    </ProjectLink>
                   </Td>
                   <Td>{dayjs(datasetEval.createdAt).format("MMMM D h:mm A")}</Td>
                   <Td>{datasetEval.numModels.toLocaleString()}</Td>
@@ -52,11 +52,11 @@ const EvalsTable = ({}) => {
           <Icon as={FaTable} boxSize={16} color="gray.300" />
           <Text color="gray.500" textAlign="center" w="full" p={4}>
             This project has no evals. Start with a dataset in the{" "}
-            <Link href="/datasets">
+            <ProjectLink href="/datasets">
               <Text as="span" color="blue.600">
                 Datasets
               </Text>
-            </Link>{" "}
+            </ProjectLink>{" "}
             tab.
           </Text>
         </VStack>

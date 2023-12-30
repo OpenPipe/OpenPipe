@@ -4,9 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 import { useAppStore } from "~/state/store";
 import { inverseDatePrefix } from "./utils";
 
-export const uploadDatasetEntryFile = async (file: File) => {
-  const { selectedProjectId: projectId, api } = useAppStore.getState();
-  if (!projectId) throw Error("projectId not found");
+export const uploadDatasetEntryFile = async (projectId: string, file: File) => {
+  const { api } = useAppStore.getState();
+
   if (!api) throw Error("api not initialized");
   const { serviceClientUrl, containerName } = await api.client.datasets.getServiceClientUrl.query({
     projectId,
