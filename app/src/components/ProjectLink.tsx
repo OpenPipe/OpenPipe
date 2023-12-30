@@ -1,5 +1,7 @@
+import { type Ref, forwardRef } from "react";
 import Link, { type LinkProps } from "next/link";
 import type { Route, DynamicRoute } from "nextjs-routes";
+import { Box } from "@chakra-ui/react";
 
 import { useSelectedProject } from "~/utils/hooks";
 
@@ -13,19 +15,32 @@ export type ProjectLinkProps<T extends ProjectRoute> = {
   href: T["path"] | { pathname: T["path"]; query: T["query"] };
 } & Omit<LinkProps, "href">;
 
-export const ProjectLink = <T extends ProjectRoute>({ href, ...rest }: ProjectLinkProps<T>) => {
-  const selectedProject = useSelectedProject().data;
+const ProjectLink = forwardRef(
+  <T extends ProjectRoute>(
+    { href, children, ...rest }: ProjectLinkProps<T>,
+    ref: Ref<HTMLSpanElement>,
+  ) => {
+    const selectedProject = useSelectedProject().data;
 
-  const pathname = typeof href === "string" ? href : href.pathname;
-  const query = typeof href === "string" ? {} : href.query;
+    const pathname = typeof href === "string" ? href : href.pathname;
+    const query = typeof href === "string" ? {} : href.query;
 
-  return (
-    <Link
-      href={{
-        pathname: `/p/[projectSlug]${pathname}`,
-        query: { projectSlug: selectedProject?.slug, ...query },
-      }}
-      {...rest}
-    />
-  );
-};
+    return (
+      <Link
+        href={{
+          pathname: `/p/[projectSlug]${pathname}`,
+          query: { projectSlug: selectedProject?.slug, ...query },
+        }}
+        {...rest}
+      >
+        <Box ref={ref} as="span">
+          {children}
+        </Box>
+      </Link>
+    );
+  },
+);
+
+ProjectLink.displayName = "ProjectLink";
+
+export { ProjectLink };

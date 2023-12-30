@@ -73,10 +73,12 @@ const Results = () => {
                   <ProjectLink
                     href={{ pathname: "/fine-tunes/[id]", query: { id: model.modelId1 } }}
                   >
-                    {title.replace("openpipe:", "")}
-                    <Badge colorScheme="blue" ml={2}>
-                      FT
-                    </Badge>
+                    <Text as="span" _hover={{ textDecoration: "underline" }}>
+                      {title.replace("openpipe:", "")}
+                      <Badge colorScheme="blue" ml={2}>
+                        FT
+                      </Badge>
+                    </Text>
                   </ProjectLink>
                 ) : (
                   title

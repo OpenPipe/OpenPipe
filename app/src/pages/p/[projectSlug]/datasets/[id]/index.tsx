@@ -8,6 +8,7 @@ export default DatasetDefaultTab;
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  const projectSlug = context.params?.projectSlug as string;
   const id = context.params?.id as string;
 
   if (!id) {
@@ -16,7 +17,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     redirect: {
-      destination: `datasets/${id}/${DATASET_GENERAL_TAB_KEY}`,
+      destination: `/p/${projectSlug}/datasets/${id}/${DATASET_GENERAL_TAB_KEY}`,
       permanent: true,
     },
   };

@@ -117,7 +117,7 @@ export const useProjects = api.projects.list.useQuery;
 export const useSelectedProject = () => {
   const router = useRouter();
 
-  const projectSlug = router.query.slug as string;
+  const projectSlug = router.query.projectSlug as string;
   const projects = useProjects().data;
 
   const selectedProjectId = projects?.find((project) => project.slug === projectSlug)?.id;

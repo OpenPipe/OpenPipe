@@ -35,7 +35,7 @@ const DatasetEntryHistoryRow = ({
         <Icon as={BsDash} boxSize={5} mx={-2} color="gray.500" transform={"rotate(90deg)"} />
       )}
       <HStack>
-        <Icon as={BsDot} boxSize={5} mx={-2} color="gray.500" />
+        <Icon as={BsDot} boxSize={5} mx={-2} mt={0.5} color="gray.500" />
         <Text color="gray.500">
           <Text as="span" fontWeight="bold" color="gray.900">
             {userName}

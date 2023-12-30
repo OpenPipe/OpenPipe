@@ -64,7 +64,13 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
             </Text>
           )}
           {stats.fineTune && (
-            <Text color="orange.500" fontWeight="bold" fontSize="xs" textTransform="uppercase">
+            <Text
+              color="orange.500"
+              fontWeight="bold"
+              fontSize="xs"
+              textTransform="uppercase"
+              textAlign="end"
+            >
               {modelInfo(stats.fineTune).name}
             </Text>
           )}

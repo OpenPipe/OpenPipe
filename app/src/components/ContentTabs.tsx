@@ -102,7 +102,7 @@ TabHeader.displayName = "TabHeader";
 export default ContentTabs;
 
 export const setActiveTab = (newTabKey: string, router: NextRouter) => {
-  const slug = router.query.slug as string;
+  const projectSlug = router.query.projectSlug as string;
   const id = router.query.id as string;
   const basePath = router.pathname
     .split("/")
@@ -110,7 +110,7 @@ export const setActiveTab = (newTabKey: string, router: NextRouter) => {
     .join("/") as "/p/[projectSlug]/datasets/[id]";
 
   void router.push(
-    { pathname: `${basePath}/[tab]`, query: { projectSlug: slug, id, tab: newTabKey } },
+    { pathname: `${basePath}/[tab]`, query: { projectSlug, id, tab: newTabKey } },
     undefined,
     { shallow: true },
   );

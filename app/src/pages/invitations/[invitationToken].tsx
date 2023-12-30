@@ -1,5 +1,6 @@
 import { Center, Text, VStack, HStack, Button, Card } from "@chakra-ui/react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
@@ -57,10 +58,15 @@ export default function Invitation() {
     return (
       <AppShell requireAuth title="Invalid invitation token">
         <Center h="full">
-          <Text>
-            The invitation you've received is invalid or expired. Please ask your project admin for
-            a new token.
-          </Text>
+          <VStack spacing={8}>
+            <Text>
+              The invitation you've received is invalid or expired. Please ask your project admin
+              for a new token.
+            </Text>
+            <Button as={Link} variant="link" href="/" colorScheme="blue">
+              Go Home
+            </Button>
+          </VStack>
         </Center>
       </AppShell>
     );

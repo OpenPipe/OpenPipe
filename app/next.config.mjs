@@ -61,6 +61,11 @@ let config = {
       permanent: true,
     },
     {
+      source: "/p",
+      destination: "/",
+      permanent: false,
+    },
+    {
       source: "/p/:path",
       destination: "/p/:path/request-logs",
       permanent: false,
