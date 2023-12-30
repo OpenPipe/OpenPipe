@@ -21,12 +21,6 @@ const ContentTabs = ({
   const activeTabParam = router.query.tab as string;
   const [activeTabState, setActiveTabState] = useState(tabs[0]?.key || "");
 
-  console.log(router.query);
-
-  console.log(activeTabParam);
-
-  console.log(tabs);
-
   const activeTabKey = trackTabInUrl ? activeTabParam || tabs[0]?.key || "" : activeTabState;
 
   useEffect(() => {
@@ -110,13 +104,16 @@ export default ContentTabs;
 export const setActiveTab = (newTabKey: string, router: NextRouter) => {
   const slug = router.query.slug as string;
   const id = router.query.id as string;
-  const basePath = router.pathname.split("/").slice(0, -1).join("/") as "/p/[slug]/datasets/[id]";
+  const basePath = router.pathname
+    .split("/")
+    .slice(0, -1)
+    .join("/") as "/p/[projectSlug]/datasets/[id]";
 
   console.log(router.pathname);
   console.log(basePath);
 
   void router.push(
-    { pathname: `${basePath}/[tab]`, query: { slug, id, tab: newTabKey } },
+    { pathname: `${basePath}/[tab]`, query: { projectSlug: slug, id, tab: newTabKey } },
     undefined,
     { shallow: true },
   );

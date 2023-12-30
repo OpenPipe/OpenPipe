@@ -128,9 +128,9 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
     ]);
 
     await router.push({
-      pathname: "/p/[slug]/datasets/[id]/[tab]",
+      pathname: "/p/[projectSlug]/datasets/[id]/[tab]",
       query: {
-        slug: selectedProject.slug,
+        projectSlug: selectedProject.slug,
         id: datasetId,
         tab: DATASET_GENERAL_TAB_KEY,
         ...filtersQueryParams,

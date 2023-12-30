@@ -111,8 +111,8 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     if (maybeReportError(resp)) return;
 
     await router.push({
-      pathname: "/p/[slug]/evals/[id]/[tab]",
-      query: { slug: selectedProject.slug, id: resp.payload, tab: "results" },
+      pathname: "/p/[projectSlug]/evals/[id]/[tab]",
+      query: { projectSlug: selectedProject.slug, id: resp.payload, tab: "results" },
     });
   }, [
     mutation,

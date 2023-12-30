@@ -33,37 +33,37 @@ let config = {
     {
       source: "/datasets/:path*",
       destination: "/",
-      permanent: true,
+      permanent: false,
     },
     {
       source: "/evals/:path*",
       destination: "/",
-      permanent: true,
+      permanent: false,
     },
     {
       source: "/fine-tunes/:path*",
       destination: "/",
-      permanent: true,
+      permanent: false,
     },
     {
       source: "/request-logs/:path*",
       destination: "/",
-      permanent: true,
+      permanent: false,
     },
     {
       source: "/project/settings",
       destination: "/",
-      permanent: true,
+      permanent: false,
     },
     {
       source: "/usage",
       destination: "/",
-      permanent: true,
+      permanent: false,
     },
     {
       source: "/p/:path",
       destination: "/p/:path/request-logs",
-      permanent: true,
+      permanent: false,
     },
   ],
 

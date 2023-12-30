@@ -24,18 +24,18 @@ declare module "nextjs-routes" {
     | StaticRoute<"/api/v1/openapi">
     | StaticRoute<"/">
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>
-    | DynamicRoute<"/p/[slug]/datasets/[id]/[tab]", { "slug": string; "id": string; "tab": string }>
-    | DynamicRoute<"/p/[slug]/datasets/[id]", { "slug": string; "id": string }>
-    | DynamicRoute<"/p/[slug]/datasets", { "slug": string }>
-    | DynamicRoute<"/p/[slug]/evals/[id]/[tab]", { "slug": string; "id": string; "tab": string }>
-    | DynamicRoute<"/p/[slug]/evals/[id]", { "slug": string; "id": string }>
-    | DynamicRoute<"/p/[slug]/evals", { "slug": string }>
-    | DynamicRoute<"/p/[slug]/fine-tunes/[id]/[tab]", { "slug": string; "id": string; "tab": string }>
-    | DynamicRoute<"/p/[slug]/fine-tunes/[id]", { "slug": string; "id": string }>
-    | DynamicRoute<"/p/[slug]/fine-tunes", { "slug": string }>
-    | DynamicRoute<"/p/[slug]/request-logs", { "slug": string }>
-    | DynamicRoute<"/p/[slug]/settings", { "slug": string }>
-    | DynamicRoute<"/p/[slug]/usage", { "slug": string }>
+    | DynamicRoute<"/p/[projectSlug]/datasets/[id]/[tab]", { "projectSlug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[projectSlug]/datasets/[id]", { "projectSlug": string; "id": string }>
+    | DynamicRoute<"/p/[projectSlug]/datasets", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/evals/[id]/[tab]", { "projectSlug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[projectSlug]/evals/[id]", { "projectSlug": string; "id": string }>
+    | DynamicRoute<"/p/[projectSlug]/evals", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/fine-tunes/[id]/[tab]", { "projectSlug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[projectSlug]/fine-tunes/[id]", { "projectSlug": string; "id": string }>
+    | DynamicRoute<"/p/[projectSlug]/fine-tunes", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/request-logs", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/settings", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/usage", { "projectSlug": string }>
     | StaticRoute<"/sentry-example-page">;
 
   interface StaticRoute<Pathname> {

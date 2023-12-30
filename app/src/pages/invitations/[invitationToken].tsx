@@ -1,17 +1,14 @@
 import { Center, Text, VStack, HStack, Button, Card } from "@chakra-ui/react";
-
 import { useRouter } from "next/router";
+
 import AppShell from "~/components/nav/AppShell";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
-import { useAppStore } from "~/state/store";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
 export default function Invitation() {
   const router = useRouter();
   const utils = api.useContext();
-
-  const setSelectedProjectId = useAppStore((state) => state.setSelectedProjectId);
 
   const invitationToken = router.query.invitationToken as string | undefined;
 
@@ -38,9 +35,11 @@ export default function Invitation() {
       });
       if (!maybeReportError(resp) && resp) {
         await utils.projects.list.invalidate();
-        setSelectedProjectId(resp.payload);
+        await router.replace({
+          pathname: "/p/[projectSlug]/request-logs",
+          query: { projectSlug: resp.payload },
+        });
       }
-      await router.replace("/");
     }
   }, [acceptMutation, invitationToken]);
 

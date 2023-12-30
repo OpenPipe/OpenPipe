@@ -42,9 +42,9 @@ const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) =
     await utils.datasetEvals.list.invalidate({ projectId: selectedProject.id });
 
     await router.push({
-      pathname: "/p/[slug]/datasets/[id]/[tab]",
+      pathname: "/p/[projectSlug]/datasets/[id]/[tab]",
       query: {
-        slug: selectedProject.slug,
+        projectSlug: selectedProject.slug,
         id: datasetEval.datasetId,
         tab: DATASET_EVALUATION_TAB_KEY,
       },

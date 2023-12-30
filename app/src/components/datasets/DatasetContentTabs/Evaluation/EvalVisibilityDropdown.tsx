@@ -144,8 +144,8 @@ const EditableEvalOption = ({ option }: { option: Option }) => {
       onClick={() => {
         if (!toggleHovered)
           void router.push({
-            pathname: "/p/[slug]/evals/[id]",
-            query: { slug: selectedProject?.slug || "", id: option.key },
+            pathname: "/p/[projectSlug]/evals/[id]",
+            query: { projectSlug: selectedProject?.slug || "", id: option.key },
           });
       }}
       w="full"

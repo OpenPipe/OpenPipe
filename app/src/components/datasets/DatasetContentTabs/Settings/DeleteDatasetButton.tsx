@@ -14,7 +14,10 @@ export const DeleteDatasetButton = () => {
 
   const [onDelete] = useHandledAsyncCallback(async () => {
     if (!selectedProject?.slug) return;
-    await router.push({ pathname: "/p/[slug]/datasets", query: { slug: selectedProject.slug } });
+    await router.push({
+      pathname: "/p/[projectSlug]/datasets",
+      query: { projectSlug: selectedProject.slug },
+    });
   }, [router, selectedProject?.slug]);
 
   return (

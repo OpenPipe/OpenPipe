@@ -39,7 +39,10 @@ export default function ProjectMenu() {
   const [createProject, isLoading] = useHandledAsyncCallback(async () => {
     const newProj = await createMutation.mutateAsync({ name: "Untitled Project" });
     await utils.projects.list.invalidate();
-    await router.push({ pathname: "/p/[slug]/settings", query: { slug: newProj.slug } });
+    await router.push({
+      pathname: "/p/[projectSlug]/settings",
+      query: { projectSlug: newProj.slug },
+    });
     popover.onClose();
   }, [createMutation, router]);
 
@@ -164,7 +167,7 @@ const ProjectOption = ({
   return (
     <HStack
       as={Link}
-      href={{ pathname: "/p/[slug]/request-logs", query: { slug: proj.slug } }}
+      href={{ pathname: "/p/[projectSlug]/request-logs", query: { projectSlug: proj.slug } }}
       onClick={onClose}
       w="full"
       justifyContent="space-between"

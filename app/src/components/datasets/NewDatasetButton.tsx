@@ -22,8 +22,8 @@ const NewDatasetButton = () => {
     const datasetId = response.payload;
 
     await router.push({
-      pathname: "/p/[slug]/datasets/[id]",
-      query: { slug: selectedProject.slug, id: datasetId },
+      pathname: "/p/[projectSlug]/datasets/[id]",
+      query: { projectSlug: selectedProject.slug, id: datasetId },
     });
     await utils.datasets.list.invalidate();
   }, [selectedProject, utils]);

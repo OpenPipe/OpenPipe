@@ -137,7 +137,10 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     if (maybeReportError(resp)) return;
 
     await utils.fineTunes.list.invalidate();
-    await router.push({ pathname: "/p/[slug]/fine-tunes", query: { slug: selectedProject.slug } });
+    await router.push({
+      pathname: "/p/[projectSlug]/fine-tunes",
+      query: { projectSlug: selectedProject.slug },
+    });
     disclosure.onClose();
   }, [
     createFineTuneMutation,

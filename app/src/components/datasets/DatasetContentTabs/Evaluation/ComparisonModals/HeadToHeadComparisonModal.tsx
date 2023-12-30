@@ -126,9 +126,9 @@ const HeadToHeadComparisonModal = () => {
               onClick={() => {
                 if (comparisonCriteria?.datasetEvalId) {
                   void router.push({
-                    pathname: "/p/[slug]/evals/[id]/[tab]",
+                    pathname: "/p/[projectSlug]/evals/[id]/[tab]",
                     query: {
-                      slug: selectedProject?.slug || "",
+                      projectSlug: selectedProject?.slug || "",
                       id: comparisonCriteria?.datasetEvalId,
                       tab: EVAL_SETTINGS_TAB_KEY,
                     },

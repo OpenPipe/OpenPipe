@@ -5,10 +5,10 @@
 
 */
 
--- Replace the current nanoid function with a reduced alphabet and length of 8
+-- Replace the current nanoid function with a reduced alphabet and length of 10
 CREATE OR REPLACE FUNCTION nanoid(
-    size int DEFAULT 8,
-    alphabet text DEFAULT '0123456789abcdefghijklmnopqrstuvwxyz'
+    size int DEFAULT 10,
+    alphabet text DEFAULT '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 )
     RETURNS text
     LANGUAGE plpgsql
@@ -51,7 +51,7 @@ END
 $$;
 
 -- AlterTable
-ALTER TABLE "Project" ADD COLUMN     "slug" VARCHAR(8) NOT NULL DEFAULT nanoid();
+ALTER TABLE "Project" ADD COLUMN     "slug" VARCHAR(10) NOT NULL DEFAULT nanoid();
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Project_slug_key" ON "Project"("slug");

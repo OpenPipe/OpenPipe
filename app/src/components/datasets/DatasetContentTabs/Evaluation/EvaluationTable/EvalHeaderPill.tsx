@@ -200,9 +200,9 @@ const EvalHeaderPill = ({
               px={2}
               onClick={() =>
                 void router.push({
-                  pathname: "/p/[slug]/evals/[id]/[tab]",
+                  pathname: "/p/[projectSlug]/evals/[id]/[tab]",
                   query: {
-                    slug: selectedProject?.slug || "",
+                    projectSlug: selectedProject?.slug || "",
                     id: datasetEval.id,
                     tab: EVAL_SETTINGS_TAB_KEY,
                   },

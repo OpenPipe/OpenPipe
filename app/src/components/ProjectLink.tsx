@@ -3,8 +3,8 @@ import type { Route, DynamicRoute } from "nextjs-routes";
 
 import { useSelectedProject } from "~/utils/hooks";
 
-type ExtractSlugRoutes<T> = T extends DynamicRoute<`/p/[slug]${infer Rest}`, infer Params>
-  ? { path: Rest; query: Omit<Params, "slug"> & { slug?: string } }
+type ExtractSlugRoutes<T> = T extends DynamicRoute<`/p/[projectSlug]${infer Rest}`, infer Params>
+  ? { path: Rest; query: Omit<Params, "projectSlug"> & { projectSlug?: string } }
   : never;
 
 export type ProjectRoute = ExtractSlugRoutes<Route>;
@@ -21,7 +21,10 @@ export const ProjectLink = <T extends ProjectRoute>({ href, ...rest }: ProjectLi
 
   return (
     <Link
-      href={{ pathname: `/p/[slug]${pathname}`, query: { slug: selectedProject?.slug, ...query } }}
+      href={{
+        pathname: `/p/[projectSlug]${pathname}`,
+        query: { projectSlug: selectedProject?.slug, ...query },
+      }}
       {...rest}
     />
   );

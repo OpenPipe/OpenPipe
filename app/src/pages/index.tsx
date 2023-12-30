@@ -16,8 +16,8 @@ const Home = () => {
         // Redirect to the first project's request logs
         if (firstProjectSlug) {
           await router.push({
-            pathname: "/p/[slug]/request-logs",
-            query: { slug: firstProjectSlug },
+            pathname: "/p/[projectSlug]/request-logs",
+            query: { projectSlug: firstProjectSlug },
           });
         }
       } catch (error) {

@@ -14,7 +14,10 @@ const DeleteFineTuneButton = () => {
 
   const [onDelete] = useHandledAsyncCallback(async () => {
     if (!selectedProject?.slug) return;
-    await router.push({ pathname: "/p/[slug]/fine-tunes", query: { slug: selectedProject.slug } });
+    await router.push({
+      pathname: "/p/[projectSlug]/fine-tunes",
+      query: { projectSlug: selectedProject.slug },
+    });
   }, [router, selectedProject?.slug]);
 
   if (!fineTune.data) return null;
