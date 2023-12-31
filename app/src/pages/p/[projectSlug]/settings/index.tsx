@@ -22,7 +22,7 @@ import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContent
 import CopiableCode from "~/components/CopiableCode";
 import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectDialog";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import MemberTable from "~/components/projectSettings/MemberTable";
+import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
 import { InviteMemberModal } from "~/components/projectSettings/InviteMemberModal";
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
 import AccessControl from "~/components/AccessControl";
@@ -120,7 +120,7 @@ export default function Settings() {
                 Add members to your project to allow them to view and edit your project's data.
               </Text>
               <Box mt={4} w="full">
-                <MemberTable />
+                <ProjectUserTable />
               </Box>
               <AccessControl
                 accessLevel="requireIsProjectAdmin"

@@ -1,10 +1,11 @@
 import { type Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { generateApiKey } from "~/server/utils/generateApiKey";
 import userProject from "~/server/utils/userProject";
 import {
@@ -45,49 +46,75 @@ export const projectsRouter = createTRPCRouter({
   }),
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     await requireCanViewProject(input.id, ctx);
-    const [proj, userRole] = await prisma.$transaction([
-      prisma.project.findUnique({
-        where: {
-          id: input.id,
-        },
-        include: {
-          apiKeys: true,
-          personalProjectUser: true,
-          projectUsers: {
-            include: {
-              user: true,
-            },
-          },
-          projectUserInvitations: true,
-        },
-      }),
-      prisma.projectUser.findFirst({
-        where: {
-          userId: ctx.session.user.id,
-          projectId: input.id,
-          role: {
-            in: ["ADMIN", "MEMBER", "VIEWER"],
-          },
-        },
-      }),
-    ]);
+
+    const proj = await kysely
+      .selectFrom("Project as p")
+      .where("p.id", "=", input.id)
+      .selectAll("p")
+      .select((eb) => [
+        jsonArrayFrom(
+          eb
+            .selectFrom("ApiKey")
+            .select(["name", "apiKey", "provider"])
+            .whereRef("projectId", "=", "p.id"),
+        ).as("apiKeys"),
+        jsonObjectFrom(
+          eb
+            .selectFrom("User as u")
+            .select(["u.id", "u.name", "u.email"])
+            .whereRef("u.id", "=", "p.personalProjectUserId"),
+        ).as("personalProjectUser"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("ProjectUser as pu")
+            .innerJoin("User as u", "u.id", "pu.userId")
+            .select(["pu.createdAt", "pu.role", "u.id as userId", "u.name", "u.email"])
+            .whereRef("pu.projectId", "=", "p.id")
+            .orderBy("pu.createdAt", "asc")
+            // Take advantage of fact that ADMIN is alphabetically before MEMBER and VIEWER
+            .orderBy("pu.role", "asc"),
+        ).as("projectUsers"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("UserInvitation as ui")
+            .selectAll("ui")
+            .whereRef("ui.projectId", "=", "p.id"),
+        ).as("projectUserInvitations"),
+        eb
+          .selectFrom("User as u")
+          .where("u.id", "=", ctx.session.user.id)
+          .leftJoin("ProjectUser as pu", (eb) =>
+            eb.onRef("pu.userId", "=", "u.id").onRef("pu.projectId", "=", "p.id"),
+          )
+          .select("pu.role")
+          .as("userRole"),
+      ])
+      .executeTakeFirst();
 
     if (!proj) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const { apiKeys, ...rest } = proj;
+    const { apiKeys, projectUsers, projectUserInvitations, ...rest } = proj;
 
     const openAiApiKey = apiKeys.find((apiKey) => apiKey.provider === "OPENAI")?.apiKey ?? null;
     const condensedOpenAIKey = openAiApiKey
       ? openAiApiKey.slice(0, 5) + "..." + openAiApiKey.slice(-5)
       : null;
 
+    const revisedProjectUsers =
+      proj.userRole === "VIEWER"
+        ? projectUsers.filter(
+            (user) => user.role !== "VIEWER" || user.userId === ctx.session.user.id,
+          )
+        : projectUsers;
+
     return {
       ...rest,
-      role: userRole?.role ?? null,
       openpipeApiKey: apiKeys.find((apiKey) => apiKey.provider === "OPENPIPE")?.apiKey ?? null,
       condensedOpenAIKey,
+      projectUsers: revisedProjectUsers,
+      projectUserInvitations: proj.userRole !== "VIEWER" ? projectUserInvitations : [],
     };
   }),
   update: protectedProcedure

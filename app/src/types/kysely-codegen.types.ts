@@ -268,6 +268,7 @@ export interface Project {
   updatedAt: Timestamp;
   personalProjectUserId: string | null;
   name: Generated<string>;
+  slug: Generated<string>;
 }
 
 export interface ProjectUser {

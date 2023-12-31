@@ -1,21 +1,23 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Table, Thead, Tr, Th, Tbody, Td, IconButton, Text, Button } from "@chakra-ui/react";
 import { useSession } from "next-auth/react";
 import { BsTrash } from "react-icons/bs";
-import { type User } from "@prisma/client";
 
 import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
-import { RemoveMemberDialog } from "./RemoveMemberDialog";
+import { RemoveProjectUserDialog, type ProjectUser } from "./RemoveProjectUserDialog";
 import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { useAccessControl } from "../AccessControl";
 
-const MemberTable = () => {
+const ProjectUserTable = () => {
   const selectedProject = useSelectedProject().data;
   const session = useSession().data;
 
+  const isAdmin = useAccessControl("requireIsProjectAdmin").data;
+
   const utils = api.useContext();
 
-  const [memberToRemove, setMemberToRemove] = useState<User | null>(null);
+  const [projectUserToRemove, setProjectUserToRemove] = useState<ProjectUser | null>(null);
 
   const cancelInvitationMutation = api.users.cancelProjectInvitation.useMutation();
 
@@ -30,15 +32,6 @@ const MemberTable = () => {
     },
     [selectedProject?.id, cancelInvitationMutation],
   );
-
-  const sortedMembers = useMemo(() => {
-    if (!selectedProject?.projectUsers) return [];
-    return selectedProject.projectUsers.sort((a, b) => {
-      if (a.role === b.role) return a.createdAt < b.createdAt ? -1 : 1;
-      // Take advantage of fact that ADMIN is alphabetically before MEMBER
-      return a.role < b.role ? -1 : 1;
-    });
-  }, [selectedProject?.projectUsers]);
 
   return (
     <>
@@ -55,7 +48,7 @@ const MemberTable = () => {
             <Th>Name</Th>
             <Th display={{ base: "none", md: "table-cell" }}>Email</Th>
             <Th>Role</Th>
-            {selectedProject?.role === "ADMIN" && <Th />}
+            {isAdmin && <Th />}
           </Tr>
         </Thead>
         <Tbody
@@ -67,25 +60,25 @@ const MemberTable = () => {
           }}
         >
           {selectedProject &&
-            sortedMembers.map((member) => {
+            selectedProject.projectUsers.map((member) => {
               return (
-                <Tr key={member.id}>
+                <Tr key={member.userId}>
                   <Td>
-                    <Text fontWeight="bold">{member.user.name}</Text>
+                    <Text fontWeight="bold">{member.name}</Text>
                   </Td>
                   <Td display={{ base: "none", md: "table-cell" }} h="full">
-                    {member.user.email}
+                    {member.email}
                   </Td>
                   <Td fontSize={{ base: "xs", md: "sm" }}>{member.role}</Td>
-                  {selectedProject.role === "ADMIN" && (
+                  {isAdmin && (
                     <Td textAlign="end">
-                      {member.user.id !== session?.user?.id &&
-                        member.user.id !== selectedProject.personalProjectUserId && (
+                      {member.userId !== session?.user?.id &&
+                        member.userId !== selectedProject.personalProjectUserId && (
                           <IconButton
                             aria-label="Remove member"
                             colorScheme="red"
                             icon={<BsTrash />}
-                            onClick={() => setMemberToRemove(member.user)}
+                            onClick={() => setProjectUserToRemove(member)}
                           />
                         )}
                     </Td>
@@ -101,7 +94,7 @@ const MemberTable = () => {
                 </Td>
                 <Td>{invitation.email}</Td>
                 <Td fontSize="sm">{invitation.role}</Td>
-                {selectedProject.role === "ADMIN" && (
+                {isAdmin && (
                   <Td textAlign="end">
                     <Button
                       size="sm"
@@ -119,13 +112,13 @@ const MemberTable = () => {
           })}
         </Tbody>
       </Table>
-      <RemoveMemberDialog
-        member={memberToRemove}
-        isOpen={!!memberToRemove}
-        onClose={() => setMemberToRemove(null)}
+      <RemoveProjectUserDialog
+        projectUser={projectUserToRemove}
+        isOpen={!!projectUserToRemove}
+        onClose={() => setProjectUserToRemove(null)}
       />
     </>
   );
 };
 
-export default MemberTable;
+export default ProjectUserTable;

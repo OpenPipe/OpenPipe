@@ -245,8 +245,8 @@ export const usersRouter = createTRPCRouter({
     .input(
       z.object({
         accessLevel: z.enum(Object.keys(accessLevels) as [AccessLevel, ...AccessLevel[]]),
-        projectId: z.string().optional(),
-        pruningRuleId: z.string().optional(),
+        projectId: z.string().default(""),
+        pruningRuleId: z.string().default(""),
       }),
     )
     .output(z.boolean())
@@ -257,13 +257,12 @@ export const usersRouter = createTRPCRouter({
         if (accessLevel === "requireNothing" || accessLevel === "requireIsAdmin") {
           await accessLevels[accessLevel](ctx);
         } else if (
-          projectId &&
-          (accessLevel === "requireCanViewProject" ||
-            accessLevel === "requireCanModifyProject" ||
-            accessLevel === "requireIsProjectAdmin")
+          accessLevel === "requireCanViewProject" ||
+          accessLevel === "requireCanModifyProject" ||
+          accessLevel === "requireIsProjectAdmin"
         ) {
           await accessLevels[accessLevel](projectId, ctx);
-        } else if (pruningRuleId && accessLevel === "requireCanModifyPruningRule") {
+        } else if (accessLevel === "requireCanModifyPruningRule") {
           await accessLevels[accessLevel](pruningRuleId, ctx);
         } else {
           throw new Error("Invalid access level");
