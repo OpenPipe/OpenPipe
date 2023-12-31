@@ -81,6 +81,9 @@ export const InviteMemberModal = ({
               colorScheme="orange"
             >
               <VStack w="full" alignItems="flex-start">
+                <Radio value="VIEWER">
+                  <Text fontSize="sm">VIEWER</Text>
+                </Radio>
                 <Radio value="MEMBER">
                   <Text fontSize="sm">MEMBER</Text>
                 </Radio>

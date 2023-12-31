@@ -5,6 +5,7 @@ import { BsTrash } from "react-icons/bs";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api, type RouterOutputs } from "~/utils/api";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
+import AccessControl from "~/components/AccessControl";
 import DeletePruningRuleDialog from "./DeletePruningRuleDialog";
 
 type PruningRule = RouterOutputs["pruningRules"]["list"][0];
@@ -74,9 +75,11 @@ const EditablePruningRule = ({ index, rule }: { index: number; rule: PruningRule
               >
                 Reset
               </Button>
-              <Button colorScheme="orange" isLoading={updatingRule} onClick={updateRule}>
-                Save
-              </Button>
+              <AccessControl accessLevel="requireCanModifyProject">
+                <Button colorScheme="orange" isLoading={updatingRule} onClick={updateRule}>
+                  Save
+                </Button>
+              </AccessControl>
             </HStack>
           )}
         </HStack>

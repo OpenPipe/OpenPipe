@@ -4,6 +4,7 @@ import { VStack, HStack, Text, Button } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useDataset } from "~/utils/hooks";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
+import AccessControl from "~/components/AccessControl";
 
 const PruningRuleCreator = ({ index }: { index: number }) => {
   const dataset = useDataset().data;
@@ -32,15 +33,18 @@ const PruningRuleCreator = ({ index }: { index: number }) => {
 
   if (!showEditor) {
     return (
-      <Button
-        variant="outline"
-        color="gray.500"
-        _hover={{ bgColor: "orange.100" }}
-        w="full"
-        onClick={() => setShowEditor(true)}
-      >
-        Add New Rule
-      </Button>
+      <AccessControl accessLevel="requireCanModifyProject" w="full">
+        <Button
+          variant="outline"
+          color="gray.500"
+          _hover={{ bgColor: "orange.100" }}
+          _disabled={{ opacity: 1, bgColor: "white" }}
+          w="full"
+          onClick={() => setShowEditor(true)}
+        >
+          Add New Rule
+        </Button>
+      </AccessControl>
     );
   }
 

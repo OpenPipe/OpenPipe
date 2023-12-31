@@ -30,6 +30,7 @@ import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
 import InputEditor from "./InputEditor";
 import ToolsEditor from "./ToolsEditor";
 import OutputEditor from "./OutputEditor";
+import AccessControl, { useAccessControl } from "~/components/AccessControl";
 
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
@@ -55,6 +56,8 @@ function DatasetEntryDrawer({
     null,
   );
   const [historyVisible, setHistoryVisible] = useState(false);
+
+  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
 
   useEffect(() => {
     if (savedInputMessages && savedOutputMessage) {
@@ -129,7 +132,12 @@ function DatasetEntryDrawer({
             <HStack w="full" justifyContent="space-between" pr={12}>
               <Heading size="md">Dataset Entry</Heading>
               {datasetEntry && (
-                <EntrySplitDropdown split={datasetEntry.split} onChange={onUpdateSplit} />
+                <AccessControl
+                  accessLevel="requireCanModifyProject"
+                  accessDeniedText="Only project members can modify the training split of a dataset entry"
+                >
+                  <EntrySplitDropdown split={datasetEntry.split} onChange={onUpdateSplit} />
+                </AccessControl>
               )}
             </HStack>
           </VStack>
@@ -213,14 +221,16 @@ function DatasetEntryDrawer({
             >
               Reset
             </Button>
-            <Button
-              isLoading={savingInProgress}
-              isDisabled={isLoading || !hasUpdates}
-              onClick={onSave}
-              colorScheme="orange"
-            >
-              Save
-            </Button>
+            <AccessControl accessLevel="requireCanModifyProject">
+              <Button
+                isLoading={savingInProgress}
+                isDisabled={isLoading || !hasUpdates || insufficientPermission}
+                onClick={onSave}
+                colorScheme="orange"
+              >
+                Save
+              </Button>
+            </AccessControl>
           </HStack>
         </DrawerFooter>
       </DrawerContent>

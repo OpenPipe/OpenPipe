@@ -12,6 +12,7 @@ import {
 import { api } from "~/utils/api";
 
 import { useHandledAsyncCallback } from "~/utils/hooks";
+import AccessControl from "~/components/AccessControl";
 
 const DeleteDatasetDialog = ({
   datasetId,
@@ -53,14 +54,16 @@ const DeleteDatasetDialog = ({
             <Button ref={cancelRef} onClick={disclosure.onClose}>
               Cancel
             </Button>
-            <Button
-              colorScheme="red"
-              isLoading={deletionInProgress}
-              onClick={onDeleteConfirm}
-              ml={3}
-            >
-              Delete
-            </Button>
+            <AccessControl accessLevel="requireCanModifyProject">
+              <Button
+                colorScheme="red"
+                isLoading={deletionInProgress}
+                onClick={onDeleteConfirm}
+                ml={3}
+              >
+                Delete
+              </Button>
+            </AccessControl>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

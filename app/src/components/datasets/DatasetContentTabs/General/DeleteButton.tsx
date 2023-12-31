@@ -15,13 +15,14 @@ import {
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
 import { BsTrash } from "react-icons/bs";
+import pluralize from "pluralize";
 
 import { useHandledAsyncCallback, useDataset } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import pluralize from "pluralize";
+import AccessControl from "~/components/AccessControl";
 
 const DeleteButton = () => {
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
@@ -86,7 +87,7 @@ const DeleteDatasetEntriesModal = ({ disclosure }: { disclosure: UseDisclosureRe
           <VStack w="full" spacing={8} pt={4} alignItems="flex-start">
             <Text>
               Are you sure you want to delete the <b>{selectedIds.size.toLocaleString()}</b>{" "}
-              {pluralize("row", selectedIds.size)} rows you've selected?
+              {pluralize("row", selectedIds.size)} you've selected?
             </Text>
           </VStack>
         </ModalBody>
@@ -95,9 +96,16 @@ const DeleteDatasetEntriesModal = ({ disclosure }: { disclosure: UseDisclosureRe
             <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
               Cancel
             </Button>
-            <Button colorScheme="red" onClick={deleteRows} isLoading={deletionInProgress} minW={24}>
-              Delete
-            </Button>
+            <AccessControl accessLevel="requireCanModifyProject">
+              <Button
+                colorScheme="red"
+                onClick={deleteRows}
+                isLoading={deletionInProgress}
+                minW={24}
+              >
+                Delete
+              </Button>
+            </AccessControl>
           </HStack>
         </ModalFooter>
       </ModalContent>

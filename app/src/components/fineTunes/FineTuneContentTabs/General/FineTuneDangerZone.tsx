@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 
 import { useFineTune } from "~/utils/hooks";
+import AccessControl, { useAccessControl } from "~/components/AccessControl";
 import UpdateFineTuneSlugDialog from "./UpdateFineTuneSlugDialog";
 import DeleteFineTuneButton from "./DeleteFineTuneButton";
 import ContentCard from "~/components/ContentCard";
@@ -21,6 +22,8 @@ const FineTuneDangerZone = () => {
   const [slugToSave, setSlugToSave] = useState(fineTune?.slug || "");
 
   const dialogDisclosure = useDisclosure();
+
+  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
 
   if (!fineTune) return null;
 
@@ -51,14 +54,16 @@ const FineTuneDangerZone = () => {
                 }}
               />
             </InputGroup>
-            <Button
-              colorScheme="orange"
-              onClick={dialogDisclosure.onOpen}
-              minW={24}
-              isDisabled={!slugToSave || slugToSave === fineTune?.slug}
-            >
-              Save
-            </Button>
+            <AccessControl accessLevel="requireCanModifyProject">
+              <Button
+                colorScheme="orange"
+                onClick={dialogDisclosure.onOpen}
+                minW={24}
+                isDisabled={!slugToSave || slugToSave === fineTune?.slug || insufficientPermission}
+              >
+                Save
+              </Button>
+            </AccessControl>
           </HStack>
         </VStack>
         <UpdateFineTuneSlugDialog

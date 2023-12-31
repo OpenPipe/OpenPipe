@@ -12,11 +12,13 @@ import {
   Text,
   Box,
   Input,
+  HStack,
 } from "@chakra-ui/react";
-import { api } from "~/utils/api";
 
+import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import AccessControl, { useAccessControl } from "~/components/AccessControl";
 
 const DeleteFineTuneDialog = ({
   fineTuneId,
@@ -33,6 +35,7 @@ const DeleteFineTuneDialog = ({
 
   const mutation = api.fineTunes.delete.useMutation();
   const utils = api.useContext();
+  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
 
   const [onDeleteConfirm, deletionInProgress] = useHandledAsyncCallback(async () => {
     if (!fineTuneId) return;
@@ -73,18 +76,21 @@ const DeleteFineTuneDialog = ({
           </AlertDialogBody>
 
           <AlertDialogFooter>
-            <Button ref={cancelRef} onClick={disclosure.onClose}>
-              Cancel
-            </Button>
-            <Button
-              colorScheme="red"
-              ml={3}
-              isDisabled={slugToDelete !== `openpipe:${fineTuneSlug}`}
-              isLoading={deletionInProgress}
-              onClick={onDeleteConfirm}
-            >
-              Delete
-            </Button>
+            <HStack>
+              <Button ref={cancelRef} onClick={disclosure.onClose}>
+                Cancel
+              </Button>
+              <AccessControl accessLevel="requireCanModifyProject">
+                <Button
+                  colorScheme="red"
+                  isDisabled={slugToDelete !== `openpipe:${fineTuneSlug}` || insufficientPermission}
+                  isLoading={deletionInProgress}
+                  onClick={onDeleteConfirm}
+                >
+                  Delete
+                </Button>
+              </AccessControl>
+            </HStack>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

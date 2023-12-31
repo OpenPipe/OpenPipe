@@ -16,27 +16,6 @@ export const requireNothing = (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 };
 
-export const requireIsProjectAdmin = async (projectId: string, ctx: TRPCContext) => {
-  ctx.markAccessControlRun();
-
-  const userId = ctx.session?.user.id;
-  if (!userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  const isAdmin = await prisma.projectUser.findFirst({
-    where: {
-      userId,
-      projectId,
-      role: "ADMIN",
-    },
-  });
-
-  if (!isAdmin) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-};
-
 export const requireCanViewProject = async (projectId: string, ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 
@@ -78,6 +57,27 @@ export const requireCanModifyProject = async (projectId: string, ctx: TRPCContex
   }
 };
 
+export const requireIsProjectAdmin = async (projectId: string, ctx: TRPCContext) => {
+  ctx.markAccessControlRun();
+
+  const userId = ctx.session?.user.id;
+  if (!userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  const isAdmin = await prisma.projectUser.findFirst({
+    where: {
+      userId,
+      projectId,
+      role: "ADMIN",
+    },
+  });
+
+  if (!isAdmin) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+};
+
 export const requireCanModifyPruningRule = async (pruningRuleId: string, ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 
@@ -115,3 +115,14 @@ export const requireIsAdmin = async (ctx: TRPCContext) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 };
+
+export const accessLevels = {
+  requireNothing,
+  requireCanViewProject,
+  requireCanModifyProject,
+  requireIsProjectAdmin,
+  requireCanModifyPruningRule,
+  requireIsAdmin,
+} as const;
+
+export type AccessLevel = keyof typeof accessLevels;

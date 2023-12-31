@@ -35,6 +35,7 @@ import { useFilters } from "~/components/Filters/useFilters";
 import InfoCircle from "~/components/InfoCircle";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ProjectLink } from "~/components/ProjectLink";
+import AccessControl, { useAccessControl } from "~/components/AccessControl";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -42,6 +43,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
+  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
 
   const dataset = useDataset().data;
   const testingCount = useDatasetEntries().data?.totalTestingCount;
@@ -231,17 +233,23 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
               Cancel
             </Button>
-            <Button
-              colorScheme="blue"
-              onClick={onCreationConfirm}
-              minW={24}
-              isLoading={creationInProgress}
-              isDisabled={
-                !name || !instructions || !numDatasetEntries || includedModelIds.length < 2
-              }
-            >
-              Create
-            </Button>
+            <AccessControl accessLevel="requireCanModifyProject">
+              <Button
+                colorScheme="blue"
+                onClick={onCreationConfirm}
+                minW={24}
+                isLoading={creationInProgress}
+                isDisabled={
+                  !name ||
+                  !instructions ||
+                  !numDatasetEntries ||
+                  includedModelIds.length < 2 ||
+                  insufficientPermission
+                }
+              >
+                Create
+              </Button>
+            </AccessControl>
           </HStack>
         </ModalFooter>
       </ModalContent>

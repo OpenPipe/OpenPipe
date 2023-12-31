@@ -1,11 +1,16 @@
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { error, success } from "~/utils/errorHandling/standardResponses";
-import { requireIsProjectAdmin, requireNothing } from "~/utils/accessControl";
-import { TRPCError } from "@trpc/server";
+import {
+  requireIsProjectAdmin,
+  requireNothing,
+  accessLevels,
+  type AccessLevel,
+} from "~/utils/accessControl";
 import { sendProjectInvitation } from "~/server/emails/sendProjectInvitation";
 
 export const usersRouter = createTRPCRouter({
@@ -37,7 +42,7 @@ export const usersRouter = createTRPCRouter({
         });
 
         if (existingMembership) {
-          return error(`A user with ${input.email} is already a member of this project`);
+          return error(`A user with ${input.email} is already invited to this project`);
         }
       }
 
@@ -235,5 +240,37 @@ export const usersRouter = createTRPCRouter({
       });
 
       return success();
+    }),
+  checkAccess: protectedProcedure
+    .input(
+      z.object({
+        accessLevel: z.enum(Object.keys(accessLevels) as [AccessLevel, ...AccessLevel[]]),
+        projectId: z.string().optional(),
+        pruningRuleId: z.string().optional(),
+      }),
+    )
+    .output(z.boolean())
+    .query(async ({ input, ctx }) => {
+      const { accessLevel, projectId, pruningRuleId } = input;
+
+      try {
+        if (accessLevel === "requireNothing" || accessLevel === "requireIsAdmin") {
+          await accessLevels[accessLevel](ctx);
+        } else if (
+          projectId &&
+          (accessLevel === "requireCanViewProject" ||
+            accessLevel === "requireCanModifyProject" ||
+            accessLevel === "requireIsProjectAdmin")
+        ) {
+          await accessLevels[accessLevel](projectId, ctx);
+        } else if (pruningRuleId && accessLevel === "requireCanModifyPruningRule") {
+          await accessLevels[accessLevel](pruningRuleId, ctx);
+        } else {
+          throw new Error("Invalid access level");
+        }
+        return true;
+      } catch {
+        return false;
+      }
     }),
 });

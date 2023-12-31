@@ -1,22 +1,10 @@
 import { useMemo, useState } from "react";
-import {
-  Table,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Td,
-  IconButton,
-  useDisclosure,
-  Text,
-  Button,
-} from "@chakra-ui/react";
+import { Table, Thead, Tr, Th, Tbody, Td, IconButton, Text, Button } from "@chakra-ui/react";
 import { useSession } from "next-auth/react";
 import { BsTrash } from "react-icons/bs";
 import { type User } from "@prisma/client";
 
 import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
-import { InviteMemberModal } from "./InviteMemberModal";
 import { RemoveMemberDialog } from "./RemoveMemberDialog";
 import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
@@ -28,7 +16,6 @@ const MemberTable = () => {
   const utils = api.useContext();
 
   const [memberToRemove, setMemberToRemove] = useState<User | null>(null);
-  const inviteMemberModal = useDisclosure();
 
   const cancelInvitationMutation = api.users.cancelProjectInvitation.useMutation();
 
@@ -132,7 +119,6 @@ const MemberTable = () => {
           })}
         </Tbody>
       </Table>
-      <InviteMemberModal isOpen={inviteMemberModal.isOpen} onClose={inviteMemberModal.onClose} />
       <RemoveMemberDialog
         member={memberToRemove}
         isOpen={!!memberToRemove}

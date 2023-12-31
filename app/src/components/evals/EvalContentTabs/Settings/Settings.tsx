@@ -1,11 +1,12 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Checkbox, HStack, Input, VStack, Text, useDisclosure } from "@chakra-ui/react";
+import { isEqual } from "lodash-es";
+
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import InfoCircle from "~/components/InfoCircle";
 import { api } from "~/utils/api";
 import { useDataset, useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
 import DeleteEvalDialog from "./DeleteEvalDialog";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
 import { useFilters } from "~/components/Filters/useFilters";
 import { useAppStore } from "~/state/store";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
@@ -14,7 +15,7 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
-import { isEqual } from "lodash-es";
+import AccessControl, { useAccessControl } from "~/components/AccessControl";
 
 const Settings = () => {
   const utils = api.useContext();
@@ -26,6 +27,7 @@ const Settings = () => {
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
+  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
 
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -240,32 +242,37 @@ const Settings = () => {
               />
             </VStack>
             <HStack alignSelf="flex-end">
-              <Button
-                colorScheme="red"
-                variant="outline"
-                onClick={deleteEvalDialog.onOpen}
-                minW={24}
-              >
-                Delete
-              </Button>
+              <AccessControl accessLevel="requireCanModifyProject">
+                <Button
+                  colorScheme="red"
+                  variant="outline"
+                  onClick={deleteEvalDialog.onOpen}
+                  minW={24}
+                >
+                  Delete
+                </Button>
+              </AccessControl>
               <Button colorScheme="gray" onClick={reset} minW={24}>
                 Reset
               </Button>
-              <Button
-                colorScheme="blue"
-                onClick={onSaveConfirm}
-                minW={24}
-                isLoading={saveInProgress}
-                isDisabled={
-                  !name ||
-                  !instructions ||
-                  !numDatasetEntries ||
-                  includedModelIds.length < 2 ||
-                  !hasChanged
-                }
-              >
-                Save
-              </Button>
+              <AccessControl accessLevel="requireCanModifyProject">
+                <Button
+                  colorScheme="blue"
+                  onClick={onSaveConfirm}
+                  minW={24}
+                  isLoading={saveInProgress}
+                  isDisabled={
+                    !name ||
+                    !instructions ||
+                    !numDatasetEntries ||
+                    includedModelIds.length < 2 ||
+                    !hasChanged ||
+                    insufficientPermission
+                  }
+                >
+                  Save
+                </Button>
+              </AccessControl>
             </HStack>
           </VStack>
         </ContentCard>
