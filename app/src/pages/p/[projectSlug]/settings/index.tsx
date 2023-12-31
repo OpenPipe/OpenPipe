@@ -23,7 +23,7 @@ import CopiableCode from "~/components/CopiableCode";
 import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectDialog";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
-import { InviteMemberModal } from "~/components/projectSettings/InviteMemberModal";
+import { InviteProjectUserModal } from "~/components/projectSettings/InviteProjectUserModal";
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
 import AccessControl from "~/components/AccessControl";
 
@@ -50,7 +50,7 @@ export default function Settings() {
     setName(selectedProject?.name);
   }, [selectedProject?.name]);
 
-  const inviteMemberModal = useDisclosure();
+  const inviteProjectUserModal = useDisclosure();
   const deleteProjectDialog = useDisclosure();
 
   return (
@@ -131,7 +131,7 @@ export default function Settings() {
                   variant="outline"
                   colorScheme="orange"
                   borderRadius={4}
-                  onClick={inviteMemberModal.onOpen}
+                  onClick={inviteProjectUserModal.onOpen}
                   mt={2}
                   _disabled={{
                     opacity: 0.6,
@@ -198,7 +198,10 @@ export default function Settings() {
           </VStack>
         </VStack>
       </AppShell>
-      <InviteMemberModal isOpen={inviteMemberModal.isOpen} onClose={inviteMemberModal.onClose} />
+      <InviteProjectUserModal
+        isOpen={inviteProjectUserModal.isOpen}
+        onClose={inviteProjectUserModal.onClose}
+      />
       <DeleteProjectDialog
         isOpen={deleteProjectDialog.isOpen}
         onClose={deleteProjectDialog.onClose}

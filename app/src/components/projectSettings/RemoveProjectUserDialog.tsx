@@ -10,6 +10,7 @@ import {
   VStack,
   Spinner,
 } from "@chakra-ui/react";
+import { useSession } from "next-auth/react";
 
 import { useRouter } from "next/router";
 import { useRef } from "react";
@@ -27,36 +28,47 @@ export const RemoveProjectUserDialog = ({
   onClose: () => void;
   projectUser: ProjectUser | null;
 }) => {
-  const selectedProject = useSelectedProject();
+  const selectedProject = useSelectedProject().data;
   const removeUserMutation = api.users.removeUserFromProject.useMutation();
   const utils = api.useContext();
   const router = useRouter();
 
+  const removingSelf = projectUser?.userId === useSession().data?.user?.id;
+
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const [onRemoveConfirm, isRemoving] = useHandledAsyncCallback(async () => {
-    if (!selectedProject.data?.id || !projectUser?.userId) return;
+    if (!selectedProject?.id || !projectUser?.userId) return;
     await removeUserMutation.mutateAsync({
-      projectId: selectedProject.data.id,
+      projectId: selectedProject.id,
       userId: projectUser.userId,
     });
     await utils.projects.get.invalidate();
     onClose();
-  }, [removeUserMutation, selectedProject, router]);
+    if (removingSelf) {
+      await router.push("/");
+    }
+  }, [removeUserMutation, selectedProject, router, removingSelf]);
 
   return (
     <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Remove Member
+            {removingSelf ? "Leave Project" : "Remove Member"}
           </AlertDialogHeader>
 
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
-              <Text>
-                Are you sure you want to remove <b>{projectUser?.name}</b> from the project?
-              </Text>
+              {removingSelf ? (
+                <Text>
+                  Are you sure you want to leave <b>{selectedProject?.name}</b>?
+                </Text>
+              ) : (
+                <Text>
+                  Are you sure you want to remove <b>{projectUser?.name}</b> from the project?
+                </Text>
+              )}
             </VStack>
           </AlertDialogBody>
 
@@ -65,7 +77,7 @@ export const RemoveProjectUserDialog = ({
               Cancel
             </Button>
             <Button colorScheme="red" onClick={onRemoveConfirm} ml={3} w={20}>
-              {isRemoving ? <Spinner /> : "Remove"}
+              {isRemoving ? <Spinner /> : "Confirm"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

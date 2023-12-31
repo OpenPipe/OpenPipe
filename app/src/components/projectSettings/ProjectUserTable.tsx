@@ -48,7 +48,7 @@ const ProjectUserTable = () => {
             <Th>Name</Th>
             <Th display={{ base: "none", md: "table-cell" }}>Email</Th>
             <Th>Role</Th>
-            {isAdmin && <Th />}
+            <Th />
           </Tr>
         </Thead>
         <Tbody
@@ -70,19 +70,17 @@ const ProjectUserTable = () => {
                     {member.email}
                   </Td>
                   <Td fontSize={{ base: "xs", md: "sm" }}>{member.role}</Td>
-                  {isAdmin && (
-                    <Td textAlign="end">
-                      {member.userId !== session?.user?.id &&
-                        member.userId !== selectedProject.personalProjectUserId && (
-                          <IconButton
-                            aria-label="Remove member"
-                            colorScheme="red"
-                            icon={<BsTrash />}
-                            onClick={() => setProjectUserToRemove(member)}
-                          />
-                        )}
-                    </Td>
-                  )}
+                  <Td textAlign="end">
+                    {(member.userId === session?.user?.id || isAdmin) &&
+                      member.userId !== selectedProject.personalProjectUserId && (
+                        <IconButton
+                          aria-label="Remove member"
+                          colorScheme="red"
+                          icon={<BsTrash />}
+                          onClick={() => setProjectUserToRemove(member)}
+                        />
+                      )}
+                  </Td>
                 </Tr>
               );
             })}

@@ -228,7 +228,11 @@ export const usersRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await requireIsProjectAdmin(input.projectId, ctx);
+      if (input.userId === ctx.session.user.id) {
+        requireNothing(ctx);
+      } else {
+        await requireIsProjectAdmin(input.projectId, ctx);
+      }
 
       await prisma.projectUser.delete({
         where: {
