@@ -4,7 +4,7 @@ import { VStack, HStack, Text, Button } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useDataset } from "~/utils/hooks";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import AccessControl from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessControl";
 
 const PruningRuleCreator = ({ index }: { index: number }) => {
   const dataset = useDataset().data;
@@ -33,7 +33,7 @@ const PruningRuleCreator = ({ index }: { index: number }) => {
 
   if (!showEditor) {
     return (
-      <AccessControl accessLevel="requireCanModifyProject" w="full">
+      <AccessCheck check="requireCanModifyProject" w="full">
         <Button
           variant="outline"
           color="gray.500"
@@ -44,7 +44,7 @@ const PruningRuleCreator = ({ index }: { index: number }) => {
         >
           Add New Rule
         </Button>
-      </AccessControl>
+      </AccessCheck>
     );
   }
 

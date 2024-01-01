@@ -25,8 +25,8 @@ import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
 import { InviteProjectUserModal } from "~/components/projectSettings/InviteProjectUserModal";
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
-import AccessControl from "~/components/AccessControl";
 import InfoCircle from "~/components/InfoCircle";
+import AccessCheck from "~/components/AccessControl";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -87,7 +87,7 @@ export default function Settings() {
               <Text fontWeight="bold" fontSize="xl">
                 Display Name
               </Text>
-              <AccessControl accessLevel="requireCanModifyProject" hideTooltip w={600}>
+              <AccessCheck check="requireCanModifyProject" hideTooltip w={600}>
                 <AutoResizeTextArea
                   w="full"
                   maxW={600}
@@ -95,8 +95,8 @@ export default function Settings() {
                   onChange={(e) => setName(e.target.value)}
                   borderColor="gray.300"
                 />
-              </AccessControl>
-              <AccessControl accessLevel="requireCanModifyProject">
+              </AccessCheck>
+              <AccessCheck check="requireCanModifyProject">
                 <Button
                   isDisabled={!name || name === selectedProject?.name}
                   colorScheme="orange"
@@ -109,7 +109,7 @@ export default function Settings() {
                 >
                   Rename Project
                 </Button>
-              </AccessControl>
+              </AccessCheck>
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack w="full" alignItems="flex-start">
@@ -120,8 +120,8 @@ export default function Settings() {
               <Box mt={4} w="full">
                 <ProjectUserTable />
               </Box>
-              <AccessControl
-                accessLevel="requireIsProjectAdmin"
+              <AccessCheck
+                check="requireIsProjectAdmin"
                 accessDeniedText="Only admins can invite new members"
                 w="fit-content"
               >
@@ -138,7 +138,7 @@ export default function Settings() {
                   <Icon as={BsPlus} boxSize={5} />
                   <Text>Invite New Member</Text>
                 </Button>
-              </AccessControl>
+              </AccessCheck>
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack alignItems="flex-start">
@@ -193,7 +193,7 @@ export default function Settings() {
                 <Text fontSize="sm">
                   Permanently delete your project and all of its data. This action cannot be undone.
                 </Text>
-                <AccessControl accessLevel="requireIsProjectAdmin">
+                <AccessCheck check="requireIsProjectAdmin">
                   <HStack
                     as={Button}
                     colorScheme="red"
@@ -208,7 +208,7 @@ export default function Settings() {
                       Delete {selectedProject?.name}
                     </Text>
                   </HStack>
-                </AccessControl>
+                </AccessCheck>
               </VStack>
             )}
           </VStack>

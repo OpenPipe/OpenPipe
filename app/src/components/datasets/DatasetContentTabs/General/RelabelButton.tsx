@@ -25,7 +25,7 @@ import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useFilters } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
-import AccessControl, { useAccessControl } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
 import { ProjectLink } from "~/components/ProjectLink";
 
 const RelabelButton = () => {
@@ -53,7 +53,7 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
-  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
+  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   const mutation = api.datasetEntries.relabel.useMutation();
   const utils = api.useContext();
@@ -143,7 +143,7 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
             >
               Cancel
             </Button>
-            <AccessControl accessLevel="requireCanModifyProject">
+            <AccessCheck check="requireCanModifyProject">
               <Button
                 colorScheme="orange"
                 ml={3}
@@ -157,7 +157,7 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
               >
                 Confirm
               </Button>
-            </AccessControl>
+            </AccessCheck>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

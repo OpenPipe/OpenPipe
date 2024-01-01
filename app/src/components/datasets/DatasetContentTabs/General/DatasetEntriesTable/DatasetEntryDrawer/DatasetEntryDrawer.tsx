@@ -30,7 +30,7 @@ import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
 import InputEditor from "./InputEditor";
 import ToolsEditor from "./ToolsEditor";
 import OutputEditor from "./OutputEditor";
-import AccessControl, { useAccessControl } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
 
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
@@ -57,7 +57,7 @@ function DatasetEntryDrawer({
   );
   const [historyVisible, setHistoryVisible] = useState(false);
 
-  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
+  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   useEffect(() => {
     if (savedInputMessages && savedOutputMessage) {
@@ -132,12 +132,12 @@ function DatasetEntryDrawer({
             <HStack w="full" justifyContent="space-between" pr={12}>
               <Heading size="md">Dataset Entry</Heading>
               {datasetEntry && (
-                <AccessControl
-                  accessLevel="requireCanModifyProject"
+                <AccessCheck
+                  check="requireCanModifyProject"
                   accessDeniedText="Only project members can modify the training split of a dataset entry"
                 >
                   <EntrySplitDropdown split={datasetEntry.split} onChange={onUpdateSplit} />
-                </AccessControl>
+                </AccessCheck>
               )}
             </HStack>
           </VStack>
@@ -221,7 +221,7 @@ function DatasetEntryDrawer({
             >
               Reset
             </Button>
-            <AccessControl accessLevel="requireCanModifyProject">
+            <AccessCheck check="requireCanModifyProject">
               <Button
                 isLoading={savingInProgress}
                 isDisabled={isLoading || !hasUpdates || insufficientPermission}
@@ -230,7 +230,7 @@ function DatasetEntryDrawer({
               >
                 Save
               </Button>
-            </AccessControl>
+            </AccessCheck>
           </HStack>
         </DrawerFooter>
       </DrawerContent>

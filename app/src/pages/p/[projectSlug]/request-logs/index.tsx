@@ -12,7 +12,7 @@ import { api } from "~/utils/api";
 import { useLoggedCalls } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
-import AccessControl from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessControl";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -50,9 +50,9 @@ export default function LoggedCalls() {
             />
           </HStack>
           <HStack w="full" justifyContent="flex-end">
-            <AccessControl accessLevel="requireCanModifyProject">
+            <AccessCheck check="requireCanModifyProject">
               <AddToDatasetButton />
-            </AccessControl>
+            </AccessCheck>
             <ExportButton />
             <ColumnVisibilityDropdown />
             <ToggleFiltersButton defaultShown />

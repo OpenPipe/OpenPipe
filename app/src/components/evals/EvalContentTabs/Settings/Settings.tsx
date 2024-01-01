@@ -15,7 +15,7 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
-import AccessControl, { useAccessControl } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
 
 const Settings = () => {
   const utils = api.useContext();
@@ -27,7 +27,7 @@ const Settings = () => {
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
-  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
+  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -242,7 +242,7 @@ const Settings = () => {
               />
             </VStack>
             <HStack alignSelf="flex-end">
-              <AccessControl accessLevel="requireCanModifyProject">
+              <AccessCheck check="requireCanModifyProject">
                 <Button
                   colorScheme="red"
                   variant="outline"
@@ -251,11 +251,11 @@ const Settings = () => {
                 >
                   Delete
                 </Button>
-              </AccessControl>
+              </AccessCheck>
               <Button colorScheme="gray" onClick={reset} minW={24}>
                 Reset
               </Button>
-              <AccessControl accessLevel="requireCanModifyProject">
+              <AccessCheck check="requireCanModifyProject">
                 <Button
                   colorScheme="blue"
                   onClick={onSaveConfirm}
@@ -272,7 +272,7 @@ const Settings = () => {
                 >
                   Save
                 </Button>
-              </AccessControl>
+              </AccessCheck>
             </HStack>
           </VStack>
         </ContentCard>

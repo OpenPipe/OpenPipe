@@ -5,14 +5,14 @@ import { api } from "~/utils/api";
 import { DeleteDatasetButton } from "./DeleteDatasetButton";
 import ContentCard from "~/components/ContentCard";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import AccessControl, { useAccessControl } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
 
 const DatasetDangerZone = () => {
   const dataset = useDataset().data;
 
   const [datasetNameToSave, setDatasetNameToSave] = useState(dataset?.name);
 
-  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
+  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   useEffect(() => {
     setDatasetNameToSave(dataset?.name);
@@ -50,7 +50,7 @@ const DatasetDangerZone = () => {
                 placeholder="unique-id"
               />
             </InputGroup>
-            <AccessControl accessLevel="requireCanModifyProject">
+            <AccessCheck check="requireCanModifyProject">
               <Button
                 colorScheme="orange"
                 onClick={onSaveName}
@@ -63,7 +63,7 @@ const DatasetDangerZone = () => {
               >
                 Save
               </Button>
-            </AccessControl>
+            </AccessCheck>
           </HStack>
         </VStack>
         <VStack w="full" alignItems="flex-start" spacing={4}>

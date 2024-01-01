@@ -4,7 +4,7 @@ import { BsPlus } from "react-icons/bs";
 import { useSelectedProject } from "~/utils/hooks";
 import UpdateOpenaiApiKeyModal from "./UpdateOpenaiApiKeyModal";
 import RemoveOpenaiApiKeyDialog from "./RemoveOpenaiApiKeyDialog";
-import AccessControl from "../AccessControl";
+import AccessCheck from "../AccessControl";
 
 const OpenaiApiKeyDisplay = () => {
   const { data: selectedProject } = useSelectedProject();
@@ -18,7 +18,7 @@ const OpenaiApiKeyDisplay = () => {
         <HStack>
           <Text color="gray.500">SAVED KEY</Text>
           <Text fontWeight="bold">{selectedProject.condensedOpenAIKey}</Text>
-          <AccessControl accessLevel="requireCanModifyProject">
+          <AccessCheck check="requireCanModifyProject">
             <Button
               variant="unstyled"
               textDecoration="underline"
@@ -37,17 +37,17 @@ const OpenaiApiKeyDisplay = () => {
             >
               Remove
             </Button>
-          </AccessControl>
+          </AccessCheck>
         </HStack>
       ) : (
-        <AccessControl accessLevel="requireCanModifyProject">
+        <AccessCheck check="requireCanModifyProject">
           <Button onClick={updateModalDisclosure.onOpen}>
             <HStack>
               <Icon as={BsPlus} boxSize={6} mr={-1} />
               <Text>Add a Key</Text>
             </HStack>
           </Button>
-        </AccessControl>
+        </AccessCheck>
       )}
       <UpdateOpenaiApiKeyModal disclosure={updateModalDisclosure} />
       <RemoveOpenaiApiKeyDialog disclosure={removeModalDisclosure} />
