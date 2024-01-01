@@ -37,7 +37,6 @@ export const requireCanViewProject = async (projectId: string, ctx: TRPCContext)
         id: projectId,
       },
     });
-    console.log("project", project);
     // Automatically add the user to the project if it's public
     if (project?.isPublic) {
       await prisma.projectUser.create({
