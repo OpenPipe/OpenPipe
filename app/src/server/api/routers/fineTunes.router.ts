@@ -183,8 +183,8 @@ export const fineTunesRouter = createTRPCRouter({
 
       captureFineTuneCreation(
         ctx.session,
-        fineTune.project.slug,
         fineTune.projectId,
+        fineTune.project.slug,
         input.datasetId,
         input.slug,
         input.baseModel.baseModel,
