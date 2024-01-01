@@ -12,7 +12,7 @@ import {
 import { api } from "~/utils/api";
 
 import { useHandledAsyncCallback } from "~/utils/hooks";
-import AccessCheck from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessCheck";
 
 const DeleteDatasetDialog = ({
   datasetId,

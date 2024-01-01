@@ -26,7 +26,7 @@ import { api } from "~/utils/api";
 import ActionButton from "~/components/ActionButton";
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 import {
   type RowToImport,
   parseRowsToImport,

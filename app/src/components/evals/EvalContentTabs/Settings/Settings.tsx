@@ -15,7 +15,7 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 
 const Settings = () => {
   const utils = api.useContext();

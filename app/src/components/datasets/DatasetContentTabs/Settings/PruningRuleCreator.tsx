@@ -4,7 +4,7 @@ import { VStack, HStack, Text, Button } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useDataset } from "~/utils/hooks";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import AccessCheck from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessCheck";
 
 const PruningRuleCreator = ({ index }: { index: number }) => {
   const dataset = useDataset().data;

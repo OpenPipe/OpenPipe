@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 
 import { useFineTune } from "~/utils/hooks";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 import UpdateFineTuneSlugDialog from "./UpdateFineTuneSlugDialog";
 import DeleteFineTuneButton from "./DeleteFineTuneButton";
 import ContentCard from "~/components/ContentCard";

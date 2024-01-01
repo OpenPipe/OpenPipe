@@ -25,7 +25,7 @@ import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useFilters } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 import { ProjectLink } from "~/components/ProjectLink";
 
 const RelabelButton = () => {

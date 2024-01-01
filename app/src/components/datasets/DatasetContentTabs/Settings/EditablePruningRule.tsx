@@ -5,7 +5,7 @@ import { BsTrash } from "react-icons/bs";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api, type RouterOutputs } from "~/utils/api";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import AccessCheck from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessCheck";
 import DeletePruningRuleDialog from "./DeletePruningRuleDialog";
 
 type PruningRule = RouterOutputs["pruningRules"]["list"][0];

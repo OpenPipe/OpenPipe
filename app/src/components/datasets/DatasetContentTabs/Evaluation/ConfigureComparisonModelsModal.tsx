@@ -28,7 +28,7 @@ import { useVisibleModelIds } from "./useVisibleModelIds";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ProjectLink } from "~/components/ProjectLink";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 
 const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;

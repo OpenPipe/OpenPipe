@@ -26,7 +26,7 @@ import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
 import { InviteProjectUserModal } from "~/components/projectSettings/InviteProjectUserModal";
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
 import InfoCircle from "~/components/InfoCircle";
-import AccessCheck from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessCheck";
 
 export default function Settings() {
   const utils = api.useContext();

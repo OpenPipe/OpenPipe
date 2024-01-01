@@ -249,8 +249,7 @@ export const usersRouter = createTRPCRouter({
     .input(
       z.object({
         accessCheck: z.enum(Object.keys(accessChecks) as [AccessCheck, ...AccessCheck[]]),
-        projectId: z.string().default(""),
-        pruningRuleId: z.string().default(""),
+        projectId: z.string().nullable(),
       }),
     )
     .output(
@@ -263,15 +262,16 @@ export const usersRouter = createTRPCRouter({
       const { accessCheck } = input;
 
       try {
+        if (accessCheck === "requireNothing") accessChecks.requireNothing(ctx);
         if (accessCheck === "requireIsAdmin") await accessChecks.requireIsAdmin(ctx);
-        if (accessCheck === "requireCanViewProject")
-          await accessChecks.requireCanViewProject(input.projectId, ctx);
-        if (accessCheck === "requireCanModifyProject")
-          await accessChecks.requireCanModifyProject(input.projectId, ctx);
-        if (accessCheck === "requireIsProjectAdmin")
-          await accessChecks.requireIsProjectAdmin(input.projectId, ctx);
-        if (accessCheck === "requireCanModifyPruningRule")
-          await accessChecks.requireCanModifyPruningRule(input.pruningRuleId, ctx);
+        if (
+          accessCheck === "requireCanViewProject" ||
+          accessCheck === "requireCanModifyProject" ||
+          accessCheck === "requireIsProjectAdmin"
+        ) {
+          if (!input.projectId) return { access: false, message: "invalid project id" };
+          await accessChecks[accessCheck](input.projectId, ctx);
+        }
         return { access: true };
       } catch (e) {
         return { access: false, message: (e as TRPCError).message };

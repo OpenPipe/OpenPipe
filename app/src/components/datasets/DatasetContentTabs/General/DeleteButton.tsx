@@ -22,7 +22,7 @@ import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import AccessCheck from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessCheck";
 
 const DeleteButton = () => {
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);

@@ -12,7 +12,7 @@ import { api } from "~/utils/api";
 import { useLoggedCalls } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
-import AccessCheck from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessCheck";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }

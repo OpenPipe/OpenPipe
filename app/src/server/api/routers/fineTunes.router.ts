@@ -187,6 +187,7 @@ export const fineTunesRouter = createTRPCRouter({
         fineTune.project.slug,
         input.datasetId,
         input.slug,
+        fineTune.id,
         input.baseModel.baseModel,
       );
 

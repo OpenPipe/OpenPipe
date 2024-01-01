@@ -2,7 +2,7 @@ import { VStack, HStack, Text } from "@chakra-ui/react";
 import AppShell from "~/components/nav/AppShell";
 import DatasetsTable from "~/components/datasets/DatasetsTable";
 import NewDatasetButton from "~/components/datasets/NewDatasetButton";
-import AccessCheck from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessCheck";
 
 export default function DatasetsPage() {
   return (

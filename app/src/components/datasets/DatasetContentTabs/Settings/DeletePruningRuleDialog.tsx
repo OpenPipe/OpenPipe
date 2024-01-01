@@ -12,7 +12,7 @@ import {
 
 import { api, type RouterOutputs } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import AccessCheck from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessCheck";
 
 const DeletePruningRuleDialog = ({
   rule,

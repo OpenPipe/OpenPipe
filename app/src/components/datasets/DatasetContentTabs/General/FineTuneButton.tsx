@@ -52,7 +52,7 @@ import { DATASET_SETTINGS_TAB_KEY } from "../DatasetContentTabs";
 import TrainingEntryMeter from "./TrainingEntryMeter";
 import { useFilters } from "~/components/Filters/useFilters";
 import { ProjectLink } from "~/components/ProjectLink";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;

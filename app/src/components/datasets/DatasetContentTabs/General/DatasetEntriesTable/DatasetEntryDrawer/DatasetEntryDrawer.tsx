@@ -30,7 +30,7 @@ import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
 import InputEditor from "./InputEditor";
 import ToolsEditor from "./ToolsEditor";
 import OutputEditor from "./OutputEditor";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";

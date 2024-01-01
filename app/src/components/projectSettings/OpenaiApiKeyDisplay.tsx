@@ -4,7 +4,7 @@ import { BsPlus } from "react-icons/bs";
 import { useSelectedProject } from "~/utils/hooks";
 import UpdateOpenaiApiKeyModal from "./UpdateOpenaiApiKeyModal";
 import RemoveOpenaiApiKeyDialog from "./RemoveOpenaiApiKeyDialog";
-import AccessCheck from "../AccessControl";
+import AccessCheck from "../AccessCheck";
 
 const OpenaiApiKeyDisplay = () => {
   const { data: selectedProject } = useSelectedProject();

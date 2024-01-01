@@ -18,7 +18,7 @@ import {
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 
 const DeleteFineTuneDialog = ({
   fineTuneId,

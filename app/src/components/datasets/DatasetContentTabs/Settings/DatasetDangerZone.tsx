@@ -5,7 +5,7 @@ import { api } from "~/utils/api";
 import { DeleteDatasetButton } from "./DeleteDatasetButton";
 import ContentCard from "~/components/ContentCard";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
 
 const DatasetDangerZone = () => {
   const dataset = useDataset().data;

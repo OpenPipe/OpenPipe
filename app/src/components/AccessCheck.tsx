@@ -10,7 +10,7 @@ export const useAccessCheck = (accessCheck: AccessCheck) => {
   return (
     api.users.checkAccess.useQuery({
       accessCheck,
-      projectId: selectedProject?.id,
+      projectId: selectedProject?.id ?? null,
     }).data ?? { access: false, message: "" }
   );
 };

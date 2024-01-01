@@ -150,7 +150,6 @@ export const accessChecks = {
   requireCanViewProject,
   requireCanModifyProject,
   requireIsProjectAdmin,
-  requireCanModifyPruningRule,
   requireIsAdmin,
 } as const;
 
