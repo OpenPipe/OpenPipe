@@ -44,22 +44,15 @@
                     "huggingFaceModelId": {
                       "type": "string"
                     },
-                    "baseModel": {
-                      "type": "string"
-                    },
-                    "projectName": {
-                      "type": "string"
-                    },
-                    "modelSlug": {
-                      "type": "string"
+                    "trainingConfig": {
+                      "type": "object",
+                      "additionalProperties": {}
                     }
                   },
                   "required": [
                     "trainingDataUrl",
                     "huggingFaceModelId",
-                    "baseModel",
-                    "projectName",
-                    "modelSlug"
+                    "trainingConfig"
                   ],
                   "additionalProperties": false
                 }

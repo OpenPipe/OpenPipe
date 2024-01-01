@@ -1,4 +1,4 @@
-import { ProviderWithModel, type BaseModel, baseModel } from "./types";
+import { type ProviderWithModel, type BaseModel, baseModel } from "./types";
 
 export type FrontendModelInfo = {
   name: string;
@@ -29,11 +29,6 @@ export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
     cost: sevenBCosts,
     trainable: true,
   },
-  "openpipe:meta-llama/Llama-2-7b-hf": {
-    name: "Llama 2 7B",
-    cost: sevenBCosts,
-    trainable: true,
-  },
   "openpipe:meta-llama/Llama-2-13b-hf": {
     name: "Llama 2 13B",
     cost: { training: 0.000008, input: 0.0000024, output: 0.0000032 },
@@ -46,72 +41,18 @@ export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
   },
 
   // Old models, no longer supported for training
-  "openpipe:teknium/OpenHermes-2.5-Mistral-7B": {
-    name: "OpenHermes 2.5 7B",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-  "openpipe:fblgit/una-cybertron-7b-v1-fp16": {
-    name: "Una Cybertron 7B",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-  "openpipe:HuggingFaceH4/zephyr-7b-beta": {
-    name: "Zephyr 7B",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-  "openpipe:Intel/neural-chat-7b-v3-3": {
-    name: "Intel Neural Chat",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-
-  "openpipe:OpenPipe/mistral-7b-1212": {
-    name: "Mistral 7B Optimized (1212)",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-  "openpipe:OpenPipe/mistral-7b-1213": {
-    name: "Mistral 7B Optimized (1213)",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-  "openpipe:OpenPipe/mistral-7b-1214": {
-    name: "Mistral 7B Optimized (1214)",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-  "openpipe:OpenPipe/mistral-7b-1214-alpha": {
-    name: "Mistral 7B Optimized (1214a)",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-  "openpipe:OpenPipe/mistral-7b-1214-beta": {
-    name: "Mistral 7B Optimized (1214b)",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-  "openpipe:OpenPipe/mistral-7b-1214-gamma": {
-    name: "Mistral 7B Optimized (1214g)",
-    cost: sevenBCosts,
-    trainable: false,
-  },
-
   "openai:gpt-3.5-turbo-0613": {
     name: "GPT 3.5 Turbo (0613)",
     cost: { training: 0.000008, input: 0.000012, output: 0.000016 },
     trainable: false,
   },
-
-  "openpipe:PulsarAI/OpenHermes-2.5-neural-chat-v3-3-Slerp": {
-    name: "Hermes Neural 7B",
+  "openpipe:OpenPipe/mistral-ft-optimized-1218": {
+    name: "Mistral 7B Optimized (1218)",
     cost: sevenBCosts,
     trainable: false,
   },
-
-  "openpipe:OpenPipe/mistral-ft-optimized-1218": {
-    name: "Mistral 7B Optimized (1218)",
+  "openpipe:meta-llama/Llama-2-7b-hf": {
+    name: "Llama 2 7B",
     cost: sevenBCosts,
     trainable: false,
   },

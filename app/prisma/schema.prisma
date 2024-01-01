@@ -395,11 +395,13 @@ model FineTune {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    modalTrainingJobId  String?
-    huggingFaceModelId  String?
-    openaiTrainingJobId String?
-    openaiModelId       String?
-    pipelineVersion     Int
+    trainingConfigOverrides Json?
+    trainingConfig          Json?
+    modalTrainingJobId      String?
+    huggingFaceModelId      String?
+    openaiTrainingJobId     String?
+    openaiModelId           String?
+    pipelineVersion         Int
 }
 
 model FineTuneTrainingEntry {

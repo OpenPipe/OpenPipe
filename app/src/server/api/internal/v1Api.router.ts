@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { prisma } from "~/server/db";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { generateBlobDownloadUrl } from "~/utils/azure/server";
-import { supportedModels } from "~/server/fineTuningProviders/openpipe/types";
+import { typedFineTune } from "~/types/dbColumns.types";
 
 export const v1ApiRouter = createOpenApiRouter({
   getTrainingInfo: openApiProtectedProc
@@ -25,25 +25,17 @@ export const v1ApiRouter = createOpenApiRouter({
       z.object({
         trainingDataUrl: z.string(),
         huggingFaceModelId: z.string(),
-        baseModel: z.string(),
-        projectName: z.string(),
-        modelSlug: z.string(),
+        trainingConfig: z.record(z.unknown()),
       }),
     )
     .mutation(async ({ input }) => {
-      const fineTune = await prisma.fineTune.findUnique({
-        where: { id: input.fineTuneId },
-        include: {
-          project: {
-            select: { name: true },
-          },
-        },
-      });
+      const fineTune = typedFineTune(
+        await prisma.fineTune.findUniqueOrThrow({
+          where: { id: input.fineTuneId },
+        }),
+      );
 
-      if (!fineTune)
-        throw new TRPCError({ code: "NOT_FOUND", message: "Unable to find matching FineTune" });
-
-      if (!fineTune.trainingBlobName || !fineTune.baseModel || !fineTune.huggingFaceModelId)
+      if (!fineTune.trainingBlobName || !fineTune.huggingFaceModelId || !fineTune.trainingConfig)
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message: "missing precondition",
@@ -52,9 +44,7 @@ export const v1ApiRouter = createOpenApiRouter({
       return {
         trainingDataUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),
         huggingFaceModelId: fineTune.huggingFaceModelId,
-        baseModel: supportedModels.parse(fineTune.baseModel),
-        projectName: fineTune.project.name,
-        modelSlug: fineTune.slug,
+        trainingConfig: fineTune.trainingConfig,
       };
     }),
 });

@@ -1,6 +1,10 @@
-from typing import Any, Dict, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Type, TypeVar
 
 from attrs import define as _attrs_define
+
+if TYPE_CHECKING:
+    from ..models.get_training_info_response_200_training_config import GetTrainingInfoResponse200TrainingConfig
+
 
 T = TypeVar("T", bound="GetTrainingInfoResponse200")
 
@@ -11,32 +15,24 @@ class GetTrainingInfoResponse200:
     Attributes:
         training_data_url (str):
         hugging_face_model_id (str):
-        base_model (str):
-        project_name (str):
-        model_slug (str):
+        training_config (GetTrainingInfoResponse200TrainingConfig):
     """
 
     training_data_url: str
     hugging_face_model_id: str
-    base_model: str
-    project_name: str
-    model_slug: str
+    training_config: "GetTrainingInfoResponse200TrainingConfig"
 
     def to_dict(self) -> Dict[str, Any]:
         training_data_url = self.training_data_url
         hugging_face_model_id = self.hugging_face_model_id
-        base_model = self.base_model
-        project_name = self.project_name
-        model_slug = self.model_slug
+        training_config = self.training_config.to_dict()
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(
             {
                 "trainingDataUrl": training_data_url,
                 "huggingFaceModelId": hugging_face_model_id,
-                "baseModel": base_model,
-                "projectName": project_name,
-                "modelSlug": model_slug,
+                "trainingConfig": training_config,
             }
         )
 
@@ -44,23 +40,19 @@ class GetTrainingInfoResponse200:
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
+        from ..models.get_training_info_response_200_training_config import GetTrainingInfoResponse200TrainingConfig
+
         d = src_dict.copy()
         training_data_url = d.pop("trainingDataUrl")
 
         hugging_face_model_id = d.pop("huggingFaceModelId")
 
-        base_model = d.pop("baseModel")
-
-        project_name = d.pop("projectName")
-
-        model_slug = d.pop("modelSlug")
+        training_config = GetTrainingInfoResponse200TrainingConfig.from_dict(d.pop("trainingConfig"))
 
         get_training_info_response_200 = cls(
             training_data_url=training_data_url,
             hugging_face_model_id=hugging_face_model_id,
-            base_model=base_model,
-            project_name=project_name,
-            model_slug=model_slug,
+            training_config=training_config,
         )
 
         return get_training_info_response_200
