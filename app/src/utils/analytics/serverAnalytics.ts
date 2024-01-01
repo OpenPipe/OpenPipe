@@ -39,6 +39,7 @@ export const captureFineTuneUsage = (
 export const captureFineTuneCreation = (
   session: Session,
   projectId: string,
+  projectSlug: string,
   datasetId: string,
   slug: string,
   baseModel: string,
@@ -48,6 +49,7 @@ export const captureFineTuneCreation = (
     event: "fine-tune-created",
     properties: {
       projectId,
+      projectSlug,
       datasetId,
       slug,
       baseModel,
