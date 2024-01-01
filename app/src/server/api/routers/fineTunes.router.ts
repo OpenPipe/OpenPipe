@@ -169,6 +169,13 @@ export const fineTunesRouter = createTRPCRouter({
           datasetId: input.datasetId,
           pipelineVersion: CURRENT_PIPELINE_VERSION,
         },
+        include: {
+          project: {
+            select: {
+              slug: true,
+            },
+          },
+        },
       });
       if (!fineTune) return error("Error creating fine tune");
 
@@ -176,6 +183,7 @@ export const fineTunesRouter = createTRPCRouter({
 
       captureFineTuneCreation(
         ctx.session,
+        fineTune.project.slug,
         fineTune.projectId,
         input.datasetId,
         input.slug,
