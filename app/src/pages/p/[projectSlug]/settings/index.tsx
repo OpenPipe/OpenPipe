@@ -26,6 +26,7 @@ import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
 import { InviteProjectUserModal } from "~/components/projectSettings/InviteProjectUserModal";
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
 import AccessControl from "~/components/AccessControl";
+import InfoCircle from "~/components/InfoCircle";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -38,10 +39,7 @@ export default function Settings() {
         id: selectedProject.id,
         updates: { name },
       });
-      await Promise.all([
-        utils.projects.get.invalidate({ id: selectedProject.id }),
-        utils.projects.list.invalidate(),
-      ]);
+      await Promise.all([utils.projects.get.invalidate(), utils.projects.list.invalidate()]);
     }
   }, [updateMutation, selectedProject]);
 
@@ -144,14 +142,32 @@ export default function Settings() {
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack alignItems="flex-start">
-              <Subtitle>Project API Key</Subtitle>
+              <Subtitle>Project API Keys</Subtitle>
               <Text fontSize="sm">
-                Use your project API key to authenticate your requests when sending data to
-                OpenPipe. You can set this key in your environment variables, or use it directly in
-                your code.
+                Use an API key to authenticate requests when sending data to OpenPipe. You can set
+                this key in your environment variables, or use it directly in your code.
               </Text>
             </VStack>
-            <CopiableCode code={selectedProject?.openpipeApiKey ?? ""} />
+            <VStack alignItems="flex-start" w="full">
+              <HStack>
+                <Subtitle fontSize="sm">Read/Write</Subtitle>
+                <InfoCircle tooltipText="Only available to project admins and members. Use this key to query models and record request logs." />
+              </HStack>
+              <CopiableCode
+                code={
+                  selectedProject?.openpipeFullAccessKey ??
+                  "opk_****************************************"
+                }
+                isDisabled={!selectedProject?.openpipeFullAccessKey}
+              />
+            </VStack>
+            <VStack alignItems="flex-start" w="full">
+              <HStack>
+                <Subtitle fontSize="sm">Read Only</Subtitle>
+                <InfoCircle tooltipText="Available to project viewers. This key can be used to query models, but request logs will not be recorded." />
+              </HStack>
+              <CopiableCode code={selectedProject?.openpipeReadOnlyKey ?? ""} />
+            </VStack>
             <Divider />
             <VStack alignItems="flex-start">
               <Subtitle>OpenAI API Key</Subtitle>

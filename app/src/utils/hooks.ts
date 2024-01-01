@@ -118,14 +118,8 @@ export const useSelectedProject = () => {
   const router = useRouter();
 
   const projectSlug = router.query.projectSlug as string;
-  const projects = useProjects().data;
 
-  const selectedProjectId = projects?.find((project) => project.slug === projectSlug)?.id;
-
-  return api.projects.get.useQuery(
-    { id: selectedProjectId ?? "" },
-    { enabled: !!selectedProjectId },
-  );
+  return api.projects.get.useQuery({ projectSlug: projectSlug ?? "" }, { enabled: !!projectSlug });
 };
 
 export const useDatasets = () => {

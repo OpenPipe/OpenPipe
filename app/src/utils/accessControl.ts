@@ -20,7 +20,7 @@ export const requireCanViewProject = async (projectId: string, ctx: TRPCContext)
   ctx.markAccessControlRun();
 
   const userId = ctx.session?.user.id;
-  if (!userId) {
+  if (!userId || !projectId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
@@ -32,7 +32,24 @@ export const requireCanViewProject = async (projectId: string, ctx: TRPCContext)
   });
 
   if (!canView) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+      },
+    });
+    console.log("project", project);
+    // Automatically add the user to the project if it's public
+    if (project?.isPublic) {
+      await prisma.projectUser.create({
+        data: {
+          userId,
+          projectId,
+          role: "VIEWER",
+        },
+      });
+    } else {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
   }
 };
 
@@ -40,7 +57,7 @@ export const requireCanModifyProject = async (projectId: string, ctx: TRPCContex
   ctx.markAccessControlRun();
 
   const userId = ctx.session?.user.id;
-  if (!userId) {
+  if (!userId || !projectId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
@@ -61,7 +78,7 @@ export const requireIsProjectAdmin = async (projectId: string, ctx: TRPCContext)
   ctx.markAccessControlRun();
 
   const userId = ctx.session?.user.id;
-  if (!userId) {
+  if (!userId || !projectId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
