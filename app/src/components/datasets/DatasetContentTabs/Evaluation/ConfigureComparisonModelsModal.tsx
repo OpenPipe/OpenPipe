@@ -28,14 +28,14 @@ import { useVisibleModelIds } from "./useVisibleModelIds";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ProjectLink } from "~/components/ProjectLink";
-import AccessControl, { useAccessControl } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
 
 const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
-  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
+  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   const mutation = api.datasets.update.useMutation();
   const utils = api.useContext();
@@ -156,7 +156,7 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
             <Button isDisabled={updateInProgress} onClick={reset}>
               Reset
             </Button>
-            <AccessControl accessLevel="requireCanModifyProject">
+            <AccessCheck check="requireCanModifyProject">
               <Button
                 colorScheme="orange"
                 ml={3}
@@ -170,7 +170,7 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
               >
                 Confirm
               </Button>
-            </AccessControl>
+            </AccessCheck>
           </ModalFooter>
         </ModalContent>
       </ModalOverlay>

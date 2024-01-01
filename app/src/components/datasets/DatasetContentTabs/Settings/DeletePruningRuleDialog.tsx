@@ -12,7 +12,7 @@ import {
 
 import { api, type RouterOutputs } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import AccessControl from "~/components/AccessControl";
+import AccessCheck from "~/components/AccessControl";
 
 const DeletePruningRuleDialog = ({
   rule,
@@ -55,7 +55,7 @@ const DeletePruningRuleDialog = ({
             <Button ref={cancelRef} onClick={disclosure.onClose}>
               Cancel
             </Button>
-            <AccessControl accessLevel="requireCanModifyProject">
+            <AccessCheck check="requireCanModifyProject">
               <Button
                 colorScheme="red"
                 isLoading={deletionInProgress}
@@ -64,7 +64,7 @@ const DeletePruningRuleDialog = ({
               >
                 Delete
               </Button>
-            </AccessControl>
+            </AccessCheck>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

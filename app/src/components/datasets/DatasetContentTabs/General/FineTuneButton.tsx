@@ -52,7 +52,7 @@ import { DATASET_SETTINGS_TAB_KEY } from "../DatasetContentTabs";
 import TrainingEntryMeter from "./TrainingEntryMeter";
 import { useFilters } from "~/components/Filters/useFilters";
 import { ProjectLink } from "~/components/ProjectLink";
-import AccessControl, { useAccessControl } from "~/components/AccessControl";
+import AccessCheck, { useAccessCheck } from "~/components/AccessControl";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -101,7 +101,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const needsMissingBetaAccess =
     splitProvider(selectedBaseModel).provider === "openpipe" && isMissingBetaAccess;
 
-  const insufficientPermission = !useAccessControl("requireCanModifyProject").data;
+  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
   const numTrainingEntries = datasetEntries?.matchingTrainingCount || 0;
   const numTestingEntries = datasetEntries?.totalTestingCount || 0;
 
@@ -312,7 +312,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
               Cancel
             </Button>
-            <AccessControl accessLevel="requireCanModifyProject">
+            <AccessCheck check="requireCanModifyProject">
               <Button
                 colorScheme="orange"
                 onClick={createFineTune}
@@ -329,7 +329,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
               >
                 Start Training
               </Button>
-            </AccessControl>
+            </AccessCheck>
           </HStack>
         </ModalFooter>
       </ModalContent>

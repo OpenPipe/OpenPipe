@@ -6,10 +6,10 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import {
+  type AccessCheck,
+  accessChecks,
   requireIsProjectAdmin,
   requireNothing,
-  accessLevels,
-  type AccessLevel,
 } from "~/utils/accessControl";
 import { sendProjectInvitation } from "~/server/emails/sendProjectInvitation";
 
@@ -248,32 +248,33 @@ export const usersRouter = createTRPCRouter({
   checkAccess: protectedProcedure
     .input(
       z.object({
-        accessLevel: z.enum(Object.keys(accessLevels) as [AccessLevel, ...AccessLevel[]]),
+        accessCheck: z.enum(Object.keys(accessChecks) as [AccessCheck, ...AccessCheck[]]),
         projectId: z.string().default(""),
         pruningRuleId: z.string().default(""),
       }),
     )
-    .output(z.boolean())
+    .output(
+      z.discriminatedUnion("access", [
+        z.object({ access: z.literal(true) }),
+        z.object({ access: z.literal(false), message: z.string() }),
+      ]),
+    )
     .query(async ({ input, ctx }) => {
-      const { accessLevel, projectId, pruningRuleId } = input;
+      const { accessCheck } = input;
 
       try {
-        if (accessLevel === "requireNothing" || accessLevel === "requireIsAdmin") {
-          await accessLevels[accessLevel](ctx);
-        } else if (
-          accessLevel === "requireCanViewProject" ||
-          accessLevel === "requireCanModifyProject" ||
-          accessLevel === "requireIsProjectAdmin"
-        ) {
-          await accessLevels[accessLevel](projectId, ctx);
-        } else if (accessLevel === "requireCanModifyPruningRule") {
-          await accessLevels[accessLevel](pruningRuleId, ctx);
-        } else {
-          throw new Error("Invalid access level");
-        }
-        return true;
-      } catch {
-        return false;
+        if (accessCheck === "requireIsAdmin") await accessChecks.requireIsAdmin(ctx);
+        if (accessCheck === "requireCanViewProject")
+          await accessChecks.requireCanViewProject(input.projectId, ctx);
+        if (accessCheck === "requireCanModifyProject")
+          await accessChecks.requireCanModifyProject(input.projectId, ctx);
+        if (accessCheck === "requireIsProjectAdmin")
+          await accessChecks.requireIsProjectAdmin(input.projectId, ctx);
+        if (accessCheck === "requireCanModifyPruningRule")
+          await accessChecks.requireCanModifyPruningRule(input.pruningRuleId, ctx);
+        return { access: true };
+      } catch (e) {
+        return { access: false, message: (e as TRPCError).message };
       }
     }),
 });

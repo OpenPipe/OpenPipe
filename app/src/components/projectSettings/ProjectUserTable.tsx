@@ -7,13 +7,13 @@ import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { RemoveProjectUserDialog, type ProjectUser } from "./RemoveProjectUserDialog";
 import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { useAccessControl } from "../AccessControl";
+import { useAccessCheck } from "../AccessControl";
 
 const ProjectUserTable = () => {
   const selectedProject = useSelectedProject().data;
   const session = useSession().data;
 
-  const isAdmin = useAccessControl("requireIsProjectAdmin").data;
+  const isAdmin = useAccessCheck("requireIsProjectAdmin").access;
 
   const utils = api.useContext();
 
