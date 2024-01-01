@@ -30,7 +30,7 @@ import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
 import InputEditor from "./InputEditor";
 import ToolsEditor from "./ToolsEditor";
 import OutputEditor from "./OutputEditor";
-import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
@@ -56,8 +56,6 @@ function DatasetEntryDrawer({
     null,
   );
   const [historyVisible, setHistoryVisible] = useState(false);
-
-  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   useEffect(() => {
     if (savedInputMessages && savedOutputMessage) {
@@ -132,12 +130,12 @@ function DatasetEntryDrawer({
             <HStack w="full" justifyContent="space-between" pr={12}>
               <Heading size="md">Dataset Entry</Heading>
               {datasetEntry && (
-                <AccessCheck
-                  check="requireCanModifyProject"
+                <ConditionallyEnable
+                  accessRequired="requireCanModifyProject"
                   accessDeniedText="Only project members can modify the training split of a dataset entry"
                 >
                   <EntrySplitDropdown split={datasetEntry.split} onChange={onUpdateSplit} />
-                </AccessCheck>
+                </ConditionallyEnable>
               )}
             </HStack>
           </VStack>
@@ -221,16 +219,18 @@ function DatasetEntryDrawer({
             >
               Reset
             </Button>
-            <AccessCheck check="requireCanModifyProject">
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[[hasUpdates, "No changes to save"]]}
+            >
               <Button
-                isLoading={savingInProgress}
-                isDisabled={isLoading || !hasUpdates || insufficientPermission}
+                isLoading={isLoading || savingInProgress}
                 onClick={onSave}
                 colorScheme="orange"
               >
                 Save
               </Button>
-            </AccessCheck>
+            </ConditionallyEnable>
           </HStack>
         </DrawerFooter>
       </DrawerContent>

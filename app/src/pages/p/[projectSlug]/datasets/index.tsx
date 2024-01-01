@@ -2,7 +2,7 @@ import { VStack, HStack, Text } from "@chakra-ui/react";
 import AppShell from "~/components/nav/AppShell";
 import DatasetsTable from "~/components/datasets/DatasetsTable";
 import NewDatasetButton from "~/components/datasets/NewDatasetButton";
-import AccessCheck from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 export default function DatasetsPage() {
   return (
@@ -12,9 +12,9 @@ export default function DatasetsPage() {
           <Text fontSize="2xl" fontWeight="bold">
             Datasets
           </Text>
-          <AccessCheck check="requireCanModifyProject">
+          <ConditionallyEnable accessRequired="requireCanModifyProject">
             <NewDatasetButton />
-          </AccessCheck>
+          </ConditionallyEnable>
         </HStack>
         <DatasetsTable />
       </VStack>

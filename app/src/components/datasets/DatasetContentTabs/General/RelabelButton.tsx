@@ -25,7 +25,7 @@ import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useFilters } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
-import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { ProjectLink } from "~/components/ProjectLink";
 
 const RelabelButton = () => {
@@ -53,7 +53,6 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
-  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   const mutation = api.datasetEntries.relabel.useMutation();
   const utils = api.useContext();
@@ -143,21 +142,25 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
             >
               Cancel
             </Button>
-            <AccessCheck check="requireCanModifyProject">
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [!needsMissingOpenaiKey, "OpenAI Key is required to relabel"],
+                [
+                  numEntriesToConfirm === selectedIds.size.toString(),
+                  "Please confirm the number of entries",
+                ],
+              ]}
+            >
               <Button
                 colorScheme="orange"
                 ml={3}
-                isDisabled={
-                  needsMissingOpenaiKey ||
-                  numEntriesToConfirm !== selectedIds.size.toString() ||
-                  insufficientPermission
-                }
                 isLoading={confirmingRelabelInProgress}
                 onClick={onRelabelConfirm}
               >
                 Confirm
               </Button>
-            </AccessCheck>
+            </ConditionallyEnable>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

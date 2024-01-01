@@ -7,7 +7,7 @@ import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { RemoveProjectUserDialog, type ProjectUser } from "./RemoveProjectUserDialog";
 import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { useAccessCheck } from "../AccessCheck";
+import { useAccessCheck } from "../ConditionallyEnable";
 
 const ProjectUserTable = () => {
   const selectedProject = useSelectedProject().data;

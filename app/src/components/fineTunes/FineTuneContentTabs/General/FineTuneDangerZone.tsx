@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 
 import { useFineTune } from "~/utils/hooks";
-import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import UpdateFineTuneSlugDialog from "./UpdateFineTuneSlugDialog";
 import DeleteFineTuneButton from "./DeleteFineTuneButton";
 import ContentCard from "~/components/ContentCard";
@@ -22,8 +22,6 @@ const FineTuneDangerZone = () => {
   const [slugToSave, setSlugToSave] = useState(fineTune?.slug || "");
 
   const dialogDisclosure = useDisclosure();
-
-  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   if (!fineTune) return null;
 
@@ -54,16 +52,17 @@ const FineTuneDangerZone = () => {
                 }}
               />
             </InputGroup>
-            <AccessCheck check="requireCanModifyProject">
-              <Button
-                colorScheme="orange"
-                onClick={dialogDisclosure.onOpen}
-                minW={24}
-                isDisabled={!slugToSave || slugToSave === fineTune?.slug || insufficientPermission}
-              >
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [!!slugToSave, "Enter a name for your model"],
+                [slugToSave !== fineTune?.slug, ""],
+              ]}
+            >
+              <Button colorScheme="orange" onClick={dialogDisclosure.onOpen} minW={24}>
                 Save
               </Button>
-            </AccessCheck>
+            </ConditionallyEnable>
           </HStack>
         </VStack>
         <UpdateFineTuneSlugDialog

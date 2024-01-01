@@ -8,7 +8,7 @@ import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
-import AccessCheck from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import FineTunePruningRules from "./FineTunePruningRules";
 import InferenceCodeTabs from "./InferenceCodeTabs/InferenceCodeTabs";
 
@@ -81,11 +81,11 @@ const General = () => {
                 {fineTune.errorMessage && (
                   <>
                     <Text color="gray.500">{fineTune.errorMessage}</Text>
-                    <AccessCheck check="requireCanModifyProject">
+                    <ConditionallyEnable accessRequired="requireCanModifyProject">
                       <Button variant="outline" size="xs" onClick={handleRestartTraining}>
                         Restart Training
                       </Button>
-                    </AccessCheck>
+                    </ConditionallyEnable>
                   </>
                 )}
               </HStack>

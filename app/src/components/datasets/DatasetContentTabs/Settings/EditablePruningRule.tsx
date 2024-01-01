@@ -5,7 +5,7 @@ import { BsTrash } from "react-icons/bs";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
 import { api, type RouterOutputs } from "~/utils/api";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import AccessCheck from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import DeletePruningRuleDialog from "./DeletePruningRuleDialog";
 
 type PruningRule = RouterOutputs["pruningRules"]["list"][0];
@@ -75,11 +75,11 @@ const EditablePruningRule = ({ index, rule }: { index: number; rule: PruningRule
               >
                 Reset
               </Button>
-              <AccessCheck check="requireCanModifyProject">
+              <ConditionallyEnable accessRequired="requireCanModifyProject">
                 <Button colorScheme="orange" isLoading={updatingRule} onClick={updateRule}>
                   Save
                 </Button>
-              </AccessCheck>
+              </ConditionallyEnable>
             </HStack>
           )}
         </HStack>

@@ -35,7 +35,7 @@ import { useFilters } from "~/components/Filters/useFilters";
 import InfoCircle from "~/components/InfoCircle";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ProjectLink } from "~/components/ProjectLink";
-import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -43,7 +43,6 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
-  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   const dataset = useDataset().data;
   const testingCount = useDatasetEntries().data?.totalTestingCount;
@@ -233,23 +232,25 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
               Cancel
             </Button>
-            <AccessCheck check="requireCanModifyProject">
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [!needsMissingOpenaiKey, "OpenAI API key is required"],
+                [!!name, "Name is required"],
+                [!!instructions, "Instructions are required"],
+                [!!numDatasetEntries, "Include one or more dataset entries"],
+                [includedModelIds.length >= 2, "At least 2 models are required"],
+              ]}
+            >
               <Button
                 colorScheme="blue"
                 onClick={onCreationConfirm}
                 minW={24}
                 isLoading={creationInProgress}
-                isDisabled={
-                  !name ||
-                  !instructions ||
-                  !numDatasetEntries ||
-                  includedModelIds.length < 2 ||
-                  insufficientPermission
-                }
               >
                 Create
               </Button>
-            </AccessCheck>
+            </ConditionallyEnable>
           </HStack>
         </ModalFooter>
       </ModalContent>

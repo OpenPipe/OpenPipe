@@ -15,7 +15,7 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
-import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const Settings = () => {
   const utils = api.useContext();
@@ -27,7 +27,6 @@ const Settings = () => {
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
-  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -242,7 +241,7 @@ const Settings = () => {
               />
             </VStack>
             <HStack alignSelf="flex-end">
-              <AccessCheck check="requireCanModifyProject">
+              <ConditionallyEnable accessRequired="requireCanModifyProject">
                 <Button
                   colorScheme="red"
                   variant="outline"
@@ -251,28 +250,29 @@ const Settings = () => {
                 >
                   Delete
                 </Button>
-              </AccessCheck>
+              </ConditionallyEnable>
               <Button colorScheme="gray" onClick={reset} minW={24}>
                 Reset
               </Button>
-              <AccessCheck check="requireCanModifyProject">
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[
+                  [!!name, "Eval name is required"],
+                  [!!instructions, "Instructions are required"],
+                  [!!numDatasetEntries, "Include one or more dataset entries"],
+                  [includedModelIds.length >= 2, "At least two models must be included"],
+                  [hasChanged, ""],
+                ]}
+              >
                 <Button
                   colorScheme="blue"
                   onClick={onSaveConfirm}
                   minW={24}
                   isLoading={saveInProgress}
-                  isDisabled={
-                    !name ||
-                    !instructions ||
-                    !numDatasetEntries ||
-                    includedModelIds.length < 2 ||
-                    !hasChanged ||
-                    insufficientPermission
-                  }
                 >
                   Save
                 </Button>
-              </AccessCheck>
+              </ConditionallyEnable>
             </HStack>
           </VStack>
         </ContentCard>

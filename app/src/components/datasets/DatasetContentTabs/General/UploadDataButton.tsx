@@ -26,7 +26,7 @@ import { api } from "~/utils/api";
 import ActionButton from "~/components/ActionButton";
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";
-import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import {
   type RowToImport,
   parseRowsToImport,
@@ -126,8 +126,6 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
   const utils = api.useContext();
 
   const selectedProjectId = useSelectedProject().data?.id;
-
-  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   const [sendJSONL, sendingInProgress] = useHandledAsyncCallback(async () => {
     if (!selectedProjectId || !dataset || !file) return;
@@ -289,17 +287,22 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               >
                 Cancel
               </Button>
-              <AccessCheck check="requireCanModifyProject">
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[
+                  [!!file, "Select a file to upload"],
+                  [!validationError, "Fix the error in your file"],
+                ]}
+              >
                 <Button
                   colorScheme="orange"
                   onClick={sendJSONL}
                   isLoading={sendingInProgress}
                   minW={24}
-                  isDisabled={!file || !!validationError || insufficientPermission}
                 >
                   Upload
                 </Button>
-              </AccessCheck>
+              </ConditionallyEnable>
             </HStack>
           </HStack>
         </ModalFooter>

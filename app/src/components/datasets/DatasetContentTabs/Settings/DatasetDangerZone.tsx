@@ -5,14 +5,12 @@ import { api } from "~/utils/api";
 import { DeleteDatasetButton } from "./DeleteDatasetButton";
 import ContentCard from "~/components/ContentCard";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const DatasetDangerZone = () => {
   const dataset = useDataset().data;
 
   const [datasetNameToSave, setDatasetNameToSave] = useState(dataset?.name);
-
-  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   useEffect(() => {
     setDatasetNameToSave(dataset?.name);
@@ -50,20 +48,17 @@ const DatasetDangerZone = () => {
                 placeholder="unique-id"
               />
             </InputGroup>
-            <AccessCheck check="requireCanModifyProject">
-              <Button
-                colorScheme="orange"
-                onClick={onSaveName}
-                minW={24}
-                isDisabled={
-                  !datasetNameToSave ||
-                  datasetNameToSave === dataset?.name ||
-                  insufficientPermission
-                }
-              >
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [!!datasetNameToSave, "Please enter a name for your dataset"],
+                [datasetNameToSave !== dataset?.name, ""],
+              ]}
+            >
+              <Button colorScheme="orange" onClick={onSaveName} minW={24}>
                 Save
               </Button>
-            </AccessCheck>
+            </ConditionallyEnable>
           </HStack>
         </VStack>
         <VStack w="full" alignItems="flex-start" spacing={4}>

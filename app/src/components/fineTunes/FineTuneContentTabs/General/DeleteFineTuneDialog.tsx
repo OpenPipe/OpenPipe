@@ -18,7 +18,7 @@ import {
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import AccessCheck, { useAccessCheck } from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const DeleteFineTuneDialog = ({
   fineTuneId,
@@ -35,7 +35,6 @@ const DeleteFineTuneDialog = ({
 
   const mutation = api.fineTunes.delete.useMutation();
   const utils = api.useContext();
-  const insufficientPermission = !useAccessCheck("requireCanModifyProject").access;
 
   const [onDeleteConfirm, deletionInProgress] = useHandledAsyncCallback(async () => {
     if (!fineTuneId) return;
@@ -80,16 +79,14 @@ const DeleteFineTuneDialog = ({
               <Button ref={cancelRef} onClick={disclosure.onClose}>
                 Cancel
               </Button>
-              <AccessCheck check="requireCanModifyProject">
-                <Button
-                  colorScheme="red"
-                  isDisabled={slugToDelete !== `openpipe:${fineTuneSlug}` || insufficientPermission}
-                  isLoading={deletionInProgress}
-                  onClick={onDeleteConfirm}
-                >
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[[slugToDelete === `openpipe:${fineTuneSlug}`, "Enter the correct ID"]]}
+              >
+                <Button colorScheme="red" isLoading={deletionInProgress} onClick={onDeleteConfirm}>
                   Delete
                 </Button>
-              </AccessCheck>
+              </ConditionallyEnable>
             </HStack>
           </AlertDialogFooter>
         </AlertDialogContent>

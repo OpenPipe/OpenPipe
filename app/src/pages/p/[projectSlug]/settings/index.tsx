@@ -26,7 +26,7 @@ import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
 import { InviteProjectUserModal } from "~/components/projectSettings/InviteProjectUserModal";
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
 import InfoCircle from "~/components/InfoCircle";
-import AccessCheck from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -87,7 +87,7 @@ export default function Settings() {
               <Text fontWeight="bold" fontSize="xl">
                 Display Name
               </Text>
-              <AccessCheck check="requireCanModifyProject" hideTooltip w={600}>
+              <ConditionallyEnable accessRequired="requireCanModifyProject" hideTooltip w={600}>
                 <AutoResizeTextArea
                   w="full"
                   maxW={600}
@@ -95,8 +95,8 @@ export default function Settings() {
                   onChange={(e) => setName(e.target.value)}
                   borderColor="gray.300"
                 />
-              </AccessCheck>
-              <AccessCheck check="requireCanModifyProject">
+              </ConditionallyEnable>
+              <ConditionallyEnable accessRequired="requireCanModifyProject">
                 <Button
                   isDisabled={!name || name === selectedProject?.name}
                   colorScheme="orange"
@@ -109,7 +109,7 @@ export default function Settings() {
                 >
                   Rename Project
                 </Button>
-              </AccessCheck>
+              </ConditionallyEnable>
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack w="full" alignItems="flex-start">
@@ -120,8 +120,8 @@ export default function Settings() {
               <Box mt={4} w="full">
                 <ProjectUserTable />
               </Box>
-              <AccessCheck
-                check="requireIsProjectAdmin"
+              <ConditionallyEnable
+                accessRequired="requireIsProjectAdmin"
                 accessDeniedText="Only admins can invite new members"
                 w="fit-content"
               >
@@ -138,7 +138,7 @@ export default function Settings() {
                   <Icon as={BsPlus} boxSize={5} />
                   <Text>Invite New Member</Text>
                 </Button>
-              </AccessCheck>
+              </ConditionallyEnable>
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack alignItems="flex-start">
@@ -193,7 +193,7 @@ export default function Settings() {
                 <Text fontSize="sm">
                   Permanently delete your project and all of its data. This action cannot be undone.
                 </Text>
-                <AccessCheck check="requireIsProjectAdmin">
+                <ConditionallyEnable accessRequired="requireIsProjectAdmin">
                   <HStack
                     as={Button}
                     colorScheme="red"
@@ -208,7 +208,7 @@ export default function Settings() {
                       Delete {selectedProject?.name}
                     </Text>
                   </HStack>
-                </AccessCheck>
+                </ConditionallyEnable>
               </VStack>
             )}
           </VStack>

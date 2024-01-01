@@ -22,7 +22,7 @@ import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import AccessCheck from "~/components/AccessCheck";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const DeleteButton = () => {
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
@@ -96,7 +96,7 @@ const DeleteDatasetEntriesModal = ({ disclosure }: { disclosure: UseDisclosureRe
             <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
               Cancel
             </Button>
-            <AccessCheck check="requireCanModifyProject">
+            <ConditionallyEnable accessRequired="requireCanModifyProject">
               <Button
                 colorScheme="red"
                 onClick={deleteRows}
@@ -105,7 +105,7 @@ const DeleteDatasetEntriesModal = ({ disclosure }: { disclosure: UseDisclosureRe
               >
                 Delete
               </Button>
-            </AccessCheck>
+            </ConditionallyEnable>
           </HStack>
         </ModalFooter>
       </ModalContent>
