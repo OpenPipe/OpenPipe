@@ -8,6 +8,7 @@ import {
   chatCompletionMessage,
   chatCompletionOutput,
 } from "./shared.types";
+import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 const chatInputs = chatCompletionInputReqPayload.shape;
 
@@ -58,8 +59,8 @@ const fineTuneSchema = z.intersection(
   z
     .object({
       pipelineVersion: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
-      trainingConfig: z.record(z.unknown()).nullable(),
-      trainingConfigOverrides: z.record(z.unknown()).nullable(),
+      trainingConfig: axolotlConfig.optional().nullable(),
+      trainingConfigOverrides: axolotlConfig.partial().optional().nullable(),
     })
     .passthrough(),
 );

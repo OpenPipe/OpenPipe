@@ -54,10 +54,13 @@ def do_train(fine_tune_id: str, base_url: str):
     shutil.rmtree(lora_model_path, ignore_errors=True)
 
     config = training_info.training_config
-    config["datasets"][0]["path"] = training_file
-    config["out_path"] = lora_model_path
-    print(f"Training config:\n{yaml.dump(config)}")
-    yaml.dump(config, open(config_path, "w"))
+    config.datasets[0].path = training_file
+    config.output_dir = lora_model_path
+
+    training_yaml = yaml.dump(config.to_dict())
+    print(f"Training config:\n{training_yaml}")
+    with open(config_path, "w") as f:
+        f.write(training_yaml)
 
     logging.info("Beginning training")
     try:
@@ -87,7 +90,7 @@ def do_train(fine_tune_id: str, base_url: str):
     with torch.device("cuda:0"):
         logging.info("Reloading the base model")
         model = AutoModelForCausalLM.from_pretrained(
-            base_model,
+            config.base_model,
             return_dict=True,
             torch_dtype=torch.float16,
         )

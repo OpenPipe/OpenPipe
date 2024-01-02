@@ -5,6 +5,7 @@ import { prisma } from "~/server/db";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { generateBlobDownloadUrl } from "~/utils/azure/server";
 import { typedFineTune } from "~/types/dbColumns.types";
+import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 export const v1ApiRouter = createOpenApiRouter({
   getTrainingInfo: openApiProtectedProc
@@ -25,7 +26,7 @@ export const v1ApiRouter = createOpenApiRouter({
       z.object({
         trainingDataUrl: z.string(),
         huggingFaceModelId: z.string(),
-        trainingConfig: z.record(z.unknown()),
+        trainingConfig: axolotlConfig,
       }),
     )
     .mutation(async ({ input }) => {

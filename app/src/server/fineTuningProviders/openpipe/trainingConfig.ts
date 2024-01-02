@@ -1,55 +1,10 @@
-import { cloneDeep } from "lodash-es";
 import { prisma } from "~/server/db";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 
-type AxolotlConfig = {
-  model_type: "LlamaForCausalLM" | "MistralForCausalLM";
-  tokenizer_type: "LlamaTokenizer";
-  is_llama_derived_model?: boolean;
-  is_mistral_derived_model?: boolean;
-  load_in_8bit: boolean;
-  load_in_4bit?: boolean;
-  adapter: "lora";
-  sequence_len: number;
-  sample_packing: boolean;
-  pad_to_sequence_len?: boolean;
-  lora_r: number;
-  lora_alpha: number;
-  lora_dropout: number;
-  lora_target_linear: boolean;
-  lora_target_modules?: string[];
-  gradient_accumulation_steps: number;
-  micro_batch_size: number;
-  optimizer: string;
-  lr_scheduler: string;
-  learning_rate: number;
-  train_on_inputs: boolean;
-  group_by_length: boolean;
-  bf16: boolean;
-  fp16: boolean;
-  tf32: boolean;
-  gradient_checkpointing: boolean;
-  flash_attention: boolean;
-  warmup_steps: number;
-  weight_decay: number;
-  special_tokens: { bos_token: string; eos_token: string; unk_token: string };
-  base_model?: string;
-  base_model_config?: string;
-  datasets: readonly { path: string; type: string }[];
-  dataset_processes?: number;
-  val_set_size?: number;
-  output_dir?: string;
-  wandb_project?: string;
-  wandb_run_id?: string;
-  num_epochs: number;
-  logging_steps?: number;
-  save_safetensors?: boolean;
-  eval_steps?: number;
-  strict?: boolean;
-  save_strategy?: string;
-};
+import { cloneDeep } from "lodash-es";
+import { type AxolotlConfig, axolotlConfig } from "./axolotlConfig";
 
-const baseConfig = {
+const baseConfig: Partial<AxolotlConfig> = {
   datasets: [{ path: "__placeholder__", type: "alpaca_instruct.load_no_prompt" }],
   tokenizer_type: "LlamaTokenizer",
   load_in_8bit: true,
@@ -76,7 +31,6 @@ const baseConfig = {
   weight_decay: 0.0,
   optimizer: "adamw_bnb_8bit",
   output_dir: "__placeholder__",
-
   dataset_processes: 8,
   val_set_size: 0.05,
   logging_steps: 1,
@@ -84,7 +38,7 @@ const baseConfig = {
   eval_steps: 0.1,
   strict: true,
   save_strategy: "no",
-} as const;
+};
 
 export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlConfig> {
   const project = await prisma.project.findUniqueOrThrow({
@@ -132,7 +86,7 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
   // Target 10,000 training entries, but don't go under 1 or over 10 epochs.
   const numEpochs = Math.min(Math.max(1, Math.round(10000 / trainingEntries)), 10);
 
-  return {
+  return axolotlConfig.parse({
     ...cloneDeep(baseConfig),
     ...archConfig,
     model_type: modelType,
@@ -142,5 +96,5 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
     wandb_run_id: fineTune.slug,
     num_epochs: numEpochs,
     ...fineTune.trainingConfigOverrides,
-  };
+  });
 }

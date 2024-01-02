@@ -77,13 +77,11 @@ const General = () => {
                 <Text fontWeight="bold" color={getStatusColor(fineTune.status)}>
                   {fineTune.status}
                 </Text>
-                {fineTune.errorMessage && (
-                  <>
-                    <Text color="gray.500">{fineTune.errorMessage}</Text>
-                    <Button variant="outline" size="xs" onClick={handleRestartTraining}>
-                      Restart Training
-                    </Button>
-                  </>
+                {fineTune.errorMessage && <Text color="gray.500">{fineTune.errorMessage}</Text>}
+                {fineTune.status === "ERROR" && (
+                  <Button variant="outline" size="xs" onClick={handleRestartTraining}>
+                    Restart Training
+                  </Button>
                 )}
               </HStack>
             </HStack>
