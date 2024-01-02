@@ -183,14 +183,11 @@ importers:
         specifier: ^6.9.4
         version: 6.9.4
       openai:
-        specifier: ^4.17.1
-        version: 4.17.1(encoding@0.1.13)
+        specifier: 4.24.1
+        version: 4.24.1(encoding@0.1.13)
       openpipe:
-        specifier: 0.6.6
-        version: 0.6.6
-      openpipe-dev:
-        specifier: workspace:^
-        version: link:../client-libs/typescript
+        specifier: file:.yalc/openpipe
+        version: file:app/.yalc/openpipe
       openskill:
         specifier: ^3.1.0
         version: 3.1.0
@@ -397,11 +394,8 @@ importers:
         specifier: 2.6.12
         version: 2.6.12(encoding@0.1.13)
       openai:
-        specifier: 4.17.1
-        version: 4.17.1(encoding@0.1.13)
-      openai-legacy:
-        specifier: npm:openai@3.3.0
-        version: /openai@3.3.0
+        specifier: 4.24.1
+        version: 4.24.1(encoding@0.1.13)
     devDependencies:
       '@rollup/plugin-json':
         specifier: ^6.0.0
@@ -6110,7 +6104,7 @@ packages:
     dependencies:
       decimal.js: 10.4.3
       js-tiktoken: 1.0.7
-      openai: 4.17.1(encoding@0.1.13)
+      openai: 4.24.1(encoding@0.1.13)
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -7601,8 +7595,8 @@ packages:
       - debug
     dev: false
 
-  /openai@4.17.1(encoding@0.1.13):
-    resolution: {integrity: sha512-8IrjeT9B63/6rKA2NI/0LFnjRA37G+NvNwbRvcEH9+AjAahReSMtT8xs4J+ClhzdUL9d91GJymgbo9RJt+HQuQ==}
+  /openai@4.24.1(encoding@0.1.13):
+    resolution: {integrity: sha512-ezm/O3eiZMnyBqirUnWm9N6INJU1WhNtz+nK/Zj/2oyKvRz9pgpViDxa5wYOtyGYXPn1sIKBV0I/S4BDhtydqw==}
     hasBin: true
     dependencies:
       '@types/node': 18.18.8
@@ -7654,18 +7648,6 @@ packages:
       lru-cache: 6.0.0
       object-hash: 2.2.0
       oidc-token-hash: 5.0.3
-    dev: false
-
-  /openpipe@0.6.6:
-    resolution: {integrity: sha512-9CV7v/cCrIr3qY5q0+Btj0AOGm3BGMuH5NbBER3j1EB0h/fiBRJWrRpdEdLD8y5YqvlqmA2tgFh/qpZMzX6Qkg==}
-    dependencies:
-      encoding: 0.1.13
-      form-data: 4.0.0
-      node-fetch: 2.6.12(encoding@0.1.13)
-      openai: 4.17.1(encoding@0.1.13)
-      openai-legacy: /openai@3.3.0
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   /openskill@3.1.0:
@@ -10147,6 +10129,17 @@ packages:
       immer: 10.0.2
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
+    dev: false
+
+  file:app/.yalc/openpipe:
+    resolution: {directory: app/.yalc/openpipe, type: directory}
+    name: openpipe
+    dependencies:
+      encoding: 0.1.13
+      form-data: 4.0.0
+      node-fetch: 2.6.12(encoding@0.1.13)
+      openai: 4.24.1(encoding@0.1.13)
+      openai-legacy: /openai@3.3.0
     dev: false
 
   github.com/OpenPipe/openapi-typescript-codegen/c5797a01a35f6058a36086ee2deefac5d8717ea9:

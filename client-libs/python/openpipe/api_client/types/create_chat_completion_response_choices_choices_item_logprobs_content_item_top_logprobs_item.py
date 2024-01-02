@@ -3,12 +3,7 @@
 import datetime as dt
 import typing
 
-import typing_extensions
-
 from ..core.datetime_utils import serialize_datetime
-from .create_chat_completion_request_tool_choice_function_function import (
-    CreateChatCompletionRequestToolChoiceFunctionFunction,
-)
 
 try:
     import pydantic.v1 as pydantic  # type: ignore
@@ -16,9 +11,10 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class CreateChatCompletionRequestToolChoiceFunction(pydantic.BaseModel):
-    type: typing_extensions.Literal["function"]
-    function: CreateChatCompletionRequestToolChoiceFunctionFunction
+class CreateChatCompletionResponseChoicesChoicesItemLogprobsContentItemTopLogprobsItem(pydantic.BaseModel):
+    token: str
+    bytes: typing.Optional[typing.List[float]]
+    logprob: float
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

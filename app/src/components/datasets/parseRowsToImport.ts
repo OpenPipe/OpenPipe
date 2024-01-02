@@ -172,7 +172,7 @@ const parseFunctionCall = (
   function_call: { name: string; arguments: string },
   functions?: {
     name: string;
-    parameters: Record<string, unknown>;
+    parameters?: Record<string, unknown>;
     description?: string | undefined;
   }[],
 ) => {

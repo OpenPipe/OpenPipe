@@ -154,6 +154,7 @@ export const calculateUsage = ({
 export const reqValidator = z.object({
   model: z.string(),
   messages: z.array(z.any()),
+  stream: z.boolean().default(false),
 });
 
 export const recordLoggedCall = async ({
