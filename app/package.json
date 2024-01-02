@@ -20,7 +20,7 @@
     "start": "TZ=UTC next start",
     "codegen:internalClient": "tsx src/server/scripts/internal-client-codegen.ts",
     "codegen:clients": "tsx scripts/codegen-clients.ts",
-    "codegen:db": "prisma generate && kysely-codegen --dialect postgres --out-file src/types/kysely-codegen.types.ts",
+    "codegen:db": "prisma generate && kysely-codegen --dialect postgres --out-file src/types/kysely-codegen.types.ts && prettier . --write",
     "seed": "NODE_OPTIONS='--no-node-snapshot' tsx prisma/seed.ts",
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'",
     "test": "pnpm vitest",

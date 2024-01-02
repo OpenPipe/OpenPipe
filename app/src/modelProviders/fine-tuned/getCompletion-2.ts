@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { type FineTune } from "@prisma/client";
 import type {
   ChatCompletionMessage,
   ChatCompletion,
@@ -57,7 +56,7 @@ export async function getCompletion2(
 }
 
 async function getOpenAIFineTuneCompletion(
-  fineTune: FineTune,
+  fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const model = fineTune.openaiModelId;
@@ -90,7 +89,7 @@ async function getOpenAIFineTuneCompletion(
 }
 
 async function getModalCompletion(
-  fineTune: FineTune,
+  fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion> {
   const serializedInput = serializeChatInput(input, fineTune);

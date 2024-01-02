@@ -171,6 +171,8 @@ export interface FineTune {
   openaiModelId: string | null;
   openaiTrainingJobId: string | null;
   provider: "openai" | "openpipe";
+  trainingConfig: Json | null;
+  trainingConfigOverrides: Json | null;
 }
 
 export interface FineTuneTestingEntry {

@@ -6,7 +6,6 @@ from ..shared import (
     upload_directory_to_s3,
 )
 
-from .write_config import write_config
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 
@@ -16,7 +15,7 @@ import logging
 import os
 import subprocess
 import urllib.request
-from transformers import AutoConfig
+import yaml
 
 logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -41,43 +40,27 @@ def do_train(fine_tune_id: str, base_url: str):
     training_info = training_info_resp.parsed
     logging.info(f"Training info: {training_info.to_dict()}")
 
-    base_model = training_info.base_model
-    config = AutoConfig.from_pretrained(base_model)
-
     logging.info("Downloading training data")
     training_file = "/tmp/train.jsonl"
 
     urllib.request.urlretrieve(training_info.training_data_url, training_file)
 
-    # Count the number of lines in the training data
-    num_lines = sum(1 for line in open(training_file))
-
-    # Target 10,000 training entries, but don't go under 1 or over 10 epochs.
-    num_epochs = min(max(1, int(10000 / num_lines + 0.5)), 10)
-
-    logging.info(f"Samples: {num_lines}, Epochs: {num_epochs}")
-
     config_path = "/tmp/training-config.yaml"
     lora_model_path = lora_model_cache_dir(training_info.hugging_face_model_id)
-    merged_model_path = merged_model_cache_dir(training_info.hugging_face_model_id)
 
     os.makedirs(lora_model_path, exist_ok=True)
-    os.makedirs(merged_model_path, exist_ok=True)
 
     # Clear the lora_model_path and merged_model_path directories
     shutil.rmtree(lora_model_path, ignore_errors=True)
-    shutil.rmtree(merged_model_path, ignore_errors=True)
 
-    write_config(
-        config_path=config_path,
-        base_model=base_model,
-        architecture=config.architectures[0],
-        num_epochs=num_epochs,
-        training_file=training_file,
-        out_path=lora_model_path,
-        wandb_project=f"OP {training_info.project_name}",
-        wandb_run_id=training_info.model_slug,
-    )
+    config = training_info.training_config
+    config.datasets[0].path = training_file
+    config.output_dir = lora_model_path
+
+    training_yaml = yaml.dump(config.to_dict())
+    print(f"Training config:\n{training_yaml}")
+    with open(config_path, "w") as f:
+        f.write(training_yaml)
 
     logging.info("Beginning training")
     try:
@@ -107,7 +90,7 @@ def do_train(fine_tune_id: str, base_url: str):
     with torch.device("cuda:0"):
         logging.info("Reloading the base model")
         model = AutoModelForCausalLM.from_pretrained(
-            base_model,
+            config.base_model,
             return_dict=True,
             torch_dtype=torch.float16,
         )
@@ -117,7 +100,10 @@ def do_train(fine_tune_id: str, base_url: str):
         logging.info("Merging the model")
         model = model.merge_and_unload()
 
-        logging.info(f"Saving the final model to {merged_model_path}")
+        merged_model_path = merged_model_cache_dir(training_info.hugging_face_model_id)
+        logging.info(f"Saving the merged model to {merged_model_path}")
+        shutil.rmtree(merged_model_path, ignore_errors=True)
+        os.makedirs(merged_model_path, exist_ok=True)
         model.save_pretrained(merged_model_path, safe_serialization=True)
 
         logging.info("Saving the tokenizer")
