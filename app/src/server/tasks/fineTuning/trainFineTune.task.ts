@@ -13,6 +13,7 @@ import { from } from "ix/asynciterable";
 import { filter, map } from "ix/asynciterable/operators";
 import { toNodeStream } from "ix/asynciterable/tonodestream";
 import { insertTrainingDataPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { trainingConfig } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
@@ -66,24 +67,25 @@ async function* iterateTrainingRows(fineTuneId: string) {
 }
 
 const trainModalFineTune = async (fineTuneId: string) => {
-  const fineTune = await prisma.fineTune.findUnique({
-    where: { id: fineTuneId },
-    include: {
-      dataset: {
-        include: {
-          pruningRules: {
-            select: {
-              id: true,
-              textToMatch: true,
-              tokensInText: true,
-              matches: true,
+  const fineTune = typedFineTune(
+    await prisma.fineTune.findUniqueOrThrow({
+      where: { id: fineTuneId },
+      include: {
+        dataset: {
+          include: {
+            pruningRules: {
+              select: {
+                id: true,
+                textToMatch: true,
+                tokensInText: true,
+                matches: true,
+              },
             },
           },
         },
       },
-    },
-  });
-  if (!fineTune) return;
+    }),
+  );
 
   await prisma.fineTune.update({
     where: { id: fineTuneId },
@@ -130,6 +132,7 @@ const trainModalFineTune = async (fineTuneId: string) => {
       trainingBlobName: blobName,
       trainingStartedAt: new Date(),
       huggingFaceModelId,
+      trainingConfig: await trainingConfig(fineTune),
     },
   });
 

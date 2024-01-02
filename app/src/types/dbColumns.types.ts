@@ -8,6 +8,7 @@ import {
   chatCompletionMessage,
   chatCompletionOutput,
 } from "./shared.types";
+import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 const chatInputs = chatCompletionInputReqPayload.shape;
 
@@ -58,15 +59,18 @@ const fineTuneSchema = z.intersection(
   z
     .object({
       pipelineVersion: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+      trainingConfig: axolotlConfig.optional().nullable(),
+      trainingConfigOverrides: axolotlConfig.partial().optional().nullable(),
     })
     .passthrough(),
 );
 
 // TODO: fix the passThroughNulls type from utils.ts to work with generics and
 // wrap this with that for better ergonomics.
-export function typedFineTune<
-  T extends Pick<FineTune, "baseModel" | "provider"> & Partial<Pick<FineTune, "pipelineVersion">>,
->(input: T): Omit<T, "baseModel" | "provider"> & z.infer<typeof fineTuneSchema> {
+export function typedFineTune<T extends Pick<FineTune, "baseModel" | "provider">>(
+  input: T,
+): Omit<T, "baseModel" | "provider" | "trainingConfig" | "trainingConfigOverrides"> &
+  z.infer<typeof fineTuneSchema> {
   return fineTuneSchema.parse(input);
 }
 

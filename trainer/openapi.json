@@ -44,22 +44,223 @@
                     "huggingFaceModelId": {
                       "type": "string"
                     },
-                    "baseModel": {
-                      "type": "string"
-                    },
-                    "projectName": {
-                      "type": "string"
-                    },
-                    "modelSlug": {
-                      "type": "string"
+                    "trainingConfig": {
+                      "type": "object",
+                      "properties": {
+                        "model_type": {
+                          "type": "string",
+                          "enum": [
+                            "LlamaForCausalLM",
+                            "MistralForCausalLM"
+                          ]
+                        },
+                        "tokenizer_type": {
+                          "type": "string"
+                        },
+                        "is_llama_derived_model": {
+                          "type": "boolean"
+                        },
+                        "is_mistral_derived_model": {
+                          "type": "boolean"
+                        },
+                        "load_in_8bit": {
+                          "type": "boolean"
+                        },
+                        "load_in_4bit": {
+                          "type": "boolean"
+                        },
+                        "adapter": {
+                          "type": "string",
+                          "enum": [
+                            "lora",
+                            "qlora"
+                          ]
+                        },
+                        "sequence_len": {
+                          "type": "number"
+                        },
+                        "sample_packing": {
+                          "type": "boolean"
+                        },
+                        "pad_to_sequence_len": {
+                          "type": "boolean"
+                        },
+                        "lora_r": {
+                          "type": "number"
+                        },
+                        "lora_alpha": {
+                          "type": "number"
+                        },
+                        "lora_dropout": {
+                          "type": "number"
+                        },
+                        "lora_target_linear": {
+                          "type": "boolean"
+                        },
+                        "lora_target_modules": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "gradient_accumulation_steps": {
+                          "type": "number"
+                        },
+                        "micro_batch_size": {
+                          "type": "number"
+                        },
+                        "optimizer": {
+                          "type": "string"
+                        },
+                        "lr_scheduler": {
+                          "type": "string"
+                        },
+                        "learning_rate": {
+                          "type": "number"
+                        },
+                        "train_on_inputs": {
+                          "type": "boolean"
+                        },
+                        "group_by_length": {
+                          "type": "boolean"
+                        },
+                        "bf16": {
+                          "type": "boolean"
+                        },
+                        "fp16": {
+                          "type": "boolean"
+                        },
+                        "tf32": {
+                          "type": "boolean"
+                        },
+                        "gradient_checkpointing": {
+                          "type": "boolean"
+                        },
+                        "flash_attention": {
+                          "type": "boolean"
+                        },
+                        "warmup_steps": {
+                          "type": "number"
+                        },
+                        "weight_decay": {
+                          "type": "number"
+                        },
+                        "special_tokens": {
+                          "type": "object",
+                          "properties": {
+                            "bos_token": {
+                              "type": "string"
+                            },
+                            "eos_token": {
+                              "type": "string"
+                            },
+                            "unk_token": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "bos_token",
+                            "eos_token",
+                            "unk_token"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "base_model": {
+                          "type": "string"
+                        },
+                        "base_model_config": {
+                          "type": "string"
+                        },
+                        "datasets": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "path",
+                              "type"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1
+                        },
+                        "dataset_processes": {
+                          "type": "number"
+                        },
+                        "val_set_size": {
+                          "type": "number"
+                        },
+                        "output_dir": {
+                          "type": "string"
+                        },
+                        "wandb_project": {
+                          "type": "string"
+                        },
+                        "wandb_run_id": {
+                          "type": "string"
+                        },
+                        "num_epochs": {
+                          "type": "number"
+                        },
+                        "logging_steps": {
+                          "type": "number"
+                        },
+                        "save_safetensors": {
+                          "type": "boolean"
+                        },
+                        "eval_steps": {
+                          "type": "number"
+                        },
+                        "strict": {
+                          "type": "boolean"
+                        },
+                        "save_strategy": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "model_type",
+                        "tokenizer_type",
+                        "load_in_8bit",
+                        "adapter",
+                        "sequence_len",
+                        "sample_packing",
+                        "lora_r",
+                        "lora_alpha",
+                        "lora_dropout",
+                        "lora_target_linear",
+                        "gradient_accumulation_steps",
+                        "micro_batch_size",
+                        "optimizer",
+                        "lr_scheduler",
+                        "learning_rate",
+                        "train_on_inputs",
+                        "group_by_length",
+                        "bf16",
+                        "fp16",
+                        "tf32",
+                        "gradient_checkpointing",
+                        "flash_attention",
+                        "warmup_steps",
+                        "weight_decay",
+                        "special_tokens",
+                        "datasets",
+                        "num_epochs"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
                     "trainingDataUrl",
                     "huggingFaceModelId",
-                    "baseModel",
-                    "projectName",
-                    "modelSlug"
+                    "trainingConfig"
                   ],
                   "additionalProperties": false
                 }
