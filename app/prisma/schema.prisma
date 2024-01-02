@@ -166,9 +166,10 @@ model PruningRuleMatch {
 }
 
 model Project {
-    id   String @id @default(uuid()) @db.Uuid
-    slug String @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
-    name String @default("Project 1")
+    id       String  @id @default(uuid()) @db.Uuid
+    slug     String  @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
+    name     String  @default("Project 1")
+    isPublic Boolean @default(false)
 
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
@@ -266,6 +267,7 @@ model ApiKey {
     name     String
     apiKey   String
     provider ApiKeyProvider @default(OPENPIPE)
+    readOnly Boolean        @default(false)
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

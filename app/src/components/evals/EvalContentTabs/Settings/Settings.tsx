@@ -1,11 +1,12 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Checkbox, HStack, Input, VStack, Text, useDisclosure } from "@chakra-ui/react";
+import { isEqual } from "lodash-es";
+
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import InfoCircle from "~/components/InfoCircle";
 import { api } from "~/utils/api";
 import { useDataset, useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
 import DeleteEvalDialog from "./DeleteEvalDialog";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
 import { useFilters } from "~/components/Filters/useFilters";
 import { useAppStore } from "~/state/store";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
@@ -14,7 +15,7 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
-import { isEqual } from "lodash-es";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const Settings = () => {
   const utils = api.useContext();
@@ -240,32 +241,38 @@ const Settings = () => {
               />
             </VStack>
             <HStack alignSelf="flex-end">
-              <Button
-                colorScheme="red"
-                variant="outline"
-                onClick={deleteEvalDialog.onOpen}
-                minW={24}
-              >
-                Delete
-              </Button>
+              <ConditionallyEnable accessRequired="requireCanModifyProject">
+                <Button
+                  colorScheme="red"
+                  variant="outline"
+                  onClick={deleteEvalDialog.onOpen}
+                  minW={24}
+                >
+                  Delete
+                </Button>
+              </ConditionallyEnable>
               <Button colorScheme="gray" onClick={reset} minW={24}>
                 Reset
               </Button>
-              <Button
-                colorScheme="blue"
-                onClick={onSaveConfirm}
-                minW={24}
-                isLoading={saveInProgress}
-                isDisabled={
-                  !name ||
-                  !instructions ||
-                  !numDatasetEntries ||
-                  includedModelIds.length < 2 ||
-                  !hasChanged
-                }
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[
+                  [!!name, "Eval name is required"],
+                  [!!instructions, "Instructions are required"],
+                  [!!numDatasetEntries, "Include one or more dataset entries"],
+                  [includedModelIds.length >= 2, "At least two models must be included"],
+                  [hasChanged, ""],
+                ]}
               >
-                Save
-              </Button>
+                <Button
+                  colorScheme="blue"
+                  onClick={onSaveConfirm}
+                  minW={24}
+                  isLoading={saveInProgress}
+                >
+                  Save
+                </Button>
+              </ConditionallyEnable>
             </HStack>
           </VStack>
         </ContentCard>

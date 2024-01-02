@@ -26,6 +26,7 @@ import { api } from "~/utils/api";
 import ActionButton from "~/components/ActionButton";
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import {
   type RowToImport,
   parseRowsToImport,
@@ -286,15 +287,22 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               >
                 Cancel
               </Button>
-              <Button
-                colorScheme="orange"
-                onClick={sendJSONL}
-                isLoading={sendingInProgress}
-                minW={24}
-                isDisabled={!file || !!validationError}
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[
+                  [!!file, "Select a file to upload"],
+                  [!validationError, "Fix the error in your file"],
+                ]}
               >
-                Upload
-              </Button>
+                <Button
+                  colorScheme="orange"
+                  onClick={sendJSONL}
+                  isLoading={sendingInProgress}
+                  minW={24}
+                >
+                  Upload
+                </Button>
+              </ConditionallyEnable>
             </HStack>
           </HStack>
         </ModalFooter>

@@ -21,6 +21,11 @@ export default async function userProject(userId: string) {
             name: "Default API Key",
             apiKey: generateApiKey(),
           },
+          {
+            name: "Read-Only API Key",
+            apiKey: generateApiKey(),
+            readOnly: true,
+          },
         ],
       },
     },

@@ -157,7 +157,8 @@ export const v1ApiRouter = createOpenApiRouter({
       // Default to true if not using a fine-tuned model
       const logRequest =
         (ctx.headers["op-log-request"] === "true" || !fineTune) &&
-        ctx.headers["op-log-request"] !== "false";
+        ctx.headers["op-log-request"] !== "false" &&
+        !ctx.key.readOnly;
       let tags: Record<string, string> = {};
       if (ctx.headers["op-tags"]) {
         try {
@@ -225,6 +226,12 @@ export const v1ApiRouter = createOpenApiRouter({
     )
     .output(z.object({ status: z.union([z.literal("ok"), z.literal("error")]) }))
     .mutation(async ({ input, ctx }) => {
+      if (ctx.key.readOnly) {
+        throw new TRPCError({
+          message: "Read-only API keys cannot report API calls",
+          code: "FORBIDDEN",
+        });
+      }
       // Zod default messes up the generated OpenAPI spec, so we do it manually
       if (!input.requestedAt) input.requestedAt = Date.now();
 

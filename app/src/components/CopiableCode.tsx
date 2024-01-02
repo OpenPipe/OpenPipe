@@ -3,13 +3,22 @@ import { useState } from "react";
 import { MdContentCopy } from "react-icons/md";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 
-const CopiableCode = ({ code, ...rest }: { code: string } & StackProps) => {
+const CopiableCode = ({
+  code,
+  isDisabled,
+  ...rest
+}: { code: string; isDisabled?: boolean } & StackProps) => {
   const [copied, setCopied] = useState(false);
 
   const [copyToClipboard] = useHandledAsyncCallback(async () => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
   }, [code]);
+
+  let tooltipLabel = copied ? "Copied!" : "Copy to clipboard";
+  if (isDisabled) {
+    tooltipLabel = "Copying Disabled";
+  }
 
   return (
     <HStack
@@ -33,7 +42,7 @@ const CopiableCode = ({ code, ...rest }: { code: string } & StackProps) => {
         {/* Necessary for trailing newline to actually be displayed */}
         {code.endsWith("\n") ? "\n" : ""}
       </Text>
-      <Tooltip closeOnClick={false} label={copied ? "Copied!" : "Copy to clipboard"}>
+      <Tooltip closeOnClick={false} label={tooltipLabel}>
         <IconButton
           aria-label="Copy"
           icon={<Icon as={MdContentCopy} boxSize={5} />}
@@ -42,6 +51,7 @@ const CopiableCode = ({ code, ...rest }: { code: string } & StackProps) => {
           variant="ghost"
           onClick={copyToClipboard}
           onMouseLeave={() => setCopied(false)}
+          isDisabled={isDisabled}
         />
       </Tooltip>
     </HStack>

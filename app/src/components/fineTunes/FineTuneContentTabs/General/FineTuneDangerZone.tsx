@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 
 import { useFineTune } from "~/utils/hooks";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import UpdateFineTuneSlugDialog from "./UpdateFineTuneSlugDialog";
 import DeleteFineTuneButton from "./DeleteFineTuneButton";
 import ContentCard from "~/components/ContentCard";
@@ -51,14 +52,17 @@ const FineTuneDangerZone = () => {
                 }}
               />
             </InputGroup>
-            <Button
-              colorScheme="orange"
-              onClick={dialogDisclosure.onOpen}
-              minW={24}
-              isDisabled={!slugToSave || slugToSave === fineTune?.slug}
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [!!slugToSave, "Enter a name for your model"],
+                [slugToSave !== fineTune?.slug, ""],
+              ]}
             >
-              Save
-            </Button>
+              <Button colorScheme="orange" onClick={dialogDisclosure.onOpen} minW={24}>
+                Save
+              </Button>
+            </ConditionallyEnable>
           </HStack>
         </VStack>
         <UpdateFineTuneSlugDialog

@@ -123,11 +123,13 @@ const InferenceCodeTabs = () => {
   const fineTune = useFineTune().data;
   const datasetEntries = useTrainingEntries().data;
 
+  const apiKey = project?.openpipeFullAccessKey ?? project?.openpipeReadOnlyKey ?? "";
+
   const templatedTabs = useMemo(() => {
     const entry = datasetEntries?.entries[0];
 
-    return templateTabs(project?.openpipeApiKey || "", fineTune?.slug || "", entry?.datasetEntry);
-  }, [project?.openpipeApiKey, fineTune?.slug, datasetEntries?.entries]);
+    return templateTabs(apiKey, fineTune?.slug || "", entry?.datasetEntry);
+  }, [apiKey, fineTune?.slug, datasetEntries?.entries]);
 
   return <CopiableCodeTabs tabs={templatedTabs} />;
 };

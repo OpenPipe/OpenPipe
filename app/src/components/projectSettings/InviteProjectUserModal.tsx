@@ -25,7 +25,7 @@ import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { type ProjectUserRole } from "@prisma/client";
 
-export const InviteMemberModal = ({
+export const InviteProjectUserModal = ({
   isOpen,
   onClose,
 }: {
@@ -65,14 +65,14 @@ export const InviteMemberModal = ({
       <ModalContent w={1200}>
         <ModalHeader>
           <HStack>
-            <Text>Invite Member</Text>
+            <Text>Invite User</Text>
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={8} alignItems="flex-start">
             <Text>
-              Invite a new member to <b>{selectedProject?.name}</b>.
+              Invite a new user to <b>{selectedProject?.name}</b>.
             </Text>
 
             <RadioGroup
@@ -81,6 +81,9 @@ export const InviteMemberModal = ({
               colorScheme="orange"
             >
               <VStack w="full" alignItems="flex-start">
+                <Radio value="VIEWER">
+                  <Text fontSize="sm">VIEWER</Text>
+                </Radio>
                 <Radio value="MEMBER">
                   <Text fontSize="sm">MEMBER</Text>
                 </Radio>

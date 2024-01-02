@@ -10,49 +10,65 @@ import {
   VStack,
   Spinner,
 } from "@chakra-ui/react";
-import { type User } from "@prisma/client";
+import { useSession } from "next-auth/react";
 
 import { useRouter } from "next/router";
 import { useRef } from "react";
-import { api } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 
-export const RemoveMemberDialog = ({
+export type ProjectUser = RouterOutputs["projects"]["get"]["projectUsers"][number];
+
+export const RemoveProjectUserDialog = ({
   isOpen,
   onClose,
-  member,
+  projectUser,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  member: User | null;
+  projectUser: ProjectUser | null;
 }) => {
-  const selectedProject = useSelectedProject();
+  const selectedProject = useSelectedProject().data;
   const removeUserMutation = api.users.removeUserFromProject.useMutation();
   const utils = api.useContext();
   const router = useRouter();
 
+  const removingSelf = projectUser?.userId === useSession().data?.user?.id;
+
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const [onRemoveConfirm, isRemoving] = useHandledAsyncCallback(async () => {
-    if (!selectedProject.data?.id || !member?.id) return;
-    await removeUserMutation.mutateAsync({ projectId: selectedProject.data.id, userId: member.id });
+    if (!selectedProject?.id || !projectUser?.userId) return;
+    await removeUserMutation.mutateAsync({
+      projectId: selectedProject.id,
+      userId: projectUser.userId,
+    });
     await utils.projects.get.invalidate();
     onClose();
-  }, [removeUserMutation, selectedProject, router]);
+    if (removingSelf) {
+      await router.push("/");
+    }
+  }, [removeUserMutation, selectedProject, router, removingSelf]);
 
   return (
     <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Remove Member
+            {removingSelf ? "Leave Project" : "Remove Member"}
           </AlertDialogHeader>
 
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
-              <Text>
-                Are you sure you want to remove <b>{member?.name}</b> from the project?
-              </Text>
+              {removingSelf ? (
+                <Text>
+                  Are you sure you want to leave <b>{selectedProject?.name}</b>?
+                </Text>
+              ) : (
+                <Text>
+                  Are you sure you want to remove <b>{projectUser?.name}</b> from the project?
+                </Text>
+              )}
             </VStack>
           </AlertDialogBody>
 
@@ -61,7 +77,7 @@ export const RemoveMemberDialog = ({
               Cancel
             </Button>
             <Button colorScheme="red" onClick={onRemoveConfirm} ml={3} w={20}>
-              {isRemoving ? <Spinner /> : "Remove"}
+              {isRemoving ? <Spinner /> : "Confirm"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

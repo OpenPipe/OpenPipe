@@ -30,6 +30,7 @@ import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
 import InputEditor from "./InputEditor";
 import ToolsEditor from "./ToolsEditor";
 import OutputEditor from "./OutputEditor";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
@@ -129,7 +130,12 @@ function DatasetEntryDrawer({
             <HStack w="full" justifyContent="space-between" pr={12}>
               <Heading size="md">Dataset Entry</Heading>
               {datasetEntry && (
-                <EntrySplitDropdown split={datasetEntry.split} onChange={onUpdateSplit} />
+                <ConditionallyEnable
+                  accessRequired="requireCanModifyProject"
+                  accessDeniedText="Only project members can modify the training split of a dataset entry"
+                >
+                  <EntrySplitDropdown split={datasetEntry.split} onChange={onUpdateSplit} />
+                </ConditionallyEnable>
               )}
             </HStack>
           </VStack>
@@ -213,14 +219,18 @@ function DatasetEntryDrawer({
             >
               Reset
             </Button>
-            <Button
-              isLoading={savingInProgress}
-              isDisabled={isLoading || !hasUpdates}
-              onClick={onSave}
-              colorScheme="orange"
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[[hasUpdates, "No changes to save"]]}
             >
-              Save
-            </Button>
+              <Button
+                isLoading={isLoading || savingInProgress}
+                onClick={onSave}
+                colorScheme="orange"
+              >
+                Save
+              </Button>
+            </ConditionallyEnable>
           </HStack>
         </DrawerFooter>
       </DrawerContent>

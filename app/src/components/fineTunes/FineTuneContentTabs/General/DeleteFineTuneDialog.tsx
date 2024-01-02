@@ -12,11 +12,13 @@ import {
   Text,
   Box,
   Input,
+  HStack,
 } from "@chakra-ui/react";
-import { api } from "~/utils/api";
 
+import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const DeleteFineTuneDialog = ({
   fineTuneId,
@@ -73,18 +75,19 @@ const DeleteFineTuneDialog = ({
           </AlertDialogBody>
 
           <AlertDialogFooter>
-            <Button ref={cancelRef} onClick={disclosure.onClose}>
-              Cancel
-            </Button>
-            <Button
-              colorScheme="red"
-              ml={3}
-              isDisabled={slugToDelete !== `openpipe:${fineTuneSlug}`}
-              isLoading={deletionInProgress}
-              onClick={onDeleteConfirm}
-            >
-              Delete
-            </Button>
+            <HStack>
+              <Button ref={cancelRef} onClick={disclosure.onClose}>
+                Cancel
+              </Button>
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[[slugToDelete === `openpipe:${fineTuneSlug}`, "Enter the correct ID"]]}
+              >
+                <Button colorScheme="red" isLoading={deletionInProgress} onClick={onDeleteConfirm}>
+                  Delete
+                </Button>
+              </ConditionallyEnable>
+            </HStack>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

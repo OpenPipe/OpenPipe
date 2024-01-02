@@ -12,6 +12,7 @@ import { api } from "~/utils/api";
 import { useLoggedCalls } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -49,7 +50,9 @@ export default function LoggedCalls() {
             />
           </HStack>
           <HStack w="full" justifyContent="flex-end">
-            <AddToDatasetButton />
+            <ConditionallyEnable accessRequired="requireCanModifyProject">
+              <AddToDatasetButton />
+            </ConditionallyEnable>
             <ExportButton />
             <ColumnVisibilityDropdown />
             <ToggleFiltersButton defaultShown />

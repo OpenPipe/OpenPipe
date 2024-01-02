@@ -63,7 +63,7 @@ export default function Invitation() {
               The invitation you've received is invalid or expired. Please ask your project admin
               for a new token.
             </Text>
-            <Button as={Link} variant="link" href="/" colorScheme="blue">
+            <Button as={Link} variant="outline" href="/" colorScheme="blue">
               Go Home
             </Button>
           </VStack>

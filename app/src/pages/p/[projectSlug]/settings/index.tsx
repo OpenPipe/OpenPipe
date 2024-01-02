@@ -10,7 +10,6 @@ import {
   Icon,
   useDisclosure,
   Box,
-  Tooltip,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { BsPlus, BsTrash } from "react-icons/bs";
@@ -23,9 +22,11 @@ import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContent
 import CopiableCode from "~/components/CopiableCode";
 import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectDialog";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import MemberTable from "~/components/projectSettings/MemberTable";
-import { InviteMemberModal } from "~/components/projectSettings/InviteMemberModal";
+import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
+import { InviteProjectUserModal } from "~/components/projectSettings/InviteProjectUserModal";
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
+import InfoCircle from "~/components/InfoCircle";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -38,10 +39,7 @@ export default function Settings() {
         id: selectedProject.id,
         updates: { name },
       });
-      await Promise.all([
-        utils.projects.get.invalidate({ id: selectedProject.id }),
-        utils.projects.list.invalidate(),
-      ]);
+      await Promise.all([utils.projects.get.invalidate(), utils.projects.list.invalidate()]);
     }
   }, [updateMutation, selectedProject]);
 
@@ -50,7 +48,7 @@ export default function Settings() {
     setName(selectedProject?.name);
   }, [selectedProject?.name]);
 
-  const inviteMemberModal = useDisclosure();
+  const inviteProjectUserModal = useDisclosure();
   const deleteProjectDialog = useDisclosure();
 
   return (
@@ -89,67 +87,87 @@ export default function Settings() {
               <Text fontWeight="bold" fontSize="xl">
                 Display Name
               </Text>
-              <AutoResizeTextArea
-                w="full"
-                maxW={600}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                borderColor="gray.300"
-              />
-              <Button
-                isDisabled={!name || name === selectedProject?.name}
-                colorScheme="orange"
-                borderRadius={4}
-                mt={2}
-                _disabled={{
-                  opacity: 0.6,
-                }}
-                onClick={onSaveName}
-              >
-                Rename Project
-              </Button>
+              <ConditionallyEnable accessRequired="requireCanModifyProject" hideTooltip w={600}>
+                <AutoResizeTextArea
+                  w="full"
+                  maxW={600}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  borderColor="gray.300"
+                />
+              </ConditionallyEnable>
+              <ConditionallyEnable accessRequired="requireCanModifyProject">
+                <Button
+                  isDisabled={!name || name === selectedProject?.name}
+                  colorScheme="orange"
+                  borderRadius={4}
+                  mt={2}
+                  _disabled={{
+                    opacity: 0.6,
+                  }}
+                  onClick={onSaveName}
+                >
+                  Rename Project
+                </Button>
+              </ConditionallyEnable>
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack w="full" alignItems="flex-start">
               <Subtitle>Project Members</Subtitle>
-
               <Text fontSize="sm">
                 Add members to your project to allow them to view and edit your project's data.
               </Text>
               <Box mt={4} w="full">
-                <MemberTable />
+                <ProjectUserTable />
               </Box>
-              <Tooltip
-                isDisabled={selectedProject?.role === "ADMIN"}
-                label="Only admins can invite new members"
-                hasArrow
+              <ConditionallyEnable
+                accessRequired="requireIsProjectAdmin"
+                accessDeniedText="Only admins can invite new members"
+                w="fit-content"
               >
                 <Button
                   variant="outline"
                   colorScheme="orange"
                   borderRadius={4}
-                  onClick={inviteMemberModal.onOpen}
+                  onClick={inviteProjectUserModal.onOpen}
                   mt={2}
                   _disabled={{
                     opacity: 0.6,
                   }}
-                  isDisabled={selectedProject?.role !== "ADMIN"}
                 >
                   <Icon as={BsPlus} boxSize={5} />
                   <Text>Invite New Member</Text>
                 </Button>
-              </Tooltip>
+              </ConditionallyEnable>
             </VStack>
             <Divider backgroundColor="gray.300" />
             <VStack alignItems="flex-start">
-              <Subtitle>Project API Key</Subtitle>
+              <Subtitle>Project API Keys</Subtitle>
               <Text fontSize="sm">
-                Use your project API key to authenticate your requests when sending data to
-                OpenPipe. You can set this key in your environment variables, or use it directly in
-                your code.
+                Use an API key to authenticate requests when sending data to OpenPipe. You can set
+                this key in your environment variables, or use it directly in your code.
               </Text>
             </VStack>
-            <CopiableCode code={selectedProject?.openpipeApiKey ?? ""} />
+            <VStack alignItems="flex-start" w="full">
+              <HStack>
+                <Subtitle fontSize="sm">Read/Write</Subtitle>
+                <InfoCircle tooltipText="Only available to project admins and members. Use this key to query models and record request logs." />
+              </HStack>
+              <CopiableCode
+                code={
+                  selectedProject?.openpipeFullAccessKey ??
+                  "opk_****************************************"
+                }
+                isDisabled={!selectedProject?.openpipeFullAccessKey}
+              />
+            </VStack>
+            <VStack alignItems="flex-start" w="full">
+              <HStack>
+                <Subtitle fontSize="sm">Read Only</Subtitle>
+                <InfoCircle tooltipText="Available to project viewers. This key can be used to query models, but request logs will not be recorded." />
+              </HStack>
+              <CopiableCode code={selectedProject?.openpipeReadOnlyKey ?? ""} />
+            </VStack>
             <Divider />
             <VStack alignItems="flex-start">
               <Subtitle>OpenAI API Key</Subtitle>
@@ -175,27 +193,31 @@ export default function Settings() {
                 <Text fontSize="sm">
                   Permanently delete your project and all of its data. This action cannot be undone.
                 </Text>
-                <HStack
-                  as={Button}
-                  isDisabled={selectedProject?.role !== "ADMIN"}
-                  colorScheme="red"
-                  variant="outline"
-                  borderRadius={4}
-                  mt={2}
-                  height="auto"
-                  onClick={deleteProjectDialog.onOpen}
-                >
-                  <Icon as={BsTrash} />
-                  <Text overflowWrap="break-word" whiteSpace="normal" py={2}>
-                    Delete {selectedProject?.name}
-                  </Text>
-                </HStack>
+                <ConditionallyEnable accessRequired="requireIsProjectAdmin">
+                  <HStack
+                    as={Button}
+                    colorScheme="red"
+                    variant="outline"
+                    borderRadius={4}
+                    mt={2}
+                    height="auto"
+                    onClick={deleteProjectDialog.onOpen}
+                  >
+                    <Icon as={BsTrash} />
+                    <Text overflowWrap="break-word" whiteSpace="normal" py={2}>
+                      Delete {selectedProject?.name}
+                    </Text>
+                  </HStack>
+                </ConditionallyEnable>
               </VStack>
             )}
           </VStack>
         </VStack>
       </AppShell>
-      <InviteMemberModal isOpen={inviteMemberModal.isOpen} onClose={inviteMemberModal.onClose} />
+      <InviteProjectUserModal
+        isOpen={inviteProjectUserModal.isOpen}
+        onClose={inviteProjectUserModal.onClose}
+      />
       <DeleteProjectDialog
         isOpen={deleteProjectDialog.isOpen}
         onClose={deleteProjectDialog.onClose}

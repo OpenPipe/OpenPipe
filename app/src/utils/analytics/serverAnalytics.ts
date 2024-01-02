@@ -42,6 +42,7 @@ export const captureFineTuneCreation = (
   projectSlug: string,
   datasetId: string,
   slug: string,
+  modelId: string,
   baseModel: string,
 ) => {
   posthogServerClient?.capture({
@@ -52,6 +53,7 @@ export const captureFineTuneCreation = (
       projectSlug,
       datasetId,
       slug,
+      modelId,
       baseModel,
     },
   });

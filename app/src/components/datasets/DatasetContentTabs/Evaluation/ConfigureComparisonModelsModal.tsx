@@ -28,6 +28,7 @@ import { useVisibleModelIds } from "./useVisibleModelIds";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ProjectLink } from "~/components/ProjectLink";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
@@ -154,17 +155,25 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
             <Button isDisabled={updateInProgress} onClick={reset}>
               Reset
             </Button>
-            <Button
-              colorScheme="orange"
-              ml={3}
-              isDisabled={
-                needsMissingOpenaiKey || (!modelsToEnable.length && !modelsToDisable.length)
-              }
-              isLoading={updateInProgress}
-              onClick={onUpdateConfirm}
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [
+                  !needsMissingOpenaiKey,
+                  "You must add your OpenAI API key to enable comparison models",
+                ],
+                [!!modelsToEnable.length || !!modelsToDisable.length, "No changes to save"],
+              ]}
             >
-              Confirm
-            </Button>
+              <Button
+                colorScheme="orange"
+                ml={3}
+                isLoading={updateInProgress}
+                onClick={onUpdateConfirm}
+              >
+                Confirm
+              </Button>
+            </ConditionallyEnable>
           </ModalFooter>
         </ModalContent>
       </ModalOverlay>

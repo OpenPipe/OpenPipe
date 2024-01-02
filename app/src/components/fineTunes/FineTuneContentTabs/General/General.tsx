@@ -8,6 +8,7 @@ import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import FineTunePruningRules from "./FineTunePruningRules";
 import InferenceCodeTabs from "./InferenceCodeTabs/InferenceCodeTabs";
 
@@ -79,9 +80,11 @@ const General = () => {
                 </Text>
                 {fineTune.errorMessage && <Text color="gray.500">{fineTune.errorMessage}</Text>}
                 {fineTune.status === "ERROR" && (
-                  <Button variant="outline" size="xs" onClick={handleRestartTraining}>
-                    Restart Training
-                  </Button>
+                  <ConditionallyEnable accessRequired="requireCanModifyProject">
+                    <Button variant="outline" size="xs" onClick={handleRestartTraining}>
+                      Restart Training
+                    </Button>
+                  </ConditionallyEnable>
                 )}
               </HStack>
             </HStack>

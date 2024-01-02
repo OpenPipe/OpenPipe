@@ -55,6 +55,7 @@ export interface ApiKey {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   provider: Generated<"OPENAI" | "OPENPIPE">;
+  readOnly: Generated<boolean>;
 }
 
 export interface Dataset {
@@ -270,6 +271,8 @@ export interface Project {
   updatedAt: Timestamp;
   personalProjectUserId: string | null;
   name: Generated<string>;
+  slug: Generated<string>;
+  isPublic: Generated<boolean>;
 }
 
 export interface ProjectUser {

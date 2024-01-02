@@ -25,6 +25,7 @@ import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useFilters } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { ProjectLink } from "~/components/ProjectLink";
 
 const RelabelButton = () => {
@@ -141,17 +142,25 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
             >
               Cancel
             </Button>
-            <Button
-              colorScheme="orange"
-              ml={3}
-              isDisabled={
-                needsMissingOpenaiKey || numEntriesToConfirm !== selectedIds.size.toString()
-              }
-              isLoading={confirmingRelabelInProgress}
-              onClick={onRelabelConfirm}
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [!needsMissingOpenaiKey, "OpenAI Key is required to relabel"],
+                [
+                  numEntriesToConfirm === selectedIds.size.toString(),
+                  "Please confirm the number of entries",
+                ],
+              ]}
             >
-              Confirm
-            </Button>
+              <Button
+                colorScheme="orange"
+                ml={3}
+                isLoading={confirmingRelabelInProgress}
+                onClick={onRelabelConfirm}
+              >
+                Confirm
+              </Button>
+            </ConditionallyEnable>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>
