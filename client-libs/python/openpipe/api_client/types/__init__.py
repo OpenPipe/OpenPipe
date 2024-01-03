@@ -30,13 +30,7 @@ from .create_chat_completion_request_messages_item_function_content import (
     CreateChatCompletionRequestMessagesItemFunctionContent,
 )
 from .create_chat_completion_request_messages_item_system import CreateChatCompletionRequestMessagesItemSystem
-from .create_chat_completion_request_messages_item_system_content import (
-    CreateChatCompletionRequestMessagesItemSystemContent,
-)
 from .create_chat_completion_request_messages_item_tool import CreateChatCompletionRequestMessagesItemTool
-from .create_chat_completion_request_messages_item_tool_content import (
-    CreateChatCompletionRequestMessagesItemToolContent,
-)
 from .create_chat_completion_request_messages_item_user import CreateChatCompletionRequestMessagesItemUser
 from .create_chat_completion_request_messages_item_user_content import (
     CreateChatCompletionRequestMessagesItemUserContent,
@@ -98,14 +92,8 @@ from .create_chat_completion_request_req_payload_messages_item_function_content 
 from .create_chat_completion_request_req_payload_messages_item_system import (
     CreateChatCompletionRequestReqPayloadMessagesItemSystem,
 )
-from .create_chat_completion_request_req_payload_messages_item_system_content import (
-    CreateChatCompletionRequestReqPayloadMessagesItemSystemContent,
-)
 from .create_chat_completion_request_req_payload_messages_item_tool import (
     CreateChatCompletionRequestReqPayloadMessagesItemTool,
-)
-from .create_chat_completion_request_req_payload_messages_item_tool_content import (
-    CreateChatCompletionRequestReqPayloadMessagesItemToolContent,
 )
 from .create_chat_completion_request_req_payload_messages_item_user import (
     CreateChatCompletionRequestReqPayloadMessagesItemUser,
@@ -162,6 +150,15 @@ from .create_chat_completion_response_choices_choices_item import CreateChatComp
 from .create_chat_completion_response_choices_choices_item_finish_reason import (
     CreateChatCompletionResponseChoicesChoicesItemFinishReason,
 )
+from .create_chat_completion_response_choices_choices_item_logprobs import (
+    CreateChatCompletionResponseChoicesChoicesItemLogprobs,
+)
+from .create_chat_completion_response_choices_choices_item_logprobs_content_item import (
+    CreateChatCompletionResponseChoicesChoicesItemLogprobsContentItem,
+)
+from .create_chat_completion_response_choices_choices_item_logprobs_content_item_top_logprobs_item import (
+    CreateChatCompletionResponseChoicesChoicesItemLogprobsContentItemTopLogprobsItem,
+)
 from .create_chat_completion_response_choices_choices_item_message import (
     CreateChatCompletionResponseChoicesChoicesItemMessage,
 )
@@ -196,9 +193,7 @@ __all__ = [
     "CreateChatCompletionRequestMessagesItemFunction",
     "CreateChatCompletionRequestMessagesItemFunctionContent",
     "CreateChatCompletionRequestMessagesItemSystem",
-    "CreateChatCompletionRequestMessagesItemSystemContent",
     "CreateChatCompletionRequestMessagesItemTool",
-    "CreateChatCompletionRequestMessagesItemToolContent",
     "CreateChatCompletionRequestMessagesItemUser",
     "CreateChatCompletionRequestMessagesItemUserContent",
     "CreateChatCompletionRequestMessagesItemUserContentItem",
@@ -226,9 +221,7 @@ __all__ = [
     "CreateChatCompletionRequestReqPayloadMessagesItemFunction",
     "CreateChatCompletionRequestReqPayloadMessagesItemFunctionContent",
     "CreateChatCompletionRequestReqPayloadMessagesItemSystem",
-    "CreateChatCompletionRequestReqPayloadMessagesItemSystemContent",
     "CreateChatCompletionRequestReqPayloadMessagesItemTool",
-    "CreateChatCompletionRequestReqPayloadMessagesItemToolContent",
     "CreateChatCompletionRequestReqPayloadMessagesItemUser",
     "CreateChatCompletionRequestReqPayloadMessagesItemUserContent",
     "CreateChatCompletionRequestReqPayloadMessagesItemUserContentItem",
@@ -261,6 +254,9 @@ __all__ = [
     "CreateChatCompletionResponseChoices",
     "CreateChatCompletionResponseChoicesChoicesItem",
     "CreateChatCompletionResponseChoicesChoicesItemFinishReason",
+    "CreateChatCompletionResponseChoicesChoicesItemLogprobs",
+    "CreateChatCompletionResponseChoicesChoicesItemLogprobsContentItem",
+    "CreateChatCompletionResponseChoicesChoicesItemLogprobsContentItemTopLogprobsItem",
     "CreateChatCompletionResponseChoicesChoicesItemMessage",
     "CreateChatCompletionResponseChoicesChoicesItemMessageContent",
     "CreateChatCompletionResponseChoicesChoicesItemMessageFunctionCall",

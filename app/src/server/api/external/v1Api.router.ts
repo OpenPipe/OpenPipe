@@ -86,7 +86,7 @@ export const v1ApiRouter = createOpenApiRouter({
         n: z.number().nullable().optional(),
         max_tokens: z.number().nullable().optional(),
         temperature: z.number().nullable().optional(),
-        stream: z.boolean().nullable().optional(),
+        stream: z.boolean().default(false),
         response_format: z
           .object({
             type: z.union([z.literal("text"), z.literal("json_object")]).optional(),

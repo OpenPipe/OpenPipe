@@ -2,14 +2,10 @@
 
 import typing
 
-import typing_extensions
-
 from .create_chat_completion_request_req_payload_messages_item_user_content_item import (
     CreateChatCompletionRequestReqPayloadMessagesItemUserContentItem,
 )
 
 CreateChatCompletionRequestReqPayloadMessagesItemUserContent = typing.Union[
-    str,
-    typing.List[CreateChatCompletionRequestReqPayloadMessagesItemUserContentItem],
-    typing.Optional[typing_extensions.Literal["null"]],
+    str, typing.List[CreateChatCompletionRequestReqPayloadMessagesItemUserContentItem]
 ]

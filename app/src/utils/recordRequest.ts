@@ -1,6 +1,6 @@
 import type { ChatCompletion, ChatCompletionChunk } from "openai/resources";
 import { Stream } from "openai/streaming";
-import mergeChunks from "openpipe/openai/mergeChunks";
+import mergeChunks from "openpipe-dev/src/openai/mergeChunks";
 import { z } from "zod";
 import { type FineTune, Prisma, UsageType } from "@prisma/client";
 import { captureException } from "@sentry/node";
@@ -154,6 +154,7 @@ export const calculateUsage = ({
 export const reqValidator = z.object({
   model: z.string(),
   messages: z.array(z.any()),
+  stream: z.boolean().default(false),
 });
 
 export const recordLoggedCall = async ({

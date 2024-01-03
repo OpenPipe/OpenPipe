@@ -183,11 +183,8 @@ importers:
         specifier: ^6.9.4
         version: 6.9.4
       openai:
-        specifier: ^4.17.1
-        version: 4.17.1(encoding@0.1.13)
-      openpipe:
-        specifier: 0.6.6
-        version: 0.6.6
+        specifier: 4.24.1
+        version: 4.24.1(encoding@0.1.13)
       openpipe-dev:
         specifier: workspace:^
         version: link:../client-libs/typescript
@@ -397,11 +394,8 @@ importers:
         specifier: 2.6.12
         version: 2.6.12(encoding@0.1.13)
       openai:
-        specifier: 4.17.1
-        version: 4.17.1(encoding@0.1.13)
-      openai-legacy:
-        specifier: npm:openai@3.3.0
-        version: /openai@3.3.0
+        specifier: 4.24.1
+        version: 4.24.1(encoding@0.1.13)
     devDependencies:
       '@rollup/plugin-json':
         specifier: ^6.0.0
@@ -4071,14 +4065,6 @@ packages:
       - debug
     dev: true
 
-  /axios@0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
-    dependencies:
-      follow-redirects: 1.15.3(debug@4.3.2)
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /axios@1.6.2:
     resolution: {integrity: sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==}
     dependencies:
@@ -6110,7 +6096,7 @@ packages:
     dependencies:
       decimal.js: 10.4.3
       js-tiktoken: 1.0.7
-      openai: 4.17.1(encoding@0.1.13)
+      openai: 4.24.1(encoding@0.1.13)
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -7592,17 +7578,8 @@ packages:
       is-wsl: 2.2.0
     dev: false
 
-  /openai@3.3.0:
-    resolution: {integrity: sha512-uqxI/Au+aPRnsaQRe8CojU0eCR7I0mBiKjD3sNMzY6DaC1ZVrc85u98mtJW6voDug8fgGN+DIZmTDxTthxb7dQ==}
-    dependencies:
-      axios: 0.26.1
-      form-data: 4.0.0
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /openai@4.17.1(encoding@0.1.13):
-    resolution: {integrity: sha512-8IrjeT9B63/6rKA2NI/0LFnjRA37G+NvNwbRvcEH9+AjAahReSMtT8xs4J+ClhzdUL9d91GJymgbo9RJt+HQuQ==}
+  /openai@4.24.1(encoding@0.1.13):
+    resolution: {integrity: sha512-ezm/O3eiZMnyBqirUnWm9N6INJU1WhNtz+nK/Zj/2oyKvRz9pgpViDxa5wYOtyGYXPn1sIKBV0I/S4BDhtydqw==}
     hasBin: true
     dependencies:
       '@types/node': 18.18.8
@@ -7654,18 +7631,6 @@ packages:
       lru-cache: 6.0.0
       object-hash: 2.2.0
       oidc-token-hash: 5.0.3
-    dev: false
-
-  /openpipe@0.6.6:
-    resolution: {integrity: sha512-9CV7v/cCrIr3qY5q0+Btj0AOGm3BGMuH5NbBER3j1EB0h/fiBRJWrRpdEdLD8y5YqvlqmA2tgFh/qpZMzX6Qkg==}
-    dependencies:
-      encoding: 0.1.13
-      form-data: 4.0.0
-      node-fetch: 2.6.12(encoding@0.1.13)
-      openai: 4.17.1(encoding@0.1.13)
-      openai-legacy: /openai@3.3.0
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   /openskill@3.1.0:

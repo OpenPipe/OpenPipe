@@ -90,7 +90,7 @@ export const convertFunctionMessageToToolCall = (
     case "function":
       return {
         role: "tool" as const,
-        content: message.content,
+        content: message.content ?? "",
         tool_call_id: message.name,
       };
   }

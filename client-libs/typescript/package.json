@@ -1,6 +1,6 @@
 {
   "name": "openpipe-dev",
-  "version": "0.6.6",
+  "version": "0.7.0",
   "type": "module",
   "description": "LLM metrics and inference",
   "scripts": {
@@ -37,8 +37,7 @@
     "encoding": "0.1.13",
     "form-data": "4.0.0",
     "node-fetch": "2.6.12",
-    "openai": "4.17.1",
-    "openai-legacy": "npm:openai@3.3.0"
+    "openai": "4.24.1"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.0.0",

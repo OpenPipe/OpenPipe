@@ -56,7 +56,7 @@ export class DefaultService {
                 model: string;
                 messages: Array<({
                     role: 'system';
-                    content: (string | 'null' | null);
+                    content: string;
                 } | {
                     role: 'user';
                     content: (string | Array<({
@@ -68,7 +68,7 @@ export class DefaultService {
                     } | {
                         type: 'text';
                         text: string;
-                    })> | 'null' | null);
+                    })>);
                 } | {
                     role: 'assistant';
                     content?: (string | 'null' | null);
@@ -86,7 +86,7 @@ export class DefaultService {
                     }>;
                 } | {
                     role: 'tool';
-                    content: (string | 'null' | null);
+                    content: string;
                     tool_call_id: string;
                 } | {
                     role: 'function';
@@ -98,19 +98,19 @@ export class DefaultService {
                 });
                 functions?: Array<{
                     name: string;
-                    parameters: Record<string, any>;
+                    parameters?: Record<string, any>;
                     description?: string;
                 }>;
                 tool_choice?: ('none' | 'auto' | {
-                    type?: 'function';
-                    function?: {
+                    type: 'function';
+                    function: {
                         name: string;
                     };
                 });
                 tools?: Array<{
                     function: {
                         name: string;
-                        parameters: Record<string, any>;
+                        parameters?: Record<string, any>;
                         description?: string;
                     };
                     type: 'function';
@@ -126,7 +126,7 @@ export class DefaultService {
             model?: string;
             messages?: Array<({
                 role: 'system';
-                content: (string | 'null' | null);
+                content: string;
             } | {
                 role: 'user';
                 content: (string | Array<({
@@ -138,7 +138,7 @@ export class DefaultService {
                 } | {
                     type: 'text';
                     text: string;
-                })> | 'null' | null);
+                })>);
             } | {
                 role: 'assistant';
                 content?: (string | 'null' | null);
@@ -156,7 +156,7 @@ export class DefaultService {
                 }>;
             } | {
                 role: 'tool';
-                content: (string | 'null' | null);
+                content: string;
                 tool_call_id: string;
             } | {
                 role: 'function';
@@ -168,19 +168,19 @@ export class DefaultService {
             });
             functions?: Array<{
                 name: string;
-                parameters: Record<string, any>;
+                parameters?: Record<string, any>;
                 description?: string;
             }>;
             tool_choice?: ('none' | 'auto' | {
-                type?: 'function';
-                function?: {
+                type: 'function';
+                function: {
                     name: string;
                 };
             });
             tools?: Array<{
                 function: {
                     name: string;
-                    parameters: Record<string, any>;
+                    parameters?: Record<string, any>;
                     description?: string;
                 };
                 type: 'function';
@@ -188,7 +188,7 @@ export class DefaultService {
             'n'?: number | null;
             max_tokens?: number | null;
             temperature?: number | null;
-            stream?: boolean | null;
+            stream?: boolean;
             response_format?: {
                 type?: ('text' | 'json_object');
             };
@@ -217,6 +217,18 @@ export class DefaultService {
                     type: 'function';
                 }>;
             };
+            logprobs: {
+                content: Array<{
+                    token: string;
+                    bytes: Array<number> | null;
+                    logprob: number;
+                    top_logprobs: Array<{
+                        token: string;
+                        bytes: Array<number> | null;
+                        logprob: number;
+                    }>;
+                }> | null;
+            } | null;
         }>;
         usage?: {
             prompt_tokens: number;

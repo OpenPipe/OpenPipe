@@ -13,7 +13,7 @@ except ImportError:
 
 class CreateChatCompletionRequestToolsItemFunction(pydantic.BaseModel):
     name: str
-    parameters: typing.Dict[str, typing.Any]
+    parameters: typing.Optional[typing.Dict[str, typing.Any]]
     description: typing.Optional[str]
 
     def json(self, **kwargs: typing.Any) -> str:

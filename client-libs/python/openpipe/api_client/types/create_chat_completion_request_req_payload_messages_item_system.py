@@ -4,9 +4,6 @@ import datetime as dt
 import typing
 
 from ..core.datetime_utils import serialize_datetime
-from .create_chat_completion_request_req_payload_messages_item_system_content import (
-    CreateChatCompletionRequestReqPayloadMessagesItemSystemContent,
-)
 
 try:
     import pydantic.v1 as pydantic  # type: ignore
@@ -15,7 +12,7 @@ except ImportError:
 
 
 class CreateChatCompletionRequestReqPayloadMessagesItemSystem(pydantic.BaseModel):
-    content: CreateChatCompletionRequestReqPayloadMessagesItemSystemContent
+    content: str
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

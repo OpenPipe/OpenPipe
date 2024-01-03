@@ -115,6 +115,8 @@ async function getModalCompletion(
     index: i,
     message: deserializeChatOutput(choice.text.trim()),
     finish_reason: choice.finish_reason,
+    // TODO: Record logprobs
+    logprobs: null,
   }));
   if (input.functions?.length) {
     // messages will automatically be deserialized to tool_calls, but the user might expect a function_call

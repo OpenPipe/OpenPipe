@@ -20,15 +20,13 @@ export const functionCallInput = z
   .union([z.literal("none"), z.literal("auto"), z.object({ name: z.string() })])
   .optional();
 
-export const functionsInput = z
-  .array(
-    z.object({
-      name: z.string(),
-      parameters: z.record(z.string(), z.unknown()),
-      description: z.string().optional(),
-    }),
-  )
-  .optional();
+const functionDefinition = z.object({
+  name: z.string(),
+  parameters: z.record(z.string(), z.unknown()).optional(),
+  description: z.string().optional(),
+});
+
+export const functionsInput = z.array(functionDefinition).optional();
 
 export const toolCallsOutput = z.array(
   z.object({
@@ -48,8 +46,8 @@ export const toolChoiceInput = z
     z.literal("none"),
     z.literal("auto"),
     z.object({
-      type: z.literal("function").optional(),
-      function: z.object({ name: z.string() }).optional(),
+      type: z.literal("function"),
+      function: z.object({ name: z.string() }),
     }),
   ])
   .optional();
@@ -57,11 +55,7 @@ export const toolChoiceInput = z
 export const toolsInput = z
   .array(
     z.object({
-      function: z.object({
-        name: z.string(),
-        parameters: z.record(z.string(), z.unknown()),
-        description: z.string().optional(),
-      }),
+      function: functionDefinition,
       type: z.literal("function"),
     }),
   )
@@ -69,7 +63,7 @@ export const toolsInput = z
 
 const chatCompletionSystemMessageParamSchema = z.object({
   role: z.literal("system"),
-  content: z.union([z.string(), z.null()]),
+  content: z.string(),
 });
 
 const chatCompletionContentPartSchema = z.union([
@@ -88,7 +82,7 @@ const chatCompletionContentPartSchema = z.union([
 
 const chatCompletionUserMessageParamSchema = z.object({
   role: z.literal("user"),
-  content: z.union([z.string(), z.array(chatCompletionContentPartSchema), z.null()]),
+  content: z.union([z.string(), z.array(chatCompletionContentPartSchema)]),
 });
 
 const chatCompletionAssistantMessageParamSchema = z.object({
@@ -100,7 +94,7 @@ const chatCompletionAssistantMessageParamSchema = z.object({
 
 const chatCompletionToolMessageParamSchema = z.object({
   role: z.literal("tool"),
-  content: z.union([z.string(), z.null()]),
+  content: z.string(),
   tool_call_id: z.string(),
 });
 
@@ -139,7 +133,7 @@ const chatCompletionInputBase = z.object({
 
 const chatCompletionInputStreaming = z.object({
   ...chatCompletionInputBase.shape,
-  stream: z.boolean().optional(),
+  stream: z.literal(true),
 }) satisfies z.ZodType<ChatCompletionCreateParams, any, any>;
 
 const chatCompletionInputNonStreaming = z.object({
@@ -154,7 +148,7 @@ export const chatCompletionInput = z.union([
 
 export const chatCompletionInputReqPayload = z.object({
   ...chatCompletionInputBase.shape,
-  stream: z.boolean().optional(),
+  stream: z.boolean().default(false),
 });
 
 export const chatCompletionOutput = z.object({
@@ -173,6 +167,26 @@ export const chatCompletionOutput = z.object({
       ]),
       index: z.number(),
       message: chatCompletionMessage,
+      logprobs: z
+        .object({
+          content: z
+            .array(
+              z.object({
+                token: z.string(),
+                bytes: z.array(z.number()).nullable(),
+                logprob: z.number(),
+                top_logprobs: z.array(
+                  z.object({
+                    token: z.string(),
+                    bytes: z.array(z.number()).nullable(),
+                    logprob: z.number(),
+                  }),
+                ),
+              }),
+            )
+            .nullable(),
+        })
+        .nullable(),
     }),
   ),
   usage: z

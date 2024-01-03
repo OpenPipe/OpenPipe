@@ -7,6 +7,9 @@ from ..core.datetime_utils import serialize_datetime
 from .create_chat_completion_response_choices_choices_item_finish_reason import (
     CreateChatCompletionResponseChoicesChoicesItemFinishReason,
 )
+from .create_chat_completion_response_choices_choices_item_logprobs import (
+    CreateChatCompletionResponseChoicesChoicesItemLogprobs,
+)
 from .create_chat_completion_response_choices_choices_item_message import (
     CreateChatCompletionResponseChoicesChoicesItemMessage,
 )
@@ -21,6 +24,7 @@ class CreateChatCompletionResponseChoicesChoicesItem(pydantic.BaseModel):
     finish_reason: CreateChatCompletionResponseChoicesChoicesItemFinishReason
     index: float
     message: CreateChatCompletionResponseChoicesChoicesItemMessage
+    logprobs: typing.Optional[CreateChatCompletionResponseChoicesChoicesItemLogprobs]
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

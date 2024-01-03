@@ -112,17 +112,7 @@
                                   ]
                                 },
                                 "content": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "enum": [
-                                        "null"
-                                      ],
-                                      "nullable": true
-                                    }
-                                  ]
+                                  "type": "string"
                                 }
                               },
                               "required": [
@@ -220,12 +210,6 @@
                                           }
                                         ]
                                       }
-                                    },
-                                    {
-                                      "enum": [
-                                        "null"
-                                      ],
-                                      "nullable": true
                                     }
                                   ]
                                 }
@@ -330,17 +314,7 @@
                                   ]
                                 },
                                 "content": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "enum": [
-                                        "null"
-                                      ],
-                                      "nullable": true
-                                    }
-                                  ]
+                                  "type": "string"
                                 },
                                 "tool_call_id": {
                                   "type": "string"
@@ -434,8 +408,7 @@
                             }
                           },
                           "required": [
-                            "name",
-                            "parameters"
+                            "name"
                           ],
                           "additionalProperties": false
                         }
@@ -476,6 +449,10 @@
                                 "additionalProperties": false
                               }
                             },
+                            "required": [
+                              "type",
+                              "function"
+                            ],
                             "additionalProperties": false
                           }
                         ]
@@ -500,8 +477,7 @@
                                 }
                               },
                               "required": [
-                                "name",
-                                "parameters"
+                                "name"
                               ],
                               "additionalProperties": false
                             },
@@ -555,7 +531,8 @@
                         "additionalProperties": false
                       },
                       "stream": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": false
                       }
                     },
                     "required": [
@@ -582,17 +559,7 @@
                               ]
                             },
                             "content": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "enum": [
-                                    "null"
-                                  ],
-                                  "nullable": true
-                                }
-                              ]
+                              "type": "string"
                             }
                           },
                           "required": [
@@ -690,12 +657,6 @@
                                       }
                                     ]
                                   }
-                                },
-                                {
-                                  "enum": [
-                                    "null"
-                                  ],
-                                  "nullable": true
                                 }
                               ]
                             }
@@ -800,17 +761,7 @@
                               ]
                             },
                             "content": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "enum": [
-                                    "null"
-                                  ],
-                                  "nullable": true
-                                }
-                              ]
+                              "type": "string"
                             },
                             "tool_call_id": {
                               "type": "string"
@@ -904,8 +855,7 @@
                         }
                       },
                       "required": [
-                        "name",
-                        "parameters"
+                        "name"
                       ],
                       "additionalProperties": false
                     }
@@ -946,6 +896,10 @@
                             "additionalProperties": false
                           }
                         },
+                        "required": [
+                          "type",
+                          "function"
+                        ],
                         "additionalProperties": false
                       }
                     ]
@@ -970,8 +924,7 @@
                             }
                           },
                           "required": [
-                            "name",
-                            "parameters"
+                            "name"
                           ],
                           "additionalProperties": false
                         },
@@ -1003,7 +956,7 @@
                   },
                   "stream": {
                     "type": "boolean",
-                    "nullable": true
+                    "default": false
                   },
                   "response_format": {
                     "type": "object",
@@ -1184,12 +1137,79 @@
                                   "role"
                                 ],
                                 "additionalProperties": false
+                              },
+                              "logprobs": {
+                                "type": "object",
+                                "properties": {
+                                  "content": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "token": {
+                                          "type": "string"
+                                        },
+                                        "bytes": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "number"
+                                          },
+                                          "nullable": true
+                                        },
+                                        "logprob": {
+                                          "type": "number"
+                                        },
+                                        "top_logprobs": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "token": {
+                                                "type": "string"
+                                              },
+                                              "bytes": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "number"
+                                                },
+                                                "nullable": true
+                                              },
+                                              "logprob": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            "required": [
+                                              "token",
+                                              "bytes",
+                                              "logprob"
+                                            ],
+                                            "additionalProperties": false
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "token",
+                                        "bytes",
+                                        "logprob",
+                                        "top_logprobs"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "content"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
                               }
                             },
                             "required": [
                               "finish_reason",
                               "index",
-                              "message"
+                              "message",
+                              "logprobs"
                             ],
                             "additionalProperties": false
                           }
