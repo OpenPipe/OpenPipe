@@ -85,6 +85,7 @@ from .types import (
     CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItemFunction,
     CreateChatCompletionResponseChoicesUsage,
     LocalTestingOnlyGetLatestLoggedCallResponse,
+    ReportRequestTagsValue,
     ReportResponse,
     ReportResponseStatus,
 )
@@ -176,6 +177,7 @@ __all__ = [
     "CreateChatCompletionResponseChoicesUsage",
     "LocalTestingOnlyGetLatestLoggedCallResponse",
     "OpenPipeApiEnvironment",
+    "ReportRequestTagsValue",
     "ReportResponse",
     "ReportResponseStatus",
 ]

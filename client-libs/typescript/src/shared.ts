@@ -9,7 +9,7 @@ export type OpenPipeConfig = {
 };
 
 export type OpenPipeArgs = {
-  openpipe?: { tags?: Record<string, string>; logRequest?: boolean };
+  openpipe?: { tags?: Record<string, string | number | boolean | null>; logRequest?: boolean };
 };
 
 export type OpenPipeMeta = {
@@ -21,7 +21,9 @@ export type OpenPipeMeta = {
 
 export type ReportFn = (...args: Parameters<DefaultService["report"]>) => Promise<void>;
 
-export const getTags = (args: OpenPipeArgs["openpipe"]): Record<string, string> => ({
+export const getTags = (
+  args: OpenPipeArgs["openpipe"],
+): Record<string, string | number | boolean | null> => ({
   ...args?.tags,
   $sdk: "typescript",
   "$sdk.version": pkg.version,

@@ -129,7 +129,7 @@ async function getModalCompletion(
   return {
     id: resp.id,
     object: "chat.completion",
-    created: Date.now(),
+    created: Math.round(Date.now() / 1000),
     model: input.model,
     choices,
     usage: {

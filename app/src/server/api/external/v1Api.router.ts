@@ -26,6 +26,7 @@ import {
   reqValidator,
 } from "~/utils/recordRequest";
 import { getOpenaiCompletion } from "~/server/utils/openai";
+import { parseTags } from "~/server/utils/parseTags";
 
 export const v1ApiRouter = createOpenApiRouter({
   checkCache: openApiProtectedProc
@@ -103,10 +104,23 @@ export const v1ApiRouter = createOpenApiRouter({
           ? chatCompletionInputReqPayload.parse(input.reqPayload)
           : chatCompletionInputReqPayload.parse(input);
 
+      const requestedAt = Date.now();
+
+      let tags: Record<string, string> = {};
+      if (ctx.headers["op-tags"]) {
+        try {
+          const jsonTags = JSON.parse(ctx.headers["op-tags"] as string);
+          tags = parseTags(jsonTags);
+        } catch (error: unknown) {
+          throw new TRPCError({
+            message: `Failed to parse tags: ${(error as Error).message}`,
+            code: "BAD_REQUEST",
+          });
+        }
+      }
+
       let completion: ChatCompletion | Stream<ChatCompletionChunk>;
       let fineTune: FineTune | undefined = undefined;
-
-      const requestedAt = Date.now();
 
       if (inputPayload.model.startsWith("openpipe:")) {
         const modelSlug = inputPayload.model.replace("openpipe:", "");
@@ -161,19 +175,6 @@ export const v1ApiRouter = createOpenApiRouter({
         (ctx.headers["op-log-request"] === "true" || !fineTune) &&
         ctx.headers["op-log-request"] !== "false" &&
         !ctx.key.readOnly;
-      let tags: Record<string, string> = {};
-      if (ctx.headers["op-tags"]) {
-        try {
-          tags = JSON.parse(ctx.headers["op-tags"] as string);
-          // validate that tags is a record of <string, string> using zod
-          z.record(z.string()).parse(tags);
-        } catch (error: unknown) {
-          throw new TRPCError({
-            message: `Failed to parse tags: ${(error as Error).message}`,
-            code: "BAD_REQUEST",
-          });
-        }
-      }
 
       if (completion instanceof Stream) {
         // split stream to avoid locking the read mutex
@@ -222,7 +223,7 @@ export const v1ApiRouter = createOpenApiRouter({
         statusCode: z.number().optional().describe("HTTP status code of response"),
         errorMessage: z.string().optional().describe("User-friendly error message"),
         tags: z
-          .record(z.string())
+          .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
           .optional()
           .describe(
             'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
@@ -258,6 +259,16 @@ export const v1ApiRouter = createOpenApiRouter({
         });
       }
 
+      let tags: Record<string, string> = {};
+      try {
+        tags = parseTags(input.tags);
+      } catch (e) {
+        throw new TRPCError({
+          message: `Failed to parse tags: ${(e as Error).message}`,
+          code: "BAD_REQUEST",
+        });
+      }
+
       try {
         await recordLoggedCall({
           projectId: ctx.key.projectId,
@@ -268,7 +279,7 @@ export const v1ApiRouter = createOpenApiRouter({
           respPayload: input.respPayload,
           statusCode: input.statusCode,
           errorMessage: input.errorMessage,
-          tags: input.tags,
+          tags,
         });
       } catch (e) {
         throw new TRPCError({

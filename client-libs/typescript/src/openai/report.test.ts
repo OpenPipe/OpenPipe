@@ -51,3 +51,22 @@ test("reports invalid request payload", async () => {
     },
   });
 });
+
+test("reports unusual tags", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+
+  const completionResp = await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: {
+      tags: {
+        promptId: "reports unusual tags",
+        numberTag: 1,
+        booleanTag: true,
+        nullTag: null,
+      },
+    },
+  });
+});

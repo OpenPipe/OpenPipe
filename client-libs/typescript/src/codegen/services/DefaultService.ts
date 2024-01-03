@@ -278,7 +278,7 @@ export class DefaultService {
             /**
              * Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
              */
-            tags?: Record<string, string>;
+            tags?: Record<string, (string | number | boolean | 'null' | null)>;
         },
     ): CancelablePromise<{
         status: ('ok' | 'error');

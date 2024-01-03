@@ -176,6 +176,7 @@ from .create_chat_completion_response_choices_choices_item_message_tool_calls_it
 )
 from .create_chat_completion_response_choices_usage import CreateChatCompletionResponseChoicesUsage
 from .local_testing_only_get_latest_logged_call_response import LocalTestingOnlyGetLatestLoggedCallResponse
+from .report_request_tags_value import ReportRequestTagsValue
 from .report_response import ReportResponse
 from .report_response_status import ReportResponseStatus
 
@@ -264,6 +265,7 @@ __all__ = [
     "CreateChatCompletionResponseChoicesChoicesItemMessageToolCallsItemFunction",
     "CreateChatCompletionResponseChoicesUsage",
     "LocalTestingOnlyGetLatestLoggedCallResponse",
+    "ReportRequestTagsValue",
     "ReportResponse",
     "ReportResponseStatus",
 ]
