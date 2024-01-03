@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import OpenAI, { type ClientOptions } from "openpipe/openai";
+import OpenAI, { type ClientOptions } from "~/../../client-libs/typescript/src/openai";
 import {
   type ChatCompletionChunk,
   type ChatCompletion,

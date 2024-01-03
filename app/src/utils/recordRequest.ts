@@ -1,6 +1,6 @@
 import type { ChatCompletion, ChatCompletionChunk } from "openai/resources";
 import { Stream } from "openai/streaming";
-import mergeChunks from "openpipe/openai/mergeChunks";
+import mergeChunks from "~/../../client-libs/typescript/src/openai/mergeChunks";
 import { z } from "zod";
 import { type FineTune, Prisma, UsageType } from "@prisma/client";
 import { captureException } from "@sentry/node";
