@@ -261,6 +261,8 @@ export const usersRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { accessCheck } = input;
 
+      requireNothing(ctx);
+
       try {
         if (accessCheck === "requireNothing") accessChecks.requireNothing(ctx);
         if (accessCheck === "requireIsAdmin") await accessChecks.requireIsAdmin(ctx);

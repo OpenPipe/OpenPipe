@@ -12,16 +12,18 @@ import os
 
 from concurrent.futures import ThreadPoolExecutor
 
+
 image = (
     modal.Image.from_registry(
         "nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04",
         add_python="3.10",
     )
+    .apt_install("git", "clang")
     .pip_install(
-        "vllm==0.2.0",
-        "huggingface-hub==0.17.3",
+        "huggingface-hub==0.19.4",
         "hf-transfer~=0.1",
-        "transformers==4.34.0",
+        "transformers==4.36.1",
+        "vllm==0.2.6",
     )
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
 )
