@@ -576,7 +576,20 @@ export const datasetEntriesRouter = createTRPCRouter({
               eb
                 .selectFrom("DatasetEvalDatasetEntry as dede")
                 .where("dede.datasetEvalId", "=", sortOrder.evalId)
-                .leftJoin("DatasetEvalResult as der", "der.datasetEvalDatasetEntryId", "dede.id")
+                .leftJoin(
+                  (eb) =>
+                    eb
+                      .selectFrom("DatasetEvalResult as der")
+                      .innerJoin(
+                        "DatasetEvalOutputSource as comparisonDeos",
+                        "comparisonDeos.id",
+                        "der.comparisonOutputSourceId",
+                      )
+                      .where("comparisonDeos.modelId", "in", visibleModelIds)
+                      .selectAll("der")
+                      .as("der"),
+                  (join) => join.onRef("der.datasetEvalDatasetEntryId", "=", "dede.id"),
+                )
                 .leftJoin(
                   "DatasetEvalOutputSource as deos",
                   "deos.id",
