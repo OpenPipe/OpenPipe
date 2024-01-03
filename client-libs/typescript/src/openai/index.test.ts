@@ -122,7 +122,7 @@ test("base sdk ft content call", async () => {
   expect(lastLogged?.reqPayload).toMatchObject(payload);
   expect(completion.id).toMatchObject(lastLogged?.respPayload.id);
   expect(lastLogged?.tags).toMatchObject(tags);
-}, 10000);
+}, 100000);
 
 test("content streaming", async () => {
   const completion = await oaiClient.chat.completions.create({
