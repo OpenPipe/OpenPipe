@@ -18,6 +18,7 @@ import * as Sentry from "@sentry/nextjs";
 import { getServerAuthSession } from "~/server/auth";
 import { prisma } from "~/server/db";
 import { capturePath } from "~/utils/analytics/serverAnalytics";
+import { noop } from "lodash-es";
 
 /**
  * 1. CONTEXT
@@ -31,9 +32,6 @@ type CreateContextOptions = {
   session: Session | null;
   cookies: Partial<{ [key: string]: string }>;
 };
-
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noOp = () => {};
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -50,7 +48,7 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
     session: opts.session,
     cookies: opts.cookies,
     prisma,
-    markAccessControlRun: noOp,
+    markAccessControlRun: noop,
   };
 };
 
@@ -111,12 +109,17 @@ const t = initTRPC
  * @see https://trpc.io/docs/router
  */
 export const createTRPCRouter = t.router;
+export const createTRPCCaller = t.createCallerFactory;
 
-const sentryMiddleware = t.middleware(
-  Sentry.Handlers.trpcMiddleware({
-    attachRpcInput: true,
-  }),
-);
+// Sentry.Handlers isn't defined when this is imported directly from scripts run
+// with tsx
+const sentryMiddleware = Sentry.Handlers
+  ? t.middleware(
+      Sentry.Handlers.trpcMiddleware({
+        attachRpcInput: true,
+      }),
+    )
+  : undefined;
 
 /**
  * Public (unauthenticated) procedure
@@ -125,7 +128,7 @@ const sentryMiddleware = t.middleware(
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure.use(sentryMiddleware);
+export const publicProcedure = sentryMiddleware ? t.procedure.use(sentryMiddleware) : t.procedure;
 
 /** Reusable middleware that enforces users are logged in before running the procedure. */
 const enforceUserIsAuthed = t.middleware(async ({ ctx, next, path }) => {
@@ -164,6 +167,4 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next, path }) => {
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure.use(
-  sentryMiddleware.unstable_pipe(enforceUserIsAuthed),
-);
+export const protectedProcedure = publicProcedure.use(enforceUserIsAuthed);

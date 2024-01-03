@@ -54,14 +54,14 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1
       '@sentry/browser':
-        specifier: ^7.77.0
-        version: 7.77.0
+        specifier: ^7.91.0
+        version: 7.91.0
       '@sentry/nextjs':
-        specifier: ^7.77.0
-        version: 7.77.0(encoding@0.1.13)(next@13.4.2)(react@18.2.0)(webpack@5.89.0)
+        specifier: ^7.91.0
+        version: 7.91.0(encoding@0.1.13)(next@13.4.2)(react@18.2.0)(webpack@5.89.0)
       '@sentry/node':
-        specifier: ^7.77.0
-        version: 7.77.0
+        specifier: ^7.91.0
+        version: 7.91.0
       '@t3-oss/env-nextjs':
         specifier: ^0.3.1
         version: 0.3.1(typescript@5.0.4)(zod@3.22.4)
@@ -72,17 +72,17 @@ importers:
         specifier: ^4.29.7
         version: 4.29.7(react-dom@18.2.0)(react@18.2.0)
       '@trpc/client':
-        specifier: ^10.26.0
-        version: 10.26.0(@trpc/server@10.26.0)
+        specifier: ^10.45.0
+        version: 10.45.0(@trpc/server@10.45.0)
       '@trpc/next':
-        specifier: ^10.26.0
-        version: 10.26.0(@tanstack/react-query@4.29.7)(@trpc/client@10.26.0)(@trpc/react-query@10.26.0)(@trpc/server@10.26.0)(next@13.4.2)(react-dom@18.2.0)(react@18.2.0)
+        specifier: ^10.45.0
+        version: 10.45.0(@tanstack/react-query@4.29.7)(@trpc/client@10.45.0)(@trpc/react-query@10.45.0)(@trpc/server@10.45.0)(next@13.4.2)(react-dom@18.2.0)(react@18.2.0)
       '@trpc/react-query':
-        specifier: ^10.26.0
-        version: 10.26.0(@tanstack/react-query@4.29.7)(@trpc/client@10.26.0)(@trpc/server@10.26.0)(react-dom@18.2.0)(react@18.2.0)
+        specifier: ^10.45.0
+        version: 10.45.0(@tanstack/react-query@4.29.7)(@trpc/client@10.45.0)(@trpc/server@10.45.0)(react-dom@18.2.0)(react@18.2.0)
       '@trpc/server':
-        specifier: ^10.26.0
-        version: 10.26.0
+        specifier: ^10.45.0
+        version: 10.45.0
       '@vercel/og':
         specifier: ^0.5.9
         version: 0.5.9
@@ -236,6 +236,9 @@ importers:
       recharts:
         specifier: ^2.7.2
         version: 2.7.2(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
       stream-buffers:
         specifier: ^3.0.2
         version: 3.0.2
@@ -244,7 +247,7 @@ importers:
         version: 1.12.2
       trpc-openapi:
         specifier: github:OpenPipe/trpc-openapi#build
-        version: github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b(@trpc/server@10.26.0)(zod@3.22.4)
+        version: github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b(@trpc/server@10.45.0)(zod@3.22.4)
       tsx:
         specifier: ^3.12.7
         version: 3.12.7
@@ -2785,28 +2788,38 @@ packages:
       request: 2.88.2
     dev: false
 
-  /@sentry-internal/tracing@7.77.0:
-    resolution: {integrity: sha512-8HRF1rdqWwtINqGEdx8Iqs9UOP/n8E0vXUu3Nmbqj4p5sQPA7vvCfq+4Y4rTqZFc7sNdFpDsRION5iQEh8zfZw==}
-    engines: {node: '>=8'}
+  /@sentry-internal/feedback@7.91.0:
+    resolution: {integrity: sha512-SJKTSaz68F5YIwF79EttBm915M2LnacgZMYRnRumyTmMKnebGhYQLwWbZdpaDvOa1U18dgRajDX8Qed/8A3tXw==}
+    engines: {node: '>=12'}
     dependencies:
-      '@sentry/core': 7.77.0
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
+      '@sentry/core': 7.91.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
     dev: false
 
-  /@sentry/browser@7.77.0:
-    resolution: {integrity: sha512-nJ2KDZD90H8jcPx9BysQLiQW+w7k7kISCWeRjrEMJzjtge32dmHA8G4stlUTRIQugy5F+73cOayWShceFP7QJQ==}
+  /@sentry-internal/tracing@7.91.0:
+    resolution: {integrity: sha512-JH5y6gs6BS0its7WF2DhySu7nkhPDfZcdpAXldxzIlJpqFkuwQKLU5nkYJpiIyZz1NHYYtW5aum2bV2oCOdDRA==}
     engines: {node: '>=8'}
     dependencies:
-      '@sentry-internal/tracing': 7.77.0
-      '@sentry/core': 7.77.0
-      '@sentry/replay': 7.77.0
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
+      '@sentry/core': 7.91.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
     dev: false
 
-  /@sentry/cli@1.75.2(encoding@0.1.13):
-    resolution: {integrity: sha512-CG0CKH4VCKWzEaegouWfCLQt9SFN+AieFESCatJ7zSuJmzF05ywpMusjxqRul6lMwfUhRKjGKOzcRJ1jLsfTBw==}
+  /@sentry/browser@7.91.0:
+    resolution: {integrity: sha512-lJv3x/xekzC/biiyAsVCioq2XnKNOZhI6jY3ZzLJZClYV8eKRi7D3KCsHRvMiCdGak1d/6sVp8F4NYY+YiWy1Q==}
+    engines: {node: '>=8'}
+    dependencies:
+      '@sentry-internal/feedback': 7.91.0
+      '@sentry-internal/tracing': 7.91.0
+      '@sentry/core': 7.91.0
+      '@sentry/replay': 7.91.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
+    dev: false
+
+  /@sentry/cli@1.77.1(encoding@0.1.13):
+    resolution: {integrity: sha512-OtJ7U9LeuPUAY/xow9wwcjM9w42IJIpDtClTKI/RliE685vd/OJUIpiAvebHNthDYpQynvwb/0iuF4fonh+CKw==}
     engines: {node: '>= 8'}
     hasBin: true
     requiresBuild: true
@@ -2822,26 +2835,26 @@ packages:
       - supports-color
     dev: false
 
-  /@sentry/core@7.77.0:
-    resolution: {integrity: sha512-Tj8oTYFZ/ZD+xW8IGIsU6gcFXD/gfE+FUxUaeSosd9KHwBQNOLhZSsYo/tTVf/rnQI/dQnsd4onPZLiL+27aTg==}
+  /@sentry/core@7.91.0:
+    resolution: {integrity: sha512-tu+gYq4JrTdrR+YSh5IVHF0fJi/Pi9y0HZ5H9HnYy+UMcXIotxf6hIEaC6ZKGeLWkGXffz2gKpQLe/g6vy/lPA==}
     engines: {node: '>=8'}
     dependencies:
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
     dev: false
 
-  /@sentry/integrations@7.77.0:
-    resolution: {integrity: sha512-P055qXgBHeZNKnnVEs5eZYLdy6P49Zr77A1aWJuNih/EenzMy922GOeGy2mF6XYrn1YJSjEwsNMNsQkcvMTK8Q==}
+  /@sentry/integrations@7.91.0:
+    resolution: {integrity: sha512-LGRfb+WfG3FaWHtDnJIhtupweat0imCQr2z/5SSbQKzqxHhtlaEU+9IExBmBdzq90n4lRBaVQHA3zGuU02uOhg==}
     engines: {node: '>=8'}
     dependencies:
-      '@sentry/core': 7.77.0
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
+      '@sentry/core': 7.91.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
       localforage: 1.10.0
     dev: false
 
-  /@sentry/nextjs@7.77.0(encoding@0.1.13)(next@13.4.2)(react@18.2.0)(webpack@5.89.0):
-    resolution: {integrity: sha512-8tYPBt5luFjrng1sAMJqNjM9sq80q0jbt6yariADU9hEr7Zk8YqFaOI2/Q6yn9dZ6XyytIRtLEo54kk2AO94xw==}
+  /@sentry/nextjs@7.91.0(encoding@0.1.13)(next@13.4.2)(react@18.2.0)(webpack@5.89.0):
+    resolution: {integrity: sha512-wE83+OTEH4yYnDrhMw9eVEARSfZc6xY5qJb9xyYm5rW3+gVjNQZQaUY+wkM61Xdo0T35BN+7U4T88HbwzGeMqA==}
     engines: {node: '>=8'}
     peerDependencies:
       next: ^10.0.8 || ^11.0 || ^12.0 || ^13.0 || ^14.0
@@ -2852,14 +2865,14 @@ packages:
         optional: true
     dependencies:
       '@rollup/plugin-commonjs': 24.0.0(rollup@2.78.0)
-      '@sentry/core': 7.77.0
-      '@sentry/integrations': 7.77.0
-      '@sentry/node': 7.77.0
-      '@sentry/react': 7.77.0(react@18.2.0)
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
-      '@sentry/vercel-edge': 7.77.0
-      '@sentry/webpack-plugin': 1.20.0(encoding@0.1.13)
+      '@sentry/core': 7.91.0
+      '@sentry/integrations': 7.91.0
+      '@sentry/node': 7.91.0
+      '@sentry/react': 7.91.0(react@18.2.0)
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
+      '@sentry/vercel-edge': 7.91.0
+      '@sentry/webpack-plugin': 1.21.0(encoding@0.1.13)
       chalk: 3.0.0
       next: 13.4.2(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
@@ -2872,68 +2885,69 @@ packages:
       - supports-color
     dev: false
 
-  /@sentry/node@7.77.0:
-    resolution: {integrity: sha512-Ob5tgaJOj0OYMwnocc6G/CDLWC7hXfVvKX/ofkF98+BbN/tQa5poL+OwgFn9BA8ud8xKzyGPxGU6LdZ8Oh3z/g==}
+  /@sentry/node@7.91.0:
+    resolution: {integrity: sha512-hTIfSQxD7L+AKIqyjoq8CWBRkEQrrMZmA3GSZgPI5JFWBHgO0HBo5TH/8TU81oEJh6kqqHAl2ObMhmcnaFqlzg==}
     engines: {node: '>=8'}
     dependencies:
-      '@sentry-internal/tracing': 7.77.0
-      '@sentry/core': 7.77.0
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
+      '@sentry-internal/tracing': 7.91.0
+      '@sentry/core': 7.91.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
       https-proxy-agent: 5.0.1
     transitivePeerDependencies:
       - supports-color
     dev: false
 
-  /@sentry/react@7.77.0(react@18.2.0):
-    resolution: {integrity: sha512-Q+htKzib5em0MdaQZMmPomaswaU3xhcVqmLi2CxqQypSjbYgBPPd+DuhrXKoWYLDDkkbY2uyfe4Lp3yLRWeXYw==}
+  /@sentry/react@7.91.0(react@18.2.0):
+    resolution: {integrity: sha512-7JH2rWaX3WKHHvBcZQ4f/KnkYIXTf7hMojRFncUwPocdtDlhJw/JUvjAYNpEysixXIgsMes3B32lmtZjGjRhwQ==}
     engines: {node: '>=8'}
     peerDependencies:
       react: 15.x || 16.x || 17.x || 18.x
     dependencies:
-      '@sentry/browser': 7.77.0
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
+      '@sentry/browser': 7.91.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
       hoist-non-react-statics: 3.3.2
       react: 18.2.0
     dev: false
 
-  /@sentry/replay@7.77.0:
-    resolution: {integrity: sha512-M9Ik2J5ekl+C1Och3wzLRZVaRGK33BlnBwfwf3qKjgLDwfKW+1YkwDfTHbc2b74RowkJbOVNcp4m8ptlehlSaQ==}
+  /@sentry/replay@7.91.0:
+    resolution: {integrity: sha512-XwbesnLLNtaVXKtDoyBB96GxJuhGi9zy3a662Ba/McmumCnkXrMQYpQPh08U7MgkTyDRgjDwm7PXDhiKpcb03g==}
     engines: {node: '>=12'}
     dependencies:
-      '@sentry-internal/tracing': 7.77.0
-      '@sentry/core': 7.77.0
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
+      '@sentry-internal/tracing': 7.91.0
+      '@sentry/core': 7.91.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
     dev: false
 
-  /@sentry/types@7.77.0:
-    resolution: {integrity: sha512-nfb00XRJVi0QpDHg+JkqrmEBHsqBnxJu191Ded+Cs1OJ5oPXEW6F59LVcBScGvMqe+WEk1a73eH8XezwfgrTsA==}
+  /@sentry/types@7.91.0:
+    resolution: {integrity: sha512-bcQnb7J3P3equbCUc+sPuHog2Y47yGD2sCkzmnZBjvBT0Z1B4f36fI/5WjyZhTjLSiOdg3F2otwvikbMjmBDew==}
     engines: {node: '>=8'}
     dev: false
 
-  /@sentry/utils@7.77.0:
-    resolution: {integrity: sha512-NmM2kDOqVchrey3N5WSzdQoCsyDkQkiRxExPaNI2oKQ/jMWHs9yt0tSy7otPBcXs0AP59ihl75Bvm1tDRcsp5g==}
-    engines: {node: '>=8'}
-    dependencies:
-      '@sentry/types': 7.77.0
-    dev: false
-
-  /@sentry/vercel-edge@7.77.0:
-    resolution: {integrity: sha512-ffddPCgxVeAccPYuH5sooZeHBqDuJ9OIhIRYKoDi4TvmwAzWo58zzZWhRpkHqHgIQdQvhLVZ5F+FSQVWnYSOkw==}
+  /@sentry/utils@7.91.0:
+    resolution: {integrity: sha512-fvxjrEbk6T6Otu++Ax9ntlQ0sGRiwSC179w68aC3u26Wr30FAIRKqHTCCdc2jyWk7Gd9uWRT/cq+g8NG/8BfSg==}
     engines: {node: '>=8'}
     dependencies:
-      '@sentry/core': 7.77.0
-      '@sentry/types': 7.77.0
-      '@sentry/utils': 7.77.0
+      '@sentry/types': 7.91.0
     dev: false
 
-  /@sentry/webpack-plugin@1.20.0(encoding@0.1.13):
-    resolution: {integrity: sha512-Ssj1mJVFsfU6vMCOM2d+h+KQR7QHSfeIP16t4l20Uq/neqWXZUQ2yvQfe4S3BjdbJXz/X4Rw8Hfy1Sd0ocunYw==}
+  /@sentry/vercel-edge@7.91.0:
+    resolution: {integrity: sha512-CounqhXPwFh67zf6L/q4ACBHHqknT6YY9LdgIAnUd0GGgHzrJPyKcthvh8Je4lNdpo5LFg2gnR+6g6JS8DDYDQ==}
+    engines: {node: '>=8'}
+    dependencies:
+      '@sentry-internal/tracing': 7.91.0
+      '@sentry/core': 7.91.0
+      '@sentry/types': 7.91.0
+      '@sentry/utils': 7.91.0
+    dev: false
+
+  /@sentry/webpack-plugin@1.21.0(encoding@0.1.13):
+    resolution: {integrity: sha512-x0PYIMWcsTauqxgl7vWUY6sANl+XGKtx7DCVnnY7aOIIlIna0jChTAPANTfA2QrK+VK+4I/4JxatCEZBnXh3Og==}
     engines: {node: '>= 8'}
     dependencies:
-      '@sentry/cli': 1.75.2(encoding@0.1.13)
+      '@sentry/cli': 1.77.1(encoding@0.1.13)
       webpack-sources: 3.2.3
     transitivePeerDependencies:
       - encoding
@@ -3021,53 +3035,52 @@ packages:
     engines: {node: '>= 10'}
     dev: false
 
-  /@trpc/client@10.26.0(@trpc/server@10.26.0):
-    resolution: {integrity: sha512-ojHxQFIE97rBEGPK8p1ijbzo0T1IdEBoJ9fFSgWWL9FMuEEA/DNQ9s0uuiOrDKhCCdTFT1unfRharoJhB2/O2w==}
+  /@trpc/client@10.45.0(@trpc/server@10.45.0):
+    resolution: {integrity: sha512-m091R1qte9rvkvL8N1e/mzrbb8S4gb+Q4ZNJnEGDgd7kic/6a8DFgSciBTiCoSp0YwOTVhyQzSrrA/sZI6PhBg==}
     peerDependencies:
-      '@trpc/server': 10.26.0
+      '@trpc/server': 10.45.0
     dependencies:
-      '@trpc/server': 10.26.0
+      '@trpc/server': 10.45.0
     dev: false
 
-  /@trpc/next@10.26.0(@tanstack/react-query@4.29.7)(@trpc/client@10.26.0)(@trpc/react-query@10.26.0)(@trpc/server@10.26.0)(next@13.4.2)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-p328crXBH6C228LKxjqbpDEXdLmy4+LdgsZuYK3oFMqaJEmCT22b+zcQ9IvQrcPfDxhKOpJym0QpuDNaWpG2qg==}
+  /@trpc/next@10.45.0(@tanstack/react-query@4.29.7)(@trpc/client@10.45.0)(@trpc/react-query@10.45.0)(@trpc/server@10.45.0)(next@13.4.2)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-saXajAb5GBpos9BNEtq/BeTOxmM4oCP3kyuGlMopNtHoacr71xHCItFnLsPWffM4DVW88uOXCFWaOtpOs5ThBw==}
     peerDependencies:
       '@tanstack/react-query': ^4.18.0
-      '@trpc/client': 10.26.0
-      '@trpc/react-query': 10.26.0
-      '@trpc/server': 10.26.0
+      '@trpc/client': 10.45.0
+      '@trpc/react-query': 10.45.0
+      '@trpc/server': 10.45.0
       next: '*'
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
       '@tanstack/react-query': 4.29.7(react-dom@18.2.0)(react@18.2.0)
-      '@trpc/client': 10.26.0(@trpc/server@10.26.0)
-      '@trpc/react-query': 10.26.0(@tanstack/react-query@4.29.7)(@trpc/client@10.26.0)(@trpc/server@10.26.0)(react-dom@18.2.0)(react@18.2.0)
-      '@trpc/server': 10.26.0
+      '@trpc/client': 10.45.0(@trpc/server@10.45.0)
+      '@trpc/react-query': 10.45.0(@tanstack/react-query@4.29.7)(@trpc/client@10.45.0)(@trpc/server@10.45.0)(react-dom@18.2.0)(react@18.2.0)
+      '@trpc/server': 10.45.0
       next: 13.4.2(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      react-ssr-prepass: 1.5.0(react@18.2.0)
     dev: false
 
-  /@trpc/react-query@10.26.0(@tanstack/react-query@4.29.7)(@trpc/client@10.26.0)(@trpc/server@10.26.0)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-n+enpalaCZhd3A/mbZmXeydRZHsAJo7mzc2ncgHn5S+C3SrfOM897uQdbHdj02Li25ULxzP1O92w+vZzmFbgkA==}
+  /@trpc/react-query@10.45.0(@tanstack/react-query@4.29.7)(@trpc/client@10.45.0)(@trpc/server@10.45.0)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-MMc2pLwoaLZVwvLQyzJv3uEmdG3lORhifhVzR/drtavwDYwt+OEvH0w3s1zC7RaDdFpc6Nj2kkpHmdoU7BlAAw==}
     peerDependencies:
       '@tanstack/react-query': ^4.18.0
-      '@trpc/client': 10.26.0
-      '@trpc/server': 10.26.0
+      '@trpc/client': 10.45.0
+      '@trpc/server': 10.45.0
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
       '@tanstack/react-query': 4.29.7(react-dom@18.2.0)(react@18.2.0)
-      '@trpc/client': 10.26.0(@trpc/server@10.26.0)
-      '@trpc/server': 10.26.0
+      '@trpc/client': 10.45.0(@trpc/server@10.45.0)
+      '@trpc/server': 10.45.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /@trpc/server@10.26.0:
-    resolution: {integrity: sha512-+Wt0NFAeflVSNiUnHIDNN3C8jP7XIRmYrcgJ6IsAnm0lK4p/FkpCpeu1aig5qxrgZx30PHNDLZ/3FttVSEW2aQ==}
+  /@trpc/server@10.45.0:
+    resolution: {integrity: sha512-2Fwzv6nqpE0Ie/G7PeS0EVR89zLm+c1Mw7T+RAGtU807j4oaUx0zGkBXTu5u9AI+j+BYNN2GZxJcuDTAecbr1A==}
     dev: false
 
   /@types/archiver@5.3.2:
@@ -6544,7 +6557,7 @@ packages:
   /is-reference@1.2.1:
     resolution: {integrity: sha512-U82MsXXiFIrjCK4otLT+o2NA2Cd2g5MLoOVXUZjIOhLurrRxpEXzI8O0KZHr3IjLvlAH1kTPYSuqer5T9ZVBKQ==}
     dependencies:
-      '@types/estree': 1.0.3
+      '@types/estree': 1.0.5
     dev: false
 
   /is-regex@1.1.4:
@@ -8325,14 +8338,6 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       react-transition-group: 2.9.0(react-dom@18.2.0)(react@18.2.0)
-    dev: false
-
-  /react-ssr-prepass@1.5.0(react@18.2.0):
-    resolution: {integrity: sha512-yFNHrlVEReVYKsLI5lF05tZoHveA5pGzjFbFJY/3pOqqjGOmMmqx83N4hIjN2n6E1AOa+eQEUxs3CgRnPmT0RQ==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    dependencies:
-      react: 18.2.0
     dev: false
 
   /react-style-singleton@2.2.1(@types/react@18.2.6)(react@18.2.0):
@@ -10128,7 +10133,7 @@ packages:
       json-schema-ref-parser: 9.0.9
     dev: true
 
-  github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b(@trpc/server@10.26.0)(zod@3.22.4):
+  github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b(@trpc/server@10.45.0)(zod@3.22.4):
     resolution: {tarball: https://codeload.github.com/OpenPipe/trpc-openapi/tar.gz/92019064df7cb33b30a59ac4b890c0759fd8774b}
     id: github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b
     name: trpc-openapi
@@ -10137,7 +10142,7 @@ packages:
       '@trpc/server': ^10.0.0
       zod: ^3.14.4
     dependencies:
-      '@trpc/server': 10.26.0
+      '@trpc/server': 10.45.0
       co-body: 6.1.0
       h3: 1.9.0
       lodash.clonedeep: 4.5.0

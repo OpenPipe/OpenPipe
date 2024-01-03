@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
+import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
@@ -135,6 +136,7 @@ export const fineTunesRouter = createTRPCRouter({
         baseModel: baseModel,
         filters: filtersSchema,
         pruningRuleIds: z.array(z.string()),
+        trainingConfigOverrides: axolotlConfig.partial().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -168,12 +170,11 @@ export const fineTunesRouter = createTRPCRouter({
           baseModel: input.baseModel.baseModel,
           datasetId: input.datasetId,
           pipelineVersion: CURRENT_PIPELINE_VERSION,
+          trainingConfigOverrides: input.trainingConfigOverrides,
         },
         include: {
           project: {
-            select: {
-              slug: true,
-            },
+            select: { slug: true },
           },
         },
       });
@@ -210,7 +211,7 @@ export const fineTunesRouter = createTRPCRouter({
 
       await trainFineTune.enqueue({ fineTuneId: fineTune.id });
 
-      return success();
+      return success({ fineTuneId: fineTune.id });
     }),
   restartTraining: protectedProcedure
     .input(z.object({ id: z.string() }))
