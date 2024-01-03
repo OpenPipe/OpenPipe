@@ -1,9 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { type ChatCompletionChunk, type ChatCompletion } from "openai/resources/chat";
 import { Stream } from "openai/streaming";
+import { APIError } from "openai";
 import { z } from "zod";
 import { captureException } from "@sentry/node";
 import { type FineTune } from "@prisma/client";
+import { ExtendedTRPCError } from "trpc-openapi";
 
 import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
 import { prisma } from "~/server/db";
@@ -27,6 +29,7 @@ import {
 } from "~/utils/recordRequest";
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { parseTags } from "~/server/utils/parseTags";
+import { statusCodeFromTrpcCode, trpcCodeFromHttpStatus } from "~/server/utils/trpcStatusCodes";
 
 export const v1ApiRouter = createOpenApiRouter({
   checkCache: openApiProtectedProc
@@ -106,102 +109,143 @@ export const v1ApiRouter = createOpenApiRouter({
 
       const requestedAt = Date.now();
 
-      let tags: Record<string, string> = {};
-      if (ctx.headers["op-tags"]) {
-        try {
-          const jsonTags = JSON.parse(ctx.headers["op-tags"] as string);
-          tags = parseTags(jsonTags);
-        } catch (error: unknown) {
-          throw new TRPCError({
-            message: `Failed to parse tags: ${(error as Error).message}`,
-            code: "BAD_REQUEST",
-          });
-        }
-      }
-
-      let completion: ChatCompletion | Stream<ChatCompletionChunk>;
-      let fineTune: FineTune | undefined = undefined;
-
-      if (inputPayload.model.startsWith("openpipe:")) {
-        const modelSlug = inputPayload.model.replace("openpipe:", "");
-        fineTune =
-          (await prisma.fineTune.findUnique({
-            where: { slug: modelSlug },
-          })) ?? undefined;
-
-        if (!fineTune) {
-          throw new TRPCError({
-            message: "The model does not exist",
-            code: "NOT_FOUND",
-          });
-        }
-
-        const typedFT = typedFineTune(fineTune);
-
-        if (typedFT && typedFT.projectId !== key.projectId) {
-          throw new TRPCError({
-            message: "The model does not belong to this project",
-            code: "FORBIDDEN",
-          });
-        }
-
-        try {
-          completion = await getCompletion2(typedFT, inputPayload);
-        } catch (error: unknown) {
-          console.error(error);
-          throw new TRPCError({
-            message: `Failed to get fine-tune completion: ${(error as Error).message}`,
-            code: "BAD_REQUEST",
-          });
-        }
-      } else {
-        try {
-          completion = await getOpenaiCompletion(key.projectId, {
-            ...inputPayload,
-            stream: input.stream,
-          });
-        } catch (error: unknown) {
-          console.error(error);
-          throw new TRPCError({
-            message: `Failed to get OpenAI completion: ${(error as Error).message}`,
-            code: "BAD_REQUEST",
-            cause: error as Error,
-          });
-        }
-      }
+      const isFineTune = inputPayload.model.startsWith("openpipe:");
 
       // Default to true if not using a fine-tuned model
       const logRequest =
-        (ctx.headers["op-log-request"] === "true" || !fineTune) &&
+        (ctx.headers["op-log-request"] === "true" || !isFineTune) &&
         ctx.headers["op-log-request"] !== "false" &&
         !ctx.key.readOnly;
 
-      if (completion instanceof Stream) {
-        // split stream to avoid locking the read mutex
-        const [recordStream, outputStream] = completion.tee();
-        void recordUsage({
-          projectId: key.projectId,
-          requestedAt,
-          receivedAt: Date.now(),
-          inputPayload,
-          completion: recordStream,
-          logRequest,
-          fineTune,
-          tags,
-        }).catch((e) => captureException(e));
-        return outputStream.toReadableStream();
-      } else {
-        void recordUsage({
-          projectId: key.projectId,
-          requestedAt,
-          receivedAt: Date.now(),
-          inputPayload,
-          completion,
-          logRequest,
-          fineTune,
-          tags,
-        }).catch((e) => captureException(e));
-        return completion;
+      let tags: Record<string, string> = {};
+
+      try {
+        if (ctx.headers["op-tags"]) {
+          try {
+            const jsonTags = JSON.parse(ctx.headers["op-tags"] as string);
+            tags = parseTags(jsonTags);
+          } catch (error: unknown) {
+            throw new TRPCError({
+              message: `Failed to parse tags: ${(error as Error).message}`,
+              code: "BAD_REQUEST",
+            });
+          }
+        }
+
+        let completion: ChatCompletion | Stream<ChatCompletionChunk>;
+        let fineTune: FineTune | undefined = undefined;
+
+        if (isFineTune) {
+          const modelSlug = inputPayload.model.replace("openpipe:", "");
+          fineTune =
+            (await prisma.fineTune.findUnique({
+              where: { slug: modelSlug },
+            })) ?? undefined;
+
+          if (!fineTune) {
+            throw new TRPCError({
+              message: `The model \`${inputPayload.model}\` does not exist`,
+              code: "NOT_FOUND",
+            });
+          }
+
+          const typedFT = typedFineTune(fineTune);
+
+          if (typedFT && typedFT.projectId !== key.projectId) {
+            throw new TRPCError({
+              message: "The model does not belong to this project",
+              code: "FORBIDDEN",
+            });
+          }
+
+          try {
+            completion = await getCompletion2(typedFT, inputPayload);
+          } catch (error: unknown) {
+            console.error(error);
+            throw new TRPCError({
+              message: `Failed to get fine-tune completion: ${(error as Error).message}`,
+              code: "BAD_REQUEST",
+            });
+          }
+        } else {
+          try {
+            completion = await getOpenaiCompletion(key.projectId, {
+              ...inputPayload,
+              stream: input.stream,
+            });
+          } catch (error: unknown) {
+            if (error instanceof APIError) {
+              // Pass through OpenAI API errors
+              throw new TRPCError({
+                message: error.message,
+                code: trpcCodeFromHttpStatus(error.status),
+              });
+            }
+            throw new TRPCError({
+              message: `Failed to get OpenAI completion: ${(error as Error).message}`,
+              code: "BAD_REQUEST",
+              cause: error as Error,
+            });
+          }
+        }
+
+        if (completion instanceof Stream) {
+          // split stream to avoid locking the read mutex
+          const [recordStream, outputStream] = completion.tee();
+          void recordUsage({
+            projectId: key.projectId,
+            requestedAt,
+            receivedAt: Date.now(),
+            inputPayload,
+            completion: recordStream,
+            logRequest,
+            fineTune,
+            tags,
+          }).catch((e) => captureException(e));
+          return outputStream.toReadableStream();
+        } else {
+          void recordUsage({
+            projectId: key.projectId,
+            requestedAt,
+            receivedAt: Date.now(),
+            inputPayload,
+            completion,
+            logRequest,
+            fineTune,
+            tags,
+          }).catch((e) => captureException(e));
+          return completion;
+        }
+      } catch (error: unknown) {
+        if (error instanceof TRPCError) {
+          const statusCode = statusCodeFromTrpcCode(error.code);
+          // record error in request log
+          void recordLoggedCall({
+            projectId: key.projectId,
+            requestedAt,
+            receivedAt: Date.now(),
+            reqPayload: inputPayload,
+            respPayload: {
+              code: error.code,
+              message: error.message,
+            },
+            statusCode,
+            errorMessage: error.message,
+            tags,
+          });
+          throw new ExtendedTRPCError({
+            code: error.code,
+            message: error.message,
+            extraFields: {
+              // Add error field for compatibility with the OpenAI TypeScript client
+              error: {
+                code: statusCode,
+                message: error.message,
+              },
+            },
+          });
+        }
+        throw error;
       }
     }),
 

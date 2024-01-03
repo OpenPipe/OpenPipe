@@ -1,25 +1,44 @@
-from .api_client.client import OpenPipeApi, AsyncOpenPipeApi
-
+from openai import OpenAI, AsyncOpenAI
 from openai.types.chat import ChatCompletion
 import os
 import pkg_resources
 import json
 from typing import Any, Dict, List, Union
 
+from .api_client.client import OpenPipeApi, AsyncOpenPipeApi
 
-def configure_openpipe_client(
-    client: Union[OpenPipeApi, AsyncOpenPipeApi], openpipe_options={}
+
+def configure_openpipe_clients(
+    reporting_client: Union[OpenPipeApi, AsyncOpenPipeApi],
+    completions_client: Union[OpenAI, AsyncOpenAI],
+    openpipe_options={},
 ):
     if os.environ.get("OPENPIPE_API_KEY"):
-        client._client_wrapper._token = os.environ["OPENPIPE_API_KEY"]
+        reporting_client._client_wrapper._token = os.environ["OPENPIPE_API_KEY"]
+        completions_client.api_key = os.environ["OPENPIPE_API_KEY"]
 
     if os.environ.get("OPENPIPE_BASE_URL"):
-        client._client_wrapper._base_url = os.environ["OPENPIPE_BASE_URL"]
+        reporting_client._client_wrapper._base_url = os.environ["OPENPIPE_BASE_URL"]
+        completions_client.base_url = os.environ["OPENPIPE_BASE_URL"]
 
     if openpipe_options and openpipe_options.get("api_key"):
-        client._client_wrapper._token = openpipe_options["api_key"]
+        reporting_client._client_wrapper._token = openpipe_options["api_key"]
+        completions_client.api_key = openpipe_options["api_key"]
+
     if openpipe_options and openpipe_options.get("base_url"):
-        client._client_wrapper._base_url = openpipe_options["base_url"]
+        reporting_client._client_wrapper._base_url = openpipe_options["base_url"]
+        completions_client.base_url = openpipe_options["base_url"]
+
+
+def get_extra_headers(create_kwargs, openpipe_options):
+    extra_headers = create_kwargs.pop("extra_headers", {})
+    # Default to true
+    if extra_headers.get("op-log-request", None) == None:
+        extra_headers["op-log-request"] = (
+            "false" if openpipe_options.get("log_request") == False else "true"
+        )
+    extra_headers["op-tags"] = json.dumps(_get_tags(openpipe_options))
+    return extra_headers
 
 
 def _get_tags(openpipe_options):

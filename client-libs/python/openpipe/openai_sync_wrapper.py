@@ -14,8 +14,9 @@ import httpx
 from .merge_openai_chunks import merge_openai_chunks
 from .shared import (
     report,
+    get_extra_headers,
     get_chat_completion_json,
-    configure_openpipe_client,
+    configure_openpipe_clients,
 )
 
 from .api_client.client import OpenPipeApi
@@ -23,11 +24,18 @@ from .api_client.core.api_error import ApiError
 
 
 class CompletionsWrapper(Completions):
-    openpipe_client: OpenPipeApi
+    openpipe_reporting_client: OpenPipeApi
+    openpipe_completions_client: OriginalOpenAI
 
-    def __init__(self, client: OriginalOpenAI, openpipe_client: OpenPipeApi) -> None:
+    def __init__(
+        self,
+        client: OriginalOpenAI,
+        openpipe_reporting_client: OpenPipeApi,
+        openpipe_completions_client: OriginalOpenAI,
+    ) -> None:
         super().__init__(client)
-        self.openpipe_client = openpipe_client
+        self.openpipe_reporting_client = openpipe_reporting_client
+        self.openpipe_completions_client = openpipe_completions_client
 
     def create(
         self, *args, **kwargs
@@ -37,14 +45,13 @@ class CompletionsWrapper(Completions):
         requested_at = int(time.time() * 1000)
         model = kwargs.get("model", "")
 
+        if model.startswith("openpipe:"):
+            return self.openpipe_completions_client.chat.completions.create(
+                **kwargs, extra_headers=get_extra_headers(kwargs, openpipe_options)
+            )
+
         try:
-            if model.startswith("openpipe:"):
-                response = self.openpipe_client.create_chat_completion(
-                    **kwargs,
-                )
-                chat_completion = ChatCompletion(**json.loads(response.json()))
-            else:
-                chat_completion = super().create(*args, **kwargs)
+            chat_completion = super().create(*args, **kwargs)
 
             if isinstance(chat_completion, Stream):
 
@@ -60,7 +67,7 @@ class CompletionsWrapper(Completions):
                     received_at = int(time.time() * 1000)
 
                     report(
-                        configured_client=self.openpipe_client,
+                        configured_client=self.openpipe_reporting_client,
                         openpipe_options=openpipe_options,
                         requested_at=requested_at,
                         received_at=received_at,
@@ -74,7 +81,7 @@ class CompletionsWrapper(Completions):
                 received_at = int(time.time() * 1000)
 
                 report(
-                    configured_client=self.openpipe_client,
+                    configured_client=self.openpipe_reporting_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -88,7 +95,7 @@ class CompletionsWrapper(Completions):
 
             if isinstance(e, OpenAIError):
                 report(
-                    configured_client=self.openpipe_client,
+                    configured_client=self.openpipe_reporting_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -110,7 +117,7 @@ class CompletionsWrapper(Completions):
                     pass
 
                 report(
-                    configured_client=self.openpipe_client,
+                    configured_client=self.openpipe_reporting_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -125,14 +132,22 @@ class CompletionsWrapper(Completions):
 
 
 class ChatWrapper(Chat):
-    def __init__(self, client: OriginalOpenAI, openpipe_client: OpenPipeApi) -> None:
+    def __init__(
+        self,
+        client: OriginalOpenAI,
+        openpipe_reporting_client: OpenPipeApi,
+        openpipe_completions_client: OriginalOpenAI,
+    ) -> None:
         super().__init__(client)
-        self.completions = CompletionsWrapper(client, openpipe_client)
+        self.completions = CompletionsWrapper(
+            client, openpipe_reporting_client, openpipe_completions_client
+        )
 
 
 class OpenAIWrapper(OriginalOpenAI):
     chat: ChatWrapper
-    openpipe_client: OpenPipeApi
+    openpipe_reporting_client: OpenPipeApi
+    openpipe_completions_client: OriginalOpenAI
 
     # Support auto-complete
     def __init__(
@@ -161,7 +176,22 @@ class OpenAIWrapper(OriginalOpenAI):
             _strict_response_validation=_strict_response_validation,
         )
 
-        self.openpipe_client = OpenPipeApi(token="")
-        configure_openpipe_client(self.openpipe_client, openpipe)
+        self.openpipe_reporting_client = OpenPipeApi(token="")
+        self.openpipe_completions_client = OriginalOpenAI(
+            api_key=api_key,
+            organization=organization,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            default_query=default_query,
+            http_client=http_client,
+            _strict_response_validation=_strict_response_validation,
+        )
+        configure_openpipe_clients(
+            self.openpipe_reporting_client, self.openpipe_completions_client, openpipe
+        )
 
-        self.chat = ChatWrapper(self, self.openpipe_client)
+        self.chat = ChatWrapper(
+            self, self.openpipe_reporting_client, self.openpipe_completions_client
+        )
