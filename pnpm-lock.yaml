@@ -186,8 +186,8 @@ importers:
         specifier: 4.24.1
         version: 4.24.1(encoding@0.1.13)
       openpipe:
-        specifier: file:.yalc/openpipe
-        version: file:app/.yalc/openpipe
+        specifier: link:../client-libs/typescript/dist
+        version: link:../client-libs/typescript/dist
       openskill:
         specifier: ^3.1.0
         version: 3.1.0
@@ -4065,14 +4065,6 @@ packages:
       - debug
     dev: true
 
-  /axios@0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
-    dependencies:
-      follow-redirects: 1.15.3(debug@4.3.2)
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /axios@1.6.2:
     resolution: {integrity: sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==}
     dependencies:
@@ -6651,7 +6643,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 20.4.10
+      '@types/node': 18.18.8
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -7584,15 +7576,6 @@ packages:
       define-lazy-prop: 2.0.0
       is-docker: 2.2.1
       is-wsl: 2.2.0
-    dev: false
-
-  /openai@3.3.0:
-    resolution: {integrity: sha512-uqxI/Au+aPRnsaQRe8CojU0eCR7I0mBiKjD3sNMzY6DaC1ZVrc85u98mtJW6voDug8fgGN+DIZmTDxTthxb7dQ==}
-    dependencies:
-      axios: 0.26.1
-      form-data: 4.0.0
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   /openai@4.24.1(encoding@0.1.13):
@@ -10129,17 +10112,6 @@ packages:
       immer: 10.0.2
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
-    dev: false
-
-  file:app/.yalc/openpipe:
-    resolution: {directory: app/.yalc/openpipe, type: directory}
-    name: openpipe
-    dependencies:
-      encoding: 0.1.13
-      form-data: 4.0.0
-      node-fetch: 2.6.12(encoding@0.1.13)
-      openai: 4.24.1(encoding@0.1.13)
-      openai-legacy: /openai@3.3.0
     dev: false
 
   github.com/OpenPipe/openapi-typescript-codegen/c5797a01a35f6058a36086ee2deefac5d8717ea9:
