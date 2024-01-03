@@ -361,7 +361,10 @@ def test_bad_openpipe_call():
     last_logged = (
         client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
     )
-    assert last_logged.error_message == "The model does not exist"
+    assert (
+        last_logged.error_message
+        == "The model `openpipe:gpt-3.5-turbo-blaster` does not exist"
+    )
     assert last_logged.status_code == 404
 
 

@@ -209,10 +209,7 @@ async def test_async_streaming_content_ft_35():
         model="openpipe:test-content-35",
         messages=[{"role": "system", "content": "count to 4"}],
         stream=True,
-        extra_headers={
-            "op-log-request": "true",
-            "op-tags": '{"promptId": "test_async_streaming_content_ft_35"}',
-        },
+        openpipe={"tags": {"promptId": "test_async_streaming_content_ft_35"}},
     )
 
     merged = None
@@ -338,14 +335,13 @@ async def test_async_with_tags():
     assert last_logged.tags["$sdk"] == "python"
 
 
-@pytest.mark.focus
-async def test_bad_openai_call():
+async def test_async_bad_openai_call():
     try:
-        await base_client.chat.completions.create(
+        await client.chat.completions.create(
             model="gpt-3.5-turbo-blaster",
             messages=[{"role": "system", "content": "count to 10"}],
             stream=True,
-            # openpipe={"tags": {"promptId": "test_bad_openai_call"}},
+            openpipe={"tags": {"promptId": "test_async_bad_openai_call"}},
         )
         assert False
     except Exception as e:
@@ -362,13 +358,13 @@ async def test_bad_openai_call():
     assert last_logged.status_code == 404
 
 
-async def test_bad_openpipe_call():
+async def test_async_bad_openpipe_call():
     try:
         await client.chat.completions.create(
             model="openpipe:gpt-3.5-turbo-blaster",
             messages=[{"role": "system", "content": "count to 10"}],
             stream=True,
-            openpipe={"tags": {"promptId": "test_bad_openpipe_call"}},
+            openpipe={"tags": {"promptId": "test_async_bad_openpipe_call"}},
         )
         assert False
     except Exception as e:
@@ -379,5 +375,35 @@ async def test_bad_openpipe_call():
     last_logged = (
         await client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
     )
-    assert last_logged.error_message == "The model does not exist"
+    assert (
+        last_logged.error_message
+        == "The model `openpipe:gpt-3.5-turbo-blaster` does not exist"
+    )
+    assert last_logged.status_code == 404
+
+
+async def test_async_bad_openai_call_base_sdk():
+    try:
+        await base_client.chat.completions.create(
+            model="gpt-3.5-turbo-blaster",
+            messages=[{"role": "system", "content": "count to 10"}],
+            stream=True,
+            extra_headers={
+                "op-log-request": "true",
+                "op-tags": '{"promptId": "test_async_bad_openai_call_base_sdk"}',
+            },
+        )
+        assert False
+    except Exception as e:
+        print(e)
+        pass
+
+    await asyncio.sleep(0.1)
+    last_logged = (
+        await client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
+    assert (
+        last_logged.error_message
+        == "404 The model `gpt-3.5-turbo-blaster` does not exist"
+    )
     assert last_logged.status_code == 404

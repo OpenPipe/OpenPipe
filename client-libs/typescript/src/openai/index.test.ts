@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { expect, test } from "vitest";
-import BaseOpenAI from "openai";
+import BaseOpenAI, { APIError } from "openai";
 import { sleep } from "openai/core";
 import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat/completions";
 import assert from "assert";
@@ -487,11 +487,32 @@ test("bad call", async () => {
     });
   } catch (e: unknown) {
     // @ts-expect-error need to check for error type
+    expect(e.error.message).toEqual("The model `gpt-3.5-turbo-buster` does not exist");
+    // @ts-expect-error need to check for error type
     assert("openpipe" in e);
     // @ts-expect-error need to check for error type
     await e.openpipe.reportingFinished;
     const lastLogged = await lastLoggedCall();
     expect(lastLogged?.errorMessage).toEqual("404 The model `gpt-3.5-turbo-buster` does not exist");
+    expect(lastLogged?.statusCode).toEqual(404);
+  }
+});
+
+test("bad call ft", async () => {
+  try {
+    await oaiClient.chat.completions.create({
+      model: "openpipe:gpt-3.5-turbo-buster",
+      messages: [{ role: "system", content: "count to 10" }],
+      openpipe: { tags: { promptId: "bad call ft" } },
+    });
+  } catch (e: unknown) {
+    assert(e instanceof APIError);
+    // @ts-expect-error need to check for error type
+    expect(e.error.message).toEqual("The model `openpipe:gpt-3.5-turbo-buster` does not exist");
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.errorMessage).toEqual(
+      "The model `openpipe:gpt-3.5-turbo-buster` does not exist",
+    );
     expect(lastLogged?.statusCode).toEqual(404);
   }
 });

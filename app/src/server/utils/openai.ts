@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import OpenAI, { type ClientOptions } from "openpipe-dev/src/openai";
+import { default as OriginalOpenAI } from "openai";
 import {
   type ChatCompletionChunk,
   type ChatCompletion,
@@ -57,7 +58,7 @@ export async function getOpenaiCompletion(
     throw new Error("No OpenAI API key found");
   }
 
-  const openai = new OpenAI({ apiKey: openaiApiKey });
+  const openai = new OriginalOpenAI({ apiKey: openaiApiKey });
 
   return await openai.chat.completions.create(input);
 }

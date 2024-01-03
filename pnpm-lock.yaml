@@ -243,8 +243,8 @@ importers:
         specifier: 1.12.2
         version: 1.12.2
       trpc-openapi:
-        specifier: github:OpenPipe/trpc-openapi#build
-        version: github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b(@trpc/server@10.26.0)(zod@3.22.4)
+        specifier: github:OpenPipe/trpc-openapi#extended-trpc-build
+        version: github.com/OpenPipe/trpc-openapi/e25a5dd240a5cd89e201226130fb4b99eef5df96(@trpc/server@10.26.0)(zod@3.22.4)
       tsx:
         specifier: ^3.12.7
         version: 3.12.7
@@ -7387,8 +7387,8 @@ packages:
     engines: {node: '>=10.5.0'}
     dev: false
 
-  /node-fetch-native@1.4.1:
-    resolution: {integrity: sha512-NsXBU0UgBxo2rQLOeWNZqS3fvflWePMECr8CoSWoSTqCqGbVVsvl9vZu1HfQicYN0g5piV9Gh8RTEvo/uP752w==}
+  /node-fetch-native@1.6.1:
+    resolution: {integrity: sha512-bW9T/uJDPAJB2YNYEpWzE54U5O3MQidXsOyTfnbKYtTtFexRvGzb1waphBN4ZwP6EcIvYYEOwW0b72BpAqydTw==}
     dev: false
 
   /node-fetch@2.6.12(encoding@0.1.13):
@@ -9500,7 +9500,7 @@ packages:
       consola: 3.2.3
       defu: 6.1.3
       mime: 3.0.0
-      node-fetch-native: 1.4.1
+      node-fetch-native: 1.6.1
       pathe: 1.1.1
     dev: false
 
@@ -10128,9 +10128,9 @@ packages:
       json-schema-ref-parser: 9.0.9
     dev: true
 
-  github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b(@trpc/server@10.26.0)(zod@3.22.4):
-    resolution: {tarball: https://codeload.github.com/OpenPipe/trpc-openapi/tar.gz/92019064df7cb33b30a59ac4b890c0759fd8774b}
-    id: github.com/OpenPipe/trpc-openapi/92019064df7cb33b30a59ac4b890c0759fd8774b
+  github.com/OpenPipe/trpc-openapi/e25a5dd240a5cd89e201226130fb4b99eef5df96(@trpc/server@10.26.0)(zod@3.22.4):
+    resolution: {tarball: https://codeload.github.com/OpenPipe/trpc-openapi/tar.gz/e25a5dd240a5cd89e201226130fb4b99eef5df96}
+    id: github.com/OpenPipe/trpc-openapi/e25a5dd240a5cd89e201226130fb4b99eef5df96
     name: trpc-openapi
     version: 1.2.0
     peerDependencies:

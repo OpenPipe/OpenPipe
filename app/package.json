@@ -107,7 +107,7 @@
     "recharts": "^2.7.2",
     "stream-buffers": "^3.0.2",
     "superjson": "1.12.2",
-    "trpc-openapi": "github:OpenPipe/trpc-openapi#build",
+    "trpc-openapi": "github:OpenPipe/trpc-openapi#extended-trpc-build",
     "tsx": "^3.12.7",
     "type-fest": "^4.0.0",
     "use-query-params": "^2.2.1",

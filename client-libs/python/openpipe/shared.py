@@ -30,6 +30,17 @@ def configure_openpipe_clients(
         completions_client.base_url = openpipe_options["base_url"]
 
 
+def get_extra_headers(create_kwargs, openpipe_options):
+    extra_headers = create_kwargs.pop("extra_headers", {})
+    # Default to true
+    if extra_headers.get("op-log-request", None) == None:
+        extra_headers["op-log-request"] = (
+            "false" if openpipe_options.get("log_request") == False else "true"
+        )
+    extra_headers["op-tags"] = json.dumps(_get_tags(openpipe_options))
+    return extra_headers
+
+
 def _get_tags(openpipe_options):
     tags = openpipe_options.get("tags") or {}
     tags["$sdk"] = "python"

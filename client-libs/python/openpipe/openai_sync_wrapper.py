@@ -14,6 +14,7 @@ import httpx
 from .merge_openai_chunks import merge_openai_chunks
 from .shared import (
     report,
+    get_extra_headers,
     get_chat_completion_json,
     configure_openpipe_clients,
 )
@@ -46,7 +47,7 @@ class CompletionsWrapper(Completions):
 
         if model.startswith("openpipe:"):
             return self.openpipe_completions_client.chat.completions.create(
-                **kwargs,
+                **kwargs, extra_headers=get_extra_headers(kwargs, openpipe_options)
             )
 
         try:
