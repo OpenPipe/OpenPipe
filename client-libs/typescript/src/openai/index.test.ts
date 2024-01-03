@@ -8,6 +8,7 @@ import assert from "assert";
 import OpenAI from "../openai";
 import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
+import { getTags } from "../shared";
 
 dotenv.config();
 
@@ -60,9 +61,10 @@ test("simple openai content call", async () => {
     model: "gpt-3.5-turbo",
     messages: [{ role: "system", content: "count to 3" }],
   };
+  const openpipeOptions = { tags: { promptId: "simple openai content call" } };
   const completion = await oaiClient.chat.completions.create({
     ...payload,
-    openpipe: { tags: { promptId: "simple openai content call" } },
+    openpipe: openpipeOptions,
   });
 
   await completion.openpipe?.reportingFinished;
@@ -70,7 +72,7 @@ test("simple openai content call", async () => {
   const lastLogged = await lastLoggedCall();
   expect(lastLogged?.reqPayload).toMatchObject(payload);
   expect(completion).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.tags).toMatchObject({ promptId: "simple openai content call" });
+  expect(lastLogged?.tags).toMatchObject(getTags(openpipeOptions));
 }, 10000);
 
 test("simple ft content call", async () => {
@@ -169,6 +171,7 @@ test("function call streaming", async () => {
     functions: [functionBody],
     stream: true,
   };
+  const openpipeOptions = { tags: { promptId: "function call streaming" } };
   const completion = await oaiClient.chat.completions.create({
     ...payload,
     openpipe: {

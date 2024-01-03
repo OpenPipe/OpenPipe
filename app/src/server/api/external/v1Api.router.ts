@@ -106,6 +106,8 @@ export const v1ApiRouter = createOpenApiRouter({
       let completion: ChatCompletion | Stream<ChatCompletionChunk>;
       let fineTune: FineTune | undefined = undefined;
 
+      const requestedAt = Date.now();
+
       if (inputPayload.model.startsWith("openpipe:")) {
         const modelSlug = inputPayload.model.replace("openpipe:", "");
         fineTune =
@@ -178,6 +180,8 @@ export const v1ApiRouter = createOpenApiRouter({
         const [recordStream, outputStream] = completion.tee();
         void recordUsage({
           projectId: key.projectId,
+          requestedAt,
+          receivedAt: Date.now(),
           inputPayload,
           completion: recordStream,
           logRequest,
@@ -188,6 +192,8 @@ export const v1ApiRouter = createOpenApiRouter({
       } else {
         void recordUsage({
           projectId: key.projectId,
+          requestedAt,
+          receivedAt: Date.now(),
           inputPayload,
           completion,
           logRequest,
