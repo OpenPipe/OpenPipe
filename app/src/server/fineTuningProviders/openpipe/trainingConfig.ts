@@ -9,7 +9,7 @@ const baseConfig: Partial<AxolotlConfig> = {
   tokenizer_type: "LlamaTokenizer",
   load_in_8bit: true,
   adapter: "lora",
-  lora_r: 32,
+  lora_r: 8,
   lora_alpha: 16,
   lora_dropout: 0.05,
   lora_target_linear: true,
