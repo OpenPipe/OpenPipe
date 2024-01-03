@@ -495,3 +495,71 @@ test("bad call", async () => {
     expect(lastLogged?.statusCode).toEqual(404);
   }
 });
+
+test("openai content call unusual tags", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+  const openpipeOptions = {
+    tags: {
+      promptId: "openai content call unusual tags",
+      numberTag: 1,
+      booleanTag: true,
+      nullTag: null,
+    },
+  };
+  const completion = await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: openpipeOptions,
+  });
+
+  await completion.openpipe?.reportingFinished;
+
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.reqPayload).toMatchObject(payload);
+  expect(completion).toMatchObject(lastLogged?.respPayload);
+
+  const { nullTag, ...expectedTags } = {
+    ...getTags(openpipeOptions),
+    numberTag: "1",
+    booleanTag: "true",
+    nullTag: undefined,
+  };
+
+  expect(lastLogged?.tags).toMatchObject(expectedTags);
+}, 10000);
+
+test("ft content call unusual tags", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "openpipe:test-content-mistral",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+  const openpipeOptions = {
+    tags: {
+      promptId: "ft content call unusual tags",
+      numberTag: 1,
+      booleanTag: true,
+      nullTag: null,
+    },
+  };
+  const completion = await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: openpipeOptions,
+  });
+
+  await sleep(100);
+  await completion.openpipe?.reportingFinished;
+  const lastLogged = await lastLoggedCall();
+  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+  expect(completion).toMatchObject(lastLogged?.respPayload);
+
+  const { nullTag, ...expectedTags } = {
+    ...getTags(openpipeOptions),
+    numberTag: "1",
+    booleanTag: "true",
+    nullTag: undefined,
+  };
+
+  expect(lastLogged?.tags).toMatchObject(expectedTags);
+}, 100000);

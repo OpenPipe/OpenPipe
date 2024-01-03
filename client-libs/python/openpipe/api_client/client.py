@@ -20,6 +20,7 @@ from .types.create_chat_completion_request_tool_choice import CreateChatCompleti
 from .types.create_chat_completion_request_tools_item import CreateChatCompletionRequestToolsItem
 from .types.create_chat_completion_response import CreateChatCompletionResponse
 from .types.local_testing_only_get_latest_logged_call_response import LocalTestingOnlyGetLatestLoggedCallResponse
+from .types.report_request_tags_value import ReportRequestTagsValue
 from .types.report_response import ReportResponse
 
 try:
@@ -177,7 +178,7 @@ class OpenPipeApi:
         resp_payload: typing.Optional[typing.Any] = OMIT,
         status_code: typing.Optional[float] = OMIT,
         error_message: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Dict[str, str]] = OMIT,
+        tags: typing.Optional[typing.Dict[str, ReportRequestTagsValue]] = OMIT,
     ) -> ReportResponse:
         """
         Report an API call
@@ -195,7 +196,7 @@ class OpenPipeApi:
 
             - error_message: typing.Optional[str]. User-friendly error message
 
-            - tags: typing.Optional[typing.Dict[str, str]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+            - tags: typing.Optional[typing.Dict[str, ReportRequestTagsValue]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
         ---
         from OpenPipe.client import OpenPipeApi
 
@@ -401,7 +402,7 @@ class AsyncOpenPipeApi:
         resp_payload: typing.Optional[typing.Any] = OMIT,
         status_code: typing.Optional[float] = OMIT,
         error_message: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Dict[str, str]] = OMIT,
+        tags: typing.Optional[typing.Dict[str, ReportRequestTagsValue]] = OMIT,
     ) -> ReportResponse:
         """
         Report an API call
@@ -419,7 +420,7 @@ class AsyncOpenPipeApi:
 
             - error_message: typing.Optional[str]. User-friendly error message
 
-            - tags: typing.Optional[typing.Dict[str, str]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+            - tags: typing.Optional[typing.Dict[str, ReportRequestTagsValue]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
         ---
         from OpenPipe.client import AsyncOpenPipeApi
 
