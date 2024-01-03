@@ -21,6 +21,8 @@ import { type BaseModel } from "~/server/fineTuningProviders/types";
 
 export const recordUsage = async ({
   projectId,
+  requestedAt,
+  receivedAt,
   inputPayload,
   completion,
   logRequest,
@@ -28,6 +30,8 @@ export const recordUsage = async ({
   tags,
 }: {
   projectId: string;
+  requestedAt: number;
+  receivedAt: number;
   inputPayload: z.infer<typeof chatCompletionInput>;
   completion: unknown;
   logRequest?: boolean;
@@ -77,7 +81,8 @@ export const recordUsage = async ({
     await recordLoggedCall({
       projectId,
       usage,
-      requestedAt: Date.now(),
+      requestedAt,
+      receivedAt,
       reqPayload: inputPayload,
       respPayload: completion,
       tags,
