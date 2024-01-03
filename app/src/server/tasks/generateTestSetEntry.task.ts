@@ -60,12 +60,16 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
 
       let fineTune;
       if (!isComparisonModel(modelId)) {
-        fineTune = typedFineTune(
-          await prisma.fineTune.findUniqueOrThrow({
+        fineTune = await prisma.fineTune
+          .findUnique({
             where: { id: modelId },
-          }),
-        );
+          })
+          .then((ft) => ft && typedFineTune(ft));
       }
+
+      // If the fine-tune was deleted then we don't need to generate a test set
+      // entry
+      if (!fineTune && !isComparisonModel(modelId)) return;
 
       const datasetEntry = typedDatasetEntry(rawDatasetEntry);
 
