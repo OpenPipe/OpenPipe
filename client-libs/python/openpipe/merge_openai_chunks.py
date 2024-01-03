@@ -6,6 +6,9 @@ from openai.types.chat import (
     ChatCompletionMessageToolCall,
 )
 from openai.types.chat.chat_completion import Choice
+from openai.types.chat.chat_completion_message import FunctionCall
+from openai.types.chat.chat_completion_message_tool_call import Function
+from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
 
 
 def merge_openai_chunks(
@@ -47,13 +50,16 @@ def merge_openai_chunks(
                 )
             if choice.delta and choice.delta.tool_calls:
                 tool_calls = base_choice.message.tool_calls or []
-                tool_call_delta = choice.delta.tool_calls[0]
+                tool_call_delta: ChoiceDeltaToolCall = choice.delta.tool_calls[0]
                 if tool_call_delta.function.name:
                     tool_calls.append(
                         ChatCompletionMessageToolCall(
                             id=tool_call_delta.id,
                             type="function",
-                            function=tool_call_delta.function.copy(),
+                            function=Function(
+                                name=tool_call_delta.function.name,
+                                arguments=tool_call_delta.function.arguments,
+                            ),
                         )
                     )
                 else:
@@ -62,17 +68,25 @@ def merge_openai_chunks(
                     ].function.arguments += tool_call_delta.function.arguments
                 base_choice.message.tool_calls = tool_calls
         else:
+            function_call = None
+            if choice.delta.function_call:
+                function_call = FunctionCall(
+                    name=choice.delta.function_call.name,
+                    arguments=choice.delta.function_call.arguments,
+                )
             base_choices.append(
                 Choice(
                     index=choice.index,
                     message=ChatCompletionMessage(
                         role="assistant",
                         content=choice.delta.content,
-                        function_call=choice.delta.function_call,
+                        function_call=function_call,
                         tool_calls=choice.delta.tool_calls,
                     ),
-                    # This is a hack to get around the fact that the Choice class requires a finish_reason
+                    # This is a hack to get around the fact that the Choice class requires a finish_reason.
+                    # finish_reason will be overwritten when one is provided.
                     finish_reason="length",
+                    logprobs=choice.logprobs,
                 )
             )
     base.choices = base_choices
