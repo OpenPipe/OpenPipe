@@ -132,7 +132,7 @@ export const v1ApiRouter = createOpenApiRouter({
           }
         }
 
-        let completion: ChatCompletion | Stream<ChatCompletionChunk> | undefined = undefined;
+        let completion: ChatCompletion | Stream<ChatCompletionChunk>;
         let fineTune: FineTune | undefined = undefined;
 
         if (isFineTune) {
