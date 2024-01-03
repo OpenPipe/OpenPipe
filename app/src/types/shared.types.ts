@@ -138,7 +138,7 @@ const chatCompletionInputStreaming = z.object({
 
 const chatCompletionInputNonStreaming = z.object({
   ...chatCompletionInputBase.shape,
-  stream: z.literal(false),
+  stream: z.literal(false).default(false),
 }) satisfies z.ZodType<ChatCompletionCreateParams, any, any>;
 
 export const chatCompletionInput = z.union([
