@@ -185,6 +185,9 @@ importers:
       openai:
         specifier: 4.24.1
         version: 4.24.1(encoding@0.1.13)
+      openpipe-dev:
+        specifier: workspace:^
+        version: link:../client-libs/typescript
       openskill:
         specifier: ^3.1.0
         version: 3.1.0
@@ -6640,7 +6643,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 18.18.8
+      '@types/node': 20.4.10
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
