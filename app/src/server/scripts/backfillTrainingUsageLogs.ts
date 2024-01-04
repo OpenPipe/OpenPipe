@@ -90,6 +90,8 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
         inputTokens: totalInputTokens,
         outputTokens: totalOutputTokens,
         cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        createdAt: typedFT.deploymentFinishedAt!,
       },
     });
   }
