@@ -11,8 +11,8 @@ export type AtLeastOne<T> = readonly [T, ...T[]];
 
 export const functionCallOutput = z
   .object({
-    name: z.string(),
-    arguments: z.string(),
+    name: z.string().default(""),
+    arguments: z.string().default(""),
   })
   .optional();
 
@@ -46,8 +46,8 @@ export const toolChoiceInput = z
     z.literal("none"),
     z.literal("auto"),
     z.object({
-      type: z.literal("function"),
-      function: z.object({ name: z.string() }),
+      type: z.literal("function").default("function"),
+      function: z.object({ name: z.string() }).default({ name: "" }),
     }),
   ])
   .optional();
@@ -63,7 +63,7 @@ export const toolsInput = z
 
 const chatCompletionSystemMessageParamSchema = z.object({
   role: z.literal("system"),
-  content: z.string(),
+  content: z.string().default(""),
 });
 
 const chatCompletionContentPartSchema = z.union([
@@ -82,7 +82,7 @@ const chatCompletionContentPartSchema = z.union([
 
 const chatCompletionUserMessageParamSchema = z.object({
   role: z.literal("user"),
-  content: z.union([z.string(), z.array(chatCompletionContentPartSchema)]),
+  content: z.union([z.string(), z.array(chatCompletionContentPartSchema)]).default(""),
 });
 
 const chatCompletionAssistantMessageParamSchema = z.object({
@@ -94,7 +94,7 @@ const chatCompletionAssistantMessageParamSchema = z.object({
 
 const chatCompletionToolMessageParamSchema = z.object({
   role: z.literal("tool"),
-  content: z.string(),
+  content: z.string().default(""),
   tool_call_id: z.string(),
 });
 
@@ -186,7 +186,8 @@ export const chatCompletionOutput = z.object({
             )
             .nullable(),
         })
-        .nullable(),
+        .nullable()
+        .default(null),
     }),
   ),
   usage: z
