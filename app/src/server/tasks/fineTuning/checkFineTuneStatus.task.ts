@@ -1,4 +1,4 @@
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { startTestJobs } from "~/server/utils/startTestJobs";
 import { trainerv1 } from "~/server/modal-rpc/clients";
@@ -7,6 +7,8 @@ import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalyti
 // import dayjs duration
 import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
+import { sql } from "kysely";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 
 export const checkFineTuneStatus = defineTask({
   id: "checkFineTuneStatus",
@@ -33,23 +35,45 @@ export const checkFineTuneStatus = defineTask({
               where: { id: ft.id },
             });
             if (!currentFineTune) return;
-            if (currentFineTune.huggingFaceModelId) {
+            const typedFT = typedFineTune(currentFineTune);
+            if (typedFT.huggingFaceModelId) {
               // this kicks off the upload of the model weights and returns almost immediately.
               // We currently don't check whether the weights actually uploaded, probably should
               // add that at some point!
-              await trainerv1.default.persistModelWeights(currentFineTune.huggingFaceModelId);
+              await trainerv1.default.persistModelWeights(typedFT.huggingFaceModelId);
             }
 
             await prisma.fineTune.update({
-              where: { id: currentFineTune.id },
+              where: { id: typedFT.id },
               data: {
                 trainingFinishedAt: new Date(),
                 status: "DEPLOYED",
               },
             });
 
-            captureFineTuneTrainingFinished(currentFineTune.projectId, currentFineTune.slug, true);
+            captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
 
+            const trainingStats = await kysely
+              .selectFrom("FineTuneTrainingEntry as ftte")
+              .where("ftte.fineTuneId", "=", typedFT.id)
+              .innerJoin("DatasetEntry as de", "ftte.datasetEntryId", "de.id")
+              .select(() => [
+                sql<number>`sum(ftte.prunedInputTokens)`.as("totalInputTokens"),
+                sql<number>`sum(de.outputTokens)`.as("totalOutputTokens"),
+              ])
+              .executeTakeFirst();
+
+            const totalInputTokens = trainingStats?.totalInputTokens ?? 0;
+            const totalOutputTokens = trainingStats?.totalOutputTokens ?? 0;
+
+            await prisma.usageLog.create({
+              data: {
+                fineTuneId: typedFT.id,
+                inputTokens: totalInputTokens,
+                outputTokens: totalOutputTokens,
+                cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
+              },
+            });
             await startTestJobs(currentFineTune.datasetId, currentFineTune.id);
           } else if (resp.status === "error") {
             await prisma.fineTune.update({

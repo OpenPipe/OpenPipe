@@ -3,7 +3,7 @@ import { sql, type Expression, type SqlBool } from "kysely";
 import { prisma, kysely } from "~/server/db";
 import { escapeString, escapeLikeString } from "~/utils/pruningRules";
 
-export const updatePruningRuleMatches = async (
+export const updateDatasetPruningRuleMatches = async (
   datasetId: string,
   createdAtCutoff: Date,
   datasetEntryIds?: string[],

@@ -8,7 +8,7 @@ import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import {
   copyPruningRulesForFineTune,
   insertTrainingDataPruningRuleMatches,
-  updatePruningRuleMatches,
+  updateDatasetPruningRuleMatches,
 } from "./updatePruningRuleMatches";
 
 const input1: ChatCompletionMessageParam[] = [
@@ -118,7 +118,7 @@ it("matches basic string", async () => {
     createPruningRule(datasetId, "The user is testing multiple scenarios against the same prompt"),
   ]);
 
-  await updatePruningRuleMatches(datasetId, new Date(0));
+  await updateDatasetPruningRuleMatches(datasetId, new Date(0));
 
   // Make sure there are a total of 4 scenarios for exp2
   expect(
@@ -141,7 +141,7 @@ it("matches string with newline", async () => {
     ),
   ]);
 
-  await updatePruningRuleMatches(datasetId, new Date(0));
+  await updateDatasetPruningRuleMatches(datasetId, new Date(0));
 
   // Make sure there are a total of 4 scenarios for exp2
   expect(
@@ -165,7 +165,7 @@ describe("fine tune pruning rules", () => {
       ),
     ]);
 
-    await updatePruningRuleMatches(datasetId, new Date(0));
+    await updateDatasetPruningRuleMatches(datasetId, new Date(0));
 
     const fineTune = await createFineTune(project.id, datasetId);
 
@@ -206,7 +206,7 @@ describe("fine tune pruning rules", () => {
       ),
     ]);
 
-    await updatePruningRuleMatches(datasetId, new Date(0));
+    await updateDatasetPruningRuleMatches(datasetId, new Date(0));
 
     const fineTune = await createFineTune(project.id, datasetId);
 

@@ -8,7 +8,7 @@ import { prisma } from "~/server/db";
 import { downloadBlobToStrings } from "~/utils/azure/server";
 import { prepareDatasetEntriesForImport } from "../utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "../utils/startTestJobs";
-import { updatePruningRuleMatches } from "../utils/updatePruningRuleMatches";
+import { updateDatasetPruningRuleMatches } from "../utils/updatePruningRuleMatches";
 import defineTask from "./defineTask";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
 
@@ -105,7 +105,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
         data: chunk,
       });
 
-      await updatePruningRuleMatches(
+      await updateDatasetPruningRuleMatches(
         datasetFileUpload.datasetId,
         new Date(0),
         chunk.map((entry) => entry.id),
