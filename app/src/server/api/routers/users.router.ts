@@ -152,19 +152,28 @@ export const usersRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      await prisma.projectUser.create({
-        data: {
-          projectId: invitation.projectId,
-          userId: ctx.session.user.id,
-          role: invitation.role,
-        },
-      });
-
-      await prisma.userInvitation.delete({
-        where: {
-          invitationToken: input.invitationToken,
-        },
-      });
+      await prisma.$transaction([
+        prisma.projectUser.create({
+          data: {
+            projectId: invitation.projectId,
+            userId: ctx.session.user.id,
+            role: invitation.role,
+          },
+        }),
+        prisma.userInvitation.delete({
+          where: {
+            invitationToken: input.invitationToken,
+          },
+        }),
+        prisma.user.update({
+          where: {
+            id: ctx.session.user.id,
+          },
+          data: {
+            lastViewedProjectId: invitation.projectId,
+          },
+        }),
+      ]);
 
       return success(invitation.project.slug);
     }),
@@ -240,6 +249,26 @@ export const usersRouter = createTRPCRouter({
             projectId: input.projectId,
             userId: input.userId,
           },
+        },
+      });
+
+      return success();
+    }),
+  updateLastViewedProject: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      requireNothing(ctx);
+
+      await prisma.user.update({
+        where: {
+          id: ctx.session.user.id,
+        },
+        data: {
+          lastViewedProjectId: input.projectId,
         },
       });
 

@@ -21,7 +21,7 @@ import { type Project } from "@prisma/client";
 
 import { api } from "~/utils/api";
 import NavSidebarOption from "./NavSidebarOption";
-import { useHandledAsyncCallback, useProjects, useSelectedProject } from "~/utils/hooks";
+import { useHandledAsyncCallback, useProjectList, useSelectedProject } from "~/utils/hooks";
 import { useRouter } from "next/router";
 import { useSession, signOut } from "next-auth/react";
 
@@ -29,11 +29,19 @@ export default function ProjectMenu() {
   const router = useRouter();
   const utils = api.useContext();
 
-  const projects = useProjects().data;
+  const projectList = useProjectList().data;
 
   const selectedProject = useSelectedProject().data;
 
   const popover = useDisclosure();
+
+  const updateMutation = api.users.updateLastViewedProject.useMutation();
+  const [updateLastViewedProject] = useHandledAsyncCallback(
+    async (projectId: string) => {
+      await updateMutation.mutateAsync({ projectId });
+    },
+    [updateMutation],
+  );
 
   const createMutation = api.projects.create.useMutation();
   const [createProject, isLoading] = useHandledAsyncCallback(async () => {
@@ -108,12 +116,15 @@ export default function ProjectMenu() {
               Your Projects
             </Text>
             <VStack spacing={0} w="full" px={1}>
-              {projects?.map((proj) => (
+              {projectList?.projects?.map((proj) => (
                 <ProjectOption
                   key={proj.id}
                   proj={proj}
                   isActive={proj.id === selectedProject?.id}
-                  onClose={popover.onClose}
+                  onClick={() => {
+                    updateLastViewedProject(proj.id);
+                    popover.onClose();
+                  }}
                 />
               ))}
               <HStack
@@ -158,17 +169,17 @@ export default function ProjectMenu() {
 const ProjectOption = ({
   proj,
   isActive,
-  onClose,
+  onClick,
 }: {
   proj: Project;
   isActive: boolean;
-  onClose: () => void;
+  onClick: () => void;
 }) => {
   return (
     <HStack
       as={Link}
       href={{ pathname: "/p/[projectSlug]/request-logs", query: { projectSlug: proj.slug } }}
-      onClick={onClose}
+      onClick={onClick}
       w="full"
       justifyContent="space-between"
       _hover={{ bgColor: "gray.200", textDecoration: "none" }}
