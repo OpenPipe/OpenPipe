@@ -5,6 +5,7 @@ import {
   convertFunctionsToTools,
   convertFunctionMessagesToToolCall,
 } from "~/server/utils/convertFunctionCalls";
+import { type TypedFineTune } from "~/types/dbColumns.types";
 
 const FUNCTION_CALL_TAG = "<function>";
 const FUNCTION_ARGS_TAG = "<arguments>";
@@ -65,33 +66,35 @@ export const serializeChatInput = (
     tool_choice?: ChatCompletionCreateParams["tool_choice"] | null;
     tools?: ChatCompletionCreateParams["tools"] | null;
   },
-  fineTune: { pipelineVersion: number; id?: string },
-) => {
+  fineTune: { pipelineVersion: TypedFineTune["pipelineVersion"]; id?: string },
+): string => {
   const convertedMessages = convertFunctionMessagesToToolCall(input.messages);
-  if (fineTune.pipelineVersion === 1) {
-    return JSON.stringify(convertedMessages);
-  } else if (fineTune.pipelineVersion === 2) {
-    let functions: string[] | null = null;
-    const toolChoice = input.tool_choice ?? convertFunctionCallToToolChoice(input.function_call);
-    const tools = input.tools?.length
-      ? input.tools
-      : convertFunctionsToTools(input.functions ?? undefined);
-    if (toolChoice === "none") {
-      functions = null;
-    } else if (
-      isObject(toolChoice) &&
-      isObject(toolChoice.function) &&
-      "name" in toolChoice.function
-    ) {
-      functions = [toolChoice.function.name];
-    } else if (tools) {
-      functions = tools?.map((tool) => tool.function.name) ?? [];
-    }
-    const toSerialize = functions
-      ? { messages: convertedMessages, functions }
-      : { messages: convertedMessages };
-    return JSON.stringify(toSerialize);
-  } else {
-    throw new Error(`Invalid pipeline version for finetune ${fineTune?.id ?? "unknown"}`);
+  switch (fineTune.pipelineVersion) {
+    case 0:
+      throw new Error(`Invalid pipeline version for finetune ${fineTune?.id ?? "unknown"}`);
+    case 1:
+      return JSON.stringify(convertedMessages);
+    case 2:
+    case 3:
+      let functions: string[] | null = null;
+      const toolChoice = input.tool_choice ?? convertFunctionCallToToolChoice(input.function_call);
+      const tools = input.tools?.length
+        ? input.tools
+        : convertFunctionsToTools(input.functions ?? undefined);
+      if (toolChoice === "none") {
+        functions = null;
+      } else if (
+        isObject(toolChoice) &&
+        isObject(toolChoice.function) &&
+        "name" in toolChoice.function
+      ) {
+        functions = [toolChoice.function.name];
+      } else if (tools) {
+        functions = tools?.map((tool) => tool.function.name) ?? [];
+      }
+      const toSerialize = functions
+        ? { messages: convertedMessages, functions }
+        : { messages: convertedMessages };
+      return JSON.stringify(toSerialize);
   }
 };

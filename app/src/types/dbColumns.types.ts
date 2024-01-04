@@ -58,7 +58,7 @@ const fineTuneSchema = z.intersection(
   baseModel,
   z
     .object({
-      pipelineVersion: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+      pipelineVersion: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).optional(),
       trainingConfig: axolotlConfig.optional().nullable(),
       trainingConfigOverrides: axolotlConfig.partial().optional().nullable(),
     })

@@ -7,7 +7,7 @@ import { captureException } from "@sentry/node";
 import { type FineTune } from "@prisma/client";
 import { ExtendedTRPCError } from "trpc-openapi";
 
-import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
+import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "~/server/db";
 import {
   chatCompletionInputReqPayload,
@@ -159,7 +159,7 @@ export const v1ApiRouter = createOpenApiRouter({
           }
 
           try {
-            completion = await getCompletion2(typedFT, inputPayload);
+            completion = await getCompletion(typedFT, inputPayload);
           } catch (error: unknown) {
             console.error(error);
             throw new TRPCError({
