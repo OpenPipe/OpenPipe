@@ -31,7 +31,8 @@ export const projectsRouter = createTRPCRouter({
         eb.onRef("pu.projectId", "=", "p.id").on("pu.userId", "=", userId),
       )
       .selectAll("p")
-      .orderBy("pu.createdAt", "asc")
+      .orderBy("pu.role", "asc")
+      .orderBy("p.createdAt", "asc")
       .execute();
 
     if (!projects.length) {
