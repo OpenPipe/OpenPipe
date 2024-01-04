@@ -9,6 +9,15 @@ from .api import (
 from typing import Union
 from ..shared import merged_model_cache_dir, lora_model_cache_dir, require_auth
 import fastapi
+import logging
+
+logging.getLogger("vllm").setLevel(logging.ERROR)
+
+logging.basicConfig(
+    format="[%(asctime)s] [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+)
 
 
 def cache_base_model_weights():
@@ -19,7 +28,7 @@ def cache_base_model_weights():
     snapshot_download("meta-llama/Llama-2-13b-hf")
 
 
-image = (
+vllm_image = (
     modal.Image.from_registry(
         "nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04",
         add_python="3.10",
@@ -44,13 +53,14 @@ volume = modal.Volume.from_name("openpipe-model-cache")
 
 APP_NAME = "lora-inference-v1"
 
-stub = modal.Stub(APP_NAME, image=image)
+stub = modal.Stub(APP_NAME)
 stub.volume = volume
+stub.vllm_image = vllm_image
 
 
 MAX_INPUTS = 20
 
-with image.run_inside():
+with vllm_image.run_inside():
     from vllm import SamplingParams
     from vllm.utils import random_uuid
     from vllm.outputs import RequestOutput
@@ -58,15 +68,6 @@ with image.run_inside():
     from vllm.engine.async_llm_engine import AsyncLLMEngine
     from vllm.engine.arg_utils import AsyncEngineArgs
     from vllm.lora.request import LoRARequest
-    import logging
-
-    logging.getLogger("vllm").setLevel(logging.ERROR)
-
-    logging.basicConfig(
-        format="[%(asctime)s] [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.INFO,
-    )
 
 
 @stub.cls(
@@ -77,6 +78,7 @@ with image.run_inside():
     volumes={"/models": volume},
     # Make sure we have at least 100gb of system ram to cache S-LoRAs
     memory=100 * 1000,
+    image=vllm_image,
 )
 class LoraBaseModel:
     def __init__(self, base_model_id: str):
@@ -146,7 +148,7 @@ web_app = fastapi.FastAPI(title=APP_NAME)
 
 
 @stub.function(
-    allow_concurrent_inputs=500,
+    allow_concurrent_inputs=20,
     timeout=1 * 60 * 60,
     keep_warm=1,
     secret=modal.Secret.from_name("openpipe"),
