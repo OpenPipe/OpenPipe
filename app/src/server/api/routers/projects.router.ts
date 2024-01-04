@@ -1,5 +1,6 @@
 import { type Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { sql } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -31,7 +32,14 @@ export const projectsRouter = createTRPCRouter({
         eb.onRef("pu.projectId", "=", "p.id").on("pu.userId", "=", userId),
       )
       .selectAll("p")
-      .orderBy("pu.createdAt", "asc")
+      .orderBy(
+        () =>
+          sql`CASE
+        WHEN "pu"."role" = 'VIEWER' THEN 1
+        ELSE 0
+      END`,
+      )
+      .orderBy("p.createdAt", "asc")
       .execute();
 
     if (!projects.length) {
