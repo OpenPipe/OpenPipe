@@ -112,7 +112,7 @@ export const usePageParams = () => {
   return { page, pageSize, setPageParams };
 };
 
-export const useProjects = api.projects.list.useQuery;
+export const useProjectList = api.projects.list.useQuery;
 
 export const useSelectedProject = () => {
   const router = useRouter();

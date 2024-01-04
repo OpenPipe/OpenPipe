@@ -2,24 +2,25 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 
-import { useProjects } from "~/utils/hooks";
+import { useProjectList } from "~/utils/hooks";
 
 const Home = () => {
   const router = useRouter();
 
   const session = useSession();
 
-  const projects = useProjects().data;
-
-  const firstProjectSlug = projects?.[0]?.slug;
+  const projectList = useProjectList().data;
 
   useEffect(() => {
+    if (!projectList) return;
+    const { projects, lastViewedProjectSlug } = projectList;
+    const redirectProjectSlug = lastViewedProjectSlug || projects[0]?.slug;
     const redirect = async () => {
       // Redirect to the first project's request logs
-      if (firstProjectSlug) {
+      if (redirectProjectSlug) {
         await router.push({
           pathname: "/p/[projectSlug]/request-logs",
-          query: { projectSlug: firstProjectSlug },
+          query: { projectSlug: redirectProjectSlug },
         });
       } else {
         // User is not logged in
@@ -28,7 +29,7 @@ const Home = () => {
     };
 
     if (session.status !== "loading") void redirect();
-  }, [session.status, router, firstProjectSlug]);
+  }, [session.status, router, projectList]);
 
   return null;
 };

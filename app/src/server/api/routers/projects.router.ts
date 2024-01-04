@@ -26,6 +26,17 @@ export const projectsRouter = createTRPCRouter({
       return null;
     }
 
+    const lastViewedProjectId = (
+      await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          lastViewedProjectId: true,
+        },
+      })
+    )?.lastViewedProjectId;
+
     const projects = await kysely
       .selectFrom("Project as p")
       .innerJoin("ProjectUser as pu", (eb) =>
@@ -39,7 +50,7 @@ export const projectsRouter = createTRPCRouter({
         ELSE 0
       END`,
       )
-      .orderBy("p.createdAt", "asc")
+      .orderBy("pu.createdAt", "desc")
       .execute();
 
     if (!projects.length) {
@@ -48,7 +59,13 @@ export const projectsRouter = createTRPCRouter({
       projects.push(personalProject);
     }
 
-    return projects;
+    const lastViewedProjectSlug = projects.find((project) => project.id === lastViewedProjectId)
+      ?.slug;
+
+    return {
+      projects,
+      lastViewedProjectSlug,
+    };
   }),
   get: protectedProcedure
     .input(z.object({ projectSlug: z.string() }))
@@ -222,6 +239,14 @@ export const projectsRouter = createTRPCRouter({
             projectId: newProjectId,
             apiKey: generateApiKey(),
             readOnly: true,
+          },
+        }),
+        prisma.user.update({
+          where: {
+            id: ctx.session.user.id,
+          },
+          data: {
+            lastViewedProjectId: newProjectId,
           },
         }),
       ]);
