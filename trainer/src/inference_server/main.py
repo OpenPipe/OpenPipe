@@ -9,11 +9,16 @@ from .api import (
 from typing import Union
 from ..shared import merged_model_cache_dir
 import os
+import logging
 
-from concurrent.futures import ThreadPoolExecutor
+logging.basicConfig(
+    format="[%(asctime)s] [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+)
 
 
-image = (
+vllm_image = (
     modal.Image.from_registry(
         "nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04",
         add_python="3.10",
@@ -32,25 +37,20 @@ volume = modal.Volume.from_name("openpipe-model-cache")
 
 APP_NAME = "inference-server-v1"
 
-stub = modal.Stub(APP_NAME, image=image)
+stub = modal.Stub(APP_NAME)
 stub.volume = volume
+stub.vllm_image = vllm_image
 
-with image.run_inside():
+with vllm_image.run_inside():
     from vllm import SamplingParams
     from vllm.utils import random_uuid
     from vllm.outputs import RequestOutput
 
     from vllm.engine.async_llm_engine import AsyncLLMEngine
     from vllm.engine.arg_utils import AsyncEngineArgs
-    import logging
+    from concurrent.futures import ThreadPoolExecutor
 
     logging.getLogger("vllm").setLevel(logging.ERROR)
-
-    logging.basicConfig(
-        format="[%(asctime)s] [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.INFO,
-    )
 
 
 def cache_model_weights(hf_model_id: str, cache_dir: str):
@@ -95,6 +95,7 @@ def read_all_files(directory):
     allow_concurrent_inputs=40,
     timeout=1 * 60 * 60,
     volumes={"/models": volume},
+    image=vllm_image,
 )
 class Model:
     def __init__(self, huggingface_model_id: str):
@@ -150,7 +151,7 @@ class Model:
 
 # TODO: convert this to a FastAPI endpoint like the trainer so we can codegen a
 # client with nice types.
-@stub.function(timeout=1 * 60 * 60, allow_concurrent_inputs=500)
+@stub.function(timeout=1 * 60 * 60, allow_concurrent_inputs=20)
 @modal.web_endpoint(method="POST", label=APP_NAME)
 async def generate(request: Input) -> Output:
     logging.info(f"Generating for model {request.model}")
