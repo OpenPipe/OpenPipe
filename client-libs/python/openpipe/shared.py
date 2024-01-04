@@ -13,6 +13,7 @@ def configure_openpipe_clients(
     completions_client: Union[OpenAI, AsyncOpenAI],
     openpipe_options={},
 ):
+    completions_client.base_url = "https://app.openpipe.ai/api/v1"
     if os.environ.get("OPENPIPE_API_KEY"):
         reporting_client._client_wrapper._token = os.environ["OPENPIPE_API_KEY"]
         completions_client.api_key = os.environ["OPENPIPE_API_KEY"]

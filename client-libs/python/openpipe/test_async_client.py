@@ -335,6 +335,18 @@ async def test_async_with_tags():
     assert last_logged.tags["$sdk"] == "python"
 
 
+async def test_async_default_base_url():
+    default_client = AsyncOpenAI(api_key=os.environ["OPENPIPE_API_KEY"])
+
+    completion = await default_client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=[{"role": "system", "content": "count to 10"}],
+        openpipe={"tags": {"promptId": "test_async_default_base_url"}},
+    )
+
+    assert completion.choices[0].message.content != None
+
+
 async def test_async_bad_openai_call():
     try:
         await client.chat.completions.create(
