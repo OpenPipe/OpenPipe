@@ -11,8 +11,8 @@ export type AtLeastOne<T> = readonly [T, ...T[]];
 
 export const functionCallOutput = z
   .object({
-    name: z.string(),
-    arguments: z.string(),
+    name: z.string().default(""),
+    arguments: z.string().default(""),
   })
   .optional();
 
