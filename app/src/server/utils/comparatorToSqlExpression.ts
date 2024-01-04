@@ -30,11 +30,13 @@ export const dateComparatorToSqlExpression = (
   const [start, end] = value;
   let startDate: string;
   let endDate: string;
-  try {
-    startDate = new Date(start).toISOString();
-    endDate = new Date(end).toISOString();
-  } catch (e) {
-    throw new Error("Failed to parse start and end dates");
+  if (comparator === "BEFORE" || comparator === "AFTER" || comparator === "RANGE") {
+    try {
+      startDate = new Date(start).toISOString();
+      endDate = new Date(end).toISOString();
+    } catch (e) {
+      throw new Error("Failed to parse start and end dates");
+    }
   }
   return (reference: RawBuilder<unknown>): Expression<SqlBool> => {
     switch (comparator) {

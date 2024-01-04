@@ -172,9 +172,10 @@ export default function Settings() {
             <VStack alignItems="flex-start">
               <Subtitle>OpenAI API Key</Subtitle>
               <Text fontSize="sm">
-                Add your OpenAI API key to fine-tune GPT-3.5 Turbo models through OpenPipe. This key
-                is not necessary to use OpenPipe with OpenAI base models such as GPT-4 or GPT-3.5
-                Turbo or fine-tuned Llama2 models.
+                Add your OpenAI API key to fine-tune GPT-3.5 Turbo models through OpenPipe, or to
+                run your OpenAI calls through OpenPipe servers. This key is not necessary to
+                asynchronously collect OpenAI logs or to run inference on fine-tuned Llama2 and
+                Mistral models.
               </Text>
             </VStack>
             <OpenaiApiKeyDisplay />
