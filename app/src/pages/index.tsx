@@ -12,24 +12,25 @@ const Home = () => {
   const projectList = useProjectList().data;
 
   useEffect(() => {
-    if (!projectList) return;
-    const { projects, lastViewedProjectSlug } = projectList;
-    const redirectProjectSlug = lastViewedProjectSlug || projects[0]?.slug;
-    const redirect = async () => {
-      // Redirect to the first project's request logs
-      if (redirectProjectSlug) {
-        await router.push({
-          pathname: "/p/[projectSlug]/request-logs",
-          query: { projectSlug: redirectProjectSlug },
-        });
-      } else {
-        // User is not logged in
-        await router.push("/account/signin");
-      }
+    if (session.status === "loading") return;
+
+    const redirectProject = async () => {
+      if (!projectList) return;
+      const { projects, lastViewedProjectSlug } = projectList;
+      const redirectProjectSlug = lastViewedProjectSlug || projects[0]?.slug;
+      if (!redirectProjectSlug) return;
+      await router.push({
+        pathname: "/p/[projectSlug]/request-logs",
+        query: { projectSlug: redirectProjectSlug },
+      });
     };
 
-    if (session.status !== "loading") void redirect();
-  }, [session.status, router, projectList]);
+    if (session.data?.user) {
+      void redirectProject();
+    } else {
+      void router.push("/account/signin");
+    }
+  }, [session.status, session.data, router, projectList]);
 
   return null;
 };
