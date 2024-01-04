@@ -56,6 +56,9 @@ export const constructLoggedCallFiltersQuery = (
       if (filter.field === LoggedCallsFiltersDefaultFields.StatusCode) {
         wheres.push(filterExpression(sql.raw(`lc."statusCode"::text`)));
       }
+      if (filter.field === LoggedCallsFiltersDefaultFields.CompletionId) {
+        wheres.push(filterExpression(sql.raw(`lc."completionId"`)));
+      }
     }
 
     return eb.and(wheres);
