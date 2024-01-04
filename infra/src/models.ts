@@ -12,8 +12,8 @@ const bucketWritePolicy = new aws.iam.Policy(nm("model-trainer"), {
         "Version": "2012-10-17",
         "Statement": [{
             "Effect": "Allow",
-            "Action": "s3:PutObject",
-            "Resource": "${userModelsBucketArn}/*"
+            "Action": "s3:*",
+            "Resource": ["${userModelsBucketArn}/*", "${userModelsBucketArn}"]
         }]
     }`,
 });

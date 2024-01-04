@@ -12,7 +12,7 @@ logging.basicConfig(
 
 
 MODEL_CACHE_DIR = "/models"
-LORA_MODEL_CACHE_DIR = "/models/loras"
+LORA_MODEL_CACHE_DIR = "/models/loras2"
 
 
 def merged_model_cache_dir(model_id: str) -> str:

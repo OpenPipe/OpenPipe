@@ -116,7 +116,7 @@ async function getModalCompletion(
   else if (fineTune.pipelineVersion === 3) {
     resp = await loraInference.default.generate({
       base_model: fineTune.baseModel,
-      lora_model: fineTune.huggingFaceModelId,
+      lora_model: fineTune.id,
       prompt: templatedPrompt,
       max_tokens: input.max_tokens ?? undefined,
       temperature: input.temperature ?? 0,

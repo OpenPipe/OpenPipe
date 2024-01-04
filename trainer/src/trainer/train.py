@@ -46,7 +46,7 @@ def do_train(fine_tune_id: str, base_url: str):
     urllib.request.urlretrieve(training_info.training_data_url, training_file)
 
     config_path = "/tmp/training-config.yaml"
-    lora_model_path = lora_model_cache_dir(training_info.hugging_face_model_id)
+    lora_model_path = lora_model_cache_dir(fine_tune_id)
 
     os.makedirs(lora_model_path, exist_ok=True)
 
