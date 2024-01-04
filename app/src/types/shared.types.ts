@@ -233,6 +233,7 @@ export enum LoggedCallsFiltersDefaultFields {
   Response = "Response",
   Model = "Model",
   StatusCode = "Status Code",
+  CompletionId = "Completion Id",
 }
 
 export enum GeneralFiltersDefaultFields {

@@ -8,6 +8,7 @@ const defaultFilterableFields = [
   { field: LoggedCallsFiltersDefaultFields.Response },
   { field: LoggedCallsFiltersDefaultFields.Model },
   { field: LoggedCallsFiltersDefaultFields.StatusCode },
+  { field: LoggedCallsFiltersDefaultFields.CompletionId },
   { field: LoggedCallsFiltersDefaultFields.SentAt, type: "date" },
 ];
 
