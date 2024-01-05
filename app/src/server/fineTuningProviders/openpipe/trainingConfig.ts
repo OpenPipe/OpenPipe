@@ -83,8 +83,7 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
           throw new Error(`Unsupported architecture`);
         })();
 
-  // Target 10,000 training entries, but don't go under 1 or over 10 epochs.
-  const numEpochs = Math.min(Math.max(1, Math.round(10000 / trainingEntries)), 10);
+  const numEpochs = calculateNumEpochs(trainingEntries);
 
   return axolotlConfig.parse({
     ...cloneDeep(baseConfig),
@@ -98,3 +97,9 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
     ...fineTune.trainingConfigOverrides,
   });
 }
+
+export const calculateNumEpochs = (trainingEntries: number) => {
+  if (trainingEntries === 0) throw new Error("No training entries");
+  // Target 10,000 training entries, but don't go under 1 or over 10 epochs.
+  return Math.min(Math.max(1, Math.round(10000 / trainingEntries)), 10);
+};

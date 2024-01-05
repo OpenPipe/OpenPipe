@@ -15,6 +15,7 @@ import {
   Thead,
   Tr,
   VStack,
+  Box,
 } from "@chakra-ui/react";
 import { DollarSign, Hash } from "lucide-react";
 import { ProjectLink } from "~/components/ProjectLink";
@@ -23,6 +24,7 @@ import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { api } from "~/utils/api";
+import dayjs from "~/utils/dayjs";
 import { useSelectedProject } from "~/utils/hooks";
 
 const numberWithDefault = (num: number | string | bigint | null, defaultValue = 0) =>
@@ -73,7 +75,7 @@ export default function Usage() {
                       <Icon as={DollarSign} boxSize={4} color="gray.500" />
                     </HStack>
                     <StatNumber>
-                      ${parseFloat(stats.data?.totals?.cost?.toString() ?? "0").toFixed(3)}
+                      ${parseFloat(stats.data?.totals?.cost?.toString() ?? "0").toLocaleString()}
                     </StatNumber>
                   </Stat>
                 </CardBody>
@@ -88,6 +90,7 @@ export default function Usage() {
               <Thead>
                 <Tr>
                   <Th>ID</Th>
+                  <Th>Created At</Th>
                   <Th>Base Model</Th>
                   <Th isNumeric>Requests</Th>
                   <Th isNumeric>Input Tokens</Th>
@@ -105,7 +108,21 @@ export default function Usage() {
                         <Text color="blue.600">openpipe:{model.slug}</Text>
                       </ProjectLink>
                     </Td>
-                    <Td>{modelInfo(model).name}</Td>
+                    <Td>
+                      <Box whiteSpace="nowrap" minW="120px">
+                        {dayjs(model.createdAt).format("MMMM D h:mm A")}
+                      </Box>
+                    </Td>
+                    <Td>
+                      <Text
+                        color="orange.500"
+                        fontWeight="bold"
+                        fontSize="xs"
+                        textTransform="uppercase"
+                      >
+                        {modelInfo(model).name}
+                      </Text>
+                    </Td>
                     <Td isNumeric>{numberWithDefault(model.numQueries).toLocaleString()}</Td>
                     <Td isNumeric>{numberWithDefault(model.inputTokens).toLocaleString()}</Td>
                     <Td isNumeric>{numberWithDefault(model.outputTokens).toLocaleString()}</Td>

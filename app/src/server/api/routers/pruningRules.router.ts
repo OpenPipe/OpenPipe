@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { updateDatasetPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import {
   requireCanModifyProject,
   requireCanViewProject,
@@ -69,7 +69,7 @@ export const pruningRulesRouter = createTRPCRouter({
 
       if (!datasetId) return;
 
-      await updatePruningRuleMatches(datasetId, createdAt);
+      await updateDatasetPruningRuleMatches(datasetId, createdAt);
     }),
   create: protectedProcedure
     .input(z.object({ datasetId: z.string(), textToMatch: z.string() }))
@@ -92,7 +92,7 @@ export const pruningRulesRouter = createTRPCRouter({
 
       if (!datasetId) return;
 
-      await updatePruningRuleMatches(datasetId, createdAt);
+      await updateDatasetPruningRuleMatches(datasetId, createdAt);
     }),
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
@@ -107,6 +107,6 @@ export const pruningRulesRouter = createTRPCRouter({
 
       if (!datasetId) return;
 
-      await updatePruningRuleMatches(datasetId, createdAt);
+      await updateDatasetPruningRuleMatches(datasetId, createdAt);
     }),
 });

@@ -174,6 +174,7 @@ export interface FineTune {
   provider: "openai" | "openpipe";
   trainingConfig: Json | null;
   trainingConfigOverrides: Json | null;
+  numEpochs: number | null;
 }
 
 export interface FineTuneTestingEntry {
@@ -198,6 +199,8 @@ export interface FineTuneTrainingEntry {
   fineTuneId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  outputTokens: number | null;
+  prunedInputTokens: number | null;
 }
 
 export interface GraphileWorkerJobQueues {
@@ -322,7 +325,7 @@ export interface UsageLog {
   inputTokens: number;
   outputTokens: number;
   cost: number;
-  type: Generated<"EXTERNAL" | "TESTING">;
+  type: Generated<"EXTERNAL" | "TESTING" | "TRAINING">;
   fineTuneId: string;
   createdAt: Generated<Timestamp>;
 }
@@ -337,6 +340,7 @@ export interface User {
   updatedAt: Generated<Timestamp>;
   role: Generated<"ADMIN" | "USER">;
   gitHubUsername: string | null;
+  lastViewedProjectId: string | null;
 }
 
 export interface UserInvitation {

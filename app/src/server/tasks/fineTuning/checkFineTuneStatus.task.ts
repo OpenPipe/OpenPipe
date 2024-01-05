@@ -1,4 +1,4 @@
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { startTestJobs } from "~/server/utils/startTestJobs";
 import { trainerv1 } from "~/server/modal-rpc/clients";
@@ -7,6 +7,9 @@ import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalyti
 // import dayjs duration
 import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
+import { sql } from "kysely";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 
 export const checkFineTuneStatus = defineTask({
   id: "checkFineTuneStatus",
@@ -33,22 +36,50 @@ export const checkFineTuneStatus = defineTask({
               where: { id: ft.id },
             });
             if (!currentFineTune) return;
-            if (currentFineTune.huggingFaceModelId) {
+            const typedFT = typedFineTune(currentFineTune);
+            if (typedFT.huggingFaceModelId) {
               // this kicks off the upload of the model weights and returns almost immediately.
               // We currently don't check whether the weights actually uploaded, probably should
               // add that at some point!
-              await trainerv1.default.persistModelWeights(currentFineTune.huggingFaceModelId);
+              await trainerv1.default.persistModelWeights(typedFT.huggingFaceModelId);
             }
 
-            await prisma.fineTune.update({
-              where: { id: currentFineTune.id },
+            const trainingStats = await kysely
+              .selectFrom("FineTuneTrainingEntry as ftte")
+              .where("ftte.fineTuneId", "=", typedFT.id)
+              .select(() => [
+                sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
+                sql<number>`sum(ftte."prunedInputTokens")::int`.as("totalInputTokens"),
+                sql<number>`sum(ftte."outputTokens")::int`.as("totalOutputTokens"),
+              ])
+              .executeTakeFirst();
+
+            const numTrainingEntries = trainingStats?.numTrainingEntries ?? 0;
+            const numEpochs = calculateNumEpochs(numTrainingEntries);
+
+            const totalInputTokens = (trainingStats?.totalInputTokens ?? 0) * numEpochs;
+            const totalOutputTokens = (trainingStats?.totalOutputTokens ?? 0) * numEpochs;
+
+            await prisma.usageLog.create({
               data: {
-                trainingFinishedAt: new Date(),
-                status: "DEPLOYED",
+                type: "TRAINING",
+                fineTuneId: typedFT.id,
+                inputTokens: totalInputTokens,
+                outputTokens: totalOutputTokens,
+                cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
               },
             });
 
-            captureFineTuneTrainingFinished(currentFineTune.projectId, currentFineTune.slug, true);
+            await prisma.fineTune.update({
+              where: { id: typedFT.id },
+              data: {
+                trainingFinishedAt: new Date(),
+                status: "DEPLOYED",
+                numEpochs: calculateNumEpochs(numTrainingEntries),
+              },
+            });
+
+            captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
 
             await startTestJobs(currentFineTune.datasetId, currentFineTune.id);
           } else if (resp.status === "error") {

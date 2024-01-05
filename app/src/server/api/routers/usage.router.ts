@@ -43,10 +43,15 @@ export const usageRouter = createTRPCRouter({
 
       const [periods, totals, fineTunes] = await Promise.all([
         baseQuery
-          .select(({ fn }) => [
+          .select((eb) => [
             sql<Date>`date_trunc('day', "ul"."createdAt")`.as("period"),
             sql<number>`count("ul"."id")::int`.as("numQueries"),
-            fn.sum(fn.coalesce("ul.cost", sql<number>`0`)).as("cost"),
+            eb.fn
+              .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
+              .as("trainingCost"),
+            eb.fn
+              .sum(sql<number>`case when ul.type != 'TRAINING' then ul.cost else 0 end`)
+              .as("inferenceCost"),
           ])
           .groupBy("period")
           .orderBy("period")
@@ -57,7 +62,7 @@ export const usageRouter = createTRPCRouter({
             fn.count("ul.id").as("numQueries"),
           ])
           .executeTakeFirst(),
-        finetunesQuery.execute(),
+        finetunesQuery.select("ft.createdAt").execute(),
       ]);
 
       let originalDataIndex = periods.length - 1;
@@ -85,7 +90,8 @@ export const usageRouter = createTRPCRouter({
           backfilledPeriods.unshift({
             period: dayjs(dayToMatch).toDate(),
             numQueries: 0,
-            cost: 0,
+            trainingCost: 0,
+            inferenceCost: 0,
           });
         }
         dayToMatch = dayToMatch.subtract(1, "day");

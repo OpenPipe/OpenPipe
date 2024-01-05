@@ -5,7 +5,7 @@ import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { copyDatasetEvalDatasetEntries } from "~/server/utils/datasetEntryCreation/copyDatasetEvalDatasetEntries";
-import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { updateDatasetPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
 
 export const copyEntryWithUpdates = async (
@@ -70,7 +70,7 @@ export const copyEntryWithUpdates = async (
     },
   });
 
-  await updatePruningRuleMatches(prevEntry.datasetId, new Date(0), [newEntry.id]);
+  await updateDatasetPruningRuleMatches(prevEntry.datasetId, new Date(0), [newEntry.id]);
 
   if (newEntry.split === "TEST") {
     await copyDatasetEvalDatasetEntries(prevEntry.id, newEntry.id);

@@ -20,7 +20,7 @@ import { copyEntryWithUpdates } from "~/server/utils/datasetEntryCreation/copyEn
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import hashObject from "~/server/utils/hashObject";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
-import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { updateDatasetPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import {
   ORIGINAL_MODEL_ID,
   typedDatasetEntry,
@@ -318,7 +318,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         }),
       ]);
 
-      await updatePruningRuleMatches(
+      await updateDatasetPruningRuleMatches(
         datasetId,
         new Date(0),
         datasetEntriesToCreate.map((entry) => entry.id),
@@ -419,18 +419,22 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(dataset.projectId, ctx);
 
-      await prisma.datasetEntry.deleteMany({
+      // Avoid deleting entries that may be associated with training entries
+      await prisma.datasetEntry.updateMany({
         where: {
           id: {
             in: input.ids,
           },
           datasetId: dataset?.id,
         },
+        data: {
+          outdated: true,
+        },
       });
 
-      await updatePruningRuleMatches(dataset.id, new Date(0), input.ids);
+      await updateDatasetPruningRuleMatches(dataset.id, new Date(0), input.ids);
 
-      return success("Dataset entries deleted");
+      return success("Dataset entries removed");
     }),
 
   relabel: protectedProcedure

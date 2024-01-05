@@ -1,11 +1,16 @@
 import fs from "fs";
 import OpenAI from "openai";
+import { from } from "ix/asynciterable";
+import { filter, map } from "ix/asynciterable/operators";
 
 import { prisma } from "~/server/db";
+import { truthyFilter } from "~/utils/utils";
 import { convertToolCallMessagesToFunction } from "~/server/utils/convertFunctionCalls";
 import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { chatCompletionMessage } from "~/types/shared.types";
+import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
+import { iterateTrainingRows } from "./trainFineTune.task";
 
 export const trainOpenaiFineTune = async (fineTuneId: string) => {
   const fineTune = await prisma.fineTune.findUnique({
@@ -13,10 +18,13 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
     include: {
       trainingEntries: {
         select: {
+          id: true,
           datasetEntry: {
             select: {
               messages: true,
               output: true,
+              tool_choice: true,
+              tools: true,
             },
           },
         },
@@ -43,28 +51,35 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
     return;
   }
 
+  const stringsToPrune = await getStringsToPrune(fineTune.id);
+
+  const formattedRows = from(iterateTrainingRows(fineTune.id)).pipe(
+    map(async (row) => {
+      const outputMessage = chatCompletionMessage.parse(row.datasetEntry.output);
+      const prunedInputMessages = pruneInputMessages(
+        typedDatasetEntry(row.datasetEntry).messages,
+        stringsToPrune,
+      );
+      const prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages);
+      const outputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", [outputMessage]);
+      await prisma.fineTuneTrainingEntry.update({
+        where: { id: row.id },
+        data: { prunedInputTokens, outputTokens },
+      });
+      return {
+        messages: convertToolCallMessagesToFunction([...prunedInputMessages, outputMessage]),
+      };
+    }),
+    filter(truthyFilter),
+    map((row) => Buffer.from(JSON.stringify(row) + "\n")),
+  );
+
   await prisma.fineTune.update({
     where: { id: fineTuneId },
     data: {
       status: "TRANSFERRING_TRAINING_DATA",
     },
   });
-
-  const stringsToPrune = await getStringsToPrune(fineTune.id);
-
-  // TODO: this will break for large datasets. Switch to the iterateTrainingRows
-  // approach we use in trainFineTune.
-  const trainingEntries = fineTune.trainingEntries.map((entry) => {
-    const outputMessage = chatCompletionMessage.parse(entry.datasetEntry.output);
-    return {
-      messages: convertToolCallMessagesToFunction([
-        ...pruneInputMessages(typedDatasetEntry(entry.datasetEntry).messages, stringsToPrune),
-        outputMessage,
-      ]),
-    };
-  });
-
-  const jsonlStr = trainingEntries.map((row) => JSON.stringify(row)).join("\n");
 
   const openai = new OpenAI({ apiKey: openaiApiKey });
 
@@ -75,7 +90,18 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
   // TODO: Include validation file
 
   fs.mkdirSync(tempDirPath, { recursive: true });
-  fs.writeFileSync(trainingFilePath, jsonlStr);
+
+  const writeStream = fs.createWriteStream(trainingFilePath);
+
+  for await (const row of formattedRows) {
+    if (!writeStream.write(row)) {
+      // Wait for the stream to drain if it returns false
+      await new Promise((resolve) => writeStream.once("drain", resolve));
+    }
+  }
+
+  // Close the write stream
+  writeStream.end();
 
   try {
     const trainingFile = await openai.files.create({

@@ -14,6 +14,7 @@ import { filter, map } from "ix/asynciterable/operators";
 import { toNodeStream } from "ix/asynciterable/tonodestream";
 import { insertTrainingDataPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import { trainingConfig } from "~/server/fineTuningProviders/openpipe/trainingConfig";
+import { countLlamaInputTokens } from "~/utils/countTokens";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
@@ -40,7 +41,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>({
   },
 });
 
-async function* iterateTrainingRows(fineTuneId: string) {
+export async function* iterateTrainingRows(fineTuneId: string) {
   let offset = 0;
   while (true) {
     const rows = await prisma.fineTuneTrainingEntry.findMany({
@@ -52,6 +53,7 @@ async function* iterateTrainingRows(fineTuneId: string) {
             tool_choice: true,
             tools: true,
             output: true,
+            outputTokens: true,
           },
         },
       },
@@ -95,18 +97,24 @@ const trainModalFineTune = async (fineTuneId: string) => {
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
   const formattedRows = from(iterateTrainingRows(fineTune.id)).pipe(
-    map((row) => {
+    map(async (row) => {
       const dsEntry = typedDatasetEntry(row.datasetEntry);
       if (!dsEntry.output) return null;
+      const prunedInputMessages = pruneInputMessages(dsEntry.messages, stringsToPrune);
+      const input = {
+        messages: prunedInputMessages,
+        tool_choice: dsEntry.tool_choice ?? undefined,
+        tools: dsEntry.tools ?? undefined,
+      };
+      const prunedInputTokens = stringsToPrune?.length
+        ? countLlamaInputTokens(input)
+        : dsEntry.outputTokens;
+      await prisma.fineTuneTrainingEntry.update({
+        where: { id: row.id },
+        data: { prunedInputTokens, outputTokens: dsEntry.outputTokens },
+      });
       return {
-        instruction: serializeChatInput(
-          {
-            messages: pruneInputMessages(dsEntry.messages, stringsToPrune),
-            tool_choice: dsEntry.tool_choice ?? undefined,
-            tools: dsEntry.tools ?? undefined,
-          },
-          { pipelineVersion: CURRENT_PIPELINE_VERSION },
-        ),
+        instruction: serializeChatInput(input, { pipelineVersion: CURRENT_PIPELINE_VERSION }),
         output: serializeChatOutput(dsEntry.output),
       };
     }),

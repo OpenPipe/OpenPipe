@@ -11,6 +11,8 @@ import { importDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
 import { env } from "~/env.mjs";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { comparisonModels } from "~/utils/comparisonModels";
+import { filtersSchema } from "~/types/shared.types";
+import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -48,6 +50,61 @@ export const datasetsRouter = createTRPCRouter({
     const { fineTunes, ...rest } = dataset;
     return { deployedFineTunes: fineTunes, numTestDatasetEntries, ...rest };
   }),
+  getTrainingCosts: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        filters: filtersSchema,
+        selectedPruningRuleIds: z.array(z.string()),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { id, filters, selectedPruningRuleIds } = input;
+
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: { id },
+      });
+
+      await requireCanViewProject(projectId, ctx);
+
+      const trainingEntryStats = await constructDatasetEntryFiltersQuery(filters, id)
+        .where("de.split", "=", "TRAIN")
+        .where("de.output", "is not", null)
+        .select((eb) => [
+          sql<number>`count(*)::int`.as("numEntries"),
+          sql<number>`sum(de."inputTokens")::int`.as("totalInputTokens"),
+          sql<number>`sum(de."outputTokens")::int`.as("totalOutputTokens"),
+          eb
+            .selectFrom("PruningRuleMatch as prm")
+            .whereRef("prm.datasetEntryId", "=", "de.id")
+            .where("prm.pruningRuleId", "in", selectedPruningRuleIds)
+            .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
+            .select(() => [sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens")])
+            .as("totalMatchTokens"),
+        ])
+        .executeTakeFirst();
+
+      if (!trainingEntryStats) return error("No training data found");
+
+      const trainingTokens =
+        trainingEntryStats.totalInputTokens +
+        trainingEntryStats.totalOutputTokens -
+        (trainingEntryStats.totalMatchTokens ?? 0);
+
+      const totalTestingCount = await prisma.datasetEntry.count({
+        where: {
+          datasetId: id,
+          outdated: false,
+          split: "TEST",
+        },
+      });
+
+      return {
+        matchingTrainingCount: trainingEntryStats.numEntries,
+        totalTestingCount,
+        trainingTokens,
+      };
+    }),
   list: protectedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ input, ctx }) => {
