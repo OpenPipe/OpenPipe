@@ -41,7 +41,7 @@ export const trainFineTune = defineTask<TrainFineTuneJob>({
   },
 });
 
-async function* iterateTrainingRows(fineTuneId: string) {
+export async function* iterateTrainingRows(fineTuneId: string) {
   let offset = 0;
   while (true) {
     const rows = await prisma.fineTuneTrainingEntry.findMany({

@@ -24,7 +24,7 @@ const fineTunesToBackfill = await kysely
     sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
   ])
   .groupBy("ft.id")
-  // .orderBy("ft.createdAt", "desc")
+  .orderBy("ft.createdAt", "desc")
   .execute();
 
 const numTrainingEntriesToBackfill = fineTunesToBackfill.reduce(
