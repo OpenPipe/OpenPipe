@@ -17,15 +17,17 @@ export const usageRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
-      // Return the stats group by hour
       const baseQuery = kysely
         .selectFrom("UsageLog as ul")
-        .innerJoin("FineTune as ft", "ft.id", "ul.fineTuneId")
-        .where("ft.projectId", "=", input.projectId);
+        .where("ul.projectId", "=", input.projectId);
 
       const finetunesQuery = kysely
         .selectFrom(
-          baseQuery
+          kysely
+            .selectFrom("UsageLog as ul")
+            .where("ul.type", "!=", "TRAINING")
+            .innerJoin("FineTune as ft", "ft.id", "ul.fineTuneId")
+            .where("ft.projectId", "=", input.projectId)
             .select(({ fn }) => [
               "ft.id as ftId",
               fn.count("ul.id").as("numQueries"),
@@ -42,6 +44,7 @@ export const usageRouter = createTRPCRouter({
         .orderBy("numQueries", "desc");
 
       const [periods, totals, fineTunes] = await Promise.all([
+        // Return the stats group by hour
         baseQuery
           .select((eb) => [
             sql<Date>`date_trunc('day', "ul"."createdAt")`.as("period"),

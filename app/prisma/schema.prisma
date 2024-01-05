@@ -170,6 +170,7 @@ model Project {
     slug     String  @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
     name     String  @default("Project 1")
     isPublic Boolean @default(false)
+    isHidden Boolean @default(false)
 
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
@@ -182,6 +183,7 @@ model Project {
     loggedCalls            LoggedCall[]
     fineTunes              FineTune[]
     apiKeys                ApiKey[]
+    usageLogs              UsageLog[]
 }
 
 enum ProjectUserRole {
@@ -582,10 +584,14 @@ model UsageLog {
     cost         Float
     type         UsageType @default(EXTERNAL)
 
-    fineTuneId String   @db.Uuid
-    fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+    fineTuneId String?   @db.Uuid
+    fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: SetNull)
+
+    projectId String?  @db.Uuid
+    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
 
     @@index([fineTuneId, createdAt, type])
+    @@index([projectId, createdAt, type])
 }
