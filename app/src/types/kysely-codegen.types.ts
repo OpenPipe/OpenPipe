@@ -276,6 +276,7 @@ export interface Project {
   name: Generated<string>;
   slug: Generated<string>;
   isPublic: Generated<boolean>;
+  isHidden: Generated<boolean>;
 }
 
 export interface ProjectUser {
@@ -326,8 +327,9 @@ export interface UsageLog {
   outputTokens: number;
   cost: number;
   type: Generated<"EXTERNAL" | "TESTING" | "TRAINING">;
-  fineTuneId: string;
+  fineTuneId: string | null;
   createdAt: Generated<Timestamp>;
+  projectId: string | null;
 }
 
 export interface User {

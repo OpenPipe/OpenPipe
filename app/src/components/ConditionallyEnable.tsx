@@ -17,16 +17,27 @@ export const useAccessCheck = (accessCheck: AccessCheck) => {
 
 const ConditionallyEnable = (
   props: {
-    accessRequired: AccessCheck;
+    accessRequired?: AccessCheck;
     accessDeniedText?: string;
     checks?: [boolean, string][];
     hideTooltip?: boolean;
   } & TooltipProps,
 ) => {
-  const { accessRequired, accessDeniedText, checks, hideTooltip, children, ...rest } = props;
+  const {
+    accessRequired = "requireNothing",
+    accessDeniedText,
+    checks = [],
+    hideTooltip,
+    children,
+    ...rest
+  } = props;
 
   const accessCheck = useAccessCheck(accessRequired);
-  const failingCheck = checks?.find(([check]) => !check);
+  const selectedProjectNotHidden = useSelectedProject().data?.isHidden !== true;
+  const failingCheck = [
+    [selectedProjectNotHidden, "This project is archived. No further changes can be made."],
+    ...checks,
+  ]?.find(([check]) => !check);
 
   const disableChildren = !accessCheck.access || !!failingCheck;
   const tooltipText = !accessCheck.access

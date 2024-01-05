@@ -166,6 +166,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
           await prisma.usageLog.create({
             data: {
               fineTuneId: fineTune.id,
+              projectId: fineTune.projectId,
               type: UsageType.TESTING,
               inputTokens,
               outputTokens,

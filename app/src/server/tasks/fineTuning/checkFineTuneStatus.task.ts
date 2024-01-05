@@ -64,6 +64,7 @@ export const checkFineTuneStatus = defineTask({
               data: {
                 type: "TRAINING",
                 fineTuneId: typedFT.id,
+                projectId: typedFT.projectId,
                 inputTokens: totalInputTokens,
                 outputTokens: totalOutputTokens,
                 cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),

@@ -18,6 +18,7 @@ const fineTunesToBackfill = await kysely
   .where("ftte.prunedInputTokens", "is", null)
   .select([
     "ft.id",
+    "ft.projectId",
     "ft.provider",
     "ft.baseModel",
     "ft.createdAt",
@@ -143,6 +144,7 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
     await prisma.usageLog.create({
       data: {
         fineTuneId: typedFT.id,
+        projectId: typedFT.projectId,
         type: "TRAINING",
         inputTokens: totalInputTokens,
         outputTokens: totalOutputTokens,

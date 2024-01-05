@@ -42,6 +42,7 @@ export const projectsRouter = createTRPCRouter({
       .innerJoin("ProjectUser as pu", (eb) =>
         eb.onRef("pu.projectId", "=", "p.id").on("pu.userId", "=", userId),
       )
+      .where("p.isHidden", "=", false)
       .selectAll("p")
       .orderBy(
         () =>
@@ -256,9 +257,27 @@ export const projectsRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
       await requireIsProjectAdmin(input.id, ctx);
-      return await prisma.project.delete({
+
+      // delete all associated datasets
+      await prisma.dataset.deleteMany({
+        where: {
+          projectId: input.id,
+        },
+      });
+
+      // delete all associated request logs
+      await prisma.loggedCall.deleteMany({
+        where: {
+          projectId: input.id,
+        },
+      });
+
+      return await prisma.project.update({
         where: {
           id: input.id,
+        },
+        data: {
+          isHidden: true,
         },
       });
     }),
