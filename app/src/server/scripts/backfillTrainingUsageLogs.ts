@@ -34,7 +34,7 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
   console.log(`Backfilling fineTune (${i + 1}/${fineTunesToBackfill.length}):${typedFT.id}`);
 
   const stringsToPrune = await getStringsToPrune(typedFT.id);
-  const isOpenAi = typedFT.baseModel.startsWith("gpt-3.5");
+  const isOpenAi = typedFT.provider === "openai";
 
   // process one batch of 1000 training entries at a time
   let offset = 0;

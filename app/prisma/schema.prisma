@@ -239,6 +239,7 @@ model LoggedCall {
 
     @@index(projectId)
     @@index([projectId, requestedAt])
+    @@index([completionId])
 }
 
 model LoggedCallTag {
