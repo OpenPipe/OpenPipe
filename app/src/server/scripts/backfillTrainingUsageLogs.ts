@@ -1,4 +1,5 @@
 import { sql } from "kysely";
+import { type Prisma } from "@prisma/client";
 
 import { kysely, prisma } from "../db";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
@@ -12,32 +13,41 @@ console.log("Backfilling training usage logs");
 const fineTunesToBackfill = await kysely
   .selectFrom("FineTune as ft")
   // only backfill fineTunes that don't have training usage logs
-  .where((eb) =>
-    eb.not(
-      eb.exists(
-        eb
-          .selectFrom("FineTuneTrainingEntry")
-          .whereRef("fineTuneId", "=", "ft.id")
-          .where("prunedInputTokens", "is", null),
-      ),
-    ),
-  )
   .where("ft.status", "=", "DEPLOYED")
-  .select(["ft.id", "ft.provider", "ft.baseModel", "ft.deploymentFinishedAt"])
+  .innerJoin("FineTuneTrainingEntry as ftte", "ftte.fineTuneId", "ft.id")
+  .where("ftte.prunedInputTokens", "is", null)
+  .select([
+    "ft.id",
+    "ft.provider",
+    "ft.baseModel",
+    "ft.createdAt",
+    sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
+  ])
+  .groupBy("ft.id")
   .execute();
 
-console.log("Found fineTunes to backfill:", fineTunesToBackfill.length);
+const numTrainingEntriesToBackfill = fineTunesToBackfill.reduce(
+  (sum, ft) => sum + (ft?.numTrainingEntries ?? 0),
+  0,
+);
+
+console.log(
+  `Found fineTunes to backfill: ${fineTunesToBackfill.length} (${numTrainingEntriesToBackfill} training entries)`,
+);
 
 for (let i = 0; i < fineTunesToBackfill.length; i++) {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const typedFT = typedFineTune(fineTunesToBackfill[i]!);
-  console.log(`Backfilling fineTune (${i + 1}/${fineTunesToBackfill.length}):${typedFT.id}`);
-
+  console.log(
+    new Date(),
+    `Backfilling fineTune (${i + 1}/${fineTunesToBackfill.length}):${typedFT.provider}:${
+      typedFT.id
+    }:${typedFT.numTrainingEntries} entries`,
+  );
   const stringsToPrune = await getStringsToPrune(typedFT.id);
   const isOpenAi = typedFT.provider === "openai";
 
-  // process one batch of 1000 training entries at a time
-  let offset = 0;
+  // process one batch of 10000 training entries at a time
   while (true) {
     const rows = await kysely
       .selectFrom("FineTuneTrainingEntry as ftte")
@@ -50,28 +60,43 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
         "de.tool_choice",
         "de.tools",
         "de.output",
+        "de.inputTokens as originalInputTokens",
         "de.outputTokens as originalOutputTokens",
       ])
+      .limit(1000)
       .orderBy("ftte.createdAt", "desc")
       .execute();
+    console.log("rows", rows.length);
     if (rows.length === 0) break;
 
+    const updateStartTime = Date.now();
+    const entryUpdates: Prisma.FineTuneTrainingEntryUpdateArgs[] = [];
     for (const row of rows) {
       // For our purposes, this entry is a dataset entry
-      const { messages, tool_choice, tools, output, originalOutputTokens } = typedDatasetEntry(row);
-      if (!messages || !tool_choice || !tools) continue;
+      const typedDE = typedDatasetEntry(row);
 
-      const prunedInputMessages = pruneInputMessages(messages, stringsToPrune);
+      const prunedInputMessages = stringsToPrune?.length
+        ? pruneInputMessages(typedDE.messages, stringsToPrune)
+        : typedDE.messages;
 
-      const prunedInputTokens = isOpenAi
-        ? countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages)
-        : countLlamaInputTokens({ messages: prunedInputMessages, tool_choice, tools });
+      let prunedInputTokens: number;
+      if (isOpenAi) {
+        prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages);
+      } else if (stringsToPrune?.length) {
+        prunedInputTokens = countLlamaInputTokens({
+          messages: prunedInputMessages,
+          tool_choice: typedDE.tool_choice,
+          tools: typedDE.tools,
+        });
+      } else {
+        prunedInputTokens = typedDE.originalInputTokens ?? 0;
+      }
 
       const outputTokens = isOpenAi
-        ? countOpenAIChatTokens("gpt-3.5-turbo-0613", output ? [output] : [])
-        : originalOutputTokens;
+        ? countOpenAIChatTokens("gpt-3.5-turbo-0613", typedDE.output ? [typedDE.output] : [])
+        : typedDE.originalOutputTokens;
 
-      await prisma.fineTuneTrainingEntry.update({
+      entryUpdates.push({
         where: { id: row.id },
         data: {
           prunedInputTokens,
@@ -79,8 +104,15 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
         },
       });
     }
-
-    offset += rows.length;
+    const saveStartTime = Date.now();
+    await prisma.$transaction(
+      entryUpdates.map((update) => prisma.fineTuneTrainingEntry.update(update)),
+    );
+    console.log(
+      `Updated ${rows.length} entries in ${Date.now() - updateStartTime}ms (save took ${
+        Date.now() - saveStartTime
+      }ms)`,
+    );
   }
 
   if (!isOpenAi) {
@@ -88,9 +120,9 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
       .selectFrom("FineTuneTrainingEntry as ftte")
       .where("ftte.fineTuneId", "=", typedFT.id)
       .select(() => [
-        sql<number>`count(ftte.id)`.as("numTrainingEntries"),
-        sql<number>`sum(ftte.prunedInputTokens)`.as("totalInputTokens"),
-        sql<number>`sum(ftte.outputTokens)`.as("totalOutputTokens"),
+        sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
+        sql<number>`sum(ftte."prunedInputTokens")::int`.as("totalInputTokens"),
+        sql<number>`sum(ftte."outputTokens")::int`.as("totalOutputTokens"),
       ])
       .executeTakeFirst();
 
@@ -107,7 +139,7 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
         outputTokens: totalOutputTokens,
         cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        createdAt: typedFT.deploymentFinishedAt!,
+        createdAt: typedFT.createdAt,
       },
     });
 

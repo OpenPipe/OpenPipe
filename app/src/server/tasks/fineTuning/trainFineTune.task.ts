@@ -106,7 +106,9 @@ const trainModalFineTune = async (fineTuneId: string) => {
         tool_choice: dsEntry.tool_choice ?? undefined,
         tools: dsEntry.tools ?? undefined,
       };
-      const prunedInputTokens = countLlamaInputTokens(input);
+      const prunedInputTokens = stringsToPrune?.length
+        ? countLlamaInputTokens(input)
+        : dsEntry.outputTokens;
       await prisma.fineTuneTrainingEntry.update({
         where: { id: row.id },
         data: { prunedInputTokens, outputTokens: dsEntry.outputTokens },

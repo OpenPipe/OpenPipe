@@ -48,9 +48,9 @@ export const checkFineTuneStatus = defineTask({
               .selectFrom("FineTuneTrainingEntry as ftte")
               .where("ftte.fineTuneId", "=", typedFT.id)
               .select(() => [
-                sql<number>`count(ftte.id)`.as("numTrainingEntries"),
-                sql<number>`sum(ftte.prunedInputTokens)`.as("totalInputTokens"),
-                sql<number>`sum(ftte.outputTokens)`.as("totalOutputTokens"),
+                sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
+                sql<number>`sum(ftte."prunedInputTokens")::int`.as("totalInputTokens"),
+                sql<number>`sum(ftte."outputTokens")::int`.as("totalOutputTokens"),
               ])
               .executeTakeFirst();
 

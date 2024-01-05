@@ -71,15 +71,15 @@ export const datasetsRouter = createTRPCRouter({
         .where("de.split", "=", "TRAIN")
         .where("de.output", "is not", null)
         .select((eb) => [
-          sql<number>`count(*)`.as("numEntries"),
-          sql<number>`sum(de.inputTokens)`.as("totalInputTokens"),
-          sql<number>`sum(de.outputTokens)`.as("totalOutputTokens"),
+          sql<number>`count(*)::int`.as("numEntries"),
+          sql<number>`sum(de."inputTokens")::int`.as("totalInputTokens"),
+          sql<number>`sum(de."outputTokens")::int`.as("totalOutputTokens"),
           eb
             .selectFrom("PruningRuleMatch as prm")
             .whereRef("prm.datasetEntryId", "=", "de.id")
             .where("prm.pruningRuleId", "in", selectedPruningRuleIds)
             .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
-            .select(() => [sql<number>`sum(pr.tokensInText)`.as("totalMatchTokens")])
+            .select(() => [sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens")])
             .as("totalMatchTokens"),
         ])
         .executeTakeFirst();
