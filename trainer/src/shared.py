@@ -1,6 +1,8 @@
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from fastapi.security import HTTPBearer
+from fastapi import Depends, HTTPException
 
 logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -10,7 +12,7 @@ logging.basicConfig(
 
 
 MODEL_CACHE_DIR = "/models"
-LORA_MODEL_CACHE_DIR = "/models/loras"
+LORA_MODEL_CACHE_DIR = "/models/loras2"
 
 
 def merged_model_cache_dir(model_id: str) -> str:
@@ -47,3 +49,8 @@ def upload_directory_to_s3(local_directory, destination, bucket):
 
         for future in as_completed(futures):
             future.result()
+
+
+def require_auth(auth_credentials=Depends(HTTPBearer())):
+    if auth_credentials.credentials != os.environ["AUTHENTICATED_SYSTEM_KEY"]:
+        raise HTTPException(status_code=401, detail="Invalid authentication")

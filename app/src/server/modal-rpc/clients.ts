@@ -3,11 +3,20 @@ import { env } from "~/env.mjs";
 import { z } from "zod";
 import { captureException } from "@sentry/node";
 import { pick } from "lodash-es";
+import { LoraInferenceV1 } from "./loraInferenceV1";
 
 export const trainerv1 = new TrainerV1({
   BASE: `https://openpipe-${env.MODAL_ENVIRONMENT}--trainer-v1${
     env.MODAL_USE_LOCAL_DEPLOYMENTS ? "-dev" : ""
   }.modal.run`,
+  TOKEN: env.AUTHENTICATED_SYSTEM_KEY,
+});
+
+export const loraInference = new LoraInferenceV1({
+  BASE: `https://openpipe-${env.MODAL_ENVIRONMENT}--lora-inference-v1${
+    env.MODAL_USE_LOCAL_DEPLOYMENTS ? "-dev" : ""
+  }.modal.run`,
+  TOKEN: env.AUTHENTICATED_SYSTEM_KEY,
 });
 
 const outputSchema = z.object({

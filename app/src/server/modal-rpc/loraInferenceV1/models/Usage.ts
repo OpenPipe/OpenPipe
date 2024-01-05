@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type STOutput = {
-  call_id: string;
+export type Usage = {
+  prompt_tokens: number;
+  completion_tokens: number;
 };

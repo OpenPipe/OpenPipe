@@ -7,15 +7,25 @@ from .api import (
     Usage,
 )
 from typing import Union
-from ..shared import merged_model_cache_dir
-import os
+from ..shared import merged_model_cache_dir, lora_model_cache_dir, require_auth
+import fastapi
 import logging
+
+logging.getLogger("vllm").setLevel(logging.ERROR)
 
 logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     level=logging.INFO,
 )
+
+
+def cache_base_model_weights():
+    from huggingface_hub import snapshot_download
+
+    snapshot_download("OpenPipe/mistral-ft-optimized-1227")
+    snapshot_download("mistralai/Mistral-7B-v0.1")
+    snapshot_download("meta-llama/Llama-2-13b-hf")
 
 
 vllm_image = (
@@ -28,18 +38,27 @@ vllm_image = (
         "huggingface-hub==0.19.4",
         "hf-transfer~=0.1",
         "transformers==4.36.1",
-        "vllm==0.2.6",
     )
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
+    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1", "VLLM_INSTALL_PUNICA_KERNELS": "1"})
+    .run_commands(
+        "git clone https://github.com/Yard1/vllm.git /vllm",
+        "cd /vllm && git checkout 4b2224e > /dev/null 2>&1",
+        "pip3 install -e '/vllm'",
+    )
+    .run_function(cache_base_model_weights, secret=modal.Secret.from_name("openpipe"))
 )
+
 
 volume = modal.Volume.from_name("openpipe-model-cache")
 
-APP_NAME = "inference-server-v1"
+APP_NAME = "lora-inference-v1"
 
 stub = modal.Stub(APP_NAME)
 stub.volume = volume
 stub.vllm_image = vllm_image
+
+
+MAX_INPUTS = 20
 
 with vllm_image.run_inside():
     from vllm import SamplingParams
@@ -48,65 +67,32 @@ with vllm_image.run_inside():
 
     from vllm.engine.async_llm_engine import AsyncLLMEngine
     from vllm.engine.arg_utils import AsyncEngineArgs
-    from concurrent.futures import ThreadPoolExecutor
-
-    logging.getLogger("vllm").setLevel(logging.ERROR)
-
-
-def cache_model_weights(hf_model_id: str, cache_dir: str):
-    from huggingface_hub import snapshot_download
-
-    logging.info(f"Downloading model {hf_model_id}")
-
-    if os.path.exists(cache_dir):
-        logging.info("Model already downloaded.")
-
-    else:
-        os.makedirs(cache_dir, exist_ok=True)
-
-        snapshot_download(
-            hf_model_id, local_dir=cache_dir, local_dir_use_symlinks=False
-        )
-        logging.info("Committing model to volume.")
-        stub.volume.commit()
-
-        logging.info("Model committed.")
-
-
-def read_all_files(directory):
-    # Just open each file and read the whole thing into memory. This is a hack
-    # because Modal's `Volume` file system has really bad perf on first read,
-    # especially if you're grabbing just a piece at a time like SafeTensors
-    # does.
-    def read_file(file):
-        with open(file, "r") as f:
-            f.read()
-
-    with ThreadPoolExecutor() as executor:
-        for root, _, files in os.walk(directory):
-            for file in files:
-                file_path = os.path.join(root, file)
-                executor.submit(read_file, file_path)
+    from vllm.lora.request import LoRARequest
 
 
 @stub.cls(
     gpu=modal.gpu.A100(memory=40, count=1),
     secret=modal.Secret.from_name("openpipe"),
-    allow_concurrent_inputs=40,
+    allow_concurrent_inputs=MAX_INPUTS,
     timeout=1 * 60 * 60,
     volumes={"/models": volume},
+    # Make sure we have at least 100gb of system ram to cache S-LoRAs
+    memory=100 * 1000,
     image=vllm_image,
 )
-class Model:
-    def __init__(self, huggingface_model_id: str):
-        model_dir = merged_model_cache_dir(huggingface_model_id)
-        cache_model_weights(huggingface_model_id, model_dir)
-
-        logging.info("Preloading model")
-        read_all_files(model_dir)
-
-        logging.info(f"Loading model from volume {model_dir}")
-        self.engine = AsyncLLMEngine.from_engine_args(AsyncEngineArgs(model=model_dir))
+class LoraBaseModel:
+    def __init__(self, base_model_id: str):
+        model_dir = merged_model_cache_dir(base_model_id)
+        logging.info(f"Loading base model {model_dir}")
+        self.engine = AsyncLLMEngine.from_engine_args(
+            AsyncEngineArgs(
+                model=base_model_id,
+                enable_lora=True,
+                max_loras=MAX_INPUTS,
+                max_lora_rank=8,
+                max_cpu_loras=500,
+            )
+        )
 
     @modal.method()
     async def generate(self, request: Input) -> Output:
@@ -116,11 +102,20 @@ class Model:
             max_tokens=request.max_tokens,
         )
 
+        lora_request = LoRARequest(
+            request.lora_model,
+            abs(hash(request.lora_model)),
+            lora_model_cache_dir(request.lora_model),
+        )
+
         request_id = random_uuid()
 
         logging.info(f"Generating for request {request_id}")
         output_generator = self.engine.generate(
-            request.prompt, sample_params, request_id=request_id
+            request.prompt,
+            sample_params,
+            request_id=request_id,
+            lora_request=lora_request,
         )
 
         final_output: Union[RequestOutput, None] = None
@@ -149,11 +144,24 @@ class Model:
         return output
 
 
-# TODO: convert this to a FastAPI endpoint like the trainer so we can codegen a
-# client with nice types.
-@stub.function(timeout=1 * 60 * 60, allow_concurrent_inputs=20)
-@modal.web_endpoint(method="POST", label=APP_NAME)
-async def generate(request: Input) -> Output:
-    logging.info(f"Generating for model {request.model}")
-    model = Model(request.model)
+web_app = fastapi.FastAPI(title=APP_NAME)
+
+
+@stub.function(
+    allow_concurrent_inputs=20,
+    timeout=1 * 60 * 60,
+    keep_warm=1,
+    secret=modal.Secret.from_name("openpipe"),
+)
+@modal.asgi_app(label=APP_NAME)
+def fastapi_app():
+    return web_app
+
+
+@web_app.post("/generate", operation_id="generate", response_model=Output)
+async def chat_completion(
+    request: Input, require_auth=fastapi.Depends(require_auth)
+) -> Output:
+    logging.info(f"Generating for model {request.lora_model}")
+    model = LoraBaseModel(request.base_model)
     return await model.generate.remote.aio(request)

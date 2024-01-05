@@ -58,7 +58,21 @@ const fineTuneSchema = z.intersection(
   baseModel,
   z
     .object({
-      pipelineVersion: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+      pipelineVersion: z
+        .union([
+          // Old RunPod-based pipeline. Not supported.
+          z.literal(0),
+
+          // moved to Modal
+          z.literal(1),
+
+          // Added support for function calls
+          z.literal(2),
+
+          // LoRA serving enabled
+          z.literal(3),
+        ])
+        .optional(),
       trainingConfig: axolotlConfig.optional().nullable(),
       trainingConfigOverrides: axolotlConfig.partial().optional().nullable(),
     })
