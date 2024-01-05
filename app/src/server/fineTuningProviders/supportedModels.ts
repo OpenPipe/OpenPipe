@@ -36,7 +36,7 @@ export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
   },
   "openai:gpt-3.5-turbo-1106": {
     name: "GPT 3.5 Turbo",
-    cost: { training: 0.000008, input: 0.000012, output: 0.000016 },
+    cost: { training: 0.000008, input: 0.000003, output: 0.000006 },
     trainable: true,
   },
 
