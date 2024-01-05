@@ -5,6 +5,7 @@ import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { countLlamaInputTokens, countOpenAIChatTokens } from "~/utils/countTokens";
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { calculateCost } from "../fineTuningProviders/supportedModels";
+import { calculateNumEpochs } from "../fineTuningProviders/openpipe/trainingConfig";
 
 console.log("Backfilling training usage logs");
 
@@ -43,14 +44,21 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
       .where("ftte.fineTuneId", "=", typedFT.id)
       .where("ftte.prunedInputTokens", "is", null)
       .innerJoin("DatasetEntry as de", "ftte.datasetEntryId", "de.id")
-      .select(() => ["ftte.id", "de.messages", "de.tool_choice", "de.tools"])
+      .select(() => [
+        "ftte.id",
+        "de.messages",
+        "de.tool_choice",
+        "de.tools",
+        "de.output",
+        "de.outputTokens as originalOutputTokens",
+      ])
       .orderBy("ftte.createdAt", "desc")
       .execute();
     if (rows.length === 0) break;
 
     for (const row of rows) {
       // For our purposes, this entry is a dataset entry
-      const { messages, tool_choice, tools } = typedDatasetEntry(row);
+      const { messages, tool_choice, tools, output, originalOutputTokens } = typedDatasetEntry(row);
       if (!messages || !tool_choice || !tools) continue;
 
       const prunedInputMessages = pruneInputMessages(messages, stringsToPrune);
@@ -59,10 +67,15 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
         ? countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages)
         : countLlamaInputTokens({ messages: prunedInputMessages, tool_choice, tools });
 
+      const outputTokens = isOpenAi
+        ? countOpenAIChatTokens("gpt-3.5-turbo-0613", output ? [output] : [])
+        : originalOutputTokens;
+
       await prisma.fineTuneTrainingEntry.update({
         where: { id: row.id },
         data: {
           prunedInputTokens,
+          outputTokens,
         },
       });
     }
@@ -74,15 +87,18 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
     const trainingStats = await kysely
       .selectFrom("FineTuneTrainingEntry as ftte")
       .where("ftte.fineTuneId", "=", typedFT.id)
-      .innerJoin("DatasetEntry as de", "ftte.datasetEntryId", "de.id")
       .select(() => [
+        sql<number>`count(ftte.id)`.as("numTrainingEntries"),
         sql<number>`sum(ftte.prunedInputTokens)`.as("totalInputTokens"),
-        sql<number>`sum(de.outputTokens)`.as("totalOutputTokens"),
+        sql<number>`sum(ftte.outputTokens)`.as("totalOutputTokens"),
       ])
       .executeTakeFirst();
 
-    const totalInputTokens = trainingStats?.totalInputTokens ?? 0;
-    const totalOutputTokens = trainingStats?.totalOutputTokens ?? 0;
+    const numTrainingEntries = trainingStats?.numTrainingEntries ?? 0;
+    const numEpochs = calculateNumEpochs(numTrainingEntries);
+
+    const totalInputTokens = (trainingStats?.totalInputTokens ?? 0) * numEpochs;
+    const totalOutputTokens = (trainingStats?.totalOutputTokens ?? 0) * numEpochs;
 
     await prisma.usageLog.create({
       data: {
@@ -92,6 +108,13 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
         cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         createdAt: typedFT.deploymentFinishedAt!,
+      },
+    });
+
+    await prisma.fineTune.update({
+      where: { id: typedFT.id },
+      data: {
+        numEpochs,
       },
     });
   }

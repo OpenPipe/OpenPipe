@@ -53,6 +53,7 @@ async function* iterateTrainingRows(fineTuneId: string) {
             tool_choice: true,
             tools: true,
             output: true,
+            outputTokens: true,
           },
         },
       },
@@ -108,7 +109,7 @@ const trainModalFineTune = async (fineTuneId: string) => {
       const prunedInputTokens = countLlamaInputTokens(input);
       await prisma.fineTuneTrainingEntry.update({
         where: { id: row.id },
-        data: { prunedInputTokens },
+        data: { prunedInputTokens, outputTokens: dsEntry.outputTokens },
       });
       return {
         instruction: serializeChatInput(input, { pipelineVersion: CURRENT_PIPELINE_VERSION }),

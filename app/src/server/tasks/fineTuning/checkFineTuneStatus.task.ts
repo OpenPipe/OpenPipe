@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 
 export const checkFineTuneStatus = defineTask({
   id: "checkFineTuneStatus",
@@ -43,28 +44,21 @@ export const checkFineTuneStatus = defineTask({
               await trainerv1.default.persistModelWeights(typedFT.huggingFaceModelId);
             }
 
-            await prisma.fineTune.update({
-              where: { id: typedFT.id },
-              data: {
-                trainingFinishedAt: new Date(),
-                status: "DEPLOYED",
-              },
-            });
-
-            captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
-
             const trainingStats = await kysely
               .selectFrom("FineTuneTrainingEntry as ftte")
               .where("ftte.fineTuneId", "=", typedFT.id)
-              .innerJoin("DatasetEntry as de", "ftte.datasetEntryId", "de.id")
               .select(() => [
+                sql<number>`count(ftte.id)`.as("numTrainingEntries"),
                 sql<number>`sum(ftte.prunedInputTokens)`.as("totalInputTokens"),
-                sql<number>`sum(de.outputTokens)`.as("totalOutputTokens"),
+                sql<number>`sum(ftte.outputTokens)`.as("totalOutputTokens"),
               ])
               .executeTakeFirst();
 
-            const totalInputTokens = trainingStats?.totalInputTokens ?? 0;
-            const totalOutputTokens = trainingStats?.totalOutputTokens ?? 0;
+            const numTrainingEntries = trainingStats?.numTrainingEntries ?? 0;
+            const numEpochs = calculateNumEpochs(numTrainingEntries);
+
+            const totalInputTokens = (trainingStats?.totalInputTokens ?? 0) * numEpochs;
+            const totalOutputTokens = (trainingStats?.totalOutputTokens ?? 0) * numEpochs;
 
             await prisma.usageLog.create({
               data: {
@@ -74,6 +68,18 @@ export const checkFineTuneStatus = defineTask({
                 cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
               },
             });
+
+            await prisma.fineTune.update({
+              where: { id: typedFT.id },
+              data: {
+                trainingFinishedAt: new Date(),
+                status: "DEPLOYED",
+                numEpochs: calculateNumEpochs(numTrainingEntries),
+              },
+            });
+
+            captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
+
             await startTestJobs(currentFineTune.datasetId, currentFineTune.id);
           } else if (resp.status === "error") {
             await prisma.fineTune.update({

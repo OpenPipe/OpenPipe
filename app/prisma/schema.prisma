@@ -384,6 +384,7 @@ model FineTune {
     trainingFinishedAt   DateTime?
     deploymentStartedAt  DateTime?
     deploymentFinishedAt DateTime?
+    numEpochs            Float?
 
     trainingEntries FineTuneTrainingEntry[]
     testingEntries  FineTuneTestingEntry[]
@@ -411,6 +412,7 @@ model FineTune {
 model FineTuneTrainingEntry {
     id                String @id @default(uuid()) @db.Uuid
     prunedInputTokens Int?
+    outputTokens      Int?
 
     datasetEntryId String       @db.Uuid
     datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)

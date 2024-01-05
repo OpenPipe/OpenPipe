@@ -65,9 +65,10 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
       stringsToPrune,
     );
     const prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages);
+    const outputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", [outputMessage]);
     await prisma.fineTuneTrainingEntry.update({
       where: { id: entry.id },
-      data: { prunedInputTokens },
+      data: { prunedInputTokens, outputTokens },
     });
     return {
       messages: convertToolCallMessagesToFunction([...prunedInputMessages, outputMessage]),

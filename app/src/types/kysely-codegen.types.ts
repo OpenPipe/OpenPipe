@@ -174,6 +174,7 @@ export interface FineTune {
   provider: "openai" | "openpipe";
   trainingConfig: Json | null;
   trainingConfigOverrides: Json | null;
+  numEpochs: number | null;
 }
 
 export interface FineTuneTestingEntry {
@@ -198,6 +199,7 @@ export interface FineTuneTrainingEntry {
   fineTuneId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  outputTokens: number | null;
   prunedInputTokens: number | null;
 }
 
