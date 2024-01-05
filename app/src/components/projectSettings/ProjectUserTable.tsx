@@ -7,7 +7,7 @@ import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { RemoveProjectUserDialog, type ProjectUser } from "./RemoveProjectUserDialog";
 import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { useAccessCheck } from "../ConditionallyEnable";
+import ConditionallyEnable, { useAccessCheck } from "../ConditionallyEnable";
 
 const ProjectUserTable = () => {
   const selectedProject = useSelectedProject().data;
@@ -17,6 +17,10 @@ const ProjectUserTable = () => {
 
   const utils = api.useContext();
 
+  const canLeaveProject =
+    !isAdmin ||
+    !selectedProject ||
+    selectedProject.projectUsers.filter((u) => u.role === "ADMIN").length > 1;
   const [projectUserToRemove, setProjectUserToRemove] = useState<ProjectUser | null>(null);
 
   const cancelInvitationMutation = api.users.cancelProjectInvitation.useMutation();
@@ -73,12 +77,21 @@ const ProjectUserTable = () => {
                   <Td textAlign="end">
                     {(member.userId === session?.user?.id || isAdmin) &&
                       member.userId !== selectedProject.personalProjectUserId && (
-                        <IconButton
-                          aria-label="Remove member"
-                          colorScheme="red"
-                          icon={<BsTrash />}
-                          onClick={() => setProjectUserToRemove(member)}
-                        />
+                        <ConditionallyEnable
+                          checks={[
+                            [
+                              member.userId !== session?.user?.id || canLeaveProject,
+                              "You are the last remaining admin. If you wish to leave, appoint another admin or delete the project.",
+                            ],
+                          ]}
+                        >
+                          <IconButton
+                            aria-label="Remove member"
+                            colorScheme="red"
+                            icon={<BsTrash />}
+                            onClick={() => setProjectUserToRemove(member)}
+                          />
+                        </ConditionallyEnable>
                       )}
                   </Td>
                 </Tr>
