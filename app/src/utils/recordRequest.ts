@@ -59,6 +59,7 @@ export const recordUsage = async ({
       .create({
         data: {
           fineTuneId: fineTune.id,
+          projectId: fineTune.projectId,
           type: UsageType.EXTERNAL,
           inputTokens: usage?.inputTokens ?? 0,
           outputTokens: usage?.outputTokens ?? 0,
