@@ -10,7 +10,7 @@ import type {
 import { type Stream } from "openai/streaming";
 
 import { omit } from "lodash-es";
-import { runInference } from "~/server/modal-rpc/clients";
+import { loraInference, runInference } from "~/server/modal-rpc/clients";
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
@@ -21,28 +21,22 @@ import {
 } from "~/server/utils/convertFunctionCalls";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 
-export async function getCompletion2(
+export async function getCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParamsNonStreaming,
 ): Promise<ChatCompletion>;
-export async function getCompletion2(
+export async function getCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParamsStreaming,
 ): Promise<Stream<ChatCompletionChunk>>;
-export async function getCompletion2(
+export async function getCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
-export async function getCompletion2(
+export async function getCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
-  if (fineTune.pipelineVersion < 1 || fineTune.pipelineVersion > 2) {
-    throw new Error(
-      `Model was trained with pipeline version ${fineTune.pipelineVersion}, but only versions 1-2 are currently supported.`,
-    );
-  }
-
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
   const prunedMessages = pruneInputMessages(input.messages, stringsToPrune);
@@ -51,7 +45,14 @@ export async function getCompletion2(
   if (fineTune.provider === "openai") {
     return getOpenAIFineTuneCompletion(fineTune, prunedInput);
   } else {
-    return getModalCompletion(fineTune, prunedInput);
+    switch (fineTune.pipelineVersion) {
+      case 1:
+      case 2:
+      case 3:
+        return getModalCompletion(fineTune, prunedInput);
+      case 0:
+        throw new Error("Pipeline version 0 is not supported");
+    }
   }
 }
 
@@ -103,13 +104,27 @@ async function getModalCompletion(
     throw new Error("Model is not set up for inference");
   }
 
-  const resp = await runInference({
-    model: fineTune.huggingFaceModelId,
-    prompt: templatedPrompt,
-    max_tokens: input.max_tokens ?? undefined,
-    temperature: input.temperature ?? 0,
-    n: input.n ?? 1,
-  });
+  let resp: Awaited<ReturnType<typeof runInference>>;
+  if (fineTune.pipelineVersion < 3)
+    resp = await runInference({
+      model: fineTune.huggingFaceModelId,
+      prompt: templatedPrompt,
+      max_tokens: input.max_tokens ?? undefined,
+      temperature: input.temperature ?? 0,
+      n: input.n ?? 1,
+    });
+  else if (fineTune.pipelineVersion === 3) {
+    resp = await loraInference.default.generate({
+      base_model: fineTune.baseModel,
+      lora_model: fineTune.id,
+      prompt: templatedPrompt,
+      max_tokens: input.max_tokens ?? undefined,
+      temperature: input.temperature ?? 0,
+      n: input.n ?? 1,
+    });
+  } else {
+    throw new Error("Pipeline version not supported");
+  }
 
   let choices = resp.choices.map((choice, i) => ({
     index: i,

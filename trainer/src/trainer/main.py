@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import fastapi
 from typing import Union, Literal
 import os
-from ..shared import merged_model_cache_dir, logging
+from ..shared import merged_model_cache_dir, logging, require_auth
 
 
 def cache_model_weights():
@@ -13,7 +13,6 @@ def cache_model_weights():
     # all our base model weights to the image to make training faster.
     snapshot_download("OpenPipe/mistral-ft-optimized-1227")
     snapshot_download("mistralai/Mistral-7B-v0.1")
-    snapshot_download("meta-llama/Llama-2-7b-hf")
 
     # This one is rarely used and quite large so just skip
     # snapshot_download("meta-llama/Llama-2-13b-hf")
@@ -77,7 +76,7 @@ def train(fine_tune_id: str, base_url: str):
     return {"status": "done"}
 
 
-@stub.function(allow_concurrent_inputs=500)
+@stub.function(allow_concurrent_inputs=500, secret=modal.Secret.from_name("openpipe"))
 @modal.asgi_app(label=APP_NAME)
 def fastapi_app():
     return web_app
@@ -88,7 +87,9 @@ class STOutput(BaseModel):
 
 
 @web_app.post("/start_training", operation_id="start_training", response_model=STOutput)
-async def start_training(fine_tune_id: str, base_url: str):
+async def start_training(
+    fine_tune_id: str, base_url: str, require_auth=fastapi.Depends(require_auth)
+):
     call = await train.spawn.aio(fine_tune_id, base_url)
     return fastapi.responses.JSONResponse({"call_id": call.object_id}, status_code=202)
 
@@ -103,7 +104,9 @@ class TSOutput(BaseModel):
     operation_id="training_status",
     response_model=TSOutput,
 )
-async def training_status(call_id: str) -> TSOutput:
+async def training_status(
+    call_id: str, require_auth=fastapi.Depends(require_auth)
+) -> TSOutput:
     function_call = modal.functions.FunctionCall.from_id(call_id)
     try:
         output = function_call.get(timeout=0)
@@ -141,7 +144,9 @@ async def do_persist_model_weights(model_name: str):
 
 
 @web_app.post("/persist_model_weights", operation_id="persist_model_weights")
-async def persist_model_weights(model_name: str):
+async def persist_model_weights(
+    model_name: str, require_auth=fastapi.Depends(require_auth)
+):
     logging.info(f"Kicking off persisting weights for model {model_name}")
     call = await do_persist_model_weights.spawn.aio(model_name)
     return fastapi.responses.JSONResponse({"call_id": call.object_id}, status_code=202)

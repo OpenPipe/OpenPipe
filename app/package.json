@@ -20,13 +20,14 @@
     "start": "TZ=UTC next start",
     "codegen:internalClient": "tsx src/server/scripts/internal-client-codegen.ts",
     "codegen:clients": "tsx scripts/codegen-clients.ts",
+    "codegen:modal": "tsx src/server/modal-rpc/codegen-modal.ts",
     "codegen:db": "prisma generate && kysely-codegen --dialect postgres --out-file src/types/kysely-codegen.types.ts && prettier . --write",
     "seed": "NODE_OPTIONS='--no-node-snapshot' tsx prisma/seed.ts",
     "check": "concurrently 'pnpm lint' 'pnpm tsc' 'pnpm prettier . --check'",
     "test": "pnpm vitest",
     "repl": "tsx scripts/repl.ts",
     "repl:watch": "tsx --watch scripts/repl.ts",
-    "dev:modal": "cd ../trainer && MODAL_ENVIRONMENT='dev' concurrently 'poetry run modal serve src/inference_server/main.py' 'poetry run modal serve src/trainer/main.py' --kill-others"
+    "dev:modal": "cd ../trainer && MODAL_ENVIRONMENT='dev' concurrently 'poetry run modal serve src/lora_inference/main.py' 'poetry run modal serve src/trainer/main.py' --kill-others"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^10.1.0",

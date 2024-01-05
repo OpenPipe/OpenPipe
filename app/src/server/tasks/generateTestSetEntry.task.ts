@@ -3,7 +3,7 @@ import { isNumber } from "lodash-es";
 import type { ChatCompletion, ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat";
 import type { JsonValue } from "type-fest";
 
-import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
+import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
 import {
@@ -144,7 +144,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         if (isComparisonModel(modelId)) {
           completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
         } else if (fineTune) {
-          completion = await getCompletion2(fineTune, input);
+          completion = await getCompletion(fineTune, input);
         } else {
           await prisma.fineTuneTestingEntry.update({
             where: { modelId_datasetEntryId: { modelId, datasetEntryId } },

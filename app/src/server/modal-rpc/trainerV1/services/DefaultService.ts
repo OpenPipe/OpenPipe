@@ -4,13 +4,10 @@
 /* eslint-disable */
 import type { STOutput } from "../models/STOutput";
 import type { TSOutput } from "../models/TSOutput";
-
 import type { CancelablePromise } from "../core/CancelablePromise";
 import type { BaseHttpRequest } from "../core/BaseHttpRequest";
-
 export class DefaultService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
-
   /**
    * Start Training
    * @param fineTuneId
@@ -31,7 +28,6 @@ export class DefaultService {
       },
     });
   }
-
   /**
    * Training Status
    * @param callId
@@ -50,7 +46,6 @@ export class DefaultService {
       },
     });
   }
-
   /**
    * Persist Model Weights
    * @param modelName
