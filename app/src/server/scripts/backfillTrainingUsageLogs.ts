@@ -24,6 +24,7 @@ const fineTunesToBackfill = await kysely
     sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
   ])
   .groupBy("ft.id")
+  // .orderBy("ft.createdAt", "desc")
   .execute();
 
 const numTrainingEntriesToBackfill = fineTunesToBackfill.reduce(
@@ -47,7 +48,7 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
   const stringsToPrune = await getStringsToPrune(typedFT.id);
   const isOpenAi = typedFT.provider === "openai";
 
-  // process one batch of 10000 training entries at a time
+  // process one batch of 1000 training entries at a time
   while (true) {
     const rows = await kysely
       .selectFrom("FineTuneTrainingEntry as ftte")
@@ -75,26 +76,33 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
       // For our purposes, this entry is a dataset entry
       const typedDE = typedDatasetEntry(row);
 
-      const prunedInputMessages = stringsToPrune?.length
-        ? pruneInputMessages(typedDE.messages, stringsToPrune)
-        : typedDE.messages;
-
       let prunedInputTokens: number;
-      if (isOpenAi) {
-        prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages);
-      } else if (stringsToPrune?.length) {
-        prunedInputTokens = countLlamaInputTokens({
-          messages: prunedInputMessages,
-          tool_choice: typedDE.tool_choice,
-          tools: typedDE.tools,
-        });
-      } else {
-        prunedInputTokens = typedDE.originalInputTokens ?? 0;
-      }
+      let outputTokens: number | null;
 
-      const outputTokens = isOpenAi
-        ? countOpenAIChatTokens("gpt-3.5-turbo-0613", typedDE.output ? [typedDE.output] : [])
-        : typedDE.originalOutputTokens;
+      if (typedDE.messages?.length && typedDE.output) {
+        const prunedInputMessages = stringsToPrune?.length
+          ? pruneInputMessages(typedDE.messages, stringsToPrune)
+          : typedDE.messages;
+
+        if (isOpenAi) {
+          prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages);
+        } else if (stringsToPrune?.length) {
+          prunedInputTokens = countLlamaInputTokens({
+            messages: prunedInputMessages,
+            tool_choice: typedDE.tool_choice,
+            tools: typedDE.tools,
+          });
+        } else {
+          prunedInputTokens = typedDE.originalInputTokens ?? 0;
+        }
+
+        outputTokens = isOpenAi
+          ? countOpenAIChatTokens("gpt-3.5-turbo-0613", typedDE.output ? [typedDE.output] : [])
+          : typedDE.originalOutputTokens;
+      } else {
+        prunedInputTokens = 0;
+        outputTokens = 0;
+      }
 
       entryUpdates.push({
         where: { id: row.id },
@@ -135,6 +143,7 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
     await prisma.usageLog.create({
       data: {
         fineTuneId: typedFT.id,
+        type: "TRAINING",
         inputTokens: totalInputTokens,
         outputTokens: totalOutputTokens,
         cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),

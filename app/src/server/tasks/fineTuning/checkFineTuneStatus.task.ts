@@ -62,6 +62,7 @@ export const checkFineTuneStatus = defineTask({
 
             await prisma.usageLog.create({
               data: {
+                type: "TRAINING",
                 fineTuneId: typedFT.id,
                 inputTokens: totalInputTokens,
                 outputTokens: totalOutputTokens,
