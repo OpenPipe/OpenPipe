@@ -16,7 +16,8 @@ const baseTabs: CodeTab[] = [
 "model": "openpipe:{{FINE_TUNE_MODEL_SLUG}}",
 "messages": {{TEMPLATED_MESSAGES}},
 "tool_choice": {{TEMPLATED_TOOL_CHOICE}},
-"tools": {{TEMPLATED_TOOLS}}
+"tools": {{TEMPLATED_TOOLS}},
+"temperature": 0
 }'`,
   },
   {
@@ -35,6 +36,7 @@ completion = client.chat.completions.create(
     messages={{TEMPLATED_MESSAGES}},
     tool_choice={{TEMPLATED_TOOL_CHOICE}},
     tools={{TEMPLATED_TOOLS}},
+    temperature=0,
     openpipe={
         "tags": {
             "prompt_id": "counting",
@@ -63,6 +65,7 @@ const completion = await client.chat.completions.create({
     messages: {{TEMPLATED_MESSAGES}},
     tool_choice: {{TEMPLATED_TOOL_CHOICE}},
     tools: {{TEMPLATED_TOOLS}},
+    temperature: 0,
 });
 
 console.log(completion?.choices[0]?.message);
@@ -93,7 +96,13 @@ const templateTabs = (
   const formattedTools = JSON.stringify(entry?.tools ?? []);
 
   return baseTabs.map((tab) => {
-    const templatedCode = tab.code;
+    let templatedCode = tab.code;
+
+    // if tools is empty, remove the tools line
+    if (!entry?.tools?.length) {
+      templatedCode = templatedCode.replace(/.*{{TEMPLATED_TOOL_CHOICE}}.*\n/g, "");
+      templatedCode = templatedCode.replace(/.*{{TEMPLATED_TOOLS}}.*\n/g, "");
+    }
 
     const tabFormattedMessages =
       tab.language === "bash"
