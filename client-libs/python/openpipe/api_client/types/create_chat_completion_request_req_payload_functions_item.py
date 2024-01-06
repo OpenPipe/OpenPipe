@@ -4,8 +4,6 @@ import datetime as dt
 import typing
 
 from ..core.datetime_utils import serialize_datetime
-from .update_log_tags_request_filters_item_equals import UpdateLogTagsRequestFiltersItemEquals
-from .update_log_tags_request_filters_item_field import UpdateLogTagsRequestFiltersItemField
 
 try:
     import pydantic.v1 as pydantic  # type: ignore
@@ -13,9 +11,10 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class UpdateLogTagsRequestFiltersItem(pydantic.BaseModel):
-    field: UpdateLogTagsRequestFiltersItemField
-    equals: UpdateLogTagsRequestFiltersItemEquals
+class CreateChatCompletionRequestReqPayloadFunctionsItem(pydantic.BaseModel):
+    name: str
+    parameters: typing.Optional[typing.Dict[str, typing.Any]]
+    description: typing.Optional[str]
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

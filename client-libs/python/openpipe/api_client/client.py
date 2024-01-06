@@ -10,9 +10,11 @@ from .core.api_error import ApiError
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .core.jsonable_encoder import jsonable_encoder
 from .environment import OpenPipeApiEnvironment
+from .types.check_cache_response import CheckCacheResponse
 from .types.create_chat_completion_request_function_call import CreateChatCompletionRequestFunctionCall
 from .types.create_chat_completion_request_functions_item import CreateChatCompletionRequestFunctionsItem
 from .types.create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
+from .types.create_chat_completion_request_req_payload import CreateChatCompletionRequestReqPayload
 from .types.create_chat_completion_request_response_format import CreateChatCompletionRequestResponseFormat
 from .types.create_chat_completion_request_tool_choice import CreateChatCompletionRequestToolChoice
 from .types.create_chat_completion_request_tools_item import CreateChatCompletionRequestToolsItem
@@ -49,9 +51,47 @@ class OpenPipeApi:
             httpx_client=httpx.Client(timeout=timeout) if httpx_client is None else httpx_client,
         )
 
+    def check_cache(
+        self,
+        *,
+        requested_at: float,
+        req_payload: typing.Optional[typing.Any] = OMIT,
+        tags: typing.Optional[typing.Dict[str, str]] = OMIT,
+    ) -> CheckCacheResponse:
+        """
+        DEPRECATED: we no longer support prompt caching.
+
+        Parameters:
+            - requested_at: float. Unix timestamp in milliseconds
+
+            - req_payload: typing.Optional[typing.Any].
+
+            - tags: typing.Optional[typing.Dict[str, str]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+        """
+        _request: typing.Dict[str, typing.Any] = {"requestedAt": requested_at}
+        if req_payload is not OMIT:
+            _request["reqPayload"] = req_payload
+        if tags is not OMIT:
+            _request["tags"] = tags
+        _response = self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "check-cache"),
+            json=jsonable_encoder(_request),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(CheckCacheResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
     def create_chat_completion(
         self,
         *,
+        req_payload: typing.Optional[CreateChatCompletionRequestReqPayload] = OMIT,
         model: typing.Optional[str] = OMIT,
         messages: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItem]] = OMIT,
         function_call: typing.Optional[CreateChatCompletionRequestFunctionCall] = OMIT,
@@ -65,9 +105,11 @@ class OpenPipeApi:
         response_format: typing.Optional[CreateChatCompletionRequestResponseFormat] = OMIT,
     ) -> CreateChatCompletionResponse:
         """
-        Create completion for a prompt
+        OpenAI-compatible route for generating inference and optionally logging the request.
 
         Parameters:
+            - req_payload: typing.Optional[CreateChatCompletionRequestReqPayload]. DEPRECATED. Use the top-level fields instead
+
             - model: typing.Optional[str].
 
             - messages: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItem]].
@@ -91,6 +133,8 @@ class OpenPipeApi:
             - response_format: typing.Optional[CreateChatCompletionRequestResponseFormat].
         """
         _request: typing.Dict[str, typing.Any] = {}
+        if req_payload is not OMIT:
+            _request["reqPayload"] = req_payload
         if model is not OMIT:
             _request["model"] = model
         if messages is not OMIT:
@@ -260,9 +304,47 @@ class AsyncOpenPipeApi:
             httpx_client=httpx.AsyncClient(timeout=timeout) if httpx_client is None else httpx_client,
         )
 
+    async def check_cache(
+        self,
+        *,
+        requested_at: float,
+        req_payload: typing.Optional[typing.Any] = OMIT,
+        tags: typing.Optional[typing.Dict[str, str]] = OMIT,
+    ) -> CheckCacheResponse:
+        """
+        DEPRECATED: we no longer support prompt caching.
+
+        Parameters:
+            - requested_at: float. Unix timestamp in milliseconds
+
+            - req_payload: typing.Optional[typing.Any].
+
+            - tags: typing.Optional[typing.Dict[str, str]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+        """
+        _request: typing.Dict[str, typing.Any] = {"requestedAt": requested_at}
+        if req_payload is not OMIT:
+            _request["reqPayload"] = req_payload
+        if tags is not OMIT:
+            _request["tags"] = tags
+        _response = await self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "check-cache"),
+            json=jsonable_encoder(_request),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(CheckCacheResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
     async def create_chat_completion(
         self,
         *,
+        req_payload: typing.Optional[CreateChatCompletionRequestReqPayload] = OMIT,
         model: typing.Optional[str] = OMIT,
         messages: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItem]] = OMIT,
         function_call: typing.Optional[CreateChatCompletionRequestFunctionCall] = OMIT,
@@ -276,9 +358,11 @@ class AsyncOpenPipeApi:
         response_format: typing.Optional[CreateChatCompletionRequestResponseFormat] = OMIT,
     ) -> CreateChatCompletionResponse:
         """
-        Create completion for a prompt
+        OpenAI-compatible route for generating inference and optionally logging the request.
 
         Parameters:
+            - req_payload: typing.Optional[CreateChatCompletionRequestReqPayload]. DEPRECATED. Use the top-level fields instead
+
             - model: typing.Optional[str].
 
             - messages: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItem]].
@@ -302,6 +386,8 @@ class AsyncOpenPipeApi:
             - response_format: typing.Optional[CreateChatCompletionRequestResponseFormat].
         """
         _request: typing.Dict[str, typing.Any] = {}
+        if req_payload is not OMIT:
+            _request["reqPayload"] = req_payload
         if model is not OMIT:
             _request["model"] = model
         if messages is not OMIT:

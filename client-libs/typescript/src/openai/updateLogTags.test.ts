@@ -222,46 +222,6 @@ test("updates tag by model", async () => {
   expect(lastLogged?.tags.any_key).toEqual("any value");
 });
 
-test("updates tags by contains", async () => {
-  const payload: ChatCompletionCreateParams = {
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "system", content: "count to 3" }],
-  };
-
-  const generatedId = generateRandomId();
-  const originalPromptId = "original prompt id " + generatedId;
-
-  await opClient.default.report({
-    requestedAt: Date.now(),
-    receivedAt: Date.now(),
-    reqPayload: payload,
-    respPayload: null,
-    tags: {
-      prompt_id: originalPromptId,
-      otherId: "value 1",
-      any_key: "any value",
-    },
-  });
-
-  const updatedTags = {
-    prompt_id: "updated prompt id " + generateRandomId(),
-    otherId: "value 3",
-  };
-
-  const resp = await opClient.default.updateLogTags({
-    filters: [{ field: "tags.prompt_id", contains: generatedId }],
-    tags: updatedTags,
-  });
-
-  expect(resp.matchedLogs).toEqual(1);
-
-  const lastLogged = await lastLoggedCall();
-
-  expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
-  expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
-  expect(lastLogged?.tags.any_key).toEqual("any value");
-});
-
 test("updates by combination of filters", async () => {
   const model = generateRandomId();
   const payload: ChatCompletionCreateParams = {

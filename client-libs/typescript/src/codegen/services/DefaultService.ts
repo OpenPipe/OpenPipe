@@ -7,13 +7,122 @@ import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class DefaultService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
-     * Create completion for a prompt
+     * @deprecated
+     * DEPRECATED: we no longer support prompt caching.
+     * @param requestBody
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public checkCache(
+        requestBody: {
+            /**
+             * Unix timestamp in milliseconds
+             */
+            requestedAt: number;
+            /**
+             * JSON-encoded request payload
+             */
+            reqPayload?: any;
+            /**
+             * Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+             */
+            tags?: Record<string, string>;
+        },
+    ): CancelablePromise<{
+        /**
+         * JSON-encoded response payload
+         */
+        respPayload?: any;
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/check-cache',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * OpenAI-compatible route for generating inference and optionally logging the request.
      * @param requestBody
      * @returns any Successful response
      * @throws ApiError
      */
     public createChatCompletion(
         requestBody: {
+            /**
+             * DEPRECATED. Use the top-level fields instead
+             */
+            reqPayload?: {
+                model: string;
+                messages: Array<({
+                    role: 'system';
+                    content?: string;
+                } | {
+                    role: 'user';
+                    content?: (string | Array<({
+                        type: 'image_url';
+                        image_url: {
+                            detail?: ('auto' | 'low' | 'high');
+                            url: string;
+                        };
+                    } | {
+                        type: 'text';
+                        text: string;
+                    })>);
+                } | {
+                    role: 'assistant';
+                    content?: (string | 'null' | null);
+                    function_call?: {
+                        name?: string;
+                        arguments?: string;
+                    };
+                    tool_calls?: Array<{
+                        id: string;
+                        function: {
+                            name: string;
+                            arguments: string;
+                        };
+                        type: 'function';
+                    }>;
+                } | {
+                    role: 'tool';
+                    content?: string;
+                    tool_call_id: string;
+                } | {
+                    role: 'function';
+                    name: string;
+                    content: (string | 'null' | null);
+                })>;
+                function_call?: ('none' | 'auto' | {
+                    name: string;
+                });
+                functions?: Array<{
+                    name: string;
+                    parameters?: Record<string, any>;
+                    description?: string;
+                }>;
+                tool_choice?: ('none' | 'auto' | {
+                    type?: 'function';
+                    function?: {
+                        name: string;
+                    };
+                });
+                tools?: Array<{
+                    function: {
+                        name: string;
+                        parameters?: Record<string, any>;
+                        description?: string;
+                    };
+                    type: 'function';
+                }>;
+                'n'?: number;
+                max_tokens?: number | null;
+                temperature?: number;
+                response_format?: {
+                    type: ('text' | 'json_object');
+                };
+                stream?: boolean;
+            };
             model?: string;
             messages?: Array<({
                 role: 'system';
@@ -189,13 +298,10 @@ export class DefaultService {
      */
     public updateLogTags(
         requestBody: {
-            filters: Array<({
+            filters: Array<{
                 field: ('model' | 'completionId' | string);
                 equals: (string | number | boolean);
-            } | {
-                field: ('model' | 'completionId' | string);
-                contains: (string | number | boolean);
-            })>;
+            }>;
             /**
              * Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
              */

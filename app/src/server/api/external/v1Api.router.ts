@@ -359,16 +359,10 @@ export const v1ApiRouter = createOpenApiRouter({
     .input(
       z.object({
         filters: z
-          .union([
-            z.object({
-              field: z.union([z.enum(["model", "completionId"]), z.string()]),
-              equals: z.union([z.string(), z.number(), z.boolean()]),
-            }),
-            z.object({
-              field: z.union([z.enum(["model", "completionId"]), z.string()]),
-              contains: z.union([z.string(), z.number(), z.boolean()]),
-            }),
-          ])
+          .object({
+            field: z.union([z.enum(["model", "completionId"]), z.string()]),
+            equals: z.union([z.string(), z.number(), z.boolean()]),
+          })
           .array(),
         tags: z
           .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
@@ -405,19 +399,11 @@ export const v1ApiRouter = createOpenApiRouter({
       const filters: z.infer<typeof filtersSchema> = [];
 
       for (const filter of input.filters) {
-        if ("equals" in filter) {
-          filters.push({
-            field: filter.field,
-            comparator: "=",
-            value: filter.equals.toString(),
-          });
-        } else {
-          filters.push({
-            field: filter.field,
-            comparator: "CONTAINS",
-            value: filter.contains.toString(),
-          });
-        }
+        filters.push({
+          field: filter.field,
+          comparator: "=",
+          value: filter.equals.toString(),
+        });
       }
 
       const matchedLogs = await constructLoggedCallFiltersQuery({

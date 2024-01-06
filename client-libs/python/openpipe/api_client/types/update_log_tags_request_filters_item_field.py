@@ -4,4 +4,4 @@ from __future__ import annotations
 
 import typing
 
-UpdateLogTagsRequestFiltersItemEqualsField = typing.Union[UpdateLogTagsRequestFiltersItemEqualsField, str]
+UpdateLogTagsRequestFiltersItemField = typing.Union[UpdateLogTagsRequestFiltersItemField, str]
