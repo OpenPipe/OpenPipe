@@ -79,6 +79,7 @@ with vllm_image.run_inside():
     # Make sure we have at least 100gb of system ram to cache S-LoRAs
     memory=100 * 1000,
     image=vllm_image,
+    container_idle_timeout=300,
 )
 class LoraBaseModel:
     def __init__(self, base_model_id: str):
