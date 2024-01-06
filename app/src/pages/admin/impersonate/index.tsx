@@ -1,5 +1,7 @@
 import { Card, HStack, Image, Text } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 import AsyncSelect from "react-select/async";
+
 import AppShell from "~/components/nav/AppShell";
 import { type RouterOutputs, api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
@@ -8,12 +10,14 @@ export default function Impersonate() {
   const impersonateMutation = api.adminUsers.impersonate.useMutation();
   const utils = api.useContext();
 
+  const router = useRouter();
+
   const [impersonate] = useHandledAsyncCallback(
     async (userId: string) => {
       await impersonateMutation.mutateAsync({ id: userId });
-      window.location.reload();
+      window.location.replace("/");
     },
-    [impersonateMutation],
+    [impersonateMutation, router],
   );
 
   const loadOptions = async (inputValue: string) => {

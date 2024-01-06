@@ -71,11 +71,18 @@ export const projectsRouter = createTRPCRouter({
   get: protectedProcedure
     .input(z.object({ projectSlug: z.string() }))
     .query(async ({ input, ctx }) => {
-      const project = await prisma.project.findUniqueOrThrow({
+      const project = await prisma.project.findUnique({
         where: {
           slug: input.projectSlug,
         },
       });
+
+      if (!project) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No project matching the provided slug was found",
+        });
+      }
 
       await requireCanViewProject(project.id, ctx);
 
