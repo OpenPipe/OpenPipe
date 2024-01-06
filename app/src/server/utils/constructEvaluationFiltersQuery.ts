@@ -6,10 +6,13 @@ import { EVALUATION_FILTERS_OUTPUT_APPENDIX, type filtersSchema } from "~/types/
 import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
-export const constructEvaluationFiltersQuery = (
-  filters: z.infer<typeof filtersSchema>,
-  datasetId: string,
-) => {
+export const constructEvaluationFiltersQuery = ({
+  filters,
+  datasetId,
+}: {
+  filters: z.infer<typeof filtersSchema>;
+  datasetId: string;
+}) => {
   const baseQuery = kysely.selectFrom("DatasetEntry as de").where((eb) => {
     const wheres: Expression<SqlBool>[] = [
       eb("de.datasetId", "=", datasetId),

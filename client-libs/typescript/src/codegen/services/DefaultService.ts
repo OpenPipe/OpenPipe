@@ -7,41 +7,6 @@ import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class DefaultService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
-     * @deprecated
-     * DEPRECATED: we no longer support prompt caching.
-     * @param requestBody
-     * @returns any Successful response
-     * @throws ApiError
-     */
-    public checkCache(
-        requestBody: {
-            /**
-             * Unix timestamp in milliseconds
-             */
-            requestedAt: number;
-            /**
-             * JSON-encoded request payload
-             */
-            reqPayload?: any;
-            /**
-             * Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
-             */
-            tags?: Record<string, string>;
-        },
-    ): CancelablePromise<{
-        /**
-         * JSON-encoded response payload
-         */
-        respPayload?: any;
-    }> {
-        return this.httpRequest.request({
-            method: 'POST',
-            url: '/check-cache',
-            body: requestBody,
-            mediaType: 'application/json',
-        });
-    }
-    /**
      * Create completion for a prompt
      * @param requestBody
      * @returns any Successful response
@@ -49,87 +14,13 @@ export class DefaultService {
      */
     public createChatCompletion(
         requestBody: {
-            /**
-             * DEPRECATED. Use the top-level fields instead
-             */
-            reqPayload?: {
-                model: string;
-                messages: Array<({
-                    role: 'system';
-                    content: string;
-                } | {
-                    role: 'user';
-                    content: (string | Array<({
-                        type: 'image_url';
-                        image_url: {
-                            detail?: ('auto' | 'low' | 'high');
-                            url: string;
-                        };
-                    } | {
-                        type: 'text';
-                        text: string;
-                    })>);
-                } | {
-                    role: 'assistant';
-                    content?: (string | 'null' | null);
-                    function_call?: {
-                        name: string;
-                        arguments: string;
-                    };
-                    tool_calls?: Array<{
-                        id: string;
-                        function: {
-                            name: string;
-                            arguments: string;
-                        };
-                        type: 'function';
-                    }>;
-                } | {
-                    role: 'tool';
-                    content: string;
-                    tool_call_id: string;
-                } | {
-                    role: 'function';
-                    name: string;
-                    content: (string | 'null' | null);
-                })>;
-                function_call?: ('none' | 'auto' | {
-                    name: string;
-                });
-                functions?: Array<{
-                    name: string;
-                    parameters?: Record<string, any>;
-                    description?: string;
-                }>;
-                tool_choice?: ('none' | 'auto' | {
-                    type: 'function';
-                    function: {
-                        name: string;
-                    };
-                });
-                tools?: Array<{
-                    function: {
-                        name: string;
-                        parameters?: Record<string, any>;
-                        description?: string;
-                    };
-                    type: 'function';
-                }>;
-                'n'?: number;
-                max_tokens?: number | null;
-                temperature?: number;
-                response_format?: {
-                    type: ('text' | 'json_object');
-                };
-                stream?: boolean;
-            };
             model?: string;
             messages?: Array<({
                 role: 'system';
-                content: string;
+                content?: string;
             } | {
                 role: 'user';
-                content: (string | Array<({
+                content?: (string | Array<({
                     type: 'image_url';
                     image_url: {
                         detail?: ('auto' | 'low' | 'high');
@@ -143,8 +34,8 @@ export class DefaultService {
                 role: 'assistant';
                 content?: (string | 'null' | null);
                 function_call?: {
-                    name: string;
-                    arguments: string;
+                    name?: string;
+                    arguments?: string;
                 };
                 tool_calls?: Array<{
                     id: string;
@@ -156,7 +47,7 @@ export class DefaultService {
                 }>;
             } | {
                 role: 'tool';
-                content: string;
+                content?: string;
                 tool_call_id: string;
             } | {
                 role: 'function';
@@ -172,8 +63,8 @@ export class DefaultService {
                 description?: string;
             }>;
             tool_choice?: ('none' | 'auto' | {
-                type: 'function';
-                function: {
+                type?: 'function';
+                function?: {
                     name: string;
                 };
             });
@@ -205,8 +96,8 @@ export class DefaultService {
                 role: 'assistant';
                 content?: (string | 'null' | null);
                 function_call?: {
-                    name: string;
-                    arguments: string;
+                    name?: string;
+                    arguments?: string;
                 };
                 tool_calls?: Array<{
                     id: string;
@@ -217,7 +108,7 @@ export class DefaultService {
                     type: 'function';
                 }>;
             };
-            logprobs: {
+            logprobs?: {
                 content: Array<{
                     token: string;
                     bytes: Array<number> | null;
@@ -286,6 +177,33 @@ export class DefaultService {
         return this.httpRequest.request({
             method: 'POST',
             url: '/report',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Update tags for logged calls matching the provided filters
+     * @param requestBody
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public updateLogTags(
+        requestBody: {
+            filters: Array<{
+                field: ('model' | 'completionId' | string);
+                equals: (string | number | boolean);
+            }>;
+            /**
+             * Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+             */
+            tags: Record<string, (string | number | boolean | 'null' | null)>;
+        },
+    ): CancelablePromise<{
+        matchedLogs: number;
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/update-log-tags',
             body: requestBody,
             mediaType: 'application/json',
         });

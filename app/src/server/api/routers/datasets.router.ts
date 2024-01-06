@@ -67,7 +67,7 @@ export const datasetsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const trainingEntryStats = await constructDatasetEntryFiltersQuery(filters, id)
+      const trainingEntryStats = await constructDatasetEntryFiltersQuery({ filters, datasetId: id })
         .where("de.split", "=", "TRAIN")
         .where("de.output", "is not", null)
         .select((eb) => [

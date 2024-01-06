@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const parseTags = (tags: unknown) => {
+export function parseTags(tags: unknown): Record<string, string>;
+export function parseTags(tags: unknown, keepNulls: true): Record<string, string | null>;
+export function parseTags(tags: unknown, keepNulls?: true) {
   if (typeof tags !== "object") {
     throw new Error("Tags must be an object");
   }
@@ -10,14 +12,14 @@ export const parseTags = (tags: unknown) => {
       parsedTags[key] = String(value);
       continue;
     }
-    if (!value) {
+    if (value === "" || value === undefined || (value === null && !keepNulls)) {
       continue;
     }
-    if (typeof value !== "string") {
-      throw new Error(`Tag ${key} must be a string`);
+    if (typeof value !== "string" && value !== null) {
+      throw new Error(`Tag ${key} must be a string or null`);
     }
     parsedTags[key] = value;
   }
-  z.record(z.string()).parse(parsedTags);
+  z.record(z.union([z.string(), z.null()])).parse(parsedTags);
   return parsedTags;
-};
+}

@@ -6,9 +6,10 @@ import { z } from "zod";
 import { captureException } from "@sentry/node";
 import { type FineTune } from "@prisma/client";
 import { ExtendedTRPCError } from "trpc-openapi";
+import { v4 as uuidv4 } from "uuid";
 
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import {
   chatCompletionInputReqPayload,
   chatCompletionOutput,
@@ -17,6 +18,7 @@ import {
   functionsInput,
   toolChoiceInput,
   toolsInput,
+  type filtersSchema,
 } from "~/types/shared.types";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { typedFineTune } from "~/types/dbColumns.types";
@@ -30,41 +32,10 @@ import {
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { parseTags } from "~/server/utils/parseTags";
 import { statusCodeFromTrpcCode, trpcCodeFromHttpStatus } from "~/server/utils/trpcStatusCodes";
+import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
+import { sql } from "kysely";
 
 export const v1ApiRouter = createOpenApiRouter({
-  checkCache: openApiProtectedProc
-    .meta({
-      openapi: {
-        method: "POST",
-        path: "/check-cache",
-        description: "DEPRECATED: we no longer support prompt caching.",
-        protect: true,
-        deprecated: true,
-      },
-    })
-    .input(
-      z.object({
-        requestedAt: z.number().describe("Unix timestamp in milliseconds"),
-        reqPayload: z.unknown().describe("JSON-encoded request payload"),
-        tags: z
-          .record(z.string())
-          .optional()
-          .describe(
-            'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
-          )
-          .default({}),
-      }),
-    )
-    .output(
-      z.object({
-        respPayload: z.unknown().optional().describe("JSON-encoded response payload"),
-      }),
-    )
-    .mutation(({ input, ctx }) => {
-      // Return null
-      return { respPayload: null };
-    }),
-
   createChatCompletion: openApiProtectedProc
     .meta({
       openapi: {
@@ -75,12 +46,8 @@ export const v1ApiRouter = createOpenApiRouter({
       },
     })
     .input(
-      // TODO: replace this whole mess with just `chatCompletionInput` once
-      // no one is using the `reqPayload` field anymore.
+      // TODO: replace this whole mess with just `chatCompletionInputReqPayload`
       z.object({
-        reqPayload: chatCompletionInputReqPayload
-          .optional()
-          .describe("DEPRECATED. Use the top-level fields instead"),
         model: z.string().optional(),
         messages: z.array(chatMessage).optional(),
         function_call: functionCallInput,
@@ -333,6 +300,135 @@ export const v1ApiRouter = createOpenApiRouter({
       }
 
       return { status: "ok" };
+    }),
+  updateLogTags: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/update-log-tags",
+        description: "Update tags for logged calls matching the provided filters",
+        protect: true,
+      },
+    })
+    .input(
+      z.object({
+        filters: z
+          .object({
+            field: z.union([z.enum(["model", "completionId"]), z.string()]),
+            equals: z.union([z.string(), z.number(), z.boolean()]),
+          })
+          .array(),
+        tags: z
+          .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
+          .describe(
+            'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
+          ),
+      }),
+    )
+    .output(z.object({ matchedLogs: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      if (ctx.key.readOnly) {
+        throw new TRPCError({
+          message: "Read-only API keys cannot update log tags",
+          code: "FORBIDDEN",
+        });
+      }
+
+      let tags: Record<string, string | null> = {};
+      try {
+        tags = parseTags(input.tags, true);
+      } catch (e) {
+        throw new TRPCError({
+          message: `Failed to parse tags: ${(e as Error).message}`,
+          code: "BAD_REQUEST",
+        });
+      }
+
+      const tagNamesToDelete = Object.keys(tags).filter((key) => tags[key] === null);
+      const tagsToUpsert = Object.entries(tags).filter(([, value]) => value !== null) as [
+        string,
+        string,
+      ][];
+
+      const filters: z.infer<typeof filtersSchema> = [];
+
+      for (const filter of input.filters) {
+        filters.push({
+          field: filter.field,
+          comparator: "=",
+          value: filter.equals.toString(),
+        });
+      }
+
+      const matchedLogs = await constructLoggedCallFiltersQuery({
+        filters,
+        projectId: ctx.key.projectId,
+      })
+        .select(sql<number>`count(*)::int`.as("count"))
+        .executeTakeFirst();
+
+      if (tagNamesToDelete.length > 0) {
+        await kysely
+          .deleteFrom("LoggedCallTag")
+          .using((eb) =>
+            constructLoggedCallFiltersQuery({
+              filters,
+              projectId: ctx.key.projectId,
+              lctEB: eb,
+            })
+              .select("lc.id")
+              .as("lc"),
+          )
+          .whereRef("LoggedCallTag.loggedCallId", "=", "lc.id")
+          .where("LoggedCallTag.name", "in", tagNamesToDelete)
+          .execute();
+      }
+
+      const loggedCalls = await constructLoggedCallFiltersQuery({
+        filters,
+        projectId: ctx.key.projectId,
+      })
+        .select("lc.id")
+        .execute();
+
+      const dataToInsert: {
+        id: string;
+        name: string;
+        value: string;
+        projectId: string;
+        loggedCallId: string;
+      }[] = [];
+
+      // Iterate over each logged call and insert tags
+      for (const loggedCall of loggedCalls) {
+        const loggedCallId = loggedCall.id;
+
+        // Prepare the insert data for each tag
+        dataToInsert.push(
+          ...tagsToUpsert.map(([name, value]) => ({
+            id: uuidv4(),
+            name,
+            value,
+            projectId: ctx.key.projectId,
+            loggedCallId,
+          })),
+        );
+      }
+
+      if (dataToInsert.length) {
+        await kysely
+          .insertInto("LoggedCallTag")
+          .columns(["name", "value", "projectId", "loggedCallId"])
+          .values(dataToInsert)
+          .onConflict((oc) =>
+            oc.columns(["loggedCallId", "name"]).doUpdateSet((eb) => ({
+              value: eb.ref("excluded.value"),
+            })),
+          )
+          .execute();
+      }
+
+      return { matchedLogs: matchedLogs?.count ?? 0 };
     }),
   localTestingOnlyGetLatestLoggedCall: openApiProtectedProc
     .meta({

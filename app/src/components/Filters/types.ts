@@ -6,20 +6,35 @@ import {
   type AtLeastOne,
 } from "~/types/shared.types";
 
-export type FilterTypeType = "text" | "date" | "select";
+export type FilterType = "text" | "date" | "select";
 
-export type FilterOptionType = {
+export type TextFilterOption = {
+  type: "text";
   field: string;
-  type?: FilterTypeType;
-  options?: FilterSelectOptionType[];
+  label?: string;
 };
 
-export type FilterSelectOptionType = {
+export type DateFilterOption = {
+  type: "date";
+  field: string;
+  label?: string;
+};
+
+export type SelectFilterOption = {
+  type: "select";
+  field: string;
+  label?: string;
+  options: SelectFilterSelectOption[];
+};
+
+export type FilterOption = TextFilterOption | DateFilterOption | SelectFilterOption;
+
+export type SelectFilterSelectOption = {
   value: string;
   label: string;
 };
 
-export interface FilterDataType {
+export interface FilterData {
   id: string;
   field: string;
   comparator: (typeof comparators)[number];
@@ -27,7 +42,7 @@ export interface FilterDataType {
 }
 
 export const comparatorsForFilterType = (
-  filterType?: FilterTypeType,
+  filterType: FilterType,
 ): AtLeastOne<(typeof comparators)[number]> => {
   if (filterType === "select") return selectComparators;
   if (filterType === "date") return dateComparators;

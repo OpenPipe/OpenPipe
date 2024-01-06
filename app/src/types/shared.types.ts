@@ -229,12 +229,12 @@ export const filtersSchema = z.array(
 );
 
 export enum LoggedCallsFiltersDefaultFields {
-  SentAt = "Sent At",
-  Request = "Request",
-  Response = "Response",
-  Model = "Model",
-  StatusCode = "Status Code",
-  CompletionId = "Completion Id",
+  SentAt = "sentAt",
+  Request = "request",
+  Response = "response",
+  Model = "model",
+  StatusCode = "statusCode",
+  CompletionId = "completionId",
 }
 
 export enum GeneralFiltersDefaultFields {

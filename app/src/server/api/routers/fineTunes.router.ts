@@ -196,7 +196,11 @@ export const fineTunesRouter = createTRPCRouter({
         .insertInto("FineTuneTrainingEntry")
         .columns(["id", "datasetEntryId", "fineTuneId", "updatedAt"])
         .expression((eb) =>
-          constructDatasetEntryFiltersQuery(input.filters, fineTune.datasetId, eb)
+          constructDatasetEntryFiltersQuery({
+            filters: input.filters,
+            datasetId: fineTune.datasetId,
+            ftteEB: eb,
+          })
             .where("split", "=", "TRAIN")
             .where("output", "is not", null)
             .select([

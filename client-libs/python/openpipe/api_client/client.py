@@ -10,11 +10,9 @@ from .core.api_error import ApiError
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .core.jsonable_encoder import jsonable_encoder
 from .environment import OpenPipeApiEnvironment
-from .types.check_cache_response import CheckCacheResponse
 from .types.create_chat_completion_request_function_call import CreateChatCompletionRequestFunctionCall
 from .types.create_chat_completion_request_functions_item import CreateChatCompletionRequestFunctionsItem
 from .types.create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
-from .types.create_chat_completion_request_req_payload import CreateChatCompletionRequestReqPayload
 from .types.create_chat_completion_request_response_format import CreateChatCompletionRequestResponseFormat
 from .types.create_chat_completion_request_tool_choice import CreateChatCompletionRequestToolChoice
 from .types.create_chat_completion_request_tools_item import CreateChatCompletionRequestToolsItem
@@ -22,6 +20,9 @@ from .types.create_chat_completion_response import CreateChatCompletionResponse
 from .types.local_testing_only_get_latest_logged_call_response import LocalTestingOnlyGetLatestLoggedCallResponse
 from .types.report_request_tags_value import ReportRequestTagsValue
 from .types.report_response import ReportResponse
+from .types.update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
+from .types.update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
+from .types.update_log_tags_response import UpdateLogTagsResponse
 
 try:
     import pydantic.v1 as pydantic  # type: ignore
@@ -48,47 +49,9 @@ class OpenPipeApi:
             httpx_client=httpx.Client(timeout=timeout) if httpx_client is None else httpx_client,
         )
 
-    def check_cache(
-        self,
-        *,
-        requested_at: float,
-        req_payload: typing.Optional[typing.Any] = OMIT,
-        tags: typing.Optional[typing.Dict[str, str]] = OMIT,
-    ) -> CheckCacheResponse:
-        """
-        DEPRECATED: we no longer support prompt caching.
-
-        Parameters:
-            - requested_at: float. Unix timestamp in milliseconds
-
-            - req_payload: typing.Optional[typing.Any].
-
-            - tags: typing.Optional[typing.Dict[str, str]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
-        """
-        _request: typing.Dict[str, typing.Any] = {"requestedAt": requested_at}
-        if req_payload is not OMIT:
-            _request["reqPayload"] = req_payload
-        if tags is not OMIT:
-            _request["tags"] = tags
-        _response = self._client_wrapper.httpx_client.request(
-            "POST",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "check-cache"),
-            json=jsonable_encoder(_request),
-            headers=self._client_wrapper.get_headers(),
-            timeout=240,
-        )
-        if 200 <= _response.status_code < 300:
-            return pydantic.parse_obj_as(CheckCacheResponse, _response.json())  # type: ignore
-        try:
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, body=_response.text)
-        raise ApiError(status_code=_response.status_code, body=_response_json)
-
     def create_chat_completion(
         self,
         *,
-        req_payload: typing.Optional[CreateChatCompletionRequestReqPayload] = OMIT,
         model: typing.Optional[str] = OMIT,
         messages: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItem]] = OMIT,
         function_call: typing.Optional[CreateChatCompletionRequestFunctionCall] = OMIT,
@@ -105,8 +68,6 @@ class OpenPipeApi:
         Create completion for a prompt
 
         Parameters:
-            - req_payload: typing.Optional[CreateChatCompletionRequestReqPayload]. DEPRECATED. Use the top-level fields instead
-
             - model: typing.Optional[str].
 
             - messages: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItem]].
@@ -130,8 +91,6 @@ class OpenPipeApi:
             - response_format: typing.Optional[CreateChatCompletionRequestResponseFormat].
         """
         _request: typing.Dict[str, typing.Any] = {}
-        if req_payload is not OMIT:
-            _request["reqPayload"] = req_payload
         if model is not OMIT:
             _request["model"] = model
         if messages is not OMIT:
@@ -235,6 +194,35 @@ class OpenPipeApi:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
+    def update_log_tags(
+        self,
+        *,
+        filters: typing.List[UpdateLogTagsRequestFiltersItem],
+        tags: typing.Dict[str, UpdateLogTagsRequestTagsValue],
+    ) -> UpdateLogTagsResponse:
+        """
+        Update tags for logged calls matching the provided filters
+
+        Parameters:
+            - filters: typing.List[UpdateLogTagsRequestFiltersItem].
+
+            - tags: typing.Dict[str, UpdateLogTagsRequestTagsValue]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "update-log-tags"),
+            json=jsonable_encoder({"filters": filters, "tags": tags}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UpdateLogTagsResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
     def local_testing_only_get_latest_logged_call(self) -> typing.Optional[LocalTestingOnlyGetLatestLoggedCallResponse]:
         """
         Get the latest logged call (only for local testing)
@@ -272,47 +260,9 @@ class AsyncOpenPipeApi:
             httpx_client=httpx.AsyncClient(timeout=timeout) if httpx_client is None else httpx_client,
         )
 
-    async def check_cache(
-        self,
-        *,
-        requested_at: float,
-        req_payload: typing.Optional[typing.Any] = OMIT,
-        tags: typing.Optional[typing.Dict[str, str]] = OMIT,
-    ) -> CheckCacheResponse:
-        """
-        DEPRECATED: we no longer support prompt caching.
-
-        Parameters:
-            - requested_at: float. Unix timestamp in milliseconds
-
-            - req_payload: typing.Optional[typing.Any].
-
-            - tags: typing.Optional[typing.Dict[str, str]]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
-        """
-        _request: typing.Dict[str, typing.Any] = {"requestedAt": requested_at}
-        if req_payload is not OMIT:
-            _request["reqPayload"] = req_payload
-        if tags is not OMIT:
-            _request["tags"] = tags
-        _response = await self._client_wrapper.httpx_client.request(
-            "POST",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "check-cache"),
-            json=jsonable_encoder(_request),
-            headers=self._client_wrapper.get_headers(),
-            timeout=240,
-        )
-        if 200 <= _response.status_code < 300:
-            return pydantic.parse_obj_as(CheckCacheResponse, _response.json())  # type: ignore
-        try:
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, body=_response.text)
-        raise ApiError(status_code=_response.status_code, body=_response_json)
-
     async def create_chat_completion(
         self,
         *,
-        req_payload: typing.Optional[CreateChatCompletionRequestReqPayload] = OMIT,
         model: typing.Optional[str] = OMIT,
         messages: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItem]] = OMIT,
         function_call: typing.Optional[CreateChatCompletionRequestFunctionCall] = OMIT,
@@ -329,8 +279,6 @@ class AsyncOpenPipeApi:
         Create completion for a prompt
 
         Parameters:
-            - req_payload: typing.Optional[CreateChatCompletionRequestReqPayload]. DEPRECATED. Use the top-level fields instead
-
             - model: typing.Optional[str].
 
             - messages: typing.Optional[typing.List[CreateChatCompletionRequestMessagesItem]].
@@ -354,8 +302,6 @@ class AsyncOpenPipeApi:
             - response_format: typing.Optional[CreateChatCompletionRequestResponseFormat].
         """
         _request: typing.Dict[str, typing.Any] = {}
-        if req_payload is not OMIT:
-            _request["reqPayload"] = req_payload
         if model is not OMIT:
             _request["model"] = model
         if messages is not OMIT:
@@ -453,6 +399,35 @@ class AsyncOpenPipeApi:
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(ReportResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def update_log_tags(
+        self,
+        *,
+        filters: typing.List[UpdateLogTagsRequestFiltersItem],
+        tags: typing.Dict[str, UpdateLogTagsRequestTagsValue],
+    ) -> UpdateLogTagsResponse:
+        """
+        Update tags for logged calls matching the provided filters
+
+        Parameters:
+            - filters: typing.List[UpdateLogTagsRequestFiltersItem].
+
+            - tags: typing.Dict[str, UpdateLogTagsRequestTagsValue]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "update-log-tags"),
+            json=jsonable_encoder({"filters": filters, "tags": tags}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UpdateLogTagsResponse, _response.json())  # type: ignore
         try:
             _response_json = _response.json()
         except JSONDecodeError:

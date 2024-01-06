@@ -58,7 +58,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       });
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructDatasetEntryFiltersQuery(filters, datasetId);
+      const baseQuery = constructDatasetEntryFiltersQuery({ filters, datasetId });
 
       let entriesQuery = baseQuery
         .select((eb) => [
@@ -255,9 +255,13 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(projectId, ctx);
 
-      const loggedCalls = await constructLoggedCallFiltersQuery(input.filters, projectId, {
-        ...pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
-        removeUnsuccessful: true,
+      const loggedCalls = await constructLoggedCallFiltersQuery({
+        filters: input.filters,
+        projectId,
+        selectionParams: {
+          ...pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
+          removeUnsuccessful: true,
+        },
       })
         .where(
           "lc.id",
@@ -569,7 +573,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
-      const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
+      const baseQuery = constructEvaluationFiltersQuery({ filters, datasetId });
 
       let updatedQuery = baseQuery;
 
@@ -720,7 +724,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         .select(["FineTuneTestingEntry.id"])
         .execute();
 
-      const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
+      const baseQuery = constructEvaluationFiltersQuery({ filters, datasetId });
 
       let updatedPerformanceQuery = baseQuery;
 
