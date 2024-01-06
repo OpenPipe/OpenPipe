@@ -210,7 +210,7 @@ class OpenPipeApi:
         """
         _response = self._client_wrapper.httpx_client.request(
             "POST",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "update-log-tags"),
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "logs/update-tags"),
             json=jsonable_encoder({"filters": filters, "tags": tags}),
             headers=self._client_wrapper.get_headers(),
             timeout=240,
@@ -421,7 +421,7 @@ class AsyncOpenPipeApi:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "POST",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "update-log-tags"),
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "logs/update-tags"),
             json=jsonable_encoder({"filters": filters, "tags": tags}),
             headers=self._client_wrapper.get_headers(),
             timeout=240,

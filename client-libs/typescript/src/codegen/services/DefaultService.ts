@@ -206,7 +206,7 @@ export class DefaultService {
     }> {
         return this.httpRequest.request({
             method: 'POST',
-            url: '/update-log-tags',
+            url: '/logs/update-tags',
             body: requestBody,
             mediaType: 'application/json',
         });

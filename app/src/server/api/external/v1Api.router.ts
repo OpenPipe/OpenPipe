@@ -36,18 +36,54 @@ import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedC
 import { sql } from "kysely";
 
 export const v1ApiRouter = createOpenApiRouter({
+  checkCache: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/check-cache",
+        description: "DEPRECATED: we no longer support prompt caching.",
+        protect: true,
+        deprecated: true,
+      },
+    })
+    .input(
+      z.object({
+        requestedAt: z.number().describe("Unix timestamp in milliseconds"),
+        reqPayload: z.unknown().describe("JSON-encoded request payload"),
+        tags: z
+          .record(z.string())
+          .optional()
+          .describe(
+            'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
+          )
+          .default({}),
+      }),
+    )
+    .output(
+      z.object({
+        respPayload: z.unknown().optional().describe("JSON-encoded response payload"),
+      }),
+    )
+    .mutation(({ input, ctx }) => {
+      // Return null
+      return { respPayload: null };
+    }),
   createChatCompletion: openApiProtectedProc
     .meta({
       openapi: {
         method: "POST",
         path: "/chat/completions",
-        description: "Create completion for a prompt",
+        description:
+          "OpenAI-compatible route for generating inference and optionally logging the request.",
         protect: true,
       },
     })
     .input(
       // TODO: replace this whole mess with just `chatCompletionInputReqPayload`
       z.object({
+        reqPayload: chatCompletionInputReqPayload
+          .optional()
+          .describe("DEPRECATED. Use the top-level fields instead"),
         model: z.string().optional(),
         messages: z.array(chatMessage).optional(),
         function_call: functionCallInput,
@@ -73,6 +109,14 @@ export const v1ApiRouter = createOpenApiRouter({
         "reqPayload" in input
           ? chatCompletionInputReqPayload.parse(input.reqPayload)
           : chatCompletionInputReqPayload.parse(input);
+
+      if ("reqPayload" in input) {
+        captureException(
+          new Error(
+            `reqPayload should not be present in input. model: ${input.model} project: ${key.projectId}`,
+          ),
+        );
+      }
 
       const requestedAt = Date.now();
 
@@ -186,20 +230,22 @@ export const v1ApiRouter = createOpenApiRouter({
       } catch (error: unknown) {
         if (error instanceof TRPCError) {
           const statusCode = statusCodeFromTrpcCode(error.code);
-          // record error in request log
-          void recordLoggedCall({
-            projectId: key.projectId,
-            requestedAt,
-            receivedAt: Date.now(),
-            reqPayload: inputPayload,
-            respPayload: {
-              code: error.code,
-              message: error.message,
-            },
-            statusCode,
-            errorMessage: error.message,
-            tags,
-          });
+          if (logRequest) {
+            // record error in request log
+            void recordLoggedCall({
+              projectId: key.projectId,
+              requestedAt,
+              receivedAt: Date.now(),
+              reqPayload: inputPayload,
+              respPayload: {
+                code: error.code,
+                message: error.message,
+              },
+              statusCode,
+              errorMessage: error.message,
+              tags,
+            });
+          }
           throw new ExtendedTRPCError({
             code: error.code,
             message: error.message,
@@ -305,7 +351,7 @@ export const v1ApiRouter = createOpenApiRouter({
     .meta({
       openapi: {
         method: "POST",
-        path: "/update-log-tags",
+        path: "/logs/update-tags",
         description: "Update tags for logged calls matching the provided filters",
         protect: true,
       },

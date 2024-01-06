@@ -846,7 +846,7 @@
         }
       }
     },
-    "/update-log-tags": {
+    "/logs/update-tags": {
       "post": {
         "operationId": "updateLogTags",
         "description": "Update tags for logged calls matching the provided filters",

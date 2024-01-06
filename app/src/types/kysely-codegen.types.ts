@@ -330,6 +330,7 @@ export interface UsageLog {
   fineTuneId: string | null;
   createdAt: Generated<Timestamp>;
   projectId: string | null;
+  billable: Generated<boolean>;
 }
 
 export interface User {
