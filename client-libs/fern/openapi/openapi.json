@@ -865,41 +865,82 @@
                   "filters": {
                     "type": "array",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "field": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "enum": [
-                                "model",
-                                "completionId"
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "field": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "model",
+                                    "completionId"
+                                  ]
+                                },
+                                {
+                                  "type": "string"
+                                }
                               ]
                             },
-                            {
-                              "type": "string"
+                            "equals": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                }
+                              ]
                             }
-                          ]
+                          },
+                          "required": [
+                            "field",
+                            "equals"
+                          ],
+                          "additionalProperties": false
                         },
-                        "equals": {
-                          "anyOf": [
-                            {
-                              "type": "string"
+                        {
+                          "type": "object",
+                          "properties": {
+                            "field": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "model",
+                                    "completionId"
+                                  ]
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
                             },
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "boolean"
+                            "contains": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                }
+                              ]
                             }
-                          ]
+                          },
+                          "required": [
+                            "field",
+                            "contains"
+                          ],
+                          "additionalProperties": false
                         }
-                      },
-                      "required": [
-                        "field",
-                        "equals"
-                      ],
-                      "additionalProperties": false
+                      ]
                     }
                   },
                   "tags": {

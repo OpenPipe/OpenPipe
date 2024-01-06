@@ -189,10 +189,13 @@ export class DefaultService {
      */
     public updateLogTags(
         requestBody: {
-            filters: Array<{
+            filters: Array<({
                 field: ('model' | 'completionId' | string);
                 equals: (string | number | boolean);
-            }>;
+            } | {
+                field: ('model' | 'completionId' | string);
+                contains: (string | number | boolean);
+            })>;
             /**
              * Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
              */

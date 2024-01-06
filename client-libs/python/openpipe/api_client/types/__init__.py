@@ -96,8 +96,12 @@ from .report_request_tags_value import ReportRequestTagsValue
 from .report_response import ReportResponse
 from .report_response_status import ReportResponseStatus
 from .update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
+from .update_log_tags_request_filters_item_contains import UpdateLogTagsRequestFiltersItemContains
+from .update_log_tags_request_filters_item_contains_contains import UpdateLogTagsRequestFiltersItemContainsContains
+from .update_log_tags_request_filters_item_contains_field import UpdateLogTagsRequestFiltersItemContainsField
 from .update_log_tags_request_filters_item_equals import UpdateLogTagsRequestFiltersItemEquals
-from .update_log_tags_request_filters_item_field import UpdateLogTagsRequestFiltersItemField
+from .update_log_tags_request_filters_item_equals_equals import UpdateLogTagsRequestFiltersItemEqualsEquals
+from .update_log_tags_request_filters_item_equals_field import UpdateLogTagsRequestFiltersItemEqualsField
 from .update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
 from .update_log_tags_response import UpdateLogTagsResponse
 
@@ -154,8 +158,12 @@ __all__ = [
     "ReportResponse",
     "ReportResponseStatus",
     "UpdateLogTagsRequestFiltersItem",
+    "UpdateLogTagsRequestFiltersItemContains",
+    "UpdateLogTagsRequestFiltersItemContainsContains",
+    "UpdateLogTagsRequestFiltersItemContainsField",
     "UpdateLogTagsRequestFiltersItemEquals",
-    "UpdateLogTagsRequestFiltersItemField",
+    "UpdateLogTagsRequestFiltersItemEqualsEquals",
+    "UpdateLogTagsRequestFiltersItemEqualsField",
     "UpdateLogTagsRequestTagsValue",
     "UpdateLogTagsResponse",
 ]
