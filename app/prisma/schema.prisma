@@ -467,6 +467,7 @@ model FineTuneTestingEntry {
     @@unique([modelId, datasetEntryId])
     @@index([datasetEntryId])
     @@index([cacheKey])
+    @@index([fineTuneId])
 }
 
 enum DatasetEvalType {
@@ -583,6 +584,7 @@ model UsageLog {
     outputTokens Int
     cost         Float
     type         UsageType @default(EXTERNAL)
+    billable     Boolean   @default(true)
 
     fineTuneId String?   @db.Uuid
     fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: SetNull)

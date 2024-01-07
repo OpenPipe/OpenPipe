@@ -25,15 +25,22 @@ export const usageRouter = createTRPCRouter({
         .selectFrom(
           kysely
             .selectFrom("UsageLog as ul")
-            .where("ul.type", "!=", "TRAINING")
             .innerJoin("FineTune as ft", "ft.id", "ul.fineTuneId")
             .where("ft.projectId", "=", input.projectId)
             .select(({ fn }) => [
               "ft.id as ftId",
-              fn.count("ul.id").as("numQueries"),
-              fn.sum("cost").as("cost"),
-              fn.sum("inputTokens").as("inputTokens"),
-              fn.sum("outputTokens").as("outputTokens"),
+              fn
+                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else 1 end`)
+                .as("numQueries"),
+              fn
+                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else ul."inputTokens" end`)
+                .as("inputTokens"),
+              fn
+                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else ul."outputTokens" end`)
+                .as("outputTokens"),
+              fn
+                .sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`)
+                .as("cost"),
             ])
             .groupBy("ftId")
             .as("stats"),
@@ -53,7 +60,9 @@ export const usageRouter = createTRPCRouter({
               .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
               .as("trainingCost"),
             eb.fn
-              .sum(sql<number>`case when ul.type != 'TRAINING' then ul.cost else 0 end`)
+              .sum(
+                sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
+              )
               .as("inferenceCost"),
           ])
           .groupBy("period")
@@ -61,7 +70,7 @@ export const usageRouter = createTRPCRouter({
           .execute(),
         baseQuery
           .select(({ fn }) => [
-            fn.sum(fn.coalesce("cost", sql<number>`0`)).as("cost"),
+            fn.sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`).as("cost"),
             fn.count("ul.id").as("numQueries"),
           ])
           .executeTakeFirst(),
