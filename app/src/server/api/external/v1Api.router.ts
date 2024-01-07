@@ -65,6 +65,15 @@ export const v1ApiRouter = createOpenApiRouter({
       }),
     )
     .mutation(({ input, ctx }) => {
+      let model = "";
+      try {
+        const reqPayload = chatCompletionInputReqPayload.parse(input.reqPayload);
+        model = reqPayload.model;
+      } catch {
+        // pass
+      }
+      captureException(new Error(`checkCache was called: ${model} project: ${ctx.key.projectId}`));
+
       // Return null
       return { respPayload: null };
     }),
@@ -113,7 +122,9 @@ export const v1ApiRouter = createOpenApiRouter({
       if ("reqPayload" in input) {
         captureException(
           new Error(
-            `reqPayload should not be present in input. model: ${input.model} project: ${key.projectId}`,
+            `reqPayload should not be present in input. model: ${input.model ?? ""} project: ${
+              key.projectId
+            }`,
           ),
         );
       }
