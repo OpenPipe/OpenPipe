@@ -64,6 +64,7 @@ export const recordUsage = async ({
           inputTokens: usage?.inputTokens ?? 0,
           outputTokens: usage?.outputTokens ?? 0,
           cost: usage?.cost ?? 0,
+          billable: fineTune.provider === "openpipe",
         },
       })
       .catch((error) => captureException(error));
