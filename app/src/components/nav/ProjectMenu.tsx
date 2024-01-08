@@ -103,6 +103,7 @@ export default function ProjectMenu() {
         <PopoverContent
           _focusVisible={{ outline: "unset" }}
           w={220}
+          minW="fit-content"
           ml={{ base: 2, md: 0 }}
           boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);"
           fontSize="sm"
