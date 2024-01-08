@@ -255,7 +255,6 @@ model LoggedCallTag {
 
     @@unique([loggedCallId, name])
     @@index(loggedCallId)
-    @@index([name, projectId])
     @@index([projectId, name])
     @@index([projectId, name, value])
 }
@@ -431,7 +430,6 @@ model FineTuneTrainingEntry {
     @@unique([datasetEntryId, fineTuneId])
     @@index([datasetEntryId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
-    @@index([fineTuneId])
 }
 
 enum ComparisonModel {
