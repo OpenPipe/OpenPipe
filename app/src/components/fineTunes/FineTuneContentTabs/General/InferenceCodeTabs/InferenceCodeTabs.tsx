@@ -12,6 +12,7 @@ const baseTabs: CodeTab[] = [
 --url https://app.openpipe.ai/api/v1/chat/completions \\
 --header 'Authorization: Bearer {{TEMPLATED_OPENPIPE_API_KEY}}' \\
 --header 'Content-Type: application/json' \\
+--header 'op-log-request: true' \\
 --data '{
 "model": "openpipe:{{FINE_TUNE_MODEL_SLUG}}",
 "messages": {{TEMPLATED_MESSAGES}},
