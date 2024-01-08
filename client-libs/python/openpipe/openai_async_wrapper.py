@@ -46,8 +46,10 @@ class AsyncCompletionsWrapper(AsyncCompletions):
         model = kwargs.get("model", "")
 
         if model.startswith("openpipe:"):
+            extra_headers = get_extra_headers(kwargs, openpipe_options)
+
             return await self.openpipe_completions_client.chat.completions.create(
-                **kwargs, extra_headers=get_extra_headers(kwargs, openpipe_options)
+                **kwargs, extra_headers=extra_headers
             )
 
         try:

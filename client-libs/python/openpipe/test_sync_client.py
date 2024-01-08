@@ -55,7 +55,7 @@ def test_sync_content():
 
 def test_sync_content_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-content-mistral",
+        model="openpipe:test-content-mistral-p3",
         response_format={"type": "json_object"},
         messages=[{"role": "system", "content": "count to 3"}],
         openpipe={"tags": {"promptId": "test_sync_content_mistral"}},
@@ -97,7 +97,7 @@ def test_sync_function_call():
 
 def test_sync_function_call_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-tool-calls-mistral",
+        model="openpipe:test-tool-calls-mistral-p3",
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
@@ -154,7 +154,7 @@ def test_sync_tool_calls():
 
 def test_sync_tool_calls_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-tool-calls-mistral",
+        model="openpipe:test-tool-calls-mistral-p3",
         messages=[
             {"role": "system", "content": "tell me the weather in SF and Orlando"}
         ],
@@ -204,6 +204,7 @@ def test_sync_streaming_content():
     )
 
 
+@pytest.mark.focus
 def test_sync_streaming_content_ft_35():
     completion = client.chat.completions.create(
         model="openpipe:test-content-35",

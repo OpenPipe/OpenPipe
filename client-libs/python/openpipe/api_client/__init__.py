@@ -90,7 +90,6 @@ from .types import (
     ReportResponseStatus,
     UpdateLogTagsRequestFiltersItem,
     UpdateLogTagsRequestFiltersItemEquals,
-    UpdateLogTagsRequestFiltersItemField,
     UpdateLogTagsRequestTagsValue,
     UpdateLogTagsResponse,
 )
@@ -187,7 +186,6 @@ __all__ = [
     "ReportResponseStatus",
     "UpdateLogTagsRequestFiltersItem",
     "UpdateLogTagsRequestFiltersItemEquals",
-    "UpdateLogTagsRequestFiltersItemField",
     "UpdateLogTagsRequestTagsValue",
     "UpdateLogTagsResponse",
 ]

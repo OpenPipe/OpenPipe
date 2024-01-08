@@ -299,7 +299,10 @@ export class DefaultService {
     public updateLogTags(
         requestBody: {
             filters: Array<{
-                field: ('model' | 'completionId' | string);
+                /**
+                 * The field to filter on. Possible fields include: `model`, `completionId`, and `tags.your_tag_name`.
+                 */
+                field: string;
                 equals: (string | number | boolean);
             }>;
             /**

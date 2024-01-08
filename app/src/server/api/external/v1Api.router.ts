@@ -371,7 +371,11 @@ export const v1ApiRouter = createOpenApiRouter({
       z.object({
         filters: z
           .object({
-            field: z.union([z.enum(["model", "completionId"]), z.string()]),
+            field: z
+              .string()
+              .describe(
+                "The field to filter on. Possible fields include: `model`, `completionId`, and `tags.your_tag_name`.",
+              ),
             equals: z.union([z.string(), z.number(), z.boolean()]),
           })
           .array(),

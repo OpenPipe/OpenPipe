@@ -181,7 +181,6 @@ from .report_response import ReportResponse
 from .report_response_status import ReportResponseStatus
 from .update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
 from .update_log_tags_request_filters_item_equals import UpdateLogTagsRequestFiltersItemEquals
-from .update_log_tags_request_filters_item_field import UpdateLogTagsRequestFiltersItemField
 from .update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
 from .update_log_tags_response import UpdateLogTagsResponse
 
@@ -275,7 +274,6 @@ __all__ = [
     "ReportResponseStatus",
     "UpdateLogTagsRequestFiltersItem",
     "UpdateLogTagsRequestFiltersItemEquals",
-    "UpdateLogTagsRequestFiltersItemField",
     "UpdateLogTagsRequestTagsValue",
     "UpdateLogTagsResponse",
 ]
