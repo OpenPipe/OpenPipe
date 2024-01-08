@@ -12,7 +12,7 @@ except ImportError:
 
 
 class CreateChatCompletionRequestMessagesItemTool(pydantic.BaseModel):
-    content: str
+    content: typing.Optional[str]
     tool_call_id: str
 
     def json(self, **kwargs: typing.Any) -> str:

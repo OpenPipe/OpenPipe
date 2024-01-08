@@ -20,8 +20,10 @@ test("fetches non-streamed output", async () => {
       Authorization: `Bearer ${OPENPIPE_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: "Count to 7" }],
+      reqPayload: {
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: "Count to 7" }],
+      },
     }),
   });
 

@@ -77,7 +77,7 @@ test("simple openai content call", async () => {
 
 test("simple ft content call", async () => {
   const payload: ChatCompletionCreateParams = {
-    model: "openpipe:test-content-mistral",
+    model: "openpipe:test-content-mistral-p3",
     messages: [{ role: "system", content: "count to 3" }],
   };
   const completion = await oaiClient.chat.completions.create(payload);
@@ -106,7 +106,7 @@ test("base sdk openai content call", async () => {
 
 test("base sdk ft content call", async () => {
   const payload: ChatCompletionCreateParams = {
-    model: "openpipe:test-content-mistral",
+    model: "openpipe:test-content-mistral-p3",
     messages: [{ role: "system", content: "count to 3" }],
   };
   const tags = { promptId: "base sdk ft content call" };
@@ -443,7 +443,7 @@ test("base sdk defaults to not recording for fine-tuned models", async () => {
 
 test.skip("mistral ft streaming", async () => {
   const completion = await baseClient.chat.completions.create({
-    model: "openpipe:test-content-mistral",
+    model: "openpipe:test-content-mistral-p3",
     messages: [{ role: "system", content: "count to 3" }],
     stream: true,
   });
@@ -553,7 +553,7 @@ test("openai content call unusual tags", async () => {
 
 test("ft content call unusual tags", async () => {
   const payload: ChatCompletionCreateParams = {
-    model: "openpipe:test-content-mistral",
+    model: "openpipe:test-content-mistral-p3",
     messages: [{ role: "system", content: "count to 3" }],
   };
   const openpipeOptions = {

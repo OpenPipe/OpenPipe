@@ -79,7 +79,7 @@
     "/chat/completions": {
       "post": {
         "operationId": "createChatCompletion",
-        "description": "Create completion for a prompt",
+        "description": "OpenAI-compatible route for generating inference and optionally logging the request.",
         "security": [
           {
             "Authorization": []
@@ -112,12 +112,12 @@
                                   ]
                                 },
                                 "content": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "default": ""
                                 }
                               },
                               "required": [
-                                "role",
-                                "content"
+                                "role"
                               ],
                               "additionalProperties": false
                             },
@@ -211,12 +211,12 @@
                                         ]
                                       }
                                     }
-                                  ]
+                                  ],
+                                  "default": ""
                                 }
                               },
                               "required": [
-                                "role",
-                                "content"
+                                "role"
                               ],
                               "additionalProperties": false
                             },
@@ -247,16 +247,14 @@
                                   "type": "object",
                                   "properties": {
                                     "name": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "default": ""
                                     },
                                     "arguments": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "default": ""
                                     }
                                   },
-                                  "required": [
-                                    "name",
-                                    "arguments"
-                                  ],
                                   "additionalProperties": false
                                 },
                                 "tool_calls": {
@@ -314,7 +312,8 @@
                                   ]
                                 },
                                 "content": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "default": ""
                                 },
                                 "tool_call_id": {
                                   "type": "string"
@@ -322,7 +321,6 @@
                               },
                               "required": [
                                 "role",
-                                "content",
                                 "tool_call_id"
                               ],
                               "additionalProperties": false
@@ -434,7 +432,8 @@
                                 "type": "string",
                                 "enum": [
                                   "function"
-                                ]
+                                ],
+                                "default": "function"
                               },
                               "function": {
                                 "type": "object",
@@ -446,13 +445,12 @@
                                 "required": [
                                   "name"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "default": {
+                                  "name": ""
+                                }
                               }
                             },
-                            "required": [
-                              "type",
-                              "function"
-                            ],
                             "additionalProperties": false
                           }
                         ]
@@ -559,12 +557,12 @@
                               ]
                             },
                             "content": {
-                              "type": "string"
+                              "type": "string",
+                              "default": ""
                             }
                           },
                           "required": [
-                            "role",
-                            "content"
+                            "role"
                           ],
                           "additionalProperties": false
                         },
@@ -658,12 +656,12 @@
                                     ]
                                   }
                                 }
-                              ]
+                              ],
+                              "default": ""
                             }
                           },
                           "required": [
-                            "role",
-                            "content"
+                            "role"
                           ],
                           "additionalProperties": false
                         },
@@ -694,16 +692,14 @@
                               "type": "object",
                               "properties": {
                                 "name": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "default": ""
                                 },
                                 "arguments": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "default": ""
                                 }
                               },
-                              "required": [
-                                "name",
-                                "arguments"
-                              ],
                               "additionalProperties": false
                             },
                             "tool_calls": {
@@ -761,7 +757,8 @@
                               ]
                             },
                             "content": {
-                              "type": "string"
+                              "type": "string",
+                              "default": ""
                             },
                             "tool_call_id": {
                               "type": "string"
@@ -769,7 +766,6 @@
                           },
                           "required": [
                             "role",
-                            "content",
                             "tool_call_id"
                           ],
                           "additionalProperties": false
@@ -881,7 +877,8 @@
                             "type": "string",
                             "enum": [
                               "function"
-                            ]
+                            ],
+                            "default": "function"
                           },
                           "function": {
                             "type": "object",
@@ -893,13 +890,12 @@
                             "required": [
                               "name"
                             ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "default": {
+                              "name": ""
+                            }
                           }
                         },
-                        "required": [
-                          "type",
-                          "function"
-                        ],
                         "additionalProperties": false
                       }
                     ]
@@ -1081,16 +1077,14 @@
                                     "type": "object",
                                     "properties": {
                                       "name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "default": ""
                                       },
                                       "arguments": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "default": ""
                                       }
                                     },
-                                    "required": [
-                                      "name",
-                                      "arguments"
-                                    ],
                                     "additionalProperties": false
                                   },
                                   "tool_calls": {
@@ -1202,14 +1196,14 @@
                                   "content"
                                 ],
                                 "additionalProperties": false,
-                                "nullable": true
+                                "nullable": true,
+                                "default": null
                               }
                             },
                             "required": [
                               "finish_reason",
                               "index",
-                              "message",
-                              "logprobs"
+                              "message"
                             ],
                             "additionalProperties": false
                           }
@@ -1353,6 +1347,112 @@
                   },
                   "required": [
                     "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/logs/update-tags": {
+      "post": {
+        "operationId": "updateLogTags",
+        "description": "Update tags for logged calls matching the provided filters",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "description": "The field to filter on. Possible fields include: `model`, `completionId`, and `tags.your_tag_name`."
+                        },
+                        "equals": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "boolean"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "equals"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "enum": [
+                            "null"
+                          ],
+                          "nullable": true
+                        }
+                      ]
+                    },
+                    "description": "Extra tags to attach to the call for filtering. Eg { \"userId\": \"123\", \"promptId\": \"populate-title\" }"
+                  }
+                },
+                "required": [
+                  "filters",
+                  "tags"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "matchedLogs": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "matchedLogs"
                   ],
                   "additionalProperties": false
                 }

@@ -42,7 +42,7 @@ export class DefaultService {
         });
     }
     /**
-     * Create completion for a prompt
+     * OpenAI-compatible route for generating inference and optionally logging the request.
      * @param requestBody
      * @returns any Successful response
      * @throws ApiError
@@ -56,10 +56,10 @@ export class DefaultService {
                 model: string;
                 messages: Array<({
                     role: 'system';
-                    content: string;
+                    content?: string;
                 } | {
                     role: 'user';
-                    content: (string | Array<({
+                    content?: (string | Array<({
                         type: 'image_url';
                         image_url: {
                             detail?: ('auto' | 'low' | 'high');
@@ -73,8 +73,8 @@ export class DefaultService {
                     role: 'assistant';
                     content?: (string | 'null' | null);
                     function_call?: {
-                        name: string;
-                        arguments: string;
+                        name?: string;
+                        arguments?: string;
                     };
                     tool_calls?: Array<{
                         id: string;
@@ -86,7 +86,7 @@ export class DefaultService {
                     }>;
                 } | {
                     role: 'tool';
-                    content: string;
+                    content?: string;
                     tool_call_id: string;
                 } | {
                     role: 'function';
@@ -102,8 +102,8 @@ export class DefaultService {
                     description?: string;
                 }>;
                 tool_choice?: ('none' | 'auto' | {
-                    type: 'function';
-                    function: {
+                    type?: 'function';
+                    function?: {
                         name: string;
                     };
                 });
@@ -126,10 +126,10 @@ export class DefaultService {
             model?: string;
             messages?: Array<({
                 role: 'system';
-                content: string;
+                content?: string;
             } | {
                 role: 'user';
-                content: (string | Array<({
+                content?: (string | Array<({
                     type: 'image_url';
                     image_url: {
                         detail?: ('auto' | 'low' | 'high');
@@ -143,8 +143,8 @@ export class DefaultService {
                 role: 'assistant';
                 content?: (string | 'null' | null);
                 function_call?: {
-                    name: string;
-                    arguments: string;
+                    name?: string;
+                    arguments?: string;
                 };
                 tool_calls?: Array<{
                     id: string;
@@ -156,7 +156,7 @@ export class DefaultService {
                 }>;
             } | {
                 role: 'tool';
-                content: string;
+                content?: string;
                 tool_call_id: string;
             } | {
                 role: 'function';
@@ -172,8 +172,8 @@ export class DefaultService {
                 description?: string;
             }>;
             tool_choice?: ('none' | 'auto' | {
-                type: 'function';
-                function: {
+                type?: 'function';
+                function?: {
                     name: string;
                 };
             });
@@ -205,8 +205,8 @@ export class DefaultService {
                 role: 'assistant';
                 content?: (string | 'null' | null);
                 function_call?: {
-                    name: string;
-                    arguments: string;
+                    name?: string;
+                    arguments?: string;
                 };
                 tool_calls?: Array<{
                     id: string;
@@ -217,7 +217,7 @@ export class DefaultService {
                     type: 'function';
                 }>;
             };
-            logprobs: {
+            logprobs?: {
                 content: Array<{
                     token: string;
                     bytes: Array<number> | null;
@@ -286,6 +286,36 @@ export class DefaultService {
         return this.httpRequest.request({
             method: 'POST',
             url: '/report',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Update tags for logged calls matching the provided filters
+     * @param requestBody
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public updateLogTags(
+        requestBody: {
+            filters: Array<{
+                /**
+                 * The field to filter on. Possible fields include: `model`, `completionId`, and `tags.your_tag_name`.
+                 */
+                field: string;
+                equals: (string | number | boolean);
+            }>;
+            /**
+             * Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+             */
+            tags: Record<string, (string | number | boolean | 'null' | null)>;
+        },
+    ): CancelablePromise<{
+        matchedLogs: number;
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/logs/update-tags',
             body: requestBody,
             mediaType: 'application/json',
         });

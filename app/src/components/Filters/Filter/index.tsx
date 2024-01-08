@@ -1,5 +1,5 @@
 import { type AtLeastOne } from "~/types/shared.types";
-import { type FilterDataType, type FilterOptionType } from "../types";
+import { type FilterData, type FilterOption } from "../types";
 import DateFilter from "./DateFilter";
 import TextFilter from "./TextFilter";
 import SelectFilter from "./SelectFilter";
@@ -8,8 +8,8 @@ const Filter = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: AtLeastOne<FilterOptionType>;
-  filter: FilterDataType;
+  filterOptions: AtLeastOne<FilterOption>;
+  filter: FilterData;
 }) => {
   const selectedFilterOption = filterOptions.find(
     (filterOption) => filterOption.field === filter.field,

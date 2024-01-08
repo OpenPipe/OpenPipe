@@ -44,7 +44,7 @@ async def test_async_content():
 
 async def test_async_content_mistral():
     completion = await client.chat.completions.create(
-        model="openpipe:test-content-mistral",
+        model="openpipe:test-content-mistral-p3",
         messages=[{"role": "system", "content": "count to 3"}],
         openpipe={"tags": {"promptId": "test_async_content_mistral"}},
     )
@@ -88,7 +88,7 @@ async def test_async_function_call():
 
 async def test_async_function_call_mistral():
     completion = await client.chat.completions.create(
-        model="openpipe:test-tool-calls-mistral",
+        model="openpipe:test-tool-calls-mistral-p3",
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
@@ -149,7 +149,7 @@ async def test_async_tool_calls():
 
 async def test_async_tool_calls_mistral():
     completion = await client.chat.completions.create(
-        model="openpipe:test-tool-calls-mistral",
+        model="openpipe:test-tool-calls-mistral-p3",
         messages=[
             {"role": "system", "content": "tell me the weather in SF and Orlando"}
         ],

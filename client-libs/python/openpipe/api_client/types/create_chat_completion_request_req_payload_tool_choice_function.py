@@ -17,8 +17,8 @@ except ImportError:
 
 
 class CreateChatCompletionRequestReqPayloadToolChoiceFunction(pydantic.BaseModel):
-    type: typing_extensions.Literal["function"]
-    function: CreateChatCompletionRequestReqPayloadToolChoiceFunctionFunction
+    type: typing.Optional[typing_extensions.Literal["function"]]
+    function: typing.Optional[CreateChatCompletionRequestReqPayloadToolChoiceFunctionFunction]
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

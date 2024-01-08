@@ -22,6 +22,9 @@ from .types.create_chat_completion_response import CreateChatCompletionResponse
 from .types.local_testing_only_get_latest_logged_call_response import LocalTestingOnlyGetLatestLoggedCallResponse
 from .types.report_request_tags_value import ReportRequestTagsValue
 from .types.report_response import ReportResponse
+from .types.update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
+from .types.update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
+from .types.update_log_tags_response import UpdateLogTagsResponse
 
 try:
     import pydantic.v1 as pydantic  # type: ignore
@@ -102,7 +105,7 @@ class OpenPipeApi:
         response_format: typing.Optional[CreateChatCompletionRequestResponseFormat] = OMIT,
     ) -> CreateChatCompletionResponse:
         """
-        Create completion for a prompt
+        OpenAI-compatible route for generating inference and optionally logging the request.
 
         Parameters:
             - req_payload: typing.Optional[CreateChatCompletionRequestReqPayload]. DEPRECATED. Use the top-level fields instead
@@ -235,6 +238,35 @@ class OpenPipeApi:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
+    def update_log_tags(
+        self,
+        *,
+        filters: typing.List[UpdateLogTagsRequestFiltersItem],
+        tags: typing.Dict[str, UpdateLogTagsRequestTagsValue],
+    ) -> UpdateLogTagsResponse:
+        """
+        Update tags for logged calls matching the provided filters
+
+        Parameters:
+            - filters: typing.List[UpdateLogTagsRequestFiltersItem].
+
+            - tags: typing.Dict[str, UpdateLogTagsRequestTagsValue]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "logs/update-tags"),
+            json=jsonable_encoder({"filters": filters, "tags": tags}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UpdateLogTagsResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
     def local_testing_only_get_latest_logged_call(self) -> typing.Optional[LocalTestingOnlyGetLatestLoggedCallResponse]:
         """
         Get the latest logged call (only for local testing)
@@ -326,7 +358,7 @@ class AsyncOpenPipeApi:
         response_format: typing.Optional[CreateChatCompletionRequestResponseFormat] = OMIT,
     ) -> CreateChatCompletionResponse:
         """
-        Create completion for a prompt
+        OpenAI-compatible route for generating inference and optionally logging the request.
 
         Parameters:
             - req_payload: typing.Optional[CreateChatCompletionRequestReqPayload]. DEPRECATED. Use the top-level fields instead
@@ -453,6 +485,35 @@ class AsyncOpenPipeApi:
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(ReportResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def update_log_tags(
+        self,
+        *,
+        filters: typing.List[UpdateLogTagsRequestFiltersItem],
+        tags: typing.Dict[str, UpdateLogTagsRequestTagsValue],
+    ) -> UpdateLogTagsResponse:
+        """
+        Update tags for logged calls matching the provided filters
+
+        Parameters:
+            - filters: typing.List[UpdateLogTagsRequestFiltersItem].
+
+            - tags: typing.Dict[str, UpdateLogTagsRequestTagsValue]. Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "logs/update-tags"),
+            json=jsonable_encoder({"filters": filters, "tags": tags}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UpdateLogTagsResponse, _response.json())  # type: ignore
         try:
             _response_json = _response.json()
         except JSONDecodeError:

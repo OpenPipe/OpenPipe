@@ -25,7 +25,7 @@ export const loggedCallsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructLoggedCallFiltersQuery(input.filters, projectId);
+      const baseQuery = constructLoggedCallFiltersQuery({ filters: input.filters, projectId });
 
       const rawCalls = await baseQuery
         .select((eb) => [
@@ -117,11 +117,15 @@ export const loggedCallsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      const baseQuery = constructLoggedCallFiltersQuery(input.filters, input.projectId, {
-        defaultToSelected: input.defaultToSelected,
-        selectedLogIds: input.selectedLogIds,
-        deselectedLogIds: input.deselectedLogIds,
-        removeUnsuccessful: input.excludeErrors,
+      const baseQuery = constructLoggedCallFiltersQuery({
+        filters: input.filters,
+        projectId: input.projectId,
+        selectionParams: {
+          defaultToSelected: input.defaultToSelected,
+          selectedLogIds: input.selectedLogIds,
+          deselectedLogIds: input.deselectedLogIds,
+          removeUnsuccessful: input.excludeErrors,
+        },
       });
 
       const loggedCallsFromDb = await baseQuery

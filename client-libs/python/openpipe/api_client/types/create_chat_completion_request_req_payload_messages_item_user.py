@@ -15,7 +15,7 @@ except ImportError:
 
 
 class CreateChatCompletionRequestReqPayloadMessagesItemUser(pydantic.BaseModel):
-    content: CreateChatCompletionRequestReqPayloadMessagesItemUserContent
+    content: typing.Optional[CreateChatCompletionRequestReqPayloadMessagesItemUserContent]
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

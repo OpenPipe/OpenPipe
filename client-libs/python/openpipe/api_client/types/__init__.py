@@ -179,6 +179,10 @@ from .local_testing_only_get_latest_logged_call_response import LocalTestingOnly
 from .report_request_tags_value import ReportRequestTagsValue
 from .report_response import ReportResponse
 from .report_response_status import ReportResponseStatus
+from .update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
+from .update_log_tags_request_filters_item_equals import UpdateLogTagsRequestFiltersItemEquals
+from .update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
+from .update_log_tags_response import UpdateLogTagsResponse
 
 __all__ = [
     "CheckCacheResponse",
@@ -268,4 +272,8 @@ __all__ = [
     "ReportRequestTagsValue",
     "ReportResponse",
     "ReportResponseStatus",
+    "UpdateLogTagsRequestFiltersItem",
+    "UpdateLogTagsRequestFiltersItemEquals",
+    "UpdateLogTagsRequestTagsValue",
+    "UpdateLogTagsResponse",
 ]

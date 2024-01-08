@@ -88,6 +88,10 @@ from .types import (
     ReportRequestTagsValue,
     ReportResponse,
     ReportResponseStatus,
+    UpdateLogTagsRequestFiltersItem,
+    UpdateLogTagsRequestFiltersItemEquals,
+    UpdateLogTagsRequestTagsValue,
+    UpdateLogTagsResponse,
 )
 from .environment import OpenPipeApiEnvironment
 
@@ -180,4 +184,8 @@ __all__ = [
     "ReportRequestTagsValue",
     "ReportResponse",
     "ReportResponseStatus",
+    "UpdateLogTagsRequestFiltersItem",
+    "UpdateLogTagsRequestFiltersItemEquals",
+    "UpdateLogTagsRequestTagsValue",
+    "UpdateLogTagsResponse",
 ]

@@ -2,15 +2,15 @@ import { useMemo } from "react";
 
 import InputDropdown from "~/components/InputDropdown";
 import { useFilters } from "./useFilters";
-import { type FilterDataType, comparatorsForFilterType, type FilterOptionType } from "./types";
+import { type FilterData, comparatorsForFilterType, type FilterOption } from "./types";
 import { type AtLeastOne } from "~/types/shared.types";
 
 const SelectFieldDropdown = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: AtLeastOne<FilterOptionType>;
-  filter: FilterDataType;
+  filterOptions: AtLeastOne<FilterOption>;
+  filter: FilterData;
 }) => {
   const updateFilter = useFilters().updateFilter;
 
@@ -20,7 +20,7 @@ const SelectFieldDropdown = ({
     return filterOptions.find((option) => option.field === field);
   }, [field, filterOptions]);
 
-  const updateFieldSelection = (option: FilterOptionType) => {
+  const updateFieldSelection = (option: FilterOption) => {
     const optionTypeChanged = option.type !== selectedOption?.type;
     let comparator = filter.comparator;
     let value = filter.value;
@@ -40,7 +40,7 @@ const SelectFieldDropdown = ({
   return (
     <InputDropdown
       options={filterOptions}
-      getDisplayLabel={(option) => option.field}
+      getDisplayLabel={(option) => (!!option.label ? option.label : option.field)}
       selectedOption={selectedOption}
       onSelect={updateFieldSelection}
     />

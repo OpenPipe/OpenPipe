@@ -3,15 +3,15 @@ import { VStack, Text, Card } from "@chakra-ui/react";
 import AddFilterButton from "../Filters/AddFilterButton";
 import Filter from "./Filter/index";
 import { useFilters } from "./useFilters";
-import { type FilterOptionType } from "./types";
+import { type FilterOption } from "./types";
 import { type AtLeastOne } from "~/types/shared.types";
 
-const Filters = ({ filterOptions }: { filterOptions: FilterOptionType[] }) => {
+const Filters = ({ filterOptions }: { filterOptions: FilterOption[] }) => {
   const filters = useFilters().filters;
 
   if (!filterOptions.length) return null;
 
-  const typedFilterOptions = filterOptions as unknown as AtLeastOne<FilterOptionType>;
+  const typedFilterOptions = filterOptions as unknown as AtLeastOne<FilterOption>;
 
   return (
     <Card w="full">

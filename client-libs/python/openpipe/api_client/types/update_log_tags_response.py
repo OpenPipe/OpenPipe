@@ -11,8 +11,8 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class CreateChatCompletionRequestReqPayloadMessagesItemSystem(pydantic.BaseModel):
-    content: typing.Optional[str]
+class UpdateLogTagsResponse(pydantic.BaseModel):
+    matched_logs: float = pydantic.Field(alias="matchedLogs")
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
@@ -25,4 +25,5 @@ class CreateChatCompletionRequestReqPayloadMessagesItemSystem(pydantic.BaseModel
     class Config:
         frozen = True
         smart_union = True
+        allow_population_by_field_name = True
         json_encoders = {dt.datetime: serialize_datetime}
