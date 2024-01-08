@@ -265,6 +265,77 @@ test("updates by combination of filters", async () => {
   expect(lastLogged?.tags.any_key).toEqual("any value");
 });
 
+test("updates some tags by combination of filters", async () => {
+  const model = generateRandomId();
+  const otherModel = "model-to-not-update";
+  const payload: ChatCompletionCreateParams = {
+    model,
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+
+  const originalPromptId = "original prompt id " + generateRandomId();
+
+  await opClient.default.report({
+    requestedAt: Date.now(),
+    receivedAt: Date.now(),
+    reqPayload: payload,
+    respPayload: null,
+    tags: {
+      prompt_id: originalPromptId,
+      otherId: "value 1",
+      any_key: "any value",
+    },
+  });
+
+  await opClient.default.report({
+    requestedAt: Date.now(),
+    receivedAt: Date.now(),
+    reqPayload: payload,
+    respPayload: null,
+    tags: {
+      prompt_id: originalPromptId,
+      otherId: "value 1",
+      any_key: "any value",
+    },
+  });
+
+  await opClient.default.report({
+    requestedAt: Date.now(),
+    receivedAt: Date.now(),
+    reqPayload: {
+      ...payload,
+      model: otherModel,
+    },
+    respPayload: null,
+    tags: {
+      prompt_id: originalPromptId,
+      otherId: "value 1",
+      any_key: "any value",
+    },
+  });
+
+  const updatedTags = {
+    prompt_id: "updated prompt id " + generateRandomId(),
+    otherId: "value 3",
+  };
+
+  const resp = await opClient.default.updateLogTags({
+    filters: [
+      { field: "model", equals: model },
+      { field: "tags.prompt_id", equals: originalPromptId },
+    ],
+    tags: updatedTags,
+  });
+
+  expect(resp.matchedLogs).toEqual(2);
+
+  const lastLogged = await lastLoggedCall();
+
+  expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
+  expect(lastLogged?.tags.otherId).toEqual("value 1");
+  expect(lastLogged?.tags.any_key).toEqual("any value");
+});
+
 test("deletes tags", async () => {
   const payload: ChatCompletionCreateParams = {
     model: "gpt-3.5-turbo",
@@ -320,13 +391,27 @@ test("deletes tags", async () => {
   expect(lastLogged?.tags.prompt_id).toEqual(undefined);
 });
 
-test("deletes nothing when no tags provided", async () => {
+test("deletes nothing when no tags matched", async () => {
+  const originalPromptId = "id 1";
+  await opClient.default.report({
+    requestedAt: Date.now(),
+    receivedAt: Date.now(),
+    reqPayload: null,
+    respPayload: null,
+    tags: {
+      prompt_id: originalPromptId,
+    },
+  });
   const resp = await opClient.default.updateLogTags({
     filters: [{ field: "tags.prompt_id", equals: generateRandomId() }],
     tags: { prompt_id: null },
   });
 
   expect(resp.matchedLogs).toEqual(0);
+
+  const lastLogged = await lastLoggedCall();
+
+  expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
 });
 
 test("deletes from all logged calls when no filters provided", async () => {
