@@ -190,6 +190,12 @@ export const v1ApiRouter = createOpenApiRouter({
             });
           }
         } else {
+          if (key.readOnly) {
+            throw new TRPCError({
+              message: "Read-only OpenPipe API keys cannot access the base OpenAI API",
+              code: "FORBIDDEN",
+            });
+          }
           try {
             completion = await getOpenaiCompletion(key.projectId, {
               ...inputPayload,

@@ -175,6 +175,7 @@ export interface FineTune {
   trainingConfig: Json | null;
   trainingConfigOverrides: Json | null;
   numEpochs: number | null;
+  numTrainingAutoretries: Generated<number>;
 }
 
 export interface FineTuneTestingEntry {

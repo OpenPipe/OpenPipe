@@ -12,6 +12,7 @@ const baseTabs: CodeTab[] = [
 --url https://app.openpipe.ai/api/v1/chat/completions \\
 --header 'Authorization: Bearer {{TEMPLATED_OPENPIPE_API_KEY}}' \\
 --header 'Content-Type: application/json' \\
+--header 'op-log-request: true' \\
 --data '{
 "model": "openpipe:{{FINE_TUNE_MODEL_SLUG}}",
 "messages": {{TEMPLATED_MESSAGES}},
@@ -76,7 +77,7 @@ console.log(completion?.choices[0]?.message);
 const templateTabs = (
   apiKey: string,
   modelSlug: string,
-  entry?: RouterOutputs["datasetEntries"]["listTrainingEntries"]["entries"][number]["datasetEntry"],
+  entry?: RouterOutputs["fineTunes"]["listTrainingEntries"]["entries"][number]["datasetEntry"],
 ): CodeTab[] => {
   let formattedMessages = "";
 

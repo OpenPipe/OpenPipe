@@ -10,7 +10,7 @@ import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { copyPruningRulesForFineTune } from "~/server/utils/updatePruningRuleMatches";
-import { typedFineTune } from "~/types/dbColumns.types";
+import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { CURRENT_PIPELINE_VERSION, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
@@ -302,5 +302,63 @@ export const fineTunesRouter = createTRPCRouter({
         },
       });
       return success("Fine tune deleted");
+    }),
+  listTrainingEntries: protectedProcedure
+    .input(z.object({ fineTuneId: z.string(), page: z.number(), pageSize: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const { fineTuneId, page, pageSize } = input;
+
+      const fineTune = await prisma.fineTune.findUnique({
+        where: {
+          id: fineTuneId,
+        },
+      });
+
+      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
+      await requireCanViewProject(fineTune.projectId, ctx);
+
+      const [entries, count] = await prisma.$transaction([
+        prisma.fineTuneTrainingEntry.findMany({
+          where: {
+            fineTuneId: fineTuneId,
+          },
+          include: {
+            datasetEntry: {
+              select: {
+                messages: true,
+                function_call: true,
+                functions: true,
+                tool_choice: true,
+                tools: true,
+                output: true,
+                inputTokens: true,
+                outputTokens: true,
+              },
+            },
+          },
+          orderBy: {
+            datasetEntry: {
+              sortKey: "desc",
+            },
+          },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.fineTuneTrainingEntry.count({
+          where: {
+            fineTuneId: fineTuneId,
+          },
+        }),
+      ]);
+
+      const typedEntries = entries.map((entry) => ({
+        ...entry,
+        datasetEntry: typedDatasetEntry(entry.datasetEntry),
+      }));
+
+      return {
+        entries: typedEntries,
+        count,
+      };
     }),
 });
