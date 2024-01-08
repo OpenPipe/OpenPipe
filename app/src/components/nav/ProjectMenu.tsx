@@ -25,7 +25,7 @@ import { useHandledAsyncCallback, useProjectList, useSelectedProject } from "~/u
 import { useRouter } from "next/router";
 import { useSession, signOut } from "next-auth/react";
 
-export default function ProjectMenu() {
+export default function ProjectMenu({ displayProjectName }: { displayProjectName: boolean }) {
   const router = useRouter();
   const utils = api.useContext();
 
@@ -65,7 +65,7 @@ export default function ProjectMenu() {
   return (
     <VStack w="full" alignItems="flex-start" spacing={0} py={1}>
       <Popover
-        placement="bottom"
+        placement="bottom-end"
         isOpen={popover.isOpen}
         onOpen={popover.onOpen}
         onClose={popover.onClose}
@@ -87,15 +87,17 @@ export default function ProjectMenu() {
               >
                 <Text>{selectedProject?.name[0]?.toUpperCase()}</Text>
               </Flex>
-              <Text
-                fontSize="sm"
-                display={{ base: "none", md: "block" }}
-                py={1}
-                flex={1}
-                fontWeight="bold"
-              >
-                {selectedProject?.name}
-              </Text>
+              {displayProjectName && (
+                <Text
+                  fontSize="sm"
+                  display={{ base: "none", md: "block" }}
+                  py={1}
+                  flex={1}
+                  fontWeight="bold"
+                >
+                  {selectedProject?.name}
+                </Text>
+              )}
               <Box mr={2}>{profileImage}</Box>
             </HStack>
           </NavSidebarOption>

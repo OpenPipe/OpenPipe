@@ -18,7 +18,7 @@ const IconLink = <T extends ProjectRoute>({
         <HStack w="full" justifyContent="space-between" p={2} color={color} {...props}>
           <HStack w="full" justifyContent="start">
             <Icon as={icon} boxSize={6} mr={2} />
-            <Text fontSize="sm" display={{ base: "none", md: "block" }}>
+            <Text fontSize="sm" display={{ base: "none", md: "block" }} whiteSpace="nowrap">
               {label}
             </Text>
           </HStack>

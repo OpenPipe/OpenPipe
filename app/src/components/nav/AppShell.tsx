@@ -10,6 +10,7 @@ import {
   Flex,
   Tooltip,
   type BoxProps,
+  IconButton,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import Link from "next/link";
@@ -18,6 +19,7 @@ import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
 import { FaBalanceScale, FaReadme } from "react-icons/fa";
+import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
 import { signIn, useSession } from "next-auth/react";
 
 import ProjectMenu from "./ProjectMenu";
@@ -25,11 +27,15 @@ import NavSidebarOption from "./NavSidebarOption";
 import IconLink from "./IconLink";
 import { BetaModal } from "../BetaModal";
 import { useIsMissingBetaAccess } from "~/utils/hooks";
+import { useAppStore } from "~/state/store";
 
 const Divider = (props: BoxProps) => <Box h="1px" bgColor="gray.300" w="full" {...props} />;
 
 const NavSidebar = () => {
   const user = useSession().data;
+
+  const sidebarExpanded = useAppStore((state) => state.sidebarExpanded);
+  const setSidebarExpanded = useAppStore((state) => state.setSidebarExpanded);
 
   return (
     <VStack
@@ -38,7 +44,8 @@ const NavSidebar = () => {
       px={2}
       pb={0}
       height="100%"
-      w={{ base: "56px", md: "240px" }}
+      w={{ base: "56px", md: sidebarExpanded ? "240px" : "56px" }}
+      transition="width 0.2s ease-in-out"
       overflow="hidden"
       borderRightWidth={1}
       borderColor="gray.300"
@@ -59,7 +66,7 @@ const NavSidebar = () => {
       <VStack align="flex-start" overflowY="auto" overflowX="hidden" flex={1}>
         {user != null && (
           <>
-            <ProjectMenu />
+            <ProjectMenu displayProjectName={sidebarExpanded} />
             <Divider />
             <IconLink icon={IoStatsChartOutline} label="Request Logs" href="/request-logs" />
             <IconLink icon={AiOutlineDatabase} label="Datasets" href="/datasets" />
@@ -72,12 +79,28 @@ const NavSidebar = () => {
                 fontSize="xs"
                 fontWeight="bold"
                 color="gray.500"
+                h={6}
                 display={{ base: "none", md: "flex" }}
               >
-                CONFIGURATION
+                {sidebarExpanded ? "CONFIGURATION" : ""}
               </Text>
               <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
               <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
+              <IconButton
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                aria-label="Toggle sidebar expanded"
+                icon={
+                  <Icon
+                    as={sidebarExpanded ? FiChevronsLeft : FiChevronsRight}
+                    boxSize={6}
+                    strokeWidth={1.5}
+                  />
+                }
+                boxSize={10}
+                display={{ base: "none", md: "flex" }}
+              />
             </VStack>
           </>
         )}
@@ -102,7 +125,11 @@ const NavSidebar = () => {
       </VStack>
 
       <Divider />
-      <Flex flexDir={{ base: "column-reverse", md: "row" }} align="center" justify="center">
+      <Flex
+        flexDir={{ base: "column-reverse", md: sidebarExpanded ? "row" : "column-reverse" }}
+        align="center"
+        justify="center"
+      >
         <ChakraLink
           href="https://github.com/openpipe/openpipe"
           target="_blank"

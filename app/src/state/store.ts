@@ -24,6 +24,8 @@ export type State = {
   isRehydrated: boolean;
   isMounted: boolean;
   markMounted: () => void;
+  sidebarExpanded: boolean;
+  setSidebarExpanded: (expanded: boolean) => void;
   api: APIClient | null;
   setApi: (api: APIClient) => void;
   betaBannerDismissed: boolean;
@@ -49,6 +51,11 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
       markMounted: () =>
         set((state) => {
           state.isMounted = true;
+        }),
+      sidebarExpanded: true,
+      setSidebarExpanded: (expanded) =>
+        set((state) => {
+          state.sidebarExpanded = expanded;
         }),
       api: null,
       setApi: (api) =>
