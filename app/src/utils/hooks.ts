@@ -183,7 +183,7 @@ export const useTrainingEntries = () => {
   const fineTune = useFineTune().data;
   const { page, pageSize } = usePageParams();
 
-  const result = api.datasetEntries.listTrainingEntries.useQuery(
+  const result = api.fineTunes.listTrainingEntries.useQuery(
     { fineTuneId: fineTune?.id ?? "", page, pageSize },
     { enabled: !!fineTune?.id },
   );

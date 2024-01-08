@@ -76,7 +76,7 @@ console.log(completion?.choices[0]?.message);
 const templateTabs = (
   apiKey: string,
   modelSlug: string,
-  entry?: RouterOutputs["datasetEntries"]["listTrainingEntries"]["entries"][number]["datasetEntry"],
+  entry?: RouterOutputs["fineTunes"]["listTrainingEntries"]["entries"][number]["datasetEntry"],
 ): CodeTab[] => {
   let formattedMessages = "";
 
