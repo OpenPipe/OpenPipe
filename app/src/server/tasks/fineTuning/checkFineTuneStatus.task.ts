@@ -105,8 +105,9 @@ export const checkFineTuneStatus = defineTask({
                   errorMessage: "Training job failed",
                 },
               });
-              captureFineTuneTrainingFinished(ft.projectId, ft.slug, false);
             }
+            // Even if we're automatically retrying, it's useful to know that the job failed once
+            captureFineTuneTrainingFinished(ft.projectId, ft.slug, false);
           }
 
           // If it's more than 24 hours old and hasn't finished or errored, mark it as errored
