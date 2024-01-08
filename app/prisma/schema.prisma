@@ -255,7 +255,6 @@ model LoggedCallTag {
 
     @@unique([loggedCallId, name])
     @@index(loggedCallId)
-    @@index([name, projectId])
     @@index([projectId, name])
     @@index([projectId, name, value])
 }
