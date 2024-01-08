@@ -255,6 +255,7 @@ model LoggedCallTag {
 
     @@unique([loggedCallId, name])
     @@index(loggedCallId)
+    @@index([name, projectId])
     @@index([projectId, name])
     @@index([projectId, name, value])
 }
@@ -377,17 +378,18 @@ enum FineTuneProvider {
 model FineTune {
     id String @id @default(uuid()) @db.Uuid
 
-    slug                 String           @unique
-    provider             FineTuneProvider
-    baseModel            String
-    status               FineTuneStatus   @default(PENDING)
-    errorMessage         String?
-    trainingBlobName     String?
-    trainingStartedAt    DateTime?
-    trainingFinishedAt   DateTime?
-    deploymentStartedAt  DateTime?
-    deploymentFinishedAt DateTime?
-    numEpochs            Float?
+    slug                   String           @unique
+    provider               FineTuneProvider
+    baseModel              String
+    status                 FineTuneStatus   @default(PENDING)
+    errorMessage           String?
+    trainingBlobName       String?
+    trainingStartedAt      DateTime?
+    trainingFinishedAt     DateTime?
+    deploymentStartedAt    DateTime?
+    deploymentFinishedAt   DateTime?
+    numEpochs              Float?
+    numTrainingAutoretries Int              @default(0)
 
     trainingEntries FineTuneTrainingEntry[]
     testingEntries  FineTuneTestingEntry[]
@@ -429,6 +431,7 @@ model FineTuneTrainingEntry {
     @@unique([datasetEntryId, fineTuneId])
     @@index([datasetEntryId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
+    @@index([fineTuneId])
 }
 
 enum ComparisonModel {

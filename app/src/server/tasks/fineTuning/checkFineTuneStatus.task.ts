@@ -10,6 +10,9 @@ import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
+import { trainFineTune } from "./trainFineTune.task";
+
+const MAX_AUTO_RETRIES = 2;
 
 export const checkFineTuneStatus = defineTask({
   id: "checkFineTuneStatus",
@@ -84,15 +87,26 @@ export const checkFineTuneStatus = defineTask({
 
             await startTestJobs(currentFineTune.datasetId, currentFineTune.id);
           } else if (resp.status === "error") {
-            await prisma.fineTune.update({
-              where: { id: ft.id },
-              data: {
-                trainingFinishedAt: new Date(),
-                status: "ERROR",
-                errorMessage: "Training job failed",
-              },
-            });
-            captureFineTuneTrainingFinished(ft.projectId, ft.slug, false);
+            if (ft.numTrainingAutoretries < MAX_AUTO_RETRIES) {
+              // Sometimes training jobs fail for no reason, so we'll retry them a few times
+              await prisma.fineTune.update({
+                where: { id: ft.id },
+                data: {
+                  numTrainingAutoretries: ft.numTrainingAutoretries + 1,
+                },
+              });
+              await trainFineTune.enqueue({ fineTuneId: ft.id });
+            } else {
+              await prisma.fineTune.update({
+                where: { id: ft.id },
+                data: {
+                  trainingFinishedAt: new Date(),
+                  status: "ERROR",
+                  errorMessage: "Training job failed",
+                },
+              });
+              captureFineTuneTrainingFinished(ft.projectId, ft.slug, false);
+            }
           }
 
           // If it's more than 24 hours old and hasn't finished or errored, mark it as errored
