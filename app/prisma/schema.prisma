@@ -430,7 +430,6 @@ model FineTuneTrainingEntry {
     @@unique([datasetEntryId, fineTuneId])
     @@index([datasetEntryId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
-    @@index([fineTuneId])
 }
 
 enum ComparisonModel {
