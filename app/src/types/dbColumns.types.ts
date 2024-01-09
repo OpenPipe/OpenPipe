@@ -83,7 +83,10 @@ const fineTuneSchema = z.intersection(
 // wrap this with that for better ergonomics.
 export function typedFineTune<T extends Pick<FineTune, "baseModel" | "provider">>(
   input: T,
-): Omit<T, "baseModel" | "provider" | "trainingConfig" | "trainingConfigOverrides"> &
+): Omit<
+  T,
+  "baseModel" | "provider" | "trainingConfig" | "trainingConfigOverrides" | "raceGpt4" | "useCache"
+> &
   z.infer<typeof fineTuneSchema> {
   return fineTuneSchema.parse(input);
 }

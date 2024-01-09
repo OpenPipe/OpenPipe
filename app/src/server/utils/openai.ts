@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import OpenAI, { type ClientOptions } from "openpipe-dev/src/openai";
-import { default as OriginalOpenAI } from "openai";
+import { APIError, default as OriginalOpenAI } from "openai";
 import {
   type ChatCompletionChunk,
   type ChatCompletion,
@@ -61,4 +61,41 @@ export async function getOpenaiCompletion(
   const openai = new OriginalOpenAI({ apiKey: openaiApiKey });
 
   return await openai.chat.completions.create(input);
+}
+
+export const azureGpt4 = new OpenAI({
+  baseURL: `https://braintrustproxy.com/v1`,
+  defaultHeaders: { "x-bt-org-name": "OpenPipe" },
+  apiKey: env.BRAINTRUST_API_KEY,
+});
+
+// Fall back to our own Azure instance for long-running requests
+export async function getAzureGpt4Completion(input: ChatCompletionCreateParams, useCache: boolean) {
+  const models = ["gpt-4", "gpt-4-turbo", "gpt-4-32k"];
+  let completion: ChatCompletion | undefined = undefined;
+  let lastError;
+  for (const model of models) {
+    try {
+      completion = await azureGpt4.chat.completions.create(
+        {
+          ...input,
+          model,
+          stream: false,
+        },
+        { headers: { "x-bt-use-cache": useCache ? "always" : "never" } },
+      );
+      break;
+    } catch (error) {
+      if (error instanceof APIError && error.status === 429) {
+        // store error to throw if all models fail
+        lastError = error;
+        continue;
+      }
+      throw error;
+    }
+  }
+  if (!completion) {
+    throw lastError;
+  }
+  return completion;
 }

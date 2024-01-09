@@ -11,7 +11,7 @@ import { type Stream } from "openai/streaming";
 
 import { omit } from "lodash-es";
 import { loraInference, runInference } from "~/server/modal-rpc/clients";
-import { getOpenaiCompletion } from "~/server/utils/openai";
+import { getAzureGpt4Completion, getOpenaiCompletion } from "~/server/utils/openai";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import {
@@ -49,7 +49,11 @@ export async function getCompletion(
       case 1:
       case 2:
       case 3:
-        return getModalCompletion(fineTune, prunedInput);
+        const promises = [getModalCompletion(fineTune, prunedInput)];
+        if (fineTune.raceGpt4) {
+          promises.push(getAzureGpt4Completion(input, fineTune.useCache));
+        }
+        return Promise.race(promises);
       case 0:
         throw new Error("Pipeline version 0 is not supported");
     }

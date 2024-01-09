@@ -176,6 +176,8 @@ export interface FineTune {
   trainingConfigOverrides: Json | null;
   numEpochs: number | null;
   numTrainingAutoretries: Generated<number>;
+  raceGPT4: Generated<boolean>;
+  useCache: Generated<boolean>;
 }
 
 export interface FineTuneTestingEntry {
