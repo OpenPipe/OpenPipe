@@ -81,12 +81,11 @@ const fineTuneSchema = z.intersection(
 
 // TODO: fix the passThroughNulls type from utils.ts to work with generics and
 // wrap this with that for better ergonomics.
-export function typedFineTune<T extends Pick<FineTune, "baseModel" | "provider">>(
+export function typedFineTune<
+  T extends Pick<FineTune, "baseModel" | "provider" | "raceGpt4" | "useCache">,
+>(
   input: T,
-): Omit<
-  T,
-  "baseModel" | "provider" | "trainingConfig" | "trainingConfigOverrides" | "raceGpt4" | "useCache"
-> &
+): Omit<T, "baseModel" | "provider" | "trainingConfig" | "trainingConfigOverrides"> &
   z.infer<typeof fineTuneSchema> {
   return fineTuneSchema.parse(input);
 }
