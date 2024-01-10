@@ -133,6 +133,16 @@ const azureGpt4Endpoints: readonly {
     apiKey: env.AZURE_OPENAI_API_KEY_JAPANEAST,
     models: { "gpt-4": 40, "gpt-4-32k": 80 },
   },
+  {
+    apiBase: "https://openpipe-openai-norwayeast.openai.azure.com",
+    apiKey: env.AZURE_OPENAI_API_KEY_NORWAYEAST,
+    models: { "gpt-4-turbo": 150 },
+  },
+  {
+    apiBase: "https://openpipe-openai-southindia.openai.azure.com",
+    apiKey: env.AZURE_OPENAI_API_KEY_SOUTHINDIA,
+    models: { "gpt-4-turbo": 150 },
+  },
 ] as const;
 
 type AzureModel = keyof (typeof azureGpt4Endpoints)[0]["models"];
