@@ -8,6 +8,7 @@ import type {
   ChatCompletionChunk,
 } from "openai/resources/chat";
 import { type Stream } from "openai/streaming";
+import { sleep } from "openai/core";
 
 import { omit } from "lodash-es";
 import { loraInference, runInference } from "~/server/modal-rpc/clients";
@@ -50,7 +51,7 @@ export async function getCompletion(
       case 2:
       case 3:
         const promises = [getModalCompletion(fineTune, prunedInput)];
-        if (fineTune.raceGpt4) {
+        if (fineTune.raceGPT4) {
           promises.push(getAzureGpt4Completion(input, fineTune.useCache));
         }
         return Promise.race(promises);
