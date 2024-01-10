@@ -66,18 +66,16 @@ export async function getOpenaiCompletion(
 // Fall back to our own Azure instance for long-running requests
 export async function getAzureGpt4Completion(input: ChatCompletionCreateParams) {
   const models = ["gpt-4", "gpt-4-turbo", "gpt-4-32k"] as const;
-  let completion: ChatCompletion | undefined = undefined;
   let lastError;
   for (const model of models) {
     const client = getEndpointForModel(model).client;
 
     try {
-      completion = await client.chat.completions.create({
+      return client.chat.completions.create({
         ...input,
         model,
         stream: false,
       });
-      break;
     } catch (error) {
       if (error instanceof APIError && error.status === 429) {
         // store error to throw if all models fail
@@ -88,13 +86,10 @@ export async function getAzureGpt4Completion(input: ChatCompletionCreateParams) 
       throw error;
     }
   }
-  if (!completion) {
-    throw lastError;
-  }
-  return completion;
+  throw lastError;
 }
 
-const azureGpt4Endpoints: {
+const azureGpt4Endpoints: readonly {
   apiBase: string;
   apiKey: string;
   models: {
