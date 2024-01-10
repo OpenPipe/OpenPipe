@@ -176,6 +176,7 @@ export interface FineTune {
   trainingConfigOverrides: Json | null;
   numEpochs: number | null;
   numTrainingAutoretries: Generated<number>;
+  gpt4FallbackEnabled: Generated<boolean>;
 }
 
 export interface FineTuneTestingEntry {
