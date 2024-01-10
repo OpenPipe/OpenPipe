@@ -50,7 +50,11 @@
     },
     {
       "group": "API Reference",
-      "pages": ["api-reference/post-report", "api-reference/post-chatcompletions"]
+      "pages": [
+        "api-reference/post-report",
+        "api-reference/post-chatcompletions",
+        "api-reference/post-updatetags"
+      ]
     },
     {
       "group": "FAQ",
