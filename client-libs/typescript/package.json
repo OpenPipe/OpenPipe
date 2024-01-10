@@ -37,7 +37,7 @@
     "encoding": "0.1.13",
     "form-data": "4.0.0",
     "node-fetch": "2.6.12",
-    "openai": "4.24.1"
+    "openai": "4.24.2"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.0.0",
