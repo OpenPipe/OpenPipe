@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "FineTune" ADD COLUMN     "raceGPT4" BOOLEAN NOT NULL DEFAULT false,
-ADD COLUMN     "useCache" BOOLEAN NOT NULL DEFAULT false;

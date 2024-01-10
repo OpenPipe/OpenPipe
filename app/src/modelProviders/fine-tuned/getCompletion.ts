@@ -8,7 +8,6 @@ import type {
   ChatCompletionChunk,
 } from "openai/resources/chat";
 import { type Stream } from "openai/streaming";
-import { sleep } from "openai/core";
 
 import { omit } from "lodash-es";
 import { loraInference, runInference } from "~/server/modal-rpc/clients";
@@ -50,11 +49,19 @@ export async function getCompletion(
       case 1:
       case 2:
       case 3:
-        const promises = [getModalCompletion(fineTune, prunedInput)];
-        if (fineTune.raceGPT4) {
-          promises.push(getAzureGpt4Completion(input, fineTune.useCache));
+        let completion: Promise<ChatCompletion>;
+        if (fineTune.gpt4FallbackEnabled) {
+          completion = getAzureGpt4Completion(input);
+          try {
+            // keep gpus hot
+            void getModalCompletion(fineTune, prunedInput);
+          } catch {
+            // pass
+          }
+        } else {
+          completion = getModalCompletion(fineTune, prunedInput);
         }
-        return Promise.race(promises);
+        return completion;
       case 0:
         throw new Error("Pipeline version 0 is not supported");
     }

@@ -390,8 +390,7 @@ model FineTune {
     deploymentFinishedAt   DateTime?
     numEpochs              Float?
     numTrainingAutoretries Int              @default(0)
-    useCache               Boolean          @default(false)
-    raceGPT4               Boolean          @default(false)
+    gpt4FallbackEnabled    Boolean          @default(false)
 
     trainingEntries FineTuneTrainingEntry[]
     testingEntries  FineTuneTestingEntry[]

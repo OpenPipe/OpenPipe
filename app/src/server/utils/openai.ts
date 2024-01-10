@@ -64,29 +64,19 @@ export async function getOpenaiCompletion(
 }
 
 // Fall back to our own Azure instance for long-running requests
-export async function getAzureGpt4Completion(input: ChatCompletionCreateParams, useCache: boolean) {
+export async function getAzureGpt4Completion(input: ChatCompletionCreateParams) {
   const models = ["gpt-4", "gpt-4-turbo", "gpt-4-32k"] as const;
   let completion: ChatCompletion | undefined = undefined;
   let lastError;
   for (const model of models) {
-    console.log("model", model);
-    const endpoint = getEndpointForModel(model);
-    // console.log("endpoint", endpoint);
-    const client = new OriginalOpenAI({
-      baseURL: endpoint.apiBase,
-      defaultQuery: { "api-version": "2023-08-01-preview" },
-      defaultHeaders: { "api-key": endpoint.apiKey },
-    });
+    const client = getEndpointForModel(model).client;
 
     try {
-      completion = await client.chat.completions.create(
-        {
-          ...input,
-          model,
-          stream: false,
-        },
-        { headers: { "x-bt-use-cache": useCache ? "always" : "never" } },
-      );
+      completion = await client.chat.completions.create({
+        ...input,
+        model,
+        stream: false,
+      });
       break;
     } catch (error) {
       if (error instanceof APIError && error.status === 429) {
@@ -143,12 +133,16 @@ const azureGpt4Endpoints: {
     apiKey: env.AZURE_OPENAI_API_KEY_FRANCECENTRAL,
     models: { "gpt-4": 20, "gpt-4-32k": 60, "gpt-4-turbo": 80 },
   },
+  {
+    apiBase: "https://openpipe-openai-japaneast.openai.azure.com",
+    apiKey: env.AZURE_OPENAI_API_KEY_JAPANEAST,
+    models: { "gpt-4": 40, "gpt-4-32k": 80 },
+  },
 ] as const;
 
 type AzureModel = keyof (typeof azureGpt4Endpoints)[0]["models"];
 type AzureModelEndpoint = {
-  apiBase: string;
-  apiKey: string;
+  client: OriginalOpenAI;
   rateLimit: number;
 };
 
@@ -161,8 +155,11 @@ const modelEndpoints: Record<AzureModel, AzureModelEndpoint[]> = {
 for (const endpoint of azureGpt4Endpoints) {
   for (const [model, rateLimit] of Object.entries(endpoint.models)) {
     modelEndpoints[model as AzureModel].push({
-      apiBase: `${endpoint.apiBase}/openai/deployments/${model}/`,
-      apiKey: endpoint.apiKey,
+      client: new OriginalOpenAI({
+        baseURL: `${endpoint.apiBase}/openai/deployments/${model}/`,
+        defaultQuery: { "api-version": "2023-08-01-preview" },
+        defaultHeaders: { "api-key": endpoint.apiKey },
+      }),
       rateLimit: rateLimit,
     });
   }
