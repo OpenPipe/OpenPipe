@@ -1,5 +1,8 @@
 import crypto from "crypto";
 import { type JsonValue } from "type-fest";
+import type { z } from "zod";
+
+import { chatCompletionInputReqPayload } from "~/types/shared.types";
 
 function sortKeys(obj: JsonValue): JsonValue {
   if (typeof obj !== "object" || obj === null) {
@@ -24,12 +27,21 @@ function sortKeys(obj: JsonValue): JsonValue {
   return sortedObj;
 }
 
-export function hashRequest(projectId: string, reqPayload: JsonValue): string {
+export function hashRequest(
+  modelId: string,
+  reqPayload: z.infer<typeof chatCompletionInputReqPayload>,
+): string {
   const obj = {
-    projectId,
-    reqPayload,
+    modelId,
+    messages: reqPayload.messages,
+    function_call: reqPayload.function_call,
+    functions: reqPayload.functions,
+    tool_choice: reqPayload.tool_choice,
+    tools: reqPayload.tools,
+    max_tokens: reqPayload.max_tokens,
+    response_format: reqPayload.response_format,
   };
-  return hashObject(obj);
+  return hashObject(obj as JsonValue);
 }
 
 export default function hashObject(obj: JsonValue): string {

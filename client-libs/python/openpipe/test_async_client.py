@@ -335,6 +335,43 @@ async def test_async_with_tags():
     assert last_logged.tags["$sdk"] == "python"
 
 
+@pytest.mark.focus
+async def test_async_caching():
+    completion = await client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=[{"role": "system", "content": "count to 10"}],
+        openpipe={"tags": {"promptId": "test_async_caching"}},
+    )
+    completion = await client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=[{"role": "system", "content": "count to 10"}],
+        openpipe={"tags": {"promptId": "test_async_caching"}},
+    )
+
+    await asyncio.sleep(0.1)
+    last_logged = (
+        await client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
+    assert last_logged.cache_hit == False
+
+    completion = await client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=[{"role": "system", "content": "count to 10"}],
+        openpipe={"tags": {"promptId": "test_async_caching"}, "cache": True},
+    )
+    completion = await client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=[{"role": "system", "content": "count to 10"}],
+        openpipe={"tags": {"promptId": "test_async_caching"}, "cache": True},
+    )
+
+    await asyncio.sleep(0.1)
+    last_logged = (
+        await client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
+    assert last_logged.cache_hit == True
+
+
 async def test_async_default_base_url():
     default_client = AsyncOpenAI(api_key=os.environ["OPENPIPE_API_KEY"])
 

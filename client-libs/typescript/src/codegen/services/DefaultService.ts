@@ -327,6 +327,7 @@ export class DefaultService {
      */
     public localTestingOnlyGetLatestLoggedCall(): CancelablePromise<{
         createdAt: string;
+        cacheHit: boolean;
         statusCode: number | null;
         errorMessage: string | null;
         reqPayload?: any;

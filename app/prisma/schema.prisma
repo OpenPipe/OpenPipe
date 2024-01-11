@@ -184,6 +184,7 @@ model Project {
     fineTunes              FineTune[]
     apiKeys                ApiKey[]
     usageLogs              UsageLog[]
+    cachedResponses        CachedResponse[]
 }
 
 enum ProjectUserRole {
@@ -214,6 +215,7 @@ model LoggedCall {
 
     requestedAt  DateTime
     receivedAt   DateTime?
+    cacheHit     Boolean   @default(false)
     reqPayload   Json?
     respPayload  Json?
     // The HTTP status returned by the model provider
@@ -236,11 +238,40 @@ model LoggedCall {
     tags           LoggedCallTag[]
     datasetEntries DatasetEntry[]
 
+    // parentCachedResponseId String?         @db.Uuid
+    // parentCachedResponse   CachedResponse? @relation("LogsFromCache", fields: [parentCachedResponseId], references: [id], onDelete: Cascade)
+    // childCachedResponse    CachedResponse? @relation("CacheFromLogs")
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index(projectId)
     @@index([projectId, requestedAt])
+    @@index([completionId])
+}
+
+model CachedResponse {
+    id String @id @default(uuid()) @db.Uuid
+
+    // cacheKey is a hash of the modelId and request payload
+    cacheKey     String
+    modelId      String
+    completionId String
+    respPayload  Json
+    inputTokens  Int
+    outputTokens Int
+
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    // parentLoggedCallId String?     @unique @db.Uuid
+    // parentLoggedCall   LoggedCall? @relation("CacheFromLogs", fields: [parentLoggedCallId], references: [id], onDelete: Cascade)
+
+    // childLoggedCalls LoggedCall[] @relation("LogsFromCache")
+
+    createdAt DateTime @default(now())
+
+    @@unique([projectId, cacheKey])
     @@index([completionId])
 }
 

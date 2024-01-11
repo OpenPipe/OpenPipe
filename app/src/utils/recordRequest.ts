@@ -23,6 +23,7 @@ export const recordUsage = async ({
   projectId,
   requestedAt,
   receivedAt,
+  cacheHit,
   inputPayload,
   completion,
   logRequest,
@@ -31,7 +32,8 @@ export const recordUsage = async ({
 }: {
   projectId: string;
   requestedAt: number;
-  receivedAt: number;
+  receivedAt?: number;
+  cacheHit: boolean;
   inputPayload: z.infer<typeof chatCompletionInput>;
   completion: unknown;
   logRequest?: boolean;
@@ -63,7 +65,7 @@ export const recordUsage = async ({
           type: UsageType.EXTERNAL,
           inputTokens: usage?.inputTokens ?? 0,
           outputTokens: usage?.outputTokens ?? 0,
-          cost: usage?.cost ?? 0,
+          cost: cacheHit ? 0 : usage?.cost ?? 0,
           billable: fineTune.provider === "openpipe",
         },
       })
@@ -85,6 +87,7 @@ export const recordUsage = async ({
       usage,
       requestedAt,
       receivedAt,
+      cacheHit,
       reqPayload: inputPayload,
       respPayload: completion,
       tags,
@@ -169,6 +172,7 @@ export const recordLoggedCall = async ({
   usage,
   requestedAt,
   receivedAt,
+  cacheHit,
   reqPayload,
   respPayload,
   statusCode,
@@ -179,6 +183,7 @@ export const recordLoggedCall = async ({
   usage?: CalculatedUsage;
   requestedAt: number;
   receivedAt?: number;
+  cacheHit: boolean;
   reqPayload: unknown;
   respPayload?: unknown;
   statusCode?: number;
@@ -196,15 +201,16 @@ export const recordLoggedCall = async ({
         id: newLoggedCallId,
         projectId,
         requestedAt: new Date(requestedAt),
-        model: validatedReqPayload.success ? validatedReqPayload.data.model : null,
         receivedAt: receivedAt ? new Date(receivedAt) : undefined,
+        cacheHit: cacheHit ?? false,
+        model: validatedReqPayload.success ? validatedReqPayload.data.model : null,
         reqPayload: (reqPayload === null ? Prisma.JsonNull : reqPayload) as Prisma.InputJsonValue,
         respPayload: (respPayload === null
           ? Prisma.JsonNull
           : respPayload) as Prisma.InputJsonValue,
         statusCode: statusCode,
         errorMessage: errorMessage,
-        durationMs: receivedAt ? receivedAt - requestedAt : undefined,
+        durationMs: receivedAt && !cacheHit ? receivedAt - requestedAt : undefined,
         inputTokens: usage?.inputTokens,
         outputTokens: usage?.outputTokens,
         cost: usage?.cost,

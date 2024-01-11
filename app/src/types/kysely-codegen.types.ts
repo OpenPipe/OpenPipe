@@ -58,6 +58,18 @@ export interface ApiKey {
   readOnly: Generated<boolean>;
 }
 
+export interface CachedResponse {
+  id: string;
+  cacheKey: string;
+  modelId: string;
+  completionId: string;
+  respPayload: Json;
+  inputTokens: number;
+  outputTokens: number;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
+}
+
 export interface Dataset {
   id: string;
   name: string;
@@ -260,6 +272,7 @@ export interface LoggedCall {
   reqPayload: Json | null;
   respPayload: Json | null;
   statusCode: number | null;
+  cacheHit: Generated<boolean>;
 }
 
 export interface LoggedCallTag {
@@ -369,6 +382,7 @@ export interface DB {
   _prisma_migrations: _PrismaMigrations;
   Account: Account;
   ApiKey: ApiKey;
+  CachedResponse: CachedResponse;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
   DatasetEval: DatasetEval;

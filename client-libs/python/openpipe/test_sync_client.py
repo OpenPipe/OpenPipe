@@ -204,7 +204,6 @@ def test_sync_streaming_content():
     )
 
 
-@pytest.mark.focus
 def test_sync_streaming_content_ft_35():
     completion = client.chat.completions.create(
         model="openpipe:test-content-35",
