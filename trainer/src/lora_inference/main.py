@@ -10,6 +10,7 @@ from typing import Union
 from ..shared import merged_model_cache_dir, lora_model_cache_dir, require_auth
 import fastapi
 import logging
+import os
 
 logging.getLogger("vllm").setLevel(logging.ERROR)
 
@@ -84,6 +85,8 @@ class LoraBaseModel:
     def __init__(self, base_model_id: str):
         model_dir = merged_model_cache_dir(base_model_id)
         logging.info(f"Loading base model {model_dir}")
+        self.seen_models = set()
+
         self.engine = AsyncLLMEngine.from_engine_args(
             AsyncEngineArgs(
                 model=base_model_id,
@@ -96,6 +99,19 @@ class LoraBaseModel:
 
     @modal.method()
     async def generate(self, request: Input) -> Output:
+        logging.info(f"Processing for model {request.lora_model}")
+        lora_dir = lora_model_cache_dir(request.lora_model)
+
+        if request.lora_model not in self.seen_models:
+            if not os.path.exists(lora_model_cache_dir(request.lora_model)):
+                logging.info(f"Couldn't find model, reloading {lora_dir}")
+                stub.volume.reload()
+
+            if not os.path.exists(lora_model_cache_dir(request.lora_model)):
+                raise Exception(f"Couldn't find model {lora_dir}after reloading!")
+
+            self.seen_models.add(request.lora_model)
+
         sample_params = SamplingParams(
             n=request.n,
             temperature=request.temperature,
@@ -105,7 +121,7 @@ class LoraBaseModel:
         lora_request = LoRARequest(
             request.lora_model,
             abs(hash(request.lora_model)),
-            lora_model_cache_dir(request.lora_model),
+            lora_dir,
         )
 
         request_id = random_uuid()
