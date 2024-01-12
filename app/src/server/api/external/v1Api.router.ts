@@ -4,9 +4,9 @@ import { Stream } from "openai/streaming";
 import { APIError } from "openai";
 import { z } from "zod";
 import { captureException } from "@sentry/node";
-import { type FineTune } from "@prisma/client";
 import { ExtendedTRPCError } from "trpc-openapi";
 import { v4 as uuidv4 } from "uuid";
+import type { CachedResponse, Prisma } from "@prisma/client";
 
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { kysely, prisma } from "~/server/db";
@@ -34,6 +34,7 @@ import { parseTags } from "~/server/utils/parseTags";
 import { statusCodeFromTrpcCode, trpcCodeFromHttpStatus } from "~/server/utils/trpcStatusCodes";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import { sql } from "kysely";
+import { hashRequest } from "~/server/utils/hashObject";
 
 export const v1ApiRouter = createOpenApiRouter({
   checkCache: openApiProtectedProc
@@ -154,16 +155,41 @@ export const v1ApiRouter = createOpenApiRouter({
           }
         }
 
+        const modelSlug = inputPayload.model.replace("openpipe:", "");
+        const fineTune =
+          (await prisma.fineTune.findUnique({
+            where: { slug: modelSlug },
+          })) ?? undefined;
+
+        // Default to skipping cache if not explicitly set
+        const useCache = ctx.headers["op-cache"] === "true";
+
+        if (useCache && inputPayload.stream) {
+          throw new TRPCError({
+            message: "Cannot use cache with stream",
+            code: "BAD_REQUEST",
+          });
+        }
+
+        const modelId = fineTune?.id ?? inputPayload.model;
+        const cacheKey = hashRequest(modelId, inputPayload);
+        let cachedCompletion: CachedResponse | null = null;
+        if (useCache) {
+          cachedCompletion = await prisma.cachedResponse.findUnique({
+            where: { projectId_cacheKey: { projectId: key.projectId, cacheKey } },
+          });
+        }
+
         let completion: ChatCompletion | Stream<ChatCompletionChunk>;
-        let fineTune: FineTune | undefined = undefined;
 
-        if (isFineTune) {
-          const modelSlug = inputPayload.model.replace("openpipe:", "");
-          fineTune =
-            (await prisma.fineTune.findUnique({
-              where: { slug: modelSlug },
-            })) ?? undefined;
-
+        if (cachedCompletion) {
+          completion = chatCompletionOutput.parse(cachedCompletion?.respPayload);
+          completion.usage = {
+            prompt_tokens: cachedCompletion.inputTokens,
+            completion_tokens: cachedCompletion.outputTokens,
+            total_tokens: cachedCompletion.inputTokens + cachedCompletion.outputTokens,
+          };
+        } else if (isFineTune) {
           if (!fineTune) {
             throw new TRPCError({
               message: `The model \`${inputPayload.model}\` does not exist`,
@@ -223,7 +249,8 @@ export const v1ApiRouter = createOpenApiRouter({
           void recordUsage({
             projectId: key.projectId,
             requestedAt,
-            receivedAt: Date.now(),
+            receivedAt: !!cachedCompletion ? undefined : Date.now(),
+            cacheHit: !!cachedCompletion,
             inputPayload,
             completion: recordStream,
             logRequest,
@@ -235,13 +262,27 @@ export const v1ApiRouter = createOpenApiRouter({
           void recordUsage({
             projectId: key.projectId,
             requestedAt,
-            receivedAt: Date.now(),
+            receivedAt: !!cachedCompletion ? undefined : Date.now(),
+            cacheHit: !!cachedCompletion,
             inputPayload,
             completion,
             logRequest,
             fineTune,
             tags,
           }).catch((e) => captureException(e));
+          if (useCache && !cachedCompletion) {
+            await prisma.cachedResponse.create({
+              data: {
+                cacheKey,
+                modelId,
+                completionId: completion.id,
+                respPayload: completion as unknown as Prisma.InputJsonValue,
+                projectId: key.projectId,
+                inputTokens: completion.usage?.prompt_tokens ?? 0,
+                outputTokens: completion.usage?.completion_tokens ?? 0,
+              },
+            });
+          }
           return completion;
         }
       } catch (error: unknown) {
@@ -253,6 +294,7 @@ export const v1ApiRouter = createOpenApiRouter({
               projectId: key.projectId,
               requestedAt,
               receivedAt: Date.now(),
+              cacheHit: false,
               reqPayload: inputPayload,
               respPayload: {
                 code: error.code,
@@ -349,6 +391,7 @@ export const v1ApiRouter = createOpenApiRouter({
           usage,
           requestedAt: input.requestedAt,
           receivedAt: input.receivedAt,
+          cacheHit: false,
           reqPayload: input.reqPayload,
           respPayload: input.respPayload,
           statusCode: input.statusCode,
@@ -511,6 +554,7 @@ export const v1ApiRouter = createOpenApiRouter({
       z
         .object({
           createdAt: z.date(),
+          cacheHit: z.boolean(),
           statusCode: z.number().nullable(),
           errorMessage: z.string().nullable(),
           reqPayload: z.unknown(),
@@ -529,6 +573,7 @@ export const v1ApiRouter = createOpenApiRouter({
         orderBy: { requestedAt: "desc" },
         select: {
           createdAt: true,
+          cacheHit: true,
           tags: true,
           id: true,
           statusCode: true,

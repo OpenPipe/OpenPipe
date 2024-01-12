@@ -162,9 +162,26 @@ export const TableRow = ({
         {visibleTagNames.map((tagName) => (
           <Td key={tagName}>{loggedCall.tags[tagName]}</Td>
         ))}
-        {visibleColumns.has(StaticColumnKeys.DURATION) && (
-          <Td isNumeric>{((loggedCall.durationMs ?? 0) / 1000).toFixed(2)}s</Td>
-        )}
+        {visibleColumns.has(StaticColumnKeys.DURATION) &&
+          (loggedCall.cacheHit ? (
+            <Td isNumeric>
+              <HStack justifyContent="flex-end">
+                <Text
+                  w="fit-content"
+                  textAlign="end"
+                  fontSize="2xs"
+                  color="gray.500"
+                  borderRadius={4}
+                  fontWeight="bold"
+                  px={1}
+                >
+                  CACHE
+                </Text>
+              </HStack>
+            </Td>
+          ) : (
+            <Td isNumeric>{((loggedCall.durationMs ?? 0) / 1000).toFixed(2)}s</Td>
+          ))}
         {visibleColumns.has(StaticColumnKeys.INPUT_TOKENS) && (
           <Td isNumeric>{loggedCall.inputTokens}</Td>
         )}

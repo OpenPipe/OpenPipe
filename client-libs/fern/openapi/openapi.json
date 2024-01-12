@@ -1487,6 +1487,9 @@
                       "type": "string",
                       "format": "date-time"
                     },
+                    "cacheHit": {
+                      "type": "boolean"
+                    },
                     "statusCode": {
                       "type": "number",
                       "nullable": true
@@ -1507,6 +1510,7 @@
                   },
                   "required": [
                     "createdAt",
+                    "cacheHit",
                     "statusCode",
                     "errorMessage",
                     "tags"

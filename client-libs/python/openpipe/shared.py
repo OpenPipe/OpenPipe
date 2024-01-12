@@ -38,6 +38,11 @@ def get_extra_headers(create_kwargs, openpipe_options):
         extra_headers["op-log-request"] = (
             "false" if openpipe_options.get("log_request") == False else "true"
         )
+    # Default to false
+    if extra_headers.get("op-cache", None) == None:
+        extra_headers["op-cache"] = (
+            "true" if openpipe_options.get("cache") == True else "false"
+        )
     extra_headers["op-tags"] = json.dumps(_get_tags(openpipe_options))
     return extra_headers
 

@@ -3,6 +3,7 @@ import pytest
 import os
 from dotenv import load_dotenv
 import asyncio
+import random
 from openai import AsyncOpenAI as BaseAsyncOpenAI
 
 from . import AsyncOpenAI
@@ -24,11 +25,16 @@ def setup():
     client = AsyncOpenAI()
 
 
+random_letters = "".join(
+    [random.choice("abcdefghijklmnopqrstuvwxyz") for i in range(10)]
+)
+
+
 async def test_async_content():
     completion = await client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 3"}],
-        openpipe={"tags": {"promptId": "test_async_content"}},
+        openpipe={"tags": {"prompt_id": "test_async_content"}},
     )
 
     await asyncio.sleep(0.1)
@@ -46,7 +52,7 @@ async def test_async_content_mistral():
     completion = await client.chat.completions.create(
         model="openpipe:test-content-mistral-p3",
         messages=[{"role": "system", "content": "count to 3"}],
-        openpipe={"tags": {"promptId": "test_async_content_mistral"}},
+        openpipe={"tags": {"prompt_id": "test_async_content_mistral"}},
     )
 
     await asyncio.sleep(0.1)
@@ -66,7 +72,7 @@ async def test_async_function_call():
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
-        openpipe={"tags": {"promptId": "test_async_function_call"}},
+        openpipe={"tags": {"prompt_id": "test_async_function_call"}},
     )
 
     await asyncio.sleep(0.1)
@@ -92,7 +98,7 @@ async def test_async_function_call_mistral():
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
-        openpipe={"tags": {"promptId": "test_async_function_call_mistral"}},
+        openpipe={"tags": {"prompt_id": "test_async_function_call_mistral"}},
     )
 
     await asyncio.sleep(0.1)
@@ -124,7 +130,7 @@ async def test_async_tool_calls():
                 "function": function,
             },
         ],
-        openpipe={"tags": {"promptId": "test_async_tool_calls"}},
+        openpipe={"tags": {"prompt_id": "test_async_tool_calls"}},
     )
 
     await asyncio.sleep(0.1)
@@ -159,7 +165,7 @@ async def test_async_tool_calls_mistral():
                 "function": function,
             },
         ],
-        openpipe={"tags": {"promptId": "test_async_tool_calls_mistral"}},
+        openpipe={"tags": {"prompt_id": "test_async_tool_calls_mistral"}},
     )
 
     await asyncio.sleep(0.1)
@@ -187,7 +193,7 @@ async def test_async_streaming_content():
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 4"}],
         stream=True,
-        openpipe={"tags": {"promptId": "test_async_streaming_content"}},
+        openpipe={"tags": {"prompt_id": "test_async_streaming_content"}},
     )
 
     merged = None
@@ -209,7 +215,7 @@ async def test_async_streaming_content_ft_35():
         model="openpipe:test-content-35",
         messages=[{"role": "system", "content": "count to 4"}],
         stream=True,
-        openpipe={"tags": {"promptId": "test_async_streaming_content_ft_35"}},
+        openpipe={"tags": {"prompt_id": "test_async_streaming_content_ft_35"}},
     )
 
     merged = None
@@ -233,7 +239,7 @@ async def test_async_streaming_content_ft_35_base_sdk():
         stream=True,
         extra_headers={
             "op-log-request": "true",
-            "op-tags": '{"promptId": "test_async_streaming_content_ft_35_base_sdk"}',
+            "op-tags": '{"prompt_id": "test_async_streaming_content_ft_35_base_sdk"}',
         },
     )
 
@@ -258,7 +264,7 @@ async def test_async_streaming_function_call():
         function_call=function_call,
         functions=[function],
         stream=True,
-        openpipe={"tags": {"promptId": "test_async_streaming_function_call"}},
+        openpipe={"tags": {"prompt_id": "test_async_streaming_function_call"}},
     )
 
     merged = None
@@ -296,7 +302,7 @@ async def test_async_streaming_tool_calls():
             },
         ],
         stream=True,
-        openpipe={"tags": {"promptId": "test_async_streaming_tool_calls"}},
+        openpipe={"tags": {"prompt_id": "test_async_streaming_tool_calls"}},
     )
 
     merged = None
@@ -319,7 +325,7 @@ async def test_async_with_tags():
     completion = await client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 10"}],
-        openpipe={"tags": {"promptId": "test_async_with_tags"}},
+        openpipe={"tags": {"prompt_id": "test_async_with_tags"}},
     )
 
     await asyncio.sleep(0.1)
@@ -331,8 +337,47 @@ async def test_async_with_tags():
         == completion.choices[0].message.content
     )
     print(last_logged.tags)
-    assert last_logged.tags["promptId"] == "test_async_with_tags"
+    assert last_logged.tags["prompt_id"] == "test_async_with_tags"
     assert last_logged.tags["$sdk"] == "python"
+
+
+async def test_async_caching():
+    messages = [{"role": "system", "content": f"{random_letters} count to 10"}]
+    completion = await client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=messages,
+        openpipe={"tags": {"prompt_id": "test_async_caching"}},
+    )
+    await asyncio.sleep(0.1)
+    completion = await client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=messages,
+        openpipe={"tags": {"prompt_id": "test_async_caching"}},
+    )
+
+    await asyncio.sleep(0.1)
+    last_logged = (
+        await client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
+    assert last_logged.cache_hit == False
+
+    completion = await client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=messages,
+        openpipe={"tags": {"prompt_id": "test_async_caching"}, "cache": True},
+    )
+    await asyncio.sleep(0.1)
+    completion = await client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=messages,
+        openpipe={"tags": {"prompt_id": "test_async_caching"}, "cache": True},
+    )
+
+    await asyncio.sleep(0.1)
+    last_logged = (
+        await client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
+    assert last_logged.cache_hit == True
 
 
 async def test_async_default_base_url():
@@ -341,7 +386,7 @@ async def test_async_default_base_url():
     completion = await default_client.chat.completions.create(
         model="openpipe:test-content-35",
         messages=[{"role": "system", "content": "count to 10"}],
-        openpipe={"tags": {"promptId": "test_async_default_base_url"}},
+        openpipe={"tags": {"prompt_id": "test_async_default_base_url"}},
     )
 
     assert completion.choices[0].message.content != None
@@ -353,7 +398,7 @@ async def test_async_bad_openai_call():
             model="gpt-3.5-turbo-blaster",
             messages=[{"role": "system", "content": "count to 10"}],
             stream=True,
-            openpipe={"tags": {"promptId": "test_async_bad_openai_call"}},
+            openpipe={"tags": {"prompt_id": "test_async_bad_openai_call"}},
         )
         assert False
     except Exception as e:
@@ -376,7 +421,7 @@ async def test_async_bad_openpipe_call():
             model="openpipe:gpt-3.5-turbo-blaster",
             messages=[{"role": "system", "content": "count to 10"}],
             stream=True,
-            openpipe={"tags": {"promptId": "test_async_bad_openpipe_call"}},
+            openpipe={"tags": {"prompt_id": "test_async_bad_openpipe_call"}},
         )
         assert False
     except Exception as e:
@@ -402,7 +447,7 @@ async def test_async_bad_openai_call_base_sdk():
             stream=True,
             extra_headers={
                 "op-log-request": "true",
-                "op-tags": '{"promptId": "test_async_bad_openai_call_base_sdk"}',
+                "op-tags": '{"prompt_id": "test_async_bad_openai_call_base_sdk"}',
             },
         )
         assert False

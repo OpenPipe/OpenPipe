@@ -13,6 +13,7 @@ except ImportError:
 
 class LocalTestingOnlyGetLatestLoggedCallResponse(pydantic.BaseModel):
     created_at: dt.datetime = pydantic.Field(alias="createdAt")
+    cache_hit: bool = pydantic.Field(alias="cacheHit")
     status_code: typing.Optional[float] = pydantic.Field(alias="statusCode")
     error_message: typing.Optional[str] = pydantic.Field(alias="errorMessage")
     req_payload: typing.Optional[typing.Any] = pydantic.Field(alias="reqPayload")
