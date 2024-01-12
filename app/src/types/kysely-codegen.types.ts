@@ -341,7 +341,7 @@ export interface UsageLog {
   inputTokens: number;
   outputTokens: number;
   cost: number;
-  type: Generated<"EXTERNAL" | "TESTING" | "TRAINING">;
+  type: Generated<"CACHE_HIT" | "EXTERNAL" | "TESTING" | "TRAINING">;
   fineTuneId: string | null;
   createdAt: Generated<Timestamp>;
   projectId: string | null;
