@@ -10,7 +10,6 @@ import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 import { prisma } from "~/server/db";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { chatCompletionOutput, type chatCompletionInput } from "~/types/shared.types";
-import { posthogServerClient } from "./analytics/serverAnalytics";
 import {
   countLlamaInputTokens,
   countLlamaOutputTokens,
@@ -68,15 +67,6 @@ export const recordUsage = async ({
         },
       })
       .catch((error) => captureException(error));
-
-    posthogServerClient?.capture({
-      distinctId: projectId,
-      event: "fine-tune-usage",
-      properties: {
-        model: inputPayload.model,
-        ...usage,
-      },
-    });
   }
 
   if (logRequest) {
