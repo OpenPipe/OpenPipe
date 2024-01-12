@@ -1,3 +1,6 @@
+-- AlterEnum
+ALTER TYPE "UsageType" ADD VALUE 'CACHE_HIT';
+
 -- AlterTable
 ALTER TABLE "LoggedCall" ADD COLUMN     "cacheHit" BOOLEAN NOT NULL DEFAULT false;
 

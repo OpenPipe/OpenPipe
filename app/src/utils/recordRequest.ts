@@ -62,7 +62,7 @@ export const recordUsage = async ({
         data: {
           fineTuneId: fineTune.id,
           projectId: fineTune.projectId,
-          type: UsageType.EXTERNAL,
+          type: cacheHit ? UsageType.CACHE_HIT : UsageType.EXTERNAL,
           inputTokens: usage?.inputTokens ?? 0,
           outputTokens: usage?.outputTokens ?? 0,
           cost: cacheHit ? 0 : usage?.cost ?? 0,

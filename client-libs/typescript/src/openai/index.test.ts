@@ -89,6 +89,33 @@ test("simple ft content call", async () => {
   expect(completion).toMatchObject(lastLogged?.respPayload);
 }, 100000);
 
+test("openai call caches", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+  await oaiClient.chat.completions.create(payload);
+  await oaiClient.chat.completions.create(payload);
+
+  await sleep(100);
+  let lastLogged = await lastLoggedCall();
+
+  expect(lastLogged?.cacheHit).toBe(false);
+
+  await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: { cache: true },
+  });
+  await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: { cache: true },
+  });
+  await sleep(100);
+  lastLogged = await lastLoggedCall();
+
+  expect(lastLogged?.cacheHit).toBe(false);
+}, 100000);
+
 test("base sdk openai content call", async () => {
   const payload: ChatCompletionCreateParams = {
     model: "gpt-3.5-turbo",

@@ -108,6 +108,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
         headers: {
           ...options?.headers,
           "op-log-request": openpipe.logRequest ? "true" : "false",
+          "op-cache": openpipe.cache ? "true" : "false",
           "op-tags": JSON.stringify(getTags(openpipe)),
         },
       });
