@@ -16,7 +16,7 @@ export function parseTags(tags: unknown, keepNulls?: true) {
       continue;
     }
     if (typeof value !== "string" && value !== null) {
-      throw new Error(`Tag ${key} must be a string or null`);
+      throw new Error(`Tag ${key} must be a string, number, boolean, or null`);
     }
     parsedTags[key] = value;
   }

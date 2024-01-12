@@ -56,7 +56,7 @@ const functionBody = {
 
 const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
 
-const randomLetters = () => Math.random().toString(36).substring(7);
+const randomLetters = Math.random().toString(36).substring(7);
 
 test("simple openai content call", async () => {
   const payload: ChatCompletionCreateParams = {
@@ -93,11 +93,17 @@ test("simple ft content call", async () => {
 
 test("openai call caches", async () => {
   const payload: ChatCompletionCreateParams = {
-    model: "gpt-3.5-turbo",
+    model: "openpipe:test-content-35",
     messages: [{ role: "system", content: `${randomLetters} count to 3` }],
   };
-  await oaiClient.chat.completions.create(payload);
-  await oaiClient.chat.completions.create(payload);
+  await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: { tags: { promptId: "openai call caches (no cache)" } },
+  });
+  await oaiClient.chat.completions.create({
+    ...payload,
+    openpipe: { tags: { promptId: "openai call caches (no cache)" } },
+  });
 
   await sleep(100);
   let lastLogged = await lastLoggedCall();
@@ -106,16 +112,16 @@ test("openai call caches", async () => {
 
   await oaiClient.chat.completions.create({
     ...payload,
-    openpipe: { cache: true },
+    openpipe: { cache: true, tags: { promptId: "openai call caches" } },
   });
   await oaiClient.chat.completions.create({
     ...payload,
-    openpipe: { cache: true },
+    openpipe: { cache: true, tags: { promptId: "openai call caches" } },
   });
   await sleep(100);
   lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.cacheHit).toBe(false);
+  expect(lastLogged?.cacheHit).toBe(true);
 }, 100000);
 
 test("base sdk openai content call", async () => {
