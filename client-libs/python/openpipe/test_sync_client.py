@@ -40,7 +40,7 @@ def test_sync_content():
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 3"}],
-        openpipe={"tags": {"promptId": "test_sync_content"}},
+        openpipe={"tags": {"prompt_id": "test_sync_content"}},
     )
 
     last_logged = (
@@ -58,8 +58,10 @@ def test_sync_content_mistral():
         model="openpipe:test-content-mistral-p3",
         response_format={"type": "json_object"},
         messages=[{"role": "system", "content": "count to 3"}],
-        openpipe={"tags": {"promptId": "test_sync_content_mistral"}},
+        openpipe={"tags": {"prompt_id": "test_sync_content_mistral"}},
     )
+
+    time.sleep(0.1)
 
     last_logged = (
         client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
@@ -77,7 +79,7 @@ def test_sync_function_call():
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
-        openpipe={"tags": {"promptId": "test_sync_function_call"}},
+        openpipe={"tags": {"prompt_id": "test_sync_function_call"}},
     )
     last_logged = (
         client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
@@ -101,7 +103,7 @@ def test_sync_function_call_mistral():
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
-        openpipe={"tags": {"promptId": "test_sync_function_call_mistral"}},
+        openpipe={"tags": {"prompt_id": "test_sync_function_call_mistral"}},
     )
     last_logged = (
         client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
@@ -131,7 +133,7 @@ def test_sync_tool_calls():
                 "function": function,
             },
         ],
-        openpipe={"tags": {"promptId": "test_sync_tool_calls"}},
+        openpipe={"tags": {"prompt_id": "test_sync_tool_calls"}},
     )
     last_logged = (
         client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
@@ -164,7 +166,7 @@ def test_sync_tool_calls_mistral():
                 "function": function,
             },
         ],
-        openpipe={"tags": {"promptId": "test_sync_tool_calls_mistral"}},
+        openpipe={"tags": {"prompt_id": "test_sync_tool_calls_mistral"}},
     )
     last_logged = (
         client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
@@ -190,10 +192,12 @@ def test_sync_streaming_content():
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 4"}],
         stream=True,
-        openpipe={"tags": {"promptId": "test_sync_streaming_content"}},
+        openpipe={"tags": {"prompt_id": "test_sync_streaming_content"}},
     )
 
     merged = reduce(merge_openai_chunks, completion, None)
+
+    time.sleep(0.1)
 
     last_logged = (
         client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
@@ -211,7 +215,7 @@ def test_sync_streaming_content_ft_35():
         stream=True,
         extra_headers={
             "op-log-request": "true",
-            "op-tags": '{"promptId": "test_sync_streaming_content_ft_35"}',
+            "op-tags": '{"prompt_id": "test_sync_streaming_content_ft_35"}',
         },
     )
 
@@ -235,7 +239,7 @@ def test_sync_streaming_content_ft_35_base_sdk():
         stream=True,
         extra_headers={
             "op-log-request": "true",
-            "op-tags": '{"promptId": "test_sync_streaming_content_ft_35_base_sdk"}',
+            "op-tags": '{"prompt_id": "test_sync_streaming_content_ft_35_base_sdk"}',
         },
     )
 
@@ -259,7 +263,7 @@ def test_sync_streaming_function_call():
         function_call=function_call,
         functions=[function],
         stream=True,
-        openpipe={"tags": {"promptId": "test_sync_streaming_function_call"}},
+        openpipe={"tags": {"prompt_id": "test_sync_streaming_function_call"}},
     )
 
     merged = reduce(merge_openai_chunks, completion, None)
@@ -294,7 +298,7 @@ def test_sync_streaming_tool_calls():
             },
         ],
         stream=True,
-        openpipe={"tags": {"promptId": "test_sync_streaming_tool_calls"}},
+        openpipe={"tags": {"prompt_id": "test_sync_streaming_tool_calls"}},
     )
 
     merged = reduce(merge_openai_chunks, completion, None)
@@ -314,7 +318,7 @@ def test_sync_with_tags():
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 10"}],
-        openpipe={"tags": {"promptId": "test_sync_with_tags"}},
+        openpipe={"tags": {"prompt_id": "test_sync_with_tags"}},
     )
 
     last_logged = (
@@ -325,7 +329,7 @@ def test_sync_with_tags():
         == completion.choices[0].message.content
     )
     print(last_logged.tags)
-    assert last_logged.tags["promptId"] == "test_sync_with_tags"
+    assert last_logged.tags["prompt_id"] == "test_sync_with_tags"
     assert last_logged.tags["$sdk"] == "python"
 
 
@@ -389,7 +393,7 @@ def test_bad_openpipe_initialization():
     bad_client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": system_content}],
-        openpipe={"tags": {"promptId": "test_bad_openpipe_initialization"}},
+        openpipe={"tags": {"prompt_id": "test_bad_openpipe_initialization"}},
     )
 
     last_logged = (

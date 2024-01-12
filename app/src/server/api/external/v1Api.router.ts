@@ -270,8 +270,8 @@ export const v1ApiRouter = createOpenApiRouter({
             fineTune,
             tags,
           }).catch((e) => captureException(e));
-          if (useCache && cachedCompletion) {
-            void prisma.cachedResponse.create({
+          if (useCache && !cachedCompletion) {
+            await prisma.cachedResponse.create({
               data: {
                 cacheKey,
                 modelId,

@@ -56,6 +56,8 @@ const functionBody = {
 
 const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
 
+const randomLetters = () => Math.random().toString(36).substring(7);
+
 test("simple openai content call", async () => {
   const payload: ChatCompletionCreateParams = {
     model: "gpt-3.5-turbo",
@@ -92,7 +94,7 @@ test("simple ft content call", async () => {
 test("openai call caches", async () => {
   const payload: ChatCompletionCreateParams = {
     model: "gpt-3.5-turbo",
-    messages: [{ role: "system", content: "count to 3" }],
+    messages: [{ role: "system", content: `${randomLetters} count to 3` }],
   };
   await oaiClient.chat.completions.create(payload);
   await oaiClient.chat.completions.create(payload);
