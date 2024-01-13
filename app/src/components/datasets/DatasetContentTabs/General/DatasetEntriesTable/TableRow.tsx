@@ -71,11 +71,13 @@ export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColu
 
 export const TableRow = ({
   datasetEntry,
+  isExpanded,
   toggleExpanded,
   showOptions,
   showRelabelStatusColumn,
 }: {
   datasetEntry: DatasetEntry;
+  isExpanded: boolean;
   toggleExpanded: (entryId: string) => void;
   showOptions?: boolean;
   showRelabelStatusColumn?: boolean;
@@ -94,6 +96,7 @@ export const TableRow = ({
       onClick={() => toggleExpanded(datasetEntry.id)}
       key={datasetEntry.id}
       _hover={{ bgColor: "gray.50", cursor: "pointer" }}
+      bgColor={isExpanded ? "blue.50" : undefined}
       fontSize="sm"
     >
       {showOptions && (

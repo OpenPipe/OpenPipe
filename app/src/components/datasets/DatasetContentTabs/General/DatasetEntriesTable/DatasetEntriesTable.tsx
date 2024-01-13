@@ -54,6 +54,7 @@ export default function DatasetEntriesTable() {
                   <TableRow
                     key={entry.persistentId}
                     datasetEntry={entry}
+                    isExpanded={entry.id === expandedDatasetEntryId}
                     toggleExpanded={toggleExpanded}
                     showOptions
                     showRelabelStatusColumn={relabelingVisible}
