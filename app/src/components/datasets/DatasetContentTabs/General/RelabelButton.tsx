@@ -64,10 +64,11 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
   const clearSelectedIds = useAppStore((s) => s.selectedDatasetEntries.clearSelectedIds);
   const addFilter = useFilters().addFilter;
 
+  const [numEntriesToConfirm, setNumEntriesToConfirm] = useState("");
   const [filterToRelabeled, setFilterToRelabeled] = useState(true);
 
   const [onRelabelConfirm, confirmingRelabelInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedIds) return;
+    if (!selectedIds || numEntriesToConfirm !== selectedIds.size.toString()) return;
     const resp = await mutation.mutateAsync({
       ids: Array.from(selectedIds),
     });
@@ -88,9 +89,15 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
     clearSelectedIds();
 
     disclosure.onClose();
-  }, [mutation, selectedIds, clearSelectedIds, addFilter, filterToRelabeled, disclosure.onClose]);
-
-  const [numEntriesToConfirm, setNumEntriesToConfirm] = useState("");
+  }, [
+    mutation,
+    selectedIds,
+    clearSelectedIds,
+    addFilter,
+    numEntriesToConfirm,
+    filterToRelabeled,
+    disclosure.onClose,
+  ]);
 
   useEffect(() => {
     if (disclosure.isOpen) {
