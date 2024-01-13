@@ -3,10 +3,9 @@ name: Deploy Prod
 on:
   push:
     branches: [main]
-  
 
 # Only run workflow for the latest commit
-concurrency: 
+concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
@@ -32,18 +31,19 @@ jobs:
       - name: Install Pulumi deps
         run: npm install
         working-directory: infra
-      
+
       - name: Run Pulumi
         uses: pulumi/actions@v3
         with:
           command: up
+          target: "urn:pulumi:prod::openpipe::awsx:ecr:Image$docker:index/image:Image::83d84553-container,urn:pulumi:prod::openpipe::kubernetes:apps/v1:Deployment::app-worker-pl-prod,urn:pulumi:prod::openpipe::kubernetes:apps/v1:Deployment::app-pl-prod"
           stack-name: openpipe/prod
           work-dir: infra
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          
+
           # Lol I can't believe this is necessary but without it the AWS CLI fails when running on Azure with cryptic errors.
           # https://github.com/aws/aws-cli/issues/5234#issuecomment-705831465
           AWS_EC2_METADATA_DISABLED: true
