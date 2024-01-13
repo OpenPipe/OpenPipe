@@ -64,10 +64,11 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
   const clearSelectedIds = useAppStore((s) => s.selectedDatasetEntries.clearSelectedIds);
   const addFilter = useFilters().addFilter;
 
+  const [numEntriesToConfirm, setNumEntriesToConfirm] = useState("");
   const [filterToRelabeled, setFilterToRelabeled] = useState(true);
 
   const [onRelabelConfirm, confirmingRelabelInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedIds) return;
+    if (!selectedIds || numEntriesToConfirm !== selectedIds.size.toString()) return;
     const resp = await mutation.mutateAsync({
       ids: Array.from(selectedIds),
     });
@@ -82,14 +83,21 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
       });
     }
 
-    clearSelectedIds();
     await utils.datasets.get.invalidate();
     await utils.datasetEntries.list.invalidate();
 
-    disclosure.onClose();
-  }, [mutation, selectedIds, clearSelectedIds, addFilter, filterToRelabeled, disclosure.onClose]);
+    clearSelectedIds();
 
-  const [numEntriesToConfirm, setNumEntriesToConfirm] = useState("");
+    disclosure.onClose();
+  }, [
+    mutation,
+    selectedIds,
+    clearSelectedIds,
+    addFilter,
+    numEntriesToConfirm,
+    filterToRelabeled,
+    disclosure.onClose,
+  ]);
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -135,6 +143,11 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
                     placeholder={selectedIds.size.toString()}
                     value={numEntriesToConfirm}
                     onChange={(e) => setNumEntriesToConfirm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        onRelabelConfirm();
+                      }
+                    }}
                   />
                   <HStack>
                     <Checkbox

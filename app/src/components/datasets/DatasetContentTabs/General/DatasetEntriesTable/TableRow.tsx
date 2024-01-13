@@ -97,6 +97,7 @@ export const TableRow = ({
       key={datasetEntry.id}
       _hover={{ bgColor: "gray.50", cursor: "pointer" }}
       bgColor={isExpanded ? "blue.50" : undefined}
+      transition="background-color 1.2s"
       fontSize="sm"
     >
       {showOptions && (
