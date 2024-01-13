@@ -82,9 +82,10 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
       });
     }
 
-    clearSelectedIds();
     await utils.datasets.get.invalidate();
     await utils.datasetEntries.list.invalidate();
+
+    clearSelectedIds();
 
     disclosure.onClose();
   }, [mutation, selectedIds, clearSelectedIds, addFilter, filterToRelabeled, disclosure.onClose]);
@@ -135,6 +136,11 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
                     placeholder={selectedIds.size.toString()}
                     value={numEntriesToConfirm}
                     onChange={(e) => setNumEntriesToConfirm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        onRelabelConfirm();
+                      }
+                    }}
                   />
                   <HStack>
                     <Checkbox
