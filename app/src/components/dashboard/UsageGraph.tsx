@@ -40,19 +40,34 @@ export default function UsageGraph() {
     ["gray.500", "orange.500", "blue.500", "gray.900"],
   );
 
+  const longestRequestsLabelLength = data
+    .map((c) => c.Requests.toString())
+    .reduce((acc, cur) => (cur.length > acc ? cur.length : acc), 0);
+
+  const longestTotalSpendLabelLength = data
+    .map((c) => c["Total Spend"].toFixed(2))
+    .reduce((acc, cur) => (cur.length > acc ? cur.length : acc), 0);
+
   return (
     <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+      <LineChart data={data} margin={{ top: 5, right: 24, left: 4, bottom: 5 }}>
         <XAxis dataKey="period" tickFormatter={(str: string) => dayjs(str).format("MMM D")} />
-        <YAxis yAxisId="left" dataKey="Requests" orientation="left" stroke={requestsColor} />
+        <YAxis
+          yAxisId="left"
+          dataKey="Requests"
+          orientation="left"
+          stroke={requestsColor}
+          width={longestRequestsLabelLength * 10}
+        />
         <YAxis
           yAxisId="right"
           dataKey="Total Spend"
           orientation="right"
           type="number"
-          tickMargin={4}
+          tickMargin={6}
           tickFormatter={(value: number) => "$" + value.toFixed(2)}
           stroke={totalSpendColor}
+          width={longestTotalSpendLabelLength * 10}
         />
         <Tooltip />
         <Legend />
