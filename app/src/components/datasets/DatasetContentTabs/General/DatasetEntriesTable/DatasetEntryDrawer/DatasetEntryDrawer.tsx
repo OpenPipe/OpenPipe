@@ -36,15 +36,15 @@ const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
 
 function DatasetEntryDrawer({
-  datasetEntryId,
-  setDatasetEntryId,
+  datasetEntryPersistentId,
+  setDatasetEntryPersistentId,
 }: {
-  datasetEntryId: string | null;
-  setDatasetEntryId: (id: string | null) => void;
+  datasetEntryPersistentId: string | null;
+  setDatasetEntryPersistentId: (id: string | null) => void;
 }) {
   const utils = api.useContext();
 
-  const { data: datasetEntry, isLoading } = useDatasetEntry(datasetEntryId);
+  const { data: datasetEntry, isLoading } = useDatasetEntry(datasetEntryPersistentId);
 
   const savedInputMessages = useMemo(() => datasetEntry?.messages, [datasetEntry]);
   const savedTools = useMemo(() => datasetEntry?.tools, [datasetEntry]);
@@ -75,9 +75,9 @@ function DatasetEntryDrawer({
 
   const updateMutation = api.datasetEntries.update.useMutation();
   const [onSave, savingInProgress] = useHandledAsyncCallback(async () => {
-    if (!datasetEntryId || !inputMessagesToSave) return;
+    if (!datasetEntry?.id || !inputMessagesToSave) return;
     const resp = await updateMutation.mutateAsync({
-      id: datasetEntryId,
+      id: datasetEntry?.id,
       updates: {
         messages: JSON.stringify(inputMessagesToSave),
         tools: toolsToSave,
@@ -86,11 +86,10 @@ function DatasetEntryDrawer({
     });
     if (maybeReportError(resp)) return;
     await utils.datasetEntries.list.invalidate();
-    setDatasetEntryId(resp.payload);
+    await utils.datasetEntries.get.invalidate();
   }, [
     updateMutation,
-    datasetEntryId,
-    setDatasetEntryId,
+    datasetEntry?.id,
     inputMessagesToSave,
     toolsToSave,
     outputMessageToSave,
@@ -99,26 +98,26 @@ function DatasetEntryDrawer({
 
   const [onUpdateSplit] = useHandledAsyncCallback(
     async (split: DatasetEntrySplit) => {
-      if (!datasetEntryId) return;
+      if (!datasetEntry?.id) return;
       const resp = await updateMutation.mutateAsync({
-        id: datasetEntryId,
+        id: datasetEntry?.id,
         updates: {
           split,
         },
       });
       if (maybeReportError(resp)) return;
       await utils.datasetEntries.list.invalidate();
-      setDatasetEntryId(resp.payload);
+      await utils.datasetEntries.get.invalidate();
     },
-    [updateMutation, datasetEntryId, setDatasetEntryId, utils],
+    [updateMutation, datasetEntry?.id, utils],
   );
 
   useKeepScrollAtBottom(CONTAINER_ID, CONTENT_ID);
 
   return (
     <Drawer
-      isOpen={!!datasetEntryId}
-      onClose={() => setDatasetEntryId(null)}
+      isOpen={!!datasetEntryPersistentId}
+      onClose={() => setDatasetEntryPersistentId(null)}
       placement="right"
       size="xl"
     >

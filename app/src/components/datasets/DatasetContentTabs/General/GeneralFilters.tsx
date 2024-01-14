@@ -7,6 +7,11 @@ import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 const defaultFilterOptions: FilterOption[] = [
   { type: "text", field: GeneralFiltersDefaultFields.Input },
   { type: "text", field: GeneralFiltersDefaultFields.Output },
+  {
+    type: "select",
+    field: GeneralFiltersDefaultFields.Split,
+    options: [{ value: "TRAIN" }, { value: "TEST" }],
+  },
   { type: "text", field: GeneralFiltersDefaultFields.ImportId },
   { type: "text", field: GeneralFiltersDefaultFields.RelabelBatchId },
 ];

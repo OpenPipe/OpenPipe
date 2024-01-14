@@ -121,50 +121,59 @@ export const datasetEntriesRouter = createTRPCRouter({
         totalTestingCount,
       };
     }),
-  get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    const entry = await prisma.datasetEntry.findUniqueOrThrow({
-      where: { id: input.id },
-      include: {
-        dataset: true,
-        matchedRules: {
-          select: {
-            pruningRule: {
-              select: {
-                textToMatch: true,
-                tokensInText: true,
+  get: protectedProcedure
+    .input(z.object({ persistentId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const entry = await prisma.datasetEntry.findFirst({
+        where: { persistentId: input.persistentId },
+        include: {
+          dataset: true,
+          matchedRules: {
+            select: {
+              pruningRule: {
+                select: {
+                  textToMatch: true,
+                  tokensInText: true,
+                },
               },
             },
           },
         },
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
 
-    if (!entry.dataset) {
-      throw new TRPCError({ message: "Dataset not found for dataset entry", code: "NOT_FOUND" });
-    }
+      if (!entry) {
+        throw new TRPCError({ message: "Dataset entry not found", code: "NOT_FOUND" });
+      }
 
-    await requireCanViewProject(entry.dataset.projectId, ctx);
+      if (!entry.dataset) {
+        throw new TRPCError({ message: "Dataset not found for dataset entry", code: "NOT_FOUND" });
+      }
 
-    const history = await kysely
-      .selectFrom("DatasetEntry")
-      .where("persistentId", "=", entry.persistentId)
-      .where("createdAt", "<=", entry.createdAt)
-      .select((eb) => [
-        "id",
-        "provenance",
-        "createdAt",
-        jsonObjectFrom(
-          eb
-            .selectFrom("User")
-            .select(["name"])
-            .whereRef("User.id", "=", "DatasetEntry.authoringUserId"),
-        ).as("authoringUser"),
-      ])
-      .orderBy("createdAt", "desc")
-      .execute();
+      await requireCanViewProject(entry.dataset.projectId, ctx);
 
-    return { ...typedDatasetEntry(entry), history };
-  }),
+      const history = await kysely
+        .selectFrom("DatasetEntry")
+        .where("persistentId", "=", entry.persistentId)
+        .where("createdAt", "<=", entry.createdAt)
+        .select((eb) => [
+          "id",
+          "provenance",
+          "createdAt",
+          jsonObjectFrom(
+            eb
+              .selectFrom("User")
+              .select(["name"])
+              .whereRef("User.id", "=", "DatasetEntry.authoringUserId"),
+          ).as("authoringUser"),
+        ])
+        .orderBy("createdAt", "desc")
+        .execute();
+
+      return { ...typedDatasetEntry(entry), history };
+    }),
   createFromLoggedCalls: protectedProcedure
     .input(
       z.object({

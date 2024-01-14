@@ -60,7 +60,7 @@ const SelectFilter = ({
       <SelectComparatorDropdown filter={filter} filterType="select" />
       <InputDropdown
         options={filterOption.options}
-        getDisplayLabel={(option) => option.label}
+        getDisplayLabel={(option) => option.label ?? option.value}
         selectedOption={selectedSelectFilterOption}
         onSelect={onOptionUpdated}
       />

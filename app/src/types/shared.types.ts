@@ -240,6 +240,7 @@ export enum LoggedCallsFiltersDefaultFields {
 export enum GeneralFiltersDefaultFields {
   Input = "Input",
   Output = "Output",
+  Split = "Split",
   ImportId = "Import ID",
   RelabelBatchId = "Relabel Batch ID",
 }

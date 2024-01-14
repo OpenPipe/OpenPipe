@@ -45,6 +45,21 @@ export const constructDatasetEntryFiltersQuery = ({
 
   let updatedBaseQuery = baseQuery;
 
+  const splitFilters = filters.filter(
+    (filter) => filter.field === GeneralFiltersDefaultFields.Split,
+  );
+
+  for (let i = 0; i < splitFilters.length; i++) {
+    const filter = splitFilters[i];
+    if (!filter?.value) continue;
+    const filterExpression = textComparatorToSqlExpression(
+      filter.comparator,
+      filter.value as string,
+    );
+
+    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql.raw(`de."split"`)));
+  }
+
   const relabelBatchIdFilters = filters.filter(
     (filter) => filter.field === GeneralFiltersDefaultFields.RelabelBatchId,
   );
