@@ -132,7 +132,7 @@ model RelabelRequest {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([datasetEntryPersistentId, batchId])
+    @@unique([batchId, datasetEntryPersistentId])
 }
 
 model PruningRule {
