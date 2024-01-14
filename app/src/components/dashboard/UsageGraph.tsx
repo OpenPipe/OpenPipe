@@ -51,13 +51,17 @@ export default function UsageGraph() {
   return (
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={data} margin={{ top: 5, right: 24, left: 4, bottom: 5 }}>
-        <XAxis dataKey="period" tickFormatter={(str: string) => dayjs(str).format("MMM D")} />
+        <XAxis
+          dataKey="period"
+          tickMargin={4}
+          tickFormatter={(str: string) => dayjs(str).format("MMM D")}
+        />
         <YAxis
           yAxisId="left"
           dataKey="Requests"
           orientation="left"
           stroke={requestsColor}
-          width={longestRequestsLabelLength * 10}
+          width={longestRequestsLabelLength * 10 + 8}
         />
         <YAxis
           yAxisId="right"
@@ -67,7 +71,7 @@ export default function UsageGraph() {
           tickMargin={6}
           tickFormatter={(value: number) => "$" + value.toFixed(2)}
           stroke={totalSpendColor}
-          width={longestTotalSpendLabelLength * 10}
+          width={longestTotalSpendLabelLength * 10 + 8}
         />
         <Tooltip />
         <Legend />
