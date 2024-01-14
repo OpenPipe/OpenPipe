@@ -78,7 +78,7 @@ export const TableRow = ({
 }: {
   datasetEntry: DatasetEntry;
   isExpanded: boolean;
-  toggleExpanded: (entryId: string) => void;
+  toggleExpanded: (persistentId: string) => void;
   showOptions?: boolean;
   showRelabelStatusColumn?: boolean;
 }) => {
@@ -93,7 +93,7 @@ export const TableRow = ({
 
   return (
     <Tr
-      onClick={() => toggleExpanded(datasetEntry.id)}
+      onClick={() => toggleExpanded(datasetEntry.persistentId)}
       key={datasetEntry.id}
       _hover={{ bgColor: "gray.50", cursor: "pointer" }}
       bgColor={isExpanded ? "blue.50" : undefined}

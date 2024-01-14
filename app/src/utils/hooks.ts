@@ -174,8 +174,11 @@ const useStableData = <TData, TError>(result: UseQueryResult<TData, TError>) => 
   return { ...result, data: stableData };
 };
 
-export const useDatasetEntry = (entryId: string | null) => {
-  const result = api.datasetEntries.get.useQuery({ id: entryId as string }, { enabled: !!entryId });
+export const useDatasetEntry = (persistentId: string | null) => {
+  const result = api.datasetEntries.get.useQuery(
+    { persistentId: persistentId as string },
+    { enabled: !!persistentId },
+  );
   return useStableData(result);
 };
 

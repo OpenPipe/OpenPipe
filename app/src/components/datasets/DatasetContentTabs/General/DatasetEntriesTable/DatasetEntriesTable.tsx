@@ -7,7 +7,9 @@ import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
 import DatasetEntryDrawer from "./DatasetEntryDrawer/DatasetEntryDrawer";
 
 export default function DatasetEntriesTable() {
-  const [expandedDatasetEntryId, setExpandedDatasetEntryId] = useState<string | null>(null);
+  const [expandedDatasetEntryPersistentId, setExpandedDatasetEntryPersistentId] = useState<
+    string | null
+  >(null);
   const [refetchInterval, setRefetchInterval] = useState(0);
   const datasetEntries = useDatasetEntries(refetchInterval).data?.entries;
 
@@ -32,14 +34,14 @@ export default function DatasetEntriesTable() {
   );
 
   const toggleExpanded = useCallback(
-    (datasetEntryId: string) => {
-      if (datasetEntryId === expandedDatasetEntryId) {
-        setExpandedDatasetEntryId(null);
+    (datasetEntryPersistentId: string) => {
+      if (datasetEntryPersistentId === expandedDatasetEntryPersistentId) {
+        setExpandedDatasetEntryPersistentId(null);
       } else {
-        setExpandedDatasetEntryId(datasetEntryId);
+        setExpandedDatasetEntryPersistentId(datasetEntryPersistentId);
       }
     },
-    [expandedDatasetEntryId, setExpandedDatasetEntryId],
+    [expandedDatasetEntryPersistentId, setExpandedDatasetEntryPersistentId],
   );
 
   return (
@@ -54,7 +56,7 @@ export default function DatasetEntriesTable() {
                   <TableRow
                     key={entry.persistentId}
                     datasetEntry={entry}
-                    isExpanded={entry.id === expandedDatasetEntryId}
+                    isExpanded={entry.persistentId === expandedDatasetEntryPersistentId}
                     toggleExpanded={toggleExpanded}
                     showOptions
                     showRelabelStatusColumn={relabelingVisible}
@@ -68,8 +70,8 @@ export default function DatasetEntriesTable() {
         </Table>
       </Card>
       <DatasetEntryDrawer
-        datasetEntryId={expandedDatasetEntryId}
-        setDatasetEntryId={setExpandedDatasetEntryId}
+        datasetEntryPersistentId={expandedDatasetEntryPersistentId}
+        setDatasetEntryPersistentId={setExpandedDatasetEntryPersistentId}
       />
     </>
   );
