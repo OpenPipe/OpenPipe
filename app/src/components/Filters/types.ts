@@ -31,7 +31,7 @@ export type FilterOption = TextFilterOption | DateFilterOption | SelectFilterOpt
 
 export type SelectFilterSelectOption = {
   value: string;
-  label: string;
+  label?: string;
 };
 
 export interface FilterData {
