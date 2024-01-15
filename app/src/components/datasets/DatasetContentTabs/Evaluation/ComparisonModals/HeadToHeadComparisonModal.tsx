@@ -249,13 +249,13 @@ const ComparisonRow = ({
         <Box
           w="full"
           position="relative"
-          h={
+          h={`${
             !expandable
-              ? innerOutputHeight
+              ? innerOutputHeight + 40
               : outputExpanded
               ? innerOutputHeight + 160
               : explanationHeight + VERTICAL_PADDING
-          }
+          }px`}
           transition="height 0.5s ease-in-out"
           overflow="hidden"
         >
@@ -332,6 +332,7 @@ const SelectedComparisonTable = ({
   return (
     <VStack w="full" position="relative" pb={8}>
       <Grid
+        w="full"
         display="grid"
         gridTemplateColumns={`1fr 1fr`}
         borderWidth={1}
