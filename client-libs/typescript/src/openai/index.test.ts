@@ -9,7 +9,7 @@ import OpenAI from "../openai";
 import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import { getTags } from "../shared";
-import { OPENPIPE_API_KEY, OPENPIPE_API_URL } from "./setup";
+import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "./setup";
 
 dotenv.config();
 
@@ -68,10 +68,12 @@ test("simple openai content call", async () => {
 
   await completion.openpipe?.reportingFinished;
 
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.reqPayload).toMatchObject(payload);
-  expect(completion).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.tags).toMatchObject(getTags(openpipeOptions));
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.reqPayload).toMatchObject(payload);
+    expect(completion).toMatchObject(lastLogged?.respPayload);
+    expect(lastLogged?.tags).toMatchObject(getTags(openpipeOptions));
+  }
 }, 10000);
 
 test("simple ft content call", async () => {
@@ -83,9 +85,12 @@ test("simple ft content call", async () => {
 
   await sleep(100);
   await completion.openpipe?.reportingFinished;
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
-  expect(completion).toMatchObject(lastLogged?.respPayload);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+    expect(completion).toMatchObject(lastLogged?.respPayload);
+  }
 }, 100000);
 
 test("openai call caches", async () => {
@@ -103,22 +108,26 @@ test("openai call caches", async () => {
   });
 
   await sleep(100);
-  let lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.cacheHit).toBe(false);
+  if (TEST_LAST_LOGGED) {
+    let lastLogged = await lastLoggedCall();
 
-  await oaiClient.chat.completions.create({
-    ...payload,
-    openpipe: { cache: true, tags: { promptId: "openai call caches" } },
-  });
-  await oaiClient.chat.completions.create({
-    ...payload,
-    openpipe: { cache: true, tags: { promptId: "openai call caches" } },
-  });
-  await sleep(100);
-  lastLogged = await lastLoggedCall();
+    expect(lastLogged?.cacheHit).toBe(false);
 
-  expect(lastLogged?.cacheHit).toBe(true);
+    await oaiClient.chat.completions.create({
+      ...payload,
+      openpipe: { cache: true, tags: { promptId: "openai call caches" } },
+    });
+    await oaiClient.chat.completions.create({
+      ...payload,
+      openpipe: { cache: true, tags: { promptId: "openai call caches" } },
+    });
+    await sleep(100);
+
+    lastLogged = await lastLoggedCall();
+
+    expect(lastLogged?.cacheHit).toBe(true);
+  }
 }, 100000);
 
 test("base sdk openai content call", async () => {
@@ -131,9 +140,11 @@ test("base sdk openai content call", async () => {
   });
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.reqPayload).toMatchObject(payload);
-  expect(completion.id).toMatchObject(lastLogged?.respPayload.id);
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.reqPayload).toMatchObject(payload);
+    expect(completion.id).toMatchObject(lastLogged?.respPayload.id);
+  }
 }, 10000);
 
 test("base sdk ft content call", async () => {
@@ -150,10 +161,12 @@ test("base sdk ft content call", async () => {
   });
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.reqPayload).toMatchObject(payload);
-  expect(completion.id).toMatchObject(lastLogged?.respPayload.id);
-  expect(lastLogged?.tags).toMatchObject(tags);
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.reqPayload).toMatchObject(payload);
+    expect(completion.id).toMatchObject(lastLogged?.respPayload.id);
+    expect(lastLogged?.tags).toMatchObject(tags);
+  }
 }, 100000);
 
 test("content streaming", async () => {
@@ -169,11 +182,13 @@ test("content streaming", async () => {
   }
 
   await completion.openpipe?.reportingFinished;
-  const lastLogged = await lastLoggedCall();
-  expect(merged).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.reqPayload.messages).toMatchObject([
-    { role: "system", content: "count to 3" },
-  ]);
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(merged).toMatchObject(lastLogged?.respPayload);
+    expect(lastLogged?.reqPayload.messages).toMatchObject([
+      { role: "system", content: "count to 3" },
+    ]);
+  }
 });
 
 test("base sdk content streaming", async () => {
@@ -191,9 +206,12 @@ test("base sdk content streaming", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(merged).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.reqPayload.messages).toMatchObject(input.messages);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(merged).toMatchObject(lastLogged?.respPayload);
+    expect(lastLogged?.reqPayload.messages).toMatchObject(input.messages);
+  }
 }, 10000);
 
 test("function call streaming", async () => {
@@ -217,9 +235,12 @@ test("function call streaming", async () => {
   }
 
   await completion.openpipe?.reportingFinished;
-  const lastLogged = await lastLoggedCall();
-  expect(merged).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(merged).toMatchObject(lastLogged?.respPayload);
+    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+  }
 });
 
 test("base sdk function call streaming", async () => {
@@ -247,9 +268,12 @@ test("base sdk function call streaming", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(merged).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(merged).toMatchObject(lastLogged?.respPayload);
+    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+  }
 });
 
 test("tool call streaming", async () => {
@@ -277,9 +301,12 @@ test("tool call streaming", async () => {
   }
 
   await completion.openpipe?.reportingFinished;
-  const lastLogged = await lastLoggedCall();
-  expect(merged).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(merged).toMatchObject(lastLogged?.respPayload);
+    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+  }
 });
 
 test("base sdk tool call streaming", async () => {
@@ -312,9 +339,12 @@ test("base sdk tool call streaming", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(merged).toMatchObject(lastLogged?.respPayload);
-  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(merged).toMatchObject(lastLogged?.respPayload);
+    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+  }
 });
 
 test("logs streamed request for base model", async () => {
@@ -330,8 +360,10 @@ test("logs streamed request for base model", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+  }
 }, 10000);
 
 test("base sdk logs streamed request for base model", async () => {
@@ -347,8 +379,11 @@ test("base sdk logs streamed request for base model", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+  }
 }, 10000);
 
 test("does not log streamed request if asked not to", async () => {
@@ -367,8 +402,11 @@ test("does not log streamed request if asked not to", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+  }
 }, 10000);
 
 test("base sdk does not log streamed request if asked not to", async () => {
@@ -386,8 +424,11 @@ test("base sdk does not log streamed request if asked not to", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+  }
 }, 10000);
 
 test("35 ft streaming", async () => {
@@ -404,8 +445,11 @@ test("35 ft streaming", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+  }
 }, 10000);
 
 test("base sdk 35 ft streaming", async () => {
@@ -429,8 +473,11 @@ test("base sdk 35 ft streaming", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+  }
 }, 10000);
 
 test("defaults to recording for fine-tuned models", async () => {
@@ -447,8 +494,11 @@ test("defaults to recording for fine-tuned models", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.respPayload.id).toEqual(merged?.id);
+  }
 }, 10000);
 
 test("base sdk defaults to not recording for fine-tuned models", async () => {
@@ -469,8 +519,11 @@ test("base sdk defaults to not recording for fine-tuned models", async () => {
   }
 
   await sleep(100);
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.respPayload.id).not.toEqual(merged?.id);
+  }
 }, 10000);
 
 test.skip("mistral ft streaming", async () => {
@@ -502,11 +555,14 @@ test("bad call streaming", async () => {
     assert("openpipe" in e);
     // @ts-expect-error need to check for error type
     await e.openpipe.reportingFinished;
-    const lastLogged = await lastLoggedCall();
-    expect(lastLogged?.errorMessage).toEqual(
-      "404 The model `gpt-3.5-turbo-blaster` does not exist",
-    );
-    expect(lastLogged?.statusCode).toEqual(404);
+
+    if (TEST_LAST_LOGGED) {
+      const lastLogged = await lastLoggedCall();
+      expect(lastLogged?.errorMessage).toEqual(
+        "404 The model `gpt-3.5-turbo-blaster` does not exist",
+      );
+      expect(lastLogged?.statusCode).toEqual(404);
+    }
   }
 });
 
@@ -524,9 +580,14 @@ test("bad call", async () => {
     assert("openpipe" in e);
     // @ts-expect-error need to check for error type
     await e.openpipe.reportingFinished;
-    const lastLogged = await lastLoggedCall();
-    expect(lastLogged?.errorMessage).toEqual("404 The model `gpt-3.5-turbo-buster` does not exist");
-    expect(lastLogged?.statusCode).toEqual(404);
+
+    if (TEST_LAST_LOGGED) {
+      const lastLogged = await lastLoggedCall();
+      expect(lastLogged?.errorMessage).toEqual(
+        "404 The model `gpt-3.5-turbo-buster` does not exist",
+      );
+      expect(lastLogged?.statusCode).toEqual(404);
+    }
   }
 });
 
@@ -541,11 +602,14 @@ test("bad call ft", async () => {
     assert(e instanceof APIError);
     // @ts-expect-error need to check for error type
     expect(e.error.message).toEqual("The model `openpipe:gpt-3.5-turbo-buster` does not exist");
-    const lastLogged = await lastLoggedCall();
-    expect(lastLogged?.errorMessage).toEqual(
-      "The model `openpipe:gpt-3.5-turbo-buster` does not exist",
-    );
-    expect(lastLogged?.statusCode).toEqual(404);
+
+    if (TEST_LAST_LOGGED) {
+      const lastLogged = await lastLoggedCall();
+      expect(lastLogged?.errorMessage).toEqual(
+        "The model `openpipe:gpt-3.5-turbo-buster` does not exist",
+      );
+      expect(lastLogged?.statusCode).toEqual(404);
+    }
   }
 });
 
@@ -569,18 +633,20 @@ test("openai content call unusual tags", async () => {
 
   await completion.openpipe?.reportingFinished;
 
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.reqPayload).toMatchObject(payload);
-  expect(completion).toMatchObject(lastLogged?.respPayload);
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.reqPayload).toMatchObject(payload);
+    expect(completion).toMatchObject(lastLogged?.respPayload);
 
-  const { nullTag, ...expectedTags } = {
-    ...getTags(openpipeOptions),
-    numberTag: "1",
-    booleanTag: "true",
-    nullTag: undefined,
-  };
+    const { nullTag, ...expectedTags } = {
+      ...getTags(openpipeOptions),
+      numberTag: "1",
+      booleanTag: "true",
+      nullTag: undefined,
+    };
 
-  expect(lastLogged?.tags).toMatchObject(expectedTags);
+    expect(lastLogged?.tags).toMatchObject(expectedTags);
+  }
 }, 10000);
 
 test("ft content call unusual tags", async () => {
@@ -603,16 +669,19 @@ test("ft content call unusual tags", async () => {
 
   await sleep(100);
   await completion.openpipe?.reportingFinished;
-  const lastLogged = await lastLoggedCall();
-  expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
-  expect(completion).toMatchObject(lastLogged?.respPayload);
 
-  const { nullTag, ...expectedTags } = {
-    ...getTags(openpipeOptions),
-    numberTag: "1",
-    booleanTag: "true",
-    nullTag: undefined,
-  };
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+    expect(completion).toMatchObject(lastLogged?.respPayload);
 
-  expect(lastLogged?.tags).toMatchObject(expectedTags);
+    const { nullTag, ...expectedTags } = {
+      ...getTags(openpipeOptions),
+      numberTag: "1",
+      booleanTag: "true",
+      nullTag: undefined,
+    };
+
+    expect(lastLogged?.tags).toMatchObject(expectedTags);
+  }
 }, 100000);
