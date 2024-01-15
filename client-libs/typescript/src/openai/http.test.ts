@@ -1,19 +1,10 @@
-import dotenv from "dotenv";
 import { test, expect } from "vitest";
-import OpenAI from "../openai";
-import type { ChatCompletionCreateParams } from "openai/resources/chat/completions";
-import { OPClient } from "../codegen";
+import { OPENPIPE_API_URL, OPENPIPE_API_KEY } from "./setup";
 
-dotenv.config();
-
-const OPENAI_BASE_URL = "https://api.openai.com/v1/chat/completions";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-const OPENPIPE_API_URL = "http://localhost:3000/api/v1/chat/completions";
-const OPENPIPE_API_KEY = process.env.OPENPIPE_API_KEY;
+const OPENPIPE_API_CHAT_COMPLETIONS_URL = OPENPIPE_API_URL + "chat/completions";
 
 test("fetches non-streamed output", async () => {
-  const response = await fetch(OPENPIPE_API_URL, {
+  const response = await fetch(OPENPIPE_API_CHAT_COMPLETIONS_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -32,7 +23,7 @@ test("fetches non-streamed output", async () => {
 });
 
 test("bad tags", async () => {
-  const response = await fetch(OPENPIPE_API_URL, {
+  const response = await fetch(OPENPIPE_API_CHAT_COMPLETIONS_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

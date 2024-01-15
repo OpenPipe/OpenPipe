@@ -9,29 +9,26 @@ import OpenAI from "../openai";
 import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import { getTags } from "../shared";
+import { OPENPIPE_API_KEY, OPENPIPE_API_URL } from "./setup";
 
 dotenv.config();
 
-// const BASE_URL = "https://app.openpipe.ai/api/v1";
-// const BASE_URL = "https://app.openpipestage.com/api/v1";
-const BASE_URL = "http://localhost:3000/api/v1";
-
 const baseClient = new BaseOpenAI({
-  apiKey: process.env.OPENPIPE_API_KEY,
-  baseURL: BASE_URL,
+  apiKey: OPENPIPE_API_KEY,
+  baseURL: OPENPIPE_API_URL,
 });
 
 const oaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   openpipe: {
-    apiKey: process.env.OPENPIPE_API_KEY,
-    baseUrl: BASE_URL,
+    apiKey: OPENPIPE_API_KEY,
+    baseUrl: OPENPIPE_API_URL,
   },
 });
 
 const opClient = new OPClient({
-  BASE: BASE_URL,
-  TOKEN: process.env.OPENPIPE_API_KEY,
+  BASE: OPENPIPE_API_URL,
+  TOKEN: OPENPIPE_API_KEY,
 });
 
 const functionCall = { name: "get_current_weather" };
