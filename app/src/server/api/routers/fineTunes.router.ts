@@ -301,6 +301,13 @@ export const fineTunesRouter = createTRPCRouter({
           id: input.id,
         },
       });
+
+      await prisma.datasetEvalOutputSource.deleteMany({
+        where: {
+          modelId: input.id,
+        },
+      });
+
       return success("Fine tune deleted");
     }),
   listTrainingEntries: protectedProcedure
