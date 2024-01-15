@@ -1,14 +1,12 @@
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import { expect, test } from "vitest";
-import OpenAI from "../openai";
 import type { ChatCompletionCreateParams } from "openai/resources/chat/completions";
 import { OPClient } from "../codegen";
-
-dotenv.config();
+import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "./setup";
 
 const opClient = new OPClient({
-  BASE: "http://localhost:3000/api/v1",
-  TOKEN: process.env.OPENPIPE_API_KEY,
+  BASE: OPENPIPE_API_URL,
+  TOKEN: OPENPIPE_API_KEY,
 });
 
 const respPayload = {
@@ -66,11 +64,13 @@ test("adds tags", async () => {
 
   expect(resp.matchedLogs).toEqual(1);
 
-  const lastLogged = await lastLoggedCall();
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
-  expect(lastLogged?.tags.any_key).toEqual(newTags.any_key);
-  expect(lastLogged?.tags.otherId).toEqual(newTags.otherId);
+    expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
+    expect(lastLogged?.tags.any_key).toEqual(newTags.any_key);
+    expect(lastLogged?.tags.otherId).toEqual(newTags.otherId);
+  }
 });
 
 test("updates tags", async () => {
@@ -117,11 +117,13 @@ test("updates tags", async () => {
 
   expect(resp.matchedLogs).toEqual(2);
 
-  const lastLogged = await lastLoggedCall();
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
-  expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
-  expect(lastLogged?.tags.any_key).toEqual("any value");
+    expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
+    expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
+    expect(lastLogged?.tags.any_key).toEqual("any value");
+  }
 });
 
 test("updates tag by completionId", async () => {
@@ -175,11 +177,13 @@ test("updates tag by completionId", async () => {
 
   expect(resp.matchedLogs).toEqual(1);
 
-  const lastLogged = await lastLoggedCall();
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
-  expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
-  expect(lastLogged?.tags.any_key).toEqual("any value");
+    expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
+    expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
+    expect(lastLogged?.tags.any_key).toEqual("any value");
+  }
 });
 
 test("updates tag by model", async () => {
@@ -215,11 +219,13 @@ test("updates tag by model", async () => {
 
   expect(resp.matchedLogs).toEqual(1);
 
-  const lastLogged = await lastLoggedCall();
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
-  expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
-  expect(lastLogged?.tags.any_key).toEqual("any value");
+    expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
+    expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
+    expect(lastLogged?.tags.any_key).toEqual("any value");
+  }
 });
 
 test("updates by combination of filters", async () => {
@@ -258,11 +264,13 @@ test("updates by combination of filters", async () => {
 
   expect(resp.matchedLogs).toEqual(1);
 
-  const lastLogged = await lastLoggedCall();
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
-  expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
-  expect(lastLogged?.tags.any_key).toEqual("any value");
+    expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
+    expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
+    expect(lastLogged?.tags.any_key).toEqual("any value");
+  }
 });
 
 test("updates some tags by combination of filters", async () => {
@@ -329,11 +337,13 @@ test("updates some tags by combination of filters", async () => {
 
   expect(resp.matchedLogs).toEqual(2);
 
-  const lastLogged = await lastLoggedCall();
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
-  expect(lastLogged?.tags.otherId).toEqual("value 1");
-  expect(lastLogged?.tags.any_key).toEqual("any value");
+    expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
+    expect(lastLogged?.tags.otherId).toEqual("value 1");
+    expect(lastLogged?.tags.any_key).toEqual("any value");
+  }
 });
 
 test("deletes tags", async () => {
@@ -364,8 +374,10 @@ test("deletes tags", async () => {
 
   expect(keepResp.matchedLogs).toEqual(0);
 
-  const keepLoggedCall = await lastLoggedCall();
-  expect(keepLoggedCall?.tags.prompt_id).toEqual(keepPromptId);
+  if (TEST_LAST_LOGGED) {
+    const keepLoggedCall = await lastLoggedCall();
+    expect(keepLoggedCall?.tags.prompt_id).toEqual(keepPromptId);
+  }
 
   await opClient.default.report({
     requestedAt: Date.now(),
@@ -386,9 +398,11 @@ test("deletes tags", async () => {
 
   expect(resp.matchedLogs).toEqual(1);
 
-  const lastLogged = await lastLoggedCall();
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
 
-  expect(lastLogged?.tags.prompt_id).toEqual(undefined);
+    expect(lastLogged?.tags.prompt_id).toEqual(undefined);
+  }
 });
 
 test("deletes nothing when no tags matched", async () => {
@@ -409,9 +423,10 @@ test("deletes nothing when no tags matched", async () => {
 
   expect(resp.matchedLogs).toEqual(0);
 
-  const lastLogged = await lastLoggedCall();
-
-  expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
+  }
 });
 
 test("deletes from all logged calls when no filters provided", async () => {
@@ -448,9 +463,11 @@ test("deletes from all logged calls when no filters provided", async () => {
 
   expect(resp.matchedLogs).toBeGreaterThanOrEqual(2);
 
-  const firstLogged = await lastLoggedCall();
-  expect(firstLogged?.tags.prompt_id).toEqual(undefined);
+  if (TEST_LAST_LOGGED) {
+    const firstLogged = await lastLoggedCall();
+    expect(firstLogged?.tags.prompt_id).toEqual(undefined);
 
-  const secondLogged = await lastLoggedCall();
-  expect(secondLogged?.tags.prompt_id).toEqual(undefined);
+    const secondLogged = await lastLoggedCall();
+    expect(secondLogged?.tags.prompt_id).toEqual(undefined);
+  }
 });
