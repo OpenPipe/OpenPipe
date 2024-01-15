@@ -36,7 +36,8 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/p/[projectSlug]/request-logs", { "projectSlug": string }>
     | DynamicRoute<"/p/[projectSlug]/settings", { "projectSlug": string }>
     | DynamicRoute<"/p/[projectSlug]/usage", { "projectSlug": string }>
-    | StaticRoute<"/sentry-example-page">;
+    | StaticRoute<"/sentry-example-page">
+    | StaticRoute<"/settings">;
 
   interface StaticRoute<Pathname> {
     pathname: Pathname;
