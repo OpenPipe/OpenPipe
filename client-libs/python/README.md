@@ -9,7 +9,7 @@ This client allows you automatically report your OpenAI calls to [OpenPipe](http
 ## Usage
 
 1. Create a project at https://app.openpipe.ai
-2. Find your project's API key at https://app.openpipe.ai/project/settings
+2. Find your project's API key at https://app.openpipe.ai/settings
 3. Configure the OpenPipe client as shown below.
 
 ```python
