@@ -37,7 +37,7 @@ export function calculateQueryDelay(
   numPreviousTries: number,
   maxDelay = DEFAULT_MAX_DELAY,
 ): number {
-  const baseDelay = Math.min(maxDelay, MIN_DELAY * Math.pow(2, numPreviousTries));
+  const baseDelay = Math.min(maxDelay, MIN_DELAY * Math.pow(1.7, numPreviousTries));
   const jitter = Math.random() * baseDelay;
   return baseDelay + jitter;
 }

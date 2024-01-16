@@ -15,7 +15,7 @@ export type RelabelDatasetEntryJob = {
   numPreviousTries: number;
 };
 
-const MAX_TRIES = 25;
+const MAX_TRIES = 30;
 
 export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
   id: "relabelDatasetEntry",
@@ -95,7 +95,7 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
             numPreviousTries: numPreviousTries + 1,
           },
           {
-            runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries, 60 * 60 * 1000)),
+            runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries)),
             priority: 3,
           },
         );
