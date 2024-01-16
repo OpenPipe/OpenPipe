@@ -173,6 +173,10 @@ const RelabelingStatus = ({ status }: { status?: RelabelRequestStatus }) => {
       color = "gray.500";
       text = "Pending";
       break;
+    case RelabelRequestStatus.COMPLETE:
+      color = "green.500";
+      text = "Complete";
+      break;
     default:
       return null;
   }

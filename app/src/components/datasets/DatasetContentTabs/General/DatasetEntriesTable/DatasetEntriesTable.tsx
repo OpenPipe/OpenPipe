@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, Table, Tbody } from "@chakra-ui/react";
-import { RelabelRequestStatus } from "@prisma/client";
 
 import { useDatasetEntries } from "~/utils/hooks";
+import { useFilters } from "~/components/Filters/useFilters";
 import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
 import DatasetEntryDrawer from "./DatasetEntryDrawer/DatasetEntryDrawer";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 
 export default function DatasetEntriesTable() {
   const [expandedDatasetEntryPersistentId, setExpandedDatasetEntryPersistentId] = useState<
@@ -13,14 +14,11 @@ export default function DatasetEntriesTable() {
   const [refetchInterval, setRefetchInterval] = useState(0);
   const datasetEntries = useDatasetEntries(refetchInterval).data?.entries;
 
+  const filters = useFilters().filters;
+
   const relabelingVisible = useMemo(
-    () =>
-      !!datasetEntries?.some(
-        (entry) =>
-          entry.relabelStatuses?.[0] &&
-          entry.relabelStatuses[0].status !== RelabelRequestStatus.COMPLETE,
-      ),
-    [datasetEntries],
+    () => filters.some((filter) => filter.field === GeneralFiltersDefaultFields.RelabelBatchId),
+    [filters],
   );
 
   const countingIncomplete = useMemo(
