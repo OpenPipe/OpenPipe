@@ -73,7 +73,7 @@ model DatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
     loggedCallId String?     @db.Uuid
-    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
+    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: SetNull)
 
     // Equivalent to the same fields in the OpenAI chat completion input
     function_call   Json?
@@ -112,6 +112,7 @@ model DatasetEntry {
     @@index([datasetId, outdated, split])
     @@index([importId])
     @@index([persistentId, createdAt])
+    @@index([loggedCallId])
 }
 
 enum RelabelRequestStatus {
@@ -369,10 +370,11 @@ model UserInvitation {
     invitationToken String          @unique
     senderId        String          @db.Uuid
     sender          User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+    isCanceled      Boolean         @default(false)
     createdAt       DateTime        @default(now())
     updatedAt       DateTime        @updatedAt
 
-    @@unique([projectId, email])
+    @@index([projectId, email])
 }
 
 model VerificationToken {
