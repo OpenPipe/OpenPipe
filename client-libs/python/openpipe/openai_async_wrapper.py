@@ -11,45 +11,49 @@ import json
 from typing import Union, Mapping, Optional, Dict
 import httpx
 
-from .api_client.client import AuthenticatedClient
 from .merge_openai_chunks import merge_openai_chunks
-from .api_client.api.default import create_chat_completion
-from .api_client import errors
 from .shared import (
     report_async,
-    configure_openpipe_client,
+    get_extra_headers,
+    configure_openpipe_clients,
     get_chat_completion_json,
 )
 
+from .api_client.client import AsyncOpenPipeApi
+from .api_client.core.api_error import ApiError
+
 
 class AsyncCompletionsWrapper(AsyncCompletions):
-    openpipe_client: AuthenticatedClient
+    openpipe_report_client: AsyncOpenPipeApi
+    openpipe_completions_client: OriginalAsyncOpenAI
 
     def __init__(
-        self, client: OriginalAsyncOpenAI, openpipe_client: AuthenticatedClient
+        self,
+        client: OriginalAsyncOpenAI,
+        openpipe_report_client: AsyncOpenPipeApi,
+        openpipe_completions_client: OriginalAsyncOpenAI,
     ) -> None:
         super().__init__(client)
-        self.openpipe_client = openpipe_client
+        self.openpipe_report_client = openpipe_report_client
+        self.openpipe_completions_client = openpipe_completions_client
 
     async def create(
-        cls, *args, **kwargs
+        self, *args, **kwargs
     ) -> Union[ChatCompletion, AsyncStream[ChatCompletionChunk]]:
         openpipe_options = kwargs.pop("openpipe", {})
 
         requested_at = int(time.time() * 1000)
         model = kwargs.get("model", "")
 
+        if model.startswith("openpipe:"):
+            extra_headers = get_extra_headers(kwargs, openpipe_options)
+
+            return await self.openpipe_completions_client.chat.completions.create(
+                **kwargs, extra_headers=extra_headers
+            )
+
         try:
-            if model.startswith("openpipe:"):
-                response = await create_chat_completion.asyncio_detailed(
-                    client=cls.openpipe_client,
-                    json_body=create_chat_completion.CreateChatCompletionJsonBody.from_dict(
-                        kwargs,
-                    ),
-                )
-                chat_completion = ChatCompletion(**json.loads(response.content))
-            else:
-                chat_completion = await super().create(*args, **kwargs)
+            chat_completion = await super().create(*args, **kwargs)
 
             if isinstance(chat_completion, AsyncStream):
 
@@ -67,7 +71,7 @@ class AsyncCompletionsWrapper(AsyncCompletions):
                             # This ensures that cleanup and reporting operations are performed regardless of how the generator terminates.
                             received_at = int(time.time() * 1000)
                             await report_async(
-                                configured_client=cls.openpipe_client,
+                                configured_client=self.openpipe_report_client,
                                 openpipe_options=openpipe_options,
                                 requested_at=requested_at,
                                 received_at=received_at,
@@ -86,7 +90,7 @@ class AsyncCompletionsWrapper(AsyncCompletions):
                 received_at = int(time.time() * 1000)
 
                 await report_async(
-                    configured_client=cls.openpipe_client,
+                    configured_client=self.openpipe_report_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -100,7 +104,7 @@ class AsyncCompletionsWrapper(AsyncCompletions):
 
             if isinstance(e, OpenAIError):
                 await report_async(
-                    configured_client=cls.openpipe_client,
+                    configured_client=self.openpipe_report_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -109,17 +113,20 @@ class AsyncCompletionsWrapper(AsyncCompletions):
                     error_message=e.response.json()["error"]["message"],
                     status_code=e.__dict__["status_code"],
                 )
-            elif isinstance(e, errors.UnexpectedStatus):
+            elif isinstance(e, ApiError):
                 error_content = None
                 error_message = ""
                 try:
-                    error_content = json.loads(e.content)
-                    error_message = error_content.get("message", "")
+                    error_content = e.body
+                    if isinstance(e.body, str):
+                        error_message = error_content
+                    else:
+                        error_message = error_content["message"]
                 except:
                     pass
 
                 await report_async(
-                    configured_client=cls.openpipe_client,
+                    configured_client=self.openpipe_report_client,
                     openpipe_options=openpipe_options,
                     requested_at=requested_at,
                     received_at=received_at,
@@ -135,15 +142,21 @@ class AsyncCompletionsWrapper(AsyncCompletions):
 
 class AsyncChatWrapper(AsyncChat):
     def __init__(
-        self, client: OriginalAsyncOpenAI, openpipe_client: AuthenticatedClient
+        self,
+        client: OriginalAsyncOpenAI,
+        openpipe_report_client: AsyncOpenPipeApi,
+        openpipe_completions_client: OriginalAsyncOpenAI,
     ) -> None:
         super().__init__(client)
-        self.completions = AsyncCompletionsWrapper(client, openpipe_client)
+        self.completions = AsyncCompletionsWrapper(
+            client, openpipe_report_client, openpipe_completions_client
+        )
 
 
 class AsyncOpenAIWrapper(OriginalAsyncOpenAI):
     chat: AsyncChatWrapper
-    openpipe_client: AuthenticatedClient
+    openpipe_reporting_client: AsyncOpenPipeApi
+    openpipe_completions_client: OriginalAsyncOpenAI
 
     # Support auto-complete
     def __init__(
@@ -172,6 +185,22 @@ class AsyncOpenAIWrapper(OriginalAsyncOpenAI):
             _strict_response_validation=_strict_response_validation,
         )
 
-        self.openpipe_client = configure_openpipe_client(openpipe)
+        self.openpipe_reporting_client = AsyncOpenPipeApi(token="")
+        self.openpipe_completions_client = OriginalAsyncOpenAI(
+            api_key=api_key,
+            organization=organization,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            default_query=default_query,
+            http_client=http_client,
+            _strict_response_validation=_strict_response_validation,
+        )
+        configure_openpipe_clients(
+            self.openpipe_reporting_client, self.openpipe_completions_client, openpipe
+        )
 
-        self.chat = AsyncChatWrapper(self, self.openpipe_client)
+        self.chat = AsyncChatWrapper(
+            self, self.openpipe_reporting_client, self.openpipe_completions_client
+        )

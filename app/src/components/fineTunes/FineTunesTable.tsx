@@ -1,12 +1,12 @@
 import { Card, Table, Thead, Tr, Th, Tbody, Td, VStack, Icon, Text } from "@chakra-ui/react";
 import { FaTable } from "react-icons/fa";
 import { type FineTuneStatus } from "@prisma/client";
-import Link from "next/link";
 
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
-import { displayBaseModel } from "~/utils/baseModels";
 import ViewDatasetButton from "../datasets/ViewDatasetButton";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import { ProjectLink } from "../ProjectLink";
 
 const FineTunesTable = ({}) => {
   const query = useFineTunes(10000);
@@ -34,12 +34,23 @@ const FineTunesTable = ({}) => {
               return (
                 <Tr key={fineTune.id}>
                   <Td>
-                    <Link href={{ pathname: "/fine-tunes/[id]", query: { id: fineTune.id } }}>
+                    <ProjectLink
+                      href={{ pathname: "/fine-tunes/[id]", query: { id: fineTune.id } }}
+                    >
                       <Text color="blue.600">openpipe:{fineTune.slug}</Text>
-                    </Link>
+                    </ProjectLink>
                   </Td>
                   <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
-                  <Td>{displayBaseModel(fineTune.baseModel)}</Td>
+                  <Td>
+                    <Text
+                      color="orange.500"
+                      fontWeight="bold"
+                      fontSize="xs"
+                      textTransform="uppercase"
+                    >
+                      {modelInfo(fineTune).name}
+                    </Text>
+                  </Td>
                   <Td>{fineTune.numTrainingEntries.toLocaleString()}</Td>
                   <Td>
                     <ViewDatasetButton
@@ -60,11 +71,11 @@ const FineTunesTable = ({}) => {
           <Icon as={FaTable} boxSize={16} color="gray.300" />
           <Text color="gray.500" textAlign="center" w="full" p={4}>
             This project has no fine-tuned models. Start with a dataset in the{" "}
-            <Link href="/datasets">
+            <ProjectLink href="/datasets">
               <Text as="span" color="blue.600">
                 Datasets
               </Text>
-            </Link>{" "}
+            </ProjectLink>{" "}
             tab.
           </Text>
         </VStack>

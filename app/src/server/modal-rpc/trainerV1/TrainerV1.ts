@@ -5,16 +5,11 @@
 import type { BaseHttpRequest } from "./core/BaseHttpRequest";
 import type { OpenAPIConfig } from "./core/OpenAPI";
 import { FetchHttpRequest } from "./core/FetchHttpRequest";
-
 import { DefaultService } from "./services/DefaultService";
-
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
-
 export class TrainerV1 {
   public readonly default: DefaultService;
-
   public readonly request: BaseHttpRequest;
-
   constructor(
     config?: Partial<OpenAPIConfig>,
     HttpRequest: HttpRequestConstructor = FetchHttpRequest,
@@ -30,7 +25,6 @@ export class TrainerV1 {
       HEADERS: config?.HEADERS,
       ENCODE_PATH: config?.ENCODE_PATH,
     });
-
     this.default = new DefaultService(this.request);
   }
 }

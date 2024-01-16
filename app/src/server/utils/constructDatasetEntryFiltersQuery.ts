@@ -1,15 +1,22 @@
 import { type z } from "zod";
-import { type Expression, type SqlBool, sql } from "kysely";
+import { type Expression, type SqlBool, sql, type ExpressionBuilder } from "kysely";
 
 import { kysely } from "~/server/db";
+import { type DB } from "~/types/kysely-codegen.types";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
-export const constructDatasetEntryFiltersQuery = (
-  filters: z.infer<typeof filtersSchema>,
-  datasetId: string,
-) => {
-  const baseQuery = kysely.selectFrom("DatasetEntry as de").where((eb) => {
+export const constructDatasetEntryFiltersQuery = ({
+  filters,
+  datasetId,
+  ftteEB,
+}: {
+  filters: z.infer<typeof filtersSchema>;
+  datasetId: string;
+  ftteEB?: ExpressionBuilder<DB, "FineTuneTrainingEntry">;
+}) => {
+  const queryBuilder = (ftteEB ?? kysely) as typeof kysely;
+  const baseQuery = queryBuilder.selectFrom("DatasetEntry as de").where((eb) => {
     const wheres: Expression<SqlBool>[] = [
       eb("de.datasetId", "=", datasetId),
       eb("de.outdated", "=", false),
@@ -37,6 +44,21 @@ export const constructDatasetEntryFiltersQuery = (
   });
 
   let updatedBaseQuery = baseQuery;
+
+  const splitFilters = filters.filter(
+    (filter) => filter.field === GeneralFiltersDefaultFields.Split,
+  );
+
+  for (let i = 0; i < splitFilters.length; i++) {
+    const filter = splitFilters[i];
+    if (!filter?.value) continue;
+    const filterExpression = textComparatorToSqlExpression(
+      filter.comparator,
+      filter.value as string,
+    );
+
+    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql.raw(`de."split"`)));
+  }
 
   const relabelBatchIdFilters = filters.filter(
     (filter) => filter.field === GeneralFiltersDefaultFields.RelabelBatchId,

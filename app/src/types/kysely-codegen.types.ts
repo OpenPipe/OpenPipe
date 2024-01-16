@@ -55,6 +55,19 @@ export interface ApiKey {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   provider: Generated<"OPENAI" | "OPENPIPE">;
+  readOnly: Generated<boolean>;
+}
+
+export interface CachedResponse {
+  id: string;
+  cacheKey: string;
+  modelId: string;
+  completionId: string;
+  respPayload: Json;
+  inputTokens: number;
+  outputTokens: number;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface Dataset {
@@ -130,6 +143,7 @@ export interface DatasetEvalResult {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   wasFirst: boolean | null;
+  judge: string | null;
 }
 
 export interface DatasetFileUpload {
@@ -161,16 +175,20 @@ export interface FineTune {
   projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  inferenceUrls: Generated<string[] | null>;
   errorMessage: string | null;
   trainingBlobName: string | null;
-  baseModel: "GPT_3_5_TURBO" | "LLAMA2_13b" | "LLAMA2_7b" | "MISTRAL_7b";
+  baseModel: string;
   huggingFaceModelId: string | null;
-  keepWarm: Generated<boolean>;
   pipelineVersion: number;
   modalTrainingJobId: string | null;
   openaiModelId: string | null;
   openaiTrainingJobId: string | null;
+  provider: "openai" | "openpipe";
+  trainingConfig: Json | null;
+  trainingConfigOverrides: Json | null;
+  numEpochs: number | null;
+  numTrainingAutoretries: Generated<number>;
+  gpt4FallbackEnabled: Generated<boolean>;
 }
 
 export interface FineTuneTestingEntry {
@@ -195,6 +213,8 @@ export interface FineTuneTrainingEntry {
   fineTuneId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  outputTokens: number | null;
+  prunedInputTokens: number | null;
 }
 
 export interface GraphileWorkerJobQueues {
@@ -237,7 +257,6 @@ export interface GraphileWorkerMigrations {
 export interface LoggedCall {
   id: string;
   requestedAt: Timestamp;
-  modelResponseId: string | null;
   projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
@@ -248,32 +267,12 @@ export interface LoggedCall {
   errorMessage: string | null;
   finishReason: string | null;
   inputTokens: number | null;
-  migrated: Generated<boolean>;
   outputTokens: number | null;
   receivedAt: Timestamp | null;
   reqPayload: Json | null;
   respPayload: Json | null;
   statusCode: number | null;
-}
-
-export interface LoggedCallModelResponse {
-  id: string;
-  reqPayload: Json;
-  statusCode: number | null;
-  respPayload: Json | null;
-  errorMessage: string | null;
-  requestedAt: Timestamp;
-  receivedAt: Timestamp;
-  cacheKey: string | null;
-  durationMs: number | null;
-  inputTokens: number | null;
-  outputTokens: number | null;
-  finishReason: string | null;
-  completionId: string | null;
-  cost: number | null;
-  originalLoggedCallId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
+  cacheHit: Generated<boolean>;
 }
 
 export interface LoggedCallTag {
@@ -290,6 +289,9 @@ export interface Project {
   updatedAt: Timestamp;
   personalProjectUserId: string | null;
   name: Generated<string>;
+  slug: Generated<string>;
+  isPublic: Generated<boolean>;
+  isHidden: Generated<boolean>;
 }
 
 export interface ProjectUser {
@@ -339,9 +341,11 @@ export interface UsageLog {
   inputTokens: number;
   outputTokens: number;
   cost: number;
-  type: Generated<"EXTERNAL" | "TESTING">;
-  fineTuneId: string;
+  type: Generated<"CACHE_HIT" | "EXTERNAL" | "TESTING" | "TRAINING">;
+  fineTuneId: string | null;
   createdAt: Generated<Timestamp>;
+  projectId: string | null;
+  billable: Generated<boolean>;
 }
 
 export interface User {
@@ -354,6 +358,7 @@ export interface User {
   updatedAt: Generated<Timestamp>;
   role: Generated<"ADMIN" | "USER">;
   gitHubUsername: string | null;
+  lastViewedProjectId: string | null;
 }
 
 export interface UserInvitation {
@@ -377,6 +382,7 @@ export interface DB {
   _prisma_migrations: _PrismaMigrations;
   Account: Account;
   ApiKey: ApiKey;
+  CachedResponse: CachedResponse;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
   DatasetEval: DatasetEval;
@@ -392,7 +398,6 @@ export interface DB {
   "graphile_worker.known_crontabs": GraphileWorkerKnownCrontabs;
   "graphile_worker.migrations": GraphileWorkerMigrations;
   LoggedCall: LoggedCall;
-  LoggedCallModelResponse: LoggedCallModelResponse;
   LoggedCallTag: LoggedCallTag;
   Project: Project;
   ProjectUser: ProjectUser;

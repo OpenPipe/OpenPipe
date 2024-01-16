@@ -1,17 +1,21 @@
 import { TRPCError } from "@trpc/server";
 import { sql } from "kysely";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
+import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
+import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
-import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
+import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
+import { copyPruningRulesForFineTune } from "~/server/utils/updatePruningRuleMatches";
+import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
+import { CURRENT_PIPELINE_VERSION, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
-import { SUPPORTED_BASE_MODELS, isComparisonModelName } from "~/utils/baseModels";
+import { isComparisonModelName } from "~/utils/comparisonModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
-
-const BaseModelEnum = z.enum(SUPPORTED_BASE_MODELS);
 
 export const fineTunesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -36,7 +40,6 @@ export const fineTunesRouter = createTRPCRouter({
             "numTrainingEntries",
           ),
         ])
-        .orderBy("d.createdAt", "desc")
         .orderBy("ft.createdAt", "desc")
         .execute();
 
@@ -47,7 +50,7 @@ export const fineTunesRouter = createTRPCRouter({
       });
 
       return {
-        fineTunes,
+        fineTunes: fineTunes.map(typedFineTune),
         count,
       };
     }),
@@ -87,7 +90,7 @@ export const fineTunesRouter = createTRPCRouter({
         .orderBy("ft.createdAt", "desc")
         .execute();
 
-      return fineTunes;
+      return fineTunes.map(typedFineTune);
     }),
   get: protectedProcedure
     .input(
@@ -102,16 +105,20 @@ export const fineTunesRouter = createTRPCRouter({
         .leftJoin("Dataset as d", "ft.datasetId", "d.id")
         .select("d.name as datasetName")
         .selectAll("ft")
-        .select(() => [
+        .select((eb) => [
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
           sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "split" = 'TEST' and not outdated)::int`.as(
             "numTestingEntries",
           ),
-          sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
-            "numPruningRules",
-          ),
+          jsonArrayFrom(
+            eb
+              .selectFrom("PruningRule")
+              .select(["id", "textToMatch", "tokensInText"])
+              .whereRef("fineTuneId", "=", "ft.id")
+              .orderBy("createdAt", "asc"),
+          ).as("pruningRules"),
         ])
         .executeTakeFirst();
 
@@ -119,23 +126,29 @@ export const fineTunesRouter = createTRPCRouter({
 
       await requireCanViewProject(fineTune.projectId, ctx);
 
-      return fineTune;
+      return typedFineTune(fineTune);
     }),
   create: protectedProcedure
     .input(
       z.object({
         datasetId: z.string(),
         slug: z.string(),
-        baseModel: BaseModelEnum,
+        baseModel: baseModel,
+        filters: filtersSchema,
+        pruningRuleIds: z.array(z.string()),
+        trainingConfigOverrides: axolotlConfig.partial().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+      const dataset = await prisma.dataset.findUniqueOrThrow({
         where: {
           id: input.datasetId,
         },
+        include: {
+          pruningRules: true,
+        },
       });
-      await requireCanModifyProject(projectId, ctx);
+      await requireCanModifyProject(dataset.projectId, ctx);
 
       if (isComparisonModelName(input.slug)) {
         return error("Fine tune IDs cannot match any base model names");
@@ -151,26 +164,58 @@ export const fineTunesRouter = createTRPCRouter({
 
       const fineTune = await prisma.fineTune.create({
         data: {
-          projectId,
+          projectId: dataset.projectId,
           slug: input.slug,
-          baseModel: input.baseModel,
+          provider: input.baseModel.provider,
+          baseModel: input.baseModel.baseModel,
           datasetId: input.datasetId,
           pipelineVersion: CURRENT_PIPELINE_VERSION,
+          trainingConfigOverrides: input.trainingConfigOverrides,
+        },
+        include: {
+          project: {
+            select: { slug: true },
+          },
         },
       });
       if (!fineTune) return error("Error creating fine tune");
 
+      await copyPruningRulesForFineTune(fineTune.id, input.pruningRuleIds);
+
       captureFineTuneCreation(
         ctx.session,
         fineTune.projectId,
+        fineTune.project.slug,
         input.datasetId,
         input.slug,
-        input.baseModel,
+        fineTune.id,
+        input.baseModel.baseModel,
       );
+
+      await kysely
+        .insertInto("FineTuneTrainingEntry")
+        .columns(["id", "datasetEntryId", "fineTuneId", "updatedAt"])
+        .expression((eb) =>
+          constructDatasetEntryFiltersQuery({
+            filters: input.filters,
+            datasetId: fineTune.datasetId,
+            ftteEB: eb,
+          })
+            .where("split", "=", "TRAIN")
+            .where("output", "is not", null)
+            .select([
+              sql`uuid_generate_v4()`.as("id"),
+              "id as datasetEntryId",
+              sql`${fineTune.id}`.as("fineTuneId"),
+              sql`now()`.as("updatedAt"),
+            ]),
+        )
+        .onConflict((oc) => oc.columns(["datasetEntryId", "fineTuneId"]).doNothing())
+        .execute();
 
       await trainFineTune.enqueue({ fineTuneId: fineTune.id });
 
-      return success();
+      return success({ fineTuneId: fineTune.id });
     }),
   restartTraining: protectedProcedure
     .input(z.object({ id: z.string() }))
@@ -256,6 +301,71 @@ export const fineTunesRouter = createTRPCRouter({
           id: input.id,
         },
       });
+
+      await prisma.datasetEvalOutputSource.deleteMany({
+        where: {
+          modelId: input.id,
+        },
+      });
+
       return success("Fine tune deleted");
+    }),
+  listTrainingEntries: protectedProcedure
+    .input(z.object({ fineTuneId: z.string(), page: z.number(), pageSize: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const { fineTuneId, page, pageSize } = input;
+
+      const fineTune = await prisma.fineTune.findUnique({
+        where: {
+          id: fineTuneId,
+        },
+      });
+
+      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
+      await requireCanViewProject(fineTune.projectId, ctx);
+
+      const [entries, count] = await prisma.$transaction([
+        prisma.fineTuneTrainingEntry.findMany({
+          where: {
+            fineTuneId: fineTuneId,
+          },
+          include: {
+            datasetEntry: {
+              select: {
+                messages: true,
+                function_call: true,
+                functions: true,
+                tool_choice: true,
+                tools: true,
+                output: true,
+                inputTokens: true,
+                outputTokens: true,
+              },
+            },
+          },
+          orderBy: {
+            datasetEntry: {
+              sortKey: "desc",
+            },
+          },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.fineTuneTrainingEntry.count({
+          where: {
+            fineTuneId: fineTuneId,
+          },
+        }),
+      ]);
+
+      const typedEntries = entries.map((entry) => ({
+        ...entry,
+        datasetEntry: typedDatasetEntry(entry.datasetEntry),
+      }));
+
+      return {
+        entries: typedEntries,
+        count,
+      };
     }),
 });

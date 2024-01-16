@@ -7,39 +7,56 @@ import {
   EVALUATION_FILTERS_OUTPUT_APPENDIX,
   EvaluationFiltersDefaultFields,
 } from "~/types/shared.types";
-import { COMPARISON_MODEL_NAMES } from "~/utils/baseModels";
+import { COMPARISON_MODEL_NAMES } from "~/utils/comparisonModels";
+import type {
+  TextFilterOption,
+  FilterOption,
+  SelectFilterOption,
+} from "~/components/Filters/types";
 
 const EvaluationFilters = () => {
   const dataset = useDataset().data;
 
-  const filterOptions = useMemo(
-    () => [
-      { field: EvaluationFiltersDefaultFields.Input },
-      { field: EvaluationFiltersDefaultFields.DatasetOutput },
-      ...[
-        ...(dataset?.enabledComparisonModels || []).map((cm) => ({
-          field: COMPARISON_MODEL_NAMES[cm] + EVALUATION_FILTERS_OUTPUT_APPENDIX,
-        })),
-        ...(dataset?.deployedFineTunes || []).map((ft) => ({
-          field: ft.slug + EVALUATION_FILTERS_OUTPUT_APPENDIX,
-        })),
-      ],
-      ...(dataset?.datasetEvals.length
-        ? [
-            {
-              field: EvaluationFiltersDefaultFields.EvalApplied,
-              type: "select" as const,
-              options: dataset?.datasetEvals.map((de) => ({
-                value: de.id,
-                label: de.name,
-              })),
-            },
-          ]
-        : []),
-      { field: EvaluationFiltersDefaultFields.ImportId },
-    ],
-    [dataset?.enabledComparisonModels, dataset?.deployedFineTunes, dataset?.datasetEvals],
-  );
+  const filterOptions = useMemo(() => {
+    const initialStaticOptions: FilterOption[] = [
+      { type: "text", field: EvaluationFiltersDefaultFields.Input },
+      { type: "text", field: EvaluationFiltersDefaultFields.DatasetOutput },
+    ];
+    const comparisonModelOutputOptions: TextFilterOption[] = (
+      dataset?.enabledComparisonModels || []
+    ).map((cm) => ({
+      type: "text" as const,
+      field: COMPARISON_MODEL_NAMES[cm] + EVALUATION_FILTERS_OUTPUT_APPENDIX,
+    }));
+    const fineTuneOutputOptions: TextFilterOption[] = (dataset?.deployedFineTunes || []).map(
+      (ft) => ({
+        type: "text" as const,
+        field: ft.slug + EVALUATION_FILTERS_OUTPUT_APPENDIX,
+      }),
+    );
+    const datasetEvalOptions: SelectFilterOption[] = dataset?.datasetEvals?.length
+      ? [
+          {
+            field: EvaluationFiltersDefaultFields.EvalApplied,
+            type: "select" as const,
+            options: dataset?.datasetEvals.map((de) => ({
+              value: de.id,
+              label: de.name,
+            })),
+          },
+        ]
+      : [];
+    const finalStaticOptions: FilterOption[] = [
+      { type: "text", field: EvaluationFiltersDefaultFields.ImportId },
+    ];
+    return [
+      ...initialStaticOptions,
+      ...comparisonModelOutputOptions,
+      ...fineTuneOutputOptions,
+      ...datasetEvalOptions,
+      ...finalStaticOptions,
+    ];
+  }, [dataset?.enabledComparisonModels, dataset?.deployedFineTunes, dataset?.datasetEvals]);
 
   return (
     <Box w="full" pt={1}>

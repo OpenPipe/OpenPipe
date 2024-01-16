@@ -7,15 +7,15 @@ import { formatDateForPicker } from "~/utils/dayjs";
 import SelectFieldDropdown from "../SelectFieldDropdown";
 import SelectComparatorDropdown from "../SelectComparatorDropdown";
 import { useFilters } from "../useFilters";
-import { type FilterDataType, type FilterOptionType } from "../types";
+import { type FilterData, type FilterOption } from "../types";
 import { type AtLeastOne } from "~/types/shared.types";
 
 const DateFilter = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: AtLeastOne<FilterOptionType>;
-  filter: FilterDataType;
+  filterOptions: AtLeastOne<FilterOption>;
+  filter: FilterData;
 }) => {
   const updateFilter = useFilters().updateFilter;
   const removeFilter = useFilters().removeFilter;
@@ -30,7 +30,7 @@ const DateFilter = ({
   );
 
   const debouncedUpdateFilter = useCallback(
-    debounce((filter: FilterDataType) => updateFilter(filter), 500, {
+    debounce((filter: FilterData) => updateFilter(filter), 500, {
       leading: true,
     }),
     [updateFilter],

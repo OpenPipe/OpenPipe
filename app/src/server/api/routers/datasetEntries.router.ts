@@ -8,27 +8,30 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { type JsonValue } from "type-fest";
+import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
-import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
+import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntry.task";
+import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
+import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
+import { copyEntryWithUpdates } from "~/server/utils/datasetEntryCreation/copyEntryWithUpdates";
+import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import hashObject from "~/server/utils/hashObject";
-import { prepareDatasetEntriesForImport } from "~/server/utils/prepareDatasetEntriesForImport";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
-import { updatePruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
-import { ORIGINAL_MODEL_ID, typedDatasetEntry, typedLoggedCall } from "~/types/dbColumns.types";
-import { SortOrder, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
+import { updateDatasetPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import {
+  ORIGINAL_MODEL_ID,
+  typedDatasetEntry,
+  typedFineTune,
+  typedLoggedCall,
+} from "~/types/dbColumns.types";
+import { SortOrder, filtersSchema, toolsInput } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
-import { isComparisonModel } from "~/utils/baseModels";
-import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
+import { isComparisonModel } from "~/utils/comparisonModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
-import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
-import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
-import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
-import { queueRelabelDatasetEntries } from "~/server/tasks/relabelDatasetEntryTask";
-import { copyDatasetEvalDatasetEntries } from "~/server/utils/copyDatasetEvalDatasetEntries";
 
 export const datasetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -55,7 +58,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       });
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructDatasetEntryFiltersQuery(filters, datasetId);
+      const baseQuery = constructDatasetEntryFiltersQuery({ filters, datasetId });
 
       let entriesQuery = baseQuery
         .select((eb) => [
@@ -96,132 +99,81 @@ export const datasetEntriesRouter = createTRPCRouter({
         .execute()
         .then((rows) => rows.map((row) => row.id));
 
-      const [trainingCount, testingCount] = await prisma.$transaction([
-        prisma.datasetEntry.count({
-          where: {
-            datasetId: datasetId,
-            outdated: false,
-            split: "TRAIN",
-          },
-        }),
-        prisma.datasetEntry.count({
-          where: {
-            datasetId: datasetId,
-            outdated: false,
-            split: "TEST",
-          },
-        }),
-      ]);
+      const matchingTrainingCount = await baseQuery
+        .where("de.split", "=", "TRAIN")
+        .where("de.output", "is not", null)
+        .select((eb) => [eb.fn.count("de.id").as("count")])
+        .executeTakeFirst()
+        .then((result) => parseInt(result?.count as string));
+
+      const totalTestingCount = await prisma.datasetEntry.count({
+        where: {
+          datasetId: datasetId,
+          outdated: false,
+          split: "TEST",
+        },
+      });
 
       return {
         entries,
         matchingEntryIds,
-        trainingCount,
-        testingCount,
+        matchingTrainingCount,
+        totalTestingCount,
       };
     }),
-  listTrainingEntries: protectedProcedure
-    .input(z.object({ fineTuneId: z.string(), page: z.number(), pageSize: z.number() }))
+  get: protectedProcedure
+    .input(z.object({ persistentId: z.string() }))
     .query(async ({ input, ctx }) => {
-      const { fineTuneId, page, pageSize } = input;
-
-      const fineTune = await prisma.fineTune.findUnique({
-        where: {
-          id: fineTuneId,
+      const entry = await prisma.datasetEntry.findFirst({
+        where: { persistentId: input.persistentId },
+        include: {
+          dataset: true,
+          matchedRules: {
+            select: {
+              pruningRule: {
+                select: {
+                  textToMatch: true,
+                  tokensInText: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
         },
       });
 
-      if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
-      await requireCanViewProject(fineTune.projectId, ctx);
+      if (!entry) {
+        throw new TRPCError({ message: "Dataset entry not found", code: "NOT_FOUND" });
+      }
 
-      const [entries, count] = await prisma.$transaction([
-        prisma.fineTuneTrainingEntry.findMany({
-          where: {
-            fineTuneId: fineTuneId,
-          },
-          include: {
-            datasetEntry: {
-              select: {
-                messages: true,
-                function_call: true,
-                functions: true,
-                tool_choice: true,
-                tools: true,
-                output: true,
-                inputTokens: true,
-                outputTokens: true,
-              },
-            },
-          },
-          orderBy: {
-            datasetEntry: {
-              sortKey: "desc",
-            },
-          },
-          skip: (page - 1) * pageSize,
-          take: pageSize,
-        }),
-        prisma.fineTuneTrainingEntry.count({
-          where: {
-            fineTuneId: fineTuneId,
-          },
-        }),
-      ]);
+      if (!entry.dataset) {
+        throw new TRPCError({ message: "Dataset not found for dataset entry", code: "NOT_FOUND" });
+      }
 
-      const typedEntries = entries.map((entry) => ({
-        ...entry,
-        datasetEntry: typedDatasetEntry(entry.datasetEntry),
-      }));
+      await requireCanViewProject(entry.dataset.projectId, ctx);
 
-      return {
-        entries: typedEntries,
-        count,
-      };
+      const history = await kysely
+        .selectFrom("DatasetEntry")
+        .where("persistentId", "=", entry.persistentId)
+        .where("createdAt", "<=", entry.createdAt)
+        .select((eb) => [
+          "id",
+          "provenance",
+          "createdAt",
+          jsonObjectFrom(
+            eb
+              .selectFrom("User")
+              .select(["name"])
+              .whereRef("User.id", "=", "DatasetEntry.authoringUserId"),
+          ).as("authoringUser"),
+        ])
+        .orderBy("createdAt", "desc")
+        .execute();
+
+      return { ...typedDatasetEntry(entry), history };
     }),
-  get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    const entry = await prisma.datasetEntry.findUniqueOrThrow({
-      where: { id: input.id },
-      include: {
-        dataset: true,
-        matchedRules: {
-          select: {
-            pruningRule: {
-              select: {
-                textToMatch: true,
-                tokensInText: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!entry.dataset) {
-      throw new TRPCError({ message: "Dataset not found for dataset entry", code: "NOT_FOUND" });
-    }
-
-    await requireCanViewProject(entry.dataset.projectId, ctx);
-
-    const history = await kysely
-      .selectFrom("DatasetEntry")
-      .where("persistentId", "=", entry.persistentId)
-      .where("createdAt", "<=", entry.createdAt)
-      .select((eb) => [
-        "id",
-        "provenance",
-        "createdAt",
-        jsonObjectFrom(
-          eb
-            .selectFrom("User")
-            .select(["name"])
-            .whereRef("User.id", "=", "DatasetEntry.authoringUserId"),
-        ).as("authoringUser"),
-      ])
-      .orderBy("createdAt", "desc")
-      .execute();
-
-    return { ...typedDatasetEntry(entry), history };
-  }),
   createFromLoggedCalls: protectedProcedure
     .input(
       z.object({
@@ -254,11 +206,14 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(projectId, ctx);
 
-      const loggedCalls = await constructLoggedCallFiltersQuery(
-        input.filters,
+      const loggedCalls = await constructLoggedCallFiltersQuery({
+        filters: input.filters,
         projectId,
-        pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
-      )
+        selectionParams: {
+          ...pick(input, ["defaultToSelected", "selectedLogIds", "deselectedLogIds"]),
+          removeUnsuccessful: true,
+        },
+      })
         .where(
           "lc.id",
           "not in",
@@ -318,7 +273,7 @@ export const datasetEntriesRouter = createTRPCRouter({
         }),
       ]);
 
-      await updatePruningRuleMatches(
+      await updateDatasetPruningRuleMatches(
         datasetId,
         new Date(0),
         datasetEntriesToCreate.map((entry) => entry.id),
@@ -336,7 +291,8 @@ export const datasetEntriesRouter = createTRPCRouter({
         id: z.string(),
         updates: z.object({
           split: z.enum(["TRAIN", "TEST"]).optional(),
-          input: z.string().optional(),
+          messages: z.string().optional(),
+          tools: z.string().optional(),
           output: z.string().optional(),
         }),
       }),
@@ -355,91 +311,46 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(dataset.projectId, ctx);
 
-      const prevEntry = await prisma.datasetEntry.update({
-        where: { id: input.id },
-        data: {
-          outdated: true,
-        },
-        include: {
-          matchedRules: {
-            select: {
-              pruningRuleId: true,
-            },
-          },
-        },
-      });
-
-      let parsedMessages = prevEntry.messages;
-
-      if (input.updates.input) {
-        parsedMessages = JSON.parse(input.updates.input);
-      }
-
-      let newOutput = prevEntry.output;
-      // The client might send "null" as a string, so we need to check for that
-      if (input.updates.output && input.updates.output !== "null") {
-        newOutput = JSON.parse(input.updates.output);
-      }
-      const validatedOutput = chatCompletionMessage.parse(newOutput);
-
-      const inputFields = typedDatasetEntry({
-        messages: parsedMessages,
-        functions: prevEntry.functions ?? undefined,
-        function_call: prevEntry.function_call ?? undefined,
-        tool_choice: prevEntry.tool_choice ?? undefined,
-        tools: prevEntry.tools ?? undefined,
-        response_format: prevEntry.response_format ?? undefined,
-      });
-
-      const newEntry = await prisma.datasetEntry.create({
-        data: {
-          ...inputFields,
-          output: validatedOutput,
-          inputTokens: countLlamaInputTokens(inputFields),
-          outputTokens: countLlamaOutputTokens(validatedOutput),
-          split: input.updates.split ?? prevEntry.split,
-          datasetId: prevEntry.datasetId,
-          sortKey: prevEntry.sortKey,
-          provenance: "RELABELED_BY_HUMAN",
-          authoringUserId: ctx.session?.user.id,
-          persistentId: prevEntry.persistentId,
-          importId: prevEntry.importId,
-          matchedRules: {
-            create: prevEntry.matchedRules.map((match) => ({
-              pruningRuleId: match.pruningRuleId,
-            })),
-          },
-        },
-      });
-
-      if (newEntry.split === "TEST") {
-        await copyDatasetEvalDatasetEntries(prevEntry.id, newEntry.id);
-      }
-
-      await updatePruningRuleMatches(dataset.id, new Date(0), [newEntry.id]);
-
-      if (newEntry.split === "TEST") {
-        const fineTunes = await prisma.fineTune.findMany({
-          where: {
-            datasetId: dataset.id,
-            status: "DEPLOYED",
-          },
-        });
-        for (const fineTune of fineTunes) {
-          await generateTestSetEntry.enqueue({
-            modelId: fineTune.id,
-            datasetEntryId: newEntry.id,
-            numPreviousTries: 0,
-          });
+      let updatedMessages = undefined;
+      try {
+        if (input.updates.messages) {
+          updatedMessages = JSON.parse(input.updates.messages);
         }
-        for (const comparisonModel of dataset.enabledComparisonModels) {
-          await generateTestSetEntry.enqueue({
-            modelId: comparisonModel,
-            datasetEntryId: newEntry.id,
-            numPreviousTries: 0,
-          });
-        }
+      } catch (e) {
+        return error("Invalid JSON for messages");
       }
+
+      let updatedTools = undefined;
+      try {
+        if (input.updates.tools) {
+          updatedTools = JSON.parse(input.updates.tools);
+          toolsInput.parse(updatedTools);
+        }
+      } catch (e) {
+        return error("Invalid tools format");
+      }
+
+      let updatedOutput = undefined;
+      try {
+        // The client might send "null" as a string, so we need to check for that
+        if (input.updates.output && input.updates.output !== "null") {
+          updatedOutput = JSON.parse(input.updates.output);
+        }
+      } catch (e) {
+        return error("Invalid JSON for output");
+      }
+
+      const newEntry = await copyEntryWithUpdates(
+        input.id,
+        ctx.session.user.id,
+        "RELABELED_BY_HUMAN",
+        {
+          split: input.updates.split,
+          messages: updatedMessages,
+          tools: updatedTools,
+          output: updatedOutput,
+        },
+      );
 
       return success(newEntry.id);
     }),
@@ -463,18 +374,22 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await requireCanModifyProject(dataset.projectId, ctx);
 
-      await prisma.datasetEntry.deleteMany({
+      // Avoid deleting entries that may be associated with training entries
+      await prisma.datasetEntry.updateMany({
         where: {
           id: {
             in: input.ids,
           },
           datasetId: dataset?.id,
         },
+        data: {
+          outdated: true,
+        },
       });
 
-      await updatePruningRuleMatches(dataset.id, new Date(0), input.ids);
+      await updateDatasetPruningRuleMatches(dataset.id, new Date(0), input.ids);
 
-      return success("Dataset entries deleted");
+      return success("Dataset entries removed");
     }),
 
   relabel: protectedProcedure
@@ -609,7 +524,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
-      const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
+      const baseQuery = constructEvaluationFiltersQuery({ filters, datasetId });
 
       let updatedQuery = baseQuery;
 
@@ -620,7 +535,20 @@ export const datasetEntriesRouter = createTRPCRouter({
               eb
                 .selectFrom("DatasetEvalDatasetEntry as dede")
                 .where("dede.datasetEvalId", "=", sortOrder.evalId)
-                .leftJoin("DatasetEvalResult as der", "der.datasetEvalDatasetEntryId", "dede.id")
+                .leftJoin(
+                  (eb) =>
+                    eb
+                      .selectFrom("DatasetEvalResult as der")
+                      .innerJoin(
+                        "DatasetEvalOutputSource as comparisonDeos",
+                        "comparisonDeos.id",
+                        "der.comparisonOutputSourceId",
+                      )
+                      .where("comparisonDeos.modelId", "in", visibleModelIds)
+                      .selectAll("der")
+                      .as("der"),
+                  (join) => join.onRef("der.datasetEvalDatasetEntryId", "=", "dede.id"),
+                )
                 .leftJoin(
                   "DatasetEvalOutputSource as deos",
                   "deos.id",
@@ -743,11 +671,11 @@ export const datasetEntriesRouter = createTRPCRouter({
         .where("FineTuneTestingEntry.modelId", "=", modelId)
         .where("DatasetEntry.outdated", "=", false)
         .where("DatasetEntry.datasetId", "=", datasetId)
-        .where(sql.raw(`"FineTuneTestingEntry"."output" is not null`))
+        .where(sql`"FineTuneTestingEntry"."output" is not null`)
         .select(["FineTuneTestingEntry.id"])
         .execute();
 
-      const baseQuery = constructEvaluationFiltersQuery(filters, datasetId);
+      const baseQuery = constructEvaluationFiltersQuery({ filters, datasetId });
 
       let updatedPerformanceQuery = baseQuery;
 
@@ -849,17 +777,18 @@ export const datasetEntriesRouter = createTRPCRouter({
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
-      let slug;
-      let baseModel;
+      let fineTune;
       if (modelId !== ORIGINAL_MODEL_ID && !isComparisonModel(modelId)) {
-        const fineTune = await prisma.fineTune.findUnique({
-          where: {
-            id: modelId,
-          },
-        });
-        if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
-        slug = fineTune.slug;
-        baseModel = fineTune.baseModel;
+        fineTune = typedFineTune(
+          await prisma.fineTune.findFirstOrThrow({
+            where: { id: modelId },
+            select: {
+              slug: true,
+              baseModel: true,
+              provider: true,
+            },
+          }),
+        );
       }
 
       const resultsPending = Object.values(evalPerformances).some(
@@ -867,8 +796,7 @@ export const datasetEntriesRouter = createTRPCRouter({
       );
 
       return {
-        slug,
-        baseModel,
+        fineTune,
         finishedCount: finishedCount.length,
         evalPerformances,
         resultsPending,

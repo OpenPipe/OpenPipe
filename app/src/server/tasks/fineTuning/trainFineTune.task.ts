@@ -1,14 +1,20 @@
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
 import { trainerv1 } from "~/server/modal-rpc/clients";
-import { uploadTrainingDataFile as uploadJsonl } from "~/utils/azure/server";
+import { uploadJsonl } from "~/utils/azure/server";
 import defineTask from "../defineTask";
 import { trainOpenaiFineTune } from "./trainOpenaiFineTune";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
-import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
+import { from } from "ix/asynciterable";
+import { filter, map } from "ix/asynciterable/operators";
+import { toNodeStream } from "ix/asynciterable/tonodestream";
+import { insertTrainingDataPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { trainingConfig } from "~/server/fineTuningProviders/openpipe/trainingConfig";
+import { countLlamaInputTokens } from "~/utils/countTokens";
 
 export type TrainFineTuneJob = {
   fineTuneId: string;
@@ -17,13 +23,17 @@ export type TrainFineTuneJob = {
 export const trainFineTune = defineTask<TrainFineTuneJob>({
   id: "trainFineTune",
   handler: async (task) => {
-    const fineTune = await prisma.fineTune.findUnique({
-      where: { id: task.fineTuneId },
-    });
+    const fineTune = await prisma.fineTune
+      .findUnique({
+        where: { id: task.fineTuneId },
+      })
+      .then((ft) => (ft ? typedFineTune(ft) : null));
 
     if (!fineTune) return;
 
-    if (fineTune.baseModel === "GPT_3_5_TURBO") {
+    await insertTrainingDataPruningRuleMatches(fineTune.id);
+
+    if (fineTune.provider === "openai") {
       await trainOpenaiFineTune(fineTune.id);
     } else {
       await trainModalFineTune(fineTune.id);
@@ -31,92 +41,86 @@ export const trainFineTune = defineTask<TrainFineTuneJob>({
   },
 });
 
-const trainModalFineTune = async (fineTuneId: string) => {
-  const fineTune = await prisma.fineTune.findUnique({
-    where: { id: fineTuneId },
-    include: {
-      dataset: {
-        include: {
-          datasetEntries: {
-            select: {
-              id: true,
-              messages: true,
-              function_call: true,
-              functions: true,
-              output: true,
-            },
-            where: { outdated: false, split: "TRAIN" },
+export async function* iterateTrainingRows(fineTuneId: string) {
+  let offset = 0;
+  while (true) {
+    const rows = await prisma.fineTuneTrainingEntry.findMany({
+      where: { fineTuneId },
+      include: {
+        datasetEntry: {
+          select: {
+            messages: true,
+            tool_choice: true,
+            tools: true,
+            output: true,
+            outputTokens: true,
           },
-          pruningRules: {
-            select: {
-              id: true,
-              textToMatch: true,
-              tokensInText: true,
-              matches: true,
+        },
+      },
+      take: 1000,
+      orderBy: { id: "asc" },
+      skip: offset,
+    });
+    if (rows.length === 0) break;
+
+    offset += rows.length;
+    yield* rows;
+  }
+}
+
+const trainModalFineTune = async (fineTuneId: string) => {
+  const fineTune = typedFineTune(
+    await prisma.fineTune.findUniqueOrThrow({
+      where: { id: fineTuneId },
+      include: {
+        dataset: {
+          include: {
+            pruningRules: {
+              select: {
+                id: true,
+                textToMatch: true,
+                tokensInText: true,
+                matches: true,
+              },
             },
           },
         },
       },
-    },
-  });
-  if (!fineTune) return;
+    }),
+  );
 
   await prisma.fineTune.update({
     where: { id: fineTuneId },
     data: { status: "STARTED" },
   });
 
-  // check whether there are already training entries, which probably means the
-  // job restarted and we shouldn't recreate them.
-  const trainingEntryCount = await prisma.fineTuneTrainingEntry.count({
-    where: { fineTuneId: fineTune.id },
-  });
-
-  if (trainingEntryCount === 0) {
-    await prisma.fineTuneTrainingEntry.createMany({
-      data: fineTune.dataset.datasetEntries.map((datasetEntry) => ({
-        fineTuneId: fineTune.id,
-        datasetEntryId: datasetEntry.id,
-      })),
-    });
-  }
-
-  await prisma.$transaction(
-    fineTune.dataset.pruningRules.map((rule) =>
-      prisma.pruningRule.create({
-        data: {
-          fineTuneId: fineTune.id,
-          textToMatch: rule.textToMatch,
-          tokensInText: rule.tokensInText,
-          matches: {
-            create: rule.matches.map((match) => ({
-              datasetEntryId: match.datasetEntryId,
-            })),
-          },
-        },
-      }),
-    ),
-  );
-
   const stringsToPrune = await getStringsToPrune(fineTune.id);
 
-  const trainingRows = fineTune.dataset.datasetEntries
-    .map((entry) => {
-      const dsEntry = typedDatasetEntry(entry);
+  const formattedRows = from(iterateTrainingRows(fineTune.id)).pipe(
+    map(async (row) => {
+      const dsEntry = typedDatasetEntry(row.datasetEntry);
       if (!dsEntry.output) return null;
+      const prunedInputMessages = pruneInputMessages(dsEntry.messages, stringsToPrune);
+      const input = {
+        messages: prunedInputMessages,
+        tool_choice: dsEntry.tool_choice ?? undefined,
+        tools: dsEntry.tools ?? undefined,
+      };
+      const prunedInputTokens = stringsToPrune?.length
+        ? countLlamaInputTokens(input)
+        : dsEntry.outputTokens;
+      await prisma.fineTuneTrainingEntry.update({
+        where: { id: row.id },
+        data: { prunedInputTokens, outputTokens: dsEntry.outputTokens },
+      });
       return {
-        instruction: serializeChatInput(
-          {
-            messages: pruneInputMessages(dsEntry.messages, stringsToPrune),
-            tool_choice: dsEntry.tool_choice ?? undefined,
-            tools: dsEntry.tools ?? undefined,
-          },
-          { pipelineVersion: CURRENT_PIPELINE_VERSION },
-        ),
+        instruction: serializeChatInput(input, { pipelineVersion: CURRENT_PIPELINE_VERSION }),
         output: serializeChatOutput(dsEntry.output),
       };
-    })
-    .filter(truthyFilter);
+    }),
+    filter(truthyFilter),
+    map((row) => Buffer.from(JSON.stringify(row) + "\n")),
+  );
 
   await prisma.fineTune.update({
     where: { id: fineTuneId },
@@ -125,7 +129,7 @@ const trainModalFineTune = async (fineTuneId: string) => {
     },
   });
 
-  const blobName = await uploadJsonl(trainingRows);
+  const blobName = await uploadJsonl(toNodeStream(formattedRows));
 
   const huggingFaceModelId = `OpenPipe/ft-${env.NODE_ENV}-${fineTuneId}-${fineTune.slug}`;
 
@@ -136,6 +140,7 @@ const trainModalFineTune = async (fineTuneId: string) => {
       trainingBlobName: blobName,
       trainingStartedAt: new Date(),
       huggingFaceModelId,
+      trainingConfig: await trainingConfig(fineTune),
     },
   });
 

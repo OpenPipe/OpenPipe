@@ -1,19 +1,24 @@
 import { Icon, HStack, Text, type BoxProps } from "@chakra-ui/react";
-import Link, { type LinkProps } from "next/link";
 import { type IconType } from "react-icons";
 import NavSidebarOption from "./NavSidebarOption";
+import { ProjectLink, type ProjectLinkProps, type ProjectRoute } from "../ProjectLink";
 
-type IconLinkProps = BoxProps &
-  LinkProps & { label?: string; icon: IconType; href: string; beta?: boolean };
-
-const IconLink = ({ icon, label, href, color, beta, ...props }: IconLinkProps) => {
+const IconLink = <T extends ProjectRoute>({
+  icon,
+  label,
+  href,
+  color,
+  beta,
+  ...props
+}: { label?: string; icon: IconType; href: string; beta?: boolean } & ProjectLinkProps<T> &
+  BoxProps) => {
   return (
-    <Link href={href} style={{ width: "100%" }}>
+    <ProjectLink href={href} style={{ width: "100%" }}>
       <NavSidebarOption activeHrefPattern={href}>
         <HStack w="full" justifyContent="space-between" p={2} color={color} {...props}>
           <HStack w="full" justifyContent="start">
             <Icon as={icon} boxSize={6} mr={2} />
-            <Text fontSize="sm" display={{ base: "none", md: "block" }}>
+            <Text fontSize="sm" display={{ base: "none", md: "block" }} whiteSpace="nowrap">
               {label}
             </Text>
           </HStack>
@@ -24,7 +29,7 @@ const IconLink = ({ icon, label, href, color, beta, ...props }: IconLinkProps) =
           )}
         </HStack>
       </NavSidebarOption>
-    </Link>
+    </ProjectLink>
   );
 };
 

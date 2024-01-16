@@ -1,5 +1,5 @@
 import { type z } from "zod";
-import { type Expression, type SqlBool, sql } from "kysely";
+import { type Expression, type SqlBool, sql, type ExpressionBuilder } from "kysely";
 
 import { kysely } from "~/server/db";
 import { LoggedCallsFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
@@ -7,17 +7,27 @@ import {
   textComparatorToSqlExpression,
   dateComparatorToSqlExpression,
 } from "./comparatorToSqlExpression";
+import { type DB } from "~/types/kysely-codegen.types";
 
-export const constructLoggedCallFiltersQuery = (
-  filters: z.infer<typeof filtersSchema>,
-  projectId: string,
+export const constructLoggedCallFiltersQuery = ({
+  filters,
+  projectId,
+  selectionParams,
+  lctEB,
+}: {
+  filters: z.infer<typeof filtersSchema>;
+  projectId: string;
   selectionParams?: {
     defaultToSelected: boolean;
     selectedLogIds: string[];
     deselectedLogIds: string[];
-  },
-) => {
-  const baseQuery = kysely.selectFrom("LoggedCall as lc").where((eb) => {
+    removeUnsuccessful: boolean;
+  };
+  lctEB?: ExpressionBuilder<DB, "LoggedCallTag">;
+}) => {
+  const queryBuilder = (lctEB ?? kysely) as typeof kysely;
+
+  const baseQuery = queryBuilder.selectFrom("LoggedCall as lc").where((eb) => {
     const wheres: Expression<SqlBool>[] = [eb("lc.projectId", "=", projectId)];
 
     const dateFilters = filters.filter(
@@ -55,17 +65,15 @@ export const constructLoggedCallFiltersQuery = (
       if (filter.field === LoggedCallsFiltersDefaultFields.StatusCode) {
         wheres.push(filterExpression(sql.raw(`lc."statusCode"::text`)));
       }
+      if (filter.field === LoggedCallsFiltersDefaultFields.CompletionId) {
+        wheres.push(filterExpression(sql.raw(`lc."completionId"`)));
+      }
     }
 
     return eb.and(wheres);
   });
 
-  const tagFilters = filters.filter(
-    (filter) =>
-      !Object.values(LoggedCallsFiltersDefaultFields).includes(
-        filter.field as LoggedCallsFiltersDefaultFields,
-      ),
-  );
+  const tagFilters = filters.filter((filter) => filter.field.includes("tags."));
 
   let updatedBaseQuery = baseQuery;
 
@@ -82,7 +90,7 @@ export const constructLoggedCallFiltersQuery = (
       .leftJoin(`LoggedCallTag as ${tableAlias}`, (join) =>
         join
           .onRef("lc.id", "=", `${tableAlias}.loggedCallId`)
-          .on(`${tableAlias}.name`, "=", filter.field),
+          .on(`${tableAlias}.name`, "=", filter.field.replace("tags.", "")),
       )
       .where(filterExpression(sql.raw(`${tableAlias}.value`))) as unknown as typeof baseQuery;
   }
@@ -97,7 +105,8 @@ export const constructLoggedCallFiltersQuery = (
         eb("lc.id", "in", selectionParams.selectedLogIds),
       );
     }
-    updatedBaseQuery = updatedBaseQuery.where((eb) => eb("lc.statusCode", "=", 200));
+    if (selectionParams.removeUnsuccessful)
+      updatedBaseQuery = updatedBaseQuery.where((eb) => eb("lc.statusCode", "=", 200));
   }
 
   return updatedBaseQuery;

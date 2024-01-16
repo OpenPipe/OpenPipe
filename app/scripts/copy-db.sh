@@ -10,14 +10,6 @@ report_progress() {
 export CACHE_DIR=~/.cache/openpipe/prod-db
 export TEMP_DB_NAME="openpipe_temp"
 
-parse_connection_string() {
-    TEMP_URL=${PROD_DATABASE_URL#postgres://}
-    DB_USERNAME=$(echo $TEMP_URL | cut -d':' -f1)
-    PASSWORD=$(echo $TEMP_URL | cut -d':' -f2 | cut -d'@' -f1)
-    HOST=$(echo $TEMP_URL | cut -d'@' -f2 | cut -d'/' -f1)
-    DB_NAME=$(echo $TEMP_URL | cut -d'/' -f2 | cut -d'?' -f1)
-}
-
 should_dump_prod_db() {
     [ "$FORCE_DUMP" = "true" ]
 }
@@ -35,13 +27,10 @@ dump_prod_db() {
       -f "$CACHE_DIR" \
       --jobs=8 \
       --strict-names \
-      --exclude-table-data '"LoggedCallModelResponse"' \
       --exclude-table-data '"LoggedCall"' \
       --exclude-table-data '"LoggedCallTag"' \
       --exclude-table-data 'graphile_worker.jobs' \
-      -h "$HOST" \
-      -U "$DB_USERNAME" \
-      -d "$DB_NAME"
+      -d "$PROD_DATABASE_URL"
     
     # Unset the password environment variable
     unset PGPASSWORD
@@ -79,7 +68,6 @@ else
 fi
 
 source .env
-parse_connection_string
 
 if should_dump_prod_db; then
     dump_prod_db

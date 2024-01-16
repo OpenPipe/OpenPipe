@@ -1,0 +1,10 @@
+{
+  "name": "client-libs",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "dependencies": {
+    "fern-api": "^0.16.11"
+  }
+}

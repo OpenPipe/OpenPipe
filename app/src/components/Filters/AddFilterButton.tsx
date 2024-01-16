@@ -2,9 +2,9 @@ import { Button, HStack, Icon, Text } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import { useFilters } from "./useFilters";
 import { type AtLeastOne, comparators } from "~/types/shared.types";
-import { type FilterOptionType } from "./types";
+import { type FilterOption } from "./types";
 
-const AddFilterButton = ({ filterOptions }: { filterOptions: AtLeastOne<FilterOptionType> }) => {
+const AddFilterButton = ({ filterOptions }: { filterOptions: AtLeastOne<FilterOption> }) => {
   const addFilter = useFilters().addFilter;
 
   return (

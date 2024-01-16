@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { Text, VStack, HStack, GridItem } from "@chakra-ui/react";
-import Link from "next/link";
 
 import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hooks";
-import { displayBaseModel } from "~/utils/baseModels";
 import EvalHeaderPill from "./EvalHeaderPill";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const ModelHeader = ({ modelId }: { modelId: string }) => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -42,15 +42,15 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
   return (
     <VStack alignItems="flex-start" justifyContent="space-between" h="full" spacing={0}>
       <HStack w="full" justifyContent="space-between">
-        {stats.slug ? (
+        {stats.fineTune ? (
           <Text
-            as={Link}
+            as={ProjectLink}
             href={{ pathname: "/fine-tunes/[id]", query: { id: modelId } }}
             _hover={{ textDecoration: "underline" }}
             fontWeight="bold"
             color="gray.500"
           >
-            {getOutputTitle(modelId, stats.slug)}
+            {getOutputTitle(modelId, stats.fineTune.slug)}
           </Text>
         ) : (
           <Text fontWeight="bold" color="gray.500">
@@ -63,9 +63,15 @@ const ModelHeader = ({ modelId }: { modelId: string }) => {
               {stats.finishedCount}/{entries.count}
             </Text>
           )}
-          {stats.baseModel && (
-            <Text color="orange.500" fontWeight="bold" fontSize="xs" textTransform="uppercase">
-              {displayBaseModel(stats.baseModel)}
+          {stats.fineTune && (
+            <Text
+              color="orange.500"
+              fontWeight="bold"
+              fontSize="xs"
+              textTransform="uppercase"
+              textAlign="end"
+            >
+              {modelInfo(stats.fineTune).name}
             </Text>
           )}
         </HStack>

@@ -24,13 +24,13 @@ export type State = {
   isRehydrated: boolean;
   isMounted: boolean;
   markMounted: () => void;
+  sidebarExpanded: boolean;
+  setSidebarExpanded: (expanded: boolean) => void;
   api: APIClient | null;
   setApi: (api: APIClient) => void;
   betaBannerDismissed: boolean;
   dismissBetaBanner: () => void;
   sharedArgumentsEditor: SharedArgumentsEditorSlice;
-  selectedProjectId: string | null;
-  setSelectedProjectId: (id: string) => void;
   selectedLogs: SelectedLogsSlice;
   selectedDatasetEntries: SelectedDatasetEntriesSlice;
   columnVisibility: ColumnVisibilitySlice;
@@ -52,6 +52,11 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
         set((state) => {
           state.isMounted = true;
         }),
+      sidebarExpanded: true,
+      setSidebarExpanded: (expanded) =>
+        set((state) => {
+          state.sidebarExpanded = expanded;
+        }),
       api: null,
       setApi: (api) =>
         set((state) => {
@@ -63,11 +68,6 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
           state.betaBannerDismissed = true;
         }),
       sharedArgumentsEditor: createArgumentsEditorSlice(set, get, ...rest),
-      selectedProjectId: null,
-      setSelectedProjectId: (id: string) =>
-        set((state) => {
-          state.selectedProjectId = id;
-        }),
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),
       selectedDatasetEntries: createSelectedDatasetEntriesSlice(set, get, ...rest),
       columnVisibility: createColumnVisibilitySlice(set, get, ...rest),

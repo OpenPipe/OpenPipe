@@ -3,6 +3,7 @@ import type {
   ChatCompletionAssistantMessageParam,
   ChatCompletionMessageParam,
   ChatCompletionCreateParamsBase,
+  ChatCompletionMessage,
 } from "openai/resources/chat/completions";
 
 import { deserializeChatOutput, serializeChatInput, serializeChatOutput } from "./serializers";
@@ -101,14 +102,14 @@ const functionOutputBody2: ChatCompletionAssistantMessageParam.FunctionCall = {
   arguments: '{"property21": "2023-08-26"}',
 };
 
-const noToolCallsOutputMessage: ChatCompletionAssistantMessageParam = {
+const noToolCallsOutputMessage: ChatCompletionMessage = {
   role: "assistant",
   content: "This is the assistant message.",
 };
 
 const noToolCallsSerializedOutput = `This is the assistant message.`;
 
-const singleToolCallOutputMessage: ChatCompletionAssistantMessageParam = {
+const singleToolCallOutputMessage: ChatCompletionMessage = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -122,7 +123,7 @@ const singleToolCallOutputMessage: ChatCompletionAssistantMessageParam = {
 
 const singleToolCallSerializedOutput = `<function>extract_data<arguments>{"property1": "2023-08-26", "property2": 5}`;
 
-const multipleToolCallsOutputMessage: ChatCompletionAssistantMessageParam = {
+const multipleToolCallsOutputMessage: ChatCompletionMessage = {
   role: "assistant",
   content: null,
   tool_calls: [

@@ -17,19 +17,22 @@ import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags, withTimeout }
 
 export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig };
 export default class OpenAI extends openai.OpenAI {
-  public opClient?: OPClient;
-
   constructor({ openpipe, ...options }: ClientOptions = {}) {
     super({ ...options });
 
     const openPipeApiKey = openpipe?.apiKey ?? readEnv("OPENPIPE_API_KEY");
+    const openpipeBaseUrl =
+      openpipe?.baseUrl ?? readEnv("OPENPIPE_BASE_URL") ?? "https://app.openpipe.ai/api/v1";
 
     if (openPipeApiKey) {
-      this.chat.setClient(
+      this.chat.setClients(
         new OPClient({
-          BASE:
-            openpipe?.baseUrl ?? readEnv("OPENPIPE_BASE_URL") ?? "https://app.openpipe.ai/api/v1",
+          BASE: openpipeBaseUrl,
           TOKEN: openPipeApiKey,
+        }),
+        new openai.OpenAI({
+          baseURL: openpipeBaseUrl,
+          apiKey: openPipeApiKey,
         }),
       );
     } else {
@@ -42,57 +45,33 @@ export default class OpenAI extends openai.OpenAI {
 }
 
 class WrappedChat extends openai.OpenAI.Chat {
-  setClient(client: OPClient) {
-    this.completions.opClient = client;
+  setClients(opReportingClient: OPClient, opCompletionClient: openai.OpenAI) {
+    this.completions.opReportingClient = opReportingClient;
+    this.completions.opCompletionClient = opCompletionClient;
   }
 
-  completions: WrappedCompletions = new WrappedCompletions(this.client);
+  completions: WrappedCompletions = new WrappedCompletions(this._client);
 }
 
 class WrappedCompletions extends openai.OpenAI.Chat.Completions {
   // keep a reference to the original client so we can read options from it
   openaiClient: openai.OpenAI;
-  opClient?: OPClient;
+  opReportingClient?: OPClient;
+  opCompletionClient?: openai.OpenAI;
 
-  constructor(client: openai.OpenAI, opClient?: OPClient) {
+  constructor(client: openai.OpenAI) {
     super(client);
     this.openaiClient = client;
-    this.opClient = opClient;
   }
 
   async _report(args: Parameters<DefaultService["report"]>[0]) {
     try {
-      this.opClient ? await this.opClient.default.report(args) : Promise.resolve();
+      this.opReportingClient
+        ? await this.opReportingClient.default.report(args)
+        : Promise.resolve();
     } catch (e) {
       // Ignore errors with reporting
     }
-  }
-
-  _create(
-    body: ChatCompletionCreateParamsNonStreaming,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<ChatCompletion>;
-  _create(
-    body: ChatCompletionCreateParamsStreaming,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<Stream<ChatCompletionChunk>>;
-  _create(
-    body: ChatCompletionCreateParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<ChatCompletion | Stream<ChatCompletionChunk>> {
-    let resp: Core.APIPromise<ChatCompletion | Stream<ChatCompletionChunk>>;
-
-    if (body.model.startsWith("openpipe:")) {
-      if (!this.opClient) throw new Error("OpenPipe client not set");
-      const opClientPromise = this.opClient.default.createChatCompletion(body);
-      resp = withTimeout(opClientPromise, options?.timeout ?? this.openaiClient.timeout, () =>
-        opClientPromise.cancel(),
-      ) as Core.APIPromise<ChatCompletion>;
-    } else {
-      resp = body.stream ? super.create(body, options) : super.create(body, options);
-    }
-
-    return resp;
   }
 
   // @ts-expect-error It doesn't like the fact that I added a `Promise<>`
@@ -100,11 +79,11 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
   create(
     body: ChatCompletionCreateParamsNonStreaming & OpenPipeArgs,
     options?: Core.RequestOptions,
-  ): Core.APIPromise<ChatCompletion & { openpipe: OpenPipeMeta }>;
+  ): Core.APIPromise<ChatCompletion & { openpipe?: OpenPipeMeta }>;
   create(
     body: ChatCompletionCreateParamsStreaming & OpenPipeArgs,
     options?: Core.RequestOptions,
-  ): Core.APIPromise<WrappedStream>;
+  ): Core.APIPromise<Stream<ChatCompletionChunk> & { openpipe?: OpenPipeMeta }>;
   create(
     body: ChatCompletionCreateParamsBase & OpenPipeArgs,
     options?: Core.RequestOptions,
@@ -112,14 +91,32 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
   async create(
     { openpipe: rawOpenpipe, ...body }: ChatCompletionCreateParams & OpenPipeArgs,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIPromise<(ChatCompletion & { openpipe: OpenPipeMeta }) | WrappedStream>> {
+  ): Promise<
+    Core.APIPromise<
+      | (ChatCompletion & { openpipe?: OpenPipeMeta })
+      | (Stream<ChatCompletionChunk> & { openpipe?: OpenPipeMeta })
+    >
+  > {
     const openpipe = { logRequest: true, ...rawOpenpipe };
     const requestedAt = Date.now();
     let reportingFinished: OpenPipeMeta["reportingFinished"] = Promise.resolve();
 
+    if (body.model.startsWith("openpipe:")) {
+      if (!this.opCompletionClient) throw new Error("OpenPipe client not set");
+      return this.opCompletionClient?.chat.completions.create(body, {
+        ...options,
+        headers: {
+          ...options?.headers,
+          "op-log-request": openpipe.logRequest ? "true" : "false",
+          "op-cache": openpipe.cache ? "true" : "false",
+          "op-tags": JSON.stringify(getTags(openpipe)),
+        },
+      });
+    }
+
     try {
       if (body.stream) {
-        const stream = await this._create(body, options);
+        const stream = await super.create(body, options);
         try {
           return new WrappedStream(stream, (response) => {
             if (!openpipe.logRequest) return Promise.resolve();
@@ -138,7 +135,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
           throw e;
         }
       } else {
-        const response = await this._create(body, options);
+        const response = await super.create(body, options);
 
         reportingFinished = openpipe.logRequest
           ? this._report({

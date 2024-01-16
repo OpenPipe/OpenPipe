@@ -1,12 +1,14 @@
-import type { LoggedCall, DatasetEntry } from "@prisma/client";
+import type { DatasetEntry, FineTune, LoggedCall } from "@prisma/client";
 import { z } from "zod";
 
+import { baseModel } from "~/server/fineTuningProviders/types";
 import {
   chatCompletionInput,
   chatCompletionInputReqPayload,
   chatCompletionMessage,
   chatCompletionOutput,
 } from "./shared.types";
+import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 const chatInputs = chatCompletionInputReqPayload.shape;
 
@@ -51,5 +53,41 @@ export const typedFineTuneTestingEntry = <T>(
 ): T & z.infer<typeof fineTuneTestingEntrySchema> =>
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
   fineTuneTestingEntrySchema.parse(input);
+
+const fineTuneSchema = z.intersection(
+  baseModel,
+  z
+    .object({
+      pipelineVersion: z
+        .union([
+          // Old RunPod-based pipeline. Not supported.
+          z.literal(0),
+
+          // moved to Modal
+          z.literal(1),
+
+          // Added support for function calls
+          z.literal(2),
+
+          // LoRA serving enabled
+          z.literal(3),
+        ])
+        .optional(),
+      trainingConfig: axolotlConfig.optional().nullable(),
+      trainingConfigOverrides: axolotlConfig.partial().optional().nullable(),
+    })
+    .passthrough(),
+);
+
+// TODO: fix the passThroughNulls type from utils.ts to work with generics and
+// wrap this with that for better ergonomics.
+export function typedFineTune<T extends Pick<FineTune, "baseModel" | "provider">>(
+  input: T,
+): Omit<T, "baseModel" | "provider" | "trainingConfig" | "trainingConfigOverrides"> &
+  z.infer<typeof fineTuneSchema> {
+  return fineTuneSchema.parse(input);
+}
+
+export type TypedFineTune = ReturnType<typeof typedFineTune<FineTune>>;
 
 export const ORIGINAL_MODEL_ID = "original";

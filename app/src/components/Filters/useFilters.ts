@@ -1,25 +1,25 @@
 import { useQueryParam, JsonParam, withDefault, encodeQueryParams } from "use-query-params";
 
-import { type FilterDataType } from "./types";
+import { type FilterData } from "./types";
 
 export const useFilters = (defaultShown?: boolean) => {
-  const [filterData, setFilterData] = useQueryParam<{ shown: boolean; filters: FilterDataType[] }>(
+  const [filterData, setFilterData] = useQueryParam<{ shown: boolean; filters: FilterData[] }>(
     "filterData",
     withDefault(JsonParam, { shown: !!defaultShown, filters: [] }),
   );
 
   const setFiltersShown = (shown: boolean) => setFilterData({ ...filterData, shown });
 
-  const addFilter = (filter: FilterDataType) => {
+  const addFilter = (filter: FilterData) => {
     setFilterData({ shown: true, filters: [...filterData.filters, filter] });
   };
-  const updateFilter = (filter: FilterDataType) =>
+  const updateFilter = (filter: FilterData) =>
     setFilterData({
       shown: true,
       filters: filterData.filters.map((f) => (f.id === filter.id ? filter : f)),
     });
 
-  const removeFilter = (filter: FilterDataType) =>
+  const removeFilter = (filter: FilterData) =>
     setFilterData({ ...filterData, filters: filterData.filters.filter((f) => f.id !== filter.id) });
 
   return {
@@ -32,7 +32,7 @@ export const useFilters = (defaultShown?: boolean) => {
   };
 };
 
-export const constructFiltersQueryParams = (filters: FilterDataType[]): Record<string, any> => {
+export const constructFiltersQueryParams = (filters: FilterData[]): Record<string, any> => {
   const queryParams = {
     filterData: {
       shown: true,

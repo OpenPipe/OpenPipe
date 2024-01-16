@@ -1,11 +1,18 @@
 from functools import reduce
 import pytest
 import time
+from dotenv import load_dotenv
+import os
+from openai import OpenAI as BaseOpenAI
 
 from . import OpenAI
-from .api_client.api.default import local_testing_only_get_latest_logged_call
 from .merge_openai_chunks import merge_openai_chunks
 
+load_dotenv()
+
+base_client = BaseOpenAI(
+    base_url="http://localhost:3000/api/v1", api_key=os.environ["OPENPIPE_API_KEY"]
+)
 client = OpenAI()
 
 function_call = {"name": "get_current_weather"}
@@ -29,40 +36,39 @@ function = {
 }
 
 
-def last_logged_call(client: OpenAI):
-    return local_testing_only_get_latest_logged_call.sync(client=client.openpipe_client)
-
-
 def test_sync_content():
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 3"}],
-        openpipe={"tags": {"promptId": "test_sync_content"}},
+        openpipe={"tags": {"prompt_id": "test_sync_content"}},
     )
 
-    last_logged = last_logged_call(client)
-    assert (
-        last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
     )
+    assert last_logged.req_payload["messages"][0]["content"] == "count to 3"
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
 
 
-def test_sync_content_ft():
+def test_sync_content_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-content-ft",
+        model="openpipe:test-content-mistral-p3",
+        response_format={"type": "json_object"},
         messages=[{"role": "system", "content": "count to 3"}],
-        openpipe={"tags": {"promptId": "test_sync_content_ft"}},
+        openpipe={"tags": {"prompt_id": "test_sync_content_mistral"}},
     )
 
-    last_logged = last_logged_call(client)
-    assert (
-        last_logged.model_response.req_payload["messages"][0]["content"] == "count to 3"
+    time.sleep(0.1)
+
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
     )
+    assert last_logged.req_payload["messages"][0]["content"] == "count to 3"
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
 
@@ -73,46 +79,44 @@ def test_sync_function_call():
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
-        openpipe={"tags": {"promptId": "test_sync_function_call"}},
+        openpipe={"tags": {"prompt_id": "test_sync_function_call"}},
     )
-    last_logged = last_logged_call(client)
-    assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
-        == "tell me the weather in SF"
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF"
+    )
+    assert (
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"][
-            "function_call"
-        ]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["function_call"]["name"]
         == "get_current_weather"
     )
 
 
-def test_sync_function_call_ft():
+def test_sync_function_call_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-tool-calls-ft",
+        model="openpipe:test-tool-calls-mistral-p3",
         messages=[{"role": "system", "content": "tell me the weather in SF"}],
         function_call=function_call,
         functions=[function],
-        openpipe={"tags": {"promptId": "test_sync_function_call_ft"}},
+        openpipe={"tags": {"prompt_id": "test_sync_function_call_mistral"}},
     )
-    last_logged = last_logged_call(client)
-    assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
-        == "tell me the weather in SF"
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF"
+    )
+    assert (
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"][
-            "function_call"
-        ]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["function_call"]["name"]
         == "get_current_weather"
     )
 
@@ -129,28 +133,30 @@ def test_sync_tool_calls():
                 "function": function,
             },
         ],
-        openpipe={"tags": {"promptId": "test_sync_tool_calls"}},
+        openpipe={"tags": {"prompt_id": "test_sync_tool_calls"}},
     )
-    last_logged = last_logged_call(client)
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
+        last_logged.req_payload["messages"][0]["content"]
         == "tell me the weather in SF and Orlando"
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
-            0
-        ]["function"]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["tool_calls"][0]["function"][
+            "name"
+        ]
         == "get_current_weather"
     )
 
 
-def test_sync_tool_calls_ft():
+def test_sync_tool_calls_mistral():
     completion = client.chat.completions.create(
-        model="openpipe:test-tool-calls-ft",
+        model="openpipe:test-tool-calls-mistral-p3",
         messages=[
             {"role": "system", "content": "tell me the weather in SF and Orlando"}
         ],
@@ -160,21 +166,23 @@ def test_sync_tool_calls_ft():
                 "function": function,
             },
         ],
-        openpipe={"tags": {"promptId": "test_sync_tool_calls_ft"}},
+        openpipe={"tags": {"prompt_id": "test_sync_tool_calls_mistral"}},
     )
-    last_logged = last_logged_call(client)
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
+        last_logged.req_payload["messages"][0]["content"]
         == "tell me the weather in SF and Orlando"
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
-            0
-        ]["function"]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["tool_calls"][0]["function"][
+            "name"
+        ]
         == "get_current_weather"
     )
 
@@ -184,14 +192,66 @@ def test_sync_streaming_content():
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 4"}],
         stream=True,
-        openpipe={"tags": {"promptId": "test_sync_streaming_content"}},
+        openpipe={"tags": {"prompt_id": "test_sync_streaming_content"}},
     )
 
     merged = reduce(merge_openai_chunks, completion, None)
 
-    last_logged = last_logged_call(client)
+    time.sleep(0.1)
+
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
+        == merged.choices[0].message.content
+    )
+
+
+def test_sync_streaming_content_ft_35():
+    completion = client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=[{"role": "system", "content": "count to 4"}],
+        stream=True,
+        extra_headers={
+            "op-log-request": "true",
+            "op-tags": '{"prompt_id": "test_sync_streaming_content_ft_35"}',
+        },
+    )
+
+    merged = None
+    for chunk in completion:
+        merged = merge_openai_chunks(merged, chunk)
+
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
+    assert (
+        last_logged.resp_payload["choices"][0]["message"]["content"]
+        == merged.choices[0].message.content
+    )
+
+
+def test_sync_streaming_content_ft_35_base_sdk():
+    completion = base_client.chat.completions.create(
+        model="openpipe:test-content-35",
+        messages=[{"role": "system", "content": "count to 5"}],
+        stream=True,
+        extra_headers={
+            "op-log-request": "true",
+            "op-tags": '{"prompt_id": "test_sync_streaming_content_ft_35_base_sdk"}',
+        },
+    )
+
+    merged = None
+    for chunk in completion:
+        merged = merge_openai_chunks(merged, chunk)
+
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
+    assert (
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == merged.choices[0].message.content
     )
 
@@ -203,25 +263,24 @@ def test_sync_streaming_function_call():
         function_call=function_call,
         functions=[function],
         stream=True,
-        openpipe={"tags": {"promptId": "test_sync_streaming_function_call"}},
+        openpipe={"tags": {"prompt_id": "test_sync_streaming_function_call"}},
     )
 
     merged = reduce(merge_openai_chunks, completion, None)
 
-    last_logged = last_logged_call(client)
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
 
     assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
-        == "tell me the weather in SF"
+        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF"
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == merged.choices[0].message.content
     )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"][
-            "function_call"
-        ]["name"]
+        last_logged.resp_payload["choices"][0]["message"]["function_call"]["name"]
         == merged.choices[0].message.function_call.name
     )
 
@@ -239,16 +298,18 @@ def test_sync_streaming_tool_calls():
             },
         ],
         stream=True,
-        openpipe={"tags": {"promptId": "test_sync_streaming_tool_calls"}},
+        openpipe={"tags": {"prompt_id": "test_sync_streaming_tool_calls"}},
     )
 
     merged = reduce(merge_openai_chunks, completion, None)
 
-    last_logged = last_logged_call(client)
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["tool_calls"][
-            0
-        ]["function"]["arguments"]
+        last_logged.resp_payload["choices"][0]["message"]["tool_calls"][0]["function"][
+            "arguments"
+        ]
         == merged.choices[0].message.tool_calls[0].function.arguments
     )
 
@@ -257,16 +318,18 @@ def test_sync_with_tags():
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": "count to 10"}],
-        openpipe={"tags": {"promptId": "test_sync_with_tags"}},
+        openpipe={"tags": {"prompt_id": "test_sync_with_tags"}},
     )
 
-    last_logged = last_logged_call(client)
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
     assert (
-        last_logged.model_response.resp_payload["choices"][0]["message"]["content"]
+        last_logged.resp_payload["choices"][0]["message"]["content"]
         == completion.choices[0].message.content
     )
     print(last_logged.tags)
-    assert last_logged.tags["promptId"] == "test_sync_with_tags"
+    assert last_logged.tags["prompt_id"] == "test_sync_with_tags"
     assert last_logged.tags["$sdk"] == "python"
 
 
@@ -280,12 +343,13 @@ def test_bad_openai_call():
         assert False
     except Exception:
         pass
-    last_logged = last_logged_call(client)
-    assert (
-        last_logged.model_response.error_message
-        == "The model `gpt-3.5-turbo-blaster` does not exist"
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
     )
-    assert last_logged.model_response.status_code == 404
+    assert (
+        last_logged.error_message == "The model `gpt-3.5-turbo-blaster` does not exist"
+    )
+    assert last_logged.status_code == 404
 
 
 def test_bad_openpipe_call():
@@ -298,9 +362,14 @@ def test_bad_openpipe_call():
         assert False
     except Exception:
         pass
-    last_logged = last_logged_call(client)
-    assert last_logged.model_response.error_message == "The model does not exist"
-    assert last_logged.model_response.status_code == 404
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
+    )
+    assert (
+        last_logged.error_message
+        == "The model `openpipe:gpt-3.5-turbo-blaster` does not exist"
+    )
+    assert last_logged.status_code == 404
 
 
 def test_bad_openai_initialization():
@@ -324,11 +393,10 @@ def test_bad_openpipe_initialization():
     bad_client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "system", "content": system_content}],
-        openpipe={"tags": {"promptId": "test_bad_openpipe_initialization"}},
+        openpipe={"tags": {"prompt_id": "test_bad_openpipe_initialization"}},
     )
 
-    last_logged = last_logged_call(client)
-    assert (
-        last_logged.model_response.req_payload["messages"][0]["content"]
-        != system_content
+    last_logged = (
+        client.openpipe_reporting_client.local_testing_only_get_latest_logged_call()
     )
+    assert last_logged.req_payload["messages"][0]["content"] != system_content

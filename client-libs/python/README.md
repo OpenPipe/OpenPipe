@@ -9,7 +9,7 @@ This client allows you automatically report your OpenAI calls to [OpenPipe](http
 ## Usage
 
 1. Create a project at https://app.openpipe.ai
-2. Find your project's API key at https://app.openpipe.ai/project/settings
+2. Find your project's API key at https://app.openpipe.ai/settings
 3. Configure the OpenPipe client as shown below.
 
 ```python
@@ -45,6 +45,10 @@ completion = client.chat.completions.create(
     },
 )
 ```
+
+#### Should I Wait to Enable Logging?
+
+We recommend keeping request logging turned on from the beginning. If you change your prompt you can just set a new `prompt_id` tag so you can select just the latest version when you're ready to create a dataset.
 
 ## Usage with langchain
 

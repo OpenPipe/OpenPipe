@@ -1,5 +1,4 @@
-import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox } from "@chakra-ui/react";
-import Link from "next/link";
+import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox, Button } from "@chakra-ui/react";
 import { DatasetEntrySplit, RelabelRequestStatus } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
@@ -9,6 +8,7 @@ import { useIsClientInitialized, useDatasetEntries } from "~/utils/hooks";
 import { useMemo } from "react";
 import { useFilters } from "~/components/Filters/useFilters";
 import { useSortOrder, SortArrows } from "~/components/sorting";
+import { ProjectLink } from "~/components/ProjectLink";
 
 type DatasetEntry = RouterOutputs["datasetEntries"]["list"]["entries"][0];
 
@@ -59,7 +59,7 @@ export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColu
             </Text>
           </HStack>
         </Th>
-        <SortableHeader title="Created At" field="createdAt" />
+        <SortableHeader title="Updated At" field="createdAt" />
         {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
         <SortableHeader isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader isNumeric title="Output Tokens" field="outputTokens" />
@@ -71,12 +71,14 @@ export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColu
 
 export const TableRow = ({
   datasetEntry,
+  isExpanded,
   toggleExpanded,
   showOptions,
   showRelabelStatusColumn,
 }: {
   datasetEntry: DatasetEntry;
-  toggleExpanded: (entryId: string) => void;
+  isExpanded: boolean;
+  toggleExpanded: (persistentId: string) => void;
   showOptions?: boolean;
   showRelabelStatusColumn?: boolean;
 }) => {
@@ -91,9 +93,11 @@ export const TableRow = ({
 
   return (
     <Tr
-      onClick={() => toggleExpanded(datasetEntry.id)}
+      onClick={() => toggleExpanded(datasetEntry.persistentId)}
       key={datasetEntry.id}
-      _hover={{ bgColor: "gray.50", cursor: "pointer" }}
+      _hover={{ td: { bgColor: "gray.50", cursor: "pointer" } }}
+      bgColor={isExpanded ? "blue.50" : undefined}
+      transition="background-color 1.2s"
       fontSize="sm"
     >
       {showOptions && (
@@ -203,13 +207,13 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
     <Tr>
       <Td w="full" colSpan={visibleColumns.size + 1}>
         <Text color="gray.500" textAlign="center" w="full" p={4}>
-          This dataset has no entries. Add some logs in the{" "}
-          <Link href="/request-logs">
+          This dataset has no entries. Import logs from the{" "}
+          <Button variant="link" as={ProjectLink} href="/request-logs">
             <Text as="span" color="blue.600">
               Request Logs
             </Text>
-          </Link>{" "}
-          tab.
+          </Button>{" "}
+          tab or upload a dataset.
         </Text>
       </Td>
     </Tr>

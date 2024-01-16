@@ -11,11 +11,12 @@ import { kysely, prisma } from "~/server/db";
 import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
-import { getComparisonModelName, isComparisonModel } from "~/utils/baseModels";
+import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonModels";
 import { isEqual, shuffle } from "lodash-es";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { truthyFilter } from "~/utils/utils";
 import { calculateQueryDelay } from "./generateTestSetEntry.task";
+import { countOpenAIChatTokens } from "~/utils/countTokens";
 
 type EvalKey = {
   datasetEvalDatasetEntryId: string;
@@ -28,7 +29,7 @@ export type EvaluateTestSetEntriesJob = EvalKey & {
   numPreviousTries?: number;
 };
 
-const MAX_TRIES = 25;
+const MAX_TRIES = 50;
 
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
@@ -185,8 +186,10 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
       let args;
 
+      let input: ChatCompletionCreateParams | null = null;
+
       try {
-        const input = constructJudgementInput(
+        input = constructJudgementInput(
           firstResult.datasetEvalDatasetEntry.datasetEntry,
           firstEntry.output as JsonObject,
           secondEntry.output as JsonObject,
@@ -219,6 +222,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           data: {
             status: "ERROR",
             errorMessage: "Error getting judgement",
+            judge: input?.model,
           },
         });
         throw e;
@@ -254,6 +258,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           explanation,
           score: score1,
           wasFirst: true,
+          judge: input?.model,
         },
       });
 
@@ -264,6 +269,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           explanation,
           score: score2,
           wasFirst: false,
+          judge: input?.model,
         },
       });
     } catch (e) {
@@ -355,6 +361,12 @@ const constructJudgementInput = (
       role: "user",
       content: `Remember to pay attention to the user's instructions: ${instructions}`,
     });
+  }
+
+  const approximateTokens = countOpenAIChatTokens("gpt-4-0613", input.messages);
+
+  if (approximateTokens > 7168) {
+    input.model = "gpt-4-1106-preview";
   }
 
   return input;

@@ -12,6 +12,7 @@ import {
 
 import { api, type RouterOutputs } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const DeletePruningRuleDialog = ({
   rule,
@@ -54,14 +55,16 @@ const DeletePruningRuleDialog = ({
             <Button ref={cancelRef} onClick={disclosure.onClose}>
               Cancel
             </Button>
-            <Button
-              colorScheme="red"
-              isLoading={deletionInProgress}
-              onClick={onDeleteConfirm}
-              ml={3}
-            >
-              Delete
-            </Button>
+            <ConditionallyEnable accessRequired="requireCanModifyProject">
+              <Button
+                colorScheme="red"
+                isLoading={deletionInProgress}
+                onClick={onDeleteConfirm}
+                ml={3}
+              >
+                Delete
+              </Button>
+            </ConditionallyEnable>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

@@ -1,11 +1,8 @@
 import { expect, it } from "vitest";
-import type {
-  ChatCompletionAssistantMessageParam,
-  ChatCompletionMessageParam,
-} from "openai/resources/chat";
+import type { ChatCompletionMessage } from "openai/resources/chat";
 import { calculateFieldComparisonScore } from "./calculateFieldComparisonScore";
 
-const originalMatchingArgs: ChatCompletionAssistantMessageParam = {
+const originalMatchingArgs: ChatCompletionMessage = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -20,7 +17,7 @@ const originalMatchingArgs: ChatCompletionAssistantMessageParam = {
   ],
 };
 
-const generatedMatchingArgs: ChatCompletionAssistantMessageParam = {
+const generatedMatchingArgs: ChatCompletionMessage = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -35,7 +32,7 @@ const generatedMatchingArgs: ChatCompletionAssistantMessageParam = {
   ],
 };
 
-const originalMismatchingArgs: ChatCompletionMessageParam = {
+const originalMismatchingArgs: ChatCompletionMessage = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -50,7 +47,7 @@ const originalMismatchingArgs: ChatCompletionMessageParam = {
   ],
 };
 
-const generatedMismatchingArgs: ChatCompletionMessageParam = {
+const generatedMismatchingArgs: ChatCompletionMessage = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -65,7 +62,7 @@ const generatedMismatchingArgs: ChatCompletionMessageParam = {
   ],
 };
 
-const originalMismatchingNames: ChatCompletionMessageParam = {
+const originalMismatchingNames: ChatCompletionMessage = {
   role: "assistant",
   content: null,
   tool_calls: [
@@ -80,7 +77,7 @@ const originalMismatchingNames: ChatCompletionMessageParam = {
   ],
 };
 
-const generatedMismatchingNames: ChatCompletionMessageParam = {
+const generatedMismatchingNames: ChatCompletionMessage = {
   role: "assistant",
   content: null,
   tool_calls: [

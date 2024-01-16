@@ -112,16 +112,18 @@ export const usePageParams = () => {
   return { page, pageSize, setPageParams };
 };
 
+export const useProjectList = api.projects.list.useQuery;
+
 export const useSelectedProject = () => {
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
-  return api.projects.get.useQuery(
-    { id: selectedProjectId ?? "" },
-    { enabled: !!selectedProjectId },
-  );
+  const router = useRouter();
+
+  const projectSlug = router.query.projectSlug as string;
+
+  return api.projects.get.useQuery({ projectSlug: projectSlug ?? "" }, { enabled: !!projectSlug });
 };
 
 export const useDatasets = () => {
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const selectedProjectId = useSelectedProject().data?.id;
   return api.datasets.list.useQuery(
     { projectId: selectedProjectId ?? "" },
     { enabled: !!selectedProjectId },
@@ -172,8 +174,11 @@ const useStableData = <TData, TError>(result: UseQueryResult<TData, TError>) => 
   return { ...result, data: stableData };
 };
 
-export const useDatasetEntry = (entryId: string | null) => {
-  const result = api.datasetEntries.get.useQuery({ id: entryId as string }, { enabled: !!entryId });
+export const useDatasetEntry = (persistentId: string | null) => {
+  const result = api.datasetEntries.get.useQuery(
+    { persistentId: persistentId as string },
+    { enabled: !!persistentId },
+  );
   return useStableData(result);
 };
 
@@ -181,7 +186,7 @@ export const useTrainingEntries = () => {
   const fineTune = useFineTune().data;
   const { page, pageSize } = usePageParams();
 
-  const result = api.datasetEntries.listTrainingEntries.useQuery(
+  const result = api.fineTunes.listTrainingEntries.useQuery(
     { fineTuneId: fineTune?.id ?? "", page, pageSize },
     { enabled: !!fineTune?.id },
   );
@@ -232,7 +237,7 @@ export const useModelTestingStats = (
 };
 
 export const useLoggedCalls = (applyFilters = true) => {
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const selectedProjectId = useSelectedProject().data?.id;
   const { page, pageSize } = usePageParams();
   const filters = useFilters().filters;
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
@@ -263,7 +268,7 @@ export const useTotalNumLogsSelected = () => {
 };
 
 export const useTagNames = () => {
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const selectedProjectId = useSelectedProject().data?.id;
   return api.loggedCalls.getTagNames.useQuery(
     { projectId: selectedProjectId ?? "" },
     { enabled: !!selectedProjectId },
@@ -280,7 +285,7 @@ export const useDatasetFineTunes = () => {
 };
 
 export const useFineTunes = (refetchInterval?: number) => {
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const selectedProjectId = useSelectedProject().data?.id;
 
   return api.fineTunes.list.useQuery(
     { projectId: selectedProjectId ?? "" },
@@ -298,16 +303,16 @@ export const useFineTune = () => {
   return fineTune;
 };
 
-export const useDatasetEval = () => {
+export const useDatasetEval = (refetchInterval?: number) => {
   const router = useRouter();
   return api.datasetEvals.get.useQuery(
     { id: router.query.id as string },
-    { enabled: !!router.query.id },
+    { enabled: !!router.query.id, refetchInterval },
   );
 };
 
 export const useDatasetEvals = () => {
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const selectedProjectId = useSelectedProject().data?.id;
 
   return api.datasetEvals.list.useQuery(
     { projectId: selectedProjectId as string },

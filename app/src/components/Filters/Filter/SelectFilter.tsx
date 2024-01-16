@@ -5,7 +5,12 @@ import { BsTrash } from "react-icons/bs";
 import SelectFieldDropdown from "../SelectFieldDropdown";
 import SelectComparatorDropdown from "../SelectComparatorDropdown";
 import { useFilters } from "../useFilters";
-import type { FilterOptionType, FilterDataType, FilterSelectOptionType } from "../types";
+import type {
+  FilterData,
+  SelectFilterSelectOption,
+  FilterOption,
+  SelectFilterOption,
+} from "../types";
 import { type AtLeastOne } from "~/types/shared.types";
 import InputDropdown from "~/components/InputDropdown";
 
@@ -13,14 +18,16 @@ const SelectFilter = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: AtLeastOne<FilterOptionType>;
-  filter: FilterDataType;
+  filterOptions: AtLeastOne<FilterOption>;
+  filter: FilterData;
 }) => {
   const updateFilter = useFilters().updateFilter;
   const removeFilter = useFilters().removeFilter;
 
   const filterOption = useMemo(() => {
-    return filterOptions.find((option) => option.field === filter.field);
+    return filterOptions.find(
+      (option) => option.field === filter.field && option.type === "select",
+    ) as SelectFilterOption | undefined;
   }, [filter.field, filterOptions]);
 
   const selectedSelectFilterOption = useMemo(() => {
@@ -29,7 +36,7 @@ const SelectFilter = ({
   }, [filterOption, filter.value]);
 
   const onOptionUpdated = useCallback(
-    (option: FilterSelectOptionType) => {
+    (option: SelectFilterSelectOption) => {
       updateFilter({ ...filter, value: option.value });
     },
     [updateFilter, filter],
@@ -53,7 +60,7 @@ const SelectFilter = ({
       <SelectComparatorDropdown filter={filter} filterType="select" />
       <InputDropdown
         options={filterOption.options}
-        getDisplayLabel={(option) => option.label}
+        getDisplayLabel={(option) => option.label ?? option.value}
         selectedOption={selectedSelectFilterOption}
         onSelect={onOptionUpdated}
       />

@@ -6,15 +6,15 @@ import { debounce } from "lodash-es";
 import SelectFieldDropdown from "../SelectFieldDropdown";
 import SelectComparatorDropdown from "../SelectComparatorDropdown";
 import { useFilters } from "../useFilters";
-import { type FilterOptionType, type FilterDataType } from "../types";
+import { type FilterOption, type FilterData } from "../types";
 import { type AtLeastOne } from "~/types/shared.types";
 
 const TextFilter = ({
   filterOptions,
   filter,
 }: {
-  filterOptions: AtLeastOne<FilterOptionType>;
-  filter: FilterDataType;
+  filterOptions: AtLeastOne<FilterOption>;
+  filter: FilterData;
 }) => {
   const updateFilter = useFilters().updateFilter;
   const removeFilter = useFilters().removeFilter;
@@ -22,7 +22,7 @@ const TextFilter = ({
   const [editedValue, setEditedValue] = useState(filter.value as string);
 
   const debouncedUpdateFilter = useCallback(
-    debounce((filter: FilterDataType) => updateFilter(filter), 500, {
+    debounce((filter: FilterData) => updateFilter(filter), 500, {
       leading: true,
     }),
     [updateFilter],

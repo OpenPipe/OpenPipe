@@ -21,11 +21,12 @@ import pluralize from "pluralize";
 import { AiOutlineCloudUpload, AiOutlineFile } from "react-icons/ai";
 import { FaReadme } from "react-icons/fa";
 
-import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
+import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { api } from "~/utils/api";
 import ActionButton from "~/components/ActionButton";
 import { uploadDatasetEntryFile } from "~/utils/azure/website";
 import { formatFileSize } from "~/utils/utils";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import {
   type RowToImport,
   parseRowsToImport,
@@ -124,10 +125,12 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
 
   const utils = api.useContext();
 
-  const [sendJSONL, sendingInProgress] = useHandledAsyncCallback(async () => {
-    if (!dataset || !file) return;
+  const selectedProjectId = useSelectedProject().data?.id;
 
-    const blobName = await uploadDatasetEntryFile(file);
+  const [sendJSONL, sendingInProgress] = useHandledAsyncCallback(async () => {
+    if (!selectedProjectId || !dataset || !file) return;
+
+    const blobName = await uploadDatasetEntryFile(selectedProjectId, file);
 
     await triggerFileDownloadMutation.mutateAsync({
       datasetId: dataset.id,
@@ -139,7 +142,7 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
     await utils.datasets.listFileUploads.invalidate();
 
     disclosure.onClose();
-  }, [dataset, datasetRows, triggerFileDownloadMutation, file, utils]);
+  }, [dataset, datasetRows, triggerFileDownloadMutation, selectedProjectId, file, utils]);
 
   return (
     <Modal
@@ -165,7 +168,9 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                   <Text fontSize={32} color="gray.500" fontWeight="bold">
                     Error
                   </Text>
-                  <Text color="gray.500">{validationError}</Text>
+                  <Text color="gray.500" maxH="160" overflowY="auto">
+                    {validationError}
+                  </Text>
                 </VStack>
                 <Text
                   as="span"
@@ -282,15 +287,22 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
               >
                 Cancel
               </Button>
-              <Button
-                colorScheme="orange"
-                onClick={sendJSONL}
-                isLoading={sendingInProgress}
-                minW={24}
-                isDisabled={!file || !!validationError}
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[
+                  [!!file, "Select a file to upload"],
+                  [!validationError, "Fix the error in your file"],
+                ]}
               >
-                Upload
-              </Button>
+                <Button
+                  colorScheme="orange"
+                  onClick={sendJSONL}
+                  isLoading={sendingInProgress}
+                  minW={24}
+                >
+                  Upload
+                </Button>
+              </ConditionallyEnable>
             </HStack>
           </HStack>
         </ModalFooter>

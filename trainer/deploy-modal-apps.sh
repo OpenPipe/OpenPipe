@@ -7,7 +7,7 @@ set -e
 cd "$(dirname "$0")"
 
 # Default environment
-ENV="prod"
+ENV="dev"
 
 # List of valid environments
 VALID_ENVS=("dev" "prod")
@@ -35,7 +35,7 @@ fi
 echo "Deploying in environment: $ENV"
 
 # List of all apps to be deployed
-declare -a apps=("src/inference_server/main.py" "src/trainer/main.py")
+declare -a apps=("src/lora_inference/main.py" "src/inference_server/main.py" "src/trainer/main.py")
 
 # Deploy all apps
 for app in "${apps[@]}"; do

@@ -1,5 +1,4 @@
-import { VStack, HStack, Text, Button, Heading } from "@chakra-ui/react";
-import { displayBaseModel } from "~/utils/baseModels";
+import { VStack, HStack, Text, Button, Heading, Box, Flex } from "@chakra-ui/react";
 import { useFineTune, useHandledAsyncCallback } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";
 import FineTuneDangerZone from "./FineTuneDangerZone";
@@ -8,6 +7,10 @@ import { getStatusColor } from "../../FineTunesTable";
 import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
+import FineTunePruningRules from "./FineTunePruningRules";
+import InferenceCodeTabs from "./InferenceCodeTabs/InferenceCodeTabs";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -24,7 +27,14 @@ const General = () => {
   if (!fineTune) return null;
 
   return (
-    <VStack w="full" h="full" justifyContent="space-between" pb={12}>
+    <Flex
+      h="fit-content"
+      position="relative"
+      w="full"
+      alignItems="flex-start"
+      pb={12}
+      flexDir={{ base: "column", md: "row" }}
+    >
       <VStack w="full" alignItems="flex-start" spacing={4}>
         <ContentCard>
           <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
@@ -33,7 +43,7 @@ const General = () => {
             </Heading>
             <HStack>
               <Text w={180}>Base Model</Text>
-              <Text color="gray.500">{displayBaseModel(fineTune.baseModel)}</Text>
+              <Text color="gray.500">{modelInfo(fineTune).name}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Dataset</Text>
@@ -59,8 +69,8 @@ const General = () => {
               )}
             </HStack>
             <HStack>
-              <Text w={180}>Pruning Rules</Text>
-              <Text color="gray.500">{fineTune.numPruningRules}</Text>
+              <Text w={180}>Pipeline Version</Text>
+              <Text color="gray.500">{fineTune.pipelineVersion}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Created At</Text>
@@ -72,21 +82,27 @@ const General = () => {
                 <Text fontWeight="bold" color={getStatusColor(fineTune.status)}>
                   {fineTune.status}
                 </Text>
-                {fineTune.errorMessage && (
-                  <>
-                    <Text color="gray.500">{fineTune.errorMessage}</Text>
+                {fineTune.errorMessage && <Text color="gray.500">{fineTune.errorMessage}</Text>}
+                {fineTune.status === "ERROR" && (
+                  <ConditionallyEnable accessRequired="requireCanModifyProject">
                     <Button variant="outline" size="xs" onClick={handleRestartTraining}>
                       Restart Training
                     </Button>
-                  </>
+                  </ConditionallyEnable>
                 )}
               </HStack>
             </HStack>
           </VStack>
         </ContentCard>
+        <FineTunePruningRules />
         <FineTuneDangerZone />
       </VStack>
-    </VStack>
+      {fineTune.status === "DEPLOYED" && (
+        <Box position="sticky" top={8} pl={{ base: 0, md: 8 }}>
+          <InferenceCodeTabs />
+        </Box>
+      )}
+    </Flex>
   );
 };
 

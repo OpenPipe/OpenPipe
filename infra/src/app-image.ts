@@ -23,7 +23,7 @@ export const appImage = new awsx.ecr.Image(nm("app"), {
   // Note: this line will cause a new env from scratch to fail if there isn't
   // already an image in the repo. Need to comment it out for the first build
   // when bringing up a new env.
-  cacheFrom: [repo.url],
+  // cacheFrom: [repo.url],
 });
 
 export const imageUri = appImage.imageUri;

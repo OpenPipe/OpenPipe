@@ -41,23 +41,36 @@ export const convertFunctionsToTools = (
 
 export const convertToolsToFunctions = (
   tools: ChatCompletionCreateParamsBase["tools"],
-): ChatCompletionCreateParamsBase["functions"] =>
-  tools?.map((tool) => ({
+): ChatCompletionCreateParamsBase["functions"] => {
+  if (!tools?.length) return undefined;
+  return tools.map((tool) => ({
     name: tool.function.name,
     description: tool.function.description,
     parameters: tool.function.parameters,
   }));
+};
 
 export const convertToolCallInputToFunctionInput = (
   input: ChatCompletionCreateParamsBase,
-): ChatCompletionCreateParamsBase => ({
-  ...input,
-  messages: convertToolCallMessagesToFunction(input.messages),
-  function_call: input.function_call ?? convertToolChoiceToFunctionCall(input.tool_choice),
-  functions: input.functions?.length ? input.functions : convertToolsToFunctions(input.tools),
-  tool_choice: undefined,
-  tools: undefined,
-});
+): ChatCompletionCreateParamsBase => {
+  const functions = input.functions?.length
+    ? input.functions
+    : convertToolsToFunctions(input.tools);
+  let function_call = undefined;
+  if (input.function_call) {
+    function_call = input.function_call;
+  } else if (functions?.length) {
+    function_call = convertToolChoiceToFunctionCall(input.tool_choice);
+  }
+  return {
+    ...input,
+    messages: convertToolCallMessagesToFunction(input.messages),
+    function_call,
+    functions,
+    tool_choice: undefined,
+    tools: undefined,
+  };
+};
 
 export const convertFunctionMessagesToToolCall = (
   messages: ChatCompletionCreateParamsBase["messages"],
@@ -90,7 +103,7 @@ export const convertFunctionMessageToToolCall = (
     case "function":
       return {
         role: "tool" as const,
-        content: message.content,
+        content: message.content ?? "",
         tool_call_id: message.name,
       };
   }

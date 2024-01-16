@@ -22,21 +22,22 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/api/trpc/[trpc]", { "trpc": string }>
     | DynamicRoute<"/api/v1/[...trpc]", { "trpc": string[] }>
     | StaticRoute<"/api/v1/openapi">
-    | DynamicRoute<"/datasets/[id]/[tab]", { "id": string; "tab": string }>
-    | DynamicRoute<"/datasets/[id]", { "id": string }>
-    | StaticRoute<"/datasets">
-    | DynamicRoute<"/evals/[id]/[tab]", { "id": string; "tab": string }>
-    | DynamicRoute<"/evals/[id]", { "id": string }>
-    | StaticRoute<"/evals">
-    | DynamicRoute<"/fine-tunes/[id]/[tab]", { "id": string; "tab": string }>
-    | DynamicRoute<"/fine-tunes/[id]", { "id": string }>
-    | StaticRoute<"/fine-tunes">
     | StaticRoute<"/">
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>
-    | StaticRoute<"/project/settings">
-    | StaticRoute<"/request-logs">
+    | DynamicRoute<"/p/[projectSlug]/datasets/[id]/[tab]", { "projectSlug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[projectSlug]/datasets/[id]", { "projectSlug": string; "id": string }>
+    | DynamicRoute<"/p/[projectSlug]/datasets", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/evals/[id]/[tab]", { "projectSlug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[projectSlug]/evals/[id]", { "projectSlug": string; "id": string }>
+    | DynamicRoute<"/p/[projectSlug]/evals", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/fine-tunes/[id]/[tab]", { "projectSlug": string; "id": string; "tab": string }>
+    | DynamicRoute<"/p/[projectSlug]/fine-tunes/[id]", { "projectSlug": string; "id": string }>
+    | DynamicRoute<"/p/[projectSlug]/fine-tunes", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/request-logs", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/settings", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/usage", { "projectSlug": string }>
     | StaticRoute<"/sentry-example-page">
-    | StaticRoute<"/usage">;
+    | StaticRoute<"/settings">;
 
   interface StaticRoute<Pathname> {
     pathname: Pathname;

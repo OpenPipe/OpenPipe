@@ -6,10 +6,12 @@ import { useRouter, type NextRouter } from "next/router";
 const ContentTabs = ({
   tabs,
   headerProps,
+  rightHeader,
   trackTabInUrl = true,
 }: {
   tabs: { key: string; title: string; component: React.ReactElement }[];
   headerProps?: StackProps;
+  rightHeader?: React.ReactElement;
   trackTabInUrl?: boolean;
 }) => {
   const [borderPosition, setBorderPosition] = useState({ left: "0", width: "0" });
@@ -42,27 +44,30 @@ const ContentTabs = ({
   return (
     <>
       <VStack w="full" alignItems="flex-start" spacing={0} pb={8} {...headerProps}>
-        <HStack position="relative">
-          {tabs.map((tab) => (
-            <TabHeader
-              key={tab.key}
-              title={tab.title}
-              isSelected={activeTabKey === tab.key}
-              onClick={() => handleTabChange(tab.key)}
-              ref={(el) => {
-                if (el) headersRef.current[tab.key] = el;
-              }}
+        <HStack w="full" justifyContent="space-between">
+          <HStack position="relative">
+            {tabs.map((tab) => (
+              <TabHeader
+                key={tab.key}
+                title={tab.title}
+                isSelected={activeTabKey === tab.key}
+                onClick={() => handleTabChange(tab.key)}
+                ref={(el) => {
+                  if (el) headersRef.current[tab.key] = el;
+                }}
+              />
+            ))}
+            <Box
+              position="absolute"
+              bottom="0"
+              left={borderPosition.left}
+              w={borderPosition.width}
+              h="2px"
+              bg="blue.500"
+              transition="all 0.3s"
             />
-          ))}
-          <Box
-            position="absolute"
-            bottom="0"
-            left={borderPosition.left}
-            w={borderPosition.width}
-            h="2px"
-            bg="blue.500"
-            transition="all 0.3s"
-          />
+          </HStack>
+          {rightHeader}
         </HStack>
         <Divider />
       </VStack>
@@ -97,11 +102,15 @@ TabHeader.displayName = "TabHeader";
 export default ContentTabs;
 
 export const setActiveTab = (newTabKey: string, router: NextRouter) => {
+  const projectSlug = router.query.projectSlug as string;
   const id = router.query.id as string;
-  const basePath = router.pathname.split("/").slice(0, -2).join("/") as "datasets";
+  const basePath = router.pathname
+    .split("/")
+    .slice(0, -1)
+    .join("/") as "/p/[projectSlug]/datasets/[id]";
 
   void router.push(
-    { pathname: `/${basePath}/[id]/[tab]`, query: { id, tab: newTabKey } },
+    { pathname: `${basePath}/[tab]`, query: { projectSlug, id, tab: newTabKey } },
     undefined,
     { shallow: true },
   );

@@ -3,6 +3,24 @@ config:
   aws:region: us-west-2
   openpipe:AUTHENTICATED_SYSTEM_KEY:
     secure: AAABAMGIdgqKubQRFA5iR3kY+m+Fxi7U/tpBIOVN8dakWLXAzLsB0Zy8XDmrjY8X8C5HmY3ukj4rxv3dnD7juA==
+  openpipe:AZURE_OPENAI_API_KEY_AUSTRALIAEAST:
+    secure: AAABAGV7wMOJLSsJF5Y1YNeQDM9PSGS2226YFjTlaNfHqbrqf9dDxM96yn3Yfta+HgxPIIC9mEr3HJiRCsMzVQ==
+  openpipe:AZURE_OPENAI_API_KEY_CANADAEAST:
+    secure: AAABAIQkD4OzvfPtxcHsD98yo7XJY2Z3NpJ8oovPSBT1aEGMCuwvcBH2oroooq1L1wol1L+40XoJ7YHNAfwQ1g==
+  openpipe:AZURE_OPENAI_API_KEY_EASTUS:
+    secure: AAABAOv60ShpP3PlhwqJP3Uw5hQMHc1Ki1qTRgn1NOAZYH4izdsHitBBj1gHPr/QGIltO85ZxjFxbJ0bYPU9Ug==
+  openpipe:AZURE_OPENAI_API_KEY_EASTUS2:
+    secure: AAABACggztnlAgshnYQiGkCNdR7GnPcUpcR5+ijkaBVEEhSrIAPn5O/KghCR7bJmnFXs/6Mn3GrZYHUs4yDcyw==
+  openpipe:AZURE_OPENAI_API_KEY_FRANCECENTRAL:
+    secure: AAABANIUk0z2mjy/06bT8L1SFIe5rO0gJ+KRLZBgVJE7z5iUMiqkR2PQDK3x9HsbsCzXgbtc63ZHeRp1E9ii8A==
+  openpipe:AZURE_OPENAI_API_KEY_JAPANEAST:
+    secure: AAABABY/Irq9YMvFYcrJlMWI9iqTJT7b+dKk6AjwEnor5ghAT/SSMvKKS7WTynZe/6ohUZhGmoS1LDoQIqfs8Q==
+  openpipe:AZURE_OPENAI_API_KEY_NORWAYEAST:
+    secure: AAABAF+p92xKN3bl7ZR9c1n3Ulv4lYOLHy73q/lz87Fzk85HhDfKLcuoGf6CwUD797VwgPT799y94MWSmXRq1g==
+  openpipe:AZURE_OPENAI_API_KEY_SOUTHINDIA:
+    secure: AAABAH+aIqbSAO1TqdyBVcnVCqRhpYyHzw1+ov4+anXi64z9LDa2L1WLEC+9UcbVg2wb4p7D25p/zfsNh2hEZQ==
+  openpipe:AZURE_OPENAI_API_KEY_WESTUS:
+    secure: AAABAPqiPsEBWNUbo52E/d1pXVDYbFouotsXQSmAuv11ZkS74Nvu7FQSlr9idjsefuR3tbmAqtnoTvLTpZUhzQ==
   openpipe:AZURE_STORAGE_ACCOUNT_KEY:
     secure: AAABAPmVZbYTa4pA/2Tle5POwA+VMA9iyd0NvaBaxU8dAWvZWz60VpkdmlnknP4xV00Drm+wKxnTTJKBRCFbAmqNUx3SP+i+2suCJqgZF2WJfT/N1CiWX/7JI2BR15V+zv4sbEFbpWpfEzf2kCvFRXsAhIyD+pNk
   openpipe:AZURE_STORAGE_ACCOUNT_NAME: openpipestorage
@@ -38,4 +56,6 @@ config:
   openpipe:SMTP_PORT: "587"
   openpipe:WORKER_CONCURRENCY: "10"
   openpipe:deployDomain: openpipe.ai
+  openpipe:numAppInstances: "2"
+  openpipe:numK8sNodes: "2"
   openpipe:numWorkers: "3"

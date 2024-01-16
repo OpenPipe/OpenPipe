@@ -29,6 +29,49 @@ let config = {
     },
   ],
 
+  redirects: async () => [
+    {
+      source: "/datasets/:path*",
+      destination: "/",
+      permanent: true,
+    },
+    {
+      source: "/evals/:path*",
+      destination: "/",
+      permanent: true,
+    },
+    {
+      source: "/fine-tunes/:path*",
+      destination: "/",
+      permanent: true,
+    },
+    {
+      source: "/request-logs/:path*",
+      destination: "/",
+      permanent: true,
+    },
+    {
+      source: "/project/settings",
+      destination: "/",
+      permanent: true,
+    },
+    {
+      source: "/usage",
+      destination: "/",
+      permanent: true,
+    },
+    {
+      source: "/p",
+      destination: "/",
+      permanent: false,
+    },
+    {
+      source: "/p/:path",
+      destination: "/p/:path/request-logs",
+      permanent: false,
+    },
+  ],
+
   webpack: (config) => {
     config.module.rules.push({
       test: /\.txt$/,

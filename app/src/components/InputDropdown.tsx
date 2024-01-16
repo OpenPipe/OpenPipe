@@ -44,6 +44,7 @@ const InputDropdown = <T,>({
         <InputGroup
           cursor="pointer"
           w={getDisplayLabel(selectedOption).length * 9 + 110}
+          borderRadius={8}
           {...inputGroupProps}
         >
           <Input

@@ -1,13 +1,19 @@
 import { Box } from "@chakra-ui/react";
 
 import Filters from "~/components/Filters/Filters";
+import { type FilterOption } from "~/components/Filters/types";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 
-const defaultFilterOptions = [
-  { field: GeneralFiltersDefaultFields.Input },
-  { field: GeneralFiltersDefaultFields.Output },
-  { field: GeneralFiltersDefaultFields.ImportId },
-  { field: GeneralFiltersDefaultFields.RelabelBatchId },
+const defaultFilterOptions: FilterOption[] = [
+  { type: "text", field: GeneralFiltersDefaultFields.Input },
+  { type: "text", field: GeneralFiltersDefaultFields.Output },
+  {
+    type: "select",
+    field: GeneralFiltersDefaultFields.Split,
+    options: [{ value: "TRAIN" }, { value: "TEST" }],
+  },
+  { type: "text", field: GeneralFiltersDefaultFields.ImportId },
+  { type: "text", field: GeneralFiltersDefaultFields.RelabelBatchId },
 ];
 
 const GeneralFilters = () => {

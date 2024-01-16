@@ -15,7 +15,6 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import { type ComparisonModel } from "@prisma/client";
-import Link from "next/link";
 
 import { api } from "~/utils/api";
 import {
@@ -26,8 +25,10 @@ import {
 } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useVisibleModelIds } from "./useVisibleModelIds";
-import { comparisonModels } from "~/utils/baseModels";
+import { comparisonModels } from "~/utils/comparisonModels";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
+import { ProjectLink } from "~/components/ProjectLink";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
@@ -105,7 +106,7 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
               {needsMissingOpenaiKey ? (
                 <Text>
                   To include comparison models, add your OpenAI API key on the{" "}
-                  <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                  <ChakraLink as={ProjectLink} href="/settings" target="_blank" color="blue.600">
                     <Text as="span">project settings</Text>
                   </ChakraLink>{" "}
                   page.
@@ -154,17 +155,25 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
             <Button isDisabled={updateInProgress} onClick={reset}>
               Reset
             </Button>
-            <Button
-              colorScheme="orange"
-              ml={3}
-              isDisabled={
-                needsMissingOpenaiKey || (!modelsToEnable.length && !modelsToDisable.length)
-              }
-              isLoading={updateInProgress}
-              onClick={onUpdateConfirm}
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [
+                  !needsMissingOpenaiKey,
+                  "You must add your OpenAI API key to enable comparison models",
+                ],
+                [!!modelsToEnable.length || !!modelsToDisable.length, "No changes to save"],
+              ]}
             >
-              Confirm
-            </Button>
+              <Button
+                colorScheme="orange"
+                ml={3}
+                isLoading={updateInProgress}
+                onClick={onUpdateConfirm}
+              >
+                Confirm
+              </Button>
+            </ConditionallyEnable>
           </ModalFooter>
         </ModalContent>
       </ModalOverlay>

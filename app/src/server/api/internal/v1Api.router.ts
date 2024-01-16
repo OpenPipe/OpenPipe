@@ -4,7 +4,8 @@ import { TRPCError } from "@trpc/server";
 import { prisma } from "~/server/db";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { generateBlobDownloadUrl } from "~/utils/azure/server";
-import { SUPPORTED_BASE_MODELS } from "~/utils/baseModels";
+import { typedFineTune } from "~/types/dbColumns.types";
+import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 export const v1ApiRouter = createOpenApiRouter({
   getTrainingInfo: openApiProtectedProc
@@ -25,25 +26,17 @@ export const v1ApiRouter = createOpenApiRouter({
       z.object({
         trainingDataUrl: z.string(),
         huggingFaceModelId: z.string(),
-        baseModel: z.enum(SUPPORTED_BASE_MODELS),
-        projectName: z.string(),
-        modelSlug: z.string(),
+        trainingConfig: axolotlConfig,
       }),
     )
     .mutation(async ({ input }) => {
-      const fineTune = await prisma.fineTune.findUnique({
-        where: { id: input.fineTuneId },
-        include: {
-          project: {
-            select: { name: true },
-          },
-        },
-      });
+      const fineTune = typedFineTune(
+        await prisma.fineTune.findUniqueOrThrow({
+          where: { id: input.fineTuneId },
+        }),
+      );
 
-      if (!fineTune)
-        throw new TRPCError({ code: "NOT_FOUND", message: "Unable to find matching FineTune" });
-
-      if (!fineTune.trainingBlobName || !fineTune.baseModel || !fineTune.huggingFaceModelId)
+      if (!fineTune.trainingBlobName || !fineTune.huggingFaceModelId || !fineTune.trainingConfig)
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message: "missing precondition",
@@ -52,9 +45,7 @@ export const v1ApiRouter = createOpenApiRouter({
       return {
         trainingDataUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),
         huggingFaceModelId: fineTune.huggingFaceModelId,
-        baseModel: fineTune.baseModel,
-        projectName: fineTune.project.name,
-        modelSlug: fineTune.slug,
+        trainingConfig: fineTune.trainingConfig,
       };
     }),
 });

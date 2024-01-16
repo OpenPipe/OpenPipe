@@ -11,39 +11,25 @@ const isAdmin = async (userId: string) => {
   return !!user;
 };
 
+const requireUserId = (ctx: TRPCContext) => {
+  if (!ctx.session?.user.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "This function is only available to signed-in users.",
+    });
+  }
+  return ctx.session.user.id;
+};
+
 // No-op method for protected routes that really should be accessible to anyone.
 export const requireNothing = (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 };
 
-export const requireIsProjectAdmin = async (projectId: string, ctx: TRPCContext) => {
-  ctx.markAccessControlRun();
-
-  const userId = ctx.session?.user.id;
-  if (!userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  const isAdmin = await prisma.projectUser.findFirst({
-    where: {
-      userId,
-      projectId,
-      role: "ADMIN",
-    },
-  });
-
-  if (!isAdmin) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-};
-
 export const requireCanViewProject = async (projectId: string, ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 
-  const userId = ctx.session?.user.id;
-  if (!userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
+  const userId = requireUserId(ctx);
 
   const canView = await prisma.projectUser.findFirst({
     where: {
@@ -53,17 +39,33 @@ export const requireCanViewProject = async (projectId: string, ctx: TRPCContext)
   });
 
   if (!canView) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+      },
+    });
+    // Automatically add the user to the project if it's public
+    if (project?.isPublic) {
+      await prisma.projectUser.create({
+        data: {
+          userId,
+          projectId,
+          role: "VIEWER",
+        },
+      });
+    } else {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You don't have access to view this project.",
+      });
+    }
   }
 };
 
 export const requireCanModifyProject = async (projectId: string, ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 
-  const userId = ctx.session?.user.id;
-  if (!userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
+  const userId = requireUserId(ctx);
 
   const canModify = await prisma.projectUser.findFirst({
     where: {
@@ -74,15 +76,38 @@ export const requireCanModifyProject = async (projectId: string, ctx: TRPCContex
   });
 
   if (!canModify) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Only project members can perform this action.",
+    });
+  }
+};
+
+export const requireIsProjectAdmin = async (projectId: string, ctx: TRPCContext) => {
+  ctx.markAccessControlRun();
+
+  const userId = requireUserId(ctx);
+
+  const isAdmin = await prisma.projectUser.findFirst({
+    where: {
+      userId,
+      projectId,
+      role: "ADMIN",
+    },
+  });
+
+  if (!isAdmin) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Only project admins can perform this action.",
+    });
   }
 };
 
 export const requireCanModifyPruningRule = async (pruningRuleId: string, ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 
-  const userId = ctx.session?.user.id;
-  if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  const userId = requireUserId(ctx);
 
   const pruningRule = await prisma.pruningRule.findFirst({
     where: {
@@ -100,18 +125,32 @@ export const requireCanModifyPruningRule = async (pruningRuleId: string, ctx: TR
     },
   });
 
-  if (!pruningRule) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!pruningRule)
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You don't have access to modify this pruning rule.",
+    });
 };
 
 export const requireIsAdmin = async (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 
-  const userId = ctx.session?.user.id;
-  if (!userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
+  const userId = requireUserId(ctx);
 
   if (!(await isAdmin(userId))) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be an admin to perform this action.",
+    });
   }
 };
+
+export const accessChecks = {
+  requireNothing,
+  requireCanViewProject,
+  requireCanModifyProject,
+  requireIsProjectAdmin,
+  requireIsAdmin,
+} as const;
+
+export type AccessCheck = keyof typeof accessChecks;

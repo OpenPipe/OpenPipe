@@ -15,47 +15,42 @@ import {
   Image,
   Box,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
 import Link from "next/link";
 import { BsPlus, BsPersonCircle } from "react-icons/bs";
 import { type Project } from "@prisma/client";
 
-import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
 import NavSidebarOption from "./NavSidebarOption";
-import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
+import { useHandledAsyncCallback, useProjectList, useSelectedProject } from "~/utils/hooks";
 import { useRouter } from "next/router";
 import { useSession, signOut } from "next-auth/react";
 
-export default function ProjectMenu() {
+export default function ProjectMenu({ displayProjectName }: { displayProjectName: boolean }) {
   const router = useRouter();
   const utils = api.useContext();
 
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const setSelectedProjectId = useAppStore((s) => s.setSelectedProjectId);
+  const projectList = useProjectList().data;
 
-  const { data: projects } = api.projects.list.useQuery();
-
-  useEffect(() => {
-    if (
-      projects &&
-      projects[0] &&
-      (!selectedProjectId || !projects.find((proj) => proj.id === selectedProjectId))
-    ) {
-      setSelectedProjectId(projects[0].id);
-    }
-  }, [selectedProjectId, setSelectedProjectId, projects]);
-
-  const { data: selectedProject } = useSelectedProject();
+  const selectedProject = useSelectedProject().data;
 
   const popover = useDisclosure();
+
+  const updateMutation = api.users.updateLastViewedProject.useMutation();
+  const [updateLastViewedProject] = useHandledAsyncCallback(
+    async (projectId: string) => {
+      await updateMutation.mutateAsync({ projectId });
+    },
+    [updateMutation],
+  );
 
   const createMutation = api.projects.create.useMutation();
   const [createProject, isLoading] = useHandledAsyncCallback(async () => {
     const newProj = await createMutation.mutateAsync({ name: "Untitled Project" });
     await utils.projects.list.invalidate();
-    setSelectedProjectId(newProj.id);
-    await router.push({ pathname: "/project/settings" });
+    await router.push({
+      pathname: "/p/[projectSlug]/settings",
+      query: { projectSlug: newProj.slug },
+    });
     popover.onClose();
   }, [createMutation, router]);
 
@@ -70,7 +65,7 @@ export default function ProjectMenu() {
   return (
     <VStack w="full" alignItems="flex-start" spacing={0} py={1}>
       <Popover
-        placement="bottom"
+        placement="bottom-end"
         isOpen={popover.isOpen}
         onOpen={popover.onOpen}
         onClose={popover.onClose}
@@ -92,15 +87,17 @@ export default function ProjectMenu() {
               >
                 <Text>{selectedProject?.name[0]?.toUpperCase()}</Text>
               </Flex>
-              <Text
-                fontSize="sm"
-                display={{ base: "none", md: "block" }}
-                py={1}
-                flex={1}
-                fontWeight="bold"
-              >
-                {selectedProject?.name}
-              </Text>
+              {displayProjectName && (
+                <Text
+                  fontSize="sm"
+                  display={{ base: "none", md: "block" }}
+                  py={1}
+                  flex={1}
+                  fontWeight="bold"
+                >
+                  {selectedProject?.name}
+                </Text>
+              )}
               <Box mr={2}>{profileImage}</Box>
             </HStack>
           </NavSidebarOption>
@@ -108,6 +105,7 @@ export default function ProjectMenu() {
         <PopoverContent
           _focusVisible={{ outline: "unset" }}
           w={220}
+          minW="fit-content"
           ml={{ base: 2, md: 0 }}
           boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);"
           fontSize="sm"
@@ -121,12 +119,15 @@ export default function ProjectMenu() {
               Your Projects
             </Text>
             <VStack spacing={0} w="full" px={1}>
-              {projects?.map((proj) => (
+              {projectList?.projects?.map((proj) => (
                 <ProjectOption
                   key={proj.id}
                   proj={proj}
-                  isActive={proj.id === selectedProjectId}
-                  onClose={popover.onClose}
+                  isActive={proj.id === selectedProject?.id}
+                  onClick={() => {
+                    updateLastViewedProject(proj.id);
+                    popover.onClose();
+                  }}
                 />
               ))}
               <HStack
@@ -171,22 +172,17 @@ export default function ProjectMenu() {
 const ProjectOption = ({
   proj,
   isActive,
-  onClose,
+  onClick,
 }: {
   proj: Project;
   isActive: boolean;
-  onClose: () => void;
+  onClick: () => void;
 }) => {
-  const setSelectedProjectId = useAppStore((s) => s.setSelectedProjectId);
-
   return (
     <HStack
       as={Link}
-      href="/request-logs"
-      onClick={() => {
-        setSelectedProjectId(proj.id);
-        onClose();
-      }}
+      href={{ pathname: "/p/[projectSlug]/request-logs", query: { projectSlug: proj.slug } }}
+      onClick={onClick}
       w="full"
       justifyContent="space-between"
       _hover={{ bgColor: "gray.200", textDecoration: "none" }}

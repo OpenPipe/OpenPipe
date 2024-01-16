@@ -53,25 +53,43 @@ export const datasetEvalsRouter = createTRPCRouter({
       .innerJoin("DatasetEntry as de", "de.id", "dede.datasetEntryId")
       .leftJoin("FineTune as ft", (join) => join.onRef(sql`ft.id::text`, "=", "deos.modelId"))
       .where("de.outdated", "=", false)
-      .where("dede.datasetEvalId", "=", input.id)
-      .select((eb) => [
-        "deos.modelId as modelId1",
-        "ft.slug as slug1",
-        eb.fn.avg<number>("der.score").as("winRate"),
-        sql<number>`count(case when der.score = 1 then 1 end)::int`.as("wins"),
-        sql<number>`count(case when der.score = .5 then 1 end)::int`.as("ties"),
-        sql<number>`count(case when der.score = 0 then 1 end)::int`.as("losses"),
-      ]);
+      .where("dede.datasetEvalId", "=", input.id);
 
-    const [leaderboard, headToHead] = await Promise.all([
-      resultsBaseQuery.groupBy(["modelId1", "slug1"]).orderBy("winRate", "desc").execute(),
+    const [leaderboard, headToHead, completionCount] = await Promise.all([
+      resultsBaseQuery
+        .select((eb) => [
+          "deos.modelId as modelId1",
+          "ft.slug as slug1",
+          eb.fn.avg<number>("der.score").as("winRate"),
+          sql<number>`count(case when der.score = 1 then 1 end)::int`.as("wins"),
+          sql<number>`count(case when der.score = .5 then 1 end)::int`.as("ties"),
+          sql<number>`count(case when der.score = 0 then 1 end)::int`.as("losses"),
+        ])
+        .groupBy(["modelId1", "slug1"])
+        .orderBy("winRate", "desc")
+        .execute(),
 
       resultsBaseQuery
         .innerJoin("DatasetEvalOutputSource as deos2", "deos2.id", "der.comparisonOutputSourceId")
         .leftJoin("FineTune as ft2", (join) => join.onRef(sql`ft2.id::text`, "=", "deos2.modelId"))
-        .select(["deos2.modelId as modelId2", "ft2.slug as slug2"])
+        .select((eb) => [
+          "deos.modelId as modelId1",
+          "ft.slug as slug1",
+          eb.fn.avg<number>("der.score").as("winRate"),
+          "deos2.modelId as modelId2",
+          "ft2.slug as slug2",
+        ])
         .groupBy(["modelId1", "slug1", "modelId2", "slug2"])
         .execute(),
+
+      resultsBaseQuery
+        .select([
+          sql<number>`count(case when der.status = 'COMPLETE' then 1 end)::int`.as(
+            "completedResults",
+          ),
+          sql<number>`count(*)::int`.as("totalResults"),
+        ])
+        .executeTakeFirst(),
     ]);
 
     return {
@@ -80,6 +98,11 @@ export const datasetEvalsRouter = createTRPCRouter({
       results: {
         leaderboard,
         headToHead,
+        completionCount: {
+          // divide by 2 because each comparison has two results
+          completedComparisons: (completionCount?.completedResults ?? 0) / 2,
+          totalComparisons: (completionCount?.totalResults ?? 0) / 2,
+        },
       },
     };
   }),
@@ -125,7 +148,6 @@ export const datasetEvalsRouter = createTRPCRouter({
           eb.fn.count<string>("dede.id").as("numDatasetEntries"),
         ])
         .groupBy(["modelsSubquery.numModels", "eval.id", "d.id", "d.projectId"])
-        .orderBy("d.createdAt", "desc")
         .orderBy("eval.createdAt", "desc")
         .execute();
 

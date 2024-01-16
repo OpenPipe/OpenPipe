@@ -1,11 +1,16 @@
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { error, success } from "~/utils/errorHandling/standardResponses";
-import { requireIsProjectAdmin, requireNothing } from "~/utils/accessControl";
-import { TRPCError } from "@trpc/server";
+import {
+  type AccessCheck,
+  accessChecks,
+  requireIsProjectAdmin,
+  requireNothing,
+} from "~/utils/accessControl";
 import { sendProjectInvitation } from "~/server/emails/sendProjectInvitation";
 
 export const usersRouter = createTRPCRouter({
@@ -37,7 +42,7 @@ export const usersRouter = createTRPCRouter({
         });
 
         if (existingMembership) {
-          return error(`A user with ${input.email} is already a member of this project`);
+          return error(`A user with ${input.email} is already invited to this project`);
         }
       }
 
@@ -134,27 +139,43 @@ export const usersRouter = createTRPCRouter({
         where: {
           invitationToken: input.invitationToken,
         },
+        include: {
+          project: {
+            select: {
+              slug: true,
+            },
+          },
+        },
       });
 
       if (!invitation) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      await prisma.projectUser.create({
-        data: {
-          projectId: invitation.projectId,
-          userId: ctx.session.user.id,
-          role: invitation.role,
-        },
-      });
+      await prisma.$transaction([
+        prisma.projectUser.create({
+          data: {
+            projectId: invitation.projectId,
+            userId: ctx.session.user.id,
+            role: invitation.role,
+          },
+        }),
+        prisma.userInvitation.delete({
+          where: {
+            invitationToken: input.invitationToken,
+          },
+        }),
+        prisma.user.update({
+          where: {
+            id: ctx.session.user.id,
+          },
+          data: {
+            lastViewedProjectId: invitation.projectId,
+          },
+        }),
+      ]);
 
-      await prisma.userInvitation.delete({
-        where: {
-          invitationToken: input.invitationToken,
-        },
-      });
-
-      return success(invitation.projectId);
+      return success(invitation.project.slug);
     }),
   cancelProjectInvitation: protectedProcedure
     .input(
@@ -216,7 +237,11 @@ export const usersRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await requireIsProjectAdmin(input.projectId, ctx);
+      if (input.userId === ctx.session.user.id) {
+        requireNothing(ctx);
+      } else {
+        await requireIsProjectAdmin(input.projectId, ctx);
+      }
 
       await prisma.projectUser.delete({
         where: {
@@ -228,5 +253,59 @@ export const usersRouter = createTRPCRouter({
       });
 
       return success();
+    }),
+  updateLastViewedProject: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      requireNothing(ctx);
+
+      await prisma.user.update({
+        where: {
+          id: ctx.session.user.id,
+        },
+        data: {
+          lastViewedProjectId: input.projectId,
+        },
+      });
+
+      return success();
+    }),
+  checkAccess: protectedProcedure
+    .input(
+      z.object({
+        accessCheck: z.enum(Object.keys(accessChecks) as [AccessCheck, ...AccessCheck[]]),
+        projectId: z.string().nullable(),
+      }),
+    )
+    .output(
+      z.discriminatedUnion("access", [
+        z.object({ access: z.literal(true) }),
+        z.object({ access: z.literal(false), message: z.string() }),
+      ]),
+    )
+    .query(async ({ input, ctx }) => {
+      const { accessCheck } = input;
+
+      requireNothing(ctx);
+
+      try {
+        if (accessCheck === "requireNothing") accessChecks.requireNothing(ctx);
+        if (accessCheck === "requireIsAdmin") await accessChecks.requireIsAdmin(ctx);
+        if (
+          accessCheck === "requireCanViewProject" ||
+          accessCheck === "requireCanModifyProject" ||
+          accessCheck === "requireIsProjectAdmin"
+        ) {
+          if (!input.projectId) return { access: false, message: "invalid project id" };
+          await accessChecks[accessCheck](input.projectId, ctx);
+        }
+        return { access: true };
+      } catch (e) {
+        return { access: false, message: (e as TRPCError).message };
+      }
     }),
 });

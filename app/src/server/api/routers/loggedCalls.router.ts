@@ -1,9 +1,7 @@
 import { z } from "zod";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
-import archiver from "archiver";
 import { WritableStreamBuffer } from "stream-buffers";
-import { type JsonValue } from "type-fest";
-import { shuffle } from "lodash-es";
+import type { JsonValue } from "type-fest";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
@@ -27,7 +25,7 @@ export const loggedCallsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructLoggedCallFiltersQuery(input.filters, projectId);
+      const baseQuery = constructLoggedCallFiltersQuery({ filters: input.filters, projectId });
 
       const rawCalls = await baseQuery
         .select((eb) => [
@@ -36,6 +34,7 @@ export const loggedCallsRouter = createTRPCRouter({
           "model",
           "lc.requestedAt",
           "lc.receivedAt",
+          "lc.cacheHit",
           "lc.reqPayload",
           "lc.respPayload",
           "lc.model",
@@ -69,6 +68,7 @@ export const loggedCallsRouter = createTRPCRouter({
           id: rawCall.id,
           requestedAt: rawCall.requestedAt,
           receivedAt: rawCall.receivedAt,
+          cacheHit: rawCall.cacheHit,
           reqPayload: rawCall.reqPayload,
           respPayload: rawCall.respPayload,
           inputTokens: rawCall.inputTokens,
@@ -112,39 +112,59 @@ export const loggedCallsRouter = createTRPCRouter({
         defaultToSelected: z.boolean(),
         selectedLogIds: z.string().array(),
         deselectedLogIds: z.string().array(),
-        testingSplit: z.number(),
-        selectedExportFormat: z.string(),
         removeDuplicates: z.boolean(),
+        excludeErrors: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      const baseQuery = constructLoggedCallFiltersQuery(input.filters, input.projectId, {
-        defaultToSelected: input.defaultToSelected,
-        selectedLogIds: input.selectedLogIds,
-        deselectedLogIds: input.deselectedLogIds,
+      const baseQuery = constructLoggedCallFiltersQuery({
+        filters: input.filters,
+        projectId: input.projectId,
+        selectionParams: {
+          defaultToSelected: input.defaultToSelected,
+          selectedLogIds: input.selectedLogIds,
+          deselectedLogIds: input.deselectedLogIds,
+          removeUnsuccessful: input.excludeErrors,
+        },
       });
 
       const loggedCallsFromDb = await baseQuery
-        .select(["lc.reqPayload", "lc.respPayload"])
+        .select((eb) => [
+          "lc.reqPayload",
+          "lc.respPayload",
+          jsonArrayFrom(
+            eb
+              .selectFrom("LoggedCallTag")
+              .select(["name", "value"])
+              .whereRef("loggedCallId", "=", "lc.id"),
+          ).as("tags"),
+        ])
         .orderBy("lc.requestedAt", "desc")
         .execute();
 
-      // Convert the database data into the desired format
-      let formattedLoggedCalls: { instruction: JsonValue[]; output: JsonValue }[] =
-        loggedCallsFromDb.map((call) => ({
-          instruction: (call.reqPayload as unknown as Record<string, unknown>)
-            .messages as JsonValue[],
-          output: (call.respPayload as unknown as { choices: { message: unknown }[] }).choices[0]
-            ?.message as JsonValue,
-        }));
+      let formattedLoggedCalls = loggedCallsFromDb.map((loggedCall) => {
+        const tagsObject = loggedCall.tags.reduce(
+          (acc, tag) => {
+            acc[tag.name] = tag.value;
+            return acc;
+          },
+          {} as Record<string, string | null>,
+        );
+
+        return {
+          input: loggedCall.reqPayload as JsonValue,
+          output: loggedCall.respPayload as JsonValue,
+          tags: tagsObject,
+        };
+      });
 
       if (input.removeDuplicates) {
         const deduplicatedLoggedCalls = [];
         const loggedCallHashSet = new Set<string>();
         for (const loggedCall of formattedLoggedCalls) {
-          const loggedCallHash = hashObject(loggedCall);
+          const loggedCallHash = hashObject(loggedCall as JsonValue);
           if (!loggedCallHashSet.has(loggedCallHash)) {
             loggedCallHashSet.add(loggedCallHash);
             deduplicatedLoggedCalls.push(loggedCall);
@@ -153,52 +173,14 @@ export const loggedCallsRouter = createTRPCRouter({
         formattedLoggedCalls = deduplicatedLoggedCalls;
       }
 
-      // Remove duplicate messages from instructions
-      const instructionMessageHashMap = new Map<string, number>();
-      for (const loggedCall of formattedLoggedCalls) {
-        for (const message of loggedCall.instruction) {
-          const hash = hashObject(message);
-          if (instructionMessageHashMap.has(hash)) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            instructionMessageHashMap.set(hash, instructionMessageHashMap.get(hash)! + 1);
-          } else {
-            instructionMessageHashMap.set(hash, 0);
-          }
-        }
-      }
-      for (const loggedCall of formattedLoggedCalls) {
-        loggedCall.instruction = loggedCall.instruction.filter((message) => {
-          const hash = hashObject(message);
-          // If the same message appears in a single instruction multiple times, there is some danger of
-          // it being removed from all logged calls. This is enough of an edge case that we don't
-          // need to worry about it for now.
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          return instructionMessageHashMap.get(hash)! < formattedLoggedCalls.length;
-        });
-      }
-
-      // Stringify instructions and outputs
-      const stringifiedLoggedCalls = shuffle(formattedLoggedCalls).map((loggedCall) => ({
-        instruction: JSON.stringify(loggedCall.instruction),
-        output: JSON.stringify(loggedCall.output),
-      }));
-
-      const splitIndex = Math.floor((stringifiedLoggedCalls.length * input.testingSplit) / 100);
-
-      const testingData = stringifiedLoggedCalls.slice(0, splitIndex);
-      const trainingData = stringifiedLoggedCalls.slice(splitIndex);
-
       // Convert arrays to JSONL format
-      const trainingDataJSONL = trainingData.map((item) => JSON.stringify(item)).join("\n");
-      const testingDataJSONL = testingData.map((item) => JSON.stringify(item)).join("\n");
+      const jsonl = formattedLoggedCalls.map((item) => JSON.stringify(item)).join("\n");
 
       const output = new WritableStreamBuffer();
-      const archive = archiver("zip");
+      output.write(jsonl);
+      output.end();
 
-      archive.pipe(output);
-      archive.append(trainingDataJSONL, { name: "train.jsonl" });
-      archive.append(testingDataJSONL, { name: "test.jsonl" });
-      await archive.finalize();
+      await new Promise((resolve) => output.on("finish", resolve));
 
       // Convert buffer to base64
       const base64 = output.getContents().toString("base64");

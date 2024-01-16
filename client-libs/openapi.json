@@ -256,7 +256,8 @@
                                       ],
                                       "nullable": true
                                     }
-                                  ]
+                                  ],
+                                  "default": null
                                 },
                                 "function_call": {
                                   "type": "object",
@@ -315,8 +316,7 @@
                                 }
                               },
                               "required": [
-                                "role",
-                                "content"
+                                "role"
                               ],
                               "additionalProperties": false
                             },
@@ -726,7 +726,8 @@
                                   ],
                                   "nullable": true
                                 }
-                              ]
+                              ],
+                              "default": null
                             },
                             "function_call": {
                               "type": "object",
@@ -785,8 +786,7 @@
                             }
                           },
                           "required": [
-                            "role",
-                            "content"
+                            "role"
                           ],
                           "additionalProperties": false
                         },
@@ -1004,6 +1004,28 @@
                   "stream": {
                     "type": "boolean",
                     "nullable": true
+                  },
+                  "response_format": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "text"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "json_object"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "additionalProperties": false
@@ -1097,7 +1119,8 @@
                                     ],
                                     "nullable": true
                                   }
-                                ]
+                                ],
+                                "default": null
                               },
                               "function_call": {
                                 "type": "object",
@@ -1156,8 +1179,7 @@
                               }
                             },
                             "required": [
-                              "role",
-                              "content"
+                              "role"
                             ],
                             "additionalProperties": false
                           }
@@ -1256,10 +1278,6 @@
                     "default": {}
                   }
                 },
-                "required": [
-                  "requestedAt",
-                  "receivedAt"
-                ],
                 "additionalProperties": false
               }
             }

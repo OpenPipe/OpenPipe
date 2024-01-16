@@ -1,6 +1,6 @@
 {
   "name": "openpipe-dev",
-  "version": "0.6.3",
+  "version": "0.8.0",
   "type": "module",
   "description": "LLM metrics and inference",
   "scripts": {
@@ -37,13 +37,11 @@
     "encoding": "0.1.13",
     "form-data": "4.0.0",
     "node-fetch": "2.6.12",
-    "openai": "4.17.1",
-    "openai-legacy": "npm:openai@3.3.0"
+    "openai": "4.24.2"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.1",
-    "@types/lodash-es": "^4.17.8",
     "@types/node": "^20.4.8",
     "@types/node-fetch": "^2.6.4",
     "dotenv": "^16.3.1",

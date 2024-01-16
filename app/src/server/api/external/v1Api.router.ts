@@ -1,14 +1,15 @@
-import { UsageType, type Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import { type ChatCompletion, type ChatCompletionCreateParams } from "openai/resources/chat";
-import { v4 as uuidv4 } from "uuid";
+import { type ChatCompletionChunk, type ChatCompletion } from "openai/resources/chat";
+import { Stream } from "openai/streaming";
+import { APIError } from "openai";
 import { z } from "zod";
 import { captureException } from "@sentry/node";
+import { ExtendedTRPCError } from "trpc-openapi";
+import { v4 as uuidv4 } from "uuid";
+import type { CachedResponse, Prisma } from "@prisma/client";
 
-import { default as fineTunedModelProvider } from "~/modelProviders/fine-tuned";
-import { default as openaAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
-import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
-import { prisma } from "~/server/db";
+import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
+import { kysely, prisma } from "~/server/db";
 import {
   chatCompletionInputReqPayload,
   chatCompletionOutput,
@@ -17,25 +18,23 @@ import {
   functionsInput,
   toolChoiceInput,
   toolsInput,
+  type filtersSchema,
 } from "~/types/shared.types";
-import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
-import { calculateFineTuneUsageCost } from "~/utils/baseModels";
 import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
-
-const reqValidator = z.object({
-  model: z.string(),
-  messages: z.array(z.any()),
-});
-
-const respValidator = z.object({
-  id: z.string(),
-  model: z.string(),
-  choices: z.array(
-    z.object({
-      finish_reason: z.string(),
-    }),
-  ),
-});
+import { typedFineTune } from "~/types/dbColumns.types";
+import {
+  type CalculatedUsage,
+  calculateUsage,
+  recordLoggedCall,
+  recordUsage,
+  reqValidator,
+} from "~/utils/recordRequest";
+import { getOpenaiCompletion } from "~/server/utils/openai";
+import { parseTags } from "~/server/utils/parseTags";
+import { statusCodeFromTrpcCode, trpcCodeFromHttpStatus } from "~/server/utils/trpcStatusCodes";
+import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
+import { sql } from "kysely";
+import { hashRequest } from "~/server/utils/hashObject";
 
 export const v1ApiRouter = createOpenApiRouter({
   checkCache: openApiProtectedProc
@@ -67,22 +66,30 @@ export const v1ApiRouter = createOpenApiRouter({
       }),
     )
     .mutation(({ input, ctx }) => {
+      let model = "";
+      try {
+        const reqPayload = chatCompletionInputReqPayload.parse(input.reqPayload);
+        model = reqPayload.model;
+      } catch {
+        // pass
+      }
+      captureException(new Error(`checkCache was called: ${model} project: ${ctx.key.projectId}`));
+
       // Return null
       return { respPayload: null };
     }),
-
   createChatCompletion: openApiProtectedProc
     .meta({
       openapi: {
         method: "POST",
         path: "/chat/completions",
-        description: "Create completion for a prompt",
+        description:
+          "OpenAI-compatible route for generating inference and optionally logging the request.",
         protect: true,
       },
     })
     .input(
-      // TODO: replace this whole mess with just `chatCompletionInput` once
-      // no one is using the `reqPayload` field anymore.
+      // TODO: replace this whole mess with just `chatCompletionInputReqPayload`
       z.object({
         reqPayload: chatCompletionInputReqPayload
           .optional()
@@ -96,11 +103,16 @@ export const v1ApiRouter = createOpenApiRouter({
         n: z.number().nullable().optional(),
         max_tokens: z.number().nullable().optional(),
         temperature: z.number().nullable().optional(),
-        stream: z.boolean().nullable().optional(),
+        stream: z.boolean().default(false),
+        response_format: z
+          .object({
+            type: z.union([z.literal("text"), z.literal("json_object")]).optional(),
+          })
+          .optional(),
       }),
     )
-    .output(chatCompletionOutput)
-    .mutation(async ({ input, ctx }): Promise<ChatCompletion> => {
+    .output(z.union([chatCompletionOutput.nullable(), z.any()]))
+    .mutation(async ({ input, ctx }): Promise<ChatCompletion | ReadableStream> => {
       const { key } = ctx;
 
       const inputPayload =
@@ -108,62 +120,206 @@ export const v1ApiRouter = createOpenApiRouter({
           ? chatCompletionInputReqPayload.parse(input.reqPayload)
           : chatCompletionInputReqPayload.parse(input);
 
-      const modelSlug = inputPayload.model.replace("openpipe:", "");
-      const fineTune = await prisma.fineTune.findUnique({
-        where: { slug: modelSlug },
-      });
+      if ("reqPayload" in input) {
+        captureException(
+          new Error(
+            `reqPayload should not be present in input. model: ${input.model ?? ""} project: ${
+              key.projectId
+            }`,
+          ),
+        );
+      }
 
-      if (!fineTune) {
-        throw new TRPCError({ message: "The model does not exist", code: "NOT_FOUND" });
-      }
-      if (fineTune.projectId !== key.projectId) {
-        throw new TRPCError({
-          message: "The model does not belong to this project",
-          code: "FORBIDDEN",
-        });
-      }
+      const requestedAt = Date.now();
+
+      const isFineTune = inputPayload.model.startsWith("openpipe:");
+
+      // Default to true if not using a fine-tuned model
+      const logRequest =
+        (ctx.headers["op-log-request"] === "true" || !isFineTune) &&
+        ctx.headers["op-log-request"] !== "false" &&
+        !ctx.key.readOnly;
+
+      let tags: Record<string, string> = {};
 
       try {
-        const completion = await getCompletion2(fineTune, inputPayload);
-        const inputTokens = completion.usage?.prompt_tokens ?? 0;
-        const outputTokens = completion.usage?.completion_tokens ?? 0;
-        const cost = calculateFineTuneUsageCost({
-          inputTokens,
-          outputTokens,
-          baseModel: fineTune.baseModel,
-        });
+        if (ctx.headers["op-tags"]) {
+          try {
+            const jsonTags = JSON.parse(ctx.headers["op-tags"] as string);
+            tags = parseTags(jsonTags);
+          } catch (error: unknown) {
+            throw new TRPCError({
+              message: `Failed to parse tags: ${(error as Error).message}`,
+              code: "BAD_REQUEST",
+            });
+          }
+        }
 
-        // Don't `await` this to minimize latency
-        prisma.usageLog
-          .create({
-            data: {
-              fineTuneId: fineTune.id,
-              type: UsageType.EXTERNAL,
-              inputTokens,
-              outputTokens,
-              cost,
-            },
-          })
-          .catch((error) => captureException(error));
+        const modelSlug = inputPayload.model.replace("openpipe:", "");
+        const fineTune =
+          (await prisma.fineTune.findUnique({
+            where: { slug: modelSlug },
+          })) ?? undefined;
 
-        posthogServerClient?.capture({
-          distinctId: fineTune.projectId,
-          event: "fine-tune-usage",
-          properties: {
-            model: inputPayload.model,
-            inputTokens,
-            outputTokens,
-            cost,
-          },
-        });
+        // Default to skipping cache if not explicitly set
+        const useCache = ctx.headers["op-cache"] === "true";
 
-        return completion;
+        if (useCache && inputPayload.stream) {
+          throw new TRPCError({
+            message: "Cannot use cache with stream",
+            code: "BAD_REQUEST",
+          });
+        }
+
+        const modelId = fineTune?.id ?? inputPayload.model;
+        const cacheKey = hashRequest(modelId, inputPayload);
+        let cachedCompletion: CachedResponse | null = null;
+        if (useCache) {
+          cachedCompletion = await prisma.cachedResponse.findUnique({
+            where: { projectId_cacheKey: { projectId: key.projectId, cacheKey } },
+          });
+        }
+
+        let completion: ChatCompletion | Stream<ChatCompletionChunk>;
+
+        if (cachedCompletion) {
+          completion = chatCompletionOutput.parse(cachedCompletion?.respPayload);
+          completion.usage = {
+            prompt_tokens: cachedCompletion.inputTokens,
+            completion_tokens: cachedCompletion.outputTokens,
+            total_tokens: cachedCompletion.inputTokens + cachedCompletion.outputTokens,
+          };
+        } else if (isFineTune) {
+          if (!fineTune) {
+            throw new TRPCError({
+              message: `The model \`${inputPayload.model}\` does not exist`,
+              code: "NOT_FOUND",
+            });
+          }
+
+          const typedFT = typedFineTune(fineTune);
+
+          if (typedFT && typedFT.projectId !== key.projectId) {
+            throw new TRPCError({
+              message: "The model does not belong to this project",
+              code: "FORBIDDEN",
+            });
+          }
+
+          try {
+            completion = await getCompletion(typedFT, inputPayload);
+          } catch (error: unknown) {
+            console.error(error);
+            throw new TRPCError({
+              message: `Failed to get fine-tune completion: ${(error as Error).message}`,
+              code: "BAD_REQUEST",
+            });
+          }
+        } else {
+          if (key.readOnly) {
+            throw new TRPCError({
+              message: "Read-only OpenPipe API keys cannot access the base OpenAI API",
+              code: "FORBIDDEN",
+            });
+          }
+          try {
+            completion = await getOpenaiCompletion(key.projectId, {
+              ...inputPayload,
+              stream: input.stream,
+            });
+          } catch (error: unknown) {
+            if (error instanceof APIError) {
+              // Pass through OpenAI API errors
+              throw new TRPCError({
+                message: error.message,
+                code: trpcCodeFromHttpStatus(error.status),
+              });
+            }
+            throw new TRPCError({
+              message: `Failed to get OpenAI completion: ${(error as Error).message}`,
+              code: "BAD_REQUEST",
+              cause: error as Error,
+            });
+          }
+        }
+
+        if (completion instanceof Stream) {
+          // split stream to avoid locking the read mutex
+          const [recordStream, outputStream] = completion.tee();
+          void recordUsage({
+            projectId: key.projectId,
+            requestedAt,
+            receivedAt: !!cachedCompletion ? undefined : Date.now(),
+            cacheHit: !!cachedCompletion,
+            inputPayload,
+            completion: recordStream,
+            logRequest,
+            fineTune,
+            tags,
+          }).catch((e) => captureException(e));
+          return outputStream.toReadableStream();
+        } else {
+          void recordUsage({
+            projectId: key.projectId,
+            requestedAt,
+            receivedAt: !!cachedCompletion ? undefined : Date.now(),
+            cacheHit: !!cachedCompletion,
+            inputPayload,
+            completion,
+            logRequest,
+            fineTune,
+            tags,
+          }).catch((e) => captureException(e));
+          if (useCache && !cachedCompletion) {
+            await prisma.cachedResponse.upsert({
+              where: { projectId_cacheKey: { projectId: key.projectId, cacheKey } },
+              update: {},
+              create: {
+                cacheKey,
+                modelId,
+                completionId: completion.id,
+                respPayload: completion as unknown as Prisma.InputJsonValue,
+                projectId: key.projectId,
+                inputTokens: completion.usage?.prompt_tokens ?? 0,
+                outputTokens: completion.usage?.completion_tokens ?? 0,
+              },
+            });
+          }
+          return completion;
+        }
       } catch (error: unknown) {
-        console.error(error);
-        throw new TRPCError({
-          message: `Failed to get completion: ${(error as Error).message}`,
-          code: "BAD_REQUEST",
-        });
+        if (error instanceof TRPCError) {
+          const statusCode = statusCodeFromTrpcCode(error.code);
+          if (logRequest) {
+            // record error in request log
+            void recordLoggedCall({
+              projectId: key.projectId,
+              requestedAt,
+              receivedAt: Date.now(),
+              cacheHit: false,
+              reqPayload: inputPayload,
+              respPayload: {
+                code: error.code,
+                message: error.message,
+              },
+              statusCode,
+              errorMessage: error.message,
+              tags,
+            });
+          }
+          throw new ExtendedTRPCError({
+            code: error.code,
+            message: error.message,
+            extraFields: {
+              // Add error field for compatibility with the OpenAI TypeScript client
+              error: {
+                code: statusCode,
+                message: error.message,
+              },
+            },
+          });
+        }
+        throw error;
       }
     }),
 
@@ -178,14 +334,14 @@ export const v1ApiRouter = createOpenApiRouter({
     })
     .input(
       z.object({
-        requestedAt: z.number().describe("Unix timestamp in milliseconds"),
-        receivedAt: z.number().describe("Unix timestamp in milliseconds"),
+        requestedAt: z.number().optional().describe("Unix timestamp in milliseconds"),
+        receivedAt: z.number().optional().describe("Unix timestamp in milliseconds"),
         reqPayload: z.unknown().describe("JSON-encoded request payload"),
         respPayload: z.unknown().optional().describe("JSON-encoded response payload"),
         statusCode: z.number().optional().describe("HTTP status code of response"),
         errorMessage: z.string().optional().describe("User-friendly error message"),
         tags: z
-          .record(z.string())
+          .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
           .optional()
           .describe(
             'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
@@ -195,55 +351,196 @@ export const v1ApiRouter = createOpenApiRouter({
     )
     .output(z.object({ status: z.union([z.literal("ok"), z.literal("error")]) }))
     .mutation(async ({ input, ctx }) => {
-      console.log("\n\n!!!! report started !!!!\n\n");
+      if (ctx.key.readOnly) {
+        throw new TRPCError({
+          message: "Read-only API keys cannot report API calls",
+          code: "FORBIDDEN",
+        });
+      }
+      // Zod default messes up the generated OpenAPI spec, so we do it manually
+      if (!input.requestedAt) input.requestedAt = Date.now();
+
       const reqPayload = await reqValidator.spa(input.reqPayload);
-      const respPayload = await respValidator.spa(input.respPayload);
+      const respPayload = await chatCompletionOutput.spa(input.respPayload);
 
-      const newLoggedCallId = uuidv4();
+      let usage: CalculatedUsage | undefined;
 
-      let usage;
-      let model;
-      if (reqPayload.success) {
-        model = reqPayload.data.model;
-        if (model.startsWith("openpipe:")) {
-          const fineTune = await prisma.fineTune.findUnique({
-            where: { slug: model.replace("openpipe:", "") },
-          });
-          usage = fineTunedModelProvider.getUsage(
-            input.reqPayload as ChatCompletionCreateParams,
-            respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
-            fineTune?.baseModel,
-          );
-        } else {
-          usage = openaAIModelProvider.getUsage(
-            input.reqPayload as ChatCompletionCreateParams,
-            respPayload.success ? (input.respPayload as ChatCompletion) : undefined,
-          );
-        }
+      if (reqPayload.success && respPayload.success) {
+        const fineTune = await prisma.fineTune.findUnique({
+          where: { slug: reqPayload.data.model.replace("openpipe:", "") },
+        });
+
+        usage = calculateUsage({
+          inputPayload: reqPayload.data,
+          completion: respPayload.data,
+          fineTune: fineTune ?? undefined,
+        });
       }
 
-      await prisma.loggedCall.create({
-        data: {
-          id: newLoggedCallId,
+      let tags: Record<string, string> = {};
+      try {
+        tags = parseTags(input.tags);
+      } catch (e) {
+        throw new TRPCError({
+          message: `Failed to parse tags: ${(e as Error).message}`,
+          code: "BAD_REQUEST",
+        });
+      }
+
+      try {
+        await recordLoggedCall({
           projectId: ctx.key.projectId,
-          requestedAt: new Date(input.requestedAt),
-          model,
-          receivedAt: new Date(input.receivedAt),
-          reqPayload: input.reqPayload as Prisma.InputJsonValue,
-          respPayload: input.respPayload as Prisma.InputJsonValue,
+          usage,
+          requestedAt: input.requestedAt,
+          receivedAt: input.receivedAt,
+          cacheHit: false,
+          reqPayload: input.reqPayload,
+          respPayload: input.respPayload,
           statusCode: input.statusCode,
           errorMessage: input.errorMessage,
-          durationMs: input.receivedAt - input.requestedAt,
-          inputTokens: usage?.inputTokens,
-          outputTokens: usage?.outputTokens,
-          cost: usage?.cost,
-          completionId: respPayload.success ? respPayload.data.id : null,
-          migrated: true,
-        },
-      });
+          tags,
+        });
+      } catch (e) {
+        throw new TRPCError({
+          message: `Failed to create logged call: ${(e as Error).message}`,
+          code: "BAD_REQUEST",
+        });
+      }
 
-      await createTags(ctx.key.projectId, newLoggedCallId, input.tags);
       return { status: "ok" };
+    }),
+  updateLogTags: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/logs/update-tags",
+        description: "Update tags for logged calls matching the provided filters",
+        protect: true,
+      },
+    })
+    .input(
+      z.object({
+        filters: z
+          .object({
+            field: z
+              .string()
+              .describe(
+                "The field to filter on. Possible fields include: `model`, `completionId`, and `tags.your_tag_name`.",
+              ),
+            equals: z.union([z.string(), z.number(), z.boolean()]),
+          })
+          .array(),
+        tags: z
+          .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
+          .describe(
+            'Extra tags to attach to the call for filtering. Eg { "userId": "123", "promptId": "populate-title" }',
+          ),
+      }),
+    )
+    .output(z.object({ matchedLogs: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      if (ctx.key.readOnly) {
+        throw new TRPCError({
+          message: "Read-only API keys cannot update log tags",
+          code: "FORBIDDEN",
+        });
+      }
+
+      let tags: Record<string, string | null> = {};
+      try {
+        tags = parseTags(input.tags, true);
+      } catch (e) {
+        throw new TRPCError({
+          message: `Failed to parse tags: ${(e as Error).message}`,
+          code: "BAD_REQUEST",
+        });
+      }
+
+      const tagNamesToDelete = Object.keys(tags).filter((key) => tags[key] === null);
+      const tagsToUpsert = Object.entries(tags).filter(([, value]) => value !== null) as [
+        string,
+        string,
+      ][];
+
+      const filters: z.infer<typeof filtersSchema> = [];
+
+      for (const filter of input.filters) {
+        filters.push({
+          field: filter.field,
+          comparator: "=",
+          value: filter.equals.toString(),
+        });
+      }
+
+      const matchedLogs = await constructLoggedCallFiltersQuery({
+        filters,
+        projectId: ctx.key.projectId,
+      })
+        .select(sql<number>`count(*)::int`.as("count"))
+        .executeTakeFirst();
+
+      if (tagNamesToDelete.length > 0) {
+        await kysely
+          .deleteFrom("LoggedCallTag")
+          .using((eb) =>
+            constructLoggedCallFiltersQuery({
+              filters,
+              projectId: ctx.key.projectId,
+              lctEB: eb,
+            })
+              .select("lc.id")
+              .as("lc"),
+          )
+          .whereRef("LoggedCallTag.loggedCallId", "=", "lc.id")
+          .where("LoggedCallTag.name", "in", tagNamesToDelete)
+          .execute();
+      }
+
+      const loggedCalls = await constructLoggedCallFiltersQuery({
+        filters,
+        projectId: ctx.key.projectId,
+      })
+        .select("lc.id")
+        .execute();
+
+      const dataToInsert: {
+        id: string;
+        name: string;
+        value: string;
+        projectId: string;
+        loggedCallId: string;
+      }[] = [];
+
+      // Iterate over each logged call and insert tags
+      for (const loggedCall of loggedCalls) {
+        const loggedCallId = loggedCall.id;
+
+        // Prepare the insert data for each tag
+        dataToInsert.push(
+          ...tagsToUpsert.map(([name, value]) => ({
+            id: uuidv4(),
+            name,
+            value,
+            projectId: ctx.key.projectId,
+            loggedCallId,
+          })),
+        );
+      }
+
+      if (dataToInsert.length) {
+        await kysely
+          .insertInto("LoggedCallTag")
+          .columns(["name", "value", "projectId", "loggedCallId"])
+          .values(dataToInsert)
+          .onConflict((oc) =>
+            oc.columns(["loggedCallId", "name"]).doUpdateSet((eb) => ({
+              value: eb.ref("excluded.value"),
+            })),
+          )
+          .execute();
+      }
+
+      return { matchedLogs: matchedLogs?.count ?? 0 };
     }),
   localTestingOnlyGetLatestLoggedCall: openApiProtectedProc
     .meta({
@@ -259,6 +556,7 @@ export const v1ApiRouter = createOpenApiRouter({
       z
         .object({
           createdAt: z.date(),
+          cacheHit: z.boolean(),
           statusCode: z.number().nullable(),
           errorMessage: z.string().nullable(),
           reqPayload: z.unknown(),
@@ -294,15 +592,3 @@ export const v1ApiRouter = createOpenApiRouter({
       );
     }),
 });
-
-async function createTags(projectId: string, loggedCallId: string, tags: Record<string, string>) {
-  const tagsToCreate = Object.entries(tags).map(([name, value]) => ({
-    projectId,
-    loggedCallId,
-    name: name.replaceAll(/[^a-zA-Z0-9_$.]/g, "_"),
-    value,
-  }));
-  await prisma.loggedCallTag.createMany({
-    data: tagsToCreate,
-  });
-}

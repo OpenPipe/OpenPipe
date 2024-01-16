@@ -25,22 +25,54 @@ export default function UsageGraph() {
 
   const data = useMemo(() => {
     return (
-      stats.data?.periods.map(({ period, numQueries, cost }) => ({
+      stats.data?.periods.map(({ period, numQueries, trainingCost, inferenceCost }) => ({
         period,
         Requests: numQueries,
-        Spent: parseFloat(cost.toString()),
+        "Total Spend": parseFloat(trainingCost.toString()) + parseFloat(inferenceCost.toString()),
+        "Training Spend": parseFloat(trainingCost.toString()).toFixed(2),
+        "Inference Spend": parseFloat(inferenceCost.toString()).toFixed(2),
       })) || []
     );
   }, [stats.data]);
 
-  const [spendColor, requestsColor] = useToken("colors", ["blue.500", "red.600"]);
+  const [totalSpendColor, trainingSpendColor, inferenceSpendColor, requestsColor] = useToken(
+    "colors",
+    ["gray.500", "orange.500", "blue.500", "gray.900"],
+  );
+
+  const longestRequestsLabelLength = data
+    .map((c) => c.Requests.toString())
+    .reduce((acc, cur) => (cur.length > acc ? cur.length : acc), 0);
+
+  const longestTotalSpendLabelLength = data
+    .map((c) => c["Total Spend"].toFixed(2))
+    .reduce((acc, cur) => (cur.length > acc ? cur.length : acc), 0);
 
   return (
     <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-        <XAxis dataKey="period" tickFormatter={(str: string) => dayjs(str).format("MMM D")} />
-        <YAxis yAxisId="left" dataKey="Requests" orientation="left" stroke={requestsColor} />
-        <YAxis yAxisId="right" dataKey="Spent" orientation="right" unit="$" stroke={spendColor} />
+      <LineChart data={data} margin={{ top: 5, right: 24, left: 4, bottom: 5 }}>
+        <XAxis
+          dataKey="period"
+          tickMargin={4}
+          tickFormatter={(str: string) => dayjs(str).format("MMM D")}
+        />
+        <YAxis
+          yAxisId="left"
+          dataKey="Requests"
+          orientation="left"
+          stroke={requestsColor}
+          width={longestRequestsLabelLength * 10 + 8}
+        />
+        <YAxis
+          yAxisId="right"
+          dataKey="Total Spend"
+          orientation="right"
+          type="number"
+          tickMargin={6}
+          tickFormatter={(value: number) => "$" + value.toFixed(2)}
+          stroke={totalSpendColor}
+          width={longestTotalSpendLabelLength * 10 + 8}
+        />
         <Tooltip />
         <Legend />
         <CartesianGrid stroke="#f5f5f5" />
@@ -51,7 +83,20 @@ export default function UsageGraph() {
           dot={false}
           strokeWidth={2}
         />
-        <Line dataKey="Spent" stroke={spendColor} yAxisId="right" dot={false} strokeWidth={2} />
+        <Line
+          dataKey="Training Spend"
+          stroke={trainingSpendColor}
+          yAxisId="right"
+          dot={false}
+          strokeWidth={2}
+        />
+        <Line
+          dataKey="Inference Spend"
+          stroke={inferenceSpendColor}
+          yAxisId="right"
+          dot={false}
+          strokeWidth={2}
+        />
       </LineChart>
     </ResponsiveContainer>
   );

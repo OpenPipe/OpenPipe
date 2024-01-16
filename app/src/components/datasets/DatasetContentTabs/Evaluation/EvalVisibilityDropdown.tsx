@@ -17,7 +17,7 @@ import { BsPlusSquare } from "react-icons/bs";
 import { FaBalanceScale } from "react-icons/fa";
 import { useRouter } from "next/router";
 
-import { useDataset, useIsClientInitialized } from "~/utils/hooks";
+import { useDataset, useIsClientInitialized, useSelectedProject } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import AddEvalModal from "./AddEvalModal";
@@ -102,11 +102,7 @@ const EvalVisibilityDropdown = () => {
                 borderBottomWidth={1}
               >
                 <Text mr={16}>{option.label}</Text>
-                <Switch
-                  isChecked={visibleEvalIds.includes(option.key)}
-                  onChange={() => toggleEvalVisiblity(option.key)}
-                  size="sm"
-                />
+                <Switch isChecked={visibleEvalIds.includes(option.key)} size="sm" />
               </HStack>
             ))}
             <HStack
@@ -139,13 +135,18 @@ const EditableEvalOption = ({ option }: { option: Option }) => {
 
   const router = useRouter();
 
+  const selectedProject = useSelectedProject().data;
+
   const [toggleHovered, setToggleHovered] = useState(false);
   return (
     <HStack
       as={Button}
       onClick={() => {
         if (!toggleHovered)
-          void router.push({ pathname: "/evals/[id]", query: { id: option.key } });
+          void router.push({
+            pathname: "/p/[projectSlug]/evals/[id]",
+            query: { projectSlug: selectedProject?.slug || "", id: option.key },
+          });
       }}
       w="full"
       minH={10}

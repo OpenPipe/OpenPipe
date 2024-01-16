@@ -28,12 +28,15 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { useVisibleModelIds } from "../useVisibleModelIds";
 import FormattedDatasetEntryInput from "../FormattedInput";
 import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
+import { useSelectedProject } from "~/utils/hooks";
 
 const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
+
+  const selectedProject = useSelectedProject().data;
 
   const isOpen = comparisonCriteria?.type === "HEAD_TO_HEAD";
   const onClose = () => setComparisonCriteria(null);
@@ -123,8 +126,12 @@ const HeadToHeadComparisonModal = () => {
               onClick={() => {
                 if (comparisonCriteria?.datasetEvalId) {
                   void router.push({
-                    pathname: "/evals/[id]/[tab]",
-                    query: { id: comparisonCriteria?.datasetEvalId, tab: EVAL_SETTINGS_TAB_KEY },
+                    pathname: "/p/[projectSlug]/evals/[id]/[tab]",
+                    query: {
+                      projectSlug: selectedProject?.slug || "",
+                      id: comparisonCriteria?.datasetEvalId,
+                      tab: EVAL_SETTINGS_TAB_KEY,
+                    },
                   });
                 }
               }}
@@ -242,13 +249,13 @@ const ComparisonRow = ({
         <Box
           w="full"
           position="relative"
-          h={
+          h={`${
             !expandable
-              ? innerOutputHeight
+              ? innerOutputHeight + 40
               : outputExpanded
               ? innerOutputHeight + 160
               : explanationHeight + VERTICAL_PADDING
-          }
+          }px`}
           transition="height 0.5s ease-in-out"
           overflow="hidden"
         >
@@ -325,6 +332,7 @@ const SelectedComparisonTable = ({
   return (
     <VStack w="full" position="relative" pb={8}>
       <Grid
+        w="full"
         display="grid"
         gridTemplateColumns={`1fr 1fr`}
         borderWidth={1}

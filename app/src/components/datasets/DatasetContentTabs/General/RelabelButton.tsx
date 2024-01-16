@@ -13,10 +13,11 @@ import {
   Link as ChakraLink,
   useDisclosure,
   type UseDisclosureReturn,
+  Checkbox,
+  HStack,
 } from "@chakra-ui/react";
 import { AiOutlineEdit } from "react-icons/ai";
 import { useRef, useState, useEffect } from "react";
-import Link from "next/link";
 import pluralize from "pluralize";
 
 import { api } from "~/utils/api";
@@ -26,6 +27,9 @@ import ActionButton from "~/components/ActionButton";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useFilters } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { ProjectLink } from "~/components/ProjectLink";
+import InfoCircle from "~/components/InfoCircle";
 
 const RelabelButton = () => {
   const selectedIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
@@ -60,28 +64,40 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
   const clearSelectedIds = useAppStore((s) => s.selectedDatasetEntries.clearSelectedIds);
   const addFilter = useFilters().addFilter;
 
+  const [numEntriesToConfirm, setNumEntriesToConfirm] = useState("");
+  const [filterToRelabeled, setFilterToRelabeled] = useState(true);
+
   const [onRelabelConfirm, confirmingRelabelInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedIds) return;
+    if (!selectedIds || numEntriesToConfirm !== selectedIds.size.toString()) return;
     const resp = await mutation.mutateAsync({
       ids: Array.from(selectedIds),
     });
     if (maybeReportError(resp)) return;
-    const { batchId } = resp.payload;
 
-    addFilter({
-      id: Date.now().toString(),
-      field: GeneralFiltersDefaultFields.RelabelBatchId,
-      comparator: "=",
-      value: batchId.toString(),
-    });
+    if (filterToRelabeled) {
+      addFilter({
+        id: Date.now().toString(),
+        field: GeneralFiltersDefaultFields.RelabelBatchId,
+        comparator: "=",
+        value: resp.payload.batchId.toString(),
+      });
+    }
+
+    await utils.datasets.get.invalidate();
+    await utils.datasetEntries.list.invalidate();
 
     clearSelectedIds();
-    await utils.datasets.get.invalidate();
 
     disclosure.onClose();
-  }, [mutation, selectedIds, clearSelectedIds, addFilter, disclosure.onClose]);
-
-  const [numEntriesToConfirm, setNumEntriesToConfirm] = useState("");
+  }, [
+    mutation,
+    selectedIds,
+    clearSelectedIds,
+    addFilter,
+    numEntriesToConfirm,
+    filterToRelabeled,
+    disclosure.onClose,
+  ]);
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -107,13 +123,13 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
               {needsMissingOpenaiKey ? (
                 <Text>
                   To relabel these entries, add your OpenAI API key on the{" "}
-                  <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                  <ChakraLink as={ProjectLink} href="/settings" target="_blank" color="blue.600">
                     <Text as="span">project settings</Text>
                   </ChakraLink>{" "}
                   page.
                 </Text>
               ) : (
-                <VStack>
+                <VStack alignItems="flex-start">
                   <Text>
                     To confirm this change and relabel <b>{selectedIds.size}</b>{" "}
                     {pluralize("entry", selectedIds.size)} using output from GPT-4, please type the
@@ -127,7 +143,22 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
                     placeholder={selectedIds.size.toString()}
                     value={numEntriesToConfirm}
                     onChange={(e) => setNumEntriesToConfirm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        onRelabelConfirm();
+                      }
+                    }}
                   />
+                  <HStack>
+                    <Checkbox
+                      isChecked={filterToRelabeled}
+                      onChange={(e) => setFilterToRelabeled(e.target.checked)}
+                      colorScheme="orange"
+                    >
+                      Filter to relabeled entries
+                    </Checkbox>
+                    <InfoCircle tooltipText="Filter to the dataset entries table to only show entries that are being relabeled." />
+                  </HStack>
                 </VStack>
               )}
             </VStack>
@@ -141,17 +172,25 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
             >
               Cancel
             </Button>
-            <Button
-              colorScheme="orange"
-              ml={3}
-              isDisabled={
-                needsMissingOpenaiKey || numEntriesToConfirm !== selectedIds.size.toString()
-              }
-              isLoading={confirmingRelabelInProgress}
-              onClick={onRelabelConfirm}
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [!needsMissingOpenaiKey, "OpenAI Key is required to relabel"],
+                [
+                  numEntriesToConfirm === selectedIds.size.toString(),
+                  "Please confirm the number of entries",
+                ],
+              ]}
             >
-              Confirm
-            </Button>
+              <Button
+                colorScheme="orange"
+                ml={3}
+                isLoading={confirmingRelabelInProgress}
+                onClick={onRelabelConfirm}
+              >
+                Confirm
+              </Button>
+            </ConditionallyEnable>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

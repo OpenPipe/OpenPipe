@@ -1,10 +1,15 @@
-import { expect, it } from "vitest";
-import { type Prisma } from "@prisma/client";
+import { describe, expect, it } from "vitest";
+import { type DatasetEntrySplit, type Prisma } from "@prisma/client";
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
 import { prisma } from "~/server/db";
-import { updatePruningRuleMatches } from "./updatePruningRuleMatches";
+import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
+import {
+  copyPruningRulesForFineTune,
+  insertTrainingDataPruningRuleMatches,
+  updateDatasetPruningRuleMatches,
+} from "./updatePruningRuleMatches";
 
 const input1: ChatCompletionMessageParam[] = [
   {
@@ -53,7 +58,11 @@ const createProject = async (datasetId: string) => {
 
 const datasetId = uuidv4();
 
-const createDatasetEntry = async (datasetId: string, messages: ChatCompletionMessageParam[]) => {
+const createDatasetEntry = async (
+  datasetId: string,
+  messages: ChatCompletionMessageParam[],
+  split: DatasetEntrySplit = "TRAIN",
+) => {
   return await prisma.datasetEntry.create({
     data: {
       messages: messages as unknown as Prisma.InputJsonValue,
@@ -61,7 +70,7 @@ const createDatasetEntry = async (datasetId: string, messages: ChatCompletionMes
       inputTokens: 0,
       outputTokens: 0,
       datasetId,
-      split: "TRAIN",
+      split,
       sortKey: "_",
       importId: "_",
       provenance: "UPLOAD",
@@ -79,6 +88,28 @@ const createPruningRule = async (datasetId: string, textToMatch: string) => {
   });
 };
 
+const createFineTune = async (projectId: string, datasetId: string) => {
+  return await prisma.fineTune.create({
+    data: {
+      slug: "test",
+      baseModel: "OpenPipe/mistral-7b-1212",
+      projectId,
+      datasetId,
+      provider: "openai",
+      pipelineVersion: 2,
+    },
+  });
+};
+
+const createFineTuneTrainingEntry = async (fineTuneId: string, datasetEntryId: string) => {
+  return await prisma.fineTuneTrainingEntry.create({
+    data: {
+      fineTuneId,
+      datasetEntryId,
+    },
+  });
+};
+
 it("matches basic string", async () => {
   await createProject(datasetId);
   // Create experiments concurrently
@@ -87,7 +118,7 @@ it("matches basic string", async () => {
     createPruningRule(datasetId, "The user is testing multiple scenarios against the same prompt"),
   ]);
 
-  await updatePruningRuleMatches(datasetId, new Date(0));
+  await updateDatasetPruningRuleMatches(datasetId, new Date(0));
 
   // Make sure there are a total of 4 scenarios for exp2
   expect(
@@ -110,7 +141,7 @@ it("matches string with newline", async () => {
     ),
   ]);
 
-  await updatePruningRuleMatches(datasetId, new Date(0));
+  await updateDatasetPruningRuleMatches(datasetId, new Date(0));
 
   // Make sure there are a total of 4 scenarios for exp2
   expect(
@@ -120,4 +151,80 @@ it("matches string with newline", async () => {
       },
     }),
   ).toBe(1);
+});
+
+describe("fine tune pruning rules", () => {
+  it("matches basic string", async () => {
+    const project = await createProject(datasetId);
+
+    const [datasetEntry, rule] = await Promise.all([
+      createDatasetEntry(datasetId, input1),
+      createPruningRule(
+        datasetId,
+        "The user is testing multiple scenarios against the same prompt",
+      ),
+    ]);
+
+    await updateDatasetPruningRuleMatches(datasetId, new Date(0));
+
+    const fineTune = await createFineTune(project.id, datasetId);
+
+    await copyPruningRulesForFineTune(fineTune.id, [rule.id]);
+
+    expect(
+      await prisma.pruningRule.count({
+        where: {
+          fineTuneId: fineTune.id,
+        },
+      }),
+    ).toBe(1);
+
+    await createFineTuneTrainingEntry(fineTune.id, datasetEntry.id);
+
+    await insertTrainingDataPruningRuleMatches(fineTune.id);
+
+    // Make sure there are a total of 4 scenarios for exp2
+    expect(
+      await prisma.pruningRuleMatch.count({
+        where: {
+          pruningRule: {
+            fineTuneId: fineTune.id,
+          },
+        },
+      }),
+    ).toBe(1);
+  });
+
+  it("properly prunes input", async () => {
+    const project = await createProject(datasetId);
+
+    const [datasetEntry, rule] = await Promise.all([
+      createDatasetEntry(datasetId, input1),
+      createPruningRule(
+        datasetId,
+        "The user is testing multiple scenarios against the same prompt",
+      ),
+    ]);
+
+    await updateDatasetPruningRuleMatches(datasetId, new Date(0));
+
+    const fineTune = await createFineTune(project.id, datasetId);
+
+    await copyPruningRulesForFineTune(fineTune.id, [rule.id]);
+
+    await createFineTuneTrainingEntry(fineTune.id, datasetEntry.id);
+
+    await insertTrainingDataPruningRuleMatches(fineTune.id);
+
+    const stringsToPrune = await getStringsToPrune(fineTune.id);
+
+    expect(stringsToPrune).toEqual([
+      "The user is testing multiple scenarios against the same prompt",
+    ]);
+
+    const prunedMessages = pruneInputMessages(input1, stringsToPrune);
+
+    const manuallyPrunedContent = (input1[0]?.content as string).replace("The user is testing", "");
+    expect(prunedMessages[0]?.content).toEqual(manuallyPrunedContent);
+  });
 });

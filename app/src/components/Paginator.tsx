@@ -3,17 +3,18 @@ import {
   IconButton,
   Text,
   Select,
+  Input,
   type StackProps,
   Icon,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { FiChevronsLeft, FiChevronsRight, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { usePageParams } from "~/utils/hooks";
 
 const pageSizeOptions = [10, 25, 50, 100];
 
-const Paginator = ({ count, ...props }: { count: number; condense?: boolean } & StackProps) => {
+const Paginator = ({ count, ...props }: { count: number } & StackProps) => {
   const { page, pageSize, setPageParams } = usePageParams();
 
   const lastPage = Math.ceil(count / pageSize);
@@ -25,6 +26,12 @@ const Paginator = ({ count, ...props }: { count: number; condense?: boolean } & 
     },
     [page, pageSize, setPageParams],
   );
+
+  const [editedPageNum, setEditedPageNum] = React.useState(page.toString());
+
+  useEffect(() => {
+    setEditedPageNum(page.toString());
+  }, [page]);
 
   const nextPage = () => {
     if (page < lastPage) {
@@ -42,7 +49,6 @@ const Paginator = ({ count, ...props }: { count: number; condense?: boolean } & 
   const goToFirstPage = () => setPageParams({ page: 1 });
 
   const isMobile = useBreakpointValue({ base: true, md: false });
-  const condense = isMobile || props.condense;
 
   if (count === 0) return null;
 
@@ -50,12 +56,12 @@ const Paginator = ({ count, ...props }: { count: number; condense?: boolean } & 
     <HStack
       pt={4}
       spacing={8}
-      justifyContent={condense ? "flex-start" : "space-between"}
+      justifyContent={isMobile ? "flex-start" : "space-between"}
       alignItems="center"
       w="full"
       {...props}
     >
-      {!condense && (
+      {!isMobile && (
         <>
           <HStack>
             <Text>Rows</Text>
@@ -72,9 +78,33 @@ const Paginator = ({ count, ...props }: { count: number; condense?: boolean } & 
               ))}
             </Select>
           </HStack>
-          <Text>
-            Page {page} of {lastPage}
-          </Text>
+          <HStack>
+            <Text>Page</Text>
+            <Input
+              textAlign="center"
+              value={editedPageNum}
+              onChange={(e) => setEditedPageNum(e.target.value)}
+              w={`${editedPageNum.length * 12 + 24}px`}
+              onBlur={() => {
+                const newPage = parseInt(editedPageNum);
+                if (newPage && newPage > 0) {
+                  setPageParams({ page: newPage });
+                } else {
+                  setPageParams({ page: 1 });
+                  setEditedPageNum("1");
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.currentTarget.blur();
+                }
+              }}
+              px={0}
+              backgroundColor="white"
+            />
+            <Text>of {lastPage}</Text>
+          </HStack>
         </>
       )}
 
@@ -97,7 +127,7 @@ const Paginator = ({ count, ...props }: { count: number; condense?: boolean } & 
           icon={<Icon as={FiChevronLeft} boxSize={5} strokeWidth={1.5} />}
           bgColor="white"
         />
-        {condense && (
+        {isMobile && (
           <Text>
             Page {page} of {lastPage}
           </Text>

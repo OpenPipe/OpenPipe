@@ -1,20 +1,21 @@
-import { UsageType, type ComparisonModel, Prisma, type FineTuneTestingEntry } from "@prisma/client";
-import type { JsonValue } from "type-fest";
-import type { ChatCompletionCreateParams, ChatCompletion } from "openai/resources/chat";
+import { Prisma, UsageType, type ComparisonModel, type FineTuneTestingEntry } from "@prisma/client";
 import { isNumber } from "lodash-es";
+import type { ChatCompletion, ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat";
+import type { JsonValue } from "type-fest";
 
-import { getCompletion2 } from "~/modelProviders/fine-tuned/getCompletion-2";
+import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { prisma } from "~/server/db";
 import hashObject from "~/server/utils/hashObject";
-import { typedDatasetEntry, typedFineTuneTestingEntry } from "~/types/dbColumns.types";
 import {
-  COMPARISON_MODEL_NAMES,
-  calculateFineTuneUsageCost,
-  isComparisonModel,
-} from "~/utils/baseModels";
+  typedDatasetEntry,
+  typedFineTune,
+  typedFineTuneTestingEntry,
+} from "~/types/dbColumns.types";
+import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/comparisonModels";
+import { calculateCost } from "../fineTuningProviders/supportedModels";
 import {
-  saveFieldComparisonScore,
   calculateFieldComparisonScore,
+  saveFieldComparisonScore,
 } from "../utils/calculateFieldComparisonScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
@@ -29,8 +30,8 @@ export type GenerateTestSetEntryJob = {
 
 const MAX_TRIES = 25;
 
-const MIN_DELAY = 500; // milliseconds
-const MAX_DELAY = 15000; // milliseconds
+const MIN_DELAY = 1000; // 1 second
+const MAX_DELAY = 6 * 60 * 60 * 1000; // 6 hours
 
 export function calculateQueryDelay(numPreviousTries: number): number {
   const baseDelay = Math.min(MAX_DELAY, MIN_DELAY * Math.pow(2, numPreviousTries));
@@ -59,10 +60,16 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
 
       let fineTune;
       if (!isComparisonModel(modelId)) {
-        fineTune = await prisma.fineTune.findUnique({
-          where: { id: modelId },
-        });
+        fineTune = await prisma.fineTune
+          .findUnique({
+            where: { id: modelId },
+          })
+          .then((ft) => ft && typedFineTune(ft));
       }
+
+      // If the fine-tune was deleted then we don't need to generate a test set
+      // entry
+      if (!fineTune && !isComparisonModel(modelId)) return;
 
       const datasetEntry = typedDatasetEntry(rawDatasetEntry);
 
@@ -122,7 +129,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
       }
 
       let completion: ChatCompletion;
-      const input: ChatCompletionCreateParams = {
+      const input: ChatCompletionCreateParamsNonStreaming = {
         model: fineTune
           ? `openpipe:${fineTune.slug}`
           : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
@@ -130,13 +137,14 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         tool_choice: datasetEntry.tool_choice ?? undefined,
         tools: datasetEntry.tools ?? undefined,
         response_format: datasetEntry.response_format ?? undefined,
+        stream: false,
       };
 
       try {
         if (isComparisonModel(modelId)) {
           completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
         } else if (fineTune) {
-          completion = await getCompletion2(fineTune, input);
+          completion = await getCompletion(fineTune, input);
         } else {
           await prisma.fineTuneTestingEntry.update({
             where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
@@ -154,17 +162,15 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         if (fineTune) {
           const inputTokens = completion.usage?.prompt_tokens ?? 0;
           const outputTokens = completion.usage?.completion_tokens ?? 0;
+
           await prisma.usageLog.create({
             data: {
               fineTuneId: fineTune.id,
+              projectId: fineTune.projectId,
               type: UsageType.TESTING,
               inputTokens,
               outputTokens,
-              cost: calculateFineTuneUsageCost({
-                inputTokens,
-                outputTokens,
-                baseModel: fineTune.baseModel,
-              }),
+              cost: calculateCost(fineTune, 0, inputTokens, outputTokens),
             },
           });
         }

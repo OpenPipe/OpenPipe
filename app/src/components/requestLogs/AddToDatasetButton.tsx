@@ -20,7 +20,12 @@ import {
 } from "@chakra-ui/react";
 import { FiPlusSquare } from "react-icons/fi";
 
-import { useDatasets, useHandledAsyncCallback, useTotalNumLogsSelected } from "~/utils/hooks";
+import {
+  useDatasets,
+  useHandledAsyncCallback,
+  useSelectedProject,
+  useTotalNumLogsSelected,
+} from "~/utils/hooks";
 import { api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import ActionButton from "../ActionButton";
@@ -52,7 +57,7 @@ const AddToDatasetButton = () => {
 export default AddToDatasetButton;
 
 const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProject = useSelectedProject().data;
   const selectedLogIds = useAppStore((s) => s.selectedLogs.selectedLogIds);
   const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
@@ -92,13 +97,13 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
 
   const [addToDataset, addingInProgress] = useHandledAsyncCallback(async () => {
     if (
-      !selectedProjectId ||
+      !selectedProject ||
       !totalNumLogsSelected ||
       !(createNewDataset ? newDatasetName : selectedDatasetOption?.id)
     )
       return;
     const datasetParams = createNewDataset
-      ? { newDatasetParams: { projectId: selectedProjectId, name: newDatasetName } }
+      ? { newDatasetParams: { projectId: selectedProject.id, name: newDatasetName } }
       : { datasetId: selectedDatasetOption?.id };
     const response = await createDatasetEntriesMutation.mutateAsync({
       selectedLogIds: Array.from(selectedLogIds),
@@ -123,14 +128,19 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
     ]);
 
     await router.push({
-      pathname: "/datasets/[id]/[tab]",
-      query: { id: datasetId, tab: DATASET_GENERAL_TAB_KEY, ...filtersQueryParams },
+      pathname: "/p/[projectSlug]/datasets/[id]/[tab]",
+      query: {
+        projectSlug: selectedProject.slug,
+        id: datasetId,
+        tab: DATASET_GENERAL_TAB_KEY,
+        ...filtersQueryParams,
+      },
     });
 
     disclosure.onClose();
     resetLogSelection();
   }, [
-    selectedProjectId,
+    selectedProject,
     selectedLogIds,
     deselectedLogIds,
     defaultToSelected,

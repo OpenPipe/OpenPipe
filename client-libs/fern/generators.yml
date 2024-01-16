@@ -1,0 +1,11 @@
+default-group: local
+groups:
+  local:
+    generators:
+      - name: fernapi/fern-python-sdk
+        version: 0.7.2
+        output:
+          location: local-file-system
+          path: ../python/openpipe/api_client
+        config:
+          timeout_in_seconds: 240

@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Load the .env file
+set -o allexport
+source .env
+
 # Check if PYPI_OPENPIPE_TOKEN is set
 if [[ -z "${PYPI_OPENPIPE_TOKEN}" ]]; then
     echo "Error: PYPI_OPENPIPE_TOKEN is not set."

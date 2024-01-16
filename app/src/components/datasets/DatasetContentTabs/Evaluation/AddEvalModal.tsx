@@ -18,7 +18,7 @@ import {
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
-import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { api } from "~/utils/api";
 import {
@@ -32,19 +32,20 @@ import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import { useFilters } from "~/components/Filters/useFilters";
-import { EvaluationFiltersDefaultFields } from "~/types/shared.types";
 import InfoCircle from "~/components/InfoCircle";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
+import { ProjectLink } from "~/components/ProjectLink";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
-  const utils = api.useContext();
+  const router = useRouter();
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
 
   const dataset = useDataset().data;
-  const testingCount = useDatasetEntries().data?.testingCount;
+  const testingCount = useDatasetEntries().data?.totalTestingCount;
 
   const modelOptions = useMemo(() => {
     const options = [
@@ -92,7 +93,14 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const addFilter = useFilters().addFilter;
 
   const [onCreationConfirm, creationInProgress] = useHandledAsyncCallback(async () => {
-    if (!dataset?.id || !name || !instructions || !numDatasetEntries || includedModelIds.length < 2)
+    if (
+      !selectedProject ||
+      !dataset?.id ||
+      !name ||
+      !instructions ||
+      !numDatasetEntries ||
+      includedModelIds.length < 2
+    )
       return;
     const resp = await mutation.mutateAsync({
       datasetId: dataset.id,
@@ -102,20 +110,20 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       modelIds: includedModelIds,
     });
     if (maybeReportError(resp)) return;
-    await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
-    await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
-    await utils.datasets.get.invalidate();
 
-    ensureEvalShown(resp.payload);
-    addFilter({
-      id: Date.now().toString(),
-      field: EvaluationFiltersDefaultFields.EvalApplied,
-      comparator: "=",
-      value: resp.payload,
+    await router.push({
+      pathname: "/p/[projectSlug]/evals/[id]/[tab]",
+      query: { projectSlug: selectedProject.slug, id: resp.payload, tab: "results" },
     });
-
-    disclosure.onClose();
-  }, [mutation, dataset?.id, disclosure.onClose, name, instructions, ensureEvalShown, addFilter]);
+  }, [
+    mutation,
+    dataset?.id,
+    selectedProject?.slug,
+    name,
+    instructions,
+    ensureEvalShown,
+    addFilter,
+  ]);
 
   const numComparisons = useMemo(
     () => ((numDatasetEntries || 0) * includedModelIds.length * (includedModelIds.length - 1)) / 2,
@@ -143,7 +151,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             {needsMissingOpenaiKey ? (
               <Text>
                 To create evaluations, add your OpenAI API key on the{" "}
-                <ChakraLink as={Link} href="/project/settings" target="_blank" color="blue.600">
+                <ChakraLink as={ProjectLink} href="/settings" target="_blank" color="blue.600">
                   <Text as="span">project settings</Text>
                 </ChakraLink>{" "}
                 page.
@@ -224,17 +232,25 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
               Cancel
             </Button>
-            <Button
-              colorScheme="blue"
-              onClick={onCreationConfirm}
-              minW={24}
-              isLoading={creationInProgress}
-              isDisabled={
-                !name || !instructions || !numDatasetEntries || includedModelIds.length < 2
-              }
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[
+                [!needsMissingOpenaiKey, "OpenAI API key is required"],
+                [!!name, "Name is required"],
+                [!!instructions, "Instructions are required"],
+                [!!numDatasetEntries, "Include one or more dataset entries"],
+                [includedModelIds.length >= 2, "At least 2 models are required"],
+              ]}
             >
-              Create
-            </Button>
+              <Button
+                colorScheme="blue"
+                onClick={onCreationConfirm}
+                minW={24}
+                isLoading={creationInProgress}
+              >
+                Create
+              </Button>
+            </ConditionallyEnable>
           </HStack>
         </ModalFooter>
       </ModalContent>

@@ -16,7 +16,7 @@ import { FaArrowDown, FaArrowUp, FaEyeSlash } from "react-icons/fa";
 import { isNumber } from "lodash-es";
 import { useRouter } from "next/router";
 
-import { useModelTestingStats, useDataset } from "~/utils/hooks";
+import { useModelTestingStats, useDataset, useSelectedProject } from "~/utils/hooks";
 import ColoredPercent from "~/components/ColoredPercent";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import { useTestEntrySortOrder } from "../useTestEntrySortOrder";
@@ -35,6 +35,7 @@ const EvalHeaderPill = ({
   const stats = useModelTestingStats(dataset?.id, modelId).data;
   const toggleEvalVisiblity = useVisibleEvalIds().toggleEvalVisiblity;
   const addFilter = useFilters().addFilter;
+  const selectedProject = useSelectedProject().data;
 
   const router = useRouter();
 
@@ -199,8 +200,12 @@ const EvalHeaderPill = ({
               px={2}
               onClick={() =>
                 void router.push({
-                  pathname: "/evals/[id]/[tab]",
-                  query: { id: datasetEval.id, tab: EVAL_SETTINGS_TAB_KEY },
+                  pathname: "/p/[projectSlug]/evals/[id]/[tab]",
+                  query: {
+                    projectSlug: selectedProject?.slug || "",
+                    id: datasetEval.id,
+                    tab: EVAL_SETTINGS_TAB_KEY,
+                  },
                 })
               }
               borderRadius={0}

@@ -36,7 +36,7 @@ export const DeleteProjectDialog = ({
     if (!selectedProject.data?.id) return;
     await deleteMutation.mutateAsync({ id: selectedProject.data.id });
     await utils.projects.list.invalidate();
-    await router.push({ pathname: "/request-logs" });
+    await router.push({ pathname: "/" });
     onClose();
   }, [deleteMutation, selectedProject, router]);
 

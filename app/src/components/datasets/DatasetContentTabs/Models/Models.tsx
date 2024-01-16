@@ -1,14 +1,14 @@
 import { Card, VStack, HStack, Text, Button } from "@chakra-ui/react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { setActiveTab } from "~/components/ContentTabs";
 import { getStatusColor } from "~/components/fineTunes/FineTunesTable";
-import { displayBaseModel } from "~/utils/baseModels";
 import dayjs from "~/utils/dayjs";
 
 import { useDatasetFineTunes } from "~/utils/hooks";
 import { DATASET_GENERAL_TAB_KEY } from "../DatasetContentTabs";
 import ViewEvaluationButton from "../Evaluation/ViewEvaluationButton";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const Models = () => {
   const fineTunes = useDatasetFineTunes().data;
@@ -37,7 +37,7 @@ const Models = () => {
         <Card key={fineTune.id} w="full">
           <VStack alignItems="flex-start" p={4}>
             <Text
-              as={Link}
+              as={ProjectLink}
               href={{ pathname: "/fine-tunes/[id]", query: { id: fineTune.id } }}
               fontWeight="bold"
               _hover={{ textDecoration: "underline" }}
@@ -47,7 +47,7 @@ const Models = () => {
             </Text>
             <HStack>
               <Text w={180}>Base Model</Text>
-              <Text color="gray.500">{displayBaseModel(fineTune.baseModel)}</Text>
+              <Text color="gray.500">{modelInfo(fineTune).name}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Training Set Size</Text>

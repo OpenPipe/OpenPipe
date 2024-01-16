@@ -12,6 +12,7 @@ test = "pytest-watch --runner 'pytest -rP -m focus'"
 python = "^3.9"
 modal = "0.55.4094"
 python-dotenv = "^1.0.0"
+boto3 = "^1.34.8"
 
 
 [tool.poetry.group.dev.dependencies]

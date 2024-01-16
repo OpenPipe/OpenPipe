@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
+import { typedFineTune } from "~/types/dbColumns.types";
 import { requireCanViewProject } from "~/utils/accessControl";
 import dayjs from "~/utils/dayjs";
 
@@ -16,47 +17,64 @@ export const usageRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
-      // Return the stats group by hour
       const baseQuery = kysely
         .selectFrom("UsageLog as ul")
-        .innerJoin("FineTune as ft", "ft.id", "ul.fineTuneId")
-        .where("ft.projectId", "=", input.projectId);
+        .where("ul.projectId", "=", input.projectId);
 
       const finetunesQuery = kysely
         .selectFrom(
-          baseQuery
+          kysely
+            .selectFrom("UsageLog as ul")
+            .innerJoin("FineTune as ft", "ft.id", "ul.fineTuneId")
+            .where("ft.projectId", "=", input.projectId)
             .select(({ fn }) => [
               "ft.id as ftId",
-              fn.count("ul.id").as("numQueries"),
-              fn.sum("cost").as("cost"),
-              fn.sum("inputTokens").as("inputTokens"),
-              fn.sum("outputTokens").as("outputTokens"),
+              fn
+                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else 1 end`)
+                .as("numQueries"),
+              fn
+                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else ul."inputTokens" end`)
+                .as("inputTokens"),
+              fn
+                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else ul."outputTokens" end`)
+                .as("outputTokens"),
+              fn
+                .sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`)
+                .as("cost"),
             ])
             .groupBy("ftId")
             .as("stats"),
         )
         .innerJoin("FineTune as ft", "ft.id", "stats.ftId")
         .selectAll("stats")
-        .select(["ft.baseModel", "ft.slug"])
+        .select(["ft.baseModel", "ft.provider", "ft.slug"])
         .orderBy("numQueries", "desc");
 
       const [periods, totals, fineTunes] = await Promise.all([
+        // Return the stats group by hour
         baseQuery
-          .select(({ fn }) => [
+          .select((eb) => [
             sql<Date>`date_trunc('day', "ul"."createdAt")`.as("period"),
             sql<number>`count("ul"."id")::int`.as("numQueries"),
-            fn.sum(fn.coalesce("ul.cost", sql<number>`0`)).as("cost"),
+            eb.fn
+              .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
+              .as("trainingCost"),
+            eb.fn
+              .sum(
+                sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
+              )
+              .as("inferenceCost"),
           ])
           .groupBy("period")
           .orderBy("period")
           .execute(),
         baseQuery
           .select(({ fn }) => [
-            fn.sum(fn.coalesce("cost", sql<number>`0`)).as("cost"),
+            fn.sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`).as("cost"),
             fn.count("ul.id").as("numQueries"),
           ])
           .executeTakeFirst(),
-        finetunesQuery.execute(),
+        finetunesQuery.select("ft.createdAt").execute(),
       ]);
 
       let originalDataIndex = periods.length - 1;
@@ -84,12 +102,13 @@ export const usageRouter = createTRPCRouter({
           backfilledPeriods.unshift({
             period: dayjs(dayToMatch).toDate(),
             numQueries: 0,
-            cost: 0,
+            trainingCost: 0,
+            inferenceCost: 0,
           });
         }
         dayToMatch = dayToMatch.subtract(1, "day");
       }
 
-      return { periods: backfilledPeriods, totals, fineTunes };
+      return { periods: backfilledPeriods, totals, fineTunes: fineTunes.map(typedFineTune) };
     }),
 });
