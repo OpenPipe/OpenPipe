@@ -73,7 +73,7 @@ model DatasetEntry {
     id String @id @default(uuid()) @db.Uuid
 
     loggedCallId String?     @db.Uuid
-    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: SetNull)
+    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
     // Equivalent to the same fields in the OpenAI chat completion input
     function_call   Json?
@@ -112,7 +112,6 @@ model DatasetEntry {
     @@index([datasetId, outdated, split])
     @@index([importId])
     @@index([persistentId, createdAt])
-    @@index([loggedCallId])
 }
 
 enum RelabelRequestStatus {
