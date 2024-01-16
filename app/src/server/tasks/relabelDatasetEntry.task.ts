@@ -95,7 +95,7 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
             numPreviousTries: numPreviousTries + 1,
           },
           {
-            runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries, 30000)),
+            runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries, 60 * 60 * 1000)),
             priority: 3,
           },
         );
