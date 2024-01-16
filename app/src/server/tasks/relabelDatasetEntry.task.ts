@@ -6,17 +6,21 @@ import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { copyEntryWithUpdates } from "~/server/utils/datasetEntryCreation/copyEntryWithUpdates";
+import { calculateQueryDelay } from "./generateTestSetEntry.task";
 
 export type RelabelDatasetEntryJob = {
   authoringUserId: string;
   relabelRequestId: string;
   datasetEntryId: string;
+  numPreviousTries: number;
 };
+
+const MAX_TRIES = 25;
 
 export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
   id: "relabelDatasetEntry",
   handler: async (task) => {
-    const { authoringUserId, relabelRequestId, datasetEntryId } = task;
+    const { authoringUserId, relabelRequestId, datasetEntryId, numPreviousTries } = task;
 
     const [relabelRequest, rawDatasetEntry] = await prisma.$transaction([
       prisma.relabelRequest.findUnique({
@@ -32,7 +36,7 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
 
     if (
       !relabelRequest ||
-      relabelRequest.status !== "PENDING" ||
+      (relabelRequest.status !== "PENDING" && relabelRequest.status !== "ERROR") ||
       !rawDatasetEntry ||
       !rawDatasetEntry.dataset
     )
@@ -83,14 +87,33 @@ export const relabelDatasetEntry = defineTask<RelabelDatasetEntryJob>({
         },
       });
     } catch (e) {
-      await prisma.relabelRequest.update({
-        where: { id: relabelRequestId },
-        data: {
-          status: "ERROR",
-          errorMessage: (e as Error).message,
-        },
-      });
-      throw e;
+      const shouldRetry = numPreviousTries < MAX_TRIES;
+      if (shouldRetry) {
+        await relabelDatasetEntry.enqueue(
+          {
+            ...task,
+            numPreviousTries: numPreviousTries + 1,
+          },
+          {
+            runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries, 30000)),
+            priority: 3,
+          },
+        );
+        await prisma.relabelRequest.update({
+          where: { id: relabelRequestId },
+          data: {
+            status: "PENDING",
+          },
+        });
+      } else {
+        await prisma.relabelRequest.update({
+          where: { id: relabelRequestId },
+          data: {
+            status: "ERROR",
+            errorMessage: (e as Error).message,
+          },
+        });
+      }
     }
   },
   specDefaults: {
@@ -120,6 +143,11 @@ export const queueRelabelDatasetEntries = async (
     const relabelRequestId = relabelRequestsToCreate[i]?.id;
     const datasetEntryId = datasetEntries[i]?.id;
     if (!relabelRequestId || !datasetEntryId) continue;
-    await relabelDatasetEntry.enqueue({ authoringUserId, relabelRequestId, datasetEntryId });
+    await relabelDatasetEntry.enqueue({
+      authoringUserId,
+      relabelRequestId,
+      datasetEntryId,
+      numPreviousTries: 0,
+    });
   }
 };
