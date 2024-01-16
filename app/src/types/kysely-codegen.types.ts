@@ -370,6 +370,7 @@ export interface UserInvitation {
   senderId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  isCanceled: Generated<boolean>;
 }
 
 export interface VerificationToken {

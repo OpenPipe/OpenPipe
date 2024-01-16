@@ -369,10 +369,11 @@ model UserInvitation {
     invitationToken String          @unique
     senderId        String          @db.Uuid
     sender          User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+    isCanceled      Boolean         @default(false)
     createdAt       DateTime        @default(now())
     updatedAt       DateTime        @updatedAt
 
-    @@unique([projectId, email])
+    @@index([projectId, email])
 }
 
 model VerificationToken {

@@ -116,6 +116,7 @@ export const projectsRouter = createTRPCRouter({
           jsonArrayFrom(
             eb
               .selectFrom("UserInvitation as ui")
+              .where("ui.isCanceled", "=", false)
               .selectAll("ui")
               .whereRef("ui.projectId", "=", "p.id"),
           ).as("projectUserInvitations"),
