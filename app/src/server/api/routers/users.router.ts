@@ -30,7 +30,7 @@ export const usersRouter = createTRPCRouter({
         },
       });
 
-      //Rate Limiting (10 invites per hour)
+      // Rate Limiting (10 invites per hour)
       const recentInvitationsCount = await prisma.userInvitation.count({
         where: {
           senderId: ctx.session.user.id,
@@ -44,7 +44,7 @@ export const usersRouter = createTRPCRouter({
         return error("Invitation Limit Exceeded: Please wait before sending more invites.");
       }
 
-      //Checking is a user is already a member of the project
+      // Checking if a user is already a member of the project
       if (user) {
         const existingMembership = await prisma.projectUser.findUnique({
           where: {
@@ -56,11 +56,11 @@ export const usersRouter = createTRPCRouter({
         });
 
         if (existingMembership) {
-          return error(`A user ${input.email} is already accepted an invitation`);
+          return error(`The user ${input.email} has already accepted an invitation`);
         }
       }
 
-      //Checking if a user is already invited to the project
+      // Checking if a user is already invited to the project
       const existingInvitation = await prisma.userInvitation.findFirst({
         where: {
           projectId: input.projectId,
@@ -70,7 +70,7 @@ export const usersRouter = createTRPCRouter({
       });
 
       if (existingInvitation) {
-        return error(`A user ${input.email} is already invited to this project`);
+        return error(`The user ${input.email} is already invited to this project`);
       }
 
       const invitation = await prisma.userInvitation.create({
@@ -119,9 +119,10 @@ export const usersRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       requireNothing(ctx);
 
-      const invitation = await prisma.userInvitation.findUnique({
+      const invitation = await prisma.userInvitation.findFirst({
         where: {
           invitationToken: input.invitationToken,
+          isCanceled: false,
         },
         include: {
           project: {
@@ -138,7 +139,7 @@ export const usersRouter = createTRPCRouter({
         },
       });
 
-      if (!invitation || invitation.isCanceled) {
+      if (!invitation) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
@@ -153,9 +154,10 @@ export const usersRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       requireNothing(ctx);
 
-      const invitation = await prisma.userInvitation.findUnique({
+      const invitation = await prisma.userInvitation.findFirst({
         where: {
           invitationToken: input.invitationToken,
+          isCanceled: false,
         },
         include: {
           project: {
@@ -166,7 +168,7 @@ export const usersRouter = createTRPCRouter({
         },
       });
 
-      if (!invitation || invitation.isCanceled) {
+      if (!invitation) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
@@ -204,13 +206,14 @@ export const usersRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       requireNothing(ctx);
 
-      const invitation = await prisma.userInvitation.findUnique({
+      const invitation = await prisma.userInvitation.findFirst({
         where: {
           invitationToken: input.invitationToken,
+          isCanceled: false,
         },
       });
 
-      if (!invitation || invitation.isCanceled) {
+      if (!invitation) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
