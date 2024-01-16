@@ -5,11 +5,11 @@ description: "Decrease input token counts by pruning out chunks of static text."
 
 Some prompts have large chunks of unchanging text, like system messages that don't differ from one request to the next. By removing this static text and fine-tuning a model on the compacted data, we can reduce the size of incoming requests and save you money on inference.
 
-You can add pruning rules to your dataset in the Settings tab, as shown below:
+You can add pruning rules to your dataset in the Settings tab, as shown below and in our [demo dataset](https://app.openpipe.ai/p/BRZFEx50Pf/datasets/109bbb87-399e-4d13-ad74-55ae5d5d43eb/settings).
 
 <Frame>![](/images/features/pruning-rules.png)</Frame>
 
-You can also see what your input looks like with the pruning rules applied in the Dataset Entry drawer:
+You can also see what your input looks like with the pruning rules applied in the Dataset Entry drawer (see [demo model](https://app.openpipe.ai/p/BRZFEx50Pf/fine-tunes/a38b574a-1a0c-43fb-9fa3-c0e18433412f/general)):
 
 <Frame>![](/images/features/applied-pruning-rule.png)</Frame>
 

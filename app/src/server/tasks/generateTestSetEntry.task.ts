@@ -120,7 +120,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
               data: {
                 output: Prisma.JsonNull,
                 outputTokens: null,
-                errorMessage: "Error evaluating model output, will retry",
+                errorMessage: "Error generating model output, will retry",
               },
             });
           }
