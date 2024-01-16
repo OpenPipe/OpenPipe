@@ -210,7 +210,7 @@ export const usersRouter = createTRPCRouter({
         },
       });
 
-      if (!invitation) {
+      if (!invitation || invitation.isCanceled) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
