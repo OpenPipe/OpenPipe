@@ -109,9 +109,9 @@ export const projectsRouter = createTRPCRouter({
               .innerJoin("User as u", "u.id", "pu.userId")
               .select(["pu.createdAt", "pu.role", "u.id as userId", "u.name", "u.email"])
               .whereRef("pu.projectId", "=", "p.id")
-              .orderBy("pu.createdAt", "asc")
               // Take advantage of fact that ADMIN is alphabetically before MEMBER and VIEWER
-              .orderBy("pu.role", "asc"),
+              .orderBy("pu.role", "asc")
+              .orderBy("pu.createdAt", "asc"),
           ).as("projectUsers"),
           jsonArrayFrom(
             eb
