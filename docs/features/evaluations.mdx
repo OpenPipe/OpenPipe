@@ -1,0 +1,35 @@
+---
+title: "Evaluations"
+sidebarTitle: "Evaluations"
+description: "
+Evaluate your fine-tuned models against comparison LLMs like GPT-4 and GPT-4-Turbo. Add and remove models from the evaluation, and customize the evaluation criteria."
+---
+
+Once your model is trained, the next thing you want to know is how well it performs. OpenPipe's built-in evaluation framework makes it easy to compare new models you train against previous models and generic OpenAI models as well.
+
+When you train a model 20% of the dataset entries you provide will be withheld from training. These entries form your test set. For each entry in the test set, your new model will produce an output that will be shown in the [evaluation table](https://app.openpipe.ai/p/BRZFEx50Pf/datasets/0aa75f72-3fe5-4294-a94e-94c9236befa6/evaluate).
+
+<br />
+<Frame>![](/images/features/evals-table.png)</Frame>
+<br />
+
+While this table makes it really easy to compare model output for a given input side by side, it doesn't
+actually let you know which model is doing better in general. For that, we need custom evaluations. Evaluations
+allow you to compare model outputs across a variety of inputs to determine which model is doing a better
+job. On the backend, we use GPT-4 as a judge to determine which output is a better fit for the test dataset
+entry. You can configure the exact judgement criteria, which models will be judged, and how many dataset
+entries will be included in the evaluation from the evaluation's [Settings](https://app.openpipe.ai/p/BRZFEx50Pf/evals/f424c301-a45e-460e-920c-e87a5f121049/settings)
+page.
+
+<br />
+<Frame>![](/images/features/eval-settings.png)</Frame>
+<br />
+
+Results are shown in both a table and a head-to-head comparison view on the [Results](https://app.openpipe.ai/p/BRZFEx50Pf/evals/f424c301-a45e-460e-920c-e87a5f121049/results) page.
+
+<br />
+<Frame>![](/images/features/eval-results.png)</Frame>
+<br />
+
+To see the whole thing in action, check out the [Evaluate](https://app.openpipe.ai/p/BRZFEx50Pf/datasets/0aa75f72-3fe5-4294-a94e-94c9236befa6/evaluate) tab in our public Bullet Point Generator dataset.
+Feel free to play around with the display settings to get a feel for how individual models compare against one another!
