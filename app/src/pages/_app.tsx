@@ -43,7 +43,8 @@ const MyApp: AppType<{ session: Session | null }> = ({
           <SyncAppStore />
           <Favicon />
           <ChakraThemeProvider>
-            <QueryParamProvider adapter={NextAdapterPages}>
+            {/* enableBatching allows to update 2 states at once. It is crucial for the Usage page. */}
+            <QueryParamProvider adapter={NextAdapterPages} options={{ enableBatching: true }}>
               <Component {...pageProps} />
             </QueryParamProvider>
           </ChakraThemeProvider>

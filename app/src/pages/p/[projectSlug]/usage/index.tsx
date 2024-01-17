@@ -16,8 +16,20 @@ import {
   Tr,
   VStack,
   Box,
+  Flex,
+  Spacer,
+  Center,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
 } from "@chakra-ui/react";
-import { DollarSign, Hash } from "lucide-react";
+import { ChevronRightIcon, ChevronLeftIcon, DollarSign, Hash } from "lucide-react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { useQueryParam, StringParam, DateParam } from "use-query-params";
+import { set } from "zod";
 import { ProjectLink } from "~/components/ProjectLink";
 
 import UsageGraph from "~/components/dashboard/UsageGraph";
@@ -33,8 +45,50 @@ const numberWithDefault = (num: number | string | bigint | null, defaultValue = 
 export default function Usage() {
   const { data: selectedProject } = useSelectedProject();
 
+  const router = useRouter();
+  const { projectSlug } = router.query; // Extract dynamic segment from the URL
+
+  // Define query parameters
+  const [startDate, setStartDate] = useQueryParam("start", DateParam);
+  const [endDate, setEndDate] = useQueryParam("end", DateParam);
+  const [currentPeriod, setCurrentPeriod] = useState(dayjs().format("MMMM YYYY"));
+
+  // Initialize the query parameters if they are not set
+  useEffect(() => {
+    if (projectSlug) {
+      if (!endDate) setEndDate(dayjs().endOf("month").toDate());
+      if (!startDate) setStartDate(dayjs().startOf("month").toDate());
+    }
+  }, [startDate, endDate, setStartDate, setEndDate, projectSlug]);
+
+  const updateMonth = (operation: "add" | "subtract") => {
+    const newStartDate = dayjs(startDate)[operation](1, "month").startOf("month").toDate();
+    const newEndDate = dayjs(endDate)[operation](1, "month").endOf("month").toDate();
+    const newCurrentPeriod = dayjs(startDate)[operation](1, "month").format("MMMM YYYY");
+
+    // Then, update all states/parameters at once
+    setEndDate(newEndDate);
+    setStartDate(newStartDate);
+    setCurrentPeriod(newCurrentPeriod);
+  };
+
+  const nextMonthIsClickable = () => dayjs(startDate).add(1, "month").isBefore(dayjs());
+
+  const handleNextMonthChange = () => {
+    if (!nextMonthIsClickable()) return;
+    updateMonth("add");
+  };
+
+  const handlePrevMonthChange = () => {
+    updateMonth("subtract");
+  };
+
   const stats = api.usage.stats.useQuery(
-    { projectId: selectedProject?.id ?? "" },
+    {
+      projectId: selectedProject?.id ?? "",
+      startDate: startDate || dayjs().startOf("month").toDate(),
+      endDate: endDate || dayjs().endOf("month").toDate(),
+    },
     { enabled: !!selectedProject },
   );
 
@@ -44,14 +98,49 @@ export default function Usage() {
         <Text fontSize="2xl" fontWeight="bold">
           Usage
         </Text>
+
         <VStack margin="auto" spacing={4} align="stretch" w="full">
           <HStack gap={4} align="start">
             <Card flex={1}>
               <CardBody>
-                <UsageGraph />
+                <UsageGraph
+                  startDate={startDate || dayjs().startOf("month").toDate()}
+                  endDate={endDate || dayjs().startOf("month").toDate()}
+                />
               </CardBody>
             </Card>
             <VStack spacing="4" width="300px" align="stretch">
+              <Card>
+                <CardBody>
+                  <Stat>
+                    <Flex>
+                      <Center>
+                        <Icon
+                          onClick={handlePrevMonthChange}
+                          cursor={"pointer"}
+                          as={ChevronLeftIcon}
+                          boxSize={5}
+                          color={"gray.500"}
+                        />
+                      </Center>
+                      <Spacer />
+                      <Text fontSize="lg" as="b">
+                        {currentPeriod}
+                      </Text>
+                      <Spacer />
+                      <Center>
+                        <Icon
+                          onClick={handleNextMonthChange}
+                          cursor={"pointer"}
+                          as={ChevronRightIcon}
+                          boxSize={5}
+                          color={nextMonthIsClickable() ? "gray.500" : "gray.300"}
+                        />
+                      </Center>
+                    </Flex>
+                  </Stat>
+                </CardBody>
+              </Card>
               <Card>
                 <CardBody>
                   <Stat>
