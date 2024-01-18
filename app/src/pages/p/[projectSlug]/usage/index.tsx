@@ -22,12 +22,11 @@ import {
   Tab,
   TabPanels,
   TabPanel,
-  Button,
 } from "@chakra-ui/react";
 import { ChevronRightIcon, ChevronLeftIcon, DollarSign, Hash } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
-import { useQueryParam, DateParam, StringParam } from "use-query-params";
+import { useQueryParam, StringParam } from "use-query-params";
 import { ProjectLink } from "~/components/ProjectLink";
 import CostGraph from "~/components/dashboard/CostGraph";
 
@@ -65,11 +64,10 @@ export default function Usage() {
 
   const { totalInferenceSpend, totalTrainingSpend, totalInputTokens, totalOutputTokens } =
     useMemo(() => {
-      const calculateTotal = (dataArray: any[] | undefined, key: string) =>
-        dataArray?.reduce(
-          (acc: number, cur: { [x: string]: string | number }) => acc + Number(cur[key]),
-          0,
-        ) ?? 0;
+      const calculateTotal = <T extends Record<string, any>>(
+        dataArray: T[] | undefined,
+        key: keyof T,
+      ) => dataArray?.reduce((acc: number, cur: T) => acc + Number(cur[key]), 0) ?? 0;
 
       return {
         totalTrainingSpend: calculateTotal(stats.data?.periods, "trainingCost"),

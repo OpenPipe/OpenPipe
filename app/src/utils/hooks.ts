@@ -10,7 +10,6 @@ import { useVisibleModelIds } from "~/components/datasets/DatasetContentTabs/Eva
 import { useSortOrder } from "~/components/sorting";
 import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
-import dayjs from "dayjs";
 import { toUTC } from "./dayjs";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
