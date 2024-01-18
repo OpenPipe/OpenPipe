@@ -34,7 +34,7 @@ import CostGraph from "~/components/dashboard/CostGraph";
 import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
-import dayjs, { toUTC, toUTCDateShortFormat } from "~/utils/dayjs";
+import dayjs, { formatToUTCDayMonth } from "~/utils/dayjs";
 import { useSelectedProject, useStats } from "~/utils/hooks";
 
 const numberWithDefault = (num: number | string | bigint | null, defaultValue = 0) =>
@@ -119,11 +119,11 @@ export default function Usage() {
                   color={"gray.900"}
                 />
                 <Text onClick={handlePrevMonthChange} cursor={"pointer"}>
-                  {toUTCDateShortFormat(startDate || startOfThisMonth)}
+                  {formatToUTCDayMonth(startDate || startOfThisMonth)}
                 </Text>
                 <Text paddingX={"5px"}> - </Text>
                 <Text onClick={handleNextMonthChange} cursor={"pointer"}>
-                  {toUTCDateShortFormat(endDate || endOfThisMonth)}
+                  {formatToUTCDayMonth(endDate || endOfThisMonth)}
                 </Text>
                 <Icon
                   onClick={handleNextMonthChange}

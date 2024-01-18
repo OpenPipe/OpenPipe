@@ -1,5 +1,5 @@
 import { Card, Text, VStack } from "@chakra-ui/react";
-import { toUTCDateShortFormat } from "~/utils/dayjs";
+import { formatToUTCDayMonth } from "~/utils/dayjs";
 
 interface PayloadItem {
   name: string;
@@ -22,7 +22,7 @@ function CustomTooltip({
     return (
       <Card>
         <VStack alignItems="flex-start" p={4}>
-          <Text as={"b"}>{toUTCDateShortFormat(label)} UTC</Text>
+          <Text as={"b"}>{formatToUTCDayMonth(label)} UTC</Text>
           {payload.map((p) => (
             <Text key={p.name} style={{ color: p.color }}>{`${p.name}: ${beforeValue || ""}${
               p.value

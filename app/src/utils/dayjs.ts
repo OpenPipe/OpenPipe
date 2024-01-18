@@ -15,7 +15,7 @@ export const formatTimePast = (date: Date) =>
 export const formatDateForPicker = (date: number) =>
   dayjs(new Date(date)).format("YYYY-MM-DD HH:mm");
 
-export const toUTCDateShortFormat = (dateStr: string | Date) =>
+export const formatToUTCDayMonth = (dateStr: string | Date) =>
   dayjs(dateStr).utc().format("DD MMM");
 
 export const toUTC = (dateStr: string | Date) => dayjs(dateStr).utc();

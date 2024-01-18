@@ -11,7 +11,7 @@ import {
 import { useMemo } from "react";
 
 import { useSelectedProject, useStats } from "~/utils/hooks";
-import { toUTCDateShortFormat } from "~/utils/dayjs";
+import { formatToUTCDayMonth } from "~/utils/dayjs";
 import { useToken } from "@chakra-ui/react";
 import CustomTooltip from "./CustomTooltip";
 
@@ -52,7 +52,7 @@ export default function CostGraph({ startDate, endDate }: propsType) {
         <XAxis
           dataKey="period"
           tickMargin={4}
-          tickFormatter={(dateStr: string) => toUTCDateShortFormat(dateStr)}
+          tickFormatter={(dateStr: string) => formatToUTCDayMonth(dateStr)}
         />
         <YAxis
           yAxisId="right"
