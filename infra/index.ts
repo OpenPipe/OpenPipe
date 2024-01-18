@@ -7,6 +7,7 @@ import "./src/dns";
 export { dbConnectionString } from "./src/database";
 export { deployAccessKeyId, deployAccessKeySecret } from "./src/deployUser";
 export * from "./src/vanta";
+export * from "./src/anyscale";
 export * from "./src/models";
 
 export const kubeconfig = cluster.kubeconfig;
