@@ -11,6 +11,7 @@ import { useSortOrder } from "~/components/sorting";
 import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 import dayjs from "dayjs";
+import { toUTC } from "./dayjs";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
@@ -223,14 +224,22 @@ export const useTestingEntries = (refetchInterval?: number) => {
 
 export const useStats = (
   selectedProjectId: string,
-  startDate: Date | null | undefined,
-  endDate: Date | null | undefined,
+  startDate: string | null | undefined,
+  endDate: string | null | undefined,
 ) => {
+  const startDateUTC = startDate
+    ? toUTC(new Date(startDate)).startOf("month").toDate()
+    : toUTC(new Date()).startOf("month").toDate();
+
+  const endDateUTC = endDate
+    ? toUTC(new Date(endDate)).endOf("month").toDate()
+    : toUTC(new Date()).endOf("month").toDate();
+
   const stats = api.usage.stats.useQuery(
     {
       projectId: selectedProjectId,
-      startDate: startDate || dayjs().startOf("month").toDate(),
-      endDate: endDate || dayjs().endOf("month").toDate(),
+      startDate: startDateUTC || new Date(),
+      endDate: endDateUTC || new Date(),
     },
     { enabled: !!selectedProjectId },
   );

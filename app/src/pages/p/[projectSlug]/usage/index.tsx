@@ -27,7 +27,7 @@ import {
 import { ChevronRightIcon, ChevronLeftIcon, DollarSign, Hash } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
-import { useQueryParam, DateParam } from "use-query-params";
+import { useQueryParam, DateParam, StringParam } from "use-query-params";
 import { ProjectLink } from "~/components/ProjectLink";
 import CostGraph from "~/components/dashboard/CostGraph";
 
@@ -45,13 +45,11 @@ export default function Usage() {
 
   const router = useRouter();
 
-  const [startDate, setStartDate] = useQueryParam("start", DateParam);
-  const [endDate, setEndDate] = useQueryParam("end", DateParam);
+  const [startDate, setStartDate] = useQueryParam("start", StringParam);
+  const [endDate, setEndDate] = useQueryParam("end", StringParam);
 
-  const startOfThisMonth = toUTC(new Date()).startOf("month").toDate();
-  const endOfThisMonth = toUTC(new Date()).endOf("month").toDate();
-
-  console.log(startDate);
+  const startOfThisMonth = dayjs().startOf("month").format("YYYY-MM-DD");
+  const endOfThisMonth = dayjs().endOf("month").format("YYYY-MM-DD");
 
   const { projectSlug } = router.query;
 
@@ -67,39 +65,23 @@ export default function Usage() {
 
   const { totalInferenceSpend, totalTrainingSpend, totalInputTokens, totalOutputTokens } =
     useMemo(() => {
-      const totalTrainingSpend =
-        stats.data?.periods.reduce((acc, cur) => {
-          acc += Number(cur.trainingCost);
-          return acc;
-        }, 0) ?? 0;
+      const calculateTotal = (dataArray: any[] | undefined, key: string) =>
+        dataArray?.reduce(
+          (acc: number, cur: { [x: string]: string | number }) => acc + Number(cur[key]),
+          0,
+        ) ?? 0;
 
-      const totalInferenceSpend =
-        stats.data?.periods.reduce((acc, cur) => {
-          acc += Number(cur.inferenceCost);
-          return acc;
-        }, 0) ?? 0;
-
-      const totalInputTokens =
-        stats.data?.fineTunes.reduce((acc, cur) => {
-          acc += Number(cur.inputTokens);
-          return acc;
-        }, 0) ?? 0;
-
-      const totalOutputTokens =
-        stats.data?.fineTunes.reduce((acc, cur) => {
-          acc += Number(cur.outputTokens);
-          return acc;
-        }, 0) ?? 0;
-
-      return { totalTrainingSpend, totalInferenceSpend, totalInputTokens, totalOutputTokens };
+      return {
+        totalTrainingSpend: calculateTotal(stats.data?.periods, "trainingCost"),
+        totalInferenceSpend: calculateTotal(stats.data?.periods, "inferenceCost"),
+        totalInputTokens: calculateTotal(stats.data?.fineTunes, "inputTokens"),
+        totalOutputTokens: calculateTotal(stats.data?.fineTunes, "outputTokens"),
+      };
     }, [stats.data]);
 
   const updateMonth = (operation: "add" | "subtract") => {
-    const newStartDate = dayjs(startDate)[operation](1, "month").startOf("month").toDate();
-    const newEndDate = dayjs(endDate)[operation](1, "month").endOf("month").toDate();
-
-    setStartDate(newStartDate);
-    setEndDate(newEndDate);
+    setStartDate(dayjs(startDate)[operation](1, "month").startOf("month").format("YYYY-MM-DD"));
+    setEndDate(dayjs(endDate)[operation](1, "month").endOf("month").format("YYYY-MM-DD"));
   };
 
   const nextMonthIsClickable = () => dayjs(startDate).add(1, "month").isBefore(dayjs());
@@ -245,7 +227,7 @@ export default function Usage() {
                           <Icon as={Hash} boxSize={4} color="gray.500" />{" "}
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          {totalInputTokens}
+                          {totalInputTokens.toLocaleString()}
                         </StatNumber>
                       </Stat>
                     </CardBody>
@@ -258,7 +240,7 @@ export default function Usage() {
                           <Icon as={Hash} boxSize={4} color="gray.500" />{" "}
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          {totalOutputTokens}
+                          {totalOutputTokens.toLocaleString()}
                         </StatNumber>
                       </Stat>
                     </CardBody>

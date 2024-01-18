@@ -10,7 +10,6 @@ export const usageRouter = createTRPCRouter({
   stats: protectedProcedure
     .input(
       z.object({
-        // TODO: actually take startDate into account
         startDate: z.date(),
         endDate: z.date(),
         projectId: z.string(),
@@ -55,7 +54,7 @@ export const usageRouter = createTRPCRouter({
         .orderBy("numQueries", "desc");
 
       const [periods, totals, fineTunes] = await Promise.all([
-        // Return the stats group by hour
+        // Return the stats group by day
         baseQuery
           .select((eb) => [
             sql<Date>`date_trunc('day', "ul"."createdAt")`.as("period"),
@@ -69,7 +68,6 @@ export const usageRouter = createTRPCRouter({
               )
               .as("inferenceCost"),
           ])
-          // TODO: actually take startDate and endDate into account
           .where(sql`"ul"."createdAt"`, ">=", input.startDate)
           .where(sql`"ul"."createdAt"`, "<=", input.endDate)
           .groupBy("period")

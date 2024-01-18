@@ -16,8 +16,8 @@ import { useToken } from "@chakra-ui/react";
 import CustomTooltip from "./CustomTooltip";
 
 type propsType = {
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
 };
 
 export default function CostGraph({ startDate, endDate }: propsType) {
