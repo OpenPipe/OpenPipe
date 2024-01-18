@@ -11,12 +11,12 @@ function CustomTooltip({
   active,
   payload,
   label,
-  beforeValue,
+  valuePrefix,
 }: {
   active?: boolean;
   payload?: PayloadItem[];
   label?: string;
-  beforeValue?: string;
+  valuePrefix?: string;
 }) {
   if (active && payload && payload.length && label) {
     return (
@@ -24,7 +24,7 @@ function CustomTooltip({
         <VStack alignItems="flex-start" p={4}>
           <Text as={"b"}>{formatToUTCDayMonth(label)} UTC</Text>
           {payload.map((p) => (
-            <Text key={p.name} style={{ color: p.color }}>{`${p.name}: ${beforeValue || ""}${
+            <Text key={p.name} style={{ color: p.color }}>{`${p.name}: ${valuePrefix || ""}${
               p.value
             }`}</Text>
           ))}

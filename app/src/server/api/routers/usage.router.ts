@@ -20,26 +20,25 @@ export const usageRouter = createTRPCRouter({
 
       const baseQuery = kysely
         .selectFrom("UsageLog as ul")
-        .where("ul.projectId", "=", input.projectId);
+        .where("ul.projectId", "=", input.projectId)
+        .where(sql`"ul"."createdAt"`, ">=", input.startDate)
+        .where(sql`"ul"."createdAt"`, "<=", input.endDate);
 
       const finetunesQuery = kysely
         .selectFrom(
-          kysely
-            .selectFrom("UsageLog as ul")
-            .where(sql`"ul"."createdAt"`, ">=", input.startDate)
-            .where(sql`"ul"."createdAt"`, "<=", input.endDate)
+          baseQuery
             .innerJoin("FineTune as ft", "ft.id", "ul.fineTuneId")
             .where("ft.projectId", "=", input.projectId)
             .select(({ fn }) => [
               "ft.id as ftId",
               fn
-                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else 1 end`)
+                .sum(sql<number>`case when ul.type != 'TRAINING' then 1 else 0 end`)
                 .as("numQueries"),
               fn
-                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else ul."inputTokens" end`)
+                .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
                 .as("inputTokens"),
               fn
-                .sum(sql<number>`case when ul.type = 'TRAINING' then 0 else ul."outputTokens" end`)
+                .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
                 .as("outputTokens"),
               fn
                 .sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`)
@@ -68,18 +67,33 @@ export const usageRouter = createTRPCRouter({
               )
               .as("inferenceCost"),
           ])
-          .where(sql`"ul"."createdAt"`, ">=", input.startDate)
-          .where(sql`"ul"."createdAt"`, "<=", input.endDate)
           .groupBy("period")
           .orderBy("period")
           .execute(),
         baseQuery
           .select(({ fn }) => [
             fn.sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`).as("cost"),
+            fn
+              .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
+              .as("totalTrainingSpend"),
+            fn
+              .sum(
+                sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
+              )
+              .as("totalInferenceSpend"),
+            fn
+              .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
+              .as("totalInputTokens"),
+            fn
+              .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
+              .as("totalOutputTokens"),
+            fn
+              .sum(
+                sql<number>`case when ul.type = 'TRAINING' then ul."inputTokens" + ul."outputTokens" else 0 end`,
+              )
+              .as("totalTrainingTokens"),
             fn.count("ul.id").as("numQueries"),
           ])
-          .where(sql`"ul"."createdAt"`, ">=", input.startDate)
-          .where(sql`"ul"."createdAt"`, "<=", input.endDate)
           .executeTakeFirst(),
         finetunesQuery.select("ft.createdAt").execute(),
       ]);

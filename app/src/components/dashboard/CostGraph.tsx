@@ -64,7 +64,7 @@ export default function CostGraph({ startDate, endDate }: propsType) {
           stroke={totalSpendColor}
           width={longestTotalSpendLabelLength * 10 + 8}
         />
-        <Tooltip cursor={{ fill: "#EDF2F7" }} content={<CustomTooltip beforeValue="$" />} />
+        <Tooltip cursor={{ fill: "#EDF2F7" }} content={<CustomTooltip valuePrefix="$" />} />
         <Legend />
         <CartesianGrid stroke="#f5f5f5" />
         <Bar stackId="a" dataKey="Training Spend" fill={trainingSpendColor} yAxisId="right" />

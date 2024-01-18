@@ -44,7 +44,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
           <Favicon />
           <ChakraThemeProvider>
             {/* enableBatching allows to update 2 states at once. It is crucial for the Usage page. */}
-            <QueryParamProvider adapter={NextAdapterPages} options={{ enableBatching: true }}>
+            <QueryParamProvider adapter={NextAdapterPages}>
               <Component {...pageProps} />
             </QueryParamProvider>
           </ChakraThemeProvider>

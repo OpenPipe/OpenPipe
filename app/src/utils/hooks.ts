@@ -227,11 +227,11 @@ export const useStats = (
   endDate: string | null | undefined,
 ) => {
   const startDateUTC = startDate
-    ? toUTC(new Date(startDate)).startOf("month").toDate()
+    ? toUTC(new Date(startDate)).startOf("day").toDate()
     : toUTC(new Date()).startOf("month").toDate();
 
   const endDateUTC = endDate
-    ? toUTC(new Date(endDate)).endOf("month").toDate()
+    ? toUTC(new Date(endDate)).endOf("day").toDate()
     : toUTC(new Date()).endOf("month").toDate();
 
   const stats = api.usage.stats.useQuery(
