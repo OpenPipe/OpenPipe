@@ -16,28 +16,26 @@ import {
   Tr,
   VStack,
   Box,
-  Flex,
   Spacer,
-  Center,
   Tabs,
   TabList,
   Tab,
   TabPanels,
   TabPanel,
+  Button,
 } from "@chakra-ui/react";
 import { ChevronRightIcon, ChevronLeftIcon, DollarSign, Hash } from "lucide-react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { useQueryParam, StringParam, DateParam } from "use-query-params";
-import { set } from "zod";
+import { useEffect, useMemo } from "react";
+import { useQueryParam, DateParam } from "use-query-params";
 import { ProjectLink } from "~/components/ProjectLink";
+import CostGraph from "~/components/dashboard/CostGraph";
 
 import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
-import { api } from "~/utils/api";
-import dayjs from "~/utils/dayjs";
-import { useSelectedProject } from "~/utils/hooks";
+import dayjs, { toUTC, toUTCDateShortFormat } from "~/utils/dayjs";
+import { useSelectedProject, useStats } from "~/utils/hooks";
 
 const numberWithDefault = (num: number | string | bigint | null, defaultValue = 0) =>
   Number(num ?? defaultValue);
@@ -46,30 +44,62 @@ export default function Usage() {
   const { data: selectedProject } = useSelectedProject();
 
   const router = useRouter();
-  const { projectSlug } = router.query; // Extract dynamic segment from the URL
 
-  // Define query parameters
   const [startDate, setStartDate] = useQueryParam("start", DateParam);
   const [endDate, setEndDate] = useQueryParam("end", DateParam);
-  const [currentPeriod, setCurrentPeriod] = useState(dayjs().format("MMMM YYYY"));
 
-  // Initialize the query parameters if they are not set
+  const startOfThisMonth = toUTC(new Date()).startOf("month").toDate();
+  const endOfThisMonth = toUTC(new Date()).endOf("month").toDate();
+
+  console.log(startDate);
+
+  const { projectSlug } = router.query;
+
   useEffect(() => {
+    // Prevents `href` Interpolation error in nextjs
     if (projectSlug) {
-      if (!endDate) setEndDate(dayjs().endOf("month").toDate());
-      if (!startDate) setStartDate(dayjs().startOf("month").toDate());
+      if (!startDate) setStartDate(startOfThisMonth);
+      if (!endDate) setEndDate(endOfThisMonth);
     }
   }, [startDate, endDate, setStartDate, setEndDate, projectSlug]);
+
+  const stats = useStats(selectedProject?.id || "", startDate, endDate);
+
+  const { totalInferenceSpend, totalTrainingSpend, totalInputTokens, totalOutputTokens } =
+    useMemo(() => {
+      const totalTrainingSpend =
+        stats.data?.periods.reduce((acc, cur) => {
+          acc += Number(cur.trainingCost);
+          return acc;
+        }, 0) ?? 0;
+
+      const totalInferenceSpend =
+        stats.data?.periods.reduce((acc, cur) => {
+          acc += Number(cur.inferenceCost);
+          return acc;
+        }, 0) ?? 0;
+
+      const totalInputTokens =
+        stats.data?.fineTunes.reduce((acc, cur) => {
+          acc += Number(cur.inputTokens);
+          return acc;
+        }, 0) ?? 0;
+
+      const totalOutputTokens =
+        stats.data?.fineTunes.reduce((acc, cur) => {
+          acc += Number(cur.outputTokens);
+          return acc;
+        }, 0) ?? 0;
+
+      return { totalTrainingSpend, totalInferenceSpend, totalInputTokens, totalOutputTokens };
+    }, [stats.data]);
 
   const updateMonth = (operation: "add" | "subtract") => {
     const newStartDate = dayjs(startDate)[operation](1, "month").startOf("month").toDate();
     const newEndDate = dayjs(endDate)[operation](1, "month").endOf("month").toDate();
-    const newCurrentPeriod = dayjs(startDate)[operation](1, "month").format("MMMM YYYY");
 
-    // Then, update all states/parameters at once
-    setEndDate(newEndDate);
     setStartDate(newStartDate);
-    setCurrentPeriod(newCurrentPeriod);
+    setEndDate(newEndDate);
   };
 
   const nextMonthIsClickable = () => dayjs(startDate).add(1, "month").isBefore(dayjs());
@@ -83,94 +113,163 @@ export default function Usage() {
     updateMonth("subtract");
   };
 
-  const stats = api.usage.stats.useQuery(
-    {
-      projectId: selectedProject?.id ?? "",
-      startDate: startDate || dayjs().startOf("month").toDate(),
-      endDate: endDate || dayjs().endOf("month").toDate(),
-    },
-    { enabled: !!selectedProject },
-  );
-
   return (
     <AppShell title="Usage" requireAuth>
-      <VStack px={8} py={8} alignItems="flex-start" spacing={4}>
-        <Text fontSize="2xl" fontWeight="bold">
-          Usage
-        </Text>
+      <VStack px={8} py={8} alignItems="flex-start">
+        <Tabs w="full">
+          <HStack justifyContent="space-between" marginX={0}>
+            <TabList>
+              <Tab>
+                <Heading size="md">Cost</Heading>
+              </Tab>
+              <Tab>
+                <Heading size="md">Activity</Heading>
+              </Tab>
+            </TabList>
+            <Spacer />
+            <Card w={"180px"} colorScheme="white" color={"gray.900"} padding={"5px"}>
+              <HStack spacing={0} justifyContent="space-between">
+                <Icon
+                  onClick={handlePrevMonthChange}
+                  cursor={"pointer"}
+                  as={ChevronLeftIcon}
+                  boxSize={5}
+                  color={"gray.900"}
+                />
+                <Text onClick={handlePrevMonthChange} cursor={"pointer"}>
+                  {toUTCDateShortFormat(startDate || startOfThisMonth)}
+                </Text>
+                <Text paddingX={"5px"}> - </Text>
+                <Text onClick={handleNextMonthChange} cursor={"pointer"}>
+                  {toUTCDateShortFormat(endDate || endOfThisMonth)}
+                </Text>
+                <Icon
+                  onClick={handleNextMonthChange}
+                  cursor={"pointer"}
+                  as={ChevronRightIcon}
+                  boxSize={5}
+                  color={nextMonthIsClickable() ? "gray.900" : "gray.400"}
+                />
+              </HStack>
+            </Card>
+          </HStack>
+
+          <TabPanels>
+            <TabPanel paddingX={0}>
+              <HStack gap={4} align="start">
+                <Card flex={1}>
+                  <CardBody>
+                    <CostGraph
+                      startDate={startDate || startOfThisMonth}
+                      endDate={endDate || endOfThisMonth}
+                    />
+                  </CardBody>
+                </Card>
+                <VStack spacing="4" width="300px" align="stretch">
+                  <Card>
+                    <CardBody>
+                      <Stat>
+                        <HStack>
+                          <StatLabel flex={1}>Total Spent</StatLabel>
+                          <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                        </HStack>
+                        <StatNumber>
+                          $
+                          {parseFloat(stats.data?.totals?.cost?.toString() ?? "0")
+                            .toFixed(2)
+                            .toLocaleString()}
+                        </StatNumber>
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                  <Card>
+                    <CardBody>
+                      <Stat>
+                        <HStack>
+                          <StatLabel flex={1}>Training Spend</StatLabel>
+                          <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                        </HStack>
+                        <StatNumber color="gray.600" fontSize={"xl"}>
+                          ${parseFloat(totalTrainingSpend.toString()).toFixed(2)}
+                        </StatNumber>
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                  <Card>
+                    <CardBody>
+                      <Stat>
+                        <HStack>
+                          <StatLabel flex={1}>Inference Spend</StatLabel>
+                          <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                        </HStack>
+                        <StatNumber color="gray.600" fontSize={"xl"}>
+                          ${parseFloat(totalInferenceSpend.toString()).toFixed(2)}
+                        </StatNumber>
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                </VStack>
+              </HStack>
+            </TabPanel>
+            <TabPanel paddingX={0}>
+              <HStack gap={4} align="start">
+                <Card flex={1}>
+                  <CardBody>
+                    <UsageGraph
+                      startDate={startDate || startOfThisMonth}
+                      endDate={endDate || endOfThisMonth}
+                    />
+                  </CardBody>
+                </Card>
+                <VStack spacing="4" width="300px" align="stretch">
+                  <Card>
+                    <CardBody>
+                      <Stat>
+                        <HStack>
+                          <StatLabel flex={1}>Total Requests</StatLabel>
+                          <Icon as={Hash} boxSize={4} color="gray.500" />
+                        </HStack>
+                        <StatNumber>
+                          {stats.data?.totals?.numQueries
+                            ? parseInt(stats.data?.totals?.numQueries.toString())?.toLocaleString()
+                            : undefined}
+                        </StatNumber>
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                  <Card>
+                    <CardBody>
+                      <Stat>
+                        <HStack>
+                          <StatLabel flex={1}>Total input tokens</StatLabel>
+                          <Icon as={Hash} boxSize={4} color="gray.500" />{" "}
+                        </HStack>
+                        <StatNumber color="gray.600" fontSize={"xl"}>
+                          {totalInputTokens}
+                        </StatNumber>
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                  <Card>
+                    <CardBody>
+                      <Stat>
+                        <HStack>
+                          <StatLabel flex={1}>Total output tokens</StatLabel>
+                          <Icon as={Hash} boxSize={4} color="gray.500" />{" "}
+                        </HStack>
+                        <StatNumber color="gray.600" fontSize={"xl"}>
+                          {totalOutputTokens}
+                        </StatNumber>
+                      </Stat>
+                    </CardBody>
+                  </Card>
+                </VStack>
+              </HStack>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
 
         <VStack margin="auto" spacing={4} align="stretch" w="full">
-          <HStack gap={4} align="start">
-            <Card flex={1}>
-              <CardBody>
-                <UsageGraph
-                  startDate={startDate || dayjs().startOf("month").toDate()}
-                  endDate={endDate || dayjs().startOf("month").toDate()}
-                />
-              </CardBody>
-            </Card>
-            <VStack spacing="4" width="300px" align="stretch">
-              <Card>
-                <CardBody>
-                  <Stat>
-                    <Flex>
-                      <Center>
-                        <Icon
-                          onClick={handlePrevMonthChange}
-                          cursor={"pointer"}
-                          as={ChevronLeftIcon}
-                          boxSize={5}
-                          color={"gray.500"}
-                        />
-                      </Center>
-                      <Spacer />
-                      <Text fontSize="lg" as="b">
-                        {currentPeriod}
-                      </Text>
-                      <Spacer />
-                      <Center>
-                        <Icon
-                          onClick={handleNextMonthChange}
-                          cursor={"pointer"}
-                          as={ChevronRightIcon}
-                          boxSize={5}
-                          color={nextMonthIsClickable() ? "gray.500" : "gray.300"}
-                        />
-                      </Center>
-                    </Flex>
-                  </Stat>
-                </CardBody>
-              </Card>
-              <Card>
-                <CardBody>
-                  <Stat>
-                    <HStack>
-                      <StatLabel flex={1}>Total Requests</StatLabel>
-                      <Icon as={Hash} boxSize={4} color="gray.500" />
-                    </HStack>
-                    <StatNumber>
-                      {stats.data?.totals?.numQueries
-                        ? parseInt(stats.data?.totals?.numQueries.toString())?.toLocaleString()
-                        : undefined}
-                    </StatNumber>
-                  </Stat>
-                </CardBody>
-              </Card>
-              <Card>
-                <CardBody>
-                  <Stat>
-                    <HStack>
-                      <StatLabel flex={1}>Total Spent</StatLabel>
-                      <Icon as={DollarSign} boxSize={4} color="gray.500" />
-                    </HStack>
-                    <StatNumber>
-                      ${parseFloat(stats.data?.totals?.cost?.toString() ?? "0").toLocaleString()}
-                    </StatNumber>
-                  </Stat>
-                </CardBody>
-              </Card>
-            </VStack>
-          </HStack>
           <Heading size="md" mt={4}>
             Models
           </Heading>

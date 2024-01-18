@@ -10,6 +10,7 @@ import { useVisibleModelIds } from "~/components/datasets/DatasetContentTabs/Eva
 import { useSortOrder } from "~/components/sorting";
 import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
+import dayjs from "dayjs";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
@@ -218,6 +219,23 @@ export const useTestingEntries = (refetchInterval?: number) => {
   );
 
   return useStableData(result);
+};
+
+export const useStats = (
+  selectedProjectId: string,
+  startDate: Date | null | undefined,
+  endDate: Date | null | undefined,
+) => {
+  const stats = api.usage.stats.useQuery(
+    {
+      projectId: selectedProjectId,
+      startDate: startDate || dayjs().startOf("month").toDate(),
+      endDate: endDate || dayjs().endOf("month").toDate(),
+    },
+    { enabled: !!selectedProjectId },
+  );
+
+  return useStableData(stats);
 };
 
 export const useModelTestingStats = (
