@@ -34,9 +34,7 @@ import AppShell from "~/components/nav/AppShell";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import dayjs, { formatToUTCDayMonth } from "~/utils/dayjs";
 import { useSelectedProject, useStats } from "~/utils/hooks";
-
-const numberWithDefault = (num: number | string | bigint | null, defaultValue = 0) =>
-  Number(num ?? defaultValue);
+import { numberWithDefault } from "~/utils/utils";
 
 export default function Usage() {
   const { data: selectedProject } = useSelectedProject();
@@ -55,13 +53,13 @@ export default function Usage() {
   const stats = useStats(selectedProject?.id || "", query.start, query.end);
 
   const {
-    cost = 0,
-    numQueries = 0,
-    totalTrainingSpend = 0,
-    totalInferenceSpend = 0,
-    totalInputTokens = 0,
-    totalOutputTokens = 0,
-    totalTrainingTokens = 0,
+    cost,
+    numQueries,
+    totalTrainingSpend,
+    totalInferenceSpend,
+    totalInputTokens,
+    totalOutputTokens,
+    totalTrainingTokens,
   } = stats.data?.totals ?? {};
 
   const updateMonth = (operation: "add" | "subtract") => {
@@ -139,7 +137,7 @@ export default function Usage() {
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
                         <StatNumber>
-                          ${parseFloat(cost.toString()).toFixed(2).toLocaleString()}
+                          ${numberWithDefault(cost).toFixed(2).toLocaleString() ?? 0}
                         </StatNumber>
                       </Stat>
                     </CardBody>
@@ -152,7 +150,7 @@ export default function Usage() {
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          ${parseFloat(totalInferenceSpend.toString()).toFixed(2)}
+                          ${numberWithDefault(totalInferenceSpend).toFixed(2)}
                         </StatNumber>
                       </Stat>
                       <Stat>
@@ -161,7 +159,7 @@ export default function Usage() {
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          ${parseFloat(totalTrainingSpend.toString()).toFixed(2)}
+                          ${numberWithDefault(totalTrainingSpend).toFixed(2)}
                         </StatNumber>
                       </Stat>
                     </CardBody>
@@ -184,7 +182,7 @@ export default function Usage() {
                           <StatLabel flex={1}>Total Requests</StatLabel>
                           <Icon as={Hash} boxSize={4} color="gray.500" />
                         </HStack>
-                        <StatNumber>{parseInt(numQueries.toString()).toLocaleString()}</StatNumber>
+                        <StatNumber>{numberWithDefault(numQueries).toLocaleString()}</StatNumber>
                       </Stat>
                     </CardBody>
                   </Card>
@@ -196,7 +194,7 @@ export default function Usage() {
                           <Icon as={Hash} boxSize={4} color="gray.500" />{" "}
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          {parseInt(totalInputTokens.toString()).toLocaleString()}
+                          {numberWithDefault(totalInputTokens).toLocaleString()}
                         </StatNumber>
                       </Stat>
                       <Stat marginBottom={4}>
@@ -205,7 +203,7 @@ export default function Usage() {
                           <Icon as={Hash} boxSize={4} color="gray.500" />{" "}
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          {parseInt(totalOutputTokens.toString()).toLocaleString()}
+                          {numberWithDefault(totalOutputTokens).toLocaleString()}
                         </StatNumber>
                       </Stat>
                       <Stat>
@@ -214,7 +212,7 @@ export default function Usage() {
                           <Icon as={Hash} boxSize={4} color="gray.500" />{" "}
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          {parseInt(totalTrainingTokens.toString()).toLocaleString()}
+                          {numberWithDefault(totalTrainingTokens).toLocaleString()}
                         </StatNumber>
                       </Stat>
                     </CardBody>

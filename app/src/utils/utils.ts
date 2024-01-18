@@ -35,3 +35,8 @@ export function passThroughNulls<T extends (arg: any) => any>(
     return func(arg as NonNullable<Parameters<T>[0]>);
   };
 }
+
+export const numberWithDefault = (
+  num: number | string | bigint | null | undefined,
+  defaultValue = 0,
+) => Number(num ?? defaultValue);
