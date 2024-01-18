@@ -238,8 +238,8 @@ export const useStats = (
   const stats = api.usage.stats.useQuery(
     {
       projectId: selectedProjectId,
-      startDate: startDateUTC || new Date(),
-      endDate: endDateUTC || new Date(),
+      startDate: startDateUTC,
+      endDate: endDateUTC,
     },
     { enabled: !!selectedProjectId },
   );
