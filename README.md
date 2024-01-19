@@ -20,26 +20,24 @@
 </p>
 
 <p align="center">
-  <a href="https://app.openpipe.ai/">Hosted App</a> - <a href="#running-locally">Running Locally</a> - <a href="https://docs.openpipe.ai">Docs</a>
+  <a href="https://app.openpipe.ai/p/BRZFEx50Pf/request-logs">Demo</a> - <a href="#running-locally">Running Locally</a> - <a href="https://docs.openpipe.ai">Docs</a>
 </p>
 
 <br>
-Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited to your exact needs. Evaluate model and prompt combinations in the playground. Query your past requests and export optimized training data. Try it out at https://app.openpipe.ai or <a href="#running-locally">run it locally</a>.
+Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited to your exact needs. Query your past requests and evaluate models against one another. Switch between OpenAI and fine-tuned models with one line of code.
 <br>
-<br>
-<p align="center">
- <img width="720" src="https://github.com/openpipe/openpipe/assets/41524992/5f7ae843-a4b8-44bf-ad33-44c04e2c925c" alt="fine-tune demo">
-</p>
+
 
 ## Features
 
 - Easy integration with OpenAI's SDK in both Python and TypeScript.
   - [Python SDK](https://pypi.org/project/openpipe/)
   - [TypeScript SDK](https://www.npmjs.com/package/openpipe)
+- OpenAI-compatible chat completions endpoint.
 - Fine-tune GPT 3.5, Mistral, and Llama 2 models. Host on-platform or download the weights.
   - Model output is OpenAI-compatible.
   - Switching from GPT 4 to a fine-tuned Mistral model only requires changing the model name.
-- Swiftly query logs using intuitive built-in filters.
+- Query logs using powerful built-in filters.
 - Import datasets in OpenAI-compatible JSONL files.
 - Prune large chunks of duplicate text like system prompts.
 - Compare output accuracy against base models like gpt-3.5-turbo.
@@ -49,7 +47,7 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 To fine-tune Mistral and Llama 2 models in the hosted app, [join the waitlist](https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc).
 
 - mistral-7b
-- llama-2-7b
+- mistral-7b-optimized-1227
 - llama-2-13b
 - gpt-3.5-turbo
 
