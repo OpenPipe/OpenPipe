@@ -3,6 +3,7 @@ import { eksProvider } from "./cluster";
 import { getConfig, getSecret } from "./config";
 import { nm } from "./helpers";
 import { dbConnectionString } from "./database";
+import { exportedModelsBucketName } from "./models";
 
 export const appSubdomain = "app";
 
@@ -32,6 +33,7 @@ export const environment = new kubernetes.core.v1.Secret(
       AZURE_OPENAI_API_KEY_JAPANEAST: getSecret("AZURE_OPENAI_API_KEY_JAPANEAST"),
       AZURE_OPENAI_API_KEY_NORWAYEAST: getSecret("AZURE_OPENAI_API_KEY_NORWAYEAST"),
       AZURE_OPENAI_API_KEY_SOUTHINDIA: getSecret("AZURE_OPENAI_API_KEY_SOUTHINDIA"),
+      EXPORTED_MODELS_BUCKET_NAME: exportedModelsBucketName,
 
       WORKER_CONCURRENCY: getConfig("WORKER_CONCURRENCY"),
       PG_MAX_POOL_SIZE: getConfig("PG_MAX_POOL_SIZE"),
