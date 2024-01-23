@@ -41,9 +41,9 @@ export default function Invoice() {
 
   if (!query.isLoading && !invoice) {
     return (
-      <AppShell title="Dataset not found">
+      <AppShell title="Invoice not found">
         <Center h="100%">
-          <Text>Dataset not found 😕</Text>
+          <Text>Invoice not found 😕</Text>
         </Center>
       </AppShell>
     );
@@ -137,11 +137,11 @@ export default function Invoice() {
   );
 }
 
-function InvoiceBody(prop: { description: JsonValue }) {
+function InvoiceBody(props: { description: JsonValue }) {
   let description;
 
   try {
-    ({ description } = typedInvoice({ description: prop.description }));
+    ({ description } = typedInvoice({ description: props.description }));
   } catch (e) {
     return null;
   }
