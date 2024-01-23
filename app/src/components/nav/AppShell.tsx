@@ -20,7 +20,7 @@ import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
 import { FaBalanceScale, FaReadme } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
-import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
+// import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import { signIn, useSession } from "next-auth/react";
 
 import ProjectMenu from "./ProjectMenu";
