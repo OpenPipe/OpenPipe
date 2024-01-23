@@ -35,15 +35,9 @@ export default function Invoice() {
   const router = useRouter();
   const id = router.query.id as string;
 
-  const { data } = useInvoice(id);
-  const invoice = data?.invoice;
+  const invoice = useInvoice(id).data?.invoice;
 
   if (!invoice) return <></>;
-
-  // Checks if the description is an array of objects with string values to prevent rendering errors
-  const isCorrectDescriptionFormat = (value: unknown): value is { [key: string]: string }[] => {
-    return Array.isArray(value) && value.every((item) => item && typeof item === "object");
-  };
 
   return (
     <AppShell title="Billing" requireAuth>
