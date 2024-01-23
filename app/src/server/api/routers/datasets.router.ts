@@ -258,9 +258,7 @@ export const datasetsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       if (!input.fileUploadIds.length) return error("No file upload ids provided");
 
-      const {
-        dataset: { projectId, id: datasetId },
-      } = await prisma.datasetFileUpload.findUniqueOrThrow({
+      const { dataset } = await prisma.datasetFileUpload.findUniqueOrThrow({
         where: { id: input.fileUploadIds[0] },
         select: {
           dataset: {
@@ -271,14 +269,17 @@ export const datasetsRouter = createTRPCRouter({
           },
         },
       });
-      await requireCanModifyProject(projectId, ctx);
+
+      if (!dataset) return error("Dataset not found");
+
+      await requireCanModifyProject(dataset.projectId, ctx);
 
       await prisma.datasetFileUpload.updateMany({
         where: {
           id: {
             in: input.fileUploadIds,
           },
-          datasetId,
+          datasetId: dataset.id,
         },
         data: {
           visible: false,

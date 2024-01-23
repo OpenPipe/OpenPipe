@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { type JsonValue } from "type-fest";
 import type { z } from "zod";
 
-import { chatCompletionInputReqPayload } from "~/types/shared.types";
+import type { chatCompletionInputReqPayload } from "~/types/shared.types";
 
 function sortKeys(obj: JsonValue): JsonValue {
   if (typeof obj !== "object" || obj === null) {
