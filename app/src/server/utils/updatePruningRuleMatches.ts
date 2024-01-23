@@ -73,6 +73,7 @@ export const updateDatasetPruningRuleMatches = async (
             "DatasetEntry.id as datasetEntryId",
           ]),
       )
+      .onConflict((oc) => oc.columns(["pruningRuleId", "datasetEntryId"]).doNothing())
       .execute();
   }
 };
