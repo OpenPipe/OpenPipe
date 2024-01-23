@@ -1,4 +1,4 @@
-import { Card, VStack, Text, Icon, Link as ChakraLink, Heading } from "@chakra-ui/react";
+import { Card, VStack, Text, Icon, Heading } from "@chakra-ui/react";
 import { useInvoices } from "~/utils/hooks";
 import InvoicesTable from "./InvoicesTable";
 import NewTestInvoiceButton from "./NewTestInvoiceButton";
