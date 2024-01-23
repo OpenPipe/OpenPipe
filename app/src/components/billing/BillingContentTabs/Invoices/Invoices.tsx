@@ -4,7 +4,7 @@ import InvoicesTable from "./InvoicesTable";
 import NewTestInvoiceButton from "./NewTestInvoiceButton";
 import { FaTable } from "react-icons/fa";
 
-const Models = () => {
+const Invoices = () => {
   const query = useInvoices(10000);
 
   const pendingCount = query.data?.invoices.filter((inv) => inv.status === "PENDING").length;
@@ -55,4 +55,4 @@ const Models = () => {
   );
 };
 
-export default Models;
+export default Invoices;
