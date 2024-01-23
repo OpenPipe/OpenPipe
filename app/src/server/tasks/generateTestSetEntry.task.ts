@@ -166,13 +166,6 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
           const inputTokens = completion.usage?.prompt_tokens ?? 0;
           const outputTokens = completion.usage?.completion_tokens ?? 0;
 
-          const { cost, inputCost, outputCost } = calculateCost(
-            fineTune,
-            0,
-            inputTokens,
-            outputTokens,
-          );
-
           await prisma.usageLog.create({
             data: {
               fineTuneId: fineTune.id,
@@ -181,9 +174,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
               type: UsageType.TESTING,
               inputTokens,
               outputTokens,
-              cost,
-              inputCost,
-              outputCost,
+              ...calculateCost(fineTune, 0, inputTokens, outputTokens),
             },
           });
         }

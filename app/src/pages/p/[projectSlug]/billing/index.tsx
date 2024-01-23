@@ -1,8 +1,8 @@
 import { type GetServerSideProps, type NextPage } from "next";
 
-const DatasetDefaultTab: NextPage = () => null;
+const BillingDefaultTab: NextPage = () => null;
 
-export default DatasetDefaultTab;
+export default BillingDefaultTab;
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export const getServerSideProps: GetServerSideProps = async (context) => {

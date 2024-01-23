@@ -5,7 +5,7 @@ import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 
 // TEST BUTTON. WILL BE REMOVED.
 const NewTestInvoiceButton = () => {
-  const createInvoiceMutation = api.billing.createInvoice.useMutation();
+  const createInvoiceMutation = api.invoices.create.useMutation();
   const selectedProject = useSelectedProject().data;
   const utils = api.useContext();
 
@@ -16,7 +16,7 @@ const NewTestInvoiceButton = () => {
       projectId: selectedProject.id,
     });
 
-    await utils.billing.invoices.invalidate();
+    await utils.invoices.list.invalidate();
   }, [selectedProject, utils]);
 
   return (

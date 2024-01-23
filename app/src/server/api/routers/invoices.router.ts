@@ -1,4 +1,3 @@
-import { sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
@@ -7,9 +6,10 @@ import { requireCanViewProject } from "~/utils/accessControl";
 import { toUTC } from "~/utils/dayjs";
 import { success } from "~/utils/errorHandling/standardResponses";
 import { getStats } from "./usage.router";
+import { TRPCError } from "@trpc/server";
 
-export const billingRouter = createTRPCRouter({
-  invoices: protectedProcedure
+export const invoicesRouter = createTRPCRouter({
+  list: protectedProcedure
     .input(
       z.object({
         projectId: z.string(),
@@ -27,23 +27,25 @@ export const billingRouter = createTRPCRouter({
 
       return { invoices };
     }),
-  invoice: protectedProcedure
+  get: protectedProcedure
     .input(
       z.object({
         invoiceId: z.string(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const invoice = await prisma.invoice.findUniqueOrThrow({
+      const invoice = await prisma.invoice.findUnique({
         where: { id: input.invoiceId },
       });
+
+      if (!invoice) throw new TRPCError({ message: "Invoice not found", code: "NOT_FOUND" });
 
       await requireCanViewProject(invoice.projectId, ctx);
 
       return { invoice };
     }),
   // This endpoint is for testing purposes only. It should be refactored and executed as a cron job.
-  createInvoice: protectedProcedure
+  create: protectedProcedure
     .input(
       z.object({
         projectId: z.string(),
@@ -52,40 +54,23 @@ export const billingRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      const [startOfLastMonth, endOfPreviousMonth] = getLastMonthPeriod();
+      const [startOfPreviousMonth, endOfPreviousMonth] = getPreviousMonthPeriod();
 
       await kysely.transaction().execute(async (tx) => {
-        const baseQuery = tx
-          .selectFrom("UsageLog as ul")
-          .where("ul.projectId", "=", input.projectId)
-          .where(sql`"ul"."createdAt"`, ">=", startOfLastMonth)
-          .where(sql`"ul"."createdAt"`, "<=", endOfPreviousMonth);
-
-        const stats = await getStats(baseQuery);
-
-        // 2. Create invoice
+        // 2. Create empty invoice
         const invoice = await tx
           .insertInto("Invoice")
           .values({
             id: uuidv4(),
             projectId: input.projectId,
-            amount: Number(stats?.cost ?? 0),
+            amount: 0,
             slug: "#OP-" + generateRandomString(6),
             billingPeriod: getPreviousMonthWithYearString(),
-            description: JSON.stringify(
-              getDescription({
-                totalInferenceSpend: Number(stats?.totalInferenceSpend ?? 0),
-                totalTrainingSpend: Number(stats?.totalTrainingSpend ?? 0),
-                totalInputTokens: Number(stats?.totalInputTokens ?? 0),
-                totalOutputTokens: Number(stats?.totalOutputTokens ?? 0),
-                totalTrainingTokens: Number(stats?.totalTrainingTokens ?? 0),
-              }),
-            ),
           })
           .returning("id")
           .executeTakeFirst();
 
-        // 3. Associate stats with invoice
+        // 2. Associate stats with invoice
         if (invoice) {
           await tx
             .updateTable("UsageLog")
@@ -93,16 +78,44 @@ export const billingRouter = createTRPCRouter({
               invoiceId: invoice.id,
             })
             .where("projectId", "=", input.projectId)
-            .where("createdAt", ">=", startOfLastMonth)
+            .where("createdAt", ">=", startOfPreviousMonth)
             .where("createdAt", "<=", endOfPreviousMonth)
             .execute();
+
+          // 3. Calculate stats
+          const baseQuery = tx.selectFrom("UsageLog as ul").where("ul.invoiceId", "=", invoice.id);
+
+          const stats = await getStats(baseQuery);
+
+          // 4. Update invoice
+          if (stats) {
+            await tx
+              .updateTable("Invoice")
+              .set({
+                amount: Number(stats?.cost ?? 0),
+                description: JSON.stringify(
+                  getDescription({
+                    totalInferenceSpend: Number(stats?.totalInferenceSpend ?? 0),
+                    totalTrainingSpend: Number(stats?.totalTrainingSpend ?? 0),
+                    totalInputTokens: Number(stats?.totalInputTokens ?? 0),
+                    totalOutputTokens: Number(stats?.totalOutputTokens ?? 0),
+                    totalTrainingTokens: Number(stats?.totalTrainingTokens ?? 0),
+                  }),
+                ),
+              })
+              .where("id", "=", invoice.id)
+              .execute();
+          }
         }
       });
 
-      function getLastMonthPeriod(): [Date, Date] {
-        const startOfLastMonth = toUTC(new Date()).subtract(1, "month").startOf("month").toDate();
+      function getPreviousMonthPeriod(): [Date, Date] {
+        const startOfPreviousMonth = toUTC(new Date())
+          .subtract(1, "month")
+          .startOf("month")
+          .toDate();
         const endOfPreviousMonth = toUTC(new Date()).subtract(1, "month").endOf("month").toDate();
-        return [startOfLastMonth, endOfPreviousMonth];
+        return [startOfPreviousMonth, endOfPreviousMonth];
       }
 
       function generateRandomString(length: number) {

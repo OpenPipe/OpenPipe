@@ -1,35 +1,35 @@
-import { Card, VStack, Text, Icon, Link as ChakraLink } from "@chakra-ui/react";
+import { Card, VStack, Text, Icon, Heading } from "@chakra-ui/react";
 import { useInvoices } from "~/utils/hooks";
 import InvoicesTable from "./InvoicesTable";
 import NewTestInvoiceButton from "./NewTestInvoiceButton";
 import { FaTable } from "react-icons/fa";
 
 const Invoices = () => {
-  const query = useInvoices(10000);
+  const query = useInvoices();
 
-  const pendingCount = query.data?.invoices.filter((inv) => inv.status === "PENDING").length;
-  const paidCount = query.data?.invoices.filter((inv) => inv.status !== "PENDING").length;
+  const pendingInvoices = query?.data?.invoices.filter((inv) => inv.status === "PENDING");
+  const historyInvoices = query?.data?.invoices.filter((inv) => inv.status !== "PENDING");
 
   return (
     <VStack alignItems="flex-start" w="full" px={8} spacing={4} pb={8}>
-      {pendingCount && (
+      {pendingInvoices?.length && (
         <>
-          <Text fontSize="2xl" fontWeight="bold">
+          <Heading as="h2" fontSize="2xl">
             Pending payments
-          </Text>
-          <InvoicesTable showStatuses={["PENDING"]} />
+          </Heading>
+          <InvoicesTable invoices={pendingInvoices} />
         </>
       )}
-      {paidCount && (
+      {historyInvoices?.length && (
         <>
-          <Text fontSize="2xl" fontWeight="bold">
+          <Heading as="h2" fontSize="2xl">
             Payment history
-          </Text>
-          <InvoicesTable showStatuses={["PAID", "CANCELED", "REFUNDED"]} />
+          </Heading>
+          <InvoicesTable invoices={historyInvoices} />
         </>
       )}
 
-      {!pendingCount && !paidCount && !query.isLoading && (
+      {!pendingInvoices?.length && !historyInvoices?.length && !query.isLoading && (
         <Card width="100%" overflowX="auto">
           <VStack py={8}>
             <Icon as={FaTable} boxSize={16} color="gray.300" />
@@ -37,15 +37,7 @@ const Invoices = () => {
               No invoices yet
             </Text>
             <Text color="gray.500" textAlign="center" w="full" p={4}>
-              <ChakraLink
-                href="https://docs.openpipe.ai/getting-started/quick-start"
-                target="_blank"
-                color="blue.600"
-              >
-                Begin
-              </ChakraLink>{" "}
-              the journey of creating a language model that truly understands your data and
-              objectives.
+              An invoice will be created at the end of each calendar month.
             </Text>
           </VStack>
         </Card>

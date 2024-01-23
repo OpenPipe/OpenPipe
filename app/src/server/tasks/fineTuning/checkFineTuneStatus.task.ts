@@ -63,13 +63,6 @@ export const checkFineTuneStatus = defineTask({
             const totalInputTokens = (trainingStats?.totalInputTokens ?? 0) * numEpochs;
             const totalOutputTokens = (trainingStats?.totalOutputTokens ?? 0) * numEpochs;
 
-            const { cost, inputCost, outputCost } = calculateCost(
-              typedFT,
-              totalInputTokens + totalOutputTokens,
-              0,
-              0,
-            );
-
             await prisma.usageLog.create({
               data: {
                 type: "TRAINING",
@@ -78,9 +71,7 @@ export const checkFineTuneStatus = defineTask({
                 baseModel: typedFT.baseModel,
                 inputTokens: totalInputTokens,
                 outputTokens: totalOutputTokens,
-                cost,
-                inputCost,
-                outputCost,
+                ...calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
               },
             });
 

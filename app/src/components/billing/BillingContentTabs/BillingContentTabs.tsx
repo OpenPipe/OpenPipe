@@ -1,12 +1,9 @@
 import ContentTabs from "~/components/ContentTabs";
 import Invoices from "./Invoices/Invoices";
 
-export const INVOICES_TAB_KEY = "invoices";
-export const PAYMENT_METHODS_TAB_KEY = "payment-methods";
-
 const tabs = [
   {
-    key: INVOICES_TAB_KEY,
+    key: "invoices",
     title: "Invoices",
     component: <Invoices />,
   },

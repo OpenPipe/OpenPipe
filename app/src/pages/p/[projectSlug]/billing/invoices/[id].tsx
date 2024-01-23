@@ -25,15 +25,17 @@ import { ProjectLink } from "~/components/ProjectLink";
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
+import { typedInvoice } from "~/types/dbColumns.types";
+import { JsonValue } from "~/types/kysely-codegen.types";
 import { useInvoice, useSelectedProject } from "~/utils/hooks";
 
-export default function BillingTabs() {
+export default function Invoice() {
   const selectedProject = useSelectedProject().data;
 
   const router = useRouter();
   const id = router.query.id as string;
 
-  const { data } = useInvoice(id, 10000);
+  const { data } = useInvoice(id);
   const invoice = data?.invoice;
 
   if (!invoice) return <></>;
@@ -98,29 +100,8 @@ export default function BillingTabs() {
                       <Th isNumeric>Amount</Th>
                     </Tr>
                   </Thead>
-                  <Tbody>
-                    {isCorrectDescriptionFormat(invoice.description) &&
-                      invoice.description.map((item, index) => (
-                        <Tr key={index}>
-                          <Td>{index + 1}</Td>
-                          <Td>
-                            <Text fontWeight="bold" fontSize="lg">
-                              {item.text}
-                            </Text>
-                            {item.description?.split("\n").map((i, key) => (
-                              <Text fontSize="md" key={key}>
-                                {i}
-                              </Text>
-                            ))}
-                          </Td>
-                          <Td isNumeric>
-                            <Text fontWeight="bold" fontSize="lg">
-                              {item.value}
-                            </Text>
-                          </Td>
-                        </Tr>
-                      ))}
-                  </Tbody>
+
+                  <InvoiceBody description={invoice.description} />
                   <Tfoot>
                     <Tr>
                       <Th></Th>
@@ -145,5 +126,40 @@ export default function BillingTabs() {
         </VStack>
       </VStack>
     </AppShell>
+  );
+}
+
+function InvoiceBody(prop: { description: JsonValue }) {
+  let description;
+
+  try {
+    ({ description } = typedInvoice({ description: prop.description }));
+  } catch (e) {
+    return null;
+  }
+
+  return (
+    <Tbody>
+      {description.map((item, index) => (
+        <Tr key={index}>
+          <Td>{index + 1}</Td>
+          <Td>
+            <Text fontWeight="bold" fontSize="lg">
+              {item.text}
+            </Text>
+            {item.description?.split("\n").map((i, key) => (
+              <Text fontSize="md" key={key}>
+                {i}
+              </Text>
+            ))}
+          </Td>
+          <Td isNumeric>
+            <Text fontWeight="bold" fontSize="lg">
+              {item.value}
+            </Text>
+          </Td>
+        </Tr>
+      ))}
+    </Tbody>
   );
 }

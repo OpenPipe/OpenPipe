@@ -78,6 +78,7 @@ export interface CreditAdjustment {
   projectId: string;
   description: string | null;
   invoiceId: string | null;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface Dataset {
@@ -273,7 +274,7 @@ export interface Invoice {
   paidAt: Timestamp | null;
   paymentId: string | null;
   remainingCredits: Numeric | null;
-  status: Generated<"CANCELED" | "PAID" | "PENDING" | "REFUNDED">;
+  status: Generated<"CANCELLED" | "PAID" | "PENDING" | "REFUNDED">;
   billingPeriod: string | null;
   slug: string;
 }
@@ -371,6 +372,9 @@ export interface UsageLog {
   projectId: string | null;
   billable: Generated<boolean>;
   invoiceId: string | null;
+  baseModel: string | null;
+  inputCost: Generated<Numeric>;
+  outputCost: Generated<Numeric>;
 }
 
 export interface User {

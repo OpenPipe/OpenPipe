@@ -358,7 +358,7 @@ export const usePruningRules = () => {
 export const useInvoices = (refetchInterval?: number) => {
   const selectedProjectId = useSelectedProject().data?.id;
 
-  return api.billing.invoices.useQuery(
+  return api.invoices.list.useQuery(
     { projectId: selectedProjectId ?? "" },
     { enabled: !!selectedProjectId, refetchInterval },
   );
@@ -367,7 +367,7 @@ export const useInvoices = (refetchInterval?: number) => {
 export const useInvoice = (id: string, refetchInterval?: number) => {
   const selectedProjectId = useSelectedProject().data?.id;
 
-  return api.billing.invoice.useQuery(
+  return api.invoices.get.useQuery(
     { invoiceId: id },
     { enabled: !!selectedProjectId, refetchInterval },
   );
