@@ -272,6 +272,111 @@
           }
         }
       }
+    },
+    "/export/get-info": {
+      "get": {
+        "operationId": "getModelExportInfo",
+        "description": "Get info necessary to export a model",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "exportId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "baseModel": {
+                      "type": "string"
+                    },
+                    "fineTuneId": {
+                      "type": "string"
+                    },
+                    "s3BucketName": {
+                      "type": "string"
+                    },
+                    "s3Key": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "baseModel",
+                    "fineTuneId",
+                    "s3BucketName",
+                    "s3Key"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/export/complete": {
+      "post": {
+        "operationId": "reportModelExportComplete",
+        "description": "Report that a model export has completed",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "exportId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "exportId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
     }
   },
   "components": {

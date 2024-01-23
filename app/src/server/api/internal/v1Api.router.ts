@@ -6,6 +6,7 @@ import { createOpenApiRouter, openApiProtectedProc } from "./openApiTrpc";
 import { generateBlobDownloadUrl } from "~/utils/azure/server";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
+import { env } from "~/env.mjs";
 
 export const v1ApiRouter = createOpenApiRouter({
   getTrainingInfo: openApiProtectedProc
@@ -47,5 +48,73 @@ export const v1ApiRouter = createOpenApiRouter({
         huggingFaceModelId: fineTune.huggingFaceModelId,
         trainingConfig: fineTune.trainingConfig,
       };
+    }),
+  getModelExportInfo: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/export/get-info",
+        description: "Get info necessary to export a model",
+        protect: true,
+      },
+    })
+    .input(
+      z.object({
+        exportId: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        baseModel: z.string(),
+        fineTuneId: z.string(),
+        s3BucketName: z.string(),
+        s3Key: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const exportRequest = await prisma.exportWeightsRequest.findUniqueOrThrow({
+        where: { id: input.exportId },
+        include: { fineTune: true },
+      });
+
+      if (!env.EXPORTED_MODELS_BUCKET_NAME)
+        throw new Error("No bucket configured for model exports");
+
+      await prisma.exportWeightsRequest.update({
+        where: { id: input.exportId },
+        data: { status: "IN_PROGRESS" },
+      });
+
+      return {
+        baseModel: exportRequest.fineTune.baseModel,
+        fineTuneId: exportRequest.fineTuneId,
+        s3BucketName: env.EXPORTED_MODELS_BUCKET_NAME,
+        s3Key: exportRequest.s3Key,
+      };
+    }),
+  reportModelExportComplete: openApiProtectedProc
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/export/complete",
+        description: "Report that a model export has completed",
+        protect: true,
+      },
+    })
+    .input(
+      z.object({
+        exportId: z.string(),
+      }),
+    )
+    .output(z.object({}))
+    .mutation(async ({ input }) => {
+      await prisma.exportWeightsRequest.findUniqueOrThrow({
+        where: { id: input.exportId },
+      });
+
+      await prisma.exportWeightsRequest.update({
+        where: { id: input.exportId },
+        data: { status: "COMPLETE" },
+      });
     }),
 });

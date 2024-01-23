@@ -50,6 +50,7 @@ export const env = createEnv({
       .string()
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
+    EXPORTED_MODELS_BUCKET_NAME: z.string().optional(),
   },
 
   /**
@@ -104,6 +105,7 @@ export const env = createEnv({
     MODAL_ENVIRONMENT: process.env.MODAL_ENVIRONMENT,
     MODAL_USE_LOCAL_DEPLOYMENTS: process.env.MODAL_USE_LOCAL_DEPLOYMENTS,
     NEXT_PUBLIC_DEPLOY_ENV: process.env.NEXT_PUBLIC_DEPLOY_ENV,
+    EXPORTED_MODELS_BUCKET_NAME: process.env.EXPORTED_MODELS_BUCKET_NAME,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
