@@ -44,6 +44,9 @@ export const cluster = new eks.Cluster(
     ],
   },
   {
+    // Pulumi helpfully tries to deploy the latest base image to our nodes.
+    // Unfortunately, this ends up deleting all our nodes and recreating them,
+    // leading to downtime. Let's just ignore those changes. for now
     transformations: [
       (args) => {
         if (args.type === "aws:ec2/launchConfiguration:LaunchConfiguration") {
