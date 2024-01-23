@@ -6,10 +6,10 @@ import { datasetsRouter } from "./routers/datasets.router";
 import { datasetEntriesRouter } from "./routers/datasetEntries.router";
 import { datasetEvalsRouter } from "./routers/datasetEvals.router";
 import { pruningRulesRouter } from "./routers/pruningRules.router";
-import { fineTunesRouter } from "./routers/fineTunes.router";
 import { usersRouter } from "./routers/users.router";
 import { adminJobsRouter } from "./routers/adminJobs.router";
 import { adminUsersRouter } from "./routers/adminUsers.router";
+import { fineTunesRouter } from "./routers/fineTunes/fineTunes.router";
 
 /**
  * This is the primary router for your server.

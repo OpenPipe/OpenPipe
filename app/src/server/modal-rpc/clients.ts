@@ -5,6 +5,12 @@ import { captureException } from "@sentry/node";
 import { pick } from "lodash-es";
 import { LoraInferenceV1 } from "./loraInferenceV1";
 
+// When we kick off a training job the trainer needs to be able to report its
+// progress somewhere, and since the trainer will be running remotely on Modal
+// the callback URL needs to be a publicly available host.
+export const callbackBaseUrl =
+  (env.LOCAL_HOST_PUBLIC_URL ?? env.NEXT_PUBLIC_HOST) + "/api/internal/v1";
+
 export const trainerv1 = new TrainerV1({
   BASE: `https://openpipe-${env.MODAL_ENVIRONMENT}--trainer-v1${
     env.MODAL_USE_LOCAL_DEPLOYMENTS ? "-dev" : ""

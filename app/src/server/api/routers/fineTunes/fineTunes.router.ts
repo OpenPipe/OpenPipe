@@ -16,6 +16,7 @@ import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessCo
 import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { isComparisonModelName } from "~/utils/comparisonModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
+import { getExportWeightsRequest, requestExportWeights } from "./exportWeights";
 
 export const fineTunesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -368,4 +369,6 @@ export const fineTunesRouter = createTRPCRouter({
         count,
       };
     }),
+  getExportWeightsRequest,
+  requestExportWeights,
 });

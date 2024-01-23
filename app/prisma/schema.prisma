@@ -356,8 +356,9 @@ model User {
     sentUserInvitations    UserInvitation[]
     authoredDatasetEntries DatasetEntry[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+    createdAt             DateTime               @default(now())
+    updatedAt             DateTime               @default(now()) @updatedAt
+    exportWeightsRequests ExportWeightsRequest[]
 }
 
 model UserInvitation {
@@ -437,6 +438,7 @@ model FineTune {
     openaiTrainingJobId     String?
     openaiModelId           String?
     pipelineVersion         Int
+    exportWeightsRequests   ExportWeightsRequest[]
 }
 
 model FineTuneTrainingEntry {
@@ -625,4 +627,28 @@ model UsageLog {
 
     @@index([fineTuneId, createdAt, type])
     @@index([projectId, createdAt, type])
+}
+
+enum ExportWeightsStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETE
+    ERROR
+}
+
+model ExportWeightsRequest {
+    id String @id @default(uuid()) @db.Uuid
+
+    s3Key     String
+    publicUrl String @unique
+
+    fineTuneId String   @db.Uuid
+    fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+
+    userId String @db.Uuid
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    status ExportWeightsStatus @default(PENDING)
+
+    createdAt DateTime @default(now())
 }
