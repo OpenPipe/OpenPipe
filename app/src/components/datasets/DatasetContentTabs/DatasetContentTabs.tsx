@@ -5,6 +5,7 @@ import Models from "./Models/Models";
 import Settings from "./Settings/Settings";
 
 export const DATASET_GENERAL_TAB_KEY = "general";
+export const DATASET_MODELS_TAB_KEY = "models";
 export const DATASET_EVALUATION_TAB_KEY = "evaluate";
 export const DATASET_SETTINGS_TAB_KEY = "settings";
 
@@ -15,7 +16,7 @@ const tabs = [
     component: <General />,
   },
   {
-    key: "models",
+    key: DATASET_MODELS_TAB_KEY,
     title: "Models",
     component: <Models />,
   },

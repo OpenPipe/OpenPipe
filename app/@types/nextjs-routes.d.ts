@@ -24,6 +24,9 @@ declare module "nextjs-routes" {
     | StaticRoute<"/api/v1/openapi">
     | StaticRoute<"/">
     | DynamicRoute<"/invitations/[invitationToken]", { "invitationToken": string }>
+    | DynamicRoute<"/p/[projectSlug]/billing/[tab]", { "projectSlug": string; "tab": string }>
+    | DynamicRoute<"/p/[projectSlug]/billing", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/billing/invoices/[id]", { "projectSlug": string; "id": string }>
     | DynamicRoute<"/p/[projectSlug]/datasets/[id]/[tab]", { "projectSlug": string; "id": string; "tab": string }>
     | DynamicRoute<"/p/[projectSlug]/datasets/[id]", { "projectSlug": string; "id": string }>
     | DynamicRoute<"/p/[projectSlug]/datasets", { "projectSlug": string }>

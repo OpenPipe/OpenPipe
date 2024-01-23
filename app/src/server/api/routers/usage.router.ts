@@ -1,8 +1,9 @@
-import { sql } from "kysely";
+import { SelectQueryBuilder, sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
 import { typedFineTune } from "~/types/dbColumns.types";
+import { DB, UsageLog } from "~/types/kysely-codegen.types";
 import { requireCanViewProject } from "~/utils/accessControl";
 import dayjs from "~/utils/dayjs";
 
@@ -70,31 +71,7 @@ export const usageRouter = createTRPCRouter({
           .groupBy("period")
           .orderBy("period")
           .execute(),
-        baseQuery
-          .select(({ fn }) => [
-            fn.sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`).as("cost"),
-            fn
-              .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
-              .as("totalTrainingSpend"),
-            fn
-              .sum(
-                sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
-              )
-              .as("totalInferenceSpend"),
-            fn
-              .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
-              .as("totalInputTokens"),
-            fn
-              .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
-              .as("totalOutputTokens"),
-            fn
-              .sum(
-                sql<number>`case when ul.type = 'TRAINING' then ul."inputTokens" + ul."outputTokens" else 0 end`,
-              )
-              .as("totalTrainingTokens"),
-            fn.count("ul.id").as("numQueries"),
-          ])
-          .executeTakeFirst(),
+        getStats(baseQuery),
         finetunesQuery.select("ft.createdAt").execute(),
       ]);
 
@@ -128,3 +105,39 @@ export const usageRouter = createTRPCRouter({
       return { periods: combinedPeriods, totals, fineTunes: fineTunes.map(typedFineTune) };
     }),
 });
+
+export function getStats(
+  baseQuery: SelectQueryBuilder<
+    DB & {
+      ul: UsageLog;
+    },
+    "ul",
+    unknown
+  >,
+) {
+  return baseQuery
+    .select(({ fn }) => [
+      fn.sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`).as("cost"),
+      fn
+        .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
+        .as("totalTrainingSpend"),
+      fn
+        .sum(
+          sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
+        )
+        .as("totalInferenceSpend"),
+      fn
+        .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
+        .as("totalInputTokens"),
+      fn
+        .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
+        .as("totalOutputTokens"),
+      fn
+        .sum(
+          sql<number>`case when ul.type = 'TRAINING' then ul."inputTokens" + ul."outputTokens" else 0 end`,
+        )
+        .as("totalTrainingTokens"),
+      fn.count("ul.id").as("numQueries"),
+    ])
+    .executeTakeFirst();
+}

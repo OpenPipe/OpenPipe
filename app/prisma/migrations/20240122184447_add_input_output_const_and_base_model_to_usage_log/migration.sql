@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "UsageLog" ADD COLUMN     "baseModel" TEXT,
+ADD COLUMN     "inputCost" DECIMAL(65,30) NOT NULL DEFAULT 0,
+ADD COLUMN     "outputCost" DECIMAL(65,30) NOT NULL DEFAULT 0;

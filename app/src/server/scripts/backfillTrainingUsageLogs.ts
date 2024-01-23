@@ -141,14 +141,24 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
     const totalInputTokens = (trainingStats?.totalInputTokens ?? 0) * numEpochs;
     const totalOutputTokens = (trainingStats?.totalOutputTokens ?? 0) * numEpochs;
 
+    const { cost, inputCost, outputCost } = calculateCost(
+      typedFT,
+      totalInputTokens + totalOutputTokens,
+      0,
+      0,
+    );
+
     await prisma.usageLog.create({
       data: {
         fineTuneId: typedFT.id,
         projectId: typedFT.projectId,
+        baseModel: typedFT.baseModel,
         type: "TRAINING",
         inputTokens: totalInputTokens,
         outputTokens: totalOutputTokens,
-        cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
+        cost,
+        inputCost,
+        outputCost,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         createdAt: typedFT.createdAt,
       },
