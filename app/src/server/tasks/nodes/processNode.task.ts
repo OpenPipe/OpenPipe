@@ -21,15 +21,15 @@ export const processNode = defineTask<ProcessNodeJob>({
 });
 
 const processMonitor = async (nodeId: string) => {
-  const node = await prisma.node.findUnique({
-    where: { id: nodeId },
-    include: {
-      project: true,
-    },
-  });
-  if (!node) return;
-
-  const monitor = typedNode({ ...node, type: "Monitor" });
+  const node = await prisma.node
+    .findUnique({
+      where: { id: nodeId },
+      include: {
+        project: true,
+      },
+    })
+    .then((n) => (n ? typedNode(n) : null));
+  if (node?.type !== "Monitor") return;
 
   await kysely
     .selectFrom("MonitorMatch")
