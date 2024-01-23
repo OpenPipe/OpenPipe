@@ -19,7 +19,7 @@ import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { RouterOutputs } from "~/utils/api";
 
-type Invoices = RouterOutputs["invoices"]["list"]["invoices"];
+type Invoices = RouterOutputs["invoices"]["list"];
 
 type Props = {
   invoices: Invoices;

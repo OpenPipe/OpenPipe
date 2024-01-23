@@ -3,6 +3,7 @@ import {
   BreadcrumbItem,
   Button,
   Card,
+  Center,
   Flex,
   HStack,
   Icon,
@@ -35,9 +36,22 @@ export default function Invoice() {
   const router = useRouter();
   const id = router.query.id as string;
 
-  const invoice = useInvoice(id).data?.invoice;
+  const query = useInvoice(id);
+  const invoice = query.data;
 
-  if (!invoice) return <></>;
+  if (!query.isLoading && !invoice) {
+    return (
+      <AppShell title="Dataset not found">
+        <Center h="100%">
+          <Text>Dataset not found 😕</Text>
+        </Center>
+      </AppShell>
+    );
+  }
+
+  if (!invoice) {
+    return null;
+  }
 
   return (
     <AppShell title="Billing" requireAuth>
@@ -55,14 +69,14 @@ export default function Invoice() {
               </ProjectLink>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
-              <Text>{invoice?.slug}</Text>
+              <Text>{invoice.slug}</Text>
             </BreadcrumbItem>
           </Breadcrumb>
         </PageHeaderContainer>
 
         <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
           <Text fontSize="2xl" fontWeight="bold">
-            Invoice {invoice?.slug}
+            Invoice {invoice.slug}
           </Text>
           <Card width="100%" overflowX="auto">
             <VStack py={8}>
@@ -77,10 +91,10 @@ export default function Invoice() {
                 </VStack>
                 <VStack alignItems="end">
                   <Text fontSize="2xl" fontWeight="bold" textAlign={"right"}>
-                    {invoice?.slug}
+                    {invoice.slug}
                   </Text>
                   <Text fontSize="2xl" fontWeight="bold" textAlign={"end"}>
-                    {invoice?.billingPeriod}
+                    {invoice.billingPeriod}
                   </Text>
                 </VStack>
               </HStack>

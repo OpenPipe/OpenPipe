@@ -25,7 +25,7 @@ export const invoicesRouter = createTRPCRouter({
         .selectAll()
         .execute();
 
-      return { invoices };
+      return invoices;
     }),
   get: protectedProcedure
     .input(
@@ -42,7 +42,7 @@ export const invoicesRouter = createTRPCRouter({
 
       await requireCanViewProject(invoice.projectId, ctx);
 
-      return { invoice };
+      return invoice;
     }),
   // This endpoint is for testing purposes only. It should be refactored and executed as a cron job.
   create: protectedProcedure

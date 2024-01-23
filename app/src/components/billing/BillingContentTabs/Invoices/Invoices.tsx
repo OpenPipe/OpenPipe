@@ -7,8 +7,8 @@ import { FaTable } from "react-icons/fa";
 const Invoices = () => {
   const query = useInvoices();
 
-  const pendingInvoices = query?.data?.invoices.filter((inv) => inv.status === "PENDING");
-  const historyInvoices = query?.data?.invoices.filter((inv) => inv.status !== "PENDING");
+  const pendingInvoices = query?.data?.filter((inv) => inv.status === "PENDING");
+  const historyInvoices = query?.data?.filter((inv) => inv.status !== "PENDING");
 
   return (
     <VStack alignItems="flex-start" w="full" px={8} spacing={4} pb={8}>
