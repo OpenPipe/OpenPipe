@@ -1,6 +1,6 @@
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
-import { trainerv1 } from "~/server/modal-rpc/clients";
+import { callbackBaseUrl, trainerv1 } from "~/server/modal-rpc/clients";
 import { uploadJsonl } from "~/utils/azure/server";
 import defineTask from "../defineTask";
 import { trainOpenaiFineTune } from "./trainOpenaiFineTune";
@@ -143,11 +143,6 @@ const trainModalFineTune = async (fineTuneId: string) => {
       trainingConfig: await trainingConfig(fineTune),
     },
   });
-
-  // When we kick off a training job the trainer needs to be able to report its
-  // progress somewhere, and since the trainer will be running remotely on Modal
-  // the callback URL needs to be a publicly available host.
-  const callbackBaseUrl = (env.LOCAL_HOST_PUBLIC_URL ?? env.NEXT_PUBLIC_HOST) + "/api/internal/v1";
 
   try {
     const resp = await trainerv1.default.startTraining(fineTuneId, callbackBaseUrl);

@@ -11,6 +11,7 @@ import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import FineTunePruningRules from "./FineTunePruningRules";
 import InferenceCodeTabs from "./InferenceCodeTabs/InferenceCodeTabs";
+import ExportWeights from "./ExportWeights";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -95,6 +96,7 @@ const General = () => {
           </VStack>
         </ContentCard>
         <FineTunePruningRules />
+        <ExportWeights />
         <FineTuneDangerZone />
       </VStack>
       {fineTune.status === "DEPLOYED" && (

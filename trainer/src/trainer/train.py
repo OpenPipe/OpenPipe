@@ -1,6 +1,7 @@
 from ..api_client.api.default import get_training_info
 from ..api_client.client import AuthenticatedClient
 from ..shared import (
+    lora_s3_path,
     merged_model_cache_dir,
     lora_model_cache_dir,
     upload_directory_to_s3,
@@ -83,7 +84,7 @@ def do_train(fine_tune_id: str, base_url: str):
     logging.info("Training complete. Uploading to S3.")
     upload_directory_to_s3(
         local_directory=lora_model_path,
-        destination=f"models/{config.base_model}:{fine_tune_id}:1",
+        destination=lora_s3_path(config.base_model, fine_tune_id),
         bucket=os.environ["USER_MODELS_BUCKET"],
     )
 

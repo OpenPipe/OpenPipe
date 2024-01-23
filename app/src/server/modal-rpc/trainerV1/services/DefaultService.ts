@@ -64,4 +64,24 @@ export class DefaultService {
       },
     });
   }
+  /**
+   * Export Weights
+   * @param exportId
+   * @param baseUrl
+   * @returns any Successful Response
+   * @throws ApiError
+   */
+  public exportWeights(exportId: string, baseUrl: string): CancelablePromise<any> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/export_weights",
+      query: {
+        export_id: exportId,
+        base_url: baseUrl,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    });
+  }
 }
