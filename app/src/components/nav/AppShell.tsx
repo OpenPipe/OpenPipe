@@ -87,7 +87,7 @@ const NavSidebar = () => {
               </Text>
               <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
               <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
-              <IconLink icon={LiaFileInvoiceDollarSolid} label="Billing" href="/billing" />
+              {/* <IconLink icon={LiaFileInvoiceDollarSolid} label="Billing" href="/billing" /> */}
               <IconButton
                 variant="ghost"
                 size="sm"
