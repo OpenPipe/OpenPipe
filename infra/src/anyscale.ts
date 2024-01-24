@@ -6,7 +6,7 @@ import { eksProvider } from "./cluster";
 import { userModelsBucketArn } from "./models";
 import { nm } from "./helpers";
 
-const anyscaleRole = aws.iam.getRole({ name: "anyscale-iam-role-86457891" });
+const anyscaleRole = aws.iam.getRole({ name: "cld_tskg84t9kb3cr8ud1awmqte6b2-cluster_node_role" });
 
 // Give permission to read from the models bucket
 const modelsBucketPolicy = new aws.iam.Policy(nm("anyscale-inference-access-models"), {

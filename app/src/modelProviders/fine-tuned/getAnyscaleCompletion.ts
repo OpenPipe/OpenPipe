@@ -12,15 +12,21 @@ import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
 import { pick } from "lodash-es";
 
-const client = new OpenAI({
-  baseURL: env.ANYSCALE_INFERENCE_BASE_URL,
-  apiKey: env.ANYSCALE_INFERENCE_API_KEY,
-});
+const client = env.ANYSCALE_INFERENCE_BASE_URL
+  ? new OpenAI({
+      baseURL: env.ANYSCALE_INFERENCE_BASE_URL,
+      apiKey: env.ANYSCALE_INFERENCE_API_KEY,
+    })
+  : null;
 
 export async function getAnyscaleCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
 ): Promise<ChatCompletion> {
+  if (!client) {
+    throw new Error("Not configured for Anyscale inference");
+  }
+
   if (fineTune.pipelineVersion < 3) {
     throw new Error(
       "Error: completion mismatch. This function is only supported for models with pipeline version 3+",

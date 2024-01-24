@@ -18,9 +18,13 @@ dump_prod_db() {
     report_progress "Dumping production database..."
     rm -rf "$CACHE_DIR"
     mkdir -p "$CACHE_DIR"
-    export PGPASSWORD="$PASSWORD"
     
-
+    # Throw an error if $PROD_DATABASE_URL is not set
+    if [ -z "$PROD_DATABASE_URL" ]; then
+        echo "ERROR: PROD_DATABASE_URL environment variable is not set."
+        exit 1
+    fi
+    
     pg_dump \
       -v \
       -Fd \
@@ -31,9 +35,6 @@ dump_prod_db() {
       --exclude-table-data '"LoggedCallTag"' \
       --exclude-table-data 'graphile_worker.jobs' \
       -d "$PROD_DATABASE_URL"
-    
-    # Unset the password environment variable
-    unset PGPASSWORD
 }
 
 terminate_connections() {

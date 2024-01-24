@@ -1,6 +1,6 @@
 name: inference-stage
 compute_config: openpipe5
-cluster_env: llm-env:4
+cluster_env: llm-env:5
 
 ray_serve_config:
   applications:

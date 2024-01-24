@@ -36,8 +36,8 @@ export const env = createEnv({
     AZURE_STORAGE_ACCOUNT_NAME: z.string().default("placeholder"),
     AZURE_STORAGE_ACCOUNT_KEY: z.string().default("placeholder"),
     AZURE_STORAGE_CONTAINER_NAME: z.string().default("placeholder"),
-    ANYSCALE_INFERENCE_BASE_URL: z.string().url(),
-    ANYSCALE_INFERENCE_API_KEY: z.string(),
+    ANYSCALE_INFERENCE_BASE_URL: z.string().url().optional(),
+    ANYSCALE_INFERENCE_API_KEY: z.string().optional(),
     WORKER_CONCURRENCY: z
       .string()
       .default("10")
