@@ -31,6 +31,8 @@ const ExportWeights = () => {
 
   if (!isOwner) return null;
   if (fineTune?.status !== "DEPLOYED") return null;
+  if (fineTune.provider !== "openpipe") return null;
+  if (fineTune.pipelineVersion < 3) return null;
 
   return (
     <ContentCard>
