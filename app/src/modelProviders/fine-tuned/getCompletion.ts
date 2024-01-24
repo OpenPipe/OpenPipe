@@ -70,14 +70,15 @@ export async function getCompletion(
             env.ANYSCALE_INFERENCE_API_KEY &&
             fineTune.pipelineVersion >= 3 &&
             fineTune.baseModel === "OpenPipe/mistral-ft-optimized-1227"
-          )
+          ) {
             completion = benchmarkCompletion(completion, "modal");
-          // We aren't doing anything with this completion for now, besides
-          // silently checking how long it would take compared to Modal.
-          void benchmarkCompletion(
-            getAnyscaleCompletion(fineTune, prunedInput).catch(captureException),
-            "anyscale",
-          );
+            // We aren't doing anything with this completion for now, besides
+            // silently checking how long it would take compared to Modal.
+            void benchmarkCompletion(
+              getAnyscaleCompletion(fineTune, prunedInput).catch(captureException),
+              "anyscale",
+            );
+          }
         }
         return completion;
       case 0:
