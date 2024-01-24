@@ -29,7 +29,7 @@ export async function getAnyscaleCompletion(
 
   if (fineTune.pipelineVersion < 3) {
     throw new Error(
-      "Error: completion mismatch. This function is only supported for models with pipeline version 3+",
+      `Error: completion mismatch. This function is only supported for models with pipeline version 3+ Model: ${fineTune.slug}. Pipeline ${fineTune.pipelineVersion}`,
     );
   }
 
