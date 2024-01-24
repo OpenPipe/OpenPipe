@@ -32,6 +32,7 @@ import CostGraph from "~/components/dashboard/CostGraph";
 import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import { calculateSpendingsWithCredits } from "~/utils/billing";
 import dayjs, { formatToUTCDayMonth } from "~/utils/dayjs";
 import { useSelectedProject, useStats } from "~/utils/hooks";
 import { numberWithDefault } from "~/utils/utils";
@@ -64,7 +65,7 @@ export default function Usage() {
 
   const credits = stats.data?.credits ?? 0;
 
-  const { totalSpent, creditsUsed, remainingCredits } = calculateUsageWithCredits(
+  const { totalSpent, creditsUsed, remainingCredits } = calculateSpendingsWithCredits(
     Number(cost ?? 0),
     credits,
   );
@@ -86,34 +87,6 @@ export default function Usage() {
   const handlePrevMonthChange = () => {
     updateMonth("subtract");
   };
-
-  function calculateUsageWithCredits(spend: number, credits: number) {
-    const totalSpent = calculateTotalSpent(spend, credits);
-    const creditsUsed = calculateCreditsUsed(spend, credits);
-    const remainingCredits = calculateRemainingCredits(spend, credits);
-
-    return { totalSpent, creditsUsed, remainingCredits };
-
-    function calculateTotalSpent(spend: number, credits: number) {
-      const totalSpent = spend - credits;
-
-      return totalSpent > 0 ? totalSpent : 0;
-    }
-
-    function calculateCreditsUsed(spend: number, credits: number) {
-      if (spend - credits < 0) {
-        return spend;
-      } else {
-        return credits;
-      }
-    }
-
-    function calculateRemainingCredits(spend: number, credits: number) {
-      const remainingCredits = credits - spend;
-
-      return remainingCredits > 0 ? remainingCredits : 0;
-    }
-  }
 
   return (
     <AppShell title="Usage" requireAuth>

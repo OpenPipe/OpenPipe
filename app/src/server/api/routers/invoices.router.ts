@@ -8,6 +8,7 @@ import { success } from "~/utils/errorHandling/standardResponses";
 import { getStats } from "./usage.router";
 import { TRPCError } from "@trpc/server";
 import { sql } from "kysely";
+import { calculateSpendingsWithCredits } from "~/utils/billing";
 
 export const invoicesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -98,7 +99,7 @@ export const invoicesRouter = createTRPCRouter({
 
           if (stats && creditsAvailable) {
             // 5. Calculate total spend
-            const { totalSpent, creditsUsed, remainingCredits } = calculateUsageWithCredits(
+            const { totalSpent, creditsUsed, remainingCredits } = calculateSpendingsWithCredits(
               Number(stats?.cost ?? 0),
               Number(creditsAvailable.amount ?? 0),
             );
@@ -142,34 +143,6 @@ export const invoicesRouter = createTRPCRouter({
           }
         }
       });
-
-      function calculateUsageWithCredits(spend: number, credits: number) {
-        const totalSpent = calculateTotalSpent(spend, credits);
-        const creditsUsed = calculateCreditsUsed(spend, credits);
-        const remainingCredits = calculateRemainingCredits(spend, credits);
-
-        return { totalSpent, creditsUsed, remainingCredits };
-
-        function calculateTotalSpent(spend: number, credits: number) {
-          const totalSpent = spend - credits;
-
-          return totalSpent > 0 ? totalSpent : 0;
-        }
-
-        function calculateCreditsUsed(spend: number, credits: number) {
-          if (spend - credits < 0) {
-            return spend;
-          } else {
-            return credits;
-          }
-        }
-
-        function calculateRemainingCredits(spend: number, credits: number) {
-          const remainingCredits = credits - spend;
-
-          return remainingCredits > 0 ? remainingCredits : 0;
-        }
-      }
 
       function getPreviousMonthPeriod(): [Date, Date] {
         const startOfPreviousMonth = toUTC(new Date())
