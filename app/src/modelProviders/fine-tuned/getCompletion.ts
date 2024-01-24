@@ -63,7 +63,7 @@ export async function getCompletion(
             // pass
           }
         } else {
-          completion = benchmarkCompletion(getModalCompletion(fineTune, prunedInput), "modal");
+          completion = getModalCompletion(fineTune, prunedInput);
 
           if (
             env.ANYSCALE_INFERENCE_BASE_URL &&
@@ -71,12 +71,13 @@ export async function getCompletion(
             fineTune.pipelineVersion >= 3 &&
             fineTune.baseModel === "OpenPipe/mistral-ft-optimized-1227"
           )
-            // We aren't doing anything with this completion for now, besides
-            // silently checking how long it would take compared to Modal.
-            void benchmarkCompletion(
-              getAnyscaleCompletion(fineTune, prunedInput).catch(captureException),
-              "anyscale",
-            );
+            completion = benchmarkCompletion(completion, "modal");
+          // We aren't doing anything with this completion for now, besides
+          // silently checking how long it would take compared to Modal.
+          void benchmarkCompletion(
+            getAnyscaleCompletion(fineTune, prunedInput).catch(captureException),
+            "anyscale",
+          );
         }
         return completion;
       case 0:

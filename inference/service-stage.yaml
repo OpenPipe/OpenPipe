@@ -57,4 +57,4 @@ ray_serve_config:
           multiplex_config:
             # Number of LoRAs to serve concurrently
             max_num_models_per_replica: 24
-      dynamic_lora_loading_path: s3://user-models-pl-stage-4c769c7/models/
+      dynamic_lora_loading_path: s3://user-models-pl-prod-5e7392e/models/
