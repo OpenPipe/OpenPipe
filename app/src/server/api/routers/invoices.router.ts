@@ -7,7 +7,7 @@ import { toUTC } from "~/utils/dayjs";
 import { success } from "~/utils/errorHandling/standardResponses";
 import { getStats } from "./usage.router";
 import { TRPCError } from "@trpc/server";
-// import { sql } from "kysely";
+import { sql } from "kysely";
 
 export const invoicesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -58,14 +58,6 @@ export const invoicesRouter = createTRPCRouter({
       await kysely.transaction().execute(async (tx) => {
         const [startOfPreviousMonth, endOfPreviousMonth] = getPreviousMonthPeriod();
 
-        // Calculate credits
-        // const creditAvailable = await tx
-        //   .selectFrom("CreditAdjustment as ca")
-        //   .where("ca.projectId", "=", input.projectId)
-        //   .where("ca.createdAt", "<=", endOfPreviousMonth)
-        //   .select(({ fn }) => [fn.sum(sql<number>`amount`).as("amount")])
-        //   .executeTakeFirst();
-
         // 1. Create empty invoice
         const invoice = await tx
           .insertInto("Invoice")
@@ -76,7 +68,7 @@ export const invoicesRouter = createTRPCRouter({
             slug: "#OP-" + generateRandomString(6),
             billingPeriod: getPreviousMonthWithYearString(),
           })
-          .returning("id")
+          .returning(["id", "createdAt", "slug"])
           .executeTakeFirst();
 
         // 2. Associate stats with invoice
@@ -91,17 +83,32 @@ export const invoicesRouter = createTRPCRouter({
             .where("createdAt", "<=", endOfPreviousMonth)
             .execute();
 
-          // 3. Calculate stats
-          const baseQuery = tx.selectFrom("UsageLog as ul").where("ul.invoiceId", "=", invoice.id);
+          // 3. Calculate usage stats
+          const stats = await getStats(
+            tx.selectFrom("UsageLog as ul").where("ul.invoiceId", "=", invoice.id),
+          );
 
-          const stats = await getStats(baseQuery);
+          // 4. Calculate available credits
+          const creditsAvailable = await tx
+            .selectFrom("CreditAdjustment as ca")
+            .where("ca.projectId", "=", input.projectId)
+            .where("ca.createdAt", "<=", endOfPreviousMonth)
+            .select(({ fn }) => fn.sum(sql<number>`amount`).as("amount"))
+            .executeTakeFirst();
 
-          // 4. Update invoice
-          if (stats) {
+          if (stats && creditsAvailable) {
+            // 5. Calculate total spend
+            const { totalSpent, creditsUsed, remainingCredits } = calculateUsageWithCredits(
+              Number(stats?.cost ?? 0),
+              Number(creditsAvailable.amount ?? 0),
+            );
+
+            // 5. Update invoice
             await tx
               .updateTable("Invoice")
               .set({
-                amount: Number(stats?.cost ?? 0),
+                amount: totalSpent,
+                status: totalSpent > 0 ? "PENDING" : "PAID",
                 description: JSON.stringify(
                   getDescription({
                     totalInferenceSpend: Number(stats?.totalInferenceSpend ?? 0),
@@ -109,14 +116,60 @@ export const invoicesRouter = createTRPCRouter({
                     totalInputTokens: Number(stats?.totalInputTokens ?? 0),
                     totalOutputTokens: Number(stats?.totalOutputTokens ?? 0),
                     totalTrainingTokens: Number(stats?.totalTrainingTokens ?? 0),
+                    creditsUsed,
+                    remainingCredits,
                   }),
                 ),
               })
               .where("id", "=", invoice.id)
               .execute();
+
+            // 6. Create negative credit adjustment if credits were used
+            if (creditsUsed > 0) {
+              await tx
+                .insertInto("CreditAdjustment")
+                .values({
+                  id: uuidv4(),
+                  projectId: input.projectId,
+                  amount: -creditsUsed,
+                  createdAt: invoice.createdAt,
+                  description: `Invoice #${invoice.slug}`,
+                  invoiceId: invoice.id,
+                  type: "INVOICE",
+                })
+                .execute();
+            }
           }
         }
       });
+
+      function calculateUsageWithCredits(spend: number, credits: number) {
+        const totalSpent = calculateTotalSpent(spend, credits);
+        const creditsUsed = calculateCreditsUsed(spend, credits);
+        const remainingCredits = calculateRemainingCredits(spend, credits);
+
+        return { totalSpent, creditsUsed, remainingCredits };
+
+        function calculateTotalSpent(spend: number, credits: number) {
+          const totalSpent = spend - credits;
+
+          return totalSpent > 0 ? totalSpent : 0;
+        }
+
+        function calculateCreditsUsed(spend: number, credits: number) {
+          if (spend - credits < 0) {
+            return spend;
+          } else {
+            return credits;
+          }
+        }
+
+        function calculateRemainingCredits(spend: number, credits: number) {
+          const remainingCredits = credits - spend;
+
+          return remainingCredits > 0 ? remainingCredits : 0;
+        }
+      }
 
       function getPreviousMonthPeriod(): [Date, Date] {
         const startOfPreviousMonth = toUTC(new Date())
@@ -144,9 +197,12 @@ export const invoicesRouter = createTRPCRouter({
         totalInputTokens: number;
         totalOutputTokens: number;
         totalTrainingTokens: number;
+        creditsUsed: number;
+        remainingCredits: number;
       }) {
         const totalTokends = stats.totalInputTokens + stats.totalOutputTokens;
-        return [
+
+        const description = [
           {
             text: "Total inference spend",
             value: "$" + stats.totalInferenceSpend.toFixed(2),
@@ -162,6 +218,14 @@ export const invoicesRouter = createTRPCRouter({
             description: "Training tokens: " + stats.totalTrainingTokens.toLocaleString(),
           },
         ];
+
+        const creditsUsedDescription = {
+          text: "Credits used",
+          value: "-$" + stats.creditsUsed.toFixed(2),
+          description: "Remaining credits: $" + stats.remainingCredits.toFixed(2),
+        };
+
+        return description.concat(stats.creditsUsed > 0 ? creditsUsedDescription : []);
       }
 
       return success("Successfully created invoice");

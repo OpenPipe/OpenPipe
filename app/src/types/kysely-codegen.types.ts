@@ -79,6 +79,7 @@ export interface CreditAdjustment {
   description: string | null;
   invoiceId: string | null;
   createdAt: Generated<Timestamp>;
+  type: "BONUS" | "INVOICE" | "REFUND";
 }
 
 export interface Dataset {
@@ -170,6 +171,16 @@ export interface DatasetFileUpload {
   errorMessage: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+}
+
+export interface ExportWeightsRequest {
+  id: string;
+  s3Key: string;
+  publicUrl: string;
+  fineTuneId: string;
+  userId: string;
+  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface FineTune {
@@ -421,6 +432,7 @@ export interface DB {
   DatasetEvalOutputSource: DatasetEvalOutputSource;
   DatasetEvalResult: DatasetEvalResult;
   DatasetFileUpload: DatasetFileUpload;
+  ExportWeightsRequest: ExportWeightsRequest;
   FineTune: FineTune;
   FineTuneTestingEntry: FineTuneTestingEntry;
   FineTuneTrainingEntry: FineTuneTrainingEntry;
