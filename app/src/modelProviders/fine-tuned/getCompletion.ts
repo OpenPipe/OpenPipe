@@ -20,6 +20,10 @@ import {
   convertToolCallMessageToFunction,
 } from "~/server/utils/convertFunctionCalls";
 import { type TypedFineTune } from "~/types/dbColumns.types";
+import { benchmarkCompletion } from "./benchmark";
+import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
+import { env } from "~/env.mjs";
+import { captureException } from "@sentry/node";
 
 export async function getCompletion(
   fineTune: TypedFineTune,
@@ -59,7 +63,20 @@ export async function getCompletion(
             // pass
           }
         } else {
-          completion = getModalCompletion(fineTune, prunedInput);
+          completion = benchmarkCompletion(getModalCompletion(fineTune, prunedInput), "modal");
+
+          if (
+            env.ANYSCALE_INFERENCE_BASE_URL &&
+            env.ANYSCALE_INFERENCE_API_KEY &&
+            fineTune.pipelineVersion >= 3 &&
+            fineTune.baseModel === "OpenPipe/mistral-ft-optimized-1227"
+          )
+            // We aren't doing anything with this completion for now, besides
+            // silently checking how long it would take compared to Modal.
+            void benchmarkCompletion(
+              getAnyscaleCompletion(fineTune, prunedInput).catch(captureException),
+              "anyscale",
+            );
         }
         return completion;
       case 0:

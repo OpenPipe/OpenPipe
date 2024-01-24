@@ -34,6 +34,7 @@ export const environment = new kubernetes.core.v1.Secret(
       AZURE_OPENAI_API_KEY_NORWAYEAST: getSecret("AZURE_OPENAI_API_KEY_NORWAYEAST"),
       AZURE_OPENAI_API_KEY_SOUTHINDIA: getSecret("AZURE_OPENAI_API_KEY_SOUTHINDIA"),
       EXPORTED_MODELS_BUCKET_NAME: exportedModelsBucketName,
+      ANYSCALE_INFERENCE_API_KEY: getSecret("ANYSCALE_INFERENCE_API_KEY"),
 
       WORKER_CONCURRENCY: getConfig("WORKER_CONCURRENCY"),
       PG_MAX_POOL_SIZE: getConfig("PG_MAX_POOL_SIZE"),
@@ -46,6 +47,7 @@ export const environment = new kubernetes.core.v1.Secret(
       MODAL_ENVIRONMENT: getConfig("MODAL_ENVIRONMENT"),
       SMTP_HOST: getConfig("SMTP_HOST"),
       SENDER_EMAIL: getConfig("SENDER_EMAIL"),
+      ANYSCALE_INFERENCE_BASE_URL: getConfig("ANYSCALE_INFERENCE_BASE_URL"),
       NEXT_PUBLIC_HOST: appUrl,
       NEXTAUTH_URL: appUrl,
     },
