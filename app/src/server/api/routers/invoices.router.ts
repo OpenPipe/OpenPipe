@@ -7,6 +7,7 @@ import { toUTC } from "~/utils/dayjs";
 import { success } from "~/utils/errorHandling/standardResponses";
 import { getStats } from "./usage.router";
 import { TRPCError } from "@trpc/server";
+// import { sql } from "kysely";
 
 export const invoicesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -54,10 +55,18 @@ export const invoicesRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireCanViewProject(input.projectId, ctx);
 
-      const [startOfPreviousMonth, endOfPreviousMonth] = getPreviousMonthPeriod();
-
       await kysely.transaction().execute(async (tx) => {
-        // 2. Create empty invoice
+        const [startOfPreviousMonth, endOfPreviousMonth] = getPreviousMonthPeriod();
+
+        // Calculate credits
+        // const creditAvailable = await tx
+        //   .selectFrom("CreditAdjustment as ca")
+        //   .where("ca.projectId", "=", input.projectId)
+        //   .where("ca.createdAt", "<=", endOfPreviousMonth)
+        //   .select(({ fn }) => [fn.sum(sql<number>`amount`).as("amount")])
+        //   .executeTakeFirst();
+
+        // 1. Create empty invoice
         const invoice = await tx
           .insertInto("Invoice")
           .values({

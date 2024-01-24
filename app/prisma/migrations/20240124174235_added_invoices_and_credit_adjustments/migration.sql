@@ -1,6 +1,9 @@
 -- CreateEnum
 CREATE TYPE "InvoiceStatus" AS ENUM ('PENDING', 'PAID', 'CANCELLED', 'REFUNDED');
 
+-- CreateEnum
+CREATE TYPE "CreditAdjustmentType" AS ENUM ('BONUS', 'REFUND', 'INVOICE');
+
 -- AlterTable
 ALTER TABLE "UsageLog" ADD COLUMN     "baseModel" TEXT,
 ADD COLUMN     "inputCost" DECIMAL(65,30) NOT NULL DEFAULT 0,
@@ -17,7 +20,6 @@ CREATE TABLE "Invoice" (
     "paidAt" TIMESTAMP(3),
     "description" JSONB,
     "paymentId" TEXT,
-    "remainingCredits" DECIMAL(65,30),
     "projectId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -31,6 +33,7 @@ CREATE TABLE "CreditAdjustment" (
     "description" TEXT,
     "projectId" UUID NOT NULL,
     "invoiceId" UUID,
+    "type" "CreditAdjustmentType" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "CreditAdjustment_pkey" PRIMARY KEY ("id")

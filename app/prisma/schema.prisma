@@ -652,8 +652,6 @@ model Invoice {
     description Json? // Array of objects: { [key: string]: string }
     paymentId String?
 
-    remainingCredits Decimal?
-
     usageLogs UsageLog[]
     creditAdjustments CreditAdjustment[]
 
@@ -663,6 +661,12 @@ model Invoice {
     createdAt DateTime @default(now())
 
     @@index([projectId, createdAt])
+}
+
+enum CreditAdjustmentType {
+    BONUS
+    REFUND
+    INVOICE
 }
 
 model CreditAdjustment {
@@ -675,6 +679,8 @@ model CreditAdjustment {
 
     Invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
     invoiceId String?  @db.Uuid
+
+    type CreditAdjustmentType
 
     createdAt DateTime @default(now())
 }

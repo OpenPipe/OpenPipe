@@ -62,6 +62,13 @@ export default function Usage() {
     totalTrainingTokens,
   } = stats.data?.totals ?? {};
 
+  const credits = stats.data?.credits ?? 0;
+
+  const { totalSpent, creditsUsed, remainingCredits } = calculateUsageWithCredits(
+    Number(cost ?? 0),
+    credits,
+  );
+
   const updateMonth = (operation: "add" | "subtract") => {
     setQuery({
       start: dayjs(query.start)[operation](1, "month").startOf("month").format("YYYY-MM-DD"),
@@ -79,6 +86,34 @@ export default function Usage() {
   const handlePrevMonthChange = () => {
     updateMonth("subtract");
   };
+
+  function calculateUsageWithCredits(spend: number, credits: number) {
+    const totalSpent = calculateTotalSpent(spend, credits);
+    const creditsUsed = calculateCreditsUsed(spend, credits);
+    const remainingCredits = calculateRemainingCredits(spend, credits);
+
+    return { totalSpent, creditsUsed, remainingCredits };
+
+    function calculateTotalSpent(spend: number, credits: number) {
+      const totalSpent = spend - credits;
+
+      return totalSpent > 0 ? totalSpent : 0;
+    }
+
+    function calculateCreditsUsed(spend: number, credits: number) {
+      if (spend - credits < 0) {
+        return spend;
+      } else {
+        return credits;
+      }
+    }
+
+    function calculateRemainingCredits(spend: number, credits: number) {
+      const remainingCredits = credits - spend;
+
+      return remainingCredits > 0 ? remainingCredits : 0;
+    }
+  }
 
   return (
     <AppShell title="Usage" requireAuth>
@@ -131,14 +166,49 @@ export default function Usage() {
                 <VStack spacing="4" width="300px" align="stretch">
                   <Card>
                     <CardBody>
+                      {credits > 0 && (
+                        <Stat marginBottom={1}>
+                          <HStack>
+                            <StatLabel flex={1}>Total used</StatLabel>
+                            <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                          </HStack>
+                          <StatNumber color="gray.600" fontSize={"xl"}>
+                            $
+                            {Number(cost ?? 0)
+                              .toFixed(2)
+                              .toLocaleString()}
+                          </StatNumber>
+                        </Stat>
+                      )}
+                      {credits > 0 && (
+                        <>
+                          <Stat marginBottom={1}>
+                            <HStack>
+                              <StatLabel flex={1}>Credits used:</StatLabel>
+                              <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                            </HStack>
+                            <StatNumber color="gray.600" fontSize={"xl"}>
+                              ${creditsUsed.toFixed(2).toLocaleString()}
+                            </StatNumber>
+                          </Stat>
+
+                          <Stat marginBottom={4}>
+                            <HStack>
+                              <StatLabel flex={1}>Remaining credits:</StatLabel>
+                              <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                            </HStack>
+                            <StatNumber color="gray.600" fontSize={"xl"}>
+                              ${remainingCredits.toFixed(2).toLocaleString()}
+                            </StatNumber>
+                          </Stat>
+                        </>
+                      )}
                       <Stat>
                         <HStack>
-                          <StatLabel flex={1}>Total Spent</StatLabel>
+                          <StatLabel flex={1}>Total Spend</StatLabel>
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
-                        <StatNumber>
-                          ${numberWithDefault(cost).toFixed(2).toLocaleString() ?? 0}
-                        </StatNumber>
+                        <StatNumber>${totalSpent.toFixed(2).toLocaleString()}</StatNumber>
                       </Stat>
                     </CardBody>
                   </Card>

@@ -53,7 +53,14 @@ export const usageRouter = createTRPCRouter({
         .select(["ft.baseModel", "ft.provider", "ft.slug"])
         .orderBy("numQueries", "desc");
 
-      const [periods, totals, fineTunes] = await Promise.all([
+      const creditAdjustments = await kysely
+        .selectFrom("CreditAdjustment as ca")
+        .where("ca.projectId", "=", input.projectId)
+        .where("ca.createdAt", "<=", input.endDate)
+        .selectAll()
+        .execute();
+
+      const [periods, totals, fineTunes, credits] = await Promise.all([
         // Return the stats group by day
         baseQuery
           .select((eb) => [
@@ -73,6 +80,12 @@ export const usageRouter = createTRPCRouter({
           .execute(),
         getStats(baseQuery),
         finetunesQuery.select("ft.createdAt").execute(),
+        kysely
+          .selectFrom("CreditAdjustment as ca")
+          .where("ca.projectId", "=", input.projectId)
+          .where("ca.createdAt", "<=", input.endDate)
+          .select(({ fn }) => [fn.sum(sql<number>`amount`).as("amount")])
+          .executeTakeFirst(),
       ]);
 
       // Fillin in missing periods
@@ -102,7 +115,12 @@ export const usageRouter = createTRPCRouter({
         return existingPeriod || createEmptyPeriod(date);
       });
 
-      return { periods: combinedPeriods, totals, fineTunes: fineTunes.map(typedFineTune) };
+      return {
+        periods: combinedPeriods,
+        totals,
+        fineTunes: fineTunes.map(typedFineTune),
+        credits: Number(credits?.amount ?? 0),
+      };
     }),
 });
 
