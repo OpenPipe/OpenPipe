@@ -132,7 +132,7 @@ export const invoicesRouter = createTRPCRouter({
                   id: uuidv4(),
                   projectId: input.projectId,
                   amount: -creditsUsed,
-                  createdAt: invoice.createdAt,
+                  createdAt: endOfPreviousMonth,
                   description: `Invoice #${invoice.slug}`,
                   invoiceId: invoice.id,
                   type: "INVOICE",
