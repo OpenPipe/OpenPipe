@@ -186,6 +186,8 @@ model Project {
     apiKeys                ApiKey[]
     usageLogs              UsageLog[]
     cachedResponses        CachedResponse[]
+    invoices               Invoice[]
+    credits                CreditAdjustment[]
 }
 
 enum ProjectUserRole {
@@ -613,20 +615,74 @@ model UsageLog {
 
     inputTokens  Int
     outputTokens Int
+    inputCost    Decimal @default(0)
+    outputCost   Decimal @default(0)
     cost         Float
     type         UsageType @default(EXTERNAL)
     billable     Boolean   @default(true)
+    baseModel  String?
 
     fineTuneId String?   @db.Uuid
     fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: SetNull)
-
-    projectId String?  @db.Uuid
-    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    projectId  String?  @db.Uuid
+    project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    invoiceId String?  @db.Uuid
+    invoice  Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
     createdAt DateTime @default(now())
 
     @@index([fineTuneId, createdAt, type])
     @@index([projectId, createdAt, type])
+}
+
+enum InvoiceStatus {
+    PENDING
+    PAID
+    CANCELLED
+    REFUNDED
+}
+model Invoice {
+    id String @id @default(uuid()) @db.Uuid
+    amount         Decimal @default(0)
+    status         InvoiceStatus @default(PENDING)
+    slug           String
+    billingPeriod  String? // MM YYYY
+    paidAt         DateTime?
+
+    description Json? // Array of objects: { [key: string]: string }
+    paymentId String?
+
+    usageLogs UsageLog[]
+    creditAdjustments CreditAdjustment[]
+
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+
+    @@index([projectId, createdAt])
+}
+
+enum CreditAdjustmentType {
+    BONUS
+    REFUND
+    INVOICE
+}
+
+model CreditAdjustment {
+    id String @id @default(uuid()) @db.Uuid
+    amount         Decimal
+    description String?
+
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    Invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+    invoiceId String?  @db.Uuid
+
+    type CreditAdjustmentType
+
+    createdAt DateTime @default(now())
 }
 
 enum ExportWeightsStatus {

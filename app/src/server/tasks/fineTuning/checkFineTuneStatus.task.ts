@@ -68,9 +68,10 @@ export const checkFineTuneStatus = defineTask({
                 type: "TRAINING",
                 fineTuneId: typedFT.id,
                 projectId: typedFT.projectId,
+                baseModel: typedFT.baseModel,
                 inputTokens: totalInputTokens,
                 outputTokens: totalOutputTokens,
-                cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
+                ...calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
               },
             });
 

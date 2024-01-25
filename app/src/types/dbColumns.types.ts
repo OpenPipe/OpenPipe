@@ -1,4 +1,4 @@
-import type { DatasetEntry, FineTune, LoggedCall } from "@prisma/client";
+import type { DatasetEntry, FineTune, Invoice, LoggedCall } from "@prisma/client";
 import { z } from "zod";
 
 import { baseModel } from "~/server/fineTuningProviders/types";
@@ -91,3 +91,15 @@ export function typedFineTune<T extends Pick<FineTune, "baseModel" | "provider">
 export type TypedFineTune = ReturnType<typeof typedFineTune<FineTune>>;
 
 export const ORIGINAL_MODEL_ID = "original";
+
+const invoiceSchema = z
+  .object({
+    description: z.array(z.record(z.string())),
+  })
+  .passthrough();
+
+export const typedInvoice = <T extends Pick<Invoice, "description">>(
+  input: T,
+): Omit<T, "description"> & z.infer<typeof invoiceSchema> =>
+  // @ts-expect-error zod doesn't type `passthrough()` correctly.
+  invoiceSchema.parse(input);

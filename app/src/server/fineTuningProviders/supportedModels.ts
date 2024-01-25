@@ -81,9 +81,12 @@ export const calculateCost = (
   outputTokens: number,
 ) => {
   const info = modelInfo(model);
-  return (
-    info.cost.training * trainingTokens +
-    info.cost.input * inputTokens +
-    info.cost.output * outputTokens
-  );
+  const trainingCost = info.cost.training * trainingTokens;
+  const inputCost = info.cost.input * inputTokens;
+  const outputCost = info.cost.output * outputTokens;
+  return {
+    cost: trainingCost + inputCost + outputCost,
+    inputCost,
+    outputCost,
+  };
 };

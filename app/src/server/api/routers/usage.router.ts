@@ -1,8 +1,9 @@
-import { sql } from "kysely";
+import { SelectQueryBuilder, sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
 import { typedFineTune } from "~/types/dbColumns.types";
+import { DB, UsageLog } from "~/types/kysely-codegen.types";
 import { requireCanViewProject } from "~/utils/accessControl";
 import dayjs from "~/utils/dayjs";
 
@@ -52,7 +53,14 @@ export const usageRouter = createTRPCRouter({
         .select(["ft.baseModel", "ft.provider", "ft.slug"])
         .orderBy("numQueries", "desc");
 
-      const [periods, totals, fineTunes] = await Promise.all([
+      const creditAdjustments = await kysely
+        .selectFrom("CreditAdjustment as ca")
+        .where("ca.projectId", "=", input.projectId)
+        .where("ca.createdAt", "<=", input.endDate)
+        .selectAll()
+        .execute();
+
+      const [periods, totals, fineTunes, credits] = await Promise.all([
         // Return the stats group by day
         baseQuery
           .select((eb) => [
@@ -70,32 +78,14 @@ export const usageRouter = createTRPCRouter({
           .groupBy("period")
           .orderBy("period")
           .execute(),
-        baseQuery
-          .select(({ fn }) => [
-            fn.sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`).as("cost"),
-            fn
-              .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
-              .as("totalTrainingSpend"),
-            fn
-              .sum(
-                sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
-              )
-              .as("totalInferenceSpend"),
-            fn
-              .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
-              .as("totalInputTokens"),
-            fn
-              .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
-              .as("totalOutputTokens"),
-            fn
-              .sum(
-                sql<number>`case when ul.type = 'TRAINING' then ul."inputTokens" + ul."outputTokens" else 0 end`,
-              )
-              .as("totalTrainingTokens"),
-            fn.count("ul.id").as("numQueries"),
-          ])
-          .executeTakeFirst(),
+        getStats(baseQuery),
         finetunesQuery.select("ft.createdAt").execute(),
+        kysely
+          .selectFrom("CreditAdjustment as ca")
+          .where("ca.projectId", "=", input.projectId)
+          .where("ca.createdAt", "<=", input.endDate)
+          .select(({ fn }) => [fn.sum(sql<number>`amount`).as("amount")])
+          .executeTakeFirst(),
       ]);
 
       // Fillin in missing periods
@@ -125,6 +115,47 @@ export const usageRouter = createTRPCRouter({
         return existingPeriod || createEmptyPeriod(date);
       });
 
-      return { periods: combinedPeriods, totals, fineTunes: fineTunes.map(typedFineTune) };
+      return {
+        periods: combinedPeriods,
+        totals,
+        fineTunes: fineTunes.map(typedFineTune),
+        credits: Number(credits?.amount ?? 0),
+      };
     }),
 });
+
+export function getStats(
+  baseQuery: SelectQueryBuilder<
+    DB & {
+      ul: UsageLog;
+    },
+    "ul",
+    unknown
+  >,
+) {
+  return baseQuery
+    .select(({ fn }) => [
+      fn.sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`).as("cost"),
+      fn
+        .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
+        .as("totalTrainingSpend"),
+      fn
+        .sum(
+          sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
+        )
+        .as("totalInferenceSpend"),
+      fn
+        .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
+        .as("totalInputTokens"),
+      fn
+        .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
+        .as("totalOutputTokens"),
+      fn
+        .sum(
+          sql<number>`case when ul.type = 'TRAINING' then ul."inputTokens" + ul."outputTokens" else 0 end`,
+        )
+        .as("totalTrainingTokens"),
+      fn.count("ul.id").as("numQueries"),
+    ])
+    .executeTakeFirst();
+}

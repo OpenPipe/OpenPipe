@@ -18,6 +18,8 @@ export type JsonPrimitive = boolean | null | number | string;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
+export type Numeric = ColumnType<string, string | number, string | number>;
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface _PrismaMigrations {
@@ -68,6 +70,16 @@ export interface CachedResponse {
   outputTokens: number;
   projectId: string;
   createdAt: Generated<Timestamp>;
+}
+
+export interface CreditAdjustment {
+  id: string;
+  amount: Numeric;
+  projectId: string;
+  description: string | null;
+  invoiceId: string | null;
+  createdAt: Generated<Timestamp>;
+  type: "BONUS" | "INVOICE" | "REFUND";
 }
 
 export interface Dataset {
@@ -159,6 +171,16 @@ export interface DatasetFileUpload {
   errorMessage: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+}
+
+export interface ExportWeightsRequest {
+  id: string;
+  s3Key: string;
+  publicUrl: string;
+  fineTuneId: string;
+  userId: string;
+  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface FineTune {
@@ -254,6 +276,20 @@ export interface GraphileWorkerMigrations {
   ts: Generated<Timestamp>;
 }
 
+export interface Invoice {
+  id: string;
+  projectId: string;
+  description: Json | null;
+  createdAt: Generated<Timestamp>;
+  amount: Generated<Numeric>;
+  paidAt: Timestamp | null;
+  paymentId: string | null;
+  remainingCredits: Numeric | null;
+  status: Generated<"CANCELLED" | "PAID" | "PENDING" | "REFUNDED">;
+  billingPeriod: string | null;
+  slug: string;
+}
+
 export interface LoggedCall {
   id: string;
   requestedAt: Timestamp;
@@ -346,6 +382,10 @@ export interface UsageLog {
   createdAt: Generated<Timestamp>;
   projectId: string | null;
   billable: Generated<boolean>;
+  invoiceId: string | null;
+  baseModel: string | null;
+  inputCost: Generated<Numeric>;
+  outputCost: Generated<Numeric>;
 }
 
 export interface User {
@@ -384,6 +424,7 @@ export interface DB {
   Account: Account;
   ApiKey: ApiKey;
   CachedResponse: CachedResponse;
+  CreditAdjustment: CreditAdjustment;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
   DatasetEval: DatasetEval;
@@ -391,6 +432,7 @@ export interface DB {
   DatasetEvalOutputSource: DatasetEvalOutputSource;
   DatasetEvalResult: DatasetEvalResult;
   DatasetFileUpload: DatasetFileUpload;
+  ExportWeightsRequest: ExportWeightsRequest;
   FineTune: FineTune;
   FineTuneTestingEntry: FineTuneTestingEntry;
   FineTuneTrainingEntry: FineTuneTrainingEntry;
@@ -398,6 +440,7 @@ export interface DB {
   "graphile_worker.jobs": GraphileWorkerJobs;
   "graphile_worker.known_crontabs": GraphileWorkerKnownCrontabs;
   "graphile_worker.migrations": GraphileWorkerMigrations;
+  Invoice: Invoice;
   LoggedCall: LoggedCall;
   LoggedCallTag: LoggedCallTag;
   Project: Project;

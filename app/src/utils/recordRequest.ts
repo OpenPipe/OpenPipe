@@ -61,10 +61,13 @@ export const recordUsage = async ({
         data: {
           fineTuneId: fineTune.id,
           projectId: fineTune.projectId,
+          baseModel: fineTune.baseModel,
           type: cacheHit ? UsageType.CACHE_HIT : UsageType.EXTERNAL,
           inputTokens: usage?.inputTokens ?? 0,
           outputTokens: usage?.outputTokens ?? 0,
           cost: cacheHit ? 0 : usage?.cost ?? 0,
+          inputCost: cacheHit ? 0 : usage?.inputCost ?? 0,
+          outputCost: cacheHit ? 0 : usage?.outputCost ?? 0,
           billable: fineTune.provider === "openpipe",
         },
       })
@@ -90,6 +93,8 @@ export type CalculatedUsage = {
   inputTokens: number;
   outputTokens: number;
   cost?: number;
+  inputCost?: number;
+  outputCost?: number;
 };
 
 export const calculateUsage = ({
@@ -136,18 +141,22 @@ export const calculateUsage = ({
       : 0;
   }
 
+  const { cost, inputCost, outputCost } = calculateCost(
+    {
+      provider,
+      baseModel,
+    } as BaseModel,
+    0,
+    inputTokens,
+    outputTokens,
+  );
+
   return {
     inputTokens,
     outputTokens,
-    cost: calculateCost(
-      {
-        provider,
-        baseModel,
-      } as BaseModel,
-      0,
-      inputTokens,
-      outputTokens,
-    ),
+    cost,
+    inputCost,
+    outputCost,
   };
 };
 
