@@ -486,7 +486,7 @@ export const v1ApiRouter = createOpenApiRouter({
             constructLoggedCallFiltersQuery({
               filters,
               projectId: ctx.key.projectId,
-              lctEB: eb,
+              baseQuery: eb.selectFrom("LoggedCall as lc"),
             })
               .select("lc.id")
               .as("lc"),

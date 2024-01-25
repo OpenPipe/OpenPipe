@@ -22,8 +22,10 @@ enum DatasetFileUploadStatus {
 model DatasetFileUpload {
     id String @id @default(uuid()) @db.Uuid
 
-    datasetId    String                  @db.Uuid
-    dataset      Dataset                 @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+    datasetId    String?                 @db.Uuid
+    dataset      Dataset?                @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+    nodeId       String?                 @db.Uuid
+    node         Node?                   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
     blobName     String
     fileName     String
     fileSize     Int
@@ -49,6 +51,9 @@ model Dataset {
     enabledComparisonModels ComparisonModel[]   @default([])
 
     datasetEvals DatasetEval[]
+
+    nodeId String? @db.Uuid
+    node   Node?   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -156,11 +161,14 @@ model PruningRule {
 }
 
 model PruningRuleMatch {
-    id             String       @id @default(uuid()) @db.Uuid
-    pruningRuleId  String       @db.Uuid
-    pruningRule    PruningRule  @relation(fields: [pruningRuleId], references: [id], onDelete: Cascade)
-    datasetEntryId String       @db.Uuid
-    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+    id             String        @id @default(uuid()) @db.Uuid
+    pruningRuleId  String        @db.Uuid
+    pruningRule    PruningRule   @relation(fields: [pruningRuleId], references: [id], onDelete: Cascade)
+    datasetEntryId String?       @db.Uuid
+    datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+
+    datasetEntryInputHash String?
+    datasetEntryInput     DatasetEntryInput? @relation(fields: [datasetEntryInputHash], references: [hash], onDelete: Cascade)
 
     @@unique([pruningRuleId, datasetEntryId])
     @@index([datasetEntryId])
@@ -176,8 +184,8 @@ model Project {
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
 
-    createdAt              DateTime         @default(now())
-    updatedAt              DateTime         @updatedAt
+    createdAt              DateTime           @default(now())
+    updatedAt              DateTime           @updatedAt
     projectUsers           ProjectUser[]
     projectUserInvitations UserInvitation[]
     datasets               Dataset[]
@@ -188,6 +196,7 @@ model Project {
     cachedResponses        CachedResponse[]
     invoices               Invoice[]
     credits                CreditAdjustment[]
+    nodes                  Node[]
 }
 
 enum ProjectUserRole {
@@ -240,12 +249,15 @@ model LoggedCall {
     model          String?
     tags           LoggedCallTag[]
     datasetEntries DatasetEntry[]
+    nodeData       NodeData[]
+    monitorMatches MonitorMatch[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index(projectId)
     @@index([projectId, requestedAt])
+    @@index([projectId, updatedAt])
     @@index([completionId])
 }
 
@@ -615,19 +627,19 @@ model UsageLog {
 
     inputTokens  Int
     outputTokens Int
-    inputCost    Decimal @default(0)
-    outputCost   Decimal @default(0)
+    inputCost    Decimal   @default(0)
+    outputCost   Decimal   @default(0)
     cost         Float
     type         UsageType @default(EXTERNAL)
     billable     Boolean   @default(true)
-    baseModel  String?
+    baseModel    String?
 
     fineTuneId String?   @db.Uuid
     fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: SetNull)
-    projectId  String?  @db.Uuid
-    project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    invoiceId String?  @db.Uuid
-    invoice  Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+    projectId  String?   @db.Uuid
+    project    Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    invoiceId  String?   @db.Uuid
+    invoice    Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
     createdAt DateTime @default(now())
 
@@ -641,18 +653,19 @@ enum InvoiceStatus {
     CANCELLED
     REFUNDED
 }
+
 model Invoice {
-    id String @id @default(uuid()) @db.Uuid
-    amount         Decimal @default(0)
-    status         InvoiceStatus @default(PENDING)
-    slug           String
-    billingPeriod  String? // MM YYYY
-    paidAt         DateTime?
+    id            String        @id @default(uuid()) @db.Uuid
+    amount        Decimal       @default(0)
+    status        InvoiceStatus @default(PENDING)
+    slug          String
+    billingPeriod String? // MM YYYY
+    paidAt        DateTime?
 
     description Json? // Array of objects: { [key: string]: string }
-    paymentId String?
+    paymentId   String?
 
-    usageLogs UsageLog[]
+    usageLogs         UsageLog[]
     creditAdjustments CreditAdjustment[]
 
     projectId String  @db.Uuid
@@ -670,14 +683,14 @@ enum CreditAdjustmentType {
 }
 
 model CreditAdjustment {
-    id String @id @default(uuid()) @db.Uuid
-    amount         Decimal
+    id          String  @id @default(uuid()) @db.Uuid
+    amount      Decimal
     description String?
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    Invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+    Invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
     invoiceId String?  @db.Uuid
 
     type CreditAdjustmentType
@@ -707,4 +720,195 @@ model ExportWeightsRequest {
     status ExportWeightsStatus @default(PENDING)
 
     createdAt DateTime @default(now())
+}
+
+enum MonitorMatchStatus {
+    PENDING
+    PROCESSED
+}
+
+model MonitorMatch {
+    id          String             @id @default(uuid()) @db.Uuid
+    checkPassed Boolean
+    status      MonitorMatchStatus @default(PENDING)
+
+    monitorId String @db.Uuid
+    monitor   Node   @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+    loggedCallId String?     @db.Uuid
+    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: SetNull)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([monitorId, loggedCallId])
+    @@index([monitorId, status, createdAt])
+}
+
+enum NodeType {
+    Monitor
+    StaticDataset
+    Filter
+    LLMFilter
+    LLMRelabel
+    ManualRelabel
+    Dataset
+}
+
+model Node {
+    id     String   @id @default(uuid()) @db.Uuid
+    type   NodeType
+    name   String
+    config Json?
+    hash   String
+
+    nodeData           NodeData[]
+    inputDataChannels  DataChannel[]
+    outputs            NodeOutput[]
+    datasetFileUploads DatasetFileUpload[]
+    datasets           Dataset[]
+    monitorMatches     MonitorMatch[]
+
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model NodeOutput {
+    id    String @id @default(uuid()) @db.Uuid
+    label String
+
+    dataChannel DataChannel[]
+
+    nodeId String @db.Uuid
+    node   Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model DataChannel {
+    id              String   @id @default(uuid()) @db.Uuid
+    lastProcessedAt DateTime @default("1970-01-01T00:00:00Z")
+
+    originId String?     @db.Uuid
+    origin   NodeOutput? @relation(fields: [originId], references: [id], onDelete: SetNull)
+
+    destinationId String @db.Uuid
+    destination   Node   @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+    nodeData NodeData[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum NodeDataStatus {
+    PENDING
+    PROCESSING
+    ERROR
+    PROCESSED
+}
+
+model NodeData {
+    id     String         @id @default(uuid()) @db.Uuid
+    status NodeDataStatus @default(PENDING)
+    error  String?
+
+    loggedCallId String?     @db.Uuid
+    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: SetNull)
+
+    inputHash          String
+    input              DatasetEntryInput   @relation(fields: [inputHash], references: [hash])
+    outputHash         String
+    output             DatasetEntryOutput? @relation("output", fields: [outputHash], references: [hash])
+    rejectedOutputHash String?
+    rejectedOutput     DatasetEntryOutput? @relation("rejectedOutput", fields: [rejectedOutputHash], references: [hash])
+    split              DatasetEntrySplit
+
+    nodeId String @db.Uuid
+    node   Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+    dataChannelId String      @db.Uuid
+    dataChannel   DataChannel @relation(fields: [dataChannelId], references: [id], onDelete: Cascade)
+
+    parentNodeDataId String?   @db.Uuid
+    parentNodeData   NodeData? @relation("ancestry", fields: [parentNodeDataId], references: [id], onDelete: Cascade)
+
+    childrenNodeData NodeData[] @relation("ancestry")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([dataChannelId, loggedCallId])
+    @@index([parentNodeDataId])
+    @@index([nodeId, status, updatedAt])
+}
+
+enum NewDatasetEntryProvenance {
+    RequestLog
+    StaticDataset
+    ManualRelabel
+    LLMRelabel
+}
+
+model DatasetEntryInput {
+    tool_choice     Json?
+    tools           Json?
+    messages        Json  @default("[]")
+    response_format Json?
+    inputTokens     Int
+
+    matchedRules PruningRuleMatch[]
+    hash         String
+
+    nodeData NodeData[]
+
+    incomingCachedEntries CachedProcessedNodeData[] @relation("incoming")
+    outgoingCachedEntries CachedProcessedNodeData[] @relation("outgoing")
+
+    createdAt DateTime @default(now())
+
+    @@unique([hash])
+}
+
+model DatasetEntryOutput {
+    output       Json
+    hash         String
+    outputTokens Int
+
+    nodeData          NodeData[] @relation("output")
+    rejectingNodeData NodeData[] @relation("rejectedOutput")
+
+    incomingCachedEntries CachedProcessedNodeData[] @relation("incoming")
+    outgoingCachedEntries CachedProcessedNodeData[] @relation("outgoing")
+
+    createdAt DateTime @default(now())
+
+    @@unique([hash])
+}
+
+model CachedProcessedNodeData {
+    id String @id @default(uuid()) @db.Uuid
+
+    nodeHash String
+
+    incomingDEIHash String
+    incomingDEI     DatasetEntryInput   @relation("incoming", fields: [incomingDEIHash], references: [hash], onDelete: Cascade)
+    incomingDEOHash String?
+    incomingDEO     DatasetEntryOutput? @relation("incoming", fields: [incomingDEOHash], references: [hash], onDelete: Cascade)
+    outgoingDEIHash String?
+    outgoingDEI     DatasetEntryInput?  @relation("outgoing", fields: [outgoingDEIHash], references: [hash], onDelete: Cascade)
+    outgoingDEOHash String?
+    outgoingDEO     DatasetEntryOutput? @relation("outgoing", fields: [outgoingDEOHash], references: [hash], onDelete: Cascade)
+
+    filterOutcome String?
+    explanation   String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([nodeHash, incomingDEIHash, incomingDEOHash])
 }

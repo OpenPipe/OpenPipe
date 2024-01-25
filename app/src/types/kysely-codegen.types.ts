@@ -60,19 +60,6 @@ export interface ApiKey {
   readOnly: Generated<boolean>;
 }
 
-export interface CachedProcessedNodeData {
-  id: string;
-  nodeHash: string;
-  incomingDEIHash: string;
-  incomingDEOHash: string | null;
-  outgoingDEIHash: string | null;
-  outgoingDEOHash: string | null;
-  filterOutcome: string | null;
-  explanation: string | null;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-}
-
 export interface CachedResponse {
   id: string;
   cacheKey: string;
@@ -88,11 +75,11 @@ export interface CachedResponse {
 export interface CreditAdjustment {
   id: string;
   amount: Numeric;
-  projectId: string;
   description: string | null;
+  projectId: string;
   invoiceId: string | null;
-  createdAt: Generated<Timestamp>;
   type: "BONUS" | "INVOICE" | "REFUND";
+  createdAt: Generated<Timestamp>;
 }
 
 export interface Dataset {
@@ -103,7 +90,6 @@ export interface Dataset {
   updatedAt: Timestamp;
   trainingRatio: Generated<number>;
   enabledComparisonModels: Generated<string[] | null>;
-  nodeId: string | null;
 }
 
 export interface DatasetEntry {
@@ -128,24 +114,6 @@ export interface DatasetEntry {
   tool_choice: Json | null;
   tools: Json | null;
   response_format: Json | null;
-}
-
-export interface DatasetEntryInput {
-  function_call: Json | null;
-  functions: Json | null;
-  tool_choice: Json | null;
-  tools: Json | null;
-  messages: Generated<Json>;
-  response_format: Json | null;
-  inputTokens: number | null;
-  hash: string;
-  createdAt: Generated<Timestamp>;
-}
-
-export interface DatasetEntryOutput {
-  output: Json | null;
-  hash: string;
-  createdAt: Generated<Timestamp>;
 }
 
 export interface DatasetEval {
@@ -192,7 +160,7 @@ export interface DatasetEvalResult {
 
 export interface DatasetFileUpload {
   id: string;
-  datasetId: string | null;
+  datasetId: string;
   blobName: string;
   fileName: string;
   fileSize: number;
@@ -203,7 +171,6 @@ export interface DatasetFileUpload {
   errorMessage: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  nodeId: string | null;
 }
 
 export interface ExportWeightsRequest {
@@ -311,16 +278,15 @@ export interface GraphileWorkerMigrations {
 
 export interface Invoice {
   id: string;
-  projectId: string;
-  description: Json | null;
-  createdAt: Generated<Timestamp>;
   amount: Generated<Numeric>;
-  paidAt: Timestamp | null;
-  paymentId: string | null;
-  remainingCredits: Numeric | null;
   status: Generated<"CANCELLED" | "PAID" | "PENDING" | "REFUNDED">;
-  billingPeriod: string | null;
   slug: string;
+  billingPeriod: string | null;
+  paidAt: Timestamp | null;
+  description: Json | null;
+  paymentId: string | null;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface LoggedCall {
@@ -342,7 +308,6 @@ export interface LoggedCall {
   respPayload: Json | null;
   statusCode: number | null;
   cacheHit: Generated<boolean>;
-  processingStatus: Generated<"PENDING" | "PROCESSED" | "PROCESSING">;
 }
 
 export interface LoggedCallTag {
@@ -351,58 +316,6 @@ export interface LoggedCallTag {
   value: string | null;
   loggedCallId: string;
   projectId: string;
-}
-
-export interface MonitorMatch {
-  id: string;
-  checkPassed: boolean;
-  monitorId: string;
-  loggedCallId: string | null;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  status: Generated<"IN_REVIEW" | "MATCH" | "PENDING">;
-}
-
-export interface Node {
-  id: string;
-  type:
-    | "Dataset"
-    | "Filter"
-    | "LLMFilter"
-    | "LLMRelabel"
-    | "ManualRelabel"
-    | "Monitor"
-    | "StaticDataset";
-  config: Json | null;
-  hash: string;
-  maxEntriesPerMinute: number | null;
-  projectId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  maxOutputSize: number | null;
-  name: string;
-}
-
-export interface NodeData {
-  id: string;
-  status: Generated<"ERROR" | "PENDING" | "PROCESSED" | "PROCESSING">;
-  dataChannelId: string;
-  parentNodeDataId: string | null;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  inputHash: string;
-  loggedCallId: string | null;
-  outputHash: string;
-  rejectedOutputHash: string | null;
-  split: "TEST" | "TRAIN";
-}
-
-export interface NodeOutput {
-  id: string;
-  label: string;
-  nodeId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
 }
 
 export interface Project {
@@ -438,8 +351,7 @@ export interface PruningRule {
 export interface PruningRuleMatch {
   id: string;
   pruningRuleId: string;
-  datasetEntryId: string | null;
-  datasetEntryInputHash: string | null;
+  datasetEntryId: string;
 }
 
 export interface RelabelRequest {
@@ -469,9 +381,9 @@ export interface UsageLog {
   createdAt: Generated<Timestamp>;
   projectId: string | null;
   billable: Generated<boolean>;
-  invoiceId: string | null;
   baseModel: string | null;
   inputCost: Generated<Numeric>;
+  invoiceId: string | null;
   outputCost: Generated<Numeric>;
 }
 
@@ -510,13 +422,10 @@ export interface DB {
   _prisma_migrations: _PrismaMigrations;
   Account: Account;
   ApiKey: ApiKey;
-  CachedProcessedNodeData: CachedProcessedNodeData;
   CachedResponse: CachedResponse;
   CreditAdjustment: CreditAdjustment;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
-  DatasetEntryInput: DatasetEntryInput;
-  DatasetEntryOutput: DatasetEntryOutput;
   DatasetEval: DatasetEval;
   DatasetEvalDatasetEntry: DatasetEvalDatasetEntry;
   DatasetEvalOutputSource: DatasetEvalOutputSource;
@@ -533,10 +442,6 @@ export interface DB {
   Invoice: Invoice;
   LoggedCall: LoggedCall;
   LoggedCallTag: LoggedCallTag;
-  MonitorMatch: MonitorMatch;
-  Node: Node;
-  NodeData: NodeData;
-  NodeOutput: NodeOutput;
   Project: Project;
   ProjectUser: ProjectUser;
   PruningRule: PruningRule;

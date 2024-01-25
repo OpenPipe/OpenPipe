@@ -69,14 +69,16 @@ export const monitorsRouter = createTRPCRouter({
       await requireCanModifyProject(projectId, ctx);
 
       const monitorId = uuidv4();
-      const monitorHash = hashNode({ projectId, type: "Monitor", config: { filters } });
+      const monitorHash = hashNode({ projectId, node: { type: "Monitor", config: { filters } } });
 
       const relabelId = uuidv4();
       const relabelHash = hashNode({
         projectId,
-        type: "LLMRelabel",
-        config: {
-          relabelLLM: RelabelOptions.SkipRelabel,
+        node: {
+          type: "LLMRelabel",
+          config: {
+            relabelLLM: RelabelOptions.SkipRelabel,
+          },
         },
       });
 
@@ -177,8 +179,10 @@ export const monitorsRouter = createTRPCRouter({
 
       const nodeHash = hashNode({
         projectId: monitor.projectId,
-        type: "Monitor",
-        config: { checkFilters },
+        node: {
+          type: "Monitor",
+          config: { checkFilters },
+        },
       });
 
       await prisma.node.update({
@@ -262,9 +266,11 @@ export const monitorsRouter = createTRPCRouter({
 
       const relabelNodeHash = hashNode({
         projectId: monitor.projectId,
-        type: "LLMRelabel",
-        config: {
-          relabelLLM: relabelLLM,
+        node: {
+          type: "LLMRelabel",
+          config: {
+            relabelLLM: relabelLLM,
+          },
         },
       });
       if (relabelNodeHash !== relabelNode.hash) {

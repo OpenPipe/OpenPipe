@@ -10,7 +10,7 @@ import {
 } from "./shared.types";
 import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
-const chatInputs = chatCompletionInputReqPayload.shape;
+export const chatInputs = chatCompletionInputReqPayload.shape;
 
 export const datasetEntrySchema = z
   .object({

@@ -237,6 +237,10 @@ export enum LoggedCallsFiltersDefaultFields {
   CompletionId = "completionId",
 }
 
+export enum MonitorCheckFiltersExtendedFields {
+  CustomLLMFilter = "custom LLM filter",
+}
+
 export enum GeneralFiltersDefaultFields {
   Input = "Input",
   Output = "Output",

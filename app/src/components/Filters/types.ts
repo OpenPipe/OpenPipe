@@ -27,7 +27,16 @@ export type SelectFilterOption = {
   options: SelectFilterSelectOption[];
 };
 
-export type FilterOption = TextFilterOption | DateFilterOption | SelectFilterOption;
+export type LLMFilterOption = {
+  type: "llm";
+  field: "Custom LLM Filter";
+};
+
+export type FilterOption =
+  | TextFilterOption
+  | DateFilterOption
+  | SelectFilterOption
+  | LLMFilterOption;
 
 export type SelectFilterSelectOption = {
   value: string;

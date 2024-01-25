@@ -1,9 +1,8 @@
 import type { NodeType } from "@prisma/client";
 
 import defineTask from "../defineTask";
-import { kysely, prisma } from "~/server/db";
-import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
-import { typedNode } from "~/server/utils/nodes/node.types";
+import { processMonitor } from "~/server/utils/nodes/processMonitor";
+import { processLLMRelabel } from "~/server/utils/nodes/processLLMRelabel";
 
 export type ProcessNodeJob = {
   nodeId: string;
@@ -17,24 +16,8 @@ export const processNode = defineTask<ProcessNodeJob>({
     if (nodeType === "Monitor") {
       await processMonitor(nodeId);
     }
+    if (nodeType === "LLMRelabel") {
+      await processLLMRelabel(nodeId);
+    }
   },
 });
-
-const processMonitor = async (nodeId: string) => {
-  const node = await prisma.node
-    .findUnique({
-      where: { id: nodeId },
-      include: {
-        project: true,
-      },
-    })
-    .then((n) => (n ? typedNode(n) : null));
-  if (node?.type !== "Monitor") return;
-
-  await kysely
-    .selectFrom("MonitorMatch")
-    .where("monitorId", "=", nodeId)
-    .where("status", "=", "PENDING")
-    .orderBy("createdAt", "asc")
-    .execute();
-};
