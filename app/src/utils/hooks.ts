@@ -355,5 +355,23 @@ export const usePruningRules = () => {
   );
 };
 
+export const useInvoices = (refetchInterval?: number) => {
+  const selectedProjectId = useSelectedProject().data?.id;
+
+  return api.invoices.list.useQuery(
+    { projectId: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId, refetchInterval },
+  );
+};
+
+export const useInvoice = (id: string, refetchInterval?: number) => {
+  const selectedProjectId = useSelectedProject().data?.id;
+
+  return api.invoices.get.useQuery(
+    { invoiceId: id },
+    { enabled: !!selectedProjectId, refetchInterval },
+  );
+};
+
 export const useIsClientInitialized = () =>
   useAppStore((state) => state.isRehydrated && state.isMounted);

@@ -170,10 +170,11 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
             data: {
               fineTuneId: fineTune.id,
               projectId: fineTune.projectId,
+              baseModel: fineTune.baseModel,
               type: UsageType.TESTING,
               inputTokens,
               outputTokens,
-              cost: calculateCost(fineTune, 0, inputTokens, outputTokens),
+              ...calculateCost(fineTune, 0, inputTokens, outputTokens),
             },
           });
         }

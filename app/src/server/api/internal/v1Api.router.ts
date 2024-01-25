@@ -116,5 +116,7 @@ export const v1ApiRouter = createOpenApiRouter({
         where: { id: input.exportId },
         data: { status: "COMPLETE" },
       });
+
+      return {};
     }),
 });

@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "openpipe-inference"
+version = "0.1.0"
+description = ""
+authors = ["Kyle Corbitt <kyle@corbt.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+anyscale = "^0.5.171"
+ray = {extras = ["serve"], version = "^2.9.0"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

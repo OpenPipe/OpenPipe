@@ -21,7 +21,8 @@ type SecretKey =
   | "AZURE_OPENAI_API_KEY_FRANCECENTRAL"
   | "AZURE_OPENAI_API_KEY_JAPANEAST"
   | "AZURE_OPENAI_API_KEY_NORWAYEAST"
-  | "AZURE_OPENAI_API_KEY_SOUTHINDIA";
+  | "AZURE_OPENAI_API_KEY_SOUTHINDIA"
+  | "ANYSCALE_INFERENCE_API_KEY";
 
 type ConfigKey =
   | "WORKER_CONCURRENCY"
@@ -36,7 +37,8 @@ type ConfigKey =
   | "SMTP_HOST"
   | "NEXT_PUBLIC_DEPLOY_ENV"
   | "SENDER_EMAIL"
-  | "deployDomain";
+  | "deployDomain"
+  | "ANYSCALE_INFERENCE_BASE_URL";
 
 export const getSecret = (key: SecretKey) => cfg.requireSecret(key);
 export const getConfig = (key: ConfigKey) => cfg.require(key);

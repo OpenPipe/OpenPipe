@@ -32,6 +32,7 @@ import CostGraph from "~/components/dashboard/CostGraph";
 import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import { calculateSpendingsWithCredits } from "~/utils/billing";
 import dayjs, { formatToUTCDayMonth } from "~/utils/dayjs";
 import { useSelectedProject, useStats } from "~/utils/hooks";
 import { numberWithDefault } from "~/utils/utils";
@@ -61,6 +62,13 @@ export default function Usage() {
     totalOutputTokens,
     totalTrainingTokens,
   } = stats.data?.totals ?? {};
+
+  const credits = stats.data?.credits ?? 0;
+
+  const { totalSpent, creditsUsed, remainingCredits } = calculateSpendingsWithCredits(
+    Number(cost ?? 0),
+    credits,
+  );
 
   const updateMonth = (operation: "add" | "subtract") => {
     setQuery({
@@ -131,14 +139,49 @@ export default function Usage() {
                 <VStack spacing="4" width="300px" align="stretch">
                   <Card>
                     <CardBody>
+                      {credits > 0 && (
+                        <Stat marginBottom={1}>
+                          <HStack>
+                            <StatLabel flex={1}>Total used</StatLabel>
+                            <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                          </HStack>
+                          <StatNumber color="gray.600" fontSize={"xl"}>
+                            $
+                            {Number(cost ?? 0)
+                              .toFixed(2)
+                              .toLocaleString()}
+                          </StatNumber>
+                        </Stat>
+                      )}
+                      {credits > 0 && (
+                        <>
+                          <Stat marginBottom={1}>
+                            <HStack>
+                              <StatLabel flex={1}>Credits used:</StatLabel>
+                              <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                            </HStack>
+                            <StatNumber color="gray.600" fontSize={"xl"}>
+                              ${creditsUsed.toFixed(2).toLocaleString()}
+                            </StatNumber>
+                          </Stat>
+
+                          <Stat marginBottom={4}>
+                            <HStack>
+                              <StatLabel flex={1}>Remaining credits:</StatLabel>
+                              <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                            </HStack>
+                            <StatNumber color="gray.600" fontSize={"xl"}>
+                              ${remainingCredits.toFixed(2).toLocaleString()}
+                            </StatNumber>
+                          </Stat>
+                        </>
+                      )}
                       <Stat>
                         <HStack>
-                          <StatLabel flex={1}>Total Spent</StatLabel>
+                          <StatLabel flex={1}>Total Spend</StatLabel>
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
-                        <StatNumber>
-                          ${numberWithDefault(cost).toFixed(2).toLocaleString() ?? 0}
-                        </StatNumber>
+                        <StatNumber>${totalSpent.toFixed(2).toLocaleString()}</StatNumber>
                       </Stat>
                     </CardBody>
                   </Card>

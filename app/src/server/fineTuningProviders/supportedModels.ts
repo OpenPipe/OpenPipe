@@ -24,11 +24,6 @@ export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
     cost: sevenBCosts,
     trainable: true,
   },
-  "openpipe:mistralai/Mistral-7B-v0.1": {
-    name: "Mistral 7B",
-    cost: sevenBCosts,
-    trainable: true,
-  },
   "openpipe:meta-llama/Llama-2-13b-hf": {
     name: "Llama 2 13B",
     cost: { training: 0.000008, input: 0.0000024, output: 0.0000032 },
@@ -38,6 +33,12 @@ export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
     name: "GPT 3.5 Turbo",
     cost: { training: 0.000008, input: 0.000003, output: 0.000006 },
     trainable: true,
+  },
+
+  "openpipe:mistralai/Mistral-7B-v0.1": {
+    name: "Mistral 7B",
+    cost: sevenBCosts,
+    trainable: false,
   },
 
   // Old models, no longer supported for training
@@ -80,9 +81,12 @@ export const calculateCost = (
   outputTokens: number,
 ) => {
   const info = modelInfo(model);
-  return (
-    info.cost.training * trainingTokens +
-    info.cost.input * inputTokens +
-    info.cost.output * outputTokens
-  );
+  const trainingCost = info.cost.training * trainingTokens;
+  const inputCost = info.cost.input * inputTokens;
+  const outputCost = info.cost.output * outputTokens;
+  return {
+    cost: trainingCost + inputCost + outputCost,
+    inputCost,
+    outputCost,
+  };
 };

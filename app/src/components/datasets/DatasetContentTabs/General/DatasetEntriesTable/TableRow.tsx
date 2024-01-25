@@ -1,4 +1,16 @@
-import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Checkbox, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Td,
+  Tr,
+  Thead,
+  Th,
+  Tooltip,
+  HStack,
+  Text,
+  Checkbox,
+  Button,
+  Badge,
+} from "@chakra-ui/react";
 import { DatasetEntrySplit, RelabelRequestStatus } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
@@ -135,21 +147,19 @@ export const TableRow = ({
 };
 
 const EntrySplit = ({ split }: { split: string }) => {
-  const color = split === DatasetEntrySplit.TRAIN ? "orange.500" : "purple.500";
+  const color = split === DatasetEntrySplit.TRAIN ? "orange" : "purple";
   return (
     <HStack justifyContent="flex-end">
-      <Text
-        fontSize="xs"
-        fontWeight="semibold"
+      <Badge
+        variant="outline"
         w="14"
-        color={color}
-        borderColor={color}
-        borderWidth={1}
-        borderRadius={4}
+        p="1px"
         textAlign="center"
+        borderRadius={4}
+        colorScheme={color}
       >
         {split}
-      </Text>
+      </Badge>
     </HStack>
   );
 };

@@ -145,10 +145,11 @@ for (let i = 0; i < fineTunesToBackfill.length; i++) {
       data: {
         fineTuneId: typedFT.id,
         projectId: typedFT.projectId,
+        baseModel: typedFT.baseModel,
         type: "TRAINING",
         inputTokens: totalInputTokens,
         outputTokens: totalOutputTokens,
-        cost: calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
+        ...calculateCost(typedFT, totalInputTokens + totalOutputTokens, 0, 0),
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         createdAt: typedFT.createdAt,
       },
