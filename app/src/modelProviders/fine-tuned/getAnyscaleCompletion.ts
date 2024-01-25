@@ -10,7 +10,6 @@ import { convertToolCallMessageToFunction } from "~/server/utils/convertFunction
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
-import { pick } from "lodash-es";
 
 const client = env.ANYSCALE_INFERENCE_BASE_URL
   ? new OpenAI({
@@ -43,7 +42,9 @@ export async function getAnyscaleCompletion(
   const resp = await client.chat.completions.create({
     model: `${fineTune.baseModel}:${fineTune.id}:1`,
     messages: [{ role: "system", content: templatedPrompt }],
-    ...pick(input, ["max_tokens", "temperature", "n"]),
+    temperature: input.temperature ?? 0,
+    n: input.n ?? 1,
+    max_tokens: input.max_tokens ?? undefined,
   });
 
   let choices = resp.choices.map((choice, i) => ({
