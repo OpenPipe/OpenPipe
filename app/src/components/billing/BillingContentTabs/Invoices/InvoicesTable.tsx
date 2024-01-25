@@ -47,7 +47,6 @@ const InvoicesTable = ({ invoices }: Props) => {
               <Th>ID</Th>
               <Th textAlign="center">Status</Th>
               <Th isNumeric>Amount</Th>
-              {/* <Th isNumeric></Th> */}
               <Th isNumeric>{invoices.some((invoice) => invoice.paidAt) ? "Paid at" : ""}</Th>
             </Tr>
           </Thead>

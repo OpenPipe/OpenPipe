@@ -35,6 +35,7 @@ export const paymentsRouter = createTRPCRouter({
 
         const setupIntent = await stripe.setupIntents.create({
           customer: customer.id,
+          usage: "off_session",
           automatic_payment_methods: {
             enabled: true,
           },
@@ -47,16 +48,5 @@ export const paymentsRouter = createTRPCRouter({
           message: "Failed to create a Stripe customer.",
         });
       }
-    }),
-  setupPaymentIntent: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const stripe = new Stripe("STRIPE_SECRET_KEY_HERE");
-
-      return success("Successfully created invoice");
     }),
 });

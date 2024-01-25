@@ -44,14 +44,16 @@ export default function AddPaymentMethodButton() {
 
   const createStripeUserMutation = api.payments.createStripeUser.useMutation();
 
+  const [clientSecret, setClientSecret] = useState("");
+
   async function handleAddPaymentMethodClick() {
     if (!selectedProject) return;
 
-    const userSecret = await createStripeUserMutation.mutateAsync({
+    const { client_secret } = await createStripeUserMutation.mutateAsync({
       projectId: selectedProject.id,
     });
 
-    console.log("userSecret", userSecret);
+    if (client_secret) setClientSecret(client_secret);
 
     return disclosure.onOpen();
   }
@@ -64,7 +66,7 @@ export default function AddPaymentMethodButton() {
           <Text>Add Payment Method</Text>
         </HStack>
       </Button>
-      <PaymentDetailsModal disclosure={disclosure} />
+      <PaymentDetailsModal clientSecret={clientSecret} disclosure={disclosure} />
     </>
   );
 }
@@ -74,10 +76,15 @@ const stripePromise = loadStripe(
   "pk_test_51OcEiyIpUtvR6wbgpoMtjp7GzrWoNcjM2kLSeYlEAcP9BevVtv69TeUvhndrg87A4zigWNXYfTjeHyDqX4dt3Pm100pZ8BTBtu",
 );
 
-const PaymentDetailsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
+const PaymentDetailsModal = ({
+  clientSecret,
+  disclosure,
+}: {
+  clientSecret: string;
+  disclosure: UseDisclosureReturn;
+}) => {
   const options = {
-    // passing the SetupIntent's client secret
-    clientSecret: "seti_1OcHcfIpUtvR6wbgBciM1GfS_secret_PR9w06Iau6pod8SS1xrisqyBVU1VkB4",
+    clientSecret,
     // Fully customizable with appearance API.
     appearance: {
       /*...*/
@@ -103,7 +110,7 @@ const PaymentDetailsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }
           <Box w="full">
             <VStack w="full" justifyContent={"center"}>
               <Elements stripe={stripePromise} options={options}>
-                <SetupStripePaymentMethodForm disclosure={disclosure} />
+                <SetupStripePaymentMethodForm disclosure={disclosure} clientSecret={clientSecret} />
               </Elements>
             </VStack>
           </Box>
@@ -113,7 +120,13 @@ const PaymentDetailsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }
   );
 };
 
-function SetupStripePaymentMethodForm({ disclosure }: { disclosure: UseDisclosureReturn }) {
+function SetupStripePaymentMethodForm({
+  disclosure,
+  clientSecret,
+}: {
+  disclosure: UseDisclosureReturn;
+  clientSecret: string;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const selectedProject = useSelectedProject().data;
@@ -147,14 +160,50 @@ function SetupStripePaymentMethodForm({ disclosure }: { disclosure: UseDisclosur
       });
     } else {
       // TODO: Close modal
-      disclosure.onClose();
 
-      toast({
-        description: "WORKED!",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
+      stripe.retrieveSetupIntent(clientSecret).then(({ setupIntent }) => {
+        // Inspect the SetupIntent `status` to indicate the status of the payment
+        // to your customer.
+        //
+        // Some payment methods will [immediately succeed or fail][0] upon
+        // confirmation, while others will first enter a `processing` state.
+        //
+        // [0]: https://stripe.com/docs/payments/payment-methods#payment-notification
+        if (setupIntent) {
+          switch (setupIntent.status) {
+            case "succeeded":
+              toast({
+                description: "Success! Your payment method has been saved.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+              });
+              break;
+
+            case "processing":
+              toast({
+                description:
+                  "Processing payment details. We'll update you when processing is complete.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+              });
+              break;
+
+            case "requires_payment_method":
+              toast({
+                description:
+                  "Failed to process payment details. Please try another payment method.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+              });
+              break;
+          }
+        }
       });
+
+      disclosure.onClose();
     }
   };
 
