@@ -15,13 +15,13 @@ ray_serve_config:
               min_replicas: 1
               initial_replicas: 1
               max_replicas: 8
-              target_num_ongoing_requests_per_replica: 24
+              target_num_ongoing_requests_per_replica: 16
               metrics_interval_s: 10.0
               look_back_period_s: 30.0
               smoothing_factor: 0.5
               downscale_delay_s: 300.0
-              upscale_delay_s: 15.0
-            max_concurrent_queries: 64
+              upscale_delay_s: 0.0
+            max_concurrent_queries: 24
             ray_actor_options:
               resources:
                 accelerator_type_a100_40g: 0.01
@@ -32,7 +32,7 @@ ray_serve_config:
             engine_kwargs:
               trust_remote_code: true
               # max_num_batched_tokens: 8192
-              max_num_seqs: 64
+              max_num_seqs: 24
               gpu_memory_utilization: 0.95
               enable_cuda_graph: true
               num_tokenizer_actors: 2
