@@ -19,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import pluralize from "pluralize";
 import { AiOutlineCloudUpload, AiOutlineFile } from "react-icons/ai";
-import { FaReadme } from "react-icons/fa";
+import { FaBalanceScale, FaReadme } from "react-icons/fa";
 
 import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { api } from "~/utils/api";
@@ -34,114 +34,55 @@ import {
   isParseError,
 } from "~/components/datasets/parseRowsToImport";
 import { BsPlus } from "react-icons/bs";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { toast } from "~/theme/ChakraThemeProvider";
 
 export default function AddPaymentMethodButton() {
   const disclosure = useDisclosure();
+  const selectedProject = useSelectedProject().data;
+
+  const createStripeUserMutation = api.payments.createStripeUser.useMutation();
+
+  async function handleAddPaymentMethodClick() {
+    if (!selectedProject) return;
+
+    const userSecret = await createStripeUserMutation.mutateAsync({
+      projectId: selectedProject.id,
+    });
+
+    console.log("userSecret", userSecret);
+
+    return disclosure.onOpen();
+  }
 
   return (
     <>
-      <Button colorScheme="blue" onClick={disclosure.onOpen}>
+      <Button colorScheme="blue" onClick={handleAddPaymentMethodClick}>
         <HStack spacing={0}>
           <Icon as={BsPlus} boxSize={6} strokeWidth={0.8} />
           <Text>Add Payment Method</Text>
         </HStack>
       </Button>
-      <UploadDataModal disclosure={disclosure} />
+      <PaymentDetailsModal disclosure={disclosure} />
     </>
   );
 }
 
-const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
-  const dataset = useDataset().data;
+// Call `loadStripe` outside of a component’s render to avoid recreating the `Stripe` object on every render.
+const stripePromise = loadStripe(
+  "pk_test_51OcEiyIpUtvR6wbgpoMtjp7GzrWoNcjM2kLSeYlEAcP9BevVtv69TeUvhndrg87A4zigWNXYfTjeHyDqX4dt3Pm100pZ8BTBtu",
+);
 
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [datasetRows, setDatasetRows] = useState<RowToImport[] | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      processFile(files[0] as File);
-    }
+const PaymentDetailsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
+  const options = {
+    // passing the SetupIntent's client secret
+    clientSecret: "seti_1OcHcfIpUtvR6wbgBciM1GfS_secret_PR9w06Iau6pod8SS1xrisqyBVU1VkB4",
+    // Fully customizable with appearance API.
+    appearance: {
+      /*...*/
+    },
   };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      processFile(files[0] as File);
-    }
-  };
-
-  const processFile = (file: File) => {
-    setFile(file);
-
-    // skip reading if file is larger than 10MB
-    if (file.size > 10000000) {
-      setDatasetRows(null);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      const content = e.target?.result as string;
-      try {
-        const resp = parseRowsToImport(content.trim().split("\n"));
-
-        const errors = resp.filter(isParseError);
-
-        if (errors[0]) {
-          setValidationError(`Error on line ${errors[0].line ?? "[unknown]"}: ${errors[0].error}`);
-          setDatasetRows(null);
-          return;
-        }
-        setDatasetRows(resp.filter(isRowToImport));
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
-        setValidationError("Unable to parse JSONL file: " + (e.message as string));
-        setDatasetRows(null);
-        return;
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const resetState = useCallback(() => {
-    setValidationError(null);
-    setDatasetRows(null);
-    setFile(null);
-  }, [setValidationError, setDatasetRows, setFile]);
-
-  useEffect(() => {
-    if (disclosure.isOpen) {
-      resetState();
-    }
-  }, [disclosure.isOpen, resetState]);
-
-  const triggerFileDownloadMutation = api.datasets.triggerFileDownload.useMutation();
-
-  const utils = api.useContext();
-
-  const selectedProjectId = useSelectedProject().data?.id;
-
-  const [sendJSONL, sendingInProgress] = useHandledAsyncCallback(async () => {
-    if (!selectedProjectId || !dataset || !file) return;
-
-    const blobName = await uploadDatasetEntryFile(selectedProjectId, file);
-
-    await triggerFileDownloadMutation.mutateAsync({
-      datasetId: dataset.id,
-      blobName,
-      fileName: file.name,
-      fileSize: file.size,
-    });
-
-    await utils.datasets.listFileUploads.invalidate();
-
-    disclosure.onClose();
-  }, [dataset, datasetRows, triggerFileDownloadMutation, selectedProjectId, file, utils]);
 
   return (
     <Modal
@@ -151,170 +92,80 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
       {...disclosure}
     >
       <ModalOverlay />
-      <ModalContent w={1200}>
+      <ModalContent maxW="95%" h="auto">
         <ModalHeader>
           <HStack>
-            <Text>Import Dataset Entries</Text>
+            <Text>Add payment method</Text>
           </HStack>
         </ModalHeader>
-        {!sendingInProgress && <ModalCloseButton />}
-        <ModalBody maxW="unset" p={8}>
-          <Box w="full" aspectRatio={1.5}>
-            {validationError && (
-              <VStack w="full" h="full" justifyContent="center" spacing={8}>
-                <Icon as={AiOutlineFile} boxSize={24} color="gray.300" />
-                <VStack w="full">
-                  <Text fontSize={32} color="gray.500" fontWeight="bold">
-                    Error
-                  </Text>
-                  <Text color="gray.500" maxH="160" overflowY="auto">
-                    {validationError}
-                  </Text>
-                </VStack>
-                <Text
-                  as="span"
-                  textDecor="underline"
-                  color="gray.500"
-                  _hover={{ color: "orange.400" }}
-                  cursor="pointer"
-                  onClick={resetState}
-                >
-                  Try again
-                </Text>
-              </VStack>
-            )}
-            {!validationError && !file && (
-              <VStack
-                w="full"
-                h="full"
-                py={16}
-                px={8}
-                stroke="gray.300"
-                justifyContent="center"
-                borderRadius={8}
-                borderWidth={4}
-                borderColor="gray.200"
-                borderStyle="dashed"
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleFileDrop}
-              >
-                <JsonFileIcon />
-
-                <Text fontSize={32} color="gray.500" fontWeight="bold">
-                  Drag & Drop
-                </Text>
-                <Text color="gray.500">
-                  your .jsonl file here, or{" "}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                    accept=".jsonl"
-                  />
-                  <Text
-                    as="span"
-                    textDecor="underline"
-                    _hover={{ color: "orange.400" }}
-                    cursor="pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    browse
-                  </Text>
-                  .
-                </Text>
-              </VStack>
-            )}
-            {!validationError && file && (
-              <VStack w="full" h="full" justifyContent="center" spacing={8}>
-                <JsonFileIcon />
-                <VStack w="full">
-                  {datasetRows ? (
-                    <>
-                      <Text fontSize={32} color="gray.500" fontWeight="bold">
-                        Success
-                      </Text>
-                      <Text color="gray.500">
-                        We'll upload <b>{datasetRows.length}</b>{" "}
-                        {pluralize("row", datasetRows.length)} into <b>{dataset?.name}</b>.{" "}
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text fontSize={32} color="gray.500" fontWeight="bold">
-                        {file.name}
-                      </Text>
-                      <Text color="gray.500">{formatFileSize(file.size)}</Text>
-                    </>
-                  )}
-                </VStack>
-                {!sendingInProgress && (
-                  <Text
-                    as="span"
-                    textDecor="underline"
-                    color="gray.500"
-                    _hover={{ color: "orange.400" }}
-                    cursor="pointer"
-                    onClick={resetState}
-                  >
-                    Change file
-                  </Text>
-                )}
-              </VStack>
-            )}
+        <ModalCloseButton />
+        <ModalBody overflowY="auto" p={8}>
+          <Box w="full">
+            <VStack w="full" justifyContent={"center"}>
+              <Elements stripe={stripePromise} options={options}>
+                <SetupStripePaymentMethodForm disclosure={disclosure} />
+              </Elements>
+            </VStack>
           </Box>
         </ModalBody>
-        <ModalFooter>
-          <HStack w="full" justifyContent="space-between">
-            <HStack
-              as={ChakraLink}
-              href="https://docs.openpipe.ai/features/importing-data"
-              target="_blank"
-              color="gray.500"
-              _hover={{ color: "gray.800" }}
-            >
-              <Icon as={FaReadme} boxSize={4} />
-              <Text pb={1}>View Documentation</Text>
-            </HStack>
-
-            <HStack>
-              <Button
-                colorScheme="gray"
-                isDisabled={sendingInProgress}
-                onClick={disclosure.onClose}
-                minW={24}
-              >
-                Cancel
-              </Button>
-              <ConditionallyEnable
-                accessRequired="requireCanModifyProject"
-                checks={[
-                  [!!file, "Select a file to upload"],
-                  [!validationError, "Fix the error in your file"],
-                ]}
-              >
-                <Button
-                  colorScheme="orange"
-                  onClick={sendJSONL}
-                  isLoading={sendingInProgress}
-                  minW={24}
-                >
-                  Upload
-                </Button>
-              </ConditionallyEnable>
-            </HStack>
-          </HStack>
-        </ModalFooter>
       </ModalContent>
     </Modal>
   );
 };
 
-const JsonFileIcon = () => (
-  <Box position="relative" display="flex" alignItems="center" justifyContent="center">
-    <Icon as={AiOutlineFile} boxSize={24} color="gray.300" />
-    <Text position="absolute" color="orange.400" fontWeight="bold" fontSize={12} pt={4}>
-      JSONL
-    </Text>
-  </Box>
-);
+function SetupStripePaymentMethodForm({ disclosure }: { disclosure: UseDisclosureReturn }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const selectedProject = useSelectedProject().data;
+
+  // Code from stripe docs
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      // Stripe.js hasn't yet loaded.
+      // Make sure to disable form submission until Stripe.js has loaded.
+      return null;
+    }
+
+    const { error } = await stripe.confirmSetup({
+      //`Elements` instance that was used to create the Payment Element
+      elements,
+      confirmParams: {
+        return_url: `${process.env.NEXT_PUBLIC_HOST}/p/${selectedProject?.id}/billing/payment-methods`,
+      },
+      redirect: "if_required",
+    });
+
+    if (error) {
+      // This point will only be reached if there is an immediate error when confirming the payment.
+      toast({
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      // TODO: Close modal
+      disclosure.onClose();
+
+      toast({
+        description: "WORKED!",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  return (
+    <form style={{ width: "100%" }}>
+      <PaymentElement />
+      <HStack w="full" justifyContent="end">
+        <Button colorScheme="gray" minW={24} onClick={handleSubmit}>
+          Save
+        </Button>
+      </HStack>
+    </form>
+  );
+}
