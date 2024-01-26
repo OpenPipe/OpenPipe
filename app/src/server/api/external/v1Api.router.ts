@@ -6,7 +6,7 @@ import { z } from "zod";
 import { captureException } from "@sentry/node";
 import { ExtendedTRPCError } from "trpc-openapi";
 import { v4 as uuidv4 } from "uuid";
-import type { CachedResponse, Prisma } from "@prisma/client";
+import type { CachedResponse } from "@prisma/client";
 
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { kysely, prisma } from "~/server/db";
@@ -271,19 +271,21 @@ export const v1ApiRouter = createOpenApiRouter({
             tags,
           }).catch((e) => captureException(e));
           if (useCache && !cachedCompletion) {
-            await prisma.cachedResponse.upsert({
-              where: { projectId_cacheKey: { projectId: key.projectId, cacheKey } },
-              update: {},
-              create: {
+            void kysely
+              .insertInto("CachedResponse")
+              .values({
+                id: uuidv4(),
                 cacheKey,
                 modelId,
                 completionId: completion.id,
-                respPayload: completion as unknown as Prisma.InputJsonValue,
+                respPayload: JSON.stringify(completion),
                 projectId: key.projectId,
                 inputTokens: completion.usage?.prompt_tokens ?? 0,
                 outputTokens: completion.usage?.completion_tokens ?? 0,
-              },
-            });
+              })
+              .onConflict((oc) => oc.columns(["cacheKey", "projectId"]).doNothing())
+              .execute()
+              .catch((e) => captureException(e));
           }
           return completion;
         }
