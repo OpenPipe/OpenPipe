@@ -271,18 +271,19 @@ export const v1ApiRouter = createOpenApiRouter({
             tags,
           }).catch((e) => captureException(e));
           if (useCache && !cachedCompletion) {
-            await prisma.cachedResponse.upsert({
-              where: { projectId_cacheKey: { projectId: key.projectId, cacheKey } },
-              update: {},
-              create: {
-                cacheKey,
-                modelId,
-                completionId: completion.id,
-                respPayload: completion as unknown as Prisma.InputJsonValue,
-                projectId: key.projectId,
-                inputTokens: completion.usage?.prompt_tokens ?? 0,
-                outputTokens: completion.usage?.completion_tokens ?? 0,
-              },
+            await prisma.cachedResponse.createMany({
+              data: [
+                {
+                  cacheKey,
+                  modelId,
+                  completionId: completion.id,
+                  respPayload: completion as unknown as Prisma.InputJsonValue,
+                  projectId: key.projectId,
+                  inputTokens: completion.usage?.prompt_tokens ?? 0,
+                  outputTokens: completion.usage?.completion_tokens ?? 0,
+                },
+              ],
+              skipDuplicates: true,
             });
           }
           return completion;
