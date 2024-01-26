@@ -271,7 +271,7 @@ export const v1ApiRouter = createOpenApiRouter({
             tags,
           }).catch((e) => captureException(e));
           if (useCache && !cachedCompletion) {
-            await kysely
+            void kysely
               .insertInto("CachedResponse")
               .values({
                 id: uuidv4(),
@@ -284,7 +284,8 @@ export const v1ApiRouter = createOpenApiRouter({
                 outputTokens: completion.usage?.completion_tokens ?? 0,
               })
               .onConflict((oc) => oc.columns(["cacheKey", "projectId"]).doNothing())
-              .execute();
+              .execute()
+              .catch((e) => captureException(e));
           }
           return completion;
         }
