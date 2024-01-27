@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat";
 
 import OpenAI from "openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
-import { pick } from "lodash-es";
 
 const client = env.ANYSCALE_INFERENCE_BASE_URL
   ? new OpenAI({
@@ -55,9 +53,11 @@ export async function getAnyscaleCompletion(
   }
 
   return {
+    id: resp.id,
     object: "chat.completion",
-    model: `openpipe:${fineTune.slug}`,
+    created: resp.created,
+    model: input.model,
     choices,
-    ...pick(resp, ["id", "created", "usage"]),
+    usage: resp.usage,
   };
 }
