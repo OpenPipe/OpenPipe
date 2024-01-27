@@ -36,7 +36,6 @@ jobs:
         uses: pulumi/actions@v3
         with:
           command: up
-          target: "urn:pulumi:prod::openpipe::awsx:ecr:Image$docker:index/image:Image::83d84553-container,urn:pulumi:prod::openpipe::kubernetes:apps/v1:Deployment::app-worker-pl-prod,urn:pulumi:prod::openpipe::kubernetes:apps/v1:Deployment::app-pl-prod"
           stack-name: openpipe/prod
           work-dir: infra
         env:
