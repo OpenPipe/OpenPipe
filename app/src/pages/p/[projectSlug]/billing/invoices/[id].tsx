@@ -27,7 +27,7 @@ import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import { typedInvoice } from "~/types/dbColumns.types";
-import { JsonValue } from "~/types/kysely-codegen.types";
+import { type JsonValue } from "~/types/kysely-codegen.types";
 import { useInvoice, useSelectedProject } from "~/utils/hooks";
 
 export default function Invoice() {

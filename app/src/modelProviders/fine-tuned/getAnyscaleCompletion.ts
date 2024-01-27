@@ -1,12 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import type {
-  ChatCompletion,
-  ChatCompletionCreateParams,
-  ChatCompletionMessage,
-} from "openai/resources/chat";
+import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat";
 
 import OpenAI from "openai";
-import { convertToolCallMessageToFunction } from "~/server/utils/convertFunctionCalls";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
@@ -47,18 +41,12 @@ export async function getAnyscaleCompletion(
     max_tokens: input.max_tokens ?? undefined,
   });
 
-  let choices = resp.choices.map((choice, i) => ({
-    index: i,
-    message: deserializeChatOutput(choice.message.content?.trim() ?? ""),
-    finish_reason: choice.finish_reason,
+  const convertToFunctions = (input.functions?.length ?? 0) > 0;
+
+  const choices = resp.choices.map((choice) => ({
+    ...choice,
+    message: deserializeChatOutput(choice.message.content?.trim() ?? "", convertToFunctions),
   }));
-  if (input.functions?.length) {
-    // messages will automatically be deserialized to tool_calls, but the user might expect a function_call
-    choices = choices.map((choice) => ({
-      ...choice,
-      message: convertToolCallMessageToFunction(choice.message) as ChatCompletionMessage,
-    }));
-  }
 
   if (!resp.usage) {
     throw new Error("No usage data returned");
@@ -67,14 +55,9 @@ export async function getAnyscaleCompletion(
   return {
     id: resp.id,
     object: "chat.completion",
-    created: Date.now(),
+    created: resp.created,
     model: input.model,
-    // @ts-expect-error TODO: Fix this, logprobs missing?
     choices,
-    usage: {
-      prompt_tokens: resp.usage.prompt_tokens,
-      completion_tokens: resp.usage.completion_tokens,
-      total_tokens: resp.usage.prompt_tokens + resp.usage.completion_tokens,
-    },
+    usage: resp.usage,
   };
 }

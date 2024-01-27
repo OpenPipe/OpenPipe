@@ -1,9 +1,9 @@
-import { SelectQueryBuilder, sql } from "kysely";
+import { type SelectQueryBuilder, sql } from "kysely";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
 import { typedFineTune } from "~/types/dbColumns.types";
-import { DB, UsageLog } from "~/types/kysely-codegen.types";
+import { type DB, type UsageLog } from "~/types/kysely-codegen.types";
 import { requireCanViewProject } from "~/utils/accessControl";
 import dayjs from "~/utils/dayjs";
 
