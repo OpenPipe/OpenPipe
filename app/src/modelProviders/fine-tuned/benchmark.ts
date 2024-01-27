@@ -77,6 +77,6 @@ export function benchmarkCompletions(
       });
     });
 
-  return modalCompletion;
-  // return firstSuccessful([modalCompletion, anyscaleCompletion]);
+  // return modalCompletion;
+  return firstSuccessful([modalCompletion, anyscaleCompletion]);
 }
