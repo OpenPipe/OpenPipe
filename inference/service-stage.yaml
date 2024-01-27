@@ -4,7 +4,7 @@ cluster_env: llm-env:5
 
 ray_serve_config:
   applications:
-  - name: OpenPipe--mistral-ft-optimized-1227
+  - name: inference-stage
     route_prefix: /
     import_path: aviary_private_endpoints.backend.server.run:router_application
     args:
@@ -31,7 +31,6 @@ ray_serve_config:
             type: VLLMEngine
             engine_kwargs:
               trust_remote_code: true
-              # max_num_batched_tokens: 8192
               max_num_seqs: 24
               gpu_memory_utilization: 0.95
               enable_cuda_graph: true
@@ -39,7 +38,7 @@ ray_serve_config:
               enable_lora: true
               max_lora_rank: 8
               max_loras: 24
-            max_total_tokens: 8192
+            max_total_tokens: 16384
             generation:
               prompt_format:
                 system: "{instruction}"
