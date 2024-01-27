@@ -17,7 +17,6 @@ import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import {
   convertFunctionMessageToToolCall,
   convertToolCallInputToFunctionInput,
-  convertToolCallMessageToFunction,
 } from "~/server/utils/convertFunctionCalls";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { benchmarkCompletion } from "./benchmark";
@@ -131,12 +130,12 @@ async function getModalCompletion(
     throw new Error("Streaming is not yet supported");
   }
 
-  if (!fineTune.huggingFaceModelId) {
-    throw new Error("Model is not set up for inference");
-  }
-
   let resp: Awaited<ReturnType<typeof runInference>>;
-  if (fineTune.pipelineVersion < 3)
+  if (fineTune.pipelineVersion < 3) {
+    if (!fineTune.huggingFaceModelId) {
+      throw new Error("Model is not set up for inference");
+    }
+
     resp = await runInference({
       model: fineTune.huggingFaceModelId,
       prompt: templatedPrompt,
@@ -144,7 +143,7 @@ async function getModalCompletion(
       temperature: input.temperature ?? 0,
       n: input.n ?? 1,
     });
-  else if (fineTune.pipelineVersion === 3) {
+  } else if (fineTune.pipelineVersion === 3) {
     resp = await loraInference.default.generate({
       base_model: fineTune.baseModel,
       lora_model: fineTune.id,
@@ -157,20 +156,15 @@ async function getModalCompletion(
     throw new Error("Pipeline version not supported");
   }
 
-  let choices = resp.choices.map((choice, i) => ({
+  const convertToFunctions = (input.functions?.length ?? 0) > 0;
+
+  const choices = resp.choices.map((choice, i) => ({
     index: i,
-    message: deserializeChatOutput(choice.text.trim()),
+    message: deserializeChatOutput(choice.text.trim(), convertToFunctions),
     finish_reason: choice.finish_reason,
     // TODO: Record logprobs
     logprobs: null,
   }));
-  if (input.functions?.length) {
-    // messages will automatically be deserialized to tool_calls, but the user might expect a function_call
-    choices = choices.map((choice) => ({
-      ...choice,
-      message: convertToolCallMessageToFunction(choice.message) as ChatCompletionMessage,
-    }));
-  }
 
   return {
     id: resp.id,

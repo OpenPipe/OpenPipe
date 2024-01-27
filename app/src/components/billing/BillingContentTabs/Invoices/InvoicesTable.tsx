@@ -11,13 +11,13 @@ import {
   TableContainer,
   Badge,
 } from "@chakra-ui/react";
-import { InvoiceStatus } from "@prisma/client";
+import { type InvoiceStatus } from "@prisma/client";
 
 import { useSelectedProject } from "~/utils/hooks";
 import { ProjectLink } from "../../../ProjectLink";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
-import { RouterOutputs } from "~/utils/api";
+import { type RouterOutputs } from "~/utils/api";
 
 type Invoices = RouterOutputs["invoices"]["list"];
 
