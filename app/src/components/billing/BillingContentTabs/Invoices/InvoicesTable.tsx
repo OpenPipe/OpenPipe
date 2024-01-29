@@ -10,14 +10,19 @@ import {
   Button,
   TableContainer,
   Badge,
+  Spinner,
 } from "@chakra-ui/react";
-import { InvoiceStatus } from "@prisma/client";
+import type { InvoiceStatus } from "@prisma/client";
 
 import { useSelectedProject } from "~/utils/hooks";
 import { ProjectLink } from "../../../ProjectLink";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
-import { RouterOutputs } from "~/utils/api";
+import { RouterOutputs, api } from "~/utils/api";
+import { useHandledAsyncCallback } from "~/utils/hooks";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { toast } from "~/theme/ChakraThemeProvider";
+import { useState } from "react";
 
 type Invoices = RouterOutputs["invoices"]["list"];
 
@@ -28,6 +33,34 @@ type Props = {
 const InvoicesTable = ({ invoices }: Props) => {
   const selectedProject = useSelectedProject().data;
   const router = useRouter();
+
+  const payMutation = api.payments.pay.useMutation();
+  const utils = api.useContext();
+
+  const [processingInvoceId, setProcessingInvoiceId] = useState<string | null>(null);
+
+  const [pay, isPaymentLoading] = useHandledAsyncCallback(
+    async (invoiceId: string) => {
+      if (isPaymentLoading) return;
+
+      setProcessingInvoiceId(invoiceId);
+
+      const resp = await payMutation.mutateAsync({
+        invoiceId,
+      });
+
+      if (!maybeReportError(resp)) {
+        toast({
+          description: "Payment processing!",
+          status: "success",
+        });
+      }
+
+      await utils.invoices.list.invalidate();
+      setProcessingInvoiceId(null);
+    },
+    [utils, payMutation],
+  );
 
   const handleOpenInvoiceClick = (id: string) => {
     if (selectedProject?.slug) {
@@ -96,15 +129,20 @@ const InvoicesTable = ({ invoices }: Props) => {
                         mt={2}
                         variant="ghost"
                         color="blue.500"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          pay(invoice.id);
+                        }}
                       >
-                        Pay
+                        {isPaymentLoading && processingInvoceId === invoice.id ? (
+                          <Spinner />
+                        ) : (
+                          "Pay"
+                        )}
                       </Button>
                     )}
 
-                    {invoice.paidAt && (
-                      <Text>{dayjs.utc(invoice.paidAt).format("MMM D, YYYY")}</Text>
-                    )}
+                    {invoice.paidAt && <Text>{dayjs(invoice.paidAt).format("MMM D, YYYY")}</Text>}
                   </Td>
                 </Tr>
               );

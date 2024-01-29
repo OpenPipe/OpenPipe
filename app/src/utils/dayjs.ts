@@ -21,3 +21,13 @@ export const formatToUTCDayMonth = (dateStr: string | Date) =>
 export const toUTC = (dateStr: string | Date) => dayjs(dateStr).utc();
 
 export default dayjs;
+
+export function getPreviousMonthPeriodUTC(): [Date, Date] {
+  const startOfPreviousMonth = toUTC(new Date()).subtract(1, "month").startOf("month").toDate();
+  const endOfPreviousMonth = toUTC(new Date()).subtract(1, "month").endOf("month").toDate();
+  return [startOfPreviousMonth, endOfPreviousMonth];
+}
+
+export function getPreviousMonthWithYearString() {
+  return toUTC(new Date()).subtract(1, "month").format("MMM YYYY");
+}

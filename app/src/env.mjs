@@ -53,6 +53,9 @@ export const env = createEnv({
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
     EXPORTED_MODELS_BUCKET_NAME: z.string().optional(),
+    STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
   },
 
   /**
@@ -110,6 +113,9 @@ export const env = createEnv({
     EXPORTED_MODELS_BUCKET_NAME: process.env.EXPORTED_MODELS_BUCKET_NAME,
     ANYSCALE_INFERENCE_BASE_URL: process.env.ANYSCALE_INFERENCE_BASE_URL,
     ANYSCALE_INFERENCE_API_KEY: process.env.ANYSCALE_INFERENCE_API_KEY,
+    STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

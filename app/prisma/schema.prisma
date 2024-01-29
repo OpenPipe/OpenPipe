@@ -172,7 +172,8 @@ model Project {
     name     String  @default("Project 1")
     isPublic Boolean @default(false)
     isHidden Boolean @default(false)
-    stripeCustomerId       String?
+    stripeCustomerId String?
+    billable Boolean @default(true)
 
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)

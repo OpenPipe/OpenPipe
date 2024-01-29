@@ -284,7 +284,6 @@ export interface Invoice {
   amount: Generated<Numeric>;
   paidAt: Timestamp | null;
   paymentId: string | null;
-  remainingCredits: Numeric | null;
   status: Generated<"CANCELLED" | "PAID" | "PENDING" | "REFUNDED">;
   billingPeriod: string | null;
   slug: string;
@@ -328,6 +327,8 @@ export interface Project {
   slug: Generated<string>;
   isPublic: Generated<boolean>;
   isHidden: Generated<boolean>;
+  stripeCustomerId: string | null;
+  billable: Generated<boolean>;
 }
 
 export interface ProjectUser {

@@ -258,6 +258,14 @@ export const projectsRouter = createTRPCRouter({
             lastViewedProjectId: newProjectId,
           },
         }),
+        prisma.creditAdjustment.create({
+          data: {
+            projectId: newProjectId,
+            amount: 100,
+            type: "BONUS",
+            description: "100 free credits for new project",
+          },
+        }),
       ]);
       return newProject;
     }),
