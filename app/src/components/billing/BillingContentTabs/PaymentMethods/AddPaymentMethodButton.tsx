@@ -23,26 +23,18 @@ import { BsPlus } from "react-icons/bs";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { toast } from "~/theme/ChakraThemeProvider";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { env } from "~/env.mjs";
 
 export default function AddPaymentMethodButton() {
   const disclosure = useDisclosure();
   const selectedProject = useSelectedProject().data;
 
-  const createStripeCustomerMutation = api.payments.createStripeCustomer.useMutation();
   const createStripeIntentMutation = api.payments.createStripeIntent.useMutation();
 
   const [clientSecret, setClientSecret] = useState("");
 
   const [addPaymentMethod, addPaymentMethodLoading] = useHandledAsyncCallback(async () => {
     if (!selectedProject) return;
-
-    const res = await createStripeCustomerMutation.mutateAsync({
-      projectId: selectedProject.id,
-    });
-
-    if (maybeReportError(res)) return;
 
     const { clientSecret } = await createStripeIntentMutation.mutateAsync({
       projectId: selectedProject.id,
@@ -52,26 +44,19 @@ export default function AddPaymentMethodButton() {
       setClientSecret(clientSecret);
       disclosure.onOpen();
     }
-  }, [
-    selectedProject,
-    createStripeCustomerMutation,
-    createStripeIntentMutation,
-    disclosure.onClose,
-    setClientSecret,
-  ]);
+  }, [selectedProject, createStripeIntentMutation, disclosure.onClose, setClientSecret]);
 
   return (
     <>
-      <Button colorScheme="blue" onClick={() => addPaymentMethod()} w="240px">
+      <Button
+        colorScheme="blue"
+        onClick={() => addPaymentMethod()}
+        w="240px"
+        isLoading={addPaymentMethodLoading}
+      >
         <HStack spacing={0}>
-          {addPaymentMethodLoading ? (
-            <Spinner />
-          ) : (
-            <>
-              <Icon as={BsPlus} boxSize={6} strokeWidth={0.8} />
-              <Text>Add Payment Method</Text>
-            </>
-          )}
+          <Icon as={BsPlus} boxSize={6} strokeWidth={0.8} />
+          <Text>Add Payment Method</Text>
         </HStack>
       </Button>
       <PaymentDetailsModal clientSecret={clientSecret} disclosure={disclosure} />
@@ -80,9 +65,7 @@ export default function AddPaymentMethodButton() {
 }
 
 // Call `loadStripe` outside of a component’s render to avoid recreating the `Stripe` object on every render.
-const stripePromise = loadStripe(
-  "pk_test_51OcEiyIpUtvR6wbgpoMtjp7GzrWoNcjM2kLSeYlEAcP9BevVtv69TeUvhndrg87A4zigWNXYfTjeHyDqX4dt3Pm100pZ8BTBtu",
-);
+const stripePromise = loadStripe(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "");
 
 const PaymentDetailsModal = ({
   clientSecret,
@@ -187,7 +170,7 @@ function SetupStripePaymentMethodForm({
     const { error } = await stripe.confirmSetup({
       elements,
       confirmParams: {
-        return_url: `${env.NEXT_PUBLIC_HOST ?? "app.openpipe.com"}/p/${
+        return_url: `${env.NEXT_PUBLIC_HOST}/p/${
           selectedProject?.slug ?? ""
         }/billing/payment-methods`,
       },
@@ -209,13 +192,13 @@ function SetupStripePaymentMethodForm({
   }
 
   return (
-    <div style={{ width: "100%" }}>
+    <Box style={{ width: "100%" }}>
       <PaymentElement />
       <HStack w="full" justifyContent="end">
         <Button colorScheme="gray" minW={24} onClick={() => handleAddPaymentDetail()}>
           {addPaymentDetailLoading ? <Spinner /> : "Save"}
         </Button>
       </HStack>
-    </div>
+    </Box>
   );
 }

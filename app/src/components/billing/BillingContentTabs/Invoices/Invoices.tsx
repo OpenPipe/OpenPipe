@@ -1,6 +1,7 @@
 import { Card, VStack, Text, Icon, Heading } from "@chakra-ui/react";
 import { useInvoices } from "~/utils/hooks";
 import InvoicesTable from "./InvoicesTable";
+import { FaTable } from "react-icons/fa";
 
 const Invoices = () => {
   const query = useInvoices();

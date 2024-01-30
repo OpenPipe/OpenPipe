@@ -10,7 +10,6 @@ import {
   Button,
   TableContainer,
   Badge,
-  Spinner,
 } from "@chakra-ui/react";
 import type { InvoiceStatus } from "@prisma/client";
 
@@ -133,12 +132,9 @@ const InvoicesTable = ({ invoices }: Props) => {
                           e.stopPropagation();
                           pay(invoice.id);
                         }}
+                        isLoading={isPaymentLoading && processingInvoceId === invoice.id}
                       >
-                        {isPaymentLoading && processingInvoceId === invoice.id ? (
-                          <Spinner />
-                        ) : (
-                          "Pay"
-                        )}
+                        Pay
                       </Button>
                     )}
 

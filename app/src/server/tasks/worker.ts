@@ -75,8 +75,8 @@ const runner = await run({
     },
     {
       task: chargeInvoices.task.identifier,
-      // run once a day
-      pattern: "0 0 * * *",
+      // run on 2nd day of each month, after invoices are created
+      pattern: "0 0 2 * *",
       identifier: chargeInvoices.task.identifier,
     },
   ]),

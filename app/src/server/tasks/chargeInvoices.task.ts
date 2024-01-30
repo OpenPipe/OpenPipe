@@ -8,7 +8,6 @@ import {
   usdToCents,
 } from "../utils/stripe";
 import { env } from "~/env.mjs";
-import { emailAdminsAboutPaymentFailure } from "../utils/emails";
 
 export const chargeInvoices = defineTask({
   id: "chargeInvoices",
@@ -49,16 +48,16 @@ export async function chargeInvoice(invoiceId: string) {
     return error("Add a default payment method.");
   }
 
-  let defaultPaymentMethodId = await getDefaultPaymentMethodId(project.stripeCustomerId);
+  let paymentMethodToUse = await getDefaultPaymentMethodId(project.stripeCustomerId);
 
-  if (!defaultPaymentMethodId) {
+  if (!paymentMethodToUse) {
     // Search for available payment methods and use the first one
     const paymentMethods = await getPaymentMethods(project.stripeCustomerId);
 
     if (paymentMethods && paymentMethods.data[0]?.id) {
-      defaultPaymentMethodId = paymentMethods.data[0]?.id;
+      paymentMethodToUse = paymentMethods.data[0]?.id;
     } else {
-      return error("Add a default payment method.");
+      return error("Add a payment method.");
     }
   }
 
@@ -67,10 +66,8 @@ export async function chargeInvoice(invoiceId: string) {
       amount: usdToCents(invoice.amount),
       invoiceId: invoiceId,
       stripeCustomerId: project.stripeCustomerId,
-      paymentMethodId: defaultPaymentMethodId,
-      returnUrl: `${
-        env.NEXT_PUBLIC_HOST ?? "app.openpipe.com"
-      }/p/${project?.slug}/billing/inboices`,
+      paymentMethodId: paymentMethodToUse,
+      returnUrl: `${env.NEXT_PUBLIC_HOST}/p/${project?.slug}/billing/invoices`,
     });
 
     // Sometimes it will not work because processing may take some time.
@@ -87,14 +84,11 @@ export async function chargeInvoice(invoiceId: string) {
         },
       });
 
-      return success("Payment is succeeded!");
+      return success("Payment successfully applied.");
     }
 
-    return error("Peyment is processing");
+    return error("Payment is processing.");
   } catch {
-    // Send email to admins about payment failure
-    await emailAdminsAboutPaymentFailure(project.id, project.name, project.slug);
-
     return error("Failed to make a payment.");
   }
 }

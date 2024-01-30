@@ -16,31 +16,6 @@ import {
 import { chargeInvoice } from "~/server/tasks/chargeInvoices.task";
 
 export const paymentsRouter = createTRPCRouter({
-  createStripeCustomer: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      await requireIsProjectAdmin(input.projectId, ctx);
-
-      const stripeCustomerId = await getStripeCustomerId({
-        projectId: input.projectId,
-        required: false,
-      });
-
-      if (stripeCustomerId) {
-        return success("Stripe customer already created.");
-      }
-
-      try {
-        await createStripeCustomerAndConnectItToProject(input.projectId);
-        return success("Stripe customer created successfully!");
-      } catch {
-        return error("Failed to create a stripe customer.");
-      }
-    }),
   createStripeIntent: protectedProcedure
     .input(
       z.object({
@@ -49,6 +24,22 @@ export const paymentsRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       await requireIsProjectAdmin(input.projectId, ctx);
+
+      const stripeCustomerExists = await getStripeCustomerId({
+        projectId: input.projectId,
+        required: false,
+      });
+
+      if (!stripeCustomerExists) {
+        try {
+          await createStripeCustomerAndConnectItToProject(input.projectId);
+        } catch {
+          throw new TRPCError({
+            code: "BAD_REQUEST", // TODO: Check if this is the correct code
+            message: "Failed to create a Stripe customer.",
+          });
+        }
+      }
 
       let stripeCustomerId = await getStripeCustomerId({
         projectId: input.projectId,
@@ -97,7 +88,7 @@ export const paymentsRouter = createTRPCRouter({
         // Set initial payment method as default
         let defaultPaymentMethodId = await getDefaultPaymentMethodId(stripeCustomerId);
         const availablePaymentMethodId = paymentMethods.data[0]?.id ?? undefined;
-        if (defaultPaymentMethodId === undefined && availablePaymentMethodId) {
+        if (!defaultPaymentMethodId && availablePaymentMethodId) {
           await setDefaultPaymentMethod(stripeCustomerId, availablePaymentMethodId);
           defaultPaymentMethodId = availablePaymentMethodId;
         }
@@ -124,7 +115,6 @@ export const paymentsRouter = createTRPCRouter({
 
       try {
         const response = setDefaultPaymentMethod(stripeCustomerId, input.paymentMethodId);
-        console.log(response);
         return success("Default payment method set successfully!");
       } catch {
         return error("Failed to set a default payment method.");

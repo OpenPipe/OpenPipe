@@ -1,4 +1,4 @@
-import { Card, CardBody, Text, HStack, VStack, Icon, Button, Spinner } from "@chakra-ui/react";
+import { Card, CardBody, Text, HStack, VStack, Icon, Button } from "@chakra-ui/react";
 import { api } from "~/utils/api";
 
 import AddPaymentMethodButton from "./AddPaymentMethodButton";
@@ -14,7 +14,7 @@ const PaymentMethods = () => {
   const setDefaultPaymentMethodMutation = api.payments.setDefaultPaymentMethod.useMutation();
   const deletePaymentMethodMutation = api.payments.deletePaymentMethod.useMutation();
 
-  const [setDefaultPaymentMethod, isDefaultChangeLoading] = useHandledAsyncCallback(
+  const [setDefaultPaymentMethod, setDefaultInProgress] = useHandledAsyncCallback(
     async (paymentMethodId: string) => {
       if (!selectedProject) return;
 
@@ -28,7 +28,7 @@ const PaymentMethods = () => {
     [selectedProject, utils, setDefaultPaymentMethodMutation],
   );
 
-  const [deletePaymentMethod, isDeleteLoading] = useHandledAsyncCallback(
+  const [deletePaymentMethod, deletionInProgress] = useHandledAsyncCallback(
     async (paymentMethodId: string) => {
       if (!selectedProject) return;
 
@@ -77,28 +77,30 @@ const PaymentMethods = () => {
                   ) : (
                     <Button
                       onClick={() => {
-                        if (!isDefaultChangeLoading) setDefaultPaymentMethod(method.id);
+                        if (!setDefaultInProgress) setDefaultPaymentMethod(method.id);
                       }}
                       fontSize="sm"
                       px={1}
                       variant="ghost"
                       _hover={{ bgColor: "transperent" }}
+                      isLoading={setDefaultInProgress}
                     >
-                      {isDefaultChangeLoading ? <Spinner /> : "Set as default"}
+                      Set as default
                     </Button>
                   )}
 
                   {method.id !== paymentMethods.defaultPaymentMethodId && (
                     <Button
                       onClick={() => {
-                        if (!isDeleteLoading) deletePaymentMethod(method.id);
+                        if (!deletionInProgress) deletePaymentMethod(method.id);
                       }}
                       fontSize="sm"
                       px={1}
                       variant="ghost"
                       _hover={{ bgColor: "transperent" }}
+                      isLoading={deletionInProgress}
                     >
-                      {isDeleteLoading ? <Spinner /> : "Delete"}
+                      Delete
                     </Button>
                   )}
                 </HStack>

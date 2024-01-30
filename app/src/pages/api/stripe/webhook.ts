@@ -2,7 +2,10 @@ import { type NextApiRequest, type NextApiResponse } from "next";
 import Stripe from "stripe";
 import { prisma } from "~/server/db";
 import { env } from "~/env.mjs";
-import { emailAdminsAboutPaymentFailure } from "~/server/utils/emails";
+import { captureException } from "@sentry/node";
+import { sendToAdmins } from "~/server/emails/sendToAdmins";
+import { sendPaymentSuccessful } from "~/server/emails/sendPaymentSuccessful";
+import { sendPaymentFailed } from "~/server/emails/sendPaymentFailed";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY ?? "");
 const endpointSecret = env.STRIPE_WEBHOOK_SECRET ?? "";
@@ -54,6 +57,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
+      await notifyAdminsAboutPayment(invoiceId, "SUCCESS");
+
       break;
 
     case "charge.failed":
@@ -67,7 +72,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
-      await notifyAdminsAboutFailure(invoiceId);
+      await notifyAdminsAboutPayment(invoiceId, "FAILURE");
 
       break;
 
@@ -82,7 +87,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
-      await notifyAdminsAboutFailure(invoiceId);
+      await notifyAdminsAboutPayment(invoiceId, "FAILURE");
 
       break;
     case "payment_intent.succeeded":
@@ -96,6 +101,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
+      await notifyAdminsAboutPayment(invoiceId, "SUCCESS");
+
       break;
   }
 
@@ -104,21 +111,35 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 export default handler;
 
-async function notifyAdminsAboutFailure(invoiceId: string | undefined) {
-  const project = await findProject(invoiceId);
-  project && (await emailAdminsAboutPaymentFailure(project.id, project.name, project.slug));
-}
+async function notifyAdminsAboutPayment(
+  invoiceId: string | undefined,
+  result: "SUCCESS" | "FAILURE",
+) {
+  try {
+    const invoice = await prisma.invoice.findFirstOrThrow({
+      where: {
+        id: invoiceId,
+      },
+    });
 
-async function findProject(invoiceId: string | undefined) {
-  const invoice = await prisma.invoice.findUnique({
-    where: {
-      id: invoiceId,
-    },
-  });
+    const project = await prisma.project.findFirstOrThrow({
+      where: {
+        id: invoice?.projectId,
+      },
+    });
 
-  return await prisma.project.findUnique({
-    where: {
-      id: invoice?.projectId,
-    },
-  });
+    if (result === "SUCCESS") {
+      await sendToAdmins(invoiceId!, (email: string) =>
+        sendPaymentSuccessful(Number(invoice.amount), project.name, project.slug, email),
+      );
+    }
+
+    if (result === "FAILURE") {
+      await sendToAdmins(invoiceId!, (email: string) =>
+        sendPaymentFailed(Number(invoice.amount), project.name, project.slug, email),
+      );
+    }
+  } catch (e) {
+    captureException(e);
+  }
 }

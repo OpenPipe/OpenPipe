@@ -33,22 +33,20 @@ export async function createStripePaymentIntent({
     },
   });
 }
-export async function createSetupIntent(stripeCustomerId: string) {
-  return stripe.setupIntents.create({
+export const createSetupIntent = async (stripeCustomerId: string) =>
+  stripe.setupIntents.create({
     customer: stripeCustomerId,
     usage: "off_session",
     automatic_payment_methods: {
       enabled: true,
     },
   });
-}
 
-export async function getStripeCustomer(stripeCustomerId: string) {
-  return stripe.customers.retrieve(stripeCustomerId);
-}
-export async function deletePaymentMethod(paymentMethodId: string) {
-  return stripe.paymentMethods.detach(paymentMethodId);
-}
+export const getStripeCustomer = async (stripeCustomerId: string) =>
+  stripe.customers.retrieve(stripeCustomerId);
+
+export const deletePaymentMethod = async (paymentMethodId: string) =>
+  stripe.paymentMethods.detach(paymentMethodId);
 
 export async function getDefaultPaymentMethodId(stripeCustomerId: string) {
   const customer = await stripe.customers.retrieve(stripeCustomerId);
@@ -65,13 +63,12 @@ export async function getDefaultPaymentMethodId(stripeCustomerId: string) {
   return paymentMethodId;
 }
 
-export async function setDefaultPaymentMethod(stripeCustomerId: string, paymentMethodId: string) {
-  return await stripe.customers.update(stripeCustomerId, {
+export const setDefaultPaymentMethod = async (stripeCustomerId: string, paymentMethodId: string) =>
+  stripe.customers.update(stripeCustomerId, {
     invoice_settings: {
       default_payment_method: paymentMethodId,
     },
   });
-}
 
 export async function getPaymentMethods(stripeCustomerId: string) {
   const customer = await stripe.customers.retrieve(stripeCustomerId);
@@ -93,7 +90,7 @@ export function usdToCents(usd: number | Decimal) {
 
 export async function createStripeCustomerAndConnectItToProject(projectId: string) {
   // Find a project
-  const project = await prisma.project.findUnique({
+  const project = await prisma.project.findFirstOrThrow({
     where: {
       id: projectId,
     },
@@ -101,13 +98,13 @@ export async function createStripeCustomerAndConnectItToProject(projectId: strin
 
   // Create stripe customer
   const customer = await stripe.customers.create({
-    name: `${project?.name ?? "Project"} - ${project?.slug ?? "OpenPipe"}`,
+    name: `${project.name} - ${project.slug}`,
     metadata: {
       projectId: projectId,
     },
   });
 
-  //Associate customer with a project
+  // Associate customer with a project
   await prisma.project.update({
     where: {
       id: projectId,

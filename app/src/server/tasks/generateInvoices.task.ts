@@ -18,7 +18,7 @@ export const generateInvoices = defineTask({
     const projects = await prisma.project.findMany();
 
     for (const project of projects) {
-      //Avoid creating multiple invoices for the same billing period
+      // Avoid creating multiple invoices for the same billing period
       const invoiceAlreadyExists = await prisma.invoice.findFirst({
         where: {
           projectId: project.id,
@@ -53,7 +53,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
         id: uuidv4(),
         projectId: projectId,
         amount: 0,
-        slug: getInvoiceSlug(),
+        slug: generateInvoiceSlug(),
         billingPeriod: getPreviousMonthWithYearString(),
       })
       .returning(["id", "createdAt", "slug"])
@@ -133,7 +133,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
   });
 }
 
-function getInvoiceSlug(length = 6) {
+function generateInvoiceSlug(length = 6) {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const slug = Array.from({ length }, () =>
     characters.charAt(Math.floor(Math.random() * characters.length)),
