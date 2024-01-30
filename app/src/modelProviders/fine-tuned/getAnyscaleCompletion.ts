@@ -5,17 +5,27 @@ import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
 
-const client = env.ANYSCALE_INFERENCE_BASE_URL
-  ? new OpenAI({
-      baseURL: env.ANYSCALE_INFERENCE_BASE_URL,
-      apiKey: env.ANYSCALE_INFERENCE_API_KEY,
-    })
+const deployments = ["base", "a10"] as const;
+
+const clients = env.ANYSCALE_INFERENCE_BASE_URL
+  ? {
+      base: new OpenAI({
+        baseURL: env.ANYSCALE_INFERENCE_BASE_URL,
+        apiKey: env.ANYSCALE_INFERENCE_API_KEY,
+      }),
+      a10: new OpenAI({
+        baseURL: env.ANYSCALE_INFERENCE_BASE_URL.replace("/v1", "/a10-v1/v1"),
+        apiKey: env.ANYSCALE_INFERENCE_API_KEY,
+      }),
+    }
   : null;
 
 export async function getAnyscaleCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
+  deployment: (typeof deployments)[number] = "base",
 ): Promise<ChatCompletion> {
+  const client = clients?.[deployment];
   if (!client) {
     throw new Error("Not configured for Anyscale inference");
   }

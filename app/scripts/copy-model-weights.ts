@@ -28,8 +28,10 @@ if (model.pipelineVersion < 3) {
 await $$`mkdir -p /tmp/${modelSlug}`;
 await $$`rm -rf /tmp/${modelSlug}/*`;
 
-console.log("Transferring the s3 weights...");
-await $$`aws s3 sync s3://user-models-pl-prod-5e7392e/models/${model.baseModel}:${model.id}:1 s3://user-models-pl-stage-4c769c7/models/${model.baseModel}:${model.id}:1`;
+const outPath = `s3://user-models-pl-stage-4c769c7/models/${model.baseModel}:${model.id}:1`;
+
+console.log(`Transferring the s3 weights to ${outPath}...`);
+await $$`aws s3 sync s3://user-models-pl-prod-5e7392e/models/${model.baseModel}:${model.id}:1 ${outPath}`;
 
 console.log("Downloading the model weights...");
 await $$({
