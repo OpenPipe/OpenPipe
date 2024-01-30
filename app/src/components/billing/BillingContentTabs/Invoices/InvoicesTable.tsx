@@ -11,13 +11,12 @@ import {
   TableContainer,
   Badge,
 } from "@chakra-ui/react";
-import type { InvoiceStatus } from "@prisma/client";
-
+import { type InvoiceStatus } from "@prisma/client";
 import { useSelectedProject } from "~/utils/hooks";
 import { ProjectLink } from "../../../ProjectLink";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
-import { RouterOutputs, api } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { toast } from "~/theme/ChakraThemeProvider";
