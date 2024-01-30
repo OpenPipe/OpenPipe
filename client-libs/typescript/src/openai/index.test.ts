@@ -118,6 +118,7 @@ test("openai call caches", async () => {
       ...payload,
       openpipe: { cache: true, tags: { promptId: "openai call caches" } },
     });
+    await sleep(100);
     await oaiClient.chat.completions.create({
       ...payload,
       openpipe: { cache: true, tags: { promptId: "openai call caches" } },

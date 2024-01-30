@@ -1,29 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import type {
-  ChatCompletionMessage,
   ChatCompletion,
+  ChatCompletionChunk,
+  ChatCompletionCreateParams,
   ChatCompletionCreateParamsNonStreaming,
   ChatCompletionCreateParamsStreaming,
-  ChatCompletionCreateParams,
-  ChatCompletionChunk,
+  ChatCompletionMessage,
 } from "openai/resources/chat";
 import { type Stream } from "openai/streaming";
 
 import { omit } from "lodash-es";
-import { loraInference, runInference } from "~/server/modal-rpc/clients";
-import { getAzureGpt4Completion, getOpenaiCompletion } from "~/server/utils/openai";
-import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
-import { deserializeChatOutput, serializeChatInput } from "./serializers";
+import { env } from "~/env.mjs";
 import {
   convertFunctionMessageToToolCall,
   convertToolCallInputToFunctionInput,
-  convertToolCallMessageToFunction,
 } from "~/server/utils/convertFunctionCalls";
+import { getAzureGpt4Completion, getOpenaiCompletion } from "~/server/utils/openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
-import { benchmarkCompletion } from "./benchmark";
-import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
-import { env } from "~/env.mjs";
-import { captureException } from "@sentry/node";
+import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
+import { benchmarkCompletions } from "./benchmark";
+import { getModalCompletion } from "./getModalCompletion";
 
 export async function getCompletion(
   fineTune: TypedFineTune,
@@ -56,29 +52,17 @@ export async function getCompletion(
         let completion: Promise<ChatCompletion>;
         if (fineTune.gpt4FallbackEnabled) {
           completion = getAzureGpt4Completion(input);
-          try {
-            // keep gpus hot
-            void getModalCompletion(fineTune, prunedInput);
-          } catch {
-            // pass
-          }
+          // keep gpus hot
+          void getModalCompletion(fineTune, prunedInput).catch((e) => reportError(e));
+        } else if (
+          env.ANYSCALE_INFERENCE_BASE_URL &&
+          env.ANYSCALE_INFERENCE_API_KEY &&
+          fineTune.pipelineVersion === 3 &&
+          fineTune.baseModel === "OpenPipe/mistral-ft-optimized-1227"
+        ) {
+          completion = benchmarkCompletions(fineTune, prunedInput);
         } else {
           completion = getModalCompletion(fineTune, prunedInput);
-
-          if (
-            env.ANYSCALE_INFERENCE_BASE_URL &&
-            env.ANYSCALE_INFERENCE_API_KEY &&
-            fineTune.pipelineVersion >= 3 &&
-            fineTune.baseModel === "OpenPipe/mistral-ft-optimized-1227"
-          ) {
-            completion = benchmarkCompletion(completion, "modal");
-            // We aren't doing anything with this completion for now, besides
-            // silently checking how long it would take compared to Modal.
-            void benchmarkCompletion(
-              getAnyscaleCompletion(fineTune, prunedInput).catch(captureException),
-              "anyscale",
-            );
-          }
         }
         return completion;
       case 0:
@@ -118,70 +102,4 @@ async function getOpenAIFineTuneCompletion(
     ) as ChatCompletionMessage;
   }
   return completion;
-}
-
-async function getModalCompletion(
-  fineTune: TypedFineTune,
-  input: ChatCompletionCreateParams,
-): Promise<ChatCompletion> {
-  const serializedInput = serializeChatInput(input, fineTune);
-  const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
-
-  if (input.stream) {
-    throw new Error("Streaming is not yet supported");
-  }
-
-  if (!fineTune.huggingFaceModelId) {
-    throw new Error("Model is not set up for inference");
-  }
-
-  let resp: Awaited<ReturnType<typeof runInference>>;
-  if (fineTune.pipelineVersion < 3)
-    resp = await runInference({
-      model: fineTune.huggingFaceModelId,
-      prompt: templatedPrompt,
-      max_tokens: input.max_tokens ?? undefined,
-      temperature: input.temperature ?? 0,
-      n: input.n ?? 1,
-    });
-  else if (fineTune.pipelineVersion === 3) {
-    resp = await loraInference.default.generate({
-      base_model: fineTune.baseModel,
-      lora_model: fineTune.id,
-      prompt: templatedPrompt,
-      max_tokens: input.max_tokens ?? undefined,
-      temperature: input.temperature ?? 0,
-      n: input.n ?? 1,
-    });
-  } else {
-    throw new Error("Pipeline version not supported");
-  }
-
-  let choices = resp.choices.map((choice, i) => ({
-    index: i,
-    message: deserializeChatOutput(choice.text.trim()),
-    finish_reason: choice.finish_reason,
-    // TODO: Record logprobs
-    logprobs: null,
-  }));
-  if (input.functions?.length) {
-    // messages will automatically be deserialized to tool_calls, but the user might expect a function_call
-    choices = choices.map((choice) => ({
-      ...choice,
-      message: convertToolCallMessageToFunction(choice.message) as ChatCompletionMessage,
-    }));
-  }
-
-  return {
-    id: resp.id,
-    object: "chat.completion",
-    created: Math.round(Date.now() / 1000),
-    model: input.model,
-    choices,
-    usage: {
-      prompt_tokens: resp.usage.prompt_tokens,
-      completion_tokens: resp.usage.completion_tokens,
-      total_tokens: resp.usage.prompt_tokens + resp.usage.completion_tokens,
-    },
-  };
 }
