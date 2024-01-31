@@ -22,7 +22,6 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { toast } from "~/theme/ChakraThemeProvider";
 import { useState } from "react";
 
-
 type Invoices = RouterOutputs["invoices"]["list"];
 
 type Props = {
