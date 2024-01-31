@@ -1,8 +1,5 @@
-import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
-import * as random from "@pulumi/random";
 import * as aws from "@pulumi/aws";
-import { eksProvider } from "./cluster";
 import { userModelsBucketArn } from "./models";
 import { nm } from "./helpers";
 
