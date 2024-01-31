@@ -18,23 +18,8 @@ export const generateInvoices = defineTask({
     const projects = await prisma.project.findMany();
 
     for (const project of projects) {
-      // Avoid creating multiple invoices for the same billing period
-      const invoiceAlreadyExists = await prisma.invoice.findFirst({
-        where: {
-          projectId: project.id,
-          billingPeriod: getPreviousMonthWithYearString(),
-          createdAt: {
-            gte: toUTC(new Date()).startOf("month").toDate(),
-          },
-        },
-      });
-
       //SDK test Project
-      if (
-        !invoiceAlreadyExists &&
-        project.billable &&
-        project.id === "89149c5d-aeda-49f7-b668-41104aef8444"
-      ) {
+      if (project.billable && project.id === "89149c5d-aeda-49f7-b668-41104aef8444") {
         await createInvoice(project.id, startOfPreviousMonth, endOfPreviousMonth);
       }
     }
@@ -45,6 +30,19 @@ export const generateInvoices = defineTask({
 });
 
 export async function createInvoice(projectId: string, startDate: Date, endDate: Date) {
+  // Avoid creating multiple invoices for the same billing period
+  const invoiceAlreadyExists = await prisma.invoice.findFirst({
+    where: {
+      projectId: projectId,
+      billingPeriod: getPreviousMonthWithYearString(),
+      createdAt: {
+        gte: toUTC(new Date()).startOf("month").toDate(),
+      },
+    },
+  });
+
+  if (invoiceAlreadyExists) return;
+
   await kysely.transaction().execute(async (tx) => {
     // 1. Create empty invoice
     const invoice = await tx
