@@ -181,7 +181,7 @@ export default function Usage() {
                           <StatLabel flex={1}>Total Spend</StatLabel>
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
-                        <StatNumber>${totalSpent.toFixed(2).toLocaleString()}</StatNumber>
+                        <StatNumber>${Number(totalSpent.toFixed(2)).toLocaleString()}</StatNumber>
                       </Stat>
                     </CardBody>
                   </Card>
@@ -193,7 +193,10 @@ export default function Usage() {
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          ${numberWithDefault(totalInferenceSpend).toFixed(2)}
+                          $
+                          {Number(
+                            numberWithDefault(totalInferenceSpend).toFixed(2),
+                          ).toLocaleString()}
                         </StatNumber>
                       </Stat>
                       <Stat>
@@ -202,7 +205,10 @@ export default function Usage() {
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
                         <StatNumber color="gray.600" fontSize={"xl"}>
-                          ${numberWithDefault(totalTrainingSpend).toFixed(2)}
+                          $
+                          {Number(
+                            numberWithDefault(totalTrainingSpend).toFixed(2),
+                          ).toLocaleString()}
                         </StatNumber>
                       </Stat>
                     </CardBody>
