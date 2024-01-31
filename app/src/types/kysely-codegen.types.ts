@@ -279,6 +279,8 @@ export interface GraphileWorkerMigrations {
 export interface Invoice {
   id: string;
   amount: Generated<Numeric>;
+  paidAt: Timestamp | null;
+  paymentId: string | null;
   status: Generated<"CANCELLED" | "PAID" | "PENDING" | "REFUNDED">;
   slug: string;
   billingPeriod: string | null;
@@ -327,6 +329,8 @@ export interface Project {
   slug: Generated<string>;
   isPublic: Generated<boolean>;
   isHidden: Generated<boolean>;
+  stripeCustomerId: string | null;
+  billable: Generated<boolean>;
 }
 
 export interface ProjectUser {

@@ -4,6 +4,7 @@ import {
   convertFunctionCallToToolChoice,
   convertFunctionsToTools,
   convertFunctionMessagesToToolCall,
+  convertToolCallMessageToFunction,
 } from "~/server/utils/convertFunctionCalls";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 
@@ -25,8 +26,11 @@ export const serializeChatOutput = (output: ChatCompletionMessage) => {
   return formatted;
 };
 
-export const deserializeChatOutput = (completion: string): ChatCompletionMessage => {
-  const message: ChatCompletionMessage = {
+export const deserializeChatOutput = (
+  completion: string,
+  convertToFunctions = false,
+): ChatCompletionMessage => {
+  let message: ChatCompletionMessage = {
     role: "assistant",
     content: null,
   };
@@ -55,6 +59,10 @@ export const deserializeChatOutput = (completion: string): ChatCompletionMessage
   } else {
     message.content = completion;
   }
+  if (convertToFunctions && message.tool_calls) {
+    message = convertToolCallMessageToFunction(message) as ChatCompletionMessage;
+  }
+
   return message;
 };
 

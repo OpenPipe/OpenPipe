@@ -34,6 +34,11 @@ const deployUserPolicy = new aws.iam.Policy(nm("deploy"), {
         Effect: "Allow",
         Resource: "*",
       },
+      {
+        Action: ["iam:GetRole"],
+        Effect: "Allow",
+        Resource: "*",
+      },
     ],
   }),
 });

@@ -57,7 +57,16 @@ export const projectsRouter = createTRPCRouter({
     if (!projects.length) {
       // TODO: We should move this to a separate endpoint that is called on sign up
       const personalProject = await userProject(userId);
-      projects.push(personalProject);
+
+      await prisma.creditAdjustment.create({
+        data: {
+          projectId: personalProject.id,
+          amount: 100,
+          type: "BONUS",
+          description: "100 free credits for new project",
+        },
+      }),
+        projects.push(personalProject);
     }
 
     const lastViewedProjectSlug = projects.find((project) => project.id === lastViewedProjectId)

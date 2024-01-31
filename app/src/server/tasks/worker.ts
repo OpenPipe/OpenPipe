@@ -13,6 +13,8 @@ import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.ta
 import { relabelDatasetEntry } from "./relabelDatasetEntry.task";
 import type defineTask from "./defineTask";
 import { pgPool } from "../db";
+import { generateInvoices } from "./generateInvoices.task";
+import { chargeInvoices } from "./chargeInvoices.task";
 
 console.log("Starting worker...");
 
@@ -29,6 +31,8 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   evaluateTestSetEntries,
   countDatasetEntryTokens,
   relabelDatasetEntry,
+  generateInvoices,
+  chargeInvoices,
 ];
 
 const taskList = registeredTasks.reduce((acc, task) => {
@@ -62,6 +66,18 @@ const runner = await run({
       options: {
         backfillPeriod: 1000 * 60,
       },
+    },
+    {
+      task: generateInvoices.task.identifier,
+      // run at the beginning of each month
+      pattern: "0 0 1 * *",
+      identifier: generateInvoices.task.identifier,
+    },
+    {
+      task: chargeInvoices.task.identifier,
+      // run on 2nd day of each month, after invoices are created
+      pattern: "0 0 2 * *",
+      identifier: chargeInvoices.task.identifier,
     },
   ]),
 });

@@ -19,6 +19,7 @@ declare module "nextjs-routes" {
     | StaticRoute<"/api/healthcheck">
     | DynamicRoute<"/api/internal/v1/[...trpc]", { "trpc": string[] }>
     | StaticRoute<"/api/internal/v1/openapi">
+    | StaticRoute<"/api/stripe/webhook">
     | DynamicRoute<"/api/trpc/[trpc]", { "trpc": string }>
     | DynamicRoute<"/api/v1/[...trpc]", { "trpc": string[] }>
     | StaticRoute<"/api/v1/openapi">

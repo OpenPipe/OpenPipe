@@ -1,5 +1,6 @@
 import ContentTabs from "~/components/ContentTabs";
 import Invoices from "./Invoices/Invoices";
+import PaymentMethods from "./PaymentMethods/PaymentMethods";
 
 const tabs = [
   {
@@ -10,7 +11,7 @@ const tabs = [
   {
     key: "payment-methods",
     title: "Payment Methods",
-    component: <></>,
+    component: <PaymentMethods />,
   },
 ];
 
