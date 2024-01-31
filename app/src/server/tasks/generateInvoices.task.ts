@@ -18,7 +18,7 @@ export const generateInvoices = defineTask({
     const projects = await prisma.project.findMany();
 
     for (const project of projects) {
-      //SDK test Project
+      //TODO: Remove project.id === ... This to to test in production. It uses "SDK test Project"
       if (project.billable && project.id === "89149c5d-aeda-49f7-b668-41104aef8444") {
         await createInvoice(project.id, startOfPreviousMonth, endOfPreviousMonth);
       }
@@ -93,7 +93,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
         await tx
           .updateTable("Invoice")
           .set({
-            amount: totalSpent,
+            amount: totalSpent + 2, //TODO: Remove "+2". This is a temp change to test in production.
             status: totalSpent >= 1 ? "PENDING" : "CANCELLED", // Minimum $1 charge
             description: JSON.stringify(
               getInvoiceDescription({
@@ -120,7 +120,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
               amount: -creditsUsed,
               //Adjustments should be created on the first day of the next month, when invoices are generated
               createdAt: dayjs(endDate).add(1, "month").startOf("month").toDate(),
-              description: `Invoice #${invoice.slug}`,
+              description: `Invoice ${invoice.slug}`,
               invoiceId: invoice.id,
               type: "INVOICE",
             })
