@@ -38,6 +38,7 @@ config:
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: production
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_2tc3AQ798TowPA9FtW2uljz4dKzdiFwpa7EyhPUdKWg
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
+  openpipe:NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_live_51Ns9YOGaaMFq8whtNw1y8d90lpYX7ZWSy37VDduEAXYw2Q72pPplIzVVgAZw1gmicoMZgS7ECs3PiEJ8zdaGzm9E004vlfCrxU
   openpipe:NEXTAUTH_SECRET:
     secure: AAABAAwE72UToj4bFNPEVHdP77QeT3uAQKd1ZHYQF72nuJguH78AkZOAlaue+o4=
   openpipe:NODE_ENV: production
@@ -57,6 +58,10 @@ config:
   openpipe:SMTP_PASSWORD:
     secure: AAABAKH7k2nM2PVrFFZu/XpVy1L0TnYwemK1NeMuO8vOM1JHsb2sEpU3pxPHIjxL
   openpipe:SMTP_PORT: "587"
+  openpipe:STRIPE_SECRET_KEY:
+    secure: AAABAKLEf2+IxguJ2Dpma7Yu479Jrz3LqzO8IsCtysDaQY+bjp2OVtcIPvydFS0EfmN9yB12qsyqbv2RVDqgLoT/vuIbvgqRp6D59gpzQRE2bSZulRWk5nnIDpEAOe4KV3KKnUV5tIahYIEfVFRUzZv8IAPp3WTv1+u65D/L2bskvip5Qw9LEk5Fpg==
+  openpipe:STRIPE_WEBHOOK_SECRET:
+    secure: AAABADtiQl4FFkF8O4mK0eol7Ww9FwTRUdtsENmfs4c5XZrkoV9yJ9M06tarshSYghP0PSitP1NAtaN0xi6fFlmSIxHrWg==
   openpipe:WORKER_CONCURRENCY: "10"
   openpipe:deployDomain: openpipe.ai
   openpipe:numAppInstances: "2"
