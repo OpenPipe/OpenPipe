@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "openpipe"
-version = "4.4.0"
+version = "4.4.1"
 description = "Python client library for the OpenPipe service"
 authors = ["Kyle Corbitt <kyle@openpipe.ai>"]
 license = "Apache-2.0"
@@ -14,7 +14,6 @@ httpx = "^0.24.1"
 attrs = "^23.1.0"
 python-dateutil = "^2.8.2"
 openai = "~1.7.0"
-importlib-resources = "^6.1.1"
 
 [tool.poetry.dev-dependencies]
 
