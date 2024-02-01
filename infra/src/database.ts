@@ -3,7 +3,6 @@ import * as pulumi from "@pulumi/pulumi";
 import * as random from "@pulumi/random";
 import { nm } from "./helpers";
 import { vpc } from "./vpc";
-import { getSecret } from "./config";
 
 const dbSecurityGroup = new aws.ec2.SecurityGroup(nm("app-db"), {
   vpcId: vpc.vpcId,
