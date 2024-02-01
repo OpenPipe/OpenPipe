@@ -19,18 +19,18 @@ from .shared import (
     get_chat_completion_json,
 )
 
-from .api_client.client import AsyncOpenPipeApi
+from .client import AsyncOpenPipe
 from .api_client.core.api_error import ApiError
 
 
 class AsyncCompletionsWrapper(AsyncCompletions):
-    openpipe_report_client: AsyncOpenPipeApi
+    openpipe_report_client: AsyncOpenPipe
     openpipe_completions_client: OriginalAsyncOpenAI
 
     def __init__(
         self,
         client: OriginalAsyncOpenAI,
-        openpipe_report_client: AsyncOpenPipeApi,
+        openpipe_report_client: AsyncOpenPipe,
         openpipe_completions_client: OriginalAsyncOpenAI,
     ) -> None:
         super().__init__(client)
@@ -144,7 +144,7 @@ class AsyncChatWrapper(AsyncChat):
     def __init__(
         self,
         client: OriginalAsyncOpenAI,
-        openpipe_report_client: AsyncOpenPipeApi,
+        openpipe_report_client: AsyncOpenPipe,
         openpipe_completions_client: OriginalAsyncOpenAI,
     ) -> None:
         super().__init__(client)
@@ -155,7 +155,7 @@ class AsyncChatWrapper(AsyncChat):
 
 class AsyncOpenAIWrapper(OriginalAsyncOpenAI):
     chat: AsyncChatWrapper
-    openpipe_reporting_client: AsyncOpenPipeApi
+    openpipe_reporting_client: AsyncOpenPipe
     openpipe_completions_client: OriginalAsyncOpenAI
 
     # Support auto-complete
@@ -185,7 +185,7 @@ class AsyncOpenAIWrapper(OriginalAsyncOpenAI):
             _strict_response_validation=_strict_response_validation,
         )
 
-        self.openpipe_reporting_client = AsyncOpenPipeApi(token="")
+        self.openpipe_reporting_client = AsyncOpenPipe()
         self.openpipe_completions_client = OriginalAsyncOpenAI(
             api_key=api_key,
             organization=organization,

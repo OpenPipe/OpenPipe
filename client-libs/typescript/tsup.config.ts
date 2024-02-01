@@ -9,6 +9,7 @@ const config: Options = {
   // Define entry points
   entry: [
     "src/index.ts", // Main entry
+    "src/client.ts", // 'client' sub-module
     "src/openai.ts", // 'openai' sub-module
     "src/openai/mergeChunks.ts", // 'openai/mergeChunks' sub-module
     "src/openai/streaming.ts", // 'openai/streaming' sub-module

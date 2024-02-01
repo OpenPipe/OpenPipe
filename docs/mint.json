@@ -46,6 +46,7 @@
         "features/fine-tuning",
         "features/evaluations",
         "features/running-inference",
+        "features/updating-tags",
         "features/pruning-rules"
       ]
     },

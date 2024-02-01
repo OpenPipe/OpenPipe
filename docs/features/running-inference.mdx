@@ -39,6 +39,10 @@ const completion = await client.chat.completions.create({
   // model: "gpt-3.5-turbo", - original model
   model: "openpipe:your-fine-tuned-model-id",
   messages: [{ role: "user", content: "Count to 10" }],
+  openpipe: {
+    prompt_id: "counting",
+    any_key: "any_value",
+  },
 });
 ```
 

@@ -157,28 +157,19 @@ export default function Usage() {
                         <>
                           <Stat marginBottom={1}>
                             <HStack>
-                              <StatLabel flex={1}>Credits used:</StatLabel>
+                              <StatLabel flex={1}>Credits used</StatLabel>
                               <Icon as={DollarSign} boxSize={4} color="gray.500" />
                             </HStack>
                             <StatNumber color="gray.600" fontSize={"xl"}>
-                              ${creditsUsed.toFixed(2).toLocaleString()}
-                            </StatNumber>
-                          </Stat>
-
-                          <Stat marginBottom={4}>
-                            <HStack>
-                              <StatLabel flex={1}>Remaining credits:</StatLabel>
-                              <Icon as={DollarSign} boxSize={4} color="gray.500" />
-                            </HStack>
-                            <StatNumber color="gray.600" fontSize={"xl"}>
-                              ${remainingCredits.toFixed(2).toLocaleString()}
+                              ${creditsUsed.toFixed(2).toLocaleString()} / $
+                              {(creditsUsed + remainingCredits).toFixed(2).toLocaleString()}
                             </StatNumber>
                           </Stat>
                         </>
                       )}
                       <Stat>
                         <HStack>
-                          <StatLabel flex={1}>Total Spend</StatLabel>
+                          <StatLabel flex={1}>Total spend</StatLabel>
                           <Icon as={DollarSign} boxSize={4} color="gray.500" />
                         </HStack>
                         <StatNumber>${Number(totalSpent.toFixed(2)).toLocaleString()}</StatNumber>
