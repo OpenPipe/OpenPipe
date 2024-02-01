@@ -1,33 +1,32 @@
 from openai import OpenAI, AsyncOpenAI
 from openai.types.chat import ChatCompletion
 import os
-import pkg_resources
 import json
 from typing import Any, Dict, List, Union
 
-from .api_client.client import OpenPipeApi, AsyncOpenPipeApi
+from .client import OpenPipe, AsyncOpenPipe, add_sdk_info
 
 
 def configure_openpipe_clients(
-    reporting_client: Union[OpenPipeApi, AsyncOpenPipeApi],
+    reporting_client: Union[OpenPipe, AsyncOpenPipe],
     completions_client: Union[OpenAI, AsyncOpenAI],
     openpipe_options={},
 ):
     completions_client.base_url = "https://app.openpipe.ai/api/v1"
     if os.environ.get("OPENPIPE_API_KEY"):
-        reporting_client._client_wrapper._token = os.environ["OPENPIPE_API_KEY"]
+        reporting_client.api_key = os.environ["OPENPIPE_API_KEY"]
         completions_client.api_key = os.environ["OPENPIPE_API_KEY"]
 
     if os.environ.get("OPENPIPE_BASE_URL"):
-        reporting_client._client_wrapper._base_url = os.environ["OPENPIPE_BASE_URL"]
+        reporting_client.base_url = os.environ["OPENPIPE_BASE_URL"]
         completions_client.base_url = os.environ["OPENPIPE_BASE_URL"]
 
     if openpipe_options and openpipe_options.get("api_key"):
-        reporting_client._client_wrapper._token = openpipe_options["api_key"]
+        reporting_client.api_key = openpipe_options["api_key"]
         completions_client.api_key = openpipe_options["api_key"]
 
     if openpipe_options and openpipe_options.get("base_url"):
-        reporting_client._client_wrapper._base_url = openpipe_options["base_url"]
+        reporting_client.base_url = openpipe_options["base_url"]
         completions_client.base_url = openpipe_options["base_url"]
 
 
@@ -49,23 +48,21 @@ def get_extra_headers(create_kwargs, openpipe_options):
 
 def _get_tags(openpipe_options):
     tags = openpipe_options.get("tags") or {}
-    tags["$sdk"] = "python"
-    tags["$sdk.version"] = pkg_resources.get_distribution("openpipe").version
 
-    return tags
+    return add_sdk_info(tags)
 
 
 def _should_log_request(
-    configured_client: Union[OpenPipeApi, AsyncOpenPipeApi], openpipe_options={}
+    configured_client: Union[OpenPipe, AsyncOpenPipe], openpipe_options={}
 ):
-    if configured_client._client_wrapper._token == "":
+    if configured_client.api_key == "":
         return False
 
     return openpipe_options.get("log_request", True)
 
 
 def report(
-    configured_client: OpenPipeApi,
+    configured_client: OpenPipe,
     openpipe_options={},
     **kwargs,
 ):
@@ -84,7 +81,7 @@ def report(
 
 
 async def report_async(
-    configured_client: AsyncOpenPipeApi,
+    configured_client: AsyncOpenPipe,
     openpipe_options={},
     **kwargs,
 ):

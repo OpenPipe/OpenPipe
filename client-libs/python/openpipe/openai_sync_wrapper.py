@@ -19,18 +19,18 @@ from .shared import (
     configure_openpipe_clients,
 )
 
-from .api_client.client import OpenPipeApi
+from .client import OpenPipe
 from .api_client.core.api_error import ApiError
 
 
 class CompletionsWrapper(Completions):
-    openpipe_reporting_client: OpenPipeApi
+    openpipe_reporting_client: OpenPipe
     openpipe_completions_client: OriginalOpenAI
 
     def __init__(
         self,
         client: OriginalOpenAI,
-        openpipe_reporting_client: OpenPipeApi,
+        openpipe_reporting_client: OpenPipe,
         openpipe_completions_client: OriginalOpenAI,
     ) -> None:
         super().__init__(client)
@@ -137,7 +137,7 @@ class ChatWrapper(Chat):
     def __init__(
         self,
         client: OriginalOpenAI,
-        openpipe_reporting_client: OpenPipeApi,
+        openpipe_reporting_client: OpenPipe,
         openpipe_completions_client: OriginalOpenAI,
     ) -> None:
         super().__init__(client)
@@ -148,7 +148,7 @@ class ChatWrapper(Chat):
 
 class OpenAIWrapper(OriginalOpenAI):
     chat: ChatWrapper
-    openpipe_reporting_client: OpenPipeApi
+    openpipe_reporting_client: OpenPipe
     openpipe_completions_client: OriginalOpenAI
 
     # Support auto-complete
@@ -178,7 +178,7 @@ class OpenAIWrapper(OriginalOpenAI):
             _strict_response_validation=_strict_response_validation,
         )
 
-        self.openpipe_reporting_client = OpenPipeApi(token="")
+        self.openpipe_reporting_client = OpenPipe()
         self.openpipe_completions_client = OriginalOpenAI(
             api_key=api_key,
             organization=organization,
