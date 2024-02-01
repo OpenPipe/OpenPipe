@@ -167,19 +167,19 @@ model PruningRuleMatch {
 }
 
 model Project {
-    id       String  @id @default(uuid()) @db.Uuid
-    slug     String  @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
-    name     String  @default("Project 1")
-    isPublic Boolean @default(false)
-    isHidden Boolean @default(false)
+    id               String  @id @default(uuid()) @db.Uuid
+    slug             String  @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
+    name             String  @default("Project 1")
+    isPublic         Boolean @default(false)
+    isHidden         Boolean @default(false)
     stripeCustomerId String?
-    billable Boolean @default(true)
+    billable         Boolean @default(true)
 
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
 
-    createdAt              DateTime         @default(now())
-    updatedAt              DateTime         @updatedAt
+    createdAt              DateTime           @default(now())
+    updatedAt              DateTime           @updatedAt
     projectUsers           ProjectUser[]
     projectUserInvitations UserInvitation[]
     datasets               Dataset[]
@@ -420,6 +420,7 @@ model FineTune {
     numEpochs              Float?
     numTrainingAutoretries Int              @default(0)
     gpt4FallbackEnabled    Boolean          @default(false)
+    forceA10               Boolean          @default(false)
 
     trainingEntries FineTuneTrainingEntry[]
     testingEntries  FineTuneTestingEntry[]
@@ -617,19 +618,19 @@ model UsageLog {
 
     inputTokens  Int
     outputTokens Int
-    inputCost    Decimal @default(0)
-    outputCost   Decimal @default(0)
+    inputCost    Decimal   @default(0)
+    outputCost   Decimal   @default(0)
     cost         Float
     type         UsageType @default(EXTERNAL)
     billable     Boolean   @default(true)
-    baseModel  String?
+    baseModel    String?
 
     fineTuneId String?   @db.Uuid
     fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: SetNull)
-    projectId  String?  @db.Uuid
-    project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    invoiceId String?  @db.Uuid
-    invoice  Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+    projectId  String?   @db.Uuid
+    project    Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    invoiceId  String?   @db.Uuid
+    invoice    Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
     createdAt DateTime @default(now())
 
@@ -644,18 +645,19 @@ enum InvoiceStatus {
     CANCELLED
     REFUNDED
 }
+
 model Invoice {
-    id String @id @default(uuid()) @db.Uuid
-    amount         Decimal @default(0)
-    status         InvoiceStatus @default(PENDING)
-    slug           String
-    billingPeriod  String? // MM YYYY
-    paidAt         DateTime?
+    id            String        @id @default(uuid()) @db.Uuid
+    amount        Decimal       @default(0)
+    status        InvoiceStatus @default(PENDING)
+    slug          String
+    billingPeriod String? // MM YYYY
+    paidAt        DateTime?
 
     description Json? // Array of objects: { [key: string]: string }
-    paymentId String?
+    paymentId   String?
 
-    usageLogs UsageLog[]
+    usageLogs         UsageLog[]
     creditAdjustments CreditAdjustment[]
 
     projectId String  @db.Uuid
@@ -673,14 +675,14 @@ enum CreditAdjustmentType {
 }
 
 model CreditAdjustment {
-    id String @id @default(uuid()) @db.Uuid
-    amount         Decimal
+    id          String  @id @default(uuid()) @db.Uuid
+    amount      Decimal
     description String?
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    Invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+    Invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
     invoiceId String?  @db.Uuid
 
     type CreditAdjustmentType
