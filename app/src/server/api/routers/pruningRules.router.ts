@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { updateDatasetPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import {
   requireCanModifyProject,
@@ -19,38 +19,29 @@ export const pruningRulesRouter = createTRPCRouter({
         where: {
           id: input.datasetId,
         },
-        include: {
-          pruningRules: {
-            orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-            select: {
-              id: true,
-              textToMatch: true,
-              tokensInText: true,
-              matches: {
-                select: {
-                  id: true,
-                },
-                where: {
-                  datasetEntry: {
-                    outdated: false,
-                  },
-                },
-              },
-            },
-          },
-        },
       });
       if (!dataset) throw new TRPCError({ code: "NOT_FOUND" });
-      const { projectId, pruningRules } = dataset;
+      const { projectId } = dataset;
       await requireCanViewProject(projectId, ctx);
 
-      return pruningRules.map((rule) => {
-        const { matches, ...rest } = rule;
-        return {
-          ...rest,
-          numMatches: matches.length,
-        };
-      });
+      const pruningRules = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.datasetId)
+        .leftJoin("PruningRule as pr", "pr.datasetId", "d.id")
+        .leftJoin("PruningRuleMatch as prm", "prm.pruningRuleId", "pr.id")
+        .leftJoin("NodeData as nd", (join) =>
+          join
+            .onRef("nd.nodeId", "=", "d.nodeId")
+            .onRef("nd.inputHash", "=", "prm.inputHash")
+            .on("nd.status", "=", "PROCESSED"),
+        )
+        .selectAll("pr")
+        .select((eb) => ["projectId", eb.fn.count<number>("nd.id").as("numMatches")])
+        .groupBy("pr.id")
+        .orderBy("pr.createdAt", "asc")
+        .execute();
+
+      return pruningRules;
     }),
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ textToMatch: z.string() }) }))

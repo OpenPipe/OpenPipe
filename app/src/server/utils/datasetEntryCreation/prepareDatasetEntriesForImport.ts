@@ -1,7 +1,8 @@
 import { type Prisma } from "@prisma/client";
 import { shuffle } from "lodash-es";
-import { type RowToImport } from "~/components/datasets/parseRowsToImport";
+import { type ChatCompletionMessage } from "openai/resources";
 
+import { type RowToImport } from "~/components/datasets/parseRowsToImport";
 import {
   convertFunctionCallToToolChoice,
   convertFunctionsToTools,
@@ -9,6 +10,7 @@ import {
   convertFunctionMessagesToToolCall,
 } from "../convertFunctionCalls";
 import { hashDatasetEntryInput, hashDatasetEntryOutput } from "../nodes/hashNode";
+import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 
 export const prepareDatasetEntriesForImport = ({
   projectId,
@@ -19,7 +21,7 @@ export const prepareDatasetEntriesForImport = ({
   projectId: string;
   nodeId: string;
   dataChannelId: string;
-  entriesToImport: RowToImport[];
+  entriesToImport: (RowToImport & { importId: string; loggedCallId?: string })[];
 }): {
   datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[];
   datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[];
@@ -31,23 +33,26 @@ export const prepareDatasetEntriesForImport = ({
 
   for (const row of entriesToImport) {
     const tool_choice =
-      row.input.tool_choice || (convertFunctionCallToToolChoice(row.input.function_call) as object);
+      row.input.tool_choice || convertFunctionCallToToolChoice(row.input.function_call);
     const tools = row.input.tools?.length
       ? row.input.tools
-      : (convertFunctionsToTools(row.input.functions) as object[]);
+      : convertFunctionsToTools(row.input.functions);
     const inputHash = hashDatasetEntryInput({
-      projectId: projectId,
+      projectId,
       ...row.input,
     });
 
+    const messages = convertFunctionMessagesToToolCall(row.input.messages);
+
     datasetEntryInputsToCreate.push({
-      messages: convertFunctionMessagesToToolCall(row.input.messages) as object[],
-      function_call: row.input.function_call,
-      functions: row.input.functions as object[],
-      tool_choice,
-      tools,
-      // TODO: add input tokens
-      inputTokens: 0,
+      messages: messages as object[],
+      tool_choice: tool_choice as object,
+      tools: tools as object[],
+      inputTokens: countLlamaInputTokens({
+        messages,
+        tool_choice,
+        tools,
+      }),
       hash: inputHash,
     });
 
@@ -56,24 +61,26 @@ export const prepareDatasetEntriesForImport = ({
       output: row.output,
     });
 
+    const output = (convertFunctionMessageToToolCall(row.output) as ChatCompletionMessage) ?? {
+      role: "assistant",
+      content: "",
+    };
+
     datasetEntryOutputsToCreate.push({
-      output: (convertFunctionMessageToToolCall(
-        row.output,
-      ) as unknown as Prisma.InputJsonValue) ?? {
-        role: "assistant",
-        content: "",
-      },
-      // TODO: add output tokens
-      outputTokens: 0,
+      output: output as unknown as Prisma.InputJsonValue,
+      outputTokens: countLlamaOutputTokens(output),
       hash: outputHash,
     });
 
     nodeDataToCreate.push({
+      importId: row.importId,
       nodeId,
       dataChannelId,
       inputHash,
       outputHash,
+      originalOutputHash: outputHash,
       split: "TRAIN",
+      loggedCallId: row.loggedCallId,
     });
   }
 

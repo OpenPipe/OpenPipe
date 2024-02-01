@@ -1,16 +1,25 @@
 import { isEqual, mean } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources/chat";
+import { v4 as uuidv4 } from "uuid";
+
 import { type typedFineTuneTestingEntry, type typedDatasetEntry } from "~/types/dbColumns.types";
-import { prisma } from "../db";
+import { kysely, prisma } from "../db";
 
 export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 
-export const saveFieldComparisonScore = async (
-  datasetId: string,
-  datasetEntryId: string,
-  score: number,
-  modelId: string,
-) => {
+export const saveFieldComparisonScore = async ({
+  datasetId,
+  importId,
+  inputHash,
+  score,
+  modelId,
+}: {
+  datasetId: string;
+  importId: string;
+  inputHash: string;
+  score: number;
+  modelId: string;
+}) => {
   let datasetEval;
   let numDatasetEvalTries = 0;
   while (!datasetEval && numDatasetEvalTries < 2) {
@@ -34,15 +43,22 @@ export const saveFieldComparisonScore = async (
 
   if (!datasetEval) throw new Error("Error retrieving dataset eval");
 
-  const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.upsert({
-    where: {
-      datasetEvalId_datasetEntryId: { datasetEvalId: datasetEval.id, datasetEntryId },
-    },
-    create: {
+  const datasetEvalDatasetEntryId = uuidv4();
+
+  await kysely
+    .insertInto("DatasetEvalDatasetEntry")
+    .values({
+      id: datasetEvalDatasetEntryId,
       datasetEvalId: datasetEval.id,
-      datasetEntryId,
-    },
-    update: {},
+      importId,
+      inputHash,
+      updatedAt: new Date(),
+    })
+    .onConflict((oc) => oc.columns(["datasetEvalId", "importId", "inputHash"]).doNothing())
+    .execute();
+
+  const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.findFirstOrThrow({
+    where: { datasetEvalId: datasetEval.id, importId, inputHash },
   });
 
   let datasetEvalOutputSource;

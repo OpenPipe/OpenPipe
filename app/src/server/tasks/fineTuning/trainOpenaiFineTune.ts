@@ -55,9 +55,9 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
 
   const formattedRows = from(iterateTrainingRows(fineTune.id)).pipe(
     map(async (row) => {
-      const outputMessage = chatCompletionMessage.parse(row.datasetEntry.output);
+      const outputMessage = chatCompletionMessage.parse(row.output);
       const prunedInputMessages = pruneInputMessages(
-        typedDatasetEntry(row.datasetEntry).messages,
+        typedDatasetEntry(row).messages,
         stringsToPrune,
       );
       const prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages);

@@ -1,19 +1,22 @@
-import type { Node } from "@prisma/client";
 import type { JsonValue } from "type-fest";
+import { type z } from "zod";
 
 import hashObject from "../hashObject";
-import { typedNode } from "./node.types";
+import { type nodeSchema, type InferNodeConfig, typedNode } from "./node.types";
 
-export const hashNode = ({
+export const hashNode = <T extends z.infer<typeof nodeSchema>["type"]>({
   projectId,
   node,
 }: {
   projectId: string;
-  node: Pick<Node, "type" | "config">;
+  node: {
+    type: T;
+    config: InferNodeConfig<T>;
+  };
 }) => {
-  const tNode = typedNode(node);
   let hashableConfig = {};
-  if (tNode.type === "Monitor") {
+  const tNode = typedNode(node);
+  if (node.type === "Monitor") {
     hashableConfig = {
       filters: tNode.config.checkFilters,
     };
@@ -21,6 +24,11 @@ export const hashNode = ({
   if (tNode.type === "LLMRelabel") {
     hashableConfig = {
       filters: tNode.config.relabelLLM,
+    };
+  }
+  if (tNode.type === "ManualRelabel") {
+    hashableConfig = {
+      nodeId: tNode.config.nodeId,
     };
   }
   return hashObject({ projectId, type: tNode.type, hashableConfig });
@@ -34,8 +42,6 @@ export const hashDatasetEntryInput = ({
   response_format = {},
 }: {
   projectId: string;
-  function_call?: JsonValue;
-  functions?: object[];
   tool_choice?: JsonValue;
   tools?: object[];
   messages: JsonValue;

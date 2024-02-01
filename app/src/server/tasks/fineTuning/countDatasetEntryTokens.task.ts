@@ -1,52 +1,85 @@
 import { prisma } from "~/server/db";
-import { typedDatasetEntry } from "~/types/dbColumns.types";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import defineTask from "../defineTask";
+import { typedDatasetEntryInput, typedDatasetEntryOutput } from "~/server/utils/nodes/node.types";
 
 export const countDatasetEntryTokens = defineTask<void>({
   id: "countDatasetEntryTokens",
   handler: async () => {
     while (true) {
-      const batch = await prisma.datasetEntry.findMany({
+      const inputBatch = await prisma.datasetEntryInput.findMany({
         select: {
-          id: true,
+          hash: true,
           messages: true,
           tool_choice: true,
           tools: true,
-          output: true,
+          response_format: true,
         },
-        orderBy: { sortKey: "desc" },
         where: { inputTokens: null },
         take: 1000,
       });
+      const outputBatch = await prisma.datasetEntryOutput.findMany({
+        select: {
+          hash: true,
+          output: true,
+        },
+        where: { outputTokens: null },
+        take: 1000,
+      });
 
-      if (batch.length === 0) break;
+      if (inputBatch.length === 0 && outputBatch.length === 0) break;
 
       await Promise.all(
-        batch.map(async (datasetEntry) => {
-          let entry;
+        inputBatch.map(async (datasetEntryInput) => {
+          let tInput;
           try {
-            entry = typedDatasetEntry(datasetEntry);
+            tInput = typedDatasetEntryInput(datasetEntryInput);
           } catch (e) {
             // If the entry is invalid, mark it as invalid and move on
-            await prisma.datasetEntry.update({
-              where: { id: datasetEntry.id },
-              data: { inputTokens: 0, outputTokens: 0 },
+            await prisma.datasetEntryInput.update({
+              where: { hash: datasetEntryInput.hash },
+              data: { inputTokens: 0 },
             });
-            console.log(`Invalid dataset entry ${datasetEntry.id}`);
+            console.log(`Invalid dataset entry input ${datasetEntryInput.hash}`);
             return;
           }
 
-          const inputTokens = countLlamaInputTokens(entry);
-          const outputTokens = entry.output ? countLlamaOutputTokens(entry.output) : 0;
+          const inputTokens = countLlamaInputTokens(tInput);
 
           if (inputTokens === 0) {
-            console.error(`Invalid token count on dataset entry ${datasetEntry.id}`);
+            console.error(`Invalid token count on dataset entry input ${tInput.hash}`);
           }
 
-          await prisma.datasetEntry.update({
-            where: { id: datasetEntry.id },
-            data: { inputTokens, outputTokens },
+          await prisma.datasetEntryInput.update({
+            where: { hash: tInput.hash },
+            data: { inputTokens },
+          });
+        }),
+      );
+      await Promise.all(
+        outputBatch.map(async (datasetEntryOutput) => {
+          let tOutput;
+          try {
+            tOutput = typedDatasetEntryOutput(datasetEntryOutput);
+          } catch (e) {
+            // If the entry is invalid, mark it as invalid and move on
+            await prisma.datasetEntryOutput.update({
+              where: { hash: datasetEntryOutput.hash },
+              data: { outputTokens: 0 },
+            });
+            console.log(`Invalid dataset entry output ${datasetEntryOutput.hash}`);
+            return;
+          }
+
+          const outputTokens = tOutput.output ? countLlamaOutputTokens(tOutput.output) : 0;
+
+          if (outputTokens === 0) {
+            console.error(`Invalid token count on dataset entry ${tOutput.hash}`);
+          }
+
+          await prisma.datasetEntryOutput.update({
+            where: { hash: tOutput.hash },
+            data: { outputTokens },
           });
         }),
       );

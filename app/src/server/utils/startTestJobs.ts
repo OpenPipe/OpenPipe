@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { kysely, prisma } from "../db";
 import { generateTestSetEntry } from "../tasks/generateTestSetEntry.task";
 
 export const startDatasetTestJobs = async (datasetId: string) => {
@@ -20,18 +20,24 @@ export const startDatasetTestJobs = async (datasetId: string) => {
 };
 
 export const startTestJobs = async (datasetId: string, modelId: string) => {
-  const datasetEntries = await prisma.datasetEntry.findMany({
-    where: {
-      datasetId,
-      outdated: false,
-      split: "TEST",
-      fineTuneTestDatasetEntries: { none: { modelId } },
-    },
-    select: { id: true },
-    orderBy: { sortKey: "desc" },
-  });
+  const rows = await kysely
+    .selectFrom("Dataset as d")
+    .where("d.id", "=", datasetId)
+    .innerJoin("Node as n", "n.id", "d.nodeId")
+    .innerJoin("NodeData as nd", "nd.nodeId", "n.id")
+    .where("split", "=", "TEST")
+    .where("status", "=", "PROCESSED")
+    .leftJoin("FineTuneTestingEntry as ftte", (join) =>
+      join.onRef("ftte.inputHash", "=", "nd.inputHash").on("ftte.modelId", "=", modelId),
+    )
+    .where("ftte.id", "is", null)
+    .select(["nd.id"])
+    .orderBy("nd.importId", "desc")
+    .execute();
 
-  for (const entry of datasetEntries) {
-    await generateTestSetEntry.enqueue({ modelId, datasetEntryId: entry.id, numPreviousTries: 0 });
+  // TODO: Calculate and save field comparison scores separately?
+
+  for (const row of rows) {
+    await generateTestSetEntry.enqueue({ modelId, nodeDataId: row.id, numPreviousTries: 0 });
   }
 };

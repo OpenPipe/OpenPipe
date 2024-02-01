@@ -1,4 +1,4 @@
-import type { DatasetEntry, FineTuneTestingEntry, Prisma } from "@prisma/client";
+import type { DatasetEntry, DatasetEntryInput, FineTuneTestingEntry, Prisma } from "@prisma/client";
 import type { ChatCompletionCreateParams, FunctionParameters } from "openai/resources";
 import { v4 as uuidv4 } from "uuid";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
@@ -42,8 +42,11 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         include: {
           datasetEvalDatasetEntry: {
             include: {
-              datasetEntry: { include: { dataset: true } },
-              datasetEval: true,
+              datasetEval: {
+                include: {
+                  dataset: true,
+                },
+              },
             },
           },
           datasetEvalOutputSource: true,
@@ -86,36 +89,67 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         },
       });
 
-      const entries = [];
+      const inputHash = firstResult.datasetEvalDatasetEntry.inputHash;
+      if (!inputHash) return;
+
+      const input = await prisma.datasetEntryInput.findUnique({
+        where: { hash: inputHash },
+      });
+
+      if (!input) {
+        await prisma.datasetEvalResult.updateMany({
+          where: {
+            id: {
+              in: [firstResult.id, secondResult.id],
+            },
+          },
+          data: {
+            status: "ERROR",
+            errorMessage: "Error retrieving input for evaluation",
+          },
+        });
+        return;
+      }
+
+      const outputs = [];
       const entryIds = [];
 
       for (const result of [firstResult, secondResult]) {
         try {
-          let entry;
           if (result.datasetEvalOutputSource.modelId !== ORIGINAL_MODEL_ID) {
-            entry = await prisma.fineTuneTestingEntry.findUniqueOrThrow({
-              where: {
-                modelId_datasetEntryId: {
-                  modelId: result.datasetEvalOutputSource.modelId,
-                  datasetEntryId: result.datasetEvalDatasetEntry.datasetEntryId,
-                },
-              },
-              include: {
-                fineTune: true,
-              },
-            });
+            const entry = await kysely
+              .selectFrom("FineTuneTestingEntry as ftte")
+              .where("ftte.modelId", "=", result.datasetEvalOutputSource.modelId)
+              .where("ftte.inputHash", "=", result.datasetEvalDatasetEntry.inputHash)
+              .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
+              .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
+              .select([
+                "ftte.id",
+                "ftte.modelId",
+                "ft.slug as fineTuneSlug",
+                "ftte.fineTuneId",
+                "deo.output",
+                "ftte.inputHash",
+              ])
+              .executeTakeFirstOrThrow();
+            outputs.push(entry.output);
             if (isComparisonModel(entry.modelId)) {
               entryIds.push(getComparisonModelName(entry.modelId));
-            } else if (entry.fineTune) {
-              entryIds.push("openpipe:" + entry.fineTune.slug);
+            } else if (entry.fineTuneSlug) {
+              entryIds.push("openpipe:" + entry.fineTuneSlug);
             } else {
               throw new Error("No fineTune or comparison model found for entry");
             }
           } else {
-            entry = result.datasetEvalDatasetEntry.datasetEntry;
+            const entry = await kysely
+              .selectFrom("NodeData as nd")
+              .where("nd.importId", "=", result.datasetEvalDatasetEntry.importId)
+              .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
+              .select(["deo.output"])
+              .executeTakeFirstOrThrow();
+            outputs.push(entry.output);
             entryIds.push("the original model");
           }
-          entries.push(entry);
         } catch (e) {
           console.error("error getting entry for result", result, e);
           await prisma.datasetEvalResult.updateMany({
@@ -133,8 +167,8 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         }
       }
 
-      const [firstEntry, secondEntry] = entries;
-      if (!firstEntry?.output || !secondEntry?.output) {
+      const [firstOutput, secondOutput] = outputs;
+      if (!firstOutput || !secondOutput) {
         // This job will be retried when the output is available
         await prisma.datasetEvalResult.updateMany({
           where: {
@@ -163,7 +197,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         return;
       }
 
-      if (outputsAreEqual(firstEntry.output, secondEntry.output)) {
+      if (outputsAreEqual(firstOutput, secondOutput)) {
         await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
@@ -186,19 +220,19 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
       let args;
 
-      let input: ChatCompletionCreateParams | null = null;
+      let judgementInput: ChatCompletionCreateParams | null = null;
 
       try {
-        input = constructJudgementInput(
-          firstResult.datasetEvalDatasetEntry.datasetEntry,
-          firstEntry.output as JsonObject,
-          secondEntry.output as JsonObject,
+        judgementInput = constructJudgementInput(
+          input,
+          firstOutput as JsonObject,
+          secondOutput as JsonObject,
           instructions,
         );
 
         const response = await getOpenaiCompletion(
-          firstResult.datasetEvalDatasetEntry.datasetEntry.dataset.projectId,
-          input,
+          firstResult.datasetEvalDatasetEntry.datasetEval.dataset.projectId,
+          judgementInput,
         );
 
         args = response.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
@@ -222,7 +256,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           data: {
             status: "ERROR",
             errorMessage: "Error getting judgement",
-            judge: input?.model,
+            judge: judgementInput?.model,
           },
         });
         throw e;
@@ -258,7 +292,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           explanation,
           score: score1,
           wasFirst: true,
-          judge: input?.model,
+          judge: judgementInput?.model,
         },
       });
 
@@ -269,7 +303,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           explanation,
           score: score2,
           wasFirst: false,
-          judge: input?.model,
+          judge: judgementInput?.model,
         },
       });
     } catch (e) {
@@ -315,7 +349,7 @@ const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSche
 ] as FunctionParameters;
 
 const constructJudgementInput = (
-  datasetEntry: DatasetEntry,
+  datasetEntryInput: DatasetEntryInput,
   firstOutput: JsonObject,
   secondOutput: JsonObject,
   instructions: string | null,
@@ -333,7 +367,7 @@ const constructJudgementInput = (
       },
       {
         role: "user",
-        content: formatDatasetEntryInputInstructions(datasetEntry),
+        content: formatDatasetEntryInputInstructions(datasetEntryInput),
       },
       {
         role: "user",
@@ -399,8 +433,8 @@ const outputsAreEqual = (
   }
 };
 
-const formatDatasetEntryInputInstructions = (datasetEntry: DatasetEntry) => {
-  const { messages, tool_choice, tools } = typedDatasetEntry(datasetEntry);
+const formatDatasetEntryInputInstructions = (datasetEntryInput: DatasetEntryInput) => {
+  const { messages, tool_choice, tools } = typedDatasetEntry(datasetEntryInput);
   let instructions = "Here is the task that each chatbot was given:\n\nTASK START:\n";
   instructions += JSON.stringify(messages);
   if (tools?.length) {
@@ -418,14 +452,12 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
   testingEntry: FineTuneTestingEntry,
   datasetId: string,
 ) => {
-  const evalForDatasetEntry = await kysely
+  const evalsForTestingEntry = await kysely
     .selectFrom("DatasetEval as eval")
     .where("eval.datasetId", "=", datasetId)
     .where("eval.type", "=", "HEAD_TO_HEAD")
     .innerJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEvalId", "eval.id")
-    .where("dede.datasetEntryId", "=", testingEntry.datasetEntryId)
-    .innerJoin("DatasetEntry as de", "de.id", "dede.datasetEntryId")
-    .where("de.outdated", "=", false)
+    .where("dede.inputHash", "=", testingEntry.inputHash)
     .select((eb) => [
       "dede.id as datasetEvalDatasetEntryId",
       jsonArrayFrom(
@@ -435,7 +467,7 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
           .leftJoin("FineTuneTestingEntry as ftte", (join) =>
             join
               .onRef("ftte.modelId", "=", "deos.modelId")
-              .onRef("ftte.datasetEntryId", "=", "dede.datasetEntryId"),
+              .onRef("ftte.inputHash", "=", "dede.inputHash"),
           )
           .where((eb) => {
             // Ensure output source already has output loaded
@@ -451,7 +483,7 @@ export const queueHeadToHeadEvalJobsForTestingEntry = async (
 
   const evalsToRun: EvalKey[] = [];
 
-  for (const datasetEval of evalForDatasetEntry) {
+  for (const datasetEval of evalsForTestingEntry) {
     const outputSource = datasetEval.outputSourcesWithOutput.find(
       (s) => s.modelId === testingEntry.modelId,
     );
@@ -478,8 +510,6 @@ export const queueEvalJobsForEval = async (datasetEvalId: string) => {
       jsonArrayFrom(
         eb
           .selectFrom("DatasetEvalDatasetEntry as dede")
-          .innerJoin("DatasetEntry", "DatasetEntry.id", "dede.datasetEntryId")
-          .where("DatasetEntry.outdated", "=", false)
           .select(["dede.id", "dede.datasetEvalId"])
           .whereRef("datasetEvalId", "=", "eval.id"),
       ).as("datasetEvalDatasetEntries"),

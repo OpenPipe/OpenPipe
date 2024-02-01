@@ -60,11 +60,17 @@ export const uploadJsonl = async (stream: Readable) => {
   return blobName;
 };
 
-export async function downloadBlobToStrings(
-  blobName: string,
-  onProgress?: (progress: number) => Promise<void>,
-  chunkInterval?: number,
-) {
+export async function downloadBlobToStrings({
+  blobName,
+  maxEntriesToImport,
+  onProgress,
+  chunkInterval,
+}: {
+  blobName: string;
+  maxEntriesToImport: number;
+  onProgress: (progress: number) => Promise<void>;
+  chunkInterval?: number;
+}) {
   const blobClient = containerClient.getBlobClient(blobName);
 
   const downloadResponse = await blobClient.download();
@@ -73,20 +79,32 @@ export async function downloadBlobToStrings(
   if (!downloadResponse.readableStreamBody)
     throw Error("downloadResponse.readableStreamBody not found");
 
-  return await streamToNdStrings(downloadResponse.readableStreamBody, onProgress, chunkInterval);
+  return await streamToNdStrings({
+    readableStream: downloadResponse.readableStreamBody,
+    maxEntriesToImport,
+    onProgress,
+    chunkInterval,
+  });
 }
 
 // Splits the stream into individual chunks split on newlines
-async function streamToNdStrings(
-  readableStream: NodeJS.ReadableStream,
-  onProgress?: (progress: number) => Promise<void>,
+async function streamToNdStrings({
+  readableStream,
+  maxEntriesToImport,
+  onProgress,
   chunkInterval = 1048576, // send progress every 1MB
-): Promise<string[]> {
+}: {
+  readableStream: NodeJS.ReadableStream;
+  maxEntriesToImport: number;
+  onProgress?: (progress: number) => Promise<void>;
+  chunkInterval?: number;
+}): Promise<string[]> {
   return new Promise((resolve, reject) => {
     const lines: string[] = [];
     let bytesDownloaded = 0;
     let lastReportedByteCount = 0;
     let tempBuffer: Buffer = Buffer.alloc(0);
+    let numEntriesImported = 0;
 
     readableStream.on("data", (chunk: Buffer) => {
       bytesDownloaded += chunk.byteLength;
@@ -101,10 +119,20 @@ async function streamToNdStrings(
       chunk = Buffer.concat([tempBuffer, chunk]);
 
       let newlineIndex;
-      while ((newlineIndex = chunk.indexOf(0x0a)) !== -1) {
+      while (
+        (newlineIndex = chunk.indexOf(0x0a)) !== -1 &&
+        numEntriesImported < maxEntriesToImport
+      ) {
         const line = chunk.slice(0, newlineIndex).toString("utf-8");
         lines.push(line);
         chunk = chunk.slice(newlineIndex + 1);
+        numEntriesImported++;
+      }
+
+      if (numEntriesImported >= maxEntriesToImport) {
+        // TODO: cancel the stream
+        resolve(lines);
+        return;
       }
 
       // Save leftover data for next chunk

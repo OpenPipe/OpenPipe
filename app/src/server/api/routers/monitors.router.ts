@@ -6,15 +6,11 @@ import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { TRPCError } from "@trpc/server";
 import { filtersSchema } from "~/types/shared.types";
-import { hashNode } from "~/server/utils/nodes/hashNode";
-import {
-  LLMRelabelOutputs,
-  MonitorOutputs,
-  RelabelOptions,
-  relabelOptions,
-} from "~/server/utils/nodes/node.types";
+import { LLMRelabelOutputs, relabelOptions, typedNode } from "~/server/utils/nodes/node.types";
 import { success } from "~/utils/errorHandling/standardResponses";
-import { getDescendantNodes } from "~/server/utils/nodes/queries";
+import { getDescendantNodes, getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
+import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
+import { prepareIntegratedMonitorCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -30,10 +26,8 @@ export const monitorsRouter = createTRPCRouter({
 
     await requireCanViewProject(monitor.projectId, ctx);
 
-    const datasets = await getDescendantNodes(monitor.relabelindNodeId)
-      .where("descendantNode.type", "=", "Dataset")
-      .innerJoin("Dataset as d", "d.nodeId", "descendantNode.id")
-      .select(["descendantNode.id as nodeId", "d.id as datasetId", "d.name as datasetName"])
+    const datasets = await getDownstreamDatasets(monitor.id)
+      .select(["datasetNode.id as datasetNodeId", "d.id as datasetId", "d.name as datasetName"])
       .execute();
 
     return { monitor, datasets };
@@ -60,112 +54,41 @@ export const monitorsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        filters: filtersSchema,
+        initialFilters: filtersSchema,
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { projectId, filters } = input;
+      const { projectId, initialFilters } = input;
 
       await requireCanModifyProject(projectId, ctx);
 
-      const monitorId = uuidv4();
-      const monitorHash = hashNode({ projectId, node: { type: "Monitor", config: { filters } } });
-
-      const relabelId = uuidv4();
-      const relabelHash = hashNode({
+      const preparedIntegratedMonitorCreation = prepareIntegratedMonitorCreation({
         projectId,
-        node: {
-          type: "LLMRelabel",
-          config: {
-            relabelLLM: RelabelOptions.SkipRelabel,
-          },
-        },
+        initialFilters,
       });
 
-      const numMonitors = await prisma.node.count({
-        where: {
-          projectId,
-          type: "Monitor",
-        },
-      });
+      await prisma.$transaction(preparedIntegratedMonitorCreation.prismaCreations);
 
-      const [monitor] = await prisma.$transaction([
-        // Monitor
-        prisma.node.create({
-          data: {
-            projectId,
-            type: "Monitor",
-            name: `Monitor ${numMonitors + 1}`,
-            config: { filters },
-            hash: monitorHash,
-          },
-        }),
-        prisma.dataChannel.create({
-          data: {
-            destinationId: monitorId,
-          },
-        }),
-        prisma.nodeOutput.create({
-          data: {
-            nodeId: monitorId,
-            label: MonitorOutputs.MatchedLogs,
-          },
-        }),
-        // LLMRelabel
-        prisma.node.create({
-          data: {
-            id: relabelId,
-            projectId: projectId,
-            type: "LLMRelabel",
-            name: `Relabel ${numMonitors + 1}`,
-            config: {
-              relabelLLM: RelabelOptions.SkipRelabel,
-            },
-            hash: relabelHash,
-          },
-        }),
-        prisma.dataChannel.create({
-          data: {
-            originId: monitorId,
-            destinationId: relabelId,
-          },
-        }),
-        prisma.nodeOutput.create({
-          data: {
-            nodeId: relabelId,
-            label: LLMRelabelOutputs.Relabeled,
-          },
-        }),
-        prisma.nodeOutput.create({
-          data: {
-            nodeId: relabelId,
-            label: LLMRelabelOutputs.Unprocessed,
-          },
-        }),
-      ]);
-
-      return monitor;
+      return preparedIntegratedMonitorCreation.monitorNodeId;
     }),
   update: protectedProcedure
     .input(
       z.object({
         id: z.string(),
-        name: z.string(),
-        initialFilters: filtersSchema,
-        checkFilters: filtersSchema,
-        relabelLLM: z.enum(relabelOptions),
-        outputDatasetIds: z.array(z.string()),
+        updates: z.object({
+          name: z.string().optional(),
+          initialFilters: filtersSchema.optional(),
+          checkFilters: filtersSchema.optional(),
+          relabelLLM: z.enum(relabelOptions).optional(),
+          datasetLLMRelabelNodeIds: z.array(z.string()).optional(),
+        }),
         preserveCache: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const {
         id,
-        name,
-        initialFilters,
-        checkFilters,
-        relabelLLM,
-        outputDatasetIds,
+        updates: { name, initialFilters, checkFilters, relabelLLM, datasetLLMRelabelNodeIds },
         preserveCache,
       } = input;
 
@@ -175,30 +98,34 @@ export const monitorsRouter = createTRPCRouter({
 
       if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
 
-      await requireCanModifyProject(monitor.projectId, ctx);
+      const tMonitor = typedNode(monitor);
 
-      const nodeHash = hashNode({
-        projectId: monitor.projectId,
-        node: {
-          type: "Monitor",
-          config: { checkFilters },
-        },
-      });
+      if (tMonitor.type !== "Monitor") throw new TRPCError({ code: "BAD_REQUEST" });
 
-      await prisma.node.update({
+      await requireCanModifyProject(tMonitor.projectId, ctx);
+
+      const initialHash = tMonitor.hash;
+
+      const { hash: updatedHash } = await prisma.node.update({
         where: { id },
-        data: {
+        data: checkNodeInput({
+          id,
+          projectId: monitor.projectId,
           name,
-          config: { initialFilters, checkFilters },
-          hash: nodeHash,
-        },
+          type: "Monitor",
+          config: {
+            ...tMonitor.config,
+            initialFilters: initialFilters ?? tMonitor.config.initialFilters,
+            checkFilters: checkFilters ?? tMonitor.config.checkFilters,
+          },
+        }),
       });
 
-      if (preserveCache && monitor.hash !== nodeHash) {
+      if (preserveCache && monitor.hash !== updatedHash) {
         // check to see if cached data is being used by any other nodes
         const similarNodes = await prisma.node.findMany({
           where: {
-            hash: nodeHash,
+            hash: updatedHash,
             id: { not: id },
           },
         });
@@ -229,9 +156,9 @@ export const monitorsRouter = createTRPCRouter({
                   "explanation",
                   "createdAt",
                   "updatedAt",
-                  eb.val(nodeHash).as("nodeHash"), // Set the new nodeHash
+                  eb.val(updatedHash).as("nodeHash"), // Set the new nodeHash
                 ])
-                .where("nodeHash", "=", monitor.hash),
+                .where("nodeHash", "=", initialHash),
             )
             .onConflict((oc) =>
               oc.columns(["nodeHash", "incomingDEIHash", "incomingDEOHash"]).doNothing(),
@@ -241,82 +168,79 @@ export const monitorsRouter = createTRPCRouter({
           // update cached data
           await prisma.cachedProcessedNodeData.updateMany({
             where: {
-              nodeHash: monitor.hash,
+              nodeHash: initialHash,
             },
             data: {
-              nodeHash,
+              nodeHash: updatedHash,
             },
           });
         }
       }
 
-      const relabelNode = await getDescendantNodes(monitor.id)
-        .innerJoin("NodeOutput as dno", "dno.nodeId", "descendantNode.id")
+      const monitorRelabelNode = await kysely
+        .selectFrom("Node as relabelNode")
+        .where("relabelNode.id", "=", tMonitor.config.llmRelabelNodeId)
+        .innerJoin("NodeOutput as dno", "dno.nodeId", "relabelNode.id")
         .where("dno.label", "=", LLMRelabelOutputs.Relabeled)
-        .select([
-          "descendantNode.id as id",
-          "descendantNode.type as type",
-          "descendantNode.hash as hash",
-          "dno.id as relabelOutputId",
-        ])
+        .selectAll("relabelNode")
+        .select(["dno.id as relabelOutputId"])
         .executeTakeFirst();
 
-      if (!relabelNode)
+      if (!monitorRelabelNode)
         throw new TRPCError({ code: "NOT_FOUND", message: "Relabel node not found" });
 
-      const relabelNodeHash = hashNode({
-        projectId: monitor.projectId,
-        node: {
-          type: "LLMRelabel",
-          config: {
-            relabelLLM: relabelLLM,
-          },
-        },
-      });
-      if (relabelNodeHash !== relabelNode.hash) {
+      const tMonitorRelabelNode = typedNode(monitorRelabelNode);
+
+      if (tMonitorRelabelNode.type !== "LLMRelabel")
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Relabel node not found" });
+
+      if (relabelLLM) {
         await prisma.node.update({
-          where: { id: relabelNode.id },
-          data: {
-            hash: relabelNodeHash,
+          where: { id: tMonitorRelabelNode.id },
+          data: checkNodeInput({
+            projectId: tMonitorRelabelNode.projectId,
+            type: "LLMRelabel",
             config: {
+              ...tMonitorRelabelNode.config,
               relabelLLM: relabelLLM,
             },
-          },
+          }),
         });
       }
 
-      const existingDatasetNodeIds = await getDescendantNodes(relabelNode.id)
-        .where("descendantNode.type", "=", "Dataset")
-        .select(["descendantNode.id as id"])
-        .execute()
-        .then((nodes) => nodes.map((node) => node.id));
+      if (datasetLLMRelabelNodeIds) {
+        const existingDatasetLLMRelabelNodeIds = await getDownstreamDatasets(id)
+          .select(["datasetLLMRelabelNode.id"])
+          .execute()
+          .then((nodes) => nodes.map((node) => node.id));
 
-      const datasetNodeIdsToConnect = outputDatasetIds.filter(
-        (id) => !existingDatasetNodeIds.includes(id),
-      );
+        const datasetLLMRelabelNodeIdsToConnect = datasetLLMRelabelNodeIds.filter(
+          (id) => !existingDatasetLLMRelabelNodeIds.includes(id),
+        );
 
-      await kysely
-        .insertInto("DataChannel")
-        .columns(["originId", "destinationId"])
-        .values(
-          datasetNodeIdsToConnect.map((datasetId) => ({
-            id: uuidv4(),
-            originId: relabelNode.relabelOutputId,
-            destinationId: datasetId,
-            updatedAt: new Date(),
-          })),
-        )
-        .execute();
+        await kysely
+          .insertInto("DataChannel")
+          .columns(["originId", "destinationId"])
+          .values(
+            datasetLLMRelabelNodeIdsToConnect.map((llmRelabelNodeId) => ({
+              id: uuidv4(),
+              originId: tMonitorRelabelNode.relabelOutputId,
+              destinationId: llmRelabelNodeId,
+              updatedAt: new Date(),
+            })),
+          )
+          .execute();
 
-      const datasetNodeIdsToDisconnect = existingDatasetNodeIds.filter((id) =>
-        outputDatasetIds.includes(id),
-      );
+        const datasetNodeIdsToDisconnect = existingDatasetLLMRelabelNodeIds.filter((id) =>
+          datasetLLMRelabelNodeIds.includes(id),
+        );
 
-      await kysely
-        .deleteFrom("DataChannel")
-        .where("originId", "=", relabelNode.relabelOutputId)
-        .where("destinationId", "in", datasetNodeIdsToDisconnect)
-        .execute();
+        await kysely
+          .deleteFrom("DataChannel")
+          .where("originId", "=", tMonitorRelabelNode.relabelOutputId)
+          .where("destinationId", "in", datasetNodeIdsToDisconnect)
+          .execute();
+      }
 
       return success("Monitor updated");
     }),

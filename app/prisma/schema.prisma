@@ -16,6 +16,7 @@ enum DatasetFileUploadStatus {
     PROCESSING
     SAVING
     COMPLETE
+    PROCESSED
     ERROR
 }
 
@@ -167,21 +168,23 @@ model PruningRuleMatch {
     datasetEntryId String?       @db.Uuid
     datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
-    datasetEntryInputHash String?
-    datasetEntryInput     DatasetEntryInput? @relation(fields: [datasetEntryInputHash], references: [hash], onDelete: Cascade)
+    inputHash String?
+    input     DatasetEntryInput? @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
 
-    @@unique([pruningRuleId, datasetEntryId])
+    // @@unique([pruningRuleId, datasetEntryId])
+    @@index([pruningRuleId, datasetEntryId])
+    @@index([inputHash, pruningRuleId])
     @@index([datasetEntryId])
 }
 
 model Project {
-    id       String  @id @default(uuid()) @db.Uuid
-    slug     String  @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
-    name     String  @default("Project 1")
-    isPublic Boolean @default(false)
-    isHidden Boolean @default(false)
+    id               String  @id @default(uuid()) @db.Uuid
+    slug             String  @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
+    name             String  @default("Project 1")
+    isPublic         Boolean @default(false)
+    isHidden         Boolean @default(false)
     stripeCustomerId String?
-    billable Boolean @default(true)
+    billable         Boolean @default(true)
 
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
@@ -365,12 +368,14 @@ model User {
 
     role UserRole @default(USER)
 
-    accounts               Account[]
-    sessions               Session[]
-    projectUsers           ProjectUser[]
-    projects               Project[]
-    sentUserInvitations    UserInvitation[]
-    authoredDatasetEntries DatasetEntry[]
+    accounts                Account[]
+    sessions                Session[]
+    projectUsers            ProjectUser[]
+    projects                Project[]
+    sentUserInvitations     UserInvitation[]
+    authoredDatasetEntries  DatasetEntry[]
+    createdNodes            Node[]
+    cachedProcessedNodeData CachedProcessedNodeData[]
 
     createdAt             DateTime               @default(now())
     updatedAt             DateTime               @default(now()) @updatedAt
@@ -462,8 +467,13 @@ model FineTuneTrainingEntry {
     prunedInputTokens Int?
     outputTokens      Int?
 
-    datasetEntryId String       @db.Uuid
-    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+    inputHash  String?
+    input      DatasetEntryInput?  @relation(fields: [inputHash], references: [hash], onDelete: SetNull)
+    outputHash String?
+    output     DatasetEntryOutput? @relation(fields: [outputHash], references: [hash], onDelete: SetNull)
+
+    datasetEntryId String?       @db.Uuid
+    datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
     fineTuneId String   @db.Uuid
     fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
@@ -471,7 +481,7 @@ model FineTuneTrainingEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([datasetEntryId, fineTuneId])
+    // @@unique([datasetEntryId, fineTuneId])
     @@index([datasetEntryId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
     @@index([fineTuneId])
@@ -486,6 +496,7 @@ enum ComparisonModel {
 model FineTuneTestingEntry {
     id String @id @default(uuid()) @db.Uuid
 
+    // TODO: Delete cacheKey. inputHash and modelId should be enough.
     cacheKey          String?
     prunedInputTokens Int?
 
@@ -504,13 +515,21 @@ model FineTuneTestingEntry {
     fineTuneId String?   @db.Uuid
     fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
 
-    datasetEntryId String       @db.Uuid
-    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+    datasetEntryId String?       @db.Uuid
+    datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+
+    inputHash    String?
+    input        DatasetEntryInput?  @relation(fields: [inputHash], references: [hash], onDelete: SetNull)
+    // for the modelId and inputHash, we cache the produced output
+    outputHash   String?
+    cachedOutput DatasetEntryOutput? @relation(fields: [outputHash], references: [hash], onDelete: SetNull)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([modelId, datasetEntryId])
+    // @@unique([modelId, datasetEntryId])
+    @@index([modelId, datasetEntryId])
+    // @@unique([inputHash, outputHash, modelId])
     @@index([datasetEntryId])
     @@index([cacheKey])
     @@index([fineTuneId])
@@ -549,14 +568,20 @@ model DatasetEvalDatasetEntry {
     datasetEvalId String      @db.Uuid
     datasetEval   DatasetEval @relation(fields: [datasetEvalId], references: [id], onDelete: Cascade)
 
-    datasetEntryId String       @db.Uuid
-    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+    datasetEntryId String?       @db.Uuid
+    datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+
+    importId  String?
+    inputHash String?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([datasetEvalId, datasetEntryId])
+    // @@unique([datasetEvalId, datasetEntryId])
+    @@index([datasetEvalId, datasetEntryId])
     @@index([datasetEntryId])
+    @@index([datasetEvalId, importId, inputHash])
+    @@index([importId, inputHash, datasetEvalId])
 }
 
 // Used to record whether the dataset output and which comparison and
@@ -749,7 +774,7 @@ model MonitorMatch {
 
 enum NodeType {
     Monitor
-    StaticDataset
+    Archive
     Filter
     LLMFilter
     LLMRelabel
@@ -761,7 +786,7 @@ model Node {
     id     String   @id @default(uuid()) @db.Uuid
     type   NodeType
     name   String
-    config Json?
+    config Json
     hash   String
 
     nodeData           NodeData[]
@@ -773,6 +798,9 @@ model Node {
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    creatorId String? @db.Uuid
+    creator   User?   @relation(fields: [creatorId], references: [id], onDelete: SetNull)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -815,20 +843,21 @@ enum NodeDataStatus {
 }
 
 model NodeData {
-    id     String         @id @default(uuid()) @db.Uuid
-    status NodeDataStatus @default(PENDING)
-    error  String?
+    id       String            @id @default(uuid()) @db.Uuid
+    importId String
+    status   NodeDataStatus    @default(PENDING)
+    error    String?
+    split    DatasetEntrySplit
 
     loggedCallId String?     @db.Uuid
     loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: SetNull)
 
     inputHash          String
-    input              DatasetEntryInput   @relation(fields: [inputHash], references: [hash])
+    input              DatasetEntryInput  @relation(fields: [inputHash], references: [hash])
     outputHash         String
-    output             DatasetEntryOutput? @relation("output", fields: [outputHash], references: [hash])
-    rejectedOutputHash String?
-    rejectedOutput     DatasetEntryOutput? @relation("rejectedOutput", fields: [rejectedOutputHash], references: [hash])
-    split              DatasetEntrySplit
+    output             DatasetEntryOutput @relation("output", fields: [outputHash], references: [hash])
+    originalOutputHash String
+    originalOutput     DatasetEntryOutput @relation("originalOutput", fields: [originalOutputHash], references: [hash])
 
     nodeId String @db.Uuid
     node   Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
@@ -844,8 +873,10 @@ model NodeData {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@index([dataChannelId, loggedCallId])
-    @@index([parentNodeDataId])
+    @@index([nodeId, importId])
+    @@index([nodeId, inputHash, importId])
+    @@index([loggedCallId, dataChannelId])
+    @@index([parentNodeDataId, dataChannelId])
     @@index([nodeId, status, updatedAt])
 }
 
@@ -861,12 +892,14 @@ model DatasetEntryInput {
     tools           Json?
     messages        Json  @default("[]")
     response_format Json?
-    inputTokens     Int
+    inputTokens     Int?
 
     matchedRules PruningRuleMatch[]
     hash         String
 
-    nodeData NodeData[]
+    nodeData                NodeData[]
+    fineTuneTrainingEntries FineTuneTrainingEntry[]
+    fineTuneTestingEntries  FineTuneTestingEntry[]
 
     incomingCachedEntries CachedProcessedNodeData[] @relation("incoming")
     outgoingCachedEntries CachedProcessedNodeData[] @relation("outgoing")
@@ -879,10 +912,12 @@ model DatasetEntryInput {
 model DatasetEntryOutput {
     output       Json
     hash         String
-    outputTokens Int
+    outputTokens Int?
 
-    nodeData          NodeData[] @relation("output")
-    rejectingNodeData NodeData[] @relation("rejectedOutput")
+    nodeData                NodeData[]              @relation("output")
+    originalNodeData        NodeData[]              @relation("originalOutput")
+    fineTuneTrainingEntries FineTuneTrainingEntry[]
+    fineTuneTestingEntries  FineTuneTestingEntry[]
 
     incomingCachedEntries CachedProcessedNodeData[] @relation("incoming")
     outgoingCachedEntries CachedProcessedNodeData[] @relation("outgoing")
@@ -896,6 +931,10 @@ model CachedProcessedNodeData {
     id String @id @default(uuid()) @db.Uuid
 
     nodeHash String
+    importId String?
+
+    userId String? @db.Uuid
+    user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
     incomingDEIHash String
     incomingDEI     DatasetEntryInput   @relation("incoming", fields: [incomingDEIHash], references: [hash], onDelete: Cascade)
@@ -905,6 +944,7 @@ model CachedProcessedNodeData {
     outgoingDEI     DatasetEntryInput?  @relation("outgoing", fields: [outgoingDEIHash], references: [hash], onDelete: Cascade)
     outgoingDEOHash String?
     outgoingDEO     DatasetEntryOutput? @relation("outgoing", fields: [outgoingDEOHash], references: [hash], onDelete: Cascade)
+    outgoingSplit   DatasetEntrySplit?
 
     filterOutcome String?
     explanation   String?
@@ -912,5 +952,6 @@ model CachedProcessedNodeData {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([nodeHash, incomingDEIHash, incomingDEOHash])
+    @@unique([importId, incomingDEIHash, nodeHash, incomingDEOHash])
+    @@index([incomingDEIHash, nodeHash])
 }

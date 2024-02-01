@@ -1,18 +1,22 @@
 import { z } from "zod";
 import { sql } from "kysely";
 import type { ComparisonModel } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
+import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { generateBlobUploadUrl } from "~/utils/azure/server";
-import { importDatasetEntries } from "~/server/tasks/importDatasetEntries.task";
 import { env } from "~/env.mjs";
 import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
-import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
+import { constructNodeDataFiltersQuery } from "~/server/utils/constructNodeDataFiltersQuery";
+import { ArchiveOutputs, DEFAULT_MAX_OUTPUT_SIZE } from "~/server/utils/nodes/node.types";
+import { processNode } from "~/server/tasks/nodes/processNode.task";
+import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -61,22 +65,26 @@ export const datasetsRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { id, filters, selectedPruningRuleIds } = input;
 
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+      const { projectId, nodeId } = await prisma.dataset.findUniqueOrThrow({
         where: { id },
       });
 
       await requireCanViewProject(projectId, ctx);
 
-      const trainingEntryStats = await constructDatasetEntryFiltersQuery({ filters, datasetId: id })
-        .where("de.split", "=", "TRAIN")
-        .where("de.output", "is not", null)
+      if (!nodeId) throw new TRPCError({ message: "Dataset node not found", code: "NOT_FOUND" });
+
+      const trainingEntryStats = await constructNodeDataFiltersQuery({
+        filters,
+        datasetNodeId: nodeId,
+      })
+        .where("nd.split", "=", "TRAIN")
         .select((eb) => [
           sql<number>`count(*)::int`.as("numEntries"),
-          sql<number>`sum(de."inputTokens")::int`.as("totalInputTokens"),
-          sql<number>`sum(de."outputTokens")::int`.as("totalOutputTokens"),
+          sql<number>`sum(dei."inputTokens")::int`.as("totalInputTokens"),
+          sql<number>`sum(deo."outputTokens")::int`.as("totalOutputTokens"),
           eb
             .selectFrom("PruningRuleMatch as prm")
-            .whereRef("prm.datasetEntryId", "=", "de.id")
+            .whereRef("prm.inputHash", "=", "nd.inputHash")
             .where("prm.pruningRuleId", "in", selectedPruningRuleIds)
             .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
             .select(() => [sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens")])
@@ -91,11 +99,11 @@ export const datasetsRouter = createTRPCRouter({
         trainingEntryStats.totalOutputTokens -
         (trainingEntryStats.totalMatchTokens ?? 0);
 
-      const totalTestingCount = await prisma.datasetEntry.count({
+      const totalTestingCount = await prisma.nodeData.count({
         where: {
-          datasetId: id,
-          outdated: false,
+          nodeId,
           split: "TEST",
+          status: "PROCESSED",
         },
       });
 
@@ -114,6 +122,7 @@ export const datasetsRouter = createTRPCRouter({
       const datasets = await kysely
         .selectFrom("Dataset as d")
         .where("projectId", "=", projectId)
+        .where("nodeId", "is not", null)
         .selectAll()
         .select(() => [
           sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = d.id and not outdated)::int`.as(
@@ -219,23 +228,71 @@ export const datasetsRouter = createTRPCRouter({
       const { projectId } = await prisma.dataset.findUniqueOrThrow({
         where: { id: input.datasetId },
       });
-      await requireCanViewProject(projectId, ctx);
+      await requireCanModifyProject(projectId, ctx);
 
-      const { id } = await prisma.datasetFileUpload.create({
-        data: {
-          datasetId: input.datasetId,
-          blobName: input.blobName,
-          status: "PENDING",
-          fileName: input.fileName,
-          fileSize: input.fileSize,
-          uploadedAt: new Date(),
+      const numArchives = await prisma.node.count({
+        where: {
+          projectId,
+          type: "Archive",
         },
       });
 
-      await importDatasetEntries.enqueue({
-        datasetFileUploadId: id,
-        authoringUserId: ctx.session.user.id,
-      });
+      const archiveId = uuidv4();
+
+      const entriesOutputId = uuidv4();
+
+      const datasetNode = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .executeTakeFirst();
+
+      if (!datasetNode) return error("Dataset not found");
+
+      await prisma.$transaction([
+        prisma.node.create({
+          data: checkNodeInput({
+            id: archiveId,
+            projectId,
+            type: "Archive",
+            name: `Archive ${numArchives + 1}`,
+            config: {
+              maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
+            },
+          }),
+        }),
+        prisma.dataChannel.create({
+          data: {
+            destinationId: archiveId,
+          },
+        }),
+        prisma.nodeOutput.create({
+          data: {
+            id: entriesOutputId,
+            nodeId: archiveId,
+            label: ArchiveOutputs.Entries,
+          },
+        }),
+        prisma.dataChannel.create({
+          data: {
+            originId: entriesOutputId,
+            destinationId: datasetNode.id,
+          },
+        }),
+        prisma.datasetFileUpload.create({
+          data: {
+            nodeId: archiveId,
+            blobName: input.blobName,
+            status: "PENDING",
+            fileName: input.fileName,
+            fileSize: input.fileSize,
+            uploadedAt: new Date(),
+          },
+        }),
+      ]);
+
+      await processNode.enqueue({ nodeId: archiveId, nodeType: "Archive" });
     }),
   listFileUploads: protectedProcedure
     .input(z.object({ datasetId: z.string() }))

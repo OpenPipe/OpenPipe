@@ -7,7 +7,8 @@ import { typedLoggedCall } from "~/types/dbColumns.types";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { truthyFilter } from "~/utils/utils";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
-import { forwardProcessedData } from "./forwardNodeData";
+import { forwardNodeData } from "../forwardNodeData";
+import { generateImportId } from "../importId";
 
 export const processMonitor = async (nodeId: string) => {
   const node = await prisma.node
@@ -18,7 +19,7 @@ export const processMonitor = async (nodeId: string) => {
     .then((n) => (n ? typedNode(n) : null));
   const inputDataChannel = node?.inputDataChannels[0];
   if (node?.type !== "Monitor" || !inputDataChannel) return;
-  const { initialFilters, checkFilters, lastLoggedCallUpdatedAt } = node.config;
+  const { initialFilters, checkFilters, lastLoggedCallUpdatedAt, maxOutputSize } = node.config;
 
   // run initial filters
   const maxLoggedCallUpdatedAt = dayjs().subtract(1, "minute").toDate();
@@ -91,7 +92,7 @@ export const processMonitor = async (nodeId: string) => {
       .where("monitorId", "=", nodeId)
       .where("checkPassed", "=", true)
       .orderBy("loggedCallId", "desc")
-      .limit(20000)
+      .limit(maxOutputSize)
       .select("loggedCallId")
       .execute()
       .then((rows) => rows[rows.length - 1]?.loggedCallId);
@@ -103,15 +104,12 @@ export const processMonitor = async (nodeId: string) => {
       .where("mm.monitorId", "=", nodeId)
       .where("mm.checkPassed", "=", true)
       .where("mm.loggedCallId", ">=", cutoffLoggedCallId)
-      .where(({ not, exists, selectFrom }) =>
-        not(
-          exists(
-            selectFrom("NodeData as nd")
-              .where("nd.dataChannelId", "=", inputDataChannel.id)
-              .whereRef("nd.loggedCallId", "=", "mm.loggedCallId"),
-          ),
-        ),
+      .leftJoin("NodeData as nd", (eb) =>
+        eb
+          .onRef("nd.loggedCallId", "=", "mm.loggedCallId")
+          .on("nd.dataChannelId", "=", inputDataChannel.id),
       )
+      .where("nd.id", "is", null)
       .innerJoin("LoggedCall as lc", "lc.id", "mm.loggedCallId")
       .selectAll("lc")
       .execute();
@@ -127,7 +125,13 @@ export const processMonitor = async (nodeId: string) => {
           });
 
           if ("error" in validated) return null;
-          return validated;
+          return {
+            ...validated,
+            importId: generateImportId({
+              uniquePrefix: `${tLoggedCall.createdAt.toISOString()}-${tLoggedCall.id}`,
+              nodeId,
+            }),
+          };
         } catch (e) {
           console.error(e);
           return null;
@@ -167,5 +171,5 @@ export const processMonitor = async (nodeId: string) => {
     ]);
   }
 
-  await forwardProcessedData({ nodeId, nodeOutputLabel: MonitorOutputs.MatchedLogs });
+  await forwardNodeData({ nodeId, nodeOutputLabel: MonitorOutputs.MatchedLogs });
 };

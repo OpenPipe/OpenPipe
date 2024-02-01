@@ -1,16 +1,22 @@
 import type { ZodError } from "zod";
 import type { DatasetEntryInput, Prisma } from "@prisma/client";
 import pLimit from "p-limit";
+import { sql } from "kysely";
 
 import { kysely, prisma } from "~/server/db";
-import { LLMRelabelOutputs, RelabelOptions, typedDatasetEntryInput, typedNode } from "./node.types";
-import { getOpenaiCompletion } from "../openai";
+import {
+  LLMRelabelOutputs,
+  RelabelOptions,
+  typedDatasetEntryInput,
+  typedNode,
+} from "../node.types";
+import { getOpenaiCompletion } from "../../openai";
 import { countLlamaOutputTokens } from "~/utils/countTokens";
-import { hashDatasetEntryOutput } from "./hashNode";
+import { hashDatasetEntryOutput } from "../hashNode";
 import { APIError } from "openai";
 import { processNode } from "~/server/tasks/nodes/processNode.task";
 import dayjs from "~/utils/dayjs";
-import { forwardNodeData, llmRelabelUnprocessedSelectionExpression } from "./forwardNodeData";
+import { forwardNodeData } from "../forwardNodeData";
 
 export const processLLMRelabel = async (nodeId: string) => {
   const startTime = Date.now();
@@ -29,7 +35,7 @@ export const processLLMRelabel = async (nodeId: string) => {
     })
     .then((n) => (n ? typedNode(n) : null));
   if (node?.type !== "LLMRelabel") return;
-  const { relabelLLM } = node.config;
+  const { relabelLLM, maxEntriesPerMinute, maxLLMConcurrency } = node.config;
 
   if (relabelLLM === RelabelOptions.SkipRelabel) {
     await kysely
@@ -42,11 +48,24 @@ export const processLLMRelabel = async (nodeId: string) => {
       .execute();
     await forwardNodeData({ nodeId, nodeOutputLabel: LLMRelabelOutputs.Relabeled });
   } else {
+    // process all cached entries
+    await kysely
+      .updateTable("NodeData")
+      .set({
+        status: "PROCESSED",
+        outputHash: sql`"cpnd"."outgoingDEOHash"`,
+      })
+      .from("CachedProcessedNodeData as cpnd")
+      .where("NodeData.nodeId", "=", node.id)
+      .where("NodeData.status", "=", "PENDING")
+      .where("cpnd.nodeHash", "=", node.hash)
+      .whereRef("NodeData.inputHash", "=", "cpnd.incomingDEIHash")
+      .execute();
+
     const openaiApiKey = node.project.apiKeys.find((apiKey) => apiKey.provider === "OPENPIPE")
       ?.apiKey;
 
     if (!openaiApiKey) return;
-    const { maxEntriesPerMinute, maxLLMConcurrency } = node.config;
 
     const entriesToProcess = await kysely
       .selectFrom("NodeData as nd")
@@ -58,11 +77,12 @@ export const processLLMRelabel = async (nodeId: string) => {
       .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
       .select([
         "nd.id as nodeDataId",
+        "nd.originalOutputHash as originalOutputHash",
+        "dei.hash as inputHash",
         "dei.tool_choice as tool_choice",
         "dei.tools as tools",
         "dei.messages as messages",
         "dei.response_format as response_format",
-        "deo.hash as rejectedOutputHash",
       ])
       .execute();
 
@@ -73,6 +93,7 @@ export const processLLMRelabel = async (nodeId: string) => {
       limit(() =>
         processEntry({
           projectId: node.projectId,
+          nodeHash: node.hash,
           relabelLLM,
           entry,
         }),
@@ -108,14 +129,17 @@ export const processLLMRelabel = async (nodeId: string) => {
 
 const processEntry = async ({
   projectId,
+  nodeHash,
   relabelLLM,
   entry,
 }: {
   projectId: string;
+  nodeHash: string;
   relabelLLM: RelabelOptions.GPT40613 | RelabelOptions.GPT41106 | RelabelOptions.GPT432k;
   entry: Pick<DatasetEntryInput, "tool_choice" | "tools" | "messages" | "response_format"> & {
     nodeDataId: string;
-    rejectedOutputHash: string;
+    inputHash: string;
+    originalOutputHash: string;
   };
 }) => {
   await prisma.nodeData.update({
@@ -133,7 +157,8 @@ const processEntry = async ({
     });
     return;
   }
-  const { tool_choice, tools, messages, response_format, rejectedOutputHash } = typedEntry;
+  const { tool_choice, tools, messages, response_format, originalOutputHash, inputHash } =
+    typedEntry;
 
   try {
     const completion = await getOpenaiCompletion(projectId, {
@@ -162,6 +187,17 @@ const processEntry = async ({
       skipDuplicates: true,
     });
 
+    await prisma.cachedProcessedNodeData.createMany({
+      data: [
+        {
+          nodeHash,
+          incomingDEIHash: inputHash,
+          outgoingDEOHash: outputHash,
+        },
+      ],
+      skipDuplicates: true,
+    });
+
     const originalNodeData = await prisma.nodeData.findUniqueOrThrow({
       where: { id: typedEntry.nodeDataId },
     });
@@ -176,7 +212,7 @@ const processEntry = async ({
           ...originalNodeData,
           status: "PROCESSED",
           outputHash,
-          rejectedOutputHash,
+          originalOutputHash,
         },
       }),
     ]);
@@ -194,3 +230,31 @@ const processEntry = async ({
     }
   }
 };
+
+export const llmRelabelUnprocessedSelectionExpression = ({
+  originNodeId,
+  lastProcessedAt,
+  destinationNodeId,
+  channelId,
+}: {
+  originNodeId: string;
+  lastProcessedAt: Date;
+  destinationNodeId: string;
+  channelId: string;
+}) =>
+  kysely
+    .selectFrom("NodeData as nd")
+    .where("nd.nodeId", "=", originNodeId)
+    .where("nd.status", "!=", "PROCESSED")
+    .where("nd.createdAt", ">=", dayjs(lastProcessedAt).subtract(10, "seconds").toDate())
+    .select((eb) => [
+      "nd.importId as importId",
+      eb.val(destinationNodeId).as("nodeId"),
+      eb.val(channelId).as("dataChannelId"),
+      "nd.id as parentNodeDataId",
+      "nd.loggedCallId",
+      "nd.inputHash",
+      "nd.outputHash",
+      "nd.originalOutputHash",
+      "nd.split",
+    ]);
