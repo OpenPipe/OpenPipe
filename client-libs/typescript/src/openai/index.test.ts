@@ -10,6 +10,7 @@ import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import { getTags } from "../shared";
 import { OPENPIPE_API_KEY, OPENPIPE_BASE_URL, TEST_LAST_LOGGED } from "../testConfig";
+import { functionBody } from "../sharedTestInput";
 
 dotenv.config();
 
@@ -30,26 +31,6 @@ const opClient = new OPClient({
   BASE: OPENPIPE_BASE_URL,
   TOKEN: OPENPIPE_API_KEY,
 });
-
-const functionCall = { name: "get_current_weather" };
-const functionBody = {
-  name: "get_current_weather",
-  description: "Get the current weather in a given location",
-  parameters: {
-    type: "object",
-    properties: {
-      location: {
-        type: "string",
-        description: "The city and state, e.g. San Francisco, CA",
-      },
-      unit: {
-        type: "string",
-        enum: ["celsius", "fahrenheit"],
-      },
-    },
-    required: ["location"],
-  },
-};
 
 const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
 
@@ -80,6 +61,29 @@ test("simple ft content call", async () => {
   const payload: ChatCompletionCreateParams = {
     model: "openpipe:test-content-mistral-p3",
     messages: [{ role: "system", content: "count to 3" }],
+  };
+  const completion = await oaiClient.chat.completions.create(payload);
+
+  await sleep(100);
+  await completion.openpipe?.reportingFinished;
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+    expect(completion).toMatchObject(lastLogged?.respPayload);
+  }
+}, 100000);
+
+test("simple ft tool call", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "openpipe:test-tool-calls-mistral-p3",
+    messages: [{ role: "system", content: "tell me the weather in SF and Orlando" }],
+    tools: [
+      {
+        type: "function",
+        function: functionBody,
+      },
+    ],
   };
   const completion = await oaiClient.chat.completions.create(payload);
 
