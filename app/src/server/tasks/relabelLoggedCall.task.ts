@@ -77,6 +77,7 @@ export const relabelLoggedCall = defineTask<RelabelLoggedCallJob>({
         messages: input.messages as object[],
         response_format: input.response_format as object,
         inputTokens: countLlamaInputTokens(input),
+        output: completionMessage as object,
         outputTokens: countLlamaOutputTokens(completionMessage),
         split: "TRAIN",
         importId,
