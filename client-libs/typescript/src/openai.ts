@@ -11,27 +11,24 @@ import type {
 } from "openai/resources/chat/completions";
 
 import { WrappedStream } from "./openai/streaming";
-import { ApiError, DefaultService, OPClient } from "./codegen";
+import { ApiError, DefaultService } from "./codegen";
 import type { Stream } from "openai/streaming";
 import { OpenPipeArgs, OpenPipeMeta, type OpenPipeConfig, getTags, withTimeout } from "./shared";
+import OpenPipe from "./client";
 
-export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig };
+export type ClientOptions = openai.ClientOptions & { openpipe?: OpenPipeConfig | OpenPipe };
 export default class OpenAI extends openai.OpenAI {
   constructor({ openpipe, ...options }: ClientOptions = {}) {
     super({ ...options });
 
-    const openPipeApiKey = openpipe?.apiKey ?? readEnv("OPENPIPE_API_KEY");
-    const openpipeBaseUrl =
-      openpipe?.baseUrl ?? readEnv("OPENPIPE_BASE_URL") ?? "https://app.openpipe.ai/api/v1";
+    const openpipeClient = openpipe instanceof OpenPipe ? openpipe : new OpenPipe(openpipe);
+    const openPipeApiKey = openpipeClient.baseClient.request.config.TOKEN;
 
-    if (openPipeApiKey) {
+    if (typeof openPipeApiKey === "string" && openPipeApiKey.length > 0) {
       this.chat.setClients(
-        new OPClient({
-          BASE: openpipeBaseUrl,
-          TOKEN: openPipeApiKey,
-        }),
+        openpipeClient,
         new openai.OpenAI({
-          baseURL: openpipeBaseUrl,
+          baseURL: openpipeClient.baseClient.request.config.BASE,
           apiKey: openPipeApiKey,
         }),
       );
@@ -45,8 +42,8 @@ export default class OpenAI extends openai.OpenAI {
 }
 
 class WrappedChat extends openai.OpenAI.Chat {
-  setClients(opReportingClient: OPClient, opCompletionClient: openai.OpenAI) {
-    this.completions.opReportingClient = opReportingClient;
+  setClients(opClient: OpenPipe, opCompletionClient: openai.OpenAI) {
+    this.completions.opClient = opClient;
     this.completions.opCompletionClient = opCompletionClient;
   }
 
@@ -56,7 +53,7 @@ class WrappedChat extends openai.OpenAI.Chat {
 class WrappedCompletions extends openai.OpenAI.Chat.Completions {
   // keep a reference to the original client so we can read options from it
   openaiClient: openai.OpenAI;
-  opReportingClient?: OPClient;
+  opClient?: OpenPipe;
   opCompletionClient?: openai.OpenAI;
 
   constructor(client: openai.OpenAI) {
@@ -66,9 +63,7 @@ class WrappedCompletions extends openai.OpenAI.Chat.Completions {
 
   async _report(args: Parameters<DefaultService["report"]>[0]) {
     try {
-      this.opReportingClient
-        ? await this.opReportingClient.default.report(args)
-        : Promise.resolve();
+      this.opClient ? await this.opClient.report(args) : Promise.resolve();
     } catch (e) {
       // Ignore errors with reporting
     }

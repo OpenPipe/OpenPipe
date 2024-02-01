@@ -1,12 +1,12 @@
 // import dotenv from "dotenv";
 import { expect, test } from "vitest";
 import type { ChatCompletionCreateParams } from "openai/resources/chat/completions";
-import { OPClient } from "../codegen";
+import OpenPipe from "../client";
 import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "./setup";
 
-const opClient = new OPClient({
-  BASE: OPENPIPE_API_URL,
-  TOKEN: OPENPIPE_API_KEY,
+const opClient = new OpenPipe({
+  baseUrl: OPENPIPE_API_URL,
+  apiKey: OPENPIPE_API_KEY,
 });
 
 const respPayload = {
@@ -32,7 +32,8 @@ const respPayload = {
 
 const generateRandomId = () => Math.random().toString(36).substring(7);
 
-const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
+const lastLoggedCall = async () =>
+  opClient.baseClient.default.localTestingOnlyGetLatestLoggedCall();
 
 test("adds tags", async () => {
   const payload: ChatCompletionCreateParams = {
@@ -42,7 +43,7 @@ test("adds tags", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -57,7 +58,7 @@ test("adds tags", async () => {
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [{ field: "tags.prompt_id", equals: originalPromptId }],
     tags: newTags,
   });
@@ -81,7 +82,7 @@ test("updates tags", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -93,7 +94,7 @@ test("updates tags", async () => {
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -110,7 +111,7 @@ test("updates tags", async () => {
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [{ field: "tags.prompt_id", equals: originalPromptId }],
     tags: updatedTags,
   });
@@ -135,7 +136,7 @@ test("updates tag by completionId", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -150,7 +151,7 @@ test("updates tag by completionId", async () => {
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -170,7 +171,7 @@ test("updates tag by completionId", async () => {
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [{ field: "completionId", equals: completionId }],
     tags: updatedTags,
   });
@@ -195,7 +196,7 @@ test("updates tag by model", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -212,7 +213,7 @@ test("updates tag by model", async () => {
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [{ field: "model", equals: model }],
     tags: updatedTags,
   });
@@ -237,7 +238,7 @@ test("updates by combination of filters", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -254,7 +255,7 @@ test("updates by combination of filters", async () => {
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [
       { field: "model", equals: model },
       { field: "tags.prompt_id", equals: originalPromptId },
@@ -283,7 +284,7 @@ test("updates some tags by combination of filters", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -295,7 +296,7 @@ test("updates some tags by combination of filters", async () => {
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -307,7 +308,7 @@ test("updates some tags by combination of filters", async () => {
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: {
@@ -327,7 +328,7 @@ test("updates some tags by combination of filters", async () => {
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [
       { field: "model", equals: model },
       { field: "tags.prompt_id", equals: originalPromptId },
@@ -355,7 +356,7 @@ test("deletes tags", async () => {
   const keepPromptId = "prompt id for tag to keep " + generateRandomId();
   const deletePromptId = "prompt id for tag to delete " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -367,7 +368,7 @@ test("deletes tags", async () => {
     },
   });
 
-  const keepResp = await opClient.default.updateLogTags({
+  const keepResp = await opClient.updateLogTags({
     filters: [{ field: "tags.prompt_id", equals: deletePromptId }],
     tags: { prompt_id: null },
   });
@@ -379,7 +380,7 @@ test("deletes tags", async () => {
     expect(keepLoggedCall?.tags.prompt_id).toEqual(keepPromptId);
   }
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -391,7 +392,7 @@ test("deletes tags", async () => {
     },
   });
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [{ field: "tags.prompt_id", equals: deletePromptId }],
     tags: { prompt_id: null },
   });
@@ -407,7 +408,7 @@ test("deletes tags", async () => {
 
 test("deletes nothing when no tags matched", async () => {
   const originalPromptId = "id 1";
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: null,
@@ -416,7 +417,7 @@ test("deletes nothing when no tags matched", async () => {
       prompt_id: originalPromptId,
     },
   });
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [{ field: "tags.prompt_id", equals: generateRandomId() }],
     tags: { prompt_id: null },
   });
@@ -436,7 +437,7 @@ test("deletes from all logged calls when no filters provided", async () => {
     messages: [{ role: "system", content: "count to 3" }],
   };
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -446,7 +447,7 @@ test("deletes from all logged calls when no filters provided", async () => {
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -456,7 +457,7 @@ test("deletes from all logged calls when no filters provided", async () => {
     },
   });
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [],
     tags: { promptId: null },
   });
