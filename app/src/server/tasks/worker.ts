@@ -70,9 +70,10 @@ const runner = await run({
     {
       task: generateInvoices.task.identifier,
       // run at 2 AM UTC on the first day of each month
-      pattern: "0 * * * *", // TODO: Set "0 2 1 * *". This is a temp change to test in production. It runs every hour.
+      pattern: "0 1 * * *", // TODO: Set "0 2 1 * *". This is a temp change to test in production. It runs at 1 am every day.
       identifier: generateInvoices.task.identifier,
     },
+
     // TODO: Uncomment this when we are ready to charge invoices
     // {
     //   task: chargeInvoices.task.identifier,

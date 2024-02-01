@@ -635,6 +635,7 @@ model UsageLog {
 
     @@index([fineTuneId, createdAt, type])
     @@index([projectId, createdAt, type])
+    @@index([invoiceId])
 }
 
 enum InvoiceStatus {
@@ -679,7 +680,7 @@ model CreditAdjustment {
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    Invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+    Invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
     invoiceId String?  @db.Uuid
 
     type CreditAdjustmentType
