@@ -3,6 +3,9 @@ import { expect, test } from "vitest";
 import type { ChatCompletionCreateParams } from "openai/resources/chat/completions";
 import OpenPipe from "../client";
 import { OPENPIPE_API_KEY, OPENPIPE_BASE_URL, TEST_LAST_LOGGED } from "../testConfig";
+import OpenAI from "../openai";
+
+const client = new OpenAI();
 
 const opClient = new OpenPipe({
   baseUrl: OPENPIPE_BASE_URL,
@@ -346,6 +349,35 @@ test("updates some tags by combination of filters", async () => {
     expect(lastLogged?.tags.any_key).toEqual("any value");
   }
 });
+
+test("relabels", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "openpipe:test-content-mistral-p3",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+  const completion = await client.chat.completions.create(payload);
+
+  await completion.openpipe?.reportingFinished;
+
+  const updatedTags = {
+    relabel: true,
+    add_to_dataset: "original_model_dataset",
+  };
+
+  const resp = await opClient.updateLogTags({
+    filters: [{ field: "completionId", equals: completion.id }],
+    tags: updatedTags,
+  });
+
+  expect(resp.matchedLogs).toEqual(1);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+
+    expect(lastLogged?.tags.relabel).toEqual("true");
+    expect(lastLogged?.tags.add_to_dataset).toEqual("original_model_dataset");
+  }
+}, 100000);
 
 test("deletes tags", async () => {
   const payload: ChatCompletionCreateParams = {

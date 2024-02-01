@@ -37,7 +37,7 @@ export const relabelLoggedCall = defineTask<RelabelLoggedCallJob>({
       return;
     }
 
-    if (!tLoggedCall.model || tLoggedCall.model.startsWith("openpipe:")) return;
+    if (!tLoggedCall.model || !tLoggedCall.model.startsWith("openpipe:")) return;
 
     const modelSlug = tLoggedCall.model.split(":")[1];
 
