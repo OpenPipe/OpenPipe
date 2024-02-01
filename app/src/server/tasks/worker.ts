@@ -11,6 +11,7 @@ import { generateTestSetEntry } from "./generateTestSetEntry.task";
 import { evaluateTestSetEntries } from "./evaluateTestSetEntries.task";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
 import { relabelDatasetEntry } from "./relabelDatasetEntry.task";
+import { relabelLoggedCall } from "./relabelLoggedCall.task";
 import type defineTask from "./defineTask";
 import { pgPool } from "../db";
 import { generateInvoices } from "./generateInvoices.task";
@@ -31,6 +32,7 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   evaluateTestSetEntries,
   countDatasetEntryTokens,
   relabelDatasetEntry,
+  relabelLoggedCall,
   generateInvoices,
   chargeInvoices,
 ];
