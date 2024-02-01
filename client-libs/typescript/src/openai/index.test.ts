@@ -10,7 +10,7 @@ import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import { getTags } from "../shared";
 import { OPENPIPE_API_KEY, OPENPIPE_BASE_URL, TEST_LAST_LOGGED } from "../testConfig";
-import { functionBody } from "./shared.test";
+import { functionBody } from "../sharedTestInput";
 
 dotenv.config();
 

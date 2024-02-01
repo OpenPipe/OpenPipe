@@ -6,7 +6,7 @@ import { sleep } from "openai/core";
 import OpenPipe from "../client";
 import { OPENPIPE_API_KEY, OPENPIPE_BASE_URL, TEST_LAST_LOGGED } from "../testConfig";
 import OpenAI from "../openai";
-import { functionBody } from "./shared.test";
+import { functionBody } from "../sharedTestInput";
 
 const client = new OpenAI();
 
