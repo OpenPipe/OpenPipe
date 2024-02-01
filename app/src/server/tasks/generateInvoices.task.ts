@@ -31,13 +31,6 @@ export const generateInvoices = defineTask({
 export async function createInvoice(projectId: string, startDate: Date, endDate: Date) {
   // Avoid creating multiple invoices for the same billing period
 
-  // TODO: Revert these changes. This is to create a single invoice for all the previous usage.
-  const invoiceAlreadyExists = await prisma.invoice.findFirst({
-    where: {
-      projectId: projectId,
-    },
-  });
-
   // const invoiceAlreadyExists = await prisma.invoice.findFirst({
   //   where: {
   //     projectId: projectId,
@@ -48,7 +41,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
   //   },
   // });
 
-  if (invoiceAlreadyExists) return;
+  // if (invoiceAlreadyExists) return;
 
   await kysely.transaction().execute(async (tx) => {
     // TODO: remove this temp logic
@@ -58,7 +51,12 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
       .select(["createdAt"])
       .executeTakeFirst();
 
-    if (!project) return;
+    const existingInvoice = await tx
+      .selectFrom("Invoice")
+      .where("projectId", "=", projectId)
+      .executeTakeFirst();
+
+    if (!project || existingInvoice) return;
     // TODO: remove this temp logic
 
     // 1. Create empty invoice
