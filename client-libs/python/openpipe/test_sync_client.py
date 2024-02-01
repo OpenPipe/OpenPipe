@@ -111,7 +111,9 @@ def test_sync_function_call():
 def test_sync_function_call_mistral():
     completion = client.chat.completions.create(
         model="openpipe:test-tool-calls-mistral-p3",
-        messages=[{"role": "system", "content": "tell me the weather in SF"}],
+        messages=[
+            {"role": "system", "content": "tell me the weather in SF and Orlando"}
+        ],
         function_call=function_call,
         functions=[function],
         openpipe={"tags": {"prompt_id": "test_sync_function_call_mistral"}},
@@ -124,7 +126,8 @@ def test_sync_function_call_mistral():
         client.openpipe_reporting_client.base_client.local_testing_only_get_latest_logged_call()
     )
     assert (
-        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF"
+        last_logged.req_payload["messages"][0]["content"]
+        == "tell me the weather in SF and Orlando"
     )
     assert (
         last_logged.resp_payload["choices"][0]["message"]["content"]
@@ -251,6 +254,8 @@ def test_sync_streaming_content_ft_35():
 
     if not TEST_LAST_LOGGED:
         return
+
+    time.sleep(0.1)
 
     last_logged = (
         client.openpipe_reporting_client.base_client.local_testing_only_get_latest_logged_call()

@@ -9,25 +9,25 @@ import OpenAI from "../openai";
 import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import { getTags } from "../shared";
-import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "../testConfig";
+import { OPENPIPE_API_KEY, OPENPIPE_BASE_URL, TEST_LAST_LOGGED } from "../testConfig";
 
 dotenv.config();
 
 const baseClient = new BaseOpenAI({
   apiKey: OPENPIPE_API_KEY,
-  baseURL: OPENPIPE_API_URL,
+  baseURL: OPENPIPE_BASE_URL,
 });
 
 const oaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   openpipe: {
     apiKey: OPENPIPE_API_KEY,
-    baseUrl: OPENPIPE_API_URL,
+    baseUrl: OPENPIPE_BASE_URL,
   },
 });
 
 const opClient = new OPClient({
-  BASE: OPENPIPE_API_URL,
+  BASE: OPENPIPE_BASE_URL,
   TOKEN: OPENPIPE_API_KEY,
 });
 

@@ -14,6 +14,7 @@ httpx = "^0.24.1"
 attrs = "^23.1.0"
 python-dateutil = "^2.8.2"
 openai = "~1.7.0"
+importlib-resources = "^6.1.1"
 
 [tool.poetry.dev-dependencies]
 

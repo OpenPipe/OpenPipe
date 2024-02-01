@@ -105,7 +105,9 @@ async def test_async_function_call():
 async def test_async_function_call_mistral():
     completion = await client.chat.completions.create(
         model="openpipe:test-tool-calls-mistral-p3",
-        messages=[{"role": "system", "content": "tell me the weather in SF"}],
+        messages=[
+            {"role": "system", "content": "tell me the weather in SF and Orlando"}
+        ],
         function_call=function_call,
         functions=[function],
         openpipe={"tags": {"prompt_id": "test_async_function_call_mistral"}},
@@ -119,7 +121,7 @@ async def test_async_function_call_mistral():
         await client.openpipe_reporting_client.base_client.local_testing_only_get_latest_logged_call()
     )
     assert (
-        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF"
+        last_logged.req_payload["messages"][0]["content"] == "tell me the weather in SF and Orlando"
     )
     assert (
         last_logged.resp_payload["choices"][0]["message"]["content"]

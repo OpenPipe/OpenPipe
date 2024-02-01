@@ -1,11 +1,10 @@
 from openai import OpenAI, AsyncOpenAI
 from openai.types.chat import ChatCompletion
 import os
-import pkg_resources
 import json
 from typing import Any, Dict, List, Union
 
-from .client import OpenPipe, AsyncOpenPipe
+from .client import OpenPipe, AsyncOpenPipe, add_sdk_info
 
 
 def configure_openpipe_clients(
@@ -49,10 +48,8 @@ def get_extra_headers(create_kwargs, openpipe_options):
 
 def _get_tags(openpipe_options):
     tags = openpipe_options.get("tags") or {}
-    tags["$sdk"] = "python"
-    tags["$sdk.version"] = pkg_resources.get_distribution("openpipe").version
 
-    return tags
+    return add_sdk_info(tags)
 
 
 def _should_log_request(

@@ -1,5 +1,6 @@
 import typing
 import os
+from importlib.metadata import version
 
 from .api_client.client import (
     OpenPipeApi,
@@ -14,7 +15,12 @@ from .api_client.client import (
 OMIT = typing.cast(typing.Any, ...)
 
 DEFAULT_BASE_URL = "https://app.openpipe.ai/api/v1"
-DEFAULT_TIMEOUT = 240
+
+
+def add_sdk_info(tags):
+    tags["$sdk"] = "python"
+    tags["$sdk.version"] = version("openpipe")
+    return tags
 
 
 class OpenPipe:
@@ -73,16 +79,16 @@ class OpenPipe:
         resp_payload: typing.Optional[typing.Any] = OMIT,
         status_code: typing.Optional[float] = OMIT,
         error_message: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Dict[str, ReportRequestTagsValue]] = OMIT,
+        tags: typing.Optional[typing.Dict[str, ReportRequestTagsValue]] = {},
     ) -> ReportResponse:
-        self.base_client.report(
+        return self.base_client.report(
             requested_at=requested_at,
             received_at=received_at,
             req_payload=req_payload,
             resp_payload=resp_payload,
             status_code=status_code,
             error_message=error_message,
-            tags=tags,
+            tags=add_sdk_info(tags),
         )
 
     def update_log_tags(
@@ -91,7 +97,7 @@ class OpenPipe:
         filters: typing.List[UpdateLogTagsRequestFiltersItem],
         tags: typing.Dict[str, UpdateLogTagsRequestTagsValue],
     ) -> UpdateLogTagsResponse:
-        self.base_client.update_log_tags(filters=filters, tags=tags)
+        return self.base_client.update_log_tags(filters=filters, tags=tags)
 
 
 class AsyncOpenPipe:
@@ -150,16 +156,16 @@ class AsyncOpenPipe:
         resp_payload: typing.Optional[typing.Any] = OMIT,
         status_code: typing.Optional[float] = OMIT,
         error_message: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Dict[str, ReportRequestTagsValue]] = OMIT,
+        tags: typing.Optional[typing.Dict[str, ReportRequestTagsValue]] = {},
     ) -> ReportResponse:
-        await self.base_client.report(
+        return await self.base_client.report(
             requested_at=requested_at,
             received_at=received_at,
             req_payload=req_payload,
             resp_payload=resp_payload,
             status_code=status_code,
             error_message=error_message,
-            tags=tags,
+            tags=add_sdk_info(tags),
         )
 
     async def update_log_tags(
@@ -168,4 +174,4 @@ class AsyncOpenPipe:
         filters: typing.List[UpdateLogTagsRequestFiltersItem],
         tags: typing.Dict[str, UpdateLogTagsRequestTagsValue],
     ) -> UpdateLogTagsResponse:
-        await self.base_client.update_log_tags(filters=filters, tags=tags)
+        return await self.base_client.update_log_tags(filters=filters, tags=tags)
