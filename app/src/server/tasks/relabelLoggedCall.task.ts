@@ -48,7 +48,7 @@ export const relabelLoggedCall = defineTask<RelabelLoggedCallJob>({
     if (!fineTune) return;
 
     const input: ChatCompletionCreateParams = {
-      model: "gpt-4",
+      model: "gpt-4-0613",
       tool_choice:
         tLoggedCall.reqPayload.tool_choice ||
         convertFunctionCallToToolChoice(tLoggedCall.reqPayload.function_call) ||
