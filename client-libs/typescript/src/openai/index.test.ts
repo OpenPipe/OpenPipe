@@ -690,4 +690,3 @@ test("ft content call unusual tags", async () => {
     expect(lastLogged?.tags).toMatchObject(expectedTags);
   }
 }, 100000);
-export { functionBody };
