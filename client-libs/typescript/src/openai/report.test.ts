@@ -2,7 +2,7 @@ import { test } from "vitest";
 import OpenAI from "../openai";
 import type { ChatCompletionCreateParams } from "openai/resources/chat/completions";
 import { OPClient } from "../codegen";
-import { OPENPIPE_API_KEY, OPENPIPE_API_URL } from "./setup";
+import { OPENPIPE_API_KEY, OPENPIPE_API_URL } from "../testConfig";
 
 const oaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

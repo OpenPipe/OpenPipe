@@ -2,7 +2,7 @@
 import { expect, test } from "vitest";
 import type { ChatCompletionCreateParams } from "openai/resources/chat/completions";
 import OpenPipe from "../client";
-import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "./setup";
+import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "../testConfig";
 
 const opClient = new OpenPipe({
   baseUrl: OPENPIPE_API_URL,

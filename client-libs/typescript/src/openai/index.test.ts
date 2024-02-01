@@ -9,7 +9,7 @@ import OpenAI from "../openai";
 import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import { getTags } from "../shared";
-import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "./setup";
+import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "../testConfig";
 
 dotenv.config();
 

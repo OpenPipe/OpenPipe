@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { OPENPIPE_API_URL, OPENPIPE_API_KEY } from "./setup";
+import { OPENPIPE_API_URL, OPENPIPE_API_KEY } from "../testConfig";
 
 const OPENPIPE_API_CHAT_COMPLETIONS_URL = OPENPIPE_API_URL + "chat/completions";
 
