@@ -5,12 +5,11 @@ import pkg_resources
 import json
 from typing import Any, Dict, List, Union
 
-from .client import OpenPipe
-from .api_client.client import AsyncOpenPipeApi
+from .client import OpenPipe, AsyncOpenPipe
 
 
 def configure_openpipe_clients(
-    reporting_client: Union[OpenPipe, AsyncOpenPipeApi],
+    reporting_client: Union[OpenPipe, AsyncOpenPipe],
     completions_client: Union[OpenAI, AsyncOpenAI],
     openpipe_options={},
 ):
@@ -57,7 +56,7 @@ def _get_tags(openpipe_options):
 
 
 def _should_log_request(
-    configured_client: Union[OpenPipe, AsyncOpenPipeApi], openpipe_options={}
+    configured_client: Union[OpenPipe, AsyncOpenPipe], openpipe_options={}
 ):
     if configured_client.api_key == "":
         return False
@@ -85,7 +84,7 @@ def report(
 
 
 async def report_async(
-    configured_client: AsyncOpenPipeApi,
+    configured_client: AsyncOpenPipe,
     openpipe_options={},
     **kwargs,
 ):
