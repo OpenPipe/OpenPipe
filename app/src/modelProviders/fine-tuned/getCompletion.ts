@@ -17,7 +17,6 @@ import {
 import { getAzureGpt4Completion, getOpenaiCompletion } from "~/server/utils/openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
-import { benchmarkCompletions } from "./benchmark";
 import { getModalCompletion } from "./getModalCompletion";
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
 
@@ -56,7 +55,7 @@ export async function getCompletion(
           // keep gpus hot
           void getAnyscaleCompletion(fineTune, prunedInput).catch((e) => reportError(e));
         } else {
-          completion = benchmarkCompletions(fineTune, prunedInput);
+          completion = getAnyscaleCompletion(fineTune, prunedInput);
         }
         return completion;
       case 0:
