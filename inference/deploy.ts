@@ -150,16 +150,10 @@ const createLoraConfig = (
 
 const argv = await yargs(hideBin(process.argv))
   .options({
-    env: {
+    apply: {
       type: "string",
       description: "Environment to deploy to",
-      default: "stage" as const,
       choices: ["stage", "prod"] as const,
-    },
-    apply: {
-      type: "boolean",
-      description: "Apply the generated config",
-      default: false,
     },
     inPlace: {
       type: "boolean",
@@ -200,6 +194,7 @@ const optimizedNoHot = createLoraConfig(
     deployment_config: {
       autoscaling_config: {
         min_replicas: 0,
+        initial_replicas: 0,
         max_replicas: 16,
         target_num_ongoing_requests_per_replica: 24,
         downscale_smoothing_factor: 0.5,
@@ -221,7 +216,7 @@ const optimizedKeepHot = merge({}, optimizedNoHot, {
 
 const createAppConfig = (
   env: "stage" | "prod",
-  baseModels: LoraConfig[],
+  a100Models: LoraConfig[],
   a10Models: LoraConfig[],
 ): Config => ({
   name: `inference-${env}`,
@@ -231,12 +226,12 @@ const createAppConfig = (
   ray_serve_config: {
     applications: [
       {
-        name: "base",
+        name: "a100",
         route_prefix: "/",
         import_path: "aviary_private_endpoints.backend.server.run:router_application",
         args: {
           models: [],
-          multiplex_models: baseModels,
+          multiplex_models: a100Models,
           dynamic_lora_loading_path: `s3://${buckets[env]}/models/`,
         },
       },
@@ -258,6 +253,7 @@ const prodConfig = createAppConfig(
   "prod",
   [optimizedKeepHot],
   [
+    a10Model("OpenPipe/mistral-ft-optimized-1227", false, 16384),
     fixLlama13b(a10Model("meta-llama/Llama-2-13b-hf", false, 4096)),
     a10Model("mistralai/Mistral-7B-v0.1", false, 8192),
     a10Model("meta-llama/Llama-2-7b-hf", false, 4096),
@@ -269,8 +265,8 @@ const stagingConfig = createAppConfig(
   [optimizedNoHot],
   [
     a10Model("OpenPipe/mistral-ft-optimized-1227", true, 16384),
-    a10Model("mistralai/Mistral-7B-v0.1", false, 8192),
     fixLlama13b(a10Model("meta-llama/Llama-2-13b-hf", false, 4096)),
+    a10Model("mistralai/Mistral-7B-v0.1", false, 8192),
     a10Model("meta-llama/Llama-2-7b-hf", false, 4096),
   ],
 );
@@ -281,12 +277,12 @@ fs.writeFileSync("./generated/prod.yml", yaml.dump(prodConfig));
 console.log(`Generated config files in ./generated/stage.yml and ./generated/prod.yml`);
 
 if (argv.apply) {
-  console.log(`Applying config for ${argv.env}`);
+  console.log(`Applying config for ${argv.apply}`);
   await $$`poetry run anyscale service rollout --rollout-strategy=${
     argv.inPlace ? "IN_PLACE" : "ROLLOUT"
-  } -f ./generated/${argv.env}.yml`;
+  } -f ./generated/${argv.apply}.yml`;
 } else {
-  console.log("Use --apply to deploy the generated config");
+  console.log("Use --apply=(stage|prod) to deploy the generated config");
 }
 
 console.log("Done");
