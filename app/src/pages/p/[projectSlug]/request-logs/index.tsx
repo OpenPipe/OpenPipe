@@ -1,4 +1,14 @@
-import { Text, VStack, HStack, Box, IconButton, Icon, keyframes } from "@chakra-ui/react";
+import {
+  Text,
+  VStack,
+  HStack,
+  Box,
+  IconButton,
+  Icon,
+  keyframes,
+  ButtonGroup,
+  Button,
+} from "@chakra-ui/react";
 import { BiRefresh } from "react-icons/bi";
 
 import AppShell from "~/components/nav/AppShell";
@@ -13,6 +23,7 @@ import { useLoggedCalls } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import DateComparators from "~/components/requestLogs/DateComparators";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -49,13 +60,18 @@ export default function LoggedCalls() {
               onClick={() => void utils.loggedCalls.list.invalidate()}
             />
           </HStack>
-          <HStack w="full" justifyContent="flex-end">
-            <ConditionallyEnable accessRequired="requireCanModifyProject">
-              <AddToDatasetButton />
-            </ConditionallyEnable>
-            <ExportButton />
-            <ColumnVisibilityDropdown />
-            <ToggleFiltersButton defaultShown />
+          <HStack w="full" justifyContent="space-between">
+            <HStack>
+              <DateComparators />
+            </HStack>
+            <HStack>
+              <ConditionallyEnable accessRequired="requireCanModifyProject">
+                <AddToDatasetButton />
+              </ConditionallyEnable>
+              <ExportButton />
+              <ColumnVisibilityDropdown />
+              <ToggleFiltersButton defaultShown />
+            </HStack>
           </HStack>
           {filtersShown && <LogFilters />}
           <LoggedCallTable />
