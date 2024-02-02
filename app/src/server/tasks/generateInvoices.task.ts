@@ -19,7 +19,7 @@ export const generateInvoices = defineTask({
 
     for (const project of projects) {
       if (project.billable) {
-        await createInvoice(project.id, new Date(2010), endOfPreviousMonth);
+        await createInvoice(project.id, startOfPreviousMonth, endOfPreviousMonth);
       }
     }
   },
@@ -29,35 +29,15 @@ export const generateInvoices = defineTask({
 });
 
 export async function createInvoice(projectId: string, startDate: Date, endDate: Date) {
-  // Avoid creating multiple invoices for the same billing period
-
-  // const invoiceAlreadyExists = await prisma.invoice.findFirst({
-  //   where: {
-  //     projectId: projectId,
-  //     billingPeriod: getPreviousMonthWithYearString(),
-  //     createdAt: {
-  //       gte: toUTC(new Date()).startOf("month").toDate(),
-  //     },
-  //   },
-  // });
-
-  // if (invoiceAlreadyExists) return;
-
   await kysely.transaction().execute(async (tx) => {
-    // TODO: remove this temp logic
-    const project = await tx
-      .selectFrom("Project")
-      .where("id", "=", projectId)
-      .select(["createdAt"])
-      .executeTakeFirst();
-
     const existingInvoice = await tx
       .selectFrom("Invoice")
       .where("projectId", "=", projectId)
+      .where("createdAt", ">=", toUTC(new Date()).startOf("month").toDate())
+      .where("billingPeriod", "=", getPreviousMonthWithYearString())
       .executeTakeFirst();
 
-    if (!project || existingInvoice) return;
-    // TODO: remove this temp logic
+    if (existingInvoice) return;
 
     // 1. Create empty invoice
     const invoice = await tx
@@ -67,10 +47,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
         projectId: projectId,
         amount: 0,
         slug: generateInvoiceSlug(),
-        billingPeriod:
-          toUTC(new Date(project.createdAt)).format("MMM YYYY") +
-          " - " +
-          getPreviousMonthWithYearString(),
+        billingPeriod: getPreviousMonthWithYearString(),
       })
       .returning(["id", "createdAt", "slug"])
       .executeTakeFirst();
