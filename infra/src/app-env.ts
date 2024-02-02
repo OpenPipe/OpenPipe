@@ -52,6 +52,7 @@ export const environment = new kubernetes.core.v1.Secret(
       SMTP_HOST: cfg.require("SMTP_HOST"),
       SENDER_EMAIL: cfg.require("SENDER_EMAIL"),
       ANYSCALE_INFERENCE_BASE_URL: cfg.require("ANYSCALE_INFERENCE_BASE_URL"),
+      ANYSCALE_ENABLE_A100: cfg.get("ANYSCALE_ENABLE_A100") ?? "false",
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: cfg.require("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
       NEXT_PUBLIC_HOST: appUrl,
       NEXTAUTH_URL: appUrl,
