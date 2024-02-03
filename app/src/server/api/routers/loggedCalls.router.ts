@@ -134,6 +134,7 @@ export const loggedCallsRouter = createTRPCRouter({
         .select((eb) => [
           "lc.reqPayload",
           "lc.respPayload",
+          "lc.durationMs",
           jsonArrayFrom(
             eb
               .selectFrom("LoggedCallTag")
@@ -157,6 +158,7 @@ export const loggedCallsRouter = createTRPCRouter({
           input: loggedCall.reqPayload as JsonValue,
           output: loggedCall.respPayload as JsonValue,
           tags: tagsObject,
+          durationMs: loggedCall.durationMs,
         };
       });
 
