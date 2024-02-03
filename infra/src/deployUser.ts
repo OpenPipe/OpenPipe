@@ -32,22 +32,12 @@ const deployUserPolicy = new aws.iam.Policy(
           Resource: "*",
         },
         {
-          Action: ["ec2:DescribeAvailabilityZones"],
+          Action: ["ec2:DescribeAvailabilityZones", "ec2:DescribeAddresses", "ec2:CreateTags"],
           Effect: "Allow",
           Resource: "*",
         },
         {
-          Action: ["iam:GetRole"],
-          Effect: "Allow",
-          Resource: "*",
-        },
-        {
-          Action: ["ec2:DescribeAddresses"],
-          Effect: "Allow",
-          Resource: "*",
-        },
-        {
-          Action: ["iam:ListPolicyVersions"],
+          Action: ["iam:GetRole", "iam:ListPolicyVersions"],
           Effect: "Allow",
           Resource: "*",
         },
