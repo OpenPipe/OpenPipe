@@ -250,7 +250,7 @@ export const v1ApiRouter = createOpenApiRouter({
           void recordUsage({
             projectId: key.projectId,
             requestedAt,
-            receivedAt: !!cachedCompletion ? undefined : Date.now(),
+            receivedAt: Date.now(),
             cacheHit: !!cachedCompletion,
             inputPayload,
             completion: recordStream,
@@ -263,7 +263,7 @@ export const v1ApiRouter = createOpenApiRouter({
           void recordUsage({
             projectId: key.projectId,
             requestedAt,
-            receivedAt: !!cachedCompletion ? undefined : Date.now(),
+            receivedAt: Date.now(),
             cacheHit: !!cachedCompletion,
             inputPayload,
             completion,
