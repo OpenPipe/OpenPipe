@@ -26,6 +26,7 @@ if (invoice) {
       projectId: project.id,
       amount: invoice.amount,
       type: "BONUS",
+      createdAt: endOfPreviousMonth,
       description: "Free credits for new project",
     },
   });
