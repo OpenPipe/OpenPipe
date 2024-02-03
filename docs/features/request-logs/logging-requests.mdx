@@ -10,8 +10,8 @@ We recommend collecting request logs for both base and fine-tuned models. We pro
 
 ### SDK
 
-The simplest way to start ingesting request logs into OpenPipe is by installing our drop-in Python or TypeScript SDK. Requests to both OpenAI and OpenPipe models will automatically be logged.
-Logging doesn't add any latency to your requests, because the SDK calls the OpenAI server directly and returns your completion before kicking off a request to record it in your project.
+The simplest way to start ingesting request logs into OpenPipe is by installing our Python or TypeScript SDK. Requests to both OpenAI and OpenPipe models will automatically be recorded.
+Logging doesn't add any latency to your requests, because our SDK calls the OpenAI server directly and returns your completion before kicking off the request to record it in your project.
 
 We provide a drop-in replacement for the OpenAI SDK, so the only code you need to update is your import statement:
 
@@ -78,12 +78,12 @@ Integrating the Proxy and logging requests requires a couple steps.
 {
     ...other headers,
     "op-log-request": "true",
-    # Add searchable tags is highly recommended
+    # Adding searchable tags is highly recommended
     "op-tags": '{"prompt_id": "first_prompt"}',
 }
 ```
 
-Here's an example of steps 2-4 put together in both a raw cURL request and the Python SDK:
+Here's an example of steps 2-4 put together in both a raw cURL request and with the Python SDK:
 
 <Tabs>
   <Tab title="cURL Request">
