@@ -1,10 +1,4 @@
-import dayjs, { getPreviousMonthPeriodUTC } from "~/utils/dayjs";
 import { prisma } from "../db";
-import { createInvoice } from "../tasks/generateInvoices.task";
-import { sendToAdmins } from "../emails/sendToAdmins";
-import { sendEmail } from "../emails/sendEmail";
-import { env } from "~/env.mjs";
-import { Invoice } from "@prisma/client";
 
 const projectId = process.argv[2];
 
