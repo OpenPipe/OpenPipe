@@ -11,6 +11,7 @@ import { useSortOrder } from "~/components/sorting";
 import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 import { toUTC } from "./dayjs";
+import { useDateFilter } from "~/components/Filters/useDateFilter";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
@@ -265,11 +266,14 @@ export const useModelTestingStats = (
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useSelectedProject().data?.id;
   const { page, pageSize } = usePageParams();
-  const filters = useFilters().filters;
+  const searchFilters = useFilters().filters;
+  const dateFilter = useDateFilter().filter;
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
+  const allFilters = dateFilter ? [...searchFilters, dateFilter] : searchFilters;
+
   const result = api.loggedCalls.list.useQuery(
-    { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? filters : [] },
+    { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? allFilters : [] },
     { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
   );
 
