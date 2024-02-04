@@ -11,7 +11,6 @@ import {
   Tooltip,
   type BoxProps,
   IconButton,
-  useBreakpointValue,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import Link from "next/link";
@@ -39,12 +38,6 @@ const NavSidebar = () => {
   const sidebarExpanded = useAppStore((state) => state.sidebarExpanded);
   const setSidebarExpanded = useAppStore((state) => state.setSidebarExpanded);
 
-  // useBreakpointValue is more reliable when initializing than chakra's built-in breakpoint values
-  const width = useBreakpointValue({
-    base: "56px",
-    md: sidebarExpanded ? "240px" : "56px",
-  });
-
   return (
     <VStack
       align="stretch"
@@ -52,7 +45,7 @@ const NavSidebar = () => {
       px={2}
       pb={0}
       height="100%"
-      w={width}
+      w={{ base: "56px", md: sidebarExpanded ? "240px" : "56px" }}
       transition="width 0.2s ease-in-out"
       overflow="hidden"
       borderRightWidth={1}
