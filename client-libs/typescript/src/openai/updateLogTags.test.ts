@@ -1,12 +1,18 @@
 // import dotenv from "dotenv";
 import { expect, test } from "vitest";
 import type { ChatCompletionCreateParams } from "openai/resources/chat/completions";
-import { OPClient } from "../codegen";
-import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "./setup";
+import { sleep } from "openai/core";
 
-const opClient = new OPClient({
-  BASE: OPENPIPE_API_URL,
-  TOKEN: OPENPIPE_API_KEY,
+import OpenPipe from "../client";
+import { OPENPIPE_API_KEY, OPENPIPE_BASE_URL, TEST_LAST_LOGGED } from "../testConfig";
+import OpenAI from "../openai";
+import { functionBody } from "../sharedTestInput";
+
+const client = new OpenAI();
+
+const opClient = new OpenPipe({
+  baseUrl: OPENPIPE_BASE_URL,
+  apiKey: OPENPIPE_API_KEY,
 });
 
 const respPayload = {
@@ -32,7 +38,8 @@ const respPayload = {
 
 const generateRandomId = () => Math.random().toString(36).substring(7);
 
-const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
+const lastLoggedCall = async () =>
+  opClient.baseClient.default.localTestingOnlyGetLatestLoggedCall();
 
 test("adds tags", async () => {
   const payload: ChatCompletionCreateParams = {
@@ -42,13 +49,13 @@ test("adds tags", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
     },
   });
 
@@ -57,8 +64,8 @@ test("adds tags", async () => {
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
-    filters: [{ field: "tags.prompt_id", equals: originalPromptId }],
+  const resp = await opClient.updateLogTags({
+    filters: [{ field: "tags.promptId", equals: originalPromptId }],
     tags: newTags,
   });
 
@@ -67,7 +74,7 @@ test("adds tags", async () => {
   if (TEST_LAST_LOGGED) {
     const lastLogged = await lastLoggedCall();
 
-    expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
+    expect(lastLogged?.tags.promptId).toEqual(originalPromptId);
     expect(lastLogged?.tags.any_key).toEqual(newTags.any_key);
     expect(lastLogged?.tags.otherId).toEqual(newTags.otherId);
   }
@@ -81,37 +88,37 @@ test("updates tags", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 1",
       any_key: "any value",
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 2",
       any_key: "any value",
     },
   });
 
   const updatedTags = {
-    prompt_id: "updated prompt id " + generateRandomId(),
+    promptId: "updated prompt id " + generateRandomId(),
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
-    filters: [{ field: "tags.prompt_id", equals: originalPromptId }],
+  const resp = await opClient.updateLogTags({
+    filters: [{ field: "tags.promptId", equals: originalPromptId }],
     tags: updatedTags,
   });
 
@@ -120,7 +127,7 @@ test("updates tags", async () => {
   if (TEST_LAST_LOGGED) {
     const lastLogged = await lastLoggedCall();
 
-    expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
+    expect(lastLogged?.tags.promptId).toEqual(updatedTags.promptId);
     expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
     expect(lastLogged?.tags.any_key).toEqual("any value");
   }
@@ -135,7 +142,7 @@ test("updates tag by completionId", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -144,13 +151,13 @@ test("updates tag by completionId", async () => {
       ...respPayload,
     },
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 1",
       any_key: "any value",
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -159,18 +166,18 @@ test("updates tag by completionId", async () => {
       ...respPayload,
     },
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 2",
       any_key: "any value",
     },
   });
 
   const updatedTags = {
-    prompt_id: "updated prompt id " + generateRandomId(),
+    promptId: "updated prompt id " + generateRandomId(),
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [{ field: "completionId", equals: completionId }],
     tags: updatedTags,
   });
@@ -180,7 +187,7 @@ test("updates tag by completionId", async () => {
   if (TEST_LAST_LOGGED) {
     const lastLogged = await lastLoggedCall();
 
-    expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
+    expect(lastLogged?.tags.promptId).toEqual(updatedTags.promptId);
     expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
     expect(lastLogged?.tags.any_key).toEqual("any value");
   }
@@ -195,24 +202,24 @@ test("updates tag by model", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 1",
       any_key: "any value",
     },
   });
 
   const updatedTags = {
-    prompt_id: "updated prompt id " + generateRandomId(),
+    promptId: "updated prompt id " + generateRandomId(),
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [{ field: "model", equals: model }],
     tags: updatedTags,
   });
@@ -222,7 +229,7 @@ test("updates tag by model", async () => {
   if (TEST_LAST_LOGGED) {
     const lastLogged = await lastLoggedCall();
 
-    expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
+    expect(lastLogged?.tags.promptId).toEqual(updatedTags.promptId);
     expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
     expect(lastLogged?.tags.any_key).toEqual("any value");
   }
@@ -237,27 +244,27 @@ test("updates by combination of filters", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 1",
       any_key: "any value",
     },
   });
 
   const updatedTags = {
-    prompt_id: "updated prompt id " + generateRandomId(),
+    promptId: "updated prompt id " + generateRandomId(),
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [
       { field: "model", equals: model },
-      { field: "tags.prompt_id", equals: originalPromptId },
+      { field: "tags.promptId", equals: originalPromptId },
     ],
     tags: updatedTags,
   });
@@ -267,7 +274,7 @@ test("updates by combination of filters", async () => {
   if (TEST_LAST_LOGGED) {
     const lastLogged = await lastLoggedCall();
 
-    expect(lastLogged?.tags.prompt_id).toEqual(updatedTags.prompt_id);
+    expect(lastLogged?.tags.promptId).toEqual(updatedTags.promptId);
     expect(lastLogged?.tags.otherId).toEqual(updatedTags.otherId);
     expect(lastLogged?.tags.any_key).toEqual("any value");
   }
@@ -283,31 +290,31 @@ test("updates some tags by combination of filters", async () => {
 
   const originalPromptId = "original prompt id " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 1",
       any_key: "any value",
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 1",
       any_key: "any value",
     },
   });
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: {
@@ -316,21 +323,21 @@ test("updates some tags by combination of filters", async () => {
     },
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
       otherId: "value 1",
       any_key: "any value",
     },
   });
 
   const updatedTags = {
-    prompt_id: "updated prompt id " + generateRandomId(),
+    promptId: "updated prompt id " + generateRandomId(),
     otherId: "value 3",
   };
 
-  const resp = await opClient.default.updateLogTags({
+  const resp = await opClient.updateLogTags({
     filters: [
       { field: "model", equals: model },
-      { field: "tags.prompt_id", equals: originalPromptId },
+      { field: "tags.promptId", equals: originalPromptId },
     ],
     tags: updatedTags,
   });
@@ -340,11 +347,77 @@ test("updates some tags by combination of filters", async () => {
   if (TEST_LAST_LOGGED) {
     const lastLogged = await lastLoggedCall();
 
-    expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
+    expect(lastLogged?.tags.promptId).toEqual(originalPromptId);
     expect(lastLogged?.tags.otherId).toEqual("value 1");
     expect(lastLogged?.tags.any_key).toEqual("any value");
   }
 });
+
+test("relabels content", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "openpipe:test-content-mistral-p3",
+    messages: [{ role: "system", content: "count to 3" }],
+  };
+  const completion = await client.chat.completions.create(payload);
+
+  await completion.openpipe?.reportingFinished;
+  await sleep(100);
+
+  const updatedTags = {
+    relabel: true,
+    add_to_dataset: "original_model_dataset",
+  };
+
+  const resp = await opClient.updateLogTags({
+    filters: [{ field: "completionId", equals: completion.id }],
+    tags: updatedTags,
+  });
+
+  expect(resp.matchedLogs).toEqual(1);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+
+    expect(lastLogged?.tags.relabel).toEqual("true");
+    expect(lastLogged?.tags.add_to_dataset).toEqual("original_model_dataset");
+  }
+}, 100000);
+
+test("relabels tool calls", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "openpipe:test-tool-calls-mistral-p3",
+    messages: [{ role: "system", content: "tell me the weather in SF and Orlando" }],
+    tools: [
+      {
+        type: "function",
+        function: functionBody,
+      },
+    ],
+  };
+  const completion = await client.chat.completions.create(payload);
+
+  await completion.openpipe?.reportingFinished;
+  await sleep(100);
+
+  const updatedTags = {
+    relabel: true,
+    add_to_dataset: "original_model_dataset",
+  };
+
+  const resp = await opClient.updateLogTags({
+    filters: [{ field: "completionId", equals: completion.id }],
+    tags: updatedTags,
+  });
+
+  expect(resp.matchedLogs).toEqual(1);
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+
+    expect(lastLogged?.tags.relabel).toEqual("true");
+    expect(lastLogged?.tags.add_to_dataset).toEqual("original_model_dataset");
+  }
+}, 100000);
 
 test("deletes tags", async () => {
   const payload: ChatCompletionCreateParams = {
@@ -355,45 +428,45 @@ test("deletes tags", async () => {
   const keepPromptId = "prompt id for tag to keep " + generateRandomId();
   const deletePromptId = "prompt id for tag to delete " + generateRandomId();
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: keepPromptId,
+      promptId: keepPromptId,
       otherId: "value 1",
       any_key: "any value",
     },
   });
 
-  const keepResp = await opClient.default.updateLogTags({
-    filters: [{ field: "tags.prompt_id", equals: deletePromptId }],
-    tags: { prompt_id: null },
+  const keepResp = await opClient.updateLogTags({
+    filters: [{ field: "tags.promptId", equals: deletePromptId }],
+    tags: { promptId: null },
   });
 
   expect(keepResp.matchedLogs).toEqual(0);
 
   if (TEST_LAST_LOGGED) {
     const keepLoggedCall = await lastLoggedCall();
-    expect(keepLoggedCall?.tags.prompt_id).toEqual(keepPromptId);
+    expect(keepLoggedCall?.tags.promptId).toEqual(keepPromptId);
   }
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
     respPayload: null,
     tags: {
-      prompt_id: deletePromptId,
+      promptId: deletePromptId,
       otherId: "value 2",
       any_key: "any value",
     },
   });
 
-  const resp = await opClient.default.updateLogTags({
-    filters: [{ field: "tags.prompt_id", equals: deletePromptId }],
-    tags: { prompt_id: null },
+  const resp = await opClient.updateLogTags({
+    filters: [{ field: "tags.promptId", equals: deletePromptId }],
+    tags: { promptId: null },
   });
 
   expect(resp.matchedLogs).toEqual(1);
@@ -401,31 +474,31 @@ test("deletes tags", async () => {
   if (TEST_LAST_LOGGED) {
     const lastLogged = await lastLoggedCall();
 
-    expect(lastLogged?.tags.prompt_id).toEqual(undefined);
+    expect(lastLogged?.tags.promptId).toEqual(undefined);
   }
 });
 
 test("deletes nothing when no tags matched", async () => {
   const originalPromptId = "id 1";
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: null,
     respPayload: null,
     tags: {
-      prompt_id: originalPromptId,
+      promptId: originalPromptId,
     },
   });
-  const resp = await opClient.default.updateLogTags({
-    filters: [{ field: "tags.prompt_id", equals: generateRandomId() }],
-    tags: { prompt_id: null },
+  const resp = await opClient.updateLogTags({
+    filters: [{ field: "tags.promptId", equals: generateRandomId() }],
+    tags: { promptId: null },
   });
 
   expect(resp.matchedLogs).toEqual(0);
 
   if (TEST_LAST_LOGGED) {
     const lastLogged = await lastLoggedCall();
-    expect(lastLogged?.tags.prompt_id).toEqual(originalPromptId);
+    expect(lastLogged?.tags.promptId).toEqual(originalPromptId);
   }
 });
 
@@ -436,7 +509,7 @@ test("deletes from all logged calls when no filters provided", async () => {
     messages: [{ role: "system", content: "count to 3" }],
   };
 
-  await opClient.default.report({
+  await opClient.report({
     requestedAt: Date.now(),
     receivedAt: Date.now(),
     reqPayload: payload,
@@ -445,29 +518,26 @@ test("deletes from all logged calls when no filters provided", async () => {
       promptId,
     },
   });
-
-  await opClient.default.report({
-    requestedAt: Date.now(),
-    receivedAt: Date.now(),
-    reqPayload: payload,
-    respPayload: null,
-    tags: {
-      promptId,
-    },
-  });
-
-  const resp = await opClient.default.updateLogTags({
-    filters: [],
-    tags: { promptId: null },
-  });
-
-  expect(resp.matchedLogs).toBeGreaterThanOrEqual(2);
 
   if (TEST_LAST_LOGGED) {
-    const firstLogged = await lastLoggedCall();
-    expect(firstLogged?.tags.prompt_id).toEqual(undefined);
+    await opClient.report({
+      requestedAt: Date.now(),
+      receivedAt: Date.now(),
+      reqPayload: payload,
+      respPayload: null,
+      tags: {
+        promptId,
+      },
+    });
 
-    const secondLogged = await lastLoggedCall();
-    expect(secondLogged?.tags.prompt_id).toEqual(undefined);
+    const resp = await opClient.updateLogTags({
+      filters: [],
+      tags: { promptId: null },
+    });
+
+    expect(resp.matchedLogs).toBeGreaterThanOrEqual(2);
+
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.tags.promptId).toEqual(undefined);
   }
 });

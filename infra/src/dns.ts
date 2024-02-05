@@ -1,19 +1,18 @@
 import * as awsNative from "@pulumi/aws-native";
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { getConfig } from "./config";
 import { nm } from "./helpers";
 
-const config = new pulumi.Config();
+const cfg = new pulumi.Config();
 
 // Existing Hosted Zone
 export const zone = new awsNative.route53.HostedZone(nm("zone"), {
-  name: getConfig("deployDomain"),
+  name: cfg.require("deployDomain"),
 });
 
 // Create a wildcard certificate
 const wildcardCert = new aws.acm.Certificate(nm("wildcardCert"), {
-  domainName: `*.${getConfig("deployDomain")}`,
+  domainName: `*.${cfg.require("deployDomain")}`,
   validationMethod: "DNS",
 });
 

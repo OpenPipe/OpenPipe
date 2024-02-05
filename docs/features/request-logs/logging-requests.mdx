@@ -1,0 +1,138 @@
+---
+title: "Logging Requests"
+description: "
+Record production data to train and improve your models' performance."
+---
+
+Request logs are a great way to get to know your data. More importantly, you can import recorded logs directly into your training datasets. That means it's really easy to train on data you've collected in production.
+
+We recommend collecting request logs for both base and fine-tuned models. We provide two easy options for recording your requests.
+
+### SDK
+
+The simplest way to start ingesting request logs into OpenPipe is by installing our Python or TypeScript SDK. Requests to both OpenAI and OpenPipe models will automatically be recorded.
+Logging doesn't add any latency to your requests, because our SDK calls the OpenAI server directly and returns your completion before kicking off the request to record it in your project.
+
+We provide a drop-in replacement for the OpenAI SDK, so the only code you need to update is your import statement:
+
+<Tabs>
+  <Tab title="Python">
+
+```python
+# from openai import OpenAI
+from openpipe import OpenAI
+
+# Nothing else changes
+
+client = OpenAI()
+
+completion = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "system", "content": "count to 10"}],
+    # searchable tags are highly recommended
+    openpipe={"tags": {"prompt_id": "counting", "any_key": "any_value"}},
+)
+```
+
+  </Tab>
+  <Tab title="NodeJS">
+
+```typescript
+// import OpenAI from "openai"
+import OpenAI from "openpipe/openai";
+
+// Nothing else changes
+
+const client = OpenAI();
+
+const completion = await client.chat.completions.create({
+  model: "gpt-3.5-turbo",
+  messages: [{ role: "user", content: "Count to 10" }],
+  // searchable tags are highly recommended
+  openpipe: {
+    prompt_id: "counting",
+    any_key: "any_value",
+  },
+});
+```
+
+  </Tab>
+</Tabs>
+
+See [Installing the SDK](/getting-started/openpipe-sdk) for a quick guide on how to get started.
+
+### Proxy
+
+If you're developing in a language other than Python or TypeScript, the best way to ingest data into OpenPipe is through our proxy. We provide a `/chat/completions` endpoint that is fully compatible
+with OpenAI, so you can continue using the latest features like tool calls and streaming without a hitch.
+
+Integrating the Proxy and logging requests requires a couple steps.
+
+1. Add an OpenAI key to your project in the [project settings](https://app.openpipe.ai/settings) page.
+2. Set the authorization token of your request to be your OpenPipe API key.
+3. Set the destination url of your request to be `https://app.openpipe.ai/api/v1/chat/completions`.
+4. When making any request that you'd like to record, add the `op-log-request` http header. We also recommend that you add the `op-tags` header to
+   distinguish data collected from different prompts.
+
+```python
+{
+    ...other headers,
+    "op-log-request": "true",
+    # Adding searchable tags is highly recommended
+    "op-tags": '{"prompt_id": "first_prompt"}',
+}
+```
+
+Here's an example of steps 2-4 put together in both a raw cURL request and with the Python SDK:
+
+<Tabs>
+  <Tab title="cURL Request">
+
+```bash
+curl --request POST \
+  --url https://app.openpipe.ai/api/v1/chat/completions \
+  --header 'Authorization: Bearer YOUR_OPENPIPE_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --header 'op-log-request: true' \
+  --header 'op-tags: {"prompt_id": "first_prompt"}' \
+  --data '{
+  "model": "gpt-4-0613",
+  "messages": [
+    {
+      "role": "system",
+      "content": "count to 5"
+    }
+  ],
+  "max_tokens": 100,
+  "temperature": 0
+}'
+```
+
+  </Tab>
+  <Tab title="Python SDK">
+
+```python
+from openai import OpenAI
+
+# Find your API key in https://app.openpipe.ai/settings
+client = OpenAI(
+    base_url="https://app.openpipe.ai/api/v1", api_key="YOUR_OPENPIPE_API_KEY"
+)
+
+completion = client.chat.completions.create(
+    model="gpt-4-0613",
+    messages=[{"role": "system", "content": "count to 5"}],
+    stream=True,
+    extra_headers={
+        "op-log-request": "true",
+        "op-tags": '{"prompt_id": "first_prompt"}',
+    },
+)
+
+
+```
+
+  </Tab>
+</Tabs>
+
+Once you've set up logging, you'll be able to search through and train on your logged data in the Request Logs page. See [Training on Logs](/features/request-logs/using-logs) to learn more.

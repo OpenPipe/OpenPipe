@@ -1,7 +1,7 @@
 import { test, expect } from "vitest";
-import { OPENPIPE_API_URL, OPENPIPE_API_KEY } from "./setup";
+import { OPENPIPE_BASE_URL, OPENPIPE_API_KEY } from "../testConfig";
 
-const OPENPIPE_API_CHAT_COMPLETIONS_URL = OPENPIPE_API_URL + "chat/completions";
+const OPENPIPE_API_CHAT_COMPLETIONS_URL = OPENPIPE_BASE_URL + "chat/completions";
 
 test("fetches non-streamed output", async () => {
   const response = await fetch(OPENPIPE_API_CHAT_COMPLETIONS_URL, {

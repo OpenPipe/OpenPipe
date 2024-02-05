@@ -189,15 +189,19 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   <InputLeftAddon px={2}>openpipe:</InputLeftAddon>
                   <Input
                     value={modelSlug}
-                    onChange={(e) => setModelSlug(e.target.value)}
-                    placeholder="unique-id"
-                    onKeyDown={(e) => {
-                      // If the user types anything other than a-z, A-Z, or 0-9, replace it with -
-                      if (!/[a-zA-Z0-9]/.test(e.key)) {
-                        e.preventDefault();
-                        setModelSlug((s) => s && `${s}-`);
-                      }
+                    onChange={(e) => {
+                      const originalPosition = e.target.selectionStart;
+                      const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "-");
+                      setModelSlug(sanitizedValue);
+
+                      // Restore the cursor position after React updates the input's value
+                      setTimeout(() => {
+                        if (originalPosition !== null && e.target) {
+                          e.target.setSelectionRange(originalPosition, originalPosition);
+                        }
+                      }, 0);
                     }}
+                    placeholder="unique-id"
                   />
                 </InputGroup>
               </HStack>

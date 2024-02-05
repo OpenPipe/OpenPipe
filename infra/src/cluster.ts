@@ -41,6 +41,11 @@ export const cluster = new eks.Cluster(
         username: "david",
         groups: ["system:masters"],
       },
+      {
+        userArn: "arn:aws:iam::844303249414:user/bohdan",
+        username: "bohdan",
+        groups: ["system:masters"],
+      },
     ],
   },
   {

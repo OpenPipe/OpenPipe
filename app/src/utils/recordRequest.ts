@@ -31,7 +31,7 @@ export const recordUsage = async ({
 }: {
   projectId: string;
   requestedAt: number;
-  receivedAt?: number;
+  receivedAt: number;
   cacheHit: boolean;
   inputPayload: z.infer<typeof chatCompletionInput>;
   completion: unknown;
@@ -209,7 +209,7 @@ export const recordLoggedCall = async ({
           : respPayload) as Prisma.InputJsonValue,
         statusCode: statusCode,
         errorMessage: errorMessage,
-        durationMs: receivedAt && !cacheHit ? receivedAt - requestedAt : undefined,
+        durationMs: receivedAt && receivedAt - requestedAt,
         inputTokens: usage?.inputTokens,
         outputTokens: usage?.outputTokens,
         cost: usage?.cost,

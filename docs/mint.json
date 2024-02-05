@@ -40,12 +40,16 @@
     {
       "group": "Features",
       "pages": [
-        "features/request-logs",
-        "features/importing-data",
+        {
+          "group": "Request Logs",
+          "pages": ["features/request-logs/logging-requests", "features/request-logs/using-logs"]
+        },
+        "features/uploading-data",
         "features/exporting-data",
         "features/fine-tuning",
         "features/evaluations",
         "features/running-inference",
+        "features/updating-tags",
         "features/pruning-rules"
       ]
     },

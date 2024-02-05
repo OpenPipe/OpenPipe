@@ -373,5 +373,14 @@ export const useInvoice = (id: string, refetchInterval?: number) => {
   );
 };
 
+export const usePaymentMethods = (refetchInterval?: number) => {
+  const selectedProjectId = useSelectedProject().data?.id;
+
+  return api.payments.getPaymentMethods.useQuery(
+    { projectId: selectedProjectId ?? "" },
+    { enabled: !!selectedProjectId, refetchInterval },
+  );
+};
+
 export const useIsClientInitialized = () =>
   useAppStore((state) => state.isRehydrated && state.isMounted);

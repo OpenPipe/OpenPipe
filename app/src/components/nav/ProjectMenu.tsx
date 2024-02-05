@@ -159,7 +159,13 @@ export default function ProjectMenu({ displayProjectName }: { displayProjectName
                 px={2}
                 borderRadius={4}
               >
-                <Text>Sign out</Text>
+                <Text
+                  onClick={() => {
+                    signOut().catch(console.error);
+                  }}
+                >
+                  Sign out
+                </Text>
               </ChakraLink>
             </VStack>
           </VStack>

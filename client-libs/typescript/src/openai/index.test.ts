@@ -9,47 +9,28 @@ import OpenAI from "../openai";
 import { OPClient } from "../codegen";
 import mergeChunks from "./mergeChunks";
 import { getTags } from "../shared";
-import { OPENPIPE_API_KEY, OPENPIPE_API_URL, TEST_LAST_LOGGED } from "./setup";
+import { OPENPIPE_API_KEY, OPENPIPE_BASE_URL, TEST_LAST_LOGGED } from "../testConfig";
+import { functionBody } from "../sharedTestInput";
 
 dotenv.config();
 
 const baseClient = new BaseOpenAI({
   apiKey: OPENPIPE_API_KEY,
-  baseURL: OPENPIPE_API_URL,
+  baseURL: OPENPIPE_BASE_URL,
 });
 
 const oaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   openpipe: {
     apiKey: OPENPIPE_API_KEY,
-    baseUrl: OPENPIPE_API_URL,
+    baseUrl: OPENPIPE_BASE_URL,
   },
 });
 
 const opClient = new OPClient({
-  BASE: OPENPIPE_API_URL,
+  BASE: OPENPIPE_BASE_URL,
   TOKEN: OPENPIPE_API_KEY,
 });
-
-const functionCall = { name: "get_current_weather" };
-const functionBody = {
-  name: "get_current_weather",
-  description: "Get the current weather in a given location",
-  parameters: {
-    type: "object",
-    properties: {
-      location: {
-        type: "string",
-        description: "The city and state, e.g. San Francisco, CA",
-      },
-      unit: {
-        type: "string",
-        enum: ["celsius", "fahrenheit"],
-      },
-    },
-    required: ["location"],
-  },
-};
 
 const lastLoggedCall = async () => opClient.default.localTestingOnlyGetLatestLoggedCall();
 
@@ -93,6 +74,29 @@ test("simple ft content call", async () => {
   }
 }, 100000);
 
+test("simple ft tool call", async () => {
+  const payload: ChatCompletionCreateParams = {
+    model: "openpipe:test-tool-calls-mistral-p3",
+    messages: [{ role: "system", content: "tell me the weather in SF and Orlando" }],
+    tools: [
+      {
+        type: "function",
+        function: functionBody,
+      },
+    ],
+  };
+  const completion = await oaiClient.chat.completions.create(payload);
+
+  await sleep(100);
+  await completion.openpipe?.reportingFinished;
+
+  if (TEST_LAST_LOGGED) {
+    const lastLogged = await lastLoggedCall();
+    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+    expect(completion).toMatchObject(lastLogged?.respPayload);
+  }
+}, 100000);
+
 test("openai call caches", async () => {
   const payload: ChatCompletionCreateParams = {
     model: "openpipe:test-content-35",
@@ -118,6 +122,7 @@ test("openai call caches", async () => {
       ...payload,
       openpipe: { cache: true, tags: { promptId: "openai call caches" } },
     });
+    await sleep(100);
     await oaiClient.chat.completions.create({
       ...payload,
       openpipe: { cache: true, tags: { promptId: "openai call caches" } },

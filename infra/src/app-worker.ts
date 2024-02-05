@@ -4,7 +4,6 @@ import { environment } from "./app-env";
 import { imageUri } from "./app-image";
 import { eksProvider } from "./cluster";
 import { nm } from "./helpers";
-import { getConfig } from "./config";
 
 const appWorker = "app-worker-v1";
 

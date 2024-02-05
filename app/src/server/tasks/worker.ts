@@ -11,8 +11,11 @@ import { generateTestSetEntry } from "./generateTestSetEntry.task";
 import { evaluateTestSetEntries } from "./evaluateTestSetEntries.task";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
 import { relabelDatasetEntry } from "./relabelDatasetEntry.task";
+import { relabelLoggedCall } from "./relabelLoggedCall.task";
 import type defineTask from "./defineTask";
 import { pgPool } from "../db";
+import { generateInvoices } from "./generateInvoices.task";
+import { chargeInvoices } from "./chargeInvoices.task";
 
 console.log("Starting worker...");
 
@@ -29,6 +32,9 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   evaluateTestSetEntries,
   countDatasetEntryTokens,
   relabelDatasetEntry,
+  relabelLoggedCall,
+  generateInvoices,
+  chargeInvoices,
 ];
 
 const taskList = registeredTasks.reduce((acc, task) => {
@@ -63,6 +69,20 @@ const runner = await run({
         backfillPeriod: 1000 * 60,
       },
     },
+    {
+      task: generateInvoices.task.identifier,
+      // run at 2 AM UTC on the first day of each month
+      pattern: "0 1 * * *", // TODO: Set "0 2 1 * *". This is a temp change to test in production. It runs at 1 am every day.
+      identifier: generateInvoices.task.identifier,
+    },
+
+    // TODO: Uncomment this when we are ready to charge invoices
+    // {
+    //   task: chargeInvoices.task.identifier,
+    //   // run at 8 AM UTC, on the first day of each month, after invoices are created
+    //   pattern: "0 8 1 * *",
+    //   identifier: chargeInvoices.task.identifier,
+    // },
   ]),
 });
 

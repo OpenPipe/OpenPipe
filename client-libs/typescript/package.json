@@ -1,6 +1,6 @@
 {
   "name": "openpipe-dev",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "type": "module",
   "description": "LLM metrics and inference",
   "scripts": {
@@ -19,6 +19,10 @@
       ".": {
         "import": "./index.js",
         "require": "./index.cjs"
+      },
+      "./client": {
+        "import": "./client.js",
+        "require": "./client.cjs"
       },
       "./openai": {
         "import": "./openai.js",

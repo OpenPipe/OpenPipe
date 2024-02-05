@@ -36,6 +36,12 @@ export const env = createEnv({
     AZURE_STORAGE_ACCOUNT_NAME: z.string().default("placeholder"),
     AZURE_STORAGE_ACCOUNT_KEY: z.string().default("placeholder"),
     AZURE_STORAGE_CONTAINER_NAME: z.string().default("placeholder"),
+    ANYSCALE_INFERENCE_BASE_URL: z.string().url().optional(),
+    ANYSCALE_INFERENCE_API_KEY: z.string().optional(),
+    ANYSCALE_ENABLE_A100: z
+      .string()
+      .default("false")
+      .transform((val) => val.toLowerCase() === "true"),
     WORKER_CONCURRENCY: z
       .string()
       .default("10")
@@ -51,6 +57,8 @@ export const env = createEnv({
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
     EXPORTED_MODELS_BUCKET_NAME: z.string().optional(),
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
   },
 
   /**
@@ -63,6 +71,7 @@ export const env = createEnv({
     NEXT_PUBLIC_HOST: z.string().url().default("http://localhost:3000"),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_DEPLOY_ENV: z.string().default("development"),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   },
 
   /**
@@ -106,6 +115,12 @@ export const env = createEnv({
     MODAL_USE_LOCAL_DEPLOYMENTS: process.env.MODAL_USE_LOCAL_DEPLOYMENTS,
     NEXT_PUBLIC_DEPLOY_ENV: process.env.NEXT_PUBLIC_DEPLOY_ENV,
     EXPORTED_MODELS_BUCKET_NAME: process.env.EXPORTED_MODELS_BUCKET_NAME,
+    ANYSCALE_INFERENCE_BASE_URL: process.env.ANYSCALE_INFERENCE_BASE_URL,
+    ANYSCALE_INFERENCE_API_KEY: process.env.ANYSCALE_INFERENCE_API_KEY,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    ANYSCALE_ENABLE_A100: process.env.ANYSCALE_ENABLE_A100,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

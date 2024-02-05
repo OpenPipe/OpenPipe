@@ -1,0 +1,28 @@
+{
+  "name": "inference",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "deploy": "tsx deploy.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/lodash-es": "^4.17.8",
+    "@types/yargs": "^17.0.26",
+    "dotenv": "^16.3.1",
+    "execa": "^8.0.1",
+    "js-yaml": "^4.1.0",
+    "lodash-es": "^4.17.21",
+    "tsx": "^3.12.7",
+    "type-fest": "^4.0.0",
+    "yargs": "^17.7.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.10"
+  }
+}
