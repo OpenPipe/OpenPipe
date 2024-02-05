@@ -9,6 +9,7 @@ import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatu
 import { generateTestSetEntry } from "./generateTestSetEntry.task";
 import { evaluateTestSetEntries } from "./evaluateTestSetEntries.task";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
+import { relabelLoggedCall } from "./relabelLoggedCall.task";
 import type defineTask from "./defineTask";
 import { pgPool } from "../db";
 import { generateInvoices } from "./generateInvoices.task";
@@ -27,6 +28,7 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   generateTestSetEntry,
   evaluateTestSetEntries,
   countDatasetEntryTokens,
+  relabelLoggedCall,
   generateInvoices,
   chargeInvoices,
 ];
@@ -65,16 +67,18 @@ const runner = await run({
     },
     {
       task: generateInvoices.task.identifier,
-      // run at the beginning of each month
-      pattern: "* * * * *", // TODO: Set "0 0 1 * *". This is a temp change to test in production. It runs every minute.
+      // run at 2 AM UTC on the first day of each month
+      pattern: "0 1 * * *", // TODO: Set "0 2 1 * *". This is a temp change to test in production. It runs at 1 am every day.
       identifier: generateInvoices.task.identifier,
     },
-    {
-      task: chargeInvoices.task.identifier,
-      // run on 2nd day of each month, after invoices are created
-      pattern: "0 * * * *", // TODO: Set "0 0 2 * *". This is a temp change to test in production. It runs every hour.
-      identifier: chargeInvoices.task.identifier,
-    },
+
+    // TODO: Uncomment this when we are ready to charge invoices
+    // {
+    //   task: chargeInvoices.task.identifier,
+    //   // run at 8 AM UTC, on the first day of each month, after invoices are created
+    //   pattern: "0 8 1 * *",
+    //   identifier: chargeInvoices.task.identifier,
+    // },
   ]),
 });
 

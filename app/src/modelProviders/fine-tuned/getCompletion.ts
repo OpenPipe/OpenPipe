@@ -10,7 +10,6 @@ import type {
 import { type Stream } from "openai/streaming";
 
 import { omit } from "lodash-es";
-import { env } from "~/env.mjs";
 import {
   convertFunctionMessageToToolCall,
   convertToolCallInputToFunctionInput,
@@ -18,8 +17,8 @@ import {
 import { getAzureGpt4Completion, getOpenaiCompletion } from "~/server/utils/openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
-import { benchmarkCompletions } from "./benchmark";
 import { getModalCompletion } from "./getModalCompletion";
+import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
 
 export async function getCompletion(
   fineTune: TypedFineTune,
@@ -48,21 +47,15 @@ export async function getCompletion(
     switch (fineTune.pipelineVersion) {
       case 1:
       case 2:
+        return getModalCompletion(fineTune, prunedInput);
       case 3:
         let completion: Promise<ChatCompletion>;
         if (fineTune.gpt4FallbackEnabled) {
           completion = getAzureGpt4Completion(input);
           // keep gpus hot
-          void getModalCompletion(fineTune, prunedInput).catch((e) => reportError(e));
-        } else if (
-          env.ANYSCALE_INFERENCE_BASE_URL &&
-          env.ANYSCALE_INFERENCE_API_KEY &&
-          fineTune.pipelineVersion === 3 &&
-          fineTune.baseModel === "OpenPipe/mistral-ft-optimized-1227"
-        ) {
-          completion = benchmarkCompletions(fineTune, prunedInput);
+          void getAnyscaleCompletion(fineTune, prunedInput).catch((e) => reportError(e));
         } else {
-          completion = getModalCompletion(fineTune, prunedInput);
+          completion = getAnyscaleCompletion(fineTune, prunedInput);
         }
         return completion;
       case 0:

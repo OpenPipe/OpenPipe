@@ -3,7 +3,7 @@ compute_config: openpipe5
 cluster_env: llm-env:5
 ray_serve_config:
   applications:
-    - name: base
+    - name: a100
       route_prefix: /
       import_path: aviary_private_endpoints.backend.server.run:router_application
       args:
@@ -11,14 +11,15 @@ ray_serve_config:
         multiplex_models:
           - deployment_config:
               autoscaling_config:
-                min_replicas: 1
-                initial_replicas: 1
-                max_replicas: 8
-                target_num_ongoing_requests_per_replica: 16
+                min_replicas: 8
+                initial_replicas: 8
+                max_replicas: 16
+                target_num_ongoing_requests_per_replica: 24
                 metrics_interval_s: 10
-                look_back_period_s: 30
+                look_back_period_s: 60
                 downscale_delay_s: 300
                 upscale_delay_s: 0
+                downscale_smoothing_factor: 0.5
               max_concurrent_queries: 48
               ray_actor_options:
                 resources:
@@ -64,14 +65,15 @@ ray_serve_config:
         multiplex_models:
           - deployment_config:
               autoscaling_config:
-                min_replicas: 1
-                initial_replicas: 1
-                max_replicas: 30
+                min_replicas: 0
+                initial_replicas: 0
+                max_replicas: 24
                 target_num_ongoing_requests_per_replica: 8
                 metrics_interval_s: 10
-                look_back_period_s: 30
+                look_back_period_s: 60
                 downscale_delay_s: 300
                 upscale_delay_s: 0
+                downscale_smoothing_factor: 0.5
               max_concurrent_queries: 30
               ray_actor_options:
                 resources:
@@ -90,6 +92,147 @@ ray_serve_config:
                 max_lora_rank: 8
                 max_loras: 12
               max_total_tokens: 16384
+              generation:
+                prompt_format:
+                  system: '{instruction}'
+                  assistant: '{instruction}'
+                  user: '{instruction}'
+                  trailing_assistant: ''
+                stopping_sequences:
+                  - <unk>
+                  - </s>
+            scaling_config:
+              num_workers: 1
+              num_gpus_per_worker: 1
+              num_cpus_per_worker: 8
+              placement_strategy: STRICT_PACK
+              resources_per_worker:
+                accelerator_type_a10: 0.01
+            multiplex_config:
+              max_num_models_per_replica: 12
+          - deployment_config:
+              autoscaling_config:
+                min_replicas: 0
+                initial_replicas: 0
+                max_replicas: 24
+                target_num_ongoing_requests_per_replica: 8
+                metrics_interval_s: 10
+                look_back_period_s: 60
+                downscale_delay_s: 300
+                upscale_delay_s: 0
+                downscale_smoothing_factor: 0.5
+              max_concurrent_queries: 30
+              ray_actor_options:
+                resources:
+                  accelerator_type_a10: 0.01
+            engine_config:
+              model_id: meta-llama/Llama-2-13b-hf
+              hf_model_id: meta-llama/Llama-2-13b-hf
+              type: VLLMEngine
+              engine_kwargs:
+                trust_remote_code: true
+                max_num_seqs: 12
+                gpu_memory_utilization: 0.95
+                enable_cuda_graph: true
+                num_tokenizer_actors: 2
+                enable_lora: true
+                max_lora_rank: 8
+                max_loras: 12
+              max_total_tokens: 4096
+              generation:
+                prompt_format:
+                  system: '{instruction}'
+                  assistant: '{instruction}'
+                  user: '{instruction}'
+                  trailing_assistant: ''
+                stopping_sequences:
+                  - <unk>
+                  - </s>
+            scaling_config:
+              num_workers: 2
+              num_gpus_per_worker: 1
+              num_cpus_per_worker: 8
+              placement_strategy: STRICT_PACK
+              resources_per_worker:
+                accelerator_type_a10: 0.01
+            multiplex_config:
+              max_num_models_per_replica: 12
+          - deployment_config:
+              autoscaling_config:
+                min_replicas: 0
+                initial_replicas: 0
+                max_replicas: 24
+                target_num_ongoing_requests_per_replica: 8
+                metrics_interval_s: 10
+                look_back_period_s: 60
+                downscale_delay_s: 300
+                upscale_delay_s: 0
+                downscale_smoothing_factor: 0.5
+              max_concurrent_queries: 30
+              ray_actor_options:
+                resources:
+                  accelerator_type_a10: 0.01
+            engine_config:
+              model_id: mistralai/Mistral-7B-v0.1
+              hf_model_id: mistralai/Mistral-7B-v0.1
+              type: VLLMEngine
+              engine_kwargs:
+                trust_remote_code: true
+                max_num_seqs: 12
+                gpu_memory_utilization: 0.95
+                enable_cuda_graph: true
+                num_tokenizer_actors: 2
+                enable_lora: true
+                max_lora_rank: 8
+                max_loras: 12
+              max_total_tokens: 8192
+              generation:
+                prompt_format:
+                  system: '{instruction}'
+                  assistant: '{instruction}'
+                  user: '{instruction}'
+                  trailing_assistant: ''
+                stopping_sequences:
+                  - <unk>
+                  - </s>
+            scaling_config:
+              num_workers: 1
+              num_gpus_per_worker: 1
+              num_cpus_per_worker: 8
+              placement_strategy: STRICT_PACK
+              resources_per_worker:
+                accelerator_type_a10: 0.01
+            multiplex_config:
+              max_num_models_per_replica: 12
+          - deployment_config:
+              autoscaling_config:
+                min_replicas: 0
+                initial_replicas: 0
+                max_replicas: 24
+                target_num_ongoing_requests_per_replica: 8
+                metrics_interval_s: 10
+                look_back_period_s: 60
+                downscale_delay_s: 300
+                upscale_delay_s: 0
+                downscale_smoothing_factor: 0.5
+              max_concurrent_queries: 30
+              ray_actor_options:
+                resources:
+                  accelerator_type_a10: 0.01
+            engine_config:
+              model_id: meta-llama/Llama-2-7b-hf
+              hf_model_id: meta-llama/Llama-2-7b-hf
+              type: VLLMEngine
+              engine_kwargs:
+                trust_remote_code: true
+                max_num_seqs: 12
+                gpu_memory_utilization: 0.95
+                enable_cuda_graph: true
+                num_tokenizer_actors: 2
+                enable_lora: true
+                max_lora_rank: 8
+                max_loras: 12
+              max_total_tokens: 4096
               generation:
                 prompt_format:
                   system: '{instruction}'

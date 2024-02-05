@@ -42,10 +42,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(400).send(`Webhook Error`);
   }
 
+  let invoiceId;
+
   switch (event.type) {
     case "charge.succeeded":
-      const paymentIntent = event.data.object;
-      const invoiceId = paymentIntent.metadata.invoiceId;
+      invoiceId = event.data.object.metadata.invoiceId;
 
       await prisma.invoice.update({
         where: {
@@ -62,6 +63,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       break;
 
     case "charge.failed":
+      invoiceId = event.data.object.metadata.invoiceId;
+
       await prisma.invoice.update({
         where: {
           id: invoiceId,
@@ -77,6 +80,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       break;
 
     case "charge.expired":
+      invoiceId = event.data.object.metadata.invoiceId;
+
       await prisma.invoice.update({
         where: {
           id: invoiceId,
@@ -91,6 +96,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       break;
     case "payment_intent.succeeded":
+      invoiceId = event.data.object.metadata.invoiceId;
+
       await prisma.invoice.update({
         where: {
           id: invoiceId,

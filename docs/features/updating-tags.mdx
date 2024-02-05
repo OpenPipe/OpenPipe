@@ -22,7 +22,7 @@ op_client = OpenPipe(
 completion = client.chat.completions.create(
     model="openpipe:your-fine-tuned-model-id",
     messages=[{"role": "system", "content": "count to 10"}],
-    openpipe={"tags": {"prompt_id": "counting", "any_key": "any_value"}},
+    openpipe={"tags": {"prompt_id": "counting", "tag_to_remove": "some value"}},
 )
 
 resp = op_client.update_log_tags(
@@ -35,7 +35,7 @@ resp = op_client.update_log_tags(
     tags={
         "relabel": "true",
         "add_to_dataset": "original_model_dataset",
-        "any_key": None # this will remove the any_key tag from the request log we just created
+        "tag_to_remove": None # this will remove the tag_to_remove tag from the request log we just created
     },
 )
 
@@ -61,7 +61,7 @@ const completion = await client.chat.completions.create({
   messages: [{ role: "user", content: "Count to 10" }],
   openpipe: {
     prompt_id: "counting",
-    any_key: "any_value",
+    tag_to_remove: "some value",
   },
 });
 
@@ -75,7 +75,7 @@ const resp = await opClient.updateLogTags({
   tags: {
     relabel: "true",
     add_to_dataset: "original_model_dataset",
-    any_key: null, // this will remove the any_key tag from the request log we just created
+    tag_to_remove: null, // this will remove the tag_to_remove tag from the request log we just created
   },
 });
 
@@ -98,7 +98,7 @@ Keep in mind that filters are cumulative, so only request logs that match all of
 
 ### Tags
 
-Provide one or more tags in a json object to be updated. The key should be the name of the tag you'd like to add, update, or delete. The value should be the new value of the tag.
+Provide one or more tags in a json object. The key should be the name of the tag you'd like to add, update, or delete. The value should be the new value of the tag.
 If you'd like to delete a tag, provide a value of `None` or `null`.
 
 Updated tags will be searchable in the [Request Logs](/features/request-logs) panel.

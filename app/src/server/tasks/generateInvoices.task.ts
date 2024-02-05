@@ -18,9 +18,8 @@ export const generateInvoices = defineTask({
     const projects = await prisma.project.findMany();
 
     for (const project of projects) {
-      //TODO: Remove project.id === ... This to to test in production. It uses "SDK test Project"
-      if (project.billable && project.id === "89149c5d-aeda-49f7-b668-41104aef8444") {
-        await createInvoice(project.id, startOfPreviousMonth, endOfPreviousMonth);
+      if (project.billable) {
+        await createInvoice(project.id, new Date(2010), endOfPreviousMonth);
       }
     }
   },
@@ -31,19 +30,35 @@ export const generateInvoices = defineTask({
 
 export async function createInvoice(projectId: string, startDate: Date, endDate: Date) {
   // Avoid creating multiple invoices for the same billing period
-  const invoiceAlreadyExists = await prisma.invoice.findFirst({
-    where: {
-      projectId: projectId,
-      billingPeriod: getPreviousMonthWithYearString(),
-      createdAt: {
-        gte: toUTC(new Date()).startOf("month").toDate(),
-      },
-    },
-  });
 
-  if (invoiceAlreadyExists) return;
+  // const invoiceAlreadyExists = await prisma.invoice.findFirst({
+  //   where: {
+  //     projectId: projectId,
+  //     billingPeriod: getPreviousMonthWithYearString(),
+  //     createdAt: {
+  //       gte: toUTC(new Date()).startOf("month").toDate(),
+  //     },
+  //   },
+  // });
+
+  // if (invoiceAlreadyExists) return;
 
   await kysely.transaction().execute(async (tx) => {
+    // TODO: remove this temp logic
+    const project = await tx
+      .selectFrom("Project")
+      .where("id", "=", projectId)
+      .select(["createdAt"])
+      .executeTakeFirst();
+
+    const existingInvoice = await tx
+      .selectFrom("Invoice")
+      .where("projectId", "=", projectId)
+      .executeTakeFirst();
+
+    if (!project || existingInvoice) return;
+    // TODO: remove this temp logic
+
     // 1. Create empty invoice
     const invoice = await tx
       .insertInto("Invoice")
@@ -52,7 +67,10 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
         projectId: projectId,
         amount: 0,
         slug: generateInvoiceSlug(),
-        billingPeriod: getPreviousMonthWithYearString(),
+        billingPeriod:
+          toUTC(new Date(project.createdAt)).format("MMM YYYY") +
+          " - " +
+          getPreviousMonthWithYearString(),
       })
       .returning(["id", "createdAt", "slug"])
       .executeTakeFirst();
@@ -93,7 +111,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
         await tx
           .updateTable("Invoice")
           .set({
-            amount: totalSpent + 2, //TODO: Remove "+2". This is a temp change to test in production.
+            amount: totalSpent,
             status: totalSpent >= 1 ? "PENDING" : "CANCELLED", // Minimum $1 charge
             description: JSON.stringify(
               getInvoiceDescription({
@@ -156,7 +174,7 @@ function getInvoiceDescription(stats: {
       text: "Total inference spend",
       value: "$" + stats.totalInferenceSpend.toFixed(2),
       description: `Tokens: ${totalTokends.toLocaleString()} ($${(
-        stats.totalInferenceSpend / totalTokends
+        Number(stats.totalInferenceSpend ?? 0) / Number(totalTokends ?? 0)
       ).toFixed(7)}/token) \n 
       Input tokens: ${stats.totalInputTokens.toLocaleString()} \n
       Output tokens: ${stats.totalOutputTokens.toLocaleString()}`,

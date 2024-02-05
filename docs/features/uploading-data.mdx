@@ -1,13 +1,13 @@
 ---
-title: "Import Data"
-sidebarTitle: "Import Data"
+title: "Uploading Data"
+sidebarTitle: "Uploading Data"
 description: "
-Import external data to kickstart your fine-tuning process. Use the OpenAI chat fine-tuning format."
+Upload external data to kickstart your fine-tuning process. Use the OpenAI chat fine-tuning format."
 ---
 
 Upload a JSONL file populated with a list of training examples.
 
-<Frame>![](/images/features/importing-data.png)</Frame>
+<Frame>![](/images/features/uploading-data.png)</Frame>
 
 Each line of the file should be compatible with the OpenAI [chat format](https://platform.openai.com/docs/api-reference/chat/object), with additional optional fields.
 
@@ -23,9 +23,11 @@ You can include other parameters from the OpenAI chat completion input format (e
 
 - **`split`: Optional** - One of "TRAIN" or "TEST". If you don't set this field we'll automatically divide your inputs into train and test splits with a target ratio of 80:20.
 
+### Example
+
 ```jsonl
 ...
-{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Tasmania?"},{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Hobart\"}"}}],"functions":[{"name":"log_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]}
-{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Sweden?"},{"role":"assistant","content":null,"function_call":{"name":"log_capitol","arguments":"{\"capitol\":\"Stockholm\"}"}}],"functions":[{"name":"log_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]}
+{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Tasmania?"},{"role":"assistant","content":null,"function_call":{"name":"identify_capitol","arguments":"{\"capitol\":\"Hobart\"}"}}],"functions":[{"name":"identify_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]}
+{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Sweden?"},{"role":"assistant","content":null,"function_call":{"name":"identify_capitol","arguments":"{\"capitol\":\"Stockholm\"}"}}],"functions":[{"name":"identify_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]}
 ...
 ```
