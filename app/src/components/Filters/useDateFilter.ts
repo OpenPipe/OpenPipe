@@ -1,4 +1,4 @@
-import { useQueryParam, JsonParam, withDefault, encodeQueryParams } from "use-query-params";
+import { useQueryParam, JsonParam, withDefault } from "use-query-params";
 
 import { type FilterData } from "./types";
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";

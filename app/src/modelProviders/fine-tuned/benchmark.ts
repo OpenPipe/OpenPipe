@@ -36,15 +36,13 @@ export function benchmarkCompletions(
 ): Promise<ChatCompletion> {
   const modalCompletion = getModalCompletion(fineTune, input);
   const anyscaleCompletion = getAnyscaleCompletion(fineTune, input);
-  const anyscaleA10Completion = getAnyscaleCompletion(fineTune, input, "a10");
 
   // Only send 5% of completions to PostHog
   if (Math.random() < 0.05)
     void Promise.allSettled([
       timedCompletion(modalCompletion),
       timedCompletion(anyscaleCompletion),
-      timedCompletion(anyscaleA10Completion),
-    ]).then(([modal, anyscale, anyscaleA10]) => {
+    ]).then(([modal, anyscale]) => {
       posthogServerClient?.capture({
         distinctId: fineTune.provider,
         event: "inference comparison",
@@ -53,7 +51,6 @@ export function benchmarkCompletions(
           messages: input.messages,
           "error.modal": modal.status === "rejected",
           "error.anyscale": anyscale.status === "rejected",
-          "error.anyscaleA10": anyscaleA10.status === "rejected",
           ...("value" in modal
             ? {
                 "duration.modal": modal.value?.duration,
@@ -76,21 +73,9 @@ export function benchmarkCompletions(
                 "error.anyscale.message": anyscale.reason?.message,
                 "error.anyscale.stack": anyscale.reason?.stack,
               }),
-          ...("value" in anyscaleA10
-            ? {
-                "duration.anyscaleA10": anyscaleA10.value?.duration,
-                "prompt_tokens.anyscaleA10": anyscaleA10.value?.completion?.usage?.prompt_tokens,
-                "completion_tokens.anyscaleA10":
-                  anyscaleA10.value?.completion?.usage?.completion_tokens,
-                "completion.anyscaleA10": anyscaleA10.value?.completion?.choices?.[0]?.message,
-              }
-            : {
-                "error.anyscaleA10.message": anyscaleA10.reason?.message,
-                "error.anyscaleA10.stack": anyscaleA10.reason?.stack,
-              }),
         },
       });
     });
 
-  return firstSuccessful([modalCompletion, anyscaleCompletion, anyscaleA10Completion]);
+  return firstSuccessful([modalCompletion, anyscaleCompletion]);
 }

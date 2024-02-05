@@ -3,12 +3,12 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { $ } from "execa";
 import { PartialDeep } from "type-fest";
-import { cloneDeep } from "lodash-es";
+import { cloneDeep, merge, set } from "lodash-es";
 import yaml from "js-yaml";
 
 import { z } from "zod";
 
-const LoraModelSchema = z.object({
+const LoraConfigSchema = z.object({
   deployment_config: z.object({
     autoscaling_config: z.object({
       min_replicas: z.number().default(1),
@@ -16,9 +16,11 @@ const LoraModelSchema = z.object({
       max_replicas: z.number(),
       target_num_ongoing_requests_per_replica: z.number(),
       metrics_interval_s: z.number().default(10),
-      look_back_period_s: z.number().default(30),
+      look_back_period_s: z.number().default(60),
       downscale_delay_s: z.number().default(300),
       upscale_delay_s: z.number().default(0),
+      upscale_smoothing_factor: z.number().optional(),
+      downscale_smoothing_factor: z.number().optional(),
     }),
     max_concurrent_queries: z.number(),
     ray_actor_options: z.object({
@@ -72,7 +74,7 @@ const LoraModelSchema = z.object({
   }),
 });
 
-type LoraModel = z.infer<typeof LoraModelSchema>;
+type LoraConfig = z.infer<typeof LoraConfigSchema>;
 
 const ServeAppSchema = z.object({
   name: z.string(),
@@ -80,7 +82,7 @@ const ServeAppSchema = z.object({
   import_path: z.string().default("aviary_private_endpoints.backend.server.run:router_application"),
   args: z.object({
     models: z.array(z.unknown()),
-    multiplex_models: z.array(LoraModelSchema),
+    multiplex_models: z.array(LoraConfigSchema),
     dynamic_lora_loading_path: z.string(),
   }),
 });
@@ -101,10 +103,10 @@ const buckets = {
   prod: "user-models-pl-prod-5e7392e",
 };
 
-const setDefaults = (
-  baseConfig: PartialDeep<LoraModel>,
-  options: { env: "stage" | "prod"; gpuType: "a10" | "a100_40g" },
-): LoraModel => {
+const createLoraConfig = (
+  baseConfig: PartialDeep<LoraConfig>,
+  options: { gpuType: "a10" | "a100_40g" },
+): LoraConfig => {
   const maxRequests = baseConfig.engine_config?.engine_kwargs?.max_num_seqs;
 
   if (maxRequests === undefined) {
@@ -143,58 +145,94 @@ const setDefaults = (
     },
   };
 
-  return LoraModelSchema.parse(withDefaults);
+  return LoraConfigSchema.parse(withDefaults);
 };
 
 const argv = await yargs(hideBin(process.argv))
   .options({
-    env: {
+    apply: {
       type: "string",
       description: "Environment to deploy to",
-      default: "stage" as const,
       choices: ["stage", "prod"] as const,
     },
-    apply: {
+    inPlace: {
       type: "boolean",
-      description: "Apply the generated config",
+      description: "Modify the config in place",
       default: false,
     },
   })
   .parse();
 
-const stagingConfig: Config = {
-  name: `inference-stage`,
+const a10Model = (modelId: string, keepHot: boolean, contextSize: number) =>
+  createLoraConfig(
+    {
+      deployment_config: {
+        autoscaling_config: {
+          min_replicas: keepHot ? 1 : 0,
+          initial_replicas: keepHot ? 1 : 0,
+          max_replicas: 24,
+          target_num_ongoing_requests_per_replica: 8,
+          downscale_smoothing_factor: 0.5,
+        },
+        max_concurrent_queries: 30,
+      },
+      engine_config: {
+        model_id: modelId,
+        max_total_tokens: contextSize,
+        engine_kwargs: { max_num_seqs: 12 },
+      },
+    },
+    { gpuType: "a10" },
+  );
+
+// Otherwise we OOM on A10s
+const fixLlama13b = (config: LoraConfig) =>
+  merge({}, config, { scaling_config: { num_workers: 2 } });
+
+const optimizedNoHot = createLoraConfig(
+  {
+    deployment_config: {
+      autoscaling_config: {
+        min_replicas: 0,
+        initial_replicas: 0,
+        max_replicas: 16,
+        target_num_ongoing_requests_per_replica: 24,
+        downscale_smoothing_factor: 0.5,
+      },
+      max_concurrent_queries: 48,
+    },
+    engine_config: {
+      model_id: "OpenPipe/mistral-ft-optimized-1227",
+      max_total_tokens: 16384,
+      engine_kwargs: { max_num_seqs: 24 },
+    },
+  },
+  { gpuType: "a100_40g" },
+);
+
+const optimizedKeepHot = merge({}, optimizedNoHot, {
+  deployment_config: { autoscaling_config: { min_replicas: 8, initial_replicas: 8 } },
+});
+
+const createAppConfig = (
+  env: "stage" | "prod",
+  a100Models: LoraConfig[],
+  a10Models: LoraConfig[],
+): Config => ({
+  name: `inference-${env}`,
   compute_config: "openpipe5",
   cluster_env: "llm-env:5",
 
   ray_serve_config: {
     applications: [
       {
-        name: "base",
+        name: "a100",
         route_prefix: "/",
         import_path: "aviary_private_endpoints.backend.server.run:router_application",
         args: {
           models: [],
-          multiplex_models: [
-            setDefaults(
-              {
-                deployment_config: {
-                  autoscaling_config: {
-                    max_replicas: 8,
-                    target_num_ongoing_requests_per_replica: 16,
-                  },
-                  max_concurrent_queries: 48,
-                },
-                engine_config: {
-                  model_id: "OpenPipe/mistral-ft-optimized-1227",
-                  max_total_tokens: 16384,
-                  engine_kwargs: { max_num_seqs: 24 },
-                },
-              },
-              { env: "stage", gpuType: "a100_40g" },
-            ),
-          ],
-          dynamic_lora_loading_path: `s3://${buckets.stage}/models/`,
+          multiplex_models: a100Models,
+          dynamic_lora_loading_path: `s3://${buckets[env]}/models/`,
         },
       },
       {
@@ -203,37 +241,35 @@ const stagingConfig: Config = {
         import_path: "aviary_private_endpoints.backend.server.run:router_application",
         args: {
           models: [],
-          multiplex_models: [
-            setDefaults(
-              {
-                deployment_config: {
-                  autoscaling_config: {
-                    max_replicas: 30,
-                    target_num_ongoing_requests_per_replica: 8,
-                  },
-                  max_concurrent_queries: 30,
-                },
-                engine_config: {
-                  model_id: "OpenPipe/mistral-ft-optimized-1227",
-                  max_total_tokens: 16384,
-                  engine_kwargs: { max_num_seqs: 12 },
-                },
-              },
-              { env: "stage", gpuType: "a10" },
-            ),
-          ],
-          dynamic_lora_loading_path: `s3://${buckets.stage}/models/`,
+          multiplex_models: a10Models,
+          dynamic_lora_loading_path: `s3://${buckets[env]}/models/`,
         },
       },
     ],
   },
-};
-
-const prodConfig = cloneDeep(stagingConfig);
-prodConfig.name = "inference-prod";
-prodConfig.ray_serve_config.applications.forEach((app) => {
-  app.args.dynamic_lora_loading_path = `s3://${buckets.prod}/models/`;
 });
+
+const prodConfig = createAppConfig(
+  "prod",
+  [optimizedKeepHot],
+  [
+    a10Model("OpenPipe/mistral-ft-optimized-1227", false, 16384),
+    fixLlama13b(a10Model("meta-llama/Llama-2-13b-hf", false, 4096)),
+    a10Model("mistralai/Mistral-7B-v0.1", false, 8192),
+    a10Model("meta-llama/Llama-2-7b-hf", false, 4096),
+  ],
+);
+
+const stagingConfig = createAppConfig(
+  "stage",
+  [optimizedNoHot],
+  [
+    a10Model("OpenPipe/mistral-ft-optimized-1227", true, 16384),
+    fixLlama13b(a10Model("meta-llama/Llama-2-13b-hf", false, 4096)),
+    a10Model("mistralai/Mistral-7B-v0.1", false, 8192),
+    a10Model("meta-llama/Llama-2-7b-hf", false, 4096),
+  ],
+);
 
 fs.writeFileSync("./generated/stage.yml", yaml.dump(stagingConfig));
 fs.writeFileSync("./generated/prod.yml", yaml.dump(prodConfig));
@@ -241,10 +277,12 @@ fs.writeFileSync("./generated/prod.yml", yaml.dump(prodConfig));
 console.log(`Generated config files in ./generated/stage.yml and ./generated/prod.yml`);
 
 if (argv.apply) {
-  console.log(`Applying config for ${argv.env}`);
-  await $$`poetry run anyscale service rollout --in-place -f ./generated/${argv.env}.yml`;
+  console.log(`Applying config for ${argv.apply}`);
+  await $$`poetry run anyscale service rollout --rollout-strategy=${
+    argv.inPlace ? "IN_PLACE" : "ROLLOUT"
+  } -f ./generated/${argv.apply}.yml`;
 } else {
-  console.log("Use --apply to deploy the generated config");
+  console.log("Use --apply=(stage|prod) to deploy the generated config");
 }
 
 console.log("Done");

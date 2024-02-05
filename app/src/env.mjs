@@ -38,6 +38,10 @@ export const env = createEnv({
     AZURE_STORAGE_CONTAINER_NAME: z.string().default("placeholder"),
     ANYSCALE_INFERENCE_BASE_URL: z.string().url().optional(),
     ANYSCALE_INFERENCE_API_KEY: z.string().optional(),
+    ANYSCALE_ENABLE_A100: z
+      .string()
+      .default("false")
+      .transform((val) => val.toLowerCase() === "true"),
     WORKER_CONCURRENCY: z
       .string()
       .default("10")
@@ -116,6 +120,7 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    ANYSCALE_ENABLE_A100: process.env.ANYSCALE_ENABLE_A100,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

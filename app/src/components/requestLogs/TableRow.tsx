@@ -13,7 +13,6 @@ import {
   Text,
   Checkbox,
   Link as ChakraLink,
-  Link,
 } from "@chakra-ui/react";
 
 import dayjs from "~/utils/dayjs";
@@ -25,7 +24,6 @@ import {
   useLoggedCalls,
   useTotalNumLogsSelected,
   useTagNames,
-  useSelectedProject,
 } from "~/utils/hooks";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import { useFilters } from "../Filters/useFilters";
@@ -232,10 +230,9 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
   const generalFilters = useFilters().filters;
   const dateFilters = useDateFilter().filters;
   const allFilters = [...generalFilters, ...dateFilters];
-  const { isLoading } = useLoggedCalls();
-  const selectedProject = useSelectedProject().data;
+  const { isFetching, isLoading } = useLoggedCalls(true);
 
-  if (isLoading) return null;
+  if (isLoading || isFetching) return null;
 
   if (allFilters.length && filtersApplied) {
     return (

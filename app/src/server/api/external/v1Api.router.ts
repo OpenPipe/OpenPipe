@@ -35,6 +35,7 @@ import { statusCodeFromTrpcCode, trpcCodeFromHttpStatus } from "~/server/utils/t
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import { sql } from "kysely";
 import { hashRequest } from "~/server/utils/hashObject";
+import { queueRelabelLoggedCalls } from "~/server/tasks/relabelLoggedCall.task";
 
 export const v1ApiRouter = createOpenApiRouter({
   checkCache: openApiProtectedProc
@@ -249,7 +250,7 @@ export const v1ApiRouter = createOpenApiRouter({
           void recordUsage({
             projectId: key.projectId,
             requestedAt,
-            receivedAt: !!cachedCompletion ? undefined : Date.now(),
+            receivedAt: Date.now(),
             cacheHit: !!cachedCompletion,
             inputPayload,
             completion: recordStream,
@@ -262,7 +263,7 @@ export const v1ApiRouter = createOpenApiRouter({
           void recordUsage({
             projectId: key.projectId,
             requestedAt,
-            receivedAt: !!cachedCompletion ? undefined : Date.now(),
+            receivedAt: Date.now(),
             cacheHit: !!cachedCompletion,
             inputPayload,
             completion,
@@ -498,12 +499,13 @@ export const v1ApiRouter = createOpenApiRouter({
           .execute();
       }
 
-      const loggedCalls = await constructLoggedCallFiltersQuery({
+      const loggedCallIds = await constructLoggedCallFiltersQuery({
         filters,
         projectId: ctx.key.projectId,
       })
         .select("lc.id")
-        .execute();
+        .execute()
+        .then((rows) => rows.map((row) => row.id));
 
       const dataToInsert: {
         id: string;
@@ -514,9 +516,7 @@ export const v1ApiRouter = createOpenApiRouter({
       }[] = [];
 
       // Iterate over each logged call and insert tags
-      for (const loggedCall of loggedCalls) {
-        const loggedCallId = loggedCall.id;
-
+      for (const loggedCallId of loggedCallIds) {
         // Prepare the insert data for each tag
         dataToInsert.push(
           ...tagsToUpsert.map(([name, value]) => ({
@@ -540,6 +540,13 @@ export const v1ApiRouter = createOpenApiRouter({
             })),
           )
           .execute();
+      }
+
+      if (tags["relabel"] === "true" && tags["add_to_dataset"] === "original_model_dataset") {
+        await queueRelabelLoggedCalls({
+          projectId: ctx.key.projectId,
+          loggedCallIds,
+        });
       }
 
       return { matchedLogs: matchedLogs?.count ?? 0 };

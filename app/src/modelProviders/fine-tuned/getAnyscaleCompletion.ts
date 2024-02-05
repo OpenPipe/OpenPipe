@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat";
 
 import OpenAI from "openai";
@@ -5,11 +6,11 @@ import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
 
-const deployments = ["base", "a10"] as const;
+const deployments = ["a100", "a10"] as const;
 
 const clients = env.ANYSCALE_INFERENCE_BASE_URL
   ? {
-      base: new OpenAI({
+      a100: new OpenAI({
         baseURL: env.ANYSCALE_INFERENCE_BASE_URL,
         apiKey: env.ANYSCALE_INFERENCE_API_KEY,
       }),
@@ -23,8 +24,15 @@ const clients = env.ANYSCALE_INFERENCE_BASE_URL
 export async function getAnyscaleCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
-  deployment: (typeof deployments)[number] = "base",
 ): Promise<ChatCompletion> {
+  const deployment =
+    env.ANYSCALE_ENABLE_A100 &&
+    fineTune.pipelineVersion === 3 &&
+    fineTune.baseModel === "OpenPipe/mistral-ft-optimized-1227" &&
+    !fineTune.forceA10
+      ? "a100"
+      : "a10";
+
   const client = clients?.[deployment];
   if (!client) {
     throw new Error("Not configured for Anyscale inference");
@@ -63,7 +71,7 @@ export async function getAnyscaleCompletion(
   }
 
   return {
-    id: resp.id,
+    id: `as-${uuidv4()}-${deployment === "a10" ? "10" : "100"}`,
     object: "chat.completion",
     created: resp.created,
     model: input.model,

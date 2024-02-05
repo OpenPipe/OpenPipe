@@ -174,7 +174,7 @@ function getInvoiceDescription(stats: {
       text: "Total inference spend",
       value: "$" + stats.totalInferenceSpend.toFixed(2),
       description: `Tokens: ${totalTokends.toLocaleString()} ($${(
-        stats.totalInferenceSpend / totalTokends
+        Number(stats.totalInferenceSpend ?? 0) / Number(totalTokends ?? 0)
       ).toFixed(7)}/token) \n 
       Input tokens: ${stats.totalInputTokens.toLocaleString()} \n
       Output tokens: ${stats.totalOutputTokens.toLocaleString()}`,

@@ -11,7 +11,7 @@ import {
   PopoverTrigger,
   Portal,
 } from "@chakra-ui/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { FilterData } from "./types";
 import { formatDateForPicker } from "~/utils/dayjs";
 import { BsDash } from "react-icons/bs";
@@ -70,10 +70,10 @@ const DateRange = ({ filter, close }: { filter: FilterData; close: () => void })
   const updateFilter = useDateFilter().updateFilter;
 
   const [firstDate, setFirstDate] = useState<number>(
-    Array.isArray(filter.value) ? (filter.value[0] as number) : Date.now(),
+    Array.isArray(filter.value) ? filter.value[0] : Date.now(),
   );
   const [secondDate, setSecondDate] = useState<number>(
-    Array.isArray(filter.value) ? (filter.value[1] as number) : Date.now(),
+    Array.isArray(filter.value) ? filter.value[1] : Date.now(),
   );
 
   const debouncedUpdateFilter = useCallback(
@@ -106,7 +106,7 @@ const DateRange = ({ filter, close }: { filter: FilterData; close: () => void })
   );
 
   const handleSave = useCallback(() => {
-    debouncedUpdateFilter({ ...filter!, value: [firstDate, secondDate] });
+    debouncedUpdateFilter({ ...filter, value: [firstDate, secondDate] });
   }, [firstDate, secondDate, filter, debouncedUpdateFilter]);
 
   return (
