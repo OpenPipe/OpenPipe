@@ -284,7 +284,7 @@ export const useLoggedCalls = (applyFilters = true) => {
     if (!result.isFetching) setMatchingLogsCount(result.data?.count ?? 0);
   }, [result, setMatchingLogsCount]);
 
-  return useStableData(result);
+  return result;
 };
 
 export const useTotalNumLogsSelected = () => {

@@ -232,7 +232,9 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
   const allFilters = [...generalFilters, ...dateFilters];
   const { isFetching, isLoading } = useLoggedCalls(true);
 
-  if (isLoading || isFetching) return null;
+  if (isLoading || isFetching) {
+    return null;
+  }
 
   if (allFilters.length && filtersApplied) {
     return (

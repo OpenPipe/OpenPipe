@@ -16,7 +16,7 @@ import { FilterData } from "./types";
 import { formatDateForPicker } from "~/utils/dayjs";
 import { BsDash } from "react-icons/bs";
 import { debounce } from "lodash-es";
-import { useDateFilter } from "./useDateFilter";
+import { getDefaultDateFilter, useDateFilter } from "./useDateFilter";
 
 const DateFilter = () => {
   const { filters, updateFilter, addFilter, deleteFilter } = useDateFilter();
@@ -51,14 +51,12 @@ const DateFilter = () => {
             <PopoverTrigger>
               <Button
                 isActive={filter?.comparator === "RANGE"}
-                onClick={() => updateOrAddFilter("RANGE")}
+                // onClick={() => updateOrAddFilter("RANGE")}
               >
                 Custom
               </Button>
             </PopoverTrigger>
-            {filter && filter.comparator === "RANGE" && (
-              <DateRange filter={filter} close={onClose} />
-            )}
+            <DateRange filter={filter} close={onClose} />
           </>
         )}
       </Popover>
@@ -66,14 +64,14 @@ const DateFilter = () => {
   );
 };
 
-const DateRange = ({ filter, close }: { filter: FilterData; close: () => void }) => {
+const DateRange = ({ filter, close }: { filter?: FilterData; close: () => void }) => {
   const updateFilter = useDateFilter().updateFilter;
 
   const [firstDate, setFirstDate] = useState<number>(
-    Array.isArray(filter.value) ? filter.value[0] : Date.now(),
+    filter && Array.isArray(filter.value) ? filter.value[0] : Date.now(),
   );
   const [secondDate, setSecondDate] = useState<number>(
-    Array.isArray(filter.value) ? filter.value[1] : Date.now(),
+    filter && Array.isArray(filter.value) ? filter?.value[1] : Date.now(),
   );
 
   const debouncedUpdateFilter = useCallback(
@@ -106,7 +104,7 @@ const DateRange = ({ filter, close }: { filter: FilterData; close: () => void })
   );
 
   const handleSave = useCallback(() => {
-    debouncedUpdateFilter({ ...filter, value: [firstDate, secondDate] });
+    debouncedUpdateFilter({ ...getDefaultDateFilter("RANGE"), value: [firstDate, secondDate] });
   }, [firstDate, secondDate, filter, debouncedUpdateFilter]);
 
   return (
@@ -114,27 +112,22 @@ const DateRange = ({ filter, close }: { filter: FilterData; close: () => void })
       <PopoverContent w={500} shadow={"md"} p={4}>
         <PopoverBody>
           <HStack>
-            {!["LAST 15M", "LAST 24H", "LAST 7D"].includes(filter.comparator) && (
-              <Input
-                type="datetime-local"
-                w={240}
-                aria-label="first date"
-                onChange={(e) => updateDate(e.target.value)}
-                value={formatDateForPicker(firstDate)}
-              />
-            )}
-            {filter.comparator === "RANGE" && (
-              <>
-                <Icon as={BsDash} />
-                <Input
-                  type="datetime-local"
-                  w={240}
-                  aria-label="second date"
-                  onChange={(e) => updateDate(e.target.value, true)}
-                  value={formatDateForPicker(secondDate)}
-                />
-              </>
-            )}
+            <Input
+              type="datetime-local"
+              w={240}
+              aria-label="first date"
+              onChange={(e) => updateDate(e.target.value)}
+              value={formatDateForPicker(firstDate)}
+            />
+
+            <Icon as={BsDash} />
+            <Input
+              type="datetime-local"
+              w={240}
+              aria-label="second date"
+              onChange={(e) => updateDate(e.target.value, true)}
+              value={formatDateForPicker(secondDate)}
+            />
           </HStack>
           <ButtonGroup display="flex" justifyContent="flex-end" pt={4}>
             <Button variant="outline" onClick={close}>
