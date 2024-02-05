@@ -39,18 +39,6 @@ const getComparatorLabel = (comparator: (typeof comparators)[number]) => {
       return "Contains";
     case "NOT_CONTAINS":
       return "Does not contain";
-    case "LAST 15M":
-      return "Last 15 minutes";
-    case "LAST 24H":
-      return "Last 24 hours";
-    case "LAST 7D":
-      return "Last 7 days";
-    case "BEFORE":
-      return "Before";
-    case "AFTER":
-      return "After";
-    case "RANGE":
-      return "Range";
     default:
       return comparator;
   }

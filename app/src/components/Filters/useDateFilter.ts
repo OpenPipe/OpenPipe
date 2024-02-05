@@ -3,38 +3,34 @@ import { useQueryParam, JsonParam, withDefault, encodeQueryParams } from "use-qu
 import { type FilterData } from "./types";
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
 
-// const defaultOneDayFilter: FilterData = {
-//   id: "1",
-//   field: LoggedCallsFiltersDefaultFields.SentAt,
-//   comparator: "LAST 24H",
-//   value: [Date.now(), Date.now()],
-// };
+const defaultOneDayFilter = getDefaultDateFilter("LAST 24H");
 
 export const useDateFilter = () => {
-  const [dateFilterData, setDateFilterData] = useQueryParam<FilterData | null>(
-    "dateFilterData",
-    withDefault(JsonParam, getDefaultDateFilter("LAST 24H")),
+  const [dateFilter, setDateFilter] = useQueryParam<FilterData[]>(
+    "dateFilter",
+    withDefault(JsonParam, defaultOneDayFilter),
   );
-  console.log(dateFilterData);
-  const updateFilter = (filter: FilterData) => setDateFilterData(filter);
-  const deleteFilter = () => setDateFilterData(null);
+  const updateFilter = (filter: FilterData) => setDateFilter([filter]);
+  const deleteFilter = () => setDateFilter([]);
   const addFilter = (comparator: FilterData["comparator"]) => {
-    setDateFilterData(getDefaultDateFilter(comparator));
+    setDateFilter(getDefaultDateFilter(comparator));
   };
 
   return {
-    filter: dateFilterData,
+    filters: dateFilter,
     updateFilter,
     addFilter,
     deleteFilter,
   };
 };
 
-const getDefaultDateFilter = (comparator: FilterData["comparator"]): FilterData => {
-  return {
-    id: Date.now().toString(),
-    field: LoggedCallsFiltersDefaultFields.SentAt,
-    comparator,
-    value: [Date.now(), Date.now()],
-  };
-};
+export function getDefaultDateFilter(comparator: FilterData["comparator"]): FilterData[] {
+  return [
+    {
+      id: Date.now().toString(),
+      field: LoggedCallsFiltersDefaultFields.SentAt,
+      comparator,
+      value: [Date.now(), Date.now()],
+    },
+  ];
+}

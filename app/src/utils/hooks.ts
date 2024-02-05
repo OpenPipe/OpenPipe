@@ -235,7 +235,7 @@ export const useStats = (
     ? toUTC(new Date(endDate)).endOf("day").toDate()
     : toUTC(new Date()).endOf("month").toDate();
 
-  const stats = api.usage.stats.useQuery(
+  return api.usage.stats.useQuery(
     {
       projectId: selectedProjectId,
       startDate: startDateUTC,
@@ -243,8 +243,6 @@ export const useStats = (
     },
     { enabled: !!selectedProjectId },
   );
-
-  return useStableData(stats);
 };
 
 export const useModelTestingStats = (
@@ -266,14 +264,19 @@ export const useModelTestingStats = (
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useSelectedProject().data?.id;
   const { page, pageSize } = usePageParams();
-  const searchFilters = useFilters().filters;
-  const dateFilter = useDateFilter().filter;
+  const generalFilters = useFilters().filters;
+  const dateFilters = useDateFilter().filters;
+  const allFilters = [...generalFilters, ...dateFilters];
+
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
-  const allFilters = dateFilter ? [...searchFilters, dateFilter] : searchFilters;
-
   const result = api.loggedCalls.list.useQuery(
-    { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? allFilters : [] },
+    {
+      projectId: selectedProjectId ?? "",
+      page,
+      pageSize,
+      filters: applyFilters ? allFilters : [],
+    },
     { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
   );
 

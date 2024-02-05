@@ -23,7 +23,7 @@ import { useLoggedCalls } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
-import RequestLogDateFilter from "~/components/Filters/RequestLogDateFilter";
+import DateFilter from "~/components/Filters/DateFilter";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -62,7 +62,7 @@ export default function LoggedCalls() {
           </HStack>
           <HStack w="full" justifyContent="space-between">
             <HStack>
-              <RequestLogDateFilter />
+              <DateFilter />
             </HStack>
             <HStack>
               <ConditionallyEnable accessRequired="requireCanModifyProject">

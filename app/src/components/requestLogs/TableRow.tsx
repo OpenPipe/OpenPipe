@@ -13,6 +13,7 @@ import {
   Text,
   Checkbox,
   Link as ChakraLink,
+  Link,
 } from "@chakra-ui/react";
 
 import dayjs from "~/utils/dayjs";
@@ -24,9 +25,12 @@ import {
   useLoggedCalls,
   useTotalNumLogsSelected,
   useTagNames,
+  useSelectedProject,
 } from "~/utils/hooks";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import { useFilters } from "../Filters/useFilters";
+import { useDateFilter } from "../Filters/useDateFilter";
+import { ProjectLink } from "~/components/ProjectLink";
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
@@ -225,17 +229,26 @@ export const TableRow = ({
 
 export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: boolean }) => {
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
-  const filters = useFilters().filters;
+  const generalFilters = useFilters().filters;
+  const dateFilters = useDateFilter().filters;
+  const allFilters = [...generalFilters, ...dateFilters];
   const { isLoading } = useLoggedCalls();
+  const selectedProject = useSelectedProject().data;
 
   if (isLoading) return null;
 
-  if (filters.length && filtersApplied) {
+  if (allFilters.length && filtersApplied) {
     return (
       <Tr>
         <Td w="full" colSpan={visibleColumns.size + 1}>
           <Text color="gray.500" textAlign="center" w="full" p={4}>
-            No matching request logs found. Try removing some filters.
+            No matching request logs found. Try removing some filters or view{" "}
+            <ProjectLink href={{ pathname: "/request-logs", query: { dateFilter: "[]" } }}>
+              <Text as={"b"} color="blue.600">
+                all
+              </Text>
+            </ProjectLink>{" "}
+            records.
           </Text>
         </Td>
       </Tr>

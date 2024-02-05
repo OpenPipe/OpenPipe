@@ -6,18 +6,19 @@ import { Box } from "@chakra-ui/react";
 import { useSelectedProject } from "~/utils/hooks";
 
 type ExtractSlugRoutes<T> = T extends DynamicRoute<`/p/[projectSlug]${infer Rest}`, infer Params>
-  ? { path: Rest; query: Omit<Params, "projectSlug"> & { projectSlug?: string } }
+  ? { path: Rest; query: Omit<Params, "projectSlug"> & Record<string, string | undefined> }
   : never;
 
 export type ProjectRoute = ExtractSlugRoutes<Route>;
 
 export type ProjectLinkProps<T extends ProjectRoute> = {
   href: T["path"] | { pathname: T["path"]; query: T["query"] };
+  params?: Omit<T["query"], "projectSlug">;
 } & Omit<LinkProps, "href">;
 
 const ProjectLink = forwardRef(
   <T extends ProjectRoute>(
-    { href, children, ...rest }: ProjectLinkProps<T>,
+    { href, params, children, ...rest }: ProjectLinkProps<T>,
     ref: Ref<HTMLSpanElement>,
   ) => {
     const selectedProject = useSelectedProject().data;
@@ -29,7 +30,7 @@ const ProjectLink = forwardRef(
       <Link
         href={{
           pathname: `/p/[projectSlug]${pathname}`,
-          query: { projectSlug: selectedProject?.slug, ...query },
+          query: { projectSlug: selectedProject?.slug, ...params, ...query },
         }}
         {...rest}
       >
