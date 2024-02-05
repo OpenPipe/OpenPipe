@@ -11,7 +11,7 @@ from ..shared import merged_model_cache_dir, logging, require_auth
 
 web_app = fastapi.FastAPI(title=APP_NAME)
 
-with image.run_inside():
+with image.imports():
     from huggingface_hub import HfApi
 
     hf_api = HfApi()
@@ -19,7 +19,7 @@ with image.run_inside():
 
 @stub.function(
     gpu=modal.gpu.A100(memory=40, count=1),
-    secret=modal.Secret.from_name("openpipe"),
+    secrets=[modal.Secret.from_name("openpipe")],
     # 24 hour timeout
     timeout=60 * 60 * 24,
     volumes={"/models": stub.volume},
