@@ -1,5 +1,6 @@
 import { type AtLeastOne } from "~/types/shared.types";
 import { type FilterData, type FilterOption } from "../types";
+import DateFilter from "./DateFilter";
 import TextFilter from "./TextFilter";
 import SelectFilter from "./SelectFilter";
 
@@ -16,6 +17,10 @@ const Filter = ({
 
   if (selectedFilterOption?.type === "select") {
     return <SelectFilter filterOptions={filterOptions} filter={filter} />;
+  }
+
+  if (selectedFilterOption?.type === "date") {
+    return <DateFilter filterOptions={filterOptions} filter={filter} />;
   }
 
   return <TextFilter filterOptions={filterOptions} filter={filter} />;
