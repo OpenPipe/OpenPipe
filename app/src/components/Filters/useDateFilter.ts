@@ -3,12 +3,10 @@ import { useQueryParam, JsonParam, withDefault } from "use-query-params";
 import { type FilterData } from "./types";
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
 
-const defaultOneDayFilter = getDefaultDateFilter("LAST 24H");
-
 export const useDateFilter = () => {
   const [dateFilter, setDateFilter] = useQueryParam<FilterData[]>(
     "dateFilter",
-    withDefault(JsonParam, [defaultOneDayFilter]),
+    withDefault(JsonParam, []),
   );
   const updateFilter = (filter: FilterData) => setDateFilter([filter]);
   const deleteFilter = () => setDateFilter([]);

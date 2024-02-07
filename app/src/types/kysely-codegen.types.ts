@@ -75,11 +75,11 @@ export interface CachedResponse {
 export interface CreditAdjustment {
   id: string;
   amount: Numeric;
-  projectId: string;
   description: string | null;
+  projectId: string;
   invoiceId: string | null;
-  createdAt: Generated<Timestamp>;
   type: "BONUS" | "INVOICE" | "REFUND";
+  createdAt: Generated<Timestamp>;
 }
 
 export interface Dataset {
@@ -211,6 +211,7 @@ export interface FineTune {
   numEpochs: number | null;
   numTrainingAutoretries: Generated<number>;
   gpt4FallbackEnabled: Generated<boolean>;
+  forceA10: Generated<boolean>;
 }
 
 export interface FineTuneTestingEntry {
@@ -278,15 +279,15 @@ export interface GraphileWorkerMigrations {
 
 export interface Invoice {
   id: string;
-  projectId: string;
-  description: Json | null;
-  createdAt: Generated<Timestamp>;
   amount: Generated<Numeric>;
-  paidAt: Timestamp | null;
-  paymentId: string | null;
   status: Generated<"CANCELLED" | "PAID" | "PENDING" | "REFUNDED">;
-  billingPeriod: string | null;
   slug: string;
+  billingPeriod: string | null;
+  paidAt: Timestamp | null;
+  description: Json | null;
+  paymentId: string | null;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface LoggedCall {
@@ -327,8 +328,10 @@ export interface Project {
   slug: Generated<string>;
   isPublic: Generated<boolean>;
   isHidden: Generated<boolean>;
-  stripeCustomerId: string | null;
   billable: Generated<boolean>;
+  stripeCustomerId: string | null;
+  numLoggedCalls: Generated<number>;
+  tagNames: Generated<string[] | null>;
 }
 
 export interface ProjectUser {
@@ -383,9 +386,9 @@ export interface UsageLog {
   createdAt: Generated<Timestamp>;
   projectId: string | null;
   billable: Generated<boolean>;
-  invoiceId: string | null;
   baseModel: string | null;
   inputCost: Generated<Numeric>;
+  invoiceId: string | null;
   outputCost: Generated<Numeric>;
 }
 

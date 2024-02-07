@@ -23,7 +23,7 @@ import {
   useIsClientInitialized,
   useLoggedCalls,
   useTotalNumLogsSelected,
-  useTagNames,
+  useSelectedProject,
 } from "~/utils/hooks";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import { useFilters } from "../Filters/useFilters";
@@ -37,7 +37,7 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
   const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const toggleAllSelected = useAppStore((s) => s.selectedLogs.toggleAllSelected);
-  const tagNames = useTagNames().data;
+  const tagNames = useSelectedProject().data?.tagNames;
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
 
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -104,7 +104,7 @@ export const TableRow = ({
   );
   const toggleChecked = useAppStore((s) => s.selectedLogs.toggleSelectedLogId);
 
-  const tagNames = useTagNames().data;
+  const tagNames = useSelectedProject().data?.tagNames;
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
 
   const visibleTagNames = useMemo(() => {

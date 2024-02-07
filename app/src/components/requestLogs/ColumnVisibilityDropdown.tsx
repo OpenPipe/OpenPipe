@@ -14,13 +14,13 @@ import { BiCheck } from "react-icons/bi";
 import { BsToggles } from "react-icons/bs";
 import { useMemo } from "react";
 
-import { useIsClientInitialized, useTagNames } from "~/utils/hooks";
+import { useIsClientInitialized, useSelectedProject } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import ActionButton from "../ActionButton";
 
 const ColumnVisibilityDropdown = () => {
-  const tagNames = useTagNames().data;
+  const tagNames = useSelectedProject().data?.tagNames;
 
   const popover = useDisclosure();
 
