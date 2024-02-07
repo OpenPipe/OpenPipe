@@ -77,8 +77,8 @@ const InvoicesTable = ({ invoices }: Props) => {
             <Tr>
               <Th>ID</Th>
               <Th textAlign="center">Status</Th>
-              <Th isNumeric>Amount</Th>
               <Th isNumeric>{invoices.some((invoice) => invoice.paidAt) ? "Paid at" : ""}</Th>
+              <Th isNumeric>Amount</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -111,15 +111,6 @@ const InvoicesTable = ({ invoices }: Props) => {
                     </Badge>
                   </Td>
 
-                  <Td isNumeric>
-                    <ProjectLink
-                      href={{ pathname: "/billing/invoices/[id]", query: { id: invoice.id } }}
-                    >
-                      <Text as={"b"} color="gray.900">
-                        ${parseFloat(invoice.amount.toString()).toFixed(2)}
-                      </Text>
-                    </ProjectLink>
-                  </Td>
                   <Td w="400px" isNumeric>
                     {invoice.status === "PENDING" && (
                       <Button
@@ -138,6 +129,15 @@ const InvoicesTable = ({ invoices }: Props) => {
                     )}
 
                     {invoice.paidAt && <Text>{dayjs(invoice.paidAt).format("MMM D, YYYY")}</Text>}
+                  </Td>
+                  <Td w="200px" isNumeric>
+                    <ProjectLink
+                      href={{ pathname: "/billing/invoices/[id]", query: { id: invoice.id } }}
+                    >
+                      <Text as={"b"} color="gray.900">
+                        ${parseFloat(invoice.amount.toString()).toFixed(2)}
+                      </Text>
+                    </ProjectLink>
                   </Td>
                 </Tr>
               );

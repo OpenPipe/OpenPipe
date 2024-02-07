@@ -55,6 +55,8 @@ model Dataset {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@index([projectId])
 }
 
 enum DatasetEntrySplit {
@@ -444,6 +446,9 @@ model FineTune {
     openaiModelId           String?
     pipelineVersion         Int
     exportWeightsRequests   ExportWeightsRequest[]
+
+    @@index([projectId])
+    @@index([datasetId])
 }
 
 model FineTuneTrainingEntry {
@@ -644,6 +649,7 @@ enum InvoiceStatus {
     PAID
     CANCELLED
     REFUNDED
+    FREE
 }
 
 model Invoice {

@@ -28,7 +28,7 @@
     "repl": "tsx scripts/repl.ts",
     "repl:watch": "tsx --watch scripts/repl.ts",
     "dev:modal": "cd ../trainer && MODAL_ENVIRONMENT='dev' concurrently 'poetry run modal serve src/lora_inference/main.py' 'poetry run modal serve src/trainer/main.py' --kill-others",
-    "email": "email dev"
+    "email": "email dev --dir src/components/emails"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^10.1.0",
@@ -46,6 +46,7 @@
     "@next-auth/prisma-adapter": "^1.0.5",
     "@prisma/client": "^4.14.0",
     "@react-email/components": "0.0.14",
+    "@react-email/render": "^0.0.12",
     "@sendinblue/client": "^3.3.1",
     "@sentry/browser": "^7.91.0",
     "@sentry/nextjs": "^7.91.0",
