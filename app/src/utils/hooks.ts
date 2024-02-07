@@ -268,6 +268,9 @@ export const useLoggedCalls = (applyFilters = true) => {
   const dateFilters = useDateFilter().filters;
   const allFilters = [...generalFilters, ...dateFilters];
 
+  // prevent blank filters from throwing off caching
+  const filtersWithValues = allFilters.filter((filter) => filter.value !== "");
+
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
   const result = api.loggedCalls.list.useQuery(
@@ -275,7 +278,7 @@ export const useLoggedCalls = (applyFilters = true) => {
       projectId: selectedProjectId ?? "",
       page,
       pageSize,
-      filters: applyFilters ? allFilters : [],
+      filters: applyFilters ? filtersWithValues : [],
     },
     { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
   );
