@@ -41,7 +41,7 @@ const DateFilter = () => {
           {timeFrame.split(" ")[1]?.toLowerCase()}
         </Button>
       ))}
-      <Button backgroundColor={"white"} isActive={!filter} onClick={() => deleteFilter()}>
+      <Button backgroundColor={"white"} isActive={!filter} onClick={deleteFilter}>
         All
       </Button>
 
@@ -49,12 +49,7 @@ const DateFilter = () => {
         {({ onClose }) => (
           <>
             <PopoverTrigger>
-              <Button
-                isActive={filter?.comparator === "RANGE"}
-                // onClick={() => updateOrAddFilter("RANGE")}
-              >
-                Custom
-              </Button>
+              <Button isActive={filter?.comparator === "RANGE"}>Custom</Button>
             </PopoverTrigger>
             <DateRange filter={filter} close={onClose} />
           </>
