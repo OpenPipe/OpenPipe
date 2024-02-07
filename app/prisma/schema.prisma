@@ -572,8 +572,7 @@ model DatasetEvalDatasetEntry {
     datasetEntryId String?       @db.Uuid
     datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
-    importId  String?
-    inputHash String?
+    importId String?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -581,8 +580,8 @@ model DatasetEvalDatasetEntry {
     // @@unique([datasetEvalId, datasetEntryId])
     @@index([datasetEvalId, datasetEntryId])
     @@index([datasetEntryId])
-    @@index([datasetEvalId, importId, inputHash])
-    @@index([importId, inputHash, datasetEvalId])
+    @@index([datasetEvalId, importId])
+    @@index([importId, datasetEvalId])
 }
 
 // Used to record whether the dataset output and which comparison and
@@ -633,13 +632,18 @@ model DatasetEvalResult {
     datasetEvalDatasetEntryId String                  @db.Uuid
     datasetEvalDatasetEntry   DatasetEvalDatasetEntry @relation(fields: [datasetEvalDatasetEntryId], references: [id], onDelete: Cascade)
 
+    inputHash  String?
+    outputHash String?
+
     datasetEvalOutputSourceId String                  @db.Uuid
     datasetEvalOutputSource   DatasetEvalOutputSource @relation(fields: [datasetEvalOutputSourceId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([datasetEvalDatasetEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
+    // @@unique([datasetEvalDatasetEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
+    @@index([datasetEvalDatasetEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
+    @@index([inputHash, outputHash, datasetEvalOutputSourceId])
     @@index([comparisonResultId])
 }
 

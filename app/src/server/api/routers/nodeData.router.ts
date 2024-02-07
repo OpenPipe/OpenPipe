@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { sql } from "kysely";
-import { jsonArrayFrom } from "kysely/helpers/postgres";
+import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import { pick } from "lodash-es";
 import { z } from "zod";
 import { type Prisma } from "@prisma/client";
@@ -37,6 +37,8 @@ import { generateImportId } from "~/server/utils/nodes/importId";
 import { hashDatasetEntryInput, hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";
 import { processNode } from "~/server/tasks/nodes/processNode.task";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
+import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
+import { startDatasetTestJobs } from "~/server/utils/nodes/processNodes/startTestJobs";
 
 export const nodeDataRouter = createTRPCRouter({
   list: protectedProcedure
@@ -100,12 +102,6 @@ export const nodeDataRouter = createTRPCRouter({
 
       const entries = await entriesQuery.orderBy("inputHash").execute();
 
-      // TODO: stop sending all ids to the client
-      const nodeDataIds = await baseQuery
-        .select("nd.id")
-        .execute()
-        .then((rows) => rows.map((row) => row.id));
-
       const matchingTrainingCount = await baseQuery
         .where("nd.split", "=", "TRAIN")
         .select((eb) => [eb.fn.count("nd.id").as("count")])
@@ -122,7 +118,6 @@ export const nodeDataRouter = createTRPCRouter({
 
       return {
         entries,
-        nodeDataIds,
         matchingTrainingCount,
         totalTestingCount,
       };
@@ -187,15 +182,15 @@ export const nodeDataRouter = createTRPCRouter({
         datasetId = input.datasetId;
 
         const datasetNode = await kysely
-          .selectFrom("Dataset")
-          .where("id", "=", datasetId)
-          .innerJoin("Node", "Node.id", "Dataset.nodeId")
-          .selectAll("Node")
+          .selectFrom("Dataset as d")
+          .where("d.id", "=", datasetId)
+          .innerJoin("Node as n", "n.id", "d.nodeId")
+          .selectAll("n")
           .executeTakeFirst();
-        if (!datasetNode) return error("Dataset not found");
+        if (!datasetNode) return error("Dataset node not found");
 
         const tDatasetNode = typedNode(datasetNode);
-        if (tDatasetNode.type !== "Dataset") return error("Dataset node not found");
+        if (tDatasetNode.type !== "Dataset") return error("Dataset node incorrectly typed");
 
         projectId = datasetNode.projectId;
         llmRelabelNodeId = tDatasetNode.config.llmRelabelNodeId;
@@ -328,29 +323,32 @@ export const nodeDataRouter = createTRPCRouter({
         .selectFrom("NodeData as nd")
         .where("nd.id", "=", input.id)
         .innerJoin("NodeData as parentNodeData", "parentNodeData.id", "nd.parentNodeDataId")
-        .innerJoin("Node as n", "n.id", "nd.nodeId")
         .innerJoin("DatasetEntryInput as dei", "dei.hash", "nd.inputHash")
         .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
         .selectAll("nd")
-        .select([
-          "n.projectId as projectId",
+        .select((eb) => [
           "parentNodeData.inputHash as parentNodeDataInputHash",
-          "n.type as type",
-          "n.config as config",
           "dei.messages as messages",
           "dei.tool_choice as tool_choice",
           "dei.tools as tools",
           "dei.response_format as response_format",
           "deo.output as output",
+          jsonObjectFrom(
+            eb
+              .selectFrom("Node as n")
+              .where("n.id", "=", "nd.nodeId")
+              .innerJoin("Dataset as d", "d.nodeId", "n.id")
+              .select(["n.projectId", "n.id", "n.type", "n.config", "n.hash", "d.id as datasetId"]),
+          ).as("node"),
         ])
         .executeTakeFirst();
 
-      if (!nodeData) return error("NodeData not found");
+      if (!nodeData?.node) return error("NodeData not found");
 
-      const tNode = typedNode(nodeData);
+      const tNode = typedNode(nodeData.node);
       if (tNode.type !== "Dataset") return error("Dataset node not found");
 
-      await requireCanModifyProject(nodeData.projectId, ctx);
+      await requireCanModifyProject(tNode.projectId, ctx);
 
       let updatedMessages = undefined;
       try {
@@ -398,6 +396,7 @@ export const nodeDataRouter = createTRPCRouter({
 
         const updatedInputHash = hashDatasetEntryInput({
           ...tNodeData,
+          projectId: tNode.projectId,
           tools: tNodeData.tools ?? undefined,
         });
         const inputUpdated = updatedInputHash !== tNodeData.inputHash;
@@ -416,7 +415,10 @@ export const nodeDataRouter = createTRPCRouter({
             .executeTakeFirst();
         }
 
-        const updatedOutputHash = hashDatasetEntryOutput(tNodeData);
+        const updatedOutputHash = hashDatasetEntryOutput({
+          ...tNodeData,
+          projectId: tNode.projectId,
+        });
         const outputUpdated = updatedOutputHash !== tNodeData.outputHash;
         if (outputUpdated) {
           await kysely
@@ -461,13 +463,22 @@ export const nodeDataRouter = createTRPCRouter({
             )
             .execute();
 
-          // delete all NodeData downstream of the ManualRelabel Node
+          const parentNodeDataId = tNodeData.parentNodeDataId;
+
+          // delete all NodeData downstream of the ManualRelabel and Dataset NodeData
+          // (excluding the NodeData that we're editing)
           await kysely
             .deleteFrom("NodeData")
-            .where("parentNodeDataId", "=", tNodeData.parentNodeDataId)
+            .where((eb) =>
+              eb.or([
+                eb("parentNodeDataId", "=", parentNodeDataId),
+                eb("parentNodeDataId", "=", input.id),
+              ]),
+            )
+            .where("id", "!=", input.id)
             .execute();
 
-          // invalidate the cache for the ManualRelabel Node
+          // Tell ManualRelabel Node to reprocess the NodeData
           await kysely
             .updateTable("NodeData")
             .where("nodeId", "=", manualRelabelNode.id)
@@ -478,27 +489,36 @@ export const nodeDataRouter = createTRPCRouter({
             })
             .execute();
 
-          // create a new NodeData for the Dataset Node
+          // Update the NodeData directly in the Dataset Node
           await kysely
-            .insertInto("NodeData")
-            .values({
-              id: nodeData.id,
-              importId: nodeData.importId,
-              dataChannelId: nodeData.dataChannelId,
-              nodeId: tNode.id,
-              parentNodeDataId: tNodeData.parentNodeDataId,
+            .updateTable("NodeData")
+            .where("id", "=", tNodeData.id)
+            .set({
               inputHash: updatedInputHash,
               outputHash: updatedOutputHash,
-              originalOutputHash: tNodeData.originalOutputHash,
               split: updatedSplit,
-              status: "PENDING",
-              createdAt: new Date(),
               updatedAt: new Date(),
             })
             .execute();
 
           await processNode.enqueue({ nodeId: manualRelabelNode.id, nodeType: "ManualRelabel" });
           await countDatasetEntryTokens.enqueue();
+
+          await updateDatasetPruningRuleMatches({
+            nodeHash: tNode.hash,
+            datasetId: tNode.datasetId,
+            nodeDataBaseQuery: kysely
+              .selectFrom("NodeData as nd")
+              .where("nd.nodeId", "=", input.id),
+          });
+          if (updatedSplit === "TEST") {
+            await startDatasetTestJobs({
+              datasetId: tNode.datasetId,
+              nodeDataBaseQuery: kysely
+                .selectFrom("NodeData as nd")
+                .where("nd.nodeId", "=", input.id),
+            });
+          }
         }
       }
 
@@ -633,12 +653,12 @@ export const nodeDataRouter = createTRPCRouter({
                 )
                 .where("deos.modelId", "=", sortOrder.modelId)
                 .select((eb) => [
-                  "dede.inputHash as dedeInputHash",
+                  "dede.importId as dedeImportId",
                   eb.fn.agg<number>("AVG", [`der.score`]).as("score"),
                 ])
-                .groupBy("dede.inputHash")
+                .groupBy("dede.importId")
                 .as("averageScoreForEval"),
-            (join) => join.onRef("averageScoreForEval.dedeInputHash", "=", "nd.inputHash"),
+            (join) => join.onRef("averageScoreForEval.dedeImportId", "=", "nd.importId"),
           )
           // Ensure that rows with the sort eval applied are always shown first
           .orderBy(
@@ -676,7 +696,7 @@ export const nodeDataRouter = createTRPCRouter({
           jsonArrayFrom(
             eb
               .selectFrom("DatasetEvalResult as der")
-              .leftJoin("DatasetEvalDatasetEntry as dede", "dede.inputHash", "nd.inputHash")
+              .leftJoin("DatasetEvalDatasetEntry as dede", "dede.importId", "nd.importId")
               .leftJoin(
                 "DatasetEvalOutputSource as deos",
                 "deos.id",
@@ -704,9 +724,9 @@ export const nodeDataRouter = createTRPCRouter({
         .execute();
 
       const count = await baseQuery
-        .select("nd.id")
-        .execute()
-        .then((rows) => rows.length);
+        .select([sql<number>`count(*)::int`.as("count")])
+        .executeTakeFirst()
+        .then((res) => res?.count ?? 0);
 
       const pageIncomplete = entries.some(
         (entry) =>
@@ -758,7 +778,7 @@ export const nodeDataRouter = createTRPCRouter({
         .distinctOn(["nd.importId", "nd.inputHash"])
         .where("ftte.modelId", "=", modelId)
         .where(sql`"ftte"."output" is not null`)
-        .select(["ftte.id"])
+        .select([sql<number>`count(*)::int`.as("count")])
         .execute();
 
       const baseQuery = constructEvaluationFiltersQuery({ filters, nodeId: dataset.nodeId });
@@ -795,7 +815,6 @@ export const nodeDataRouter = createTRPCRouter({
                 )
                 .select((eb) => [
                   "dede.importId as importId",
-                  "dede.inputHash as inputHash",
                   eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval`),
                   sql`COUNT(CASE WHEN der.score = 1 THEN 1 ELSE NULL END)`.as(`wins`),
                   sql`COUNT(CASE WHEN der.score = .5 THEN 1 ELSE NULL END)`.as(`ties`),
@@ -807,12 +826,9 @@ export const nodeDataRouter = createTRPCRouter({
                     `complete`,
                   ),
                 ])
-                .groupBy(["dede.importId", "dede.inputHash"])
+                .groupBy(["dede.importId"])
                 .as(alias),
-            (join) =>
-              join
-                .onRef(`${alias}.importId`, "=", "nd.importId")
-                .onRef(`${alias}.inputHash`, "=", "nd.inputHash"),
+            (join) => join.onRef(`${alias}.importId`, "=", "nd.importId"),
           )
           .select((eb) => [
             eb.fn.agg<number>("AVG", [`${alias}.scoreForEval`]).as(`score_${datasetEval.id}`),

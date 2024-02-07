@@ -46,30 +46,12 @@ export const getDownstreamDatasets = (monitorNodeId: string) => {
     .distinctOn("datasetNode.id");
 };
 
-export const getUpstreamMonitors = (datasetNode: Node) => {
-  const tNode = typedNode(datasetNode);
-  if (tNode.type !== "Dataset") {
-    throw new Error("Node is not a Dataset");
-  }
-
-  const { llmRelabelNodeId } = tNode.config;
-
+export const getUpstreamSources = ({ llmRelabelNodeId }: { llmRelabelNodeId: string }) => {
   return kysely
     .selectFrom("Node as datasetLLMRelabelNode")
     .where("datasetLLMRelabelNode.id", "=", llmRelabelNodeId)
     .innerJoin("DataChannel as dc1", "dc1.destinationId", "datasetLLMRelabelNode.id")
-    .innerJoin(
-      "NodeOutput as monitorLLMRelabelNodeOutput",
-      "monitorLLMRelabelNodeOutput.id",
-      "dc1.originId",
-    )
-    .innerJoin(
-      "Node as monitorLLMRelabelNode",
-      "monitorLLMRelabelNode.id",
-      "monitorLLMRelabelNodeOutput.nodeId",
-    )
-    .innerJoin("DataChannel as dc2", "dc2.destinationId", "monitorLLMRelabelNode.id")
-    .innerJoin("NodeOutput as monitorNodeOutput", "monitorNodeOutput.id", "dc2.originId")
-    .innerJoin("Node as monitorNode", "monitorNode.id", "monitorNodeOutput.nodeId")
-    .distinctOn("monitorNode.id");
+    .innerJoin("NodeOutput as sourceNodeOutput", "sourceNodeOutput.id", "dc1.originId")
+    .innerJoin("Node as sourceNode", "sourceNode.id", "sourceNodeOutput.nodeId")
+    .distinctOn("sourceNode.id");
 };

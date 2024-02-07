@@ -5,6 +5,8 @@ import { processMonitor } from "~/server/utils/nodes/processNodes/processMonitor
 import { processLLMRelabel } from "~/server/utils/nodes/processNodes/processLLMRelabel";
 import { invalidateNodeData } from "~/server/utils/nodes/invalidateNodeData";
 import { processArchive } from "~/server/utils/nodes/processNodes/processArchive";
+import { processDataset } from "~/server/utils/nodes/processNodes/processDataset";
+import { enqueueDescendants } from "~/server/utils/nodes/processNodes/enqueueDescendants";
 
 export type ProcessNodeJob = {
   nodeId: string;
@@ -28,5 +30,9 @@ export const processNode = defineTask<ProcessNodeJob>({
     if (nodeType === "LLMRelabel") {
       await processLLMRelabel(nodeId);
     }
+    if (nodeType === "Dataset") {
+      await processDataset(nodeId);
+    }
+    await enqueueDescendants(nodeId);
   },
 });

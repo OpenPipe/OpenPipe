@@ -10,13 +10,11 @@ export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 export const saveFieldComparisonScore = async ({
   datasetId,
   importId,
-  inputHash,
   score,
   modelId,
 }: {
   datasetId: string;
   importId: string;
-  inputHash: string;
   score: number;
   modelId: string;
 }) => {
@@ -51,14 +49,13 @@ export const saveFieldComparisonScore = async ({
       id: datasetEvalDatasetEntryId,
       datasetEvalId: datasetEval.id,
       importId,
-      inputHash,
       updatedAt: new Date(),
     })
-    .onConflict((oc) => oc.columns(["datasetEvalId", "importId", "inputHash"]).doNothing())
+    .onConflict((oc) => oc.columns(["datasetEvalId", "importId"]).doNothing())
     .execute();
 
   const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.findFirstOrThrow({
-    where: { datasetEvalId: datasetEval.id, importId, inputHash },
+    where: { datasetEvalId: datasetEval.id, importId },
   });
 
   let datasetEvalOutputSource;

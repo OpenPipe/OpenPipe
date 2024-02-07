@@ -1,7 +1,11 @@
-import type { DatasetEntry, DatasetEntryInput, FineTuneTestingEntry, Prisma } from "@prisma/client";
+import type {
+  DatasetEntry,
+  DatasetEntryInput,
+  DatasetEvalOutputSource,
+  Prisma,
+} from "@prisma/client";
 import type { ChatCompletionCreateParams, FunctionParameters } from "openai/resources";
 import { v4 as uuidv4 } from "uuid";
-import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { captureException } from "@sentry/node";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -12,14 +16,14 @@ import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonModels";
-import { isEqual, shuffle } from "lodash-es";
+import { isEqual } from "lodash-es";
 import { chatCompletionMessage } from "~/types/shared.types";
-import { truthyFilter } from "~/utils/utils";
 import { calculateQueryDelay } from "./generateTestSetEntry.task";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
+import { generateEntry } from "./generateTestSetEntry.task";
 
-type EvalKey = {
-  datasetEvalDatasetEntryId: string;
+export type EvalKey = {
+  nodeDataId: string;
   firstOutputSourceId: string;
   secondOutputSourceId: string;
 };
@@ -34,7 +38,231 @@ const MAX_TRIES = 50;
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
   handler: async (task) => {
-    const { numPreviousTries = 0 } = task;
+    let { nodeDataId, firstOutputSourceId, secondOutputSourceId, numPreviousTries = 0 } = task;
+
+    // randomize the order of the output sources to avoid bias
+    if (Math.random() > 0.5) {
+      [firstOutputSourceId, secondOutputSourceId] = [secondOutputSourceId, firstOutputSourceId];
+    }
+
+    const nodeData = await prisma.nodeData.findUnique({
+      where: { id: nodeDataId },
+    });
+
+    const firstOutputSource = await prisma.datasetEvalOutputSource.findUnique({
+      where: { id: firstOutputSourceId },
+      include: {
+        datasetEval: {
+          include: {
+            dataset: true,
+          },
+        },
+      },
+    });
+
+    const secondOutputSource = await prisma.datasetEvalOutputSource.findUnique({
+      where: { id: secondOutputSourceId },
+    });
+
+    if (!nodeData || !firstOutputSource || !secondOutputSource) return;
+
+    const getOutput = async ({ outputSource }: { outputSource: DatasetEvalOutputSource }) => {
+      if (outputSource.modelId !== ORIGINAL_MODEL_ID) {
+        return kysely
+          .selectFrom("FineTuneTestingEntry as ftte")
+          .where("ftte.modelId", "=", outputSource.modelId)
+          .where("ftte.inputHash", "=", nodeData.inputHash)
+          .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
+          .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
+          .select(["ftte.outputHash"])
+          .executeTakeFirst()
+          .then((entry) => entry?.outputHash);
+      } else {
+        return kysely
+          .selectFrom("NodeData as nd")
+          .where("nd.id", "=", nodeDataId)
+          .select(["nd.outputHash"])
+          .executeTakeFirst()
+          .then((entry) => entry?.outputHash);
+      }
+    };
+
+    // Ensure output has already been generated
+    const [existingFirstOutputHash, existingSecondOutputHash] = await Promise.all([
+      getOutput({ outputSource: firstOutputSource }),
+      getOutput({ outputSource: secondOutputSource }),
+    ]);
+
+    const generationPromises = [];
+
+    if (!existingFirstOutputHash) {
+      generationPromises.push(
+        generateEntry({
+          modelId: firstOutputSource.modelId,
+          nodeDataId,
+        }),
+      );
+    }
+
+    if (!existingSecondOutputHash) {
+      generationPromises.push(
+        generateEntry({
+          modelId: secondOutputSource.modelId,
+          nodeDataId,
+        }),
+      );
+    }
+
+    await Promise.all(generationPromises);
+
+    const [firstOutputHash, secondOutputHash] = await Promise.all([
+      getOutput({ outputSource: firstOutputSource }),
+      getOutput({ outputSource: secondOutputSource }),
+    ]);
+
+    if (!firstOutputHash || !secondOutputHash) return;
+
+    const findCombinedResult = () =>
+      kysely
+        .selectFrom("NodeData as nd")
+        .where("nd.id", "=", nodeDataId)
+        .innerJoin("DatasetEvalOutputSource as deos", (join) =>
+          join.on("deos.id", "=", firstOutputSourceId),
+        )
+        .innerJoin("DatasetEvalOutputSource as comparisonDeos", (join) =>
+          join.on("comparisonDeos.id", "=", secondOutputSourceId),
+        )
+        .innerJoin("DatasetEvalResult as der", (join) =>
+          join
+            .onRef("der.inputHash", "=", "nd.inputHash")
+            .on("der.outputHash", "=", firstOutputHash)
+            .on("der.datasetEvalOutputSourceId", "=", firstOutputSourceId),
+        )
+        .innerJoin("DatasetEvalResult as comparisonDer", (join) =>
+          join
+            .onRef("comparisonDer.inputHash", "=", "nd.inputHash")
+            .on("comparisonDer.outputHash", "=", secondOutputHash)
+            .on("comparisonDer.datasetEvalOutputSourceId", "=", secondOutputSourceId),
+        );
+
+    const exactMatchCombinedResult = await findCombinedResult()
+      .innerJoin("DatasetEvalDatasetEntry as dede", "dede.importId", "nd.importId")
+      .select([
+        "der.id as firstResultId",
+        "der.status as firstResultStatus",
+        "comparisonDer.id as secondResultId",
+        "comparisonDer.status as secondResultStatus",
+      ])
+      .executeTakeFirst();
+
+    if (
+      exactMatchCombinedResult?.firstResultStatus === "COMPLETE" &&
+      exactMatchCombinedResult?.secondResultStatus === "COMPLETE"
+    ) {
+      return;
+    }
+
+    let firstResultId;
+    let secondResultId;
+
+    if (exactMatchCombinedResult) {
+      firstResultId = exactMatchCombinedResult.firstResultId;
+      secondResultId = exactMatchCombinedResult.secondResultId;
+    } else {
+      const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.findFirst({
+        where: { importId: nodeData.importId, datasetEvalId: firstOutputSource.datasetEvalId },
+      });
+
+      if (!datasetEvalDatasetEntry) return;
+
+      firstResultId = uuidv4();
+      secondResultId = uuidv4();
+
+      await kysely
+        .insertInto("DatasetEvalResult")
+        .values([
+          {
+            id: firstResultId,
+            datasetEvalOutputSourceId: firstOutputSourceId,
+            inputHash: nodeData.inputHash,
+            outputHash: firstOutputHash,
+            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+            comparisonOutputSourceId: secondOutputSourceId,
+            comparisonResultId: secondResultId,
+            status: "PENDING",
+            updatedAt: new Date(),
+          },
+          {
+            id: secondResultId,
+            datasetEvalOutputSourceId: secondOutputSourceId,
+            inputHash: nodeData.inputHash,
+            outputHash: secondOutputHash,
+            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+            comparisonOutputSourceId: firstOutputSourceId,
+            comparisonResultId: firstResultId,
+            status: "PENDING",
+            updatedAt: new Date(),
+          },
+        ])
+        .execute();
+    }
+
+    // delete all past results for this importId and these output sources
+    await kysely
+      .deleteFrom("DatasetEvalResult as der")
+      .innerJoin("DatasetEvalDatasetEntry as dede", "dede.id", "der.datasetEvalDatasetEntryId")
+      .where("dede.importId", "=", nodeData.importId)
+      .where("datasetEvalOutputSourceId", "=", firstOutputSourceId)
+      .where("comparisonOutputSourceId", "=", secondOutputSourceId)
+      .where("der.id", "!=", firstResultId)
+      .execute();
+    await kysely
+      .deleteFrom("DatasetEvalResult as der")
+      .innerJoin("DatasetEvalDatasetEntry as dede", "dede.id", "der.datasetEvalDatasetEntryId")
+      .where("dede.importId", "=", nodeData.importId)
+      .where("datasetEvalOutputSourceId", "=", secondOutputSourceId)
+      .where("comparisonOutputSourceId", "=", firstOutputSourceId)
+      .where("der.id", "!=", secondResultId)
+      .execute();
+
+    const completeCombinedResult = await findCombinedResult()
+      .where("der.status", "=", "COMPLETE")
+      .where("comparisonDer.status", "=", "COMPLETE")
+      .select([
+        "der.score as firstResultScore",
+        "der.explanation as firstResultExplanation",
+        "der.judge",
+        "der.wasFirst as firstResultWasFirst",
+        "comparisonDer.score as secondResultScore",
+        "comparisonDer.explanation as secondResultExplanation",
+      ])
+      .executeTakeFirst();
+
+    if (completeCombinedResult) {
+      await prisma.datasetEvalResult.update({
+        where: { id: firstResultId },
+        data: {
+          score: completeCombinedResult.firstResultScore,
+          explanation: completeCombinedResult.firstResultExplanation,
+          judge: completeCombinedResult.judge,
+          wasFirst: completeCombinedResult.firstResultWasFirst,
+          status: "COMPLETE",
+          errorMessage: null,
+        },
+      });
+      await prisma.datasetEvalResult.update({
+        where: { id: secondResultId },
+        data: {
+          score: completeCombinedResult.secondResultScore,
+          explanation: completeCombinedResult.secondResultExplanation,
+          judge: completeCombinedResult.judge,
+          wasFirst: !completeCombinedResult.firstResultWasFirst,
+          status: "COMPLETE",
+          errorMessage: null,
+        },
+      });
+      return;
+    }
 
     const findResult = (criteria: Prisma.DatasetEvalResultWhereInput) =>
       prisma.datasetEvalResult.findFirst({
@@ -56,12 +284,14 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
     const [firstResult, secondResult] = await Promise.all([
       findResult({
         datasetEvalOutputSourceId: task.firstOutputSourceId,
-        datasetEvalDatasetEntryId: task.datasetEvalDatasetEntryId,
+        inputHash: nodeData.inputHash,
+        outputHash: firstOutputHash,
         comparisonOutputSourceId: task.secondOutputSourceId,
       }),
       findResult({
         datasetEvalOutputSourceId: task.secondOutputSourceId,
-        datasetEvalDatasetEntryId: task.datasetEvalDatasetEntryId,
+        inputHash: nodeData.inputHash,
+        outputHash: secondOutputHash,
         comparisonOutputSourceId: task.firstOutputSourceId,
       }),
     ]);
@@ -89,11 +319,8 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         },
       });
 
-      const inputHash = firstResult.datasetEvalDatasetEntry.inputHash;
-      if (!inputHash) return;
-
       const input = await prisma.datasetEntryInput.findUnique({
-        where: { hash: inputHash },
+        where: { hash: nodeData.inputHash },
       });
 
       if (!input) {
@@ -120,7 +347,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
             const entry = await kysely
               .selectFrom("FineTuneTestingEntry as ftte")
               .where("ftte.modelId", "=", result.datasetEvalOutputSource.modelId)
-              .where("ftte.inputHash", "=", result.datasetEvalDatasetEntry.inputHash)
+              .where("ftte.inputHash", "=", nodeData.inputHash)
               .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
               .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
               .select([
@@ -143,7 +370,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           } else {
             const entry = await kysely
               .selectFrom("NodeData as nd")
-              .where("nd.importId", "=", result.datasetEvalDatasetEntry.importId)
+              .where("nd.id", "=", nodeDataId)
               .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
               .select(["deo.output"])
               .executeTakeFirstOrThrow();
@@ -216,7 +443,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       let explanation;
       let judgement;
 
-      const instructions = firstResult.datasetEvalDatasetEntry.datasetEval.instructions;
+      const instructions = firstOutputSource.datasetEval.instructions;
 
       let args;
 
@@ -231,7 +458,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         );
 
         const response = await getOpenaiCompletion(
-          firstResult.datasetEvalDatasetEntry.datasetEval.dataset.projectId,
+          firstOutputSource.datasetEval.dataset.projectId,
           judgementInput,
         );
 
@@ -447,140 +674,3 @@ const formatDatasetEntryInputInstructions = (datasetEntryInput: DatasetEntryInpu
   }
   return instructions + "\nTASK END\n";
 };
-
-export const queueHeadToHeadEvalJobsForTestingEntry = async (
-  testingEntry: FineTuneTestingEntry,
-  datasetId: string,
-) => {
-  const evalsForTestingEntry = await kysely
-    .selectFrom("DatasetEval as eval")
-    .where("eval.datasetId", "=", datasetId)
-    .where("eval.type", "=", "HEAD_TO_HEAD")
-    .innerJoin("DatasetEvalDatasetEntry as dede", "dede.datasetEvalId", "eval.id")
-    .where("dede.inputHash", "=", testingEntry.inputHash)
-    .select((eb) => [
-      "dede.id as datasetEvalDatasetEntryId",
-      jsonArrayFrom(
-        eb
-          .selectFrom("DatasetEvalOutputSource as deos")
-          .whereRef("deos.datasetEvalId", "=", "eval.id")
-          .leftJoin("FineTuneTestingEntry as ftte", (join) =>
-            join
-              .onRef("ftte.modelId", "=", "deos.modelId")
-              .onRef("ftte.inputHash", "=", "dede.inputHash"),
-          )
-          .where((eb) => {
-            // Ensure output source already has output loaded
-            return eb.or([
-              eb("deos.modelId", "=", ORIGINAL_MODEL_ID),
-              eb("ftte.output", "is not", null),
-            ]);
-          })
-          .select(["deos.id", "deos.modelId", "ftte.output"]),
-      ).as("outputSourcesWithOutput"),
-    ])
-    .execute();
-
-  const evalsToRun: EvalKey[] = [];
-
-  for (const datasetEval of evalsForTestingEntry) {
-    const outputSource = datasetEval.outputSourcesWithOutput.find(
-      (s) => s.modelId === testingEntry.modelId,
-    );
-    if (!outputSource) continue;
-    for (const comparisonSource of datasetEval.outputSourcesWithOutput) {
-      if (comparisonSource.modelId === testingEntry.modelId) continue;
-
-      evalsToRun.push({
-        datasetEvalDatasetEntryId: datasetEval.datasetEvalDatasetEntryId,
-        firstOutputSourceId: outputSource.id,
-        secondOutputSourceId: comparisonSource.id,
-      });
-    }
-  }
-
-  await queueAllHeadToHeadEvaluations(evalsToRun);
-};
-
-export const queueEvalJobsForEval = async (datasetEvalId: string) => {
-  const datasetEvals = await kysely
-    .selectFrom("DatasetEval as eval")
-    .where("eval.id", "=", datasetEvalId)
-    .select((eb) => [
-      jsonArrayFrom(
-        eb
-          .selectFrom("DatasetEvalDatasetEntry as dede")
-          .select(["dede.id", "dede.datasetEvalId"])
-          .whereRef("datasetEvalId", "=", "eval.id"),
-      ).as("datasetEvalDatasetEntries"),
-      jsonArrayFrom(
-        eb
-          .selectFrom("DatasetEvalOutputSource")
-          .select(["id", "modelId", "datasetEvalId"])
-          .whereRef("datasetEvalId", "=", "eval.id"),
-      ).as("outputSources"),
-    ])
-    .execute();
-
-  const datasetEval = datasetEvals[0];
-  if (!datasetEval) return;
-
-  const evalsToRun: EvalKey[] = [];
-
-  for (const datasetEvalDatasetEntry of datasetEval.datasetEvalDatasetEntries) {
-    for (let i = 0; i < datasetEval.outputSources.length; i++) {
-      for (let j = i + 1; j < datasetEval.outputSources.length; j++) {
-        evalsToRun.push({
-          firstOutputSourceId: datasetEval.outputSources[i]?.id as string,
-          secondOutputSourceId: datasetEval.outputSources[j]?.id as string,
-          datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-        });
-      }
-    }
-  }
-
-  await queueAllHeadToHeadEvaluations(evalsToRun);
-};
-
-async function queueAllHeadToHeadEvaluations(evalKeys: EvalKey[]) {
-  const results = evalKeys
-    .map((evalKey) => {
-      const [firstOutputSourceId, secondOutputSourceId] = shuffle([
-        evalKey.firstOutputSourceId,
-        evalKey.secondOutputSourceId,
-      ]);
-      if (!firstOutputSourceId || !secondOutputSourceId) return null;
-
-      return {
-        firstResultId: uuidv4(),
-        secondResultId: uuidv4(),
-        evalKey,
-      };
-    })
-    .filter(truthyFilter);
-
-  await prisma.datasetEvalResult.createMany({
-    data: results.flatMap((comparison) => [
-      {
-        id: comparison.firstResultId,
-        datasetEvalOutputSourceId: comparison.evalKey.firstOutputSourceId,
-        datasetEvalDatasetEntryId: comparison.evalKey.datasetEvalDatasetEntryId,
-        comparisonResultId: comparison.secondResultId,
-        comparisonOutputSourceId: comparison.evalKey.secondOutputSourceId,
-      },
-      {
-        id: comparison.secondResultId,
-        datasetEvalOutputSourceId: comparison.evalKey.secondOutputSourceId,
-        datasetEvalDatasetEntryId: comparison.evalKey.datasetEvalDatasetEntryId,
-        comparisonResultId: comparison.firstResultId,
-        comparisonOutputSourceId: comparison.evalKey.firstOutputSourceId,
-      },
-    ]),
-    skipDuplicates: true,
-  });
-
-  // Shuffle so all models get results run at roughly the same rate
-  for (const result of shuffle(results)) {
-    await evaluateTestSetEntries.enqueue(result.evalKey);
-  }
-}

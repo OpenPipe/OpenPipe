@@ -176,7 +176,6 @@ export interface DatasetEvalDatasetEntry {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   importId: string | null;
-  inputHash: string | null;
 }
 
 export interface DatasetEvalOutputSource {
@@ -201,6 +200,8 @@ export interface DatasetEvalResult {
   updatedAt: Timestamp;
   wasFirst: boolean | null;
   judge: string | null;
+  inputHash: string | null;
+  outputHash: string | null;
 }
 
 export interface DatasetFileUpload {
@@ -259,6 +260,7 @@ export interface FineTune {
   numEpochs: number | null;
   numTrainingAutoretries: Generated<number>;
   gpt4FallbackEnabled: Generated<boolean>;
+  forceA10: Generated<boolean>;
 }
 
 export interface FineTuneTestingEntry {

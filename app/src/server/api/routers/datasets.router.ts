@@ -10,49 +10,57 @@ import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessCo
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { generateBlobUploadUrl } from "~/utils/azure/server";
 import { env } from "~/env.mjs";
-import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
 import { constructNodeDataFiltersQuery } from "~/server/utils/constructNodeDataFiltersQuery";
-import { ArchiveOutputs, DEFAULT_MAX_OUTPUT_SIZE } from "~/server/utils/nodes/node.types";
+import {
+  ArchiveOutputs,
+  DEFAULT_MAX_OUTPUT_SIZE,
+  typedNode,
+} from "~/server/utils/nodes/node.types";
 import { processNode } from "~/server/tasks/nodes/processNode.task";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
+import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
+import { startDatasetTestJobs } from "~/server/utils/nodes/processNodes/startTestJobs";
+import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
+import { getUpstreamSources } from "~/server/utils/nodes/relationalQueries";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    const [dataset, numTestDatasetEntries] = await prisma.$transaction([
-      prisma.dataset.findUniqueOrThrow({
-        where: { id: input.id },
-        include: {
-          project: true,
-          fineTunes: {
-            where: {
-              status: "DEPLOYED",
-            },
-            orderBy: {
-              createdAt: "desc",
-            },
+    const dataset = await prisma.dataset.findUniqueOrThrow({
+      where: { id: input.id },
+      include: {
+        project: true,
+        fineTunes: {
+          where: {
+            status: "DEPLOYED",
           },
-          datasetEvals: {
-            orderBy: {
-              createdAt: "desc",
-            },
+          orderBy: {
+            createdAt: "desc",
           },
         },
-      }),
-      prisma.datasetEntry.count({
-        where: {
-          datasetId: input.id,
-          outdated: false,
-          split: "TEST",
+        datasetEvals: {
+          orderBy: {
+            createdAt: "desc",
+          },
         },
-      }),
-    ]);
+      },
+    });
+
+    if (!dataset.nodeId) return error("Dataset node not found");
+
+    const numTestEntries = await prisma.nodeData.count({
+      where: {
+        nodeId: dataset.nodeId,
+        status: "PROCESSED",
+        split: "TEST",
+      },
+    });
 
     await requireCanViewProject(dataset.projectId, ctx);
 
     const { fineTunes, ...rest } = dataset;
-    return { deployedFineTunes: fineTunes, numTestDatasetEntries, ...rest };
+    return { deployedFineTunes: fineTunes, numTestEntries, ...rest };
   }),
   getTrainingCosts: protectedProcedure
     .input(
@@ -125,7 +133,7 @@ export const datasetsRouter = createTRPCRouter({
         .where("nodeId", "is not", null)
         .selectAll()
         .select(() => [
-          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = d.id and not outdated)::int`.as(
+          sql<number>`(select count(*) from "NodeData" where "nodeId" = d."nodeId" and status = "PROCESSED")::int`.as(
             "datasetEntryCount",
           ),
           sql<number>`(select count(*) from "FineTune" where "datasetId" = d.id)::int`.as(
@@ -148,14 +156,14 @@ export const datasetsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireCanModifyProject(input.projectId, ctx);
 
-      const dataset = await prisma.dataset.create({
-        data: {
-          projectId: input.projectId,
-          name: input.name,
-        },
+      const { prismaCreations, datasetId } = prepareIntegratedDatasetCreation({
+        projectId: input.projectId,
+        datasetName: input.name,
       });
 
-      return success(dataset.id);
+      await prisma.$transaction(prismaCreations);
+
+      return success(datasetId);
     }),
 
   update: protectedProcedure
@@ -185,7 +193,14 @@ export const datasetsRouter = createTRPCRouter({
       });
 
       if (input.updates.enabledComparisonModels) {
-        await startDatasetTestJobs(input.id);
+        await startDatasetTestJobs({
+          datasetId: input.id,
+          nodeDataBaseQuery: kysely
+            .selectFrom("NodeData as nd")
+            .where("nd.nodeId", "=", input.id)
+            .where("nd.split", "=", "TEST")
+            .where("nd.status", "=", "PROCESSED"),
+        });
       }
 
       return success("Dataset updated");
@@ -199,9 +214,33 @@ export const datasetsRouter = createTRPCRouter({
       });
       await requireCanModifyProject(projectId, ctx);
 
-      await prisma.dataset.delete({
-        where: { id: input.id },
-      });
+      const datasetNode = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.id)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .executeTakeFirst();
+
+      if (!datasetNode) return error("Dataset not found");
+
+      const tNode = typedNode(datasetNode);
+
+      if (tNode.type !== "Dataset") return error("Node incorrect type");
+
+      await prisma.$transaction([
+        prisma.dataset.delete({
+          where: { id: input.id },
+        }),
+        prisma.node.delete({
+          where: { id: tNode.id },
+        }),
+        prisma.node.delete({
+          where: { id: tNode.config.llmRelabelNodeId },
+        }),
+        prisma.node.delete({
+          where: { id: tNode.config.manualRelabelNodeId },
+        }),
+      ]);
 
       return success("Dataset deleted");
     }),
@@ -237,10 +276,6 @@ export const datasetsRouter = createTRPCRouter({
         },
       });
 
-      const archiveId = uuidv4();
-
-      const entriesOutputId = uuidv4();
-
       const datasetNode = await kysely
         .selectFrom("Dataset as d")
         .where("d.id", "=", input.datasetId)
@@ -250,30 +285,18 @@ export const datasetsRouter = createTRPCRouter({
 
       if (!datasetNode) return error("Dataset not found");
 
+      const { prismaCreations, archiveNodeId, entriesOutputId } = prepareArchiveCreation({
+        nodeParams: {
+          projectId,
+          name: `Archive ${numArchives + 1}`,
+          config: {
+            maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
+          },
+        },
+      });
+
       await prisma.$transaction([
-        prisma.node.create({
-          data: checkNodeInput({
-            id: archiveId,
-            projectId,
-            type: "Archive",
-            name: `Archive ${numArchives + 1}`,
-            config: {
-              maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
-            },
-          }),
-        }),
-        prisma.dataChannel.create({
-          data: {
-            destinationId: archiveId,
-          },
-        }),
-        prisma.nodeOutput.create({
-          data: {
-            id: entriesOutputId,
-            nodeId: archiveId,
-            label: ArchiveOutputs.Entries,
-          },
-        }),
+        ...prismaCreations,
         prisma.dataChannel.create({
           data: {
             originId: entriesOutputId,
@@ -282,7 +305,7 @@ export const datasetsRouter = createTRPCRouter({
         }),
         prisma.datasetFileUpload.create({
           data: {
-            nodeId: archiveId,
+            nodeId: archiveNodeId,
             blobName: input.blobName,
             status: "PENDING",
             fileName: input.fileName,
@@ -292,19 +315,48 @@ export const datasetsRouter = createTRPCRouter({
         }),
       ]);
 
-      await processNode.enqueue({ nodeId: archiveId, nodeType: "Archive" });
+      await processNode.enqueue({ nodeId: archiveNodeId, nodeType: "Archive" });
     }),
   listFileUploads: protectedProcedure
     .input(z.object({ datasetId: z.string() }))
     .query(async ({ input, ctx }) => {
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
-        where: { id: input.datasetId },
-      });
-      await requireCanViewProject(projectId, ctx);
+      // const { projectId, nodeId } = await prisma.dataset.findUniqueOrThrow({
+      //   where: { id: input.datasetId },
+      // });
+      // await requireCanViewProject(projectId, ctx);
+
+      // if (!nodeId) return error("Dataset node not found");
+
+      const datasetNode = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .select(["n.projectId", "n.type", "n.config"])
+        .executeTakeFirst();
+
+      if (!datasetNode) {
+        throw new Error("Node not found");
+      }
+
+      await requireCanViewProject(datasetNode.projectId, ctx);
+
+      const tNode = typedNode(datasetNode);
+      if (tNode.type !== "Dataset") {
+        throw new Error("Node is not a Dataset");
+      }
+
+      const { llmRelabelNodeId } = tNode.config;
+
+      const archives = await getUpstreamSources({ llmRelabelNodeId })
+        .where("sourceNode.type", "=", "Archive")
+        .select(["sourceNode.id as sourceNodeId"])
+        .execute();
 
       return await prisma.datasetFileUpload.findMany({
         where: {
-          datasetId: input.datasetId,
+          nodeId: {
+            in: archives.map((a) => a.sourceNodeId),
+          },
           visible: true,
         },
         orderBy: { createdAt: "desc" },

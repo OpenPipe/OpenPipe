@@ -12,7 +12,7 @@ import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { from } from "ix/asynciterable";
 import { filter, map } from "ix/asynciterable/operators";
 import { toNodeStream } from "ix/asynciterable/tonodestream";
-import { insertTrainingDataPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { insertTrainingDataPruningRuleMatches } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
 import { trainingConfig } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { countLlamaInputTokens } from "~/utils/countTokens";
 

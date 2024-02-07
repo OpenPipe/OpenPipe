@@ -92,7 +92,7 @@ export const constructEvaluationFiltersQuery = ({
         const existsClause = eb.exists(
           eb
             .selectFrom("DatasetEvalDatasetEntry as dede")
-            .whereRef("nd.inputHash", "=", "dede.inputHash")
+            .whereRef("nd.importId", "=", "dede.importId")
             .innerJoin("DatasetEval as eval", "eval.id", "dede.datasetEvalId")
             .where("eval.id", "=", filter.value as string),
         );

@@ -9,7 +9,7 @@ import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConf
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { constructNodeDataFiltersQuery } from "~/server/utils/constructNodeDataFiltersQuery";
-import { copyPruningRulesForFineTune } from "~/server/utils/updatePruningRuleMatches";
+import { copyPruningRulesForFineTune } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { CURRENT_PIPELINE_VERSION, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";

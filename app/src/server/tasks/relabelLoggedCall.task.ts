@@ -10,7 +10,7 @@ import {
   convertFunctionCallToToolChoice,
   convertFunctionsToTools,
 } from "../utils/convertFunctionCalls";
-import { updateDatasetPruningRuleMatches } from "../utils/updatePruningRuleMatches";
+import { updateDatasetPruningRuleMatches } from "../utils/nodes/processNodes/updatePruningRuleMatches";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 
 export type RelabelLoggedCallJob = {

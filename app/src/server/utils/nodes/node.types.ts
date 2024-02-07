@@ -58,7 +58,6 @@ export const nodeSchema = z.discriminatedUnion("type", [
       type: z.literal("Monitor"),
       config: z
         .object({
-          llmRelabelNodeId: z.string(),
           initialFilters: filtersSchema,
           checkFilters: filtersSchema,
           lastLoggedCallUpdatedAt: z.date().default(new Date(0)),

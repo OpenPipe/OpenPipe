@@ -5,25 +5,25 @@ import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 
-import { queueEvalJobsForEval } from "~/server/tasks/evaluateTestSetEntries.task";
 import { shuffle } from "lodash-es";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { TRPCError } from "@trpc/server";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { sql } from "kysely";
+import { startTestJobsForEval } from "~/server/utils/nodes/processNodes/startTestJobs";
 
 export const datasetEvalsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
     const datasetNodeId = await kysely
-      .selectFrom("DatasetEval")
-      .where("id", "=", input.id)
-      .innerJoin("Dataset as d", "d.id", "DatasetEval.datasetId")
+      .selectFrom("DatasetEval as de")
+      .where("de.id", "=", input.id)
+      .innerJoin("Dataset as d", "d.id", "de.datasetId")
       .select("d.nodeId")
       .executeTakeFirst()
       .then((row) => row?.nodeId);
 
     if (!datasetNodeId) {
-      throw new TRPCError({ message: "Dataset eval not node found", code: "NOT_FOUND" });
+      throw new TRPCError({ message: "Dataset eval node not found", code: "NOT_FOUND" });
     }
 
     const datasetEval = await kysely
@@ -35,11 +35,10 @@ export const datasetEvalsRouter = createTRPCRouter({
         join
           .onRef("nd.nodeId", "=", "d.nodeId")
           .onRef("nd.importId", "=", "dede.importId")
-          .onRef("nd.inputHash", "=", "dede.inputHash")
           .on("nd.split", "=", "TEST")
           .on("nd.status", "=", "PROCESSED"),
       )
-      .distinctOn(["nd.importId", "nd.inputHash"])
+      .distinctOn(["nd.importId"])
       .select((eb) => [
         "eval.id",
         "eval.name",
@@ -66,33 +65,30 @@ export const datasetEvalsRouter = createTRPCRouter({
 
     const resultsBaseQuery = kysely
       .selectFrom("DatasetEvalOutputSource as deos")
+      .where("deos.datasetEvalId", "=", input.id)
       .innerJoin("DatasetEvalResult as der", "der.datasetEvalOutputSourceId", "deos.id")
       .innerJoin("DatasetEvalDatasetEntry as dede", "dede.id", "der.datasetEvalDatasetEntryId")
       .innerJoin("NodeData as nd", (join) =>
         join
           .on("nd.nodeId", "=", datasetNodeId)
           .onRef("nd.importId", "=", "dede.importId")
-          .onRef("nd.inputHash", "=", "dede.inputHash")
           .on("nd.split", "=", "TEST")
           .on("nd.status", "=", "PROCESSED"),
       )
-      .distinctOn(["nd.importId", "nd.inputHash"])
-      .leftJoin("FineTune as ft", (join) => join.onRef(sql`ft.id::text`, "=", "deos.modelId"))
-      .where("nd.status", "=", "PROCESSED")
-      .where("nd.split", "=", "TEST")
-      .where("dede.datasetEvalId", "=", input.id);
+      .distinctOn(["nd.importId"])
+      .leftJoin("FineTune as ft", (join) => join.onRef(sql`ft.id::text`, "=", "deos.modelId"));
 
     const [leaderboard, headToHead, completionCount] = await Promise.all([
       resultsBaseQuery
         .select((eb) => [
-          "deos.modelId as modelId1",
-          "ft.slug as slug1",
+          "deos.modelId as modelId",
+          "ft.slug as slug",
           eb.fn.avg<number>("der.score").as("winRate"),
           sql<number>`count(case when der.score = 1 then 1 end)::int`.as("wins"),
           sql<number>`count(case when der.score = .5 then 1 end)::int`.as("ties"),
           sql<number>`count(case when der.score = 0 then 1 end)::int`.as("losses"),
         ])
-        .groupBy(["modelId1", "slug1"])
+        .groupBy(["modelId", "slug"])
         .orderBy("winRate", "desc")
         .execute(),
 
@@ -164,11 +160,10 @@ export const datasetEvalsRouter = createTRPCRouter({
           join
             .onRef("nd.nodeId", "=", "d.nodeId")
             .onRef("nd.importId", "=", "dede.importId")
-            .onRef("nd.inputHash", "=", "dede.inputHash")
             .on("nd.split", "=", "TEST")
             .on("nd.status", "=", "PROCESSED"),
         )
-        .distinctOn(["nd.importId", "nd.inputHash"])
+        .distinctOn(["nd.importId"])
         .select((eb) => [
           "eval.id",
           "eval.name",
@@ -223,13 +218,12 @@ export const datasetEvalsRouter = createTRPCRouter({
         .where("nodeId", "=", dataset.nodeId)
         .where("split", "=", "TEST")
         .where("status", "=", "PROCESSED")
-        .distinctOn(["importId", "inputHash"])
-        .select(["importId", "inputHash"])
+        .select(["importId"])
         .execute();
 
       if (testNodeData.length < input.numRows) {
         return error(
-          `The test set only has ${testNodeData.length} distinct entries, but ${input.numRows} were requested`,
+          `The test set only has ${testNodeData.length} entries, but ${input.numRows} were requested`,
         );
       }
 
@@ -257,7 +251,14 @@ export const datasetEvalsRouter = createTRPCRouter({
           },
         });
 
-        await queueEvalJobsForEval(datasetEval.id);
+        await startTestJobsForEval({
+          datasetEvalId: datasetEval.id,
+          nodeDataBaseQuery: kysely
+            .selectFrom("NodeData as nd")
+            .where("nd.nodeId", "=", dataset.nodeId)
+            .where("nd.split", "=", "TEST")
+            .where("nd.status", "=", "PROCESSED"),
+        });
       } catch (e) {
         console.error("Failed to create dataset eval:", (e as { message: string }).message);
         if (datasetEval) await prisma.datasetEval.delete({ where: { id: datasetEval.id } });
@@ -297,14 +298,13 @@ export const datasetEvalsRouter = createTRPCRouter({
         .where("nodeId", "=", datasetEval.dataset.nodeId)
         .where("split", "=", "TEST")
         .where("status", "=", "PROCESSED")
-        .distinctOn(["importId", "inputHash"])
         .select((eb) => [eb.fn.count<string>("importId").as("numRows")])
         .executeTakeFirst()
         .then((row) => parseInt(row?.numRows ?? "0"));
 
       if (input.updates.numRows && numTestNodeData < input.updates.numRows) {
         return error(
-          `The test set only has ${numTestNodeData} distinct entries, but ${input.updates.numRows} were requested`,
+          `The test set only has ${numTestNodeData} entries, but ${input.updates.numRows} were requested`,
         );
       }
 
@@ -333,14 +333,16 @@ export const datasetEvalsRouter = createTRPCRouter({
 
       if (input.updates.modelIds) {
         const updatedModelIds = input.updates.modelIds;
-        const currentModels = await prisma.datasetEvalOutputSource.findMany({
-          where: { datasetEvalId: input.id },
-          select: { modelId: true },
-        });
+        const currentModelIds = await prisma.datasetEvalOutputSource
+          .findMany({
+            where: { datasetEvalId: input.id },
+            select: { modelId: true },
+          })
+          .then((models) => models.map((model) => model.modelId));
 
-        const modelIdsToDelete = currentModels
-          .map((model) => model.modelId)
-          .filter((modelId) => !updatedModelIds.includes(modelId));
+        const modelIdsToDelete = currentModelIds.filter(
+          (modelId) => !updatedModelIds.includes(modelId),
+        );
         await prisma.datasetEvalOutputSource.deleteMany({
           where: {
             datasetEvalId: input.id,
@@ -349,7 +351,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         });
 
         const modelIdsToAdd = updatedModelIds.filter(
-          (modelId) => !currentModels.map((model) => model.modelId).includes(modelId),
+          (modelId) => !currentModelIds.includes(modelId),
         );
         await prisma.datasetEvalOutputSource.createMany({
           data: modelIdsToAdd.map((modelId) => ({
@@ -367,11 +369,9 @@ export const datasetEvalsRouter = createTRPCRouter({
           join
             .on("nd.nodeId", "=", datasetEval.dataset.nodeId)
             .onRef("nd.importId", "=", "dede.importId")
-            .onRef("nd.inputHash", "=", "dede.inputHash")
             .on("nd.split", "=", "TEST")
             .on("nd.status", "=", "PROCESSED"),
         )
-        .distinctOn(["nd.importId", "nd.inputHash"])
         .select("dede.id")
         .execute();
 
@@ -398,11 +398,10 @@ export const datasetEvalsRouter = createTRPCRouter({
             .leftJoin("DatasetEvalDatasetEntry as dede", (join) =>
               join
                 .onRef("dede.importId", "=", "nd.importId")
-                .onRef("dede.inputHash", "=", "nd.inputHash")
                 .on("dede.datasetEvalId", "=", input.id),
             )
             .where("dede.id", "is", null)
-            .select(["nd.importId", "nd.inputHash"])
+            .select(["nd.importId"])
             .execute();
 
           const numRowsToCreate = input.updates.numRows - currentNumRows;
@@ -421,7 +420,14 @@ export const datasetEvalsRouter = createTRPCRouter({
       }
 
       if (shouldQueueEvalJobs) {
-        await queueEvalJobsForEval(input.id);
+        await startTestJobsForEval({
+          datasetEvalId: input.id,
+          nodeDataBaseQuery: kysely
+            .selectFrom("NodeData as nd")
+            .where("nd.nodeId", "=", datasetEval.dataset.nodeId)
+            .where("nd.split", "=", "TEST")
+            .where("nd.status", "=", "PROCESSED"),
+        });
       }
 
       return success("Dataset eval updated");
@@ -466,18 +472,16 @@ export const datasetEvalsRouter = createTRPCRouter({
       const row = await kysely
         .selectFrom("NodeData as nd")
         .where("nd.id", "=", input.nodeDataId)
-        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.originalOutputHash")
-        .leftJoin("DatasetEvalDatasetEntry as dede", (join) =>
+        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
+        .innerJoin("DatasetEvalDatasetEntry as dede", (join) =>
           join
             .onRef("dede.importId", "=", "nd.importId")
-            .onRef("dede.inputHash", "=", "nd.inputHash"),
+            .on("dede.datasetEvalId", "=", input.datasetEvalId),
         )
-        .where("dede.datasetEvalId", "=", input.datasetEvalId)
-        .leftJoin("DatasetEvalResult as der", "der.datasetEvalDatasetEntryId", "dede.id")
-        .leftJoin("DatasetEvalOutputSource as deos", "deos.id", "der.datasetEvalOutputSourceId")
-        .where("deos.modelId", "=", input.modelId)
-        .leftJoin("FineTuneTestingEntry as ftte", "ftte.inputHash", "nd.inputHash")
-        .where("ftte.modelId", "=", input.modelId)
+        .innerJoin("DatasetEvalResult as der", "der.datasetEvalDatasetEntryId", "dede.id")
+        .innerJoin("FineTuneTestingEntry as ftte", (join) =>
+          join.onRef("ftte.inputHash", "=", "nd.inputHash").on("ftte.modelId", "=", input.modelId),
+        )
         .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
         .select([
           "ft.slug",
@@ -507,32 +511,31 @@ export const datasetEvalsRouter = createTRPCRouter({
         .selectFrom("DatasetEvalDatasetEntry as dede")
         .where("dede.datasetEvalId", "=", input.datasetEvalId)
         .where("dede.importId", "=", input.importId)
-        .where("dede.inputHash", "=", input.inputHash)
+        .innerJoin("FineTuneTestingEntry as ftte", (join) =>
+          join.on("ftte.inputHash", "=", input.inputHash).on("ftte.modelId", "=", input.modelId),
+        )
         .innerJoin("DatasetEval as de", "de.id", "dede.datasetEvalId")
         .innerJoin("Dataset as d", "d.id", "de.datasetId")
-        .leftJoin(
-          "DatasetEvalResult as selectedDer",
-          "selectedDer.datasetEvalDatasetEntryId",
-          "dede.id",
+        .leftJoin("DatasetEvalOutputSource as deos", (join) =>
+          join
+            .on("deos.datasetEvalId", "=", input.datasetEvalId)
+            .on("deos.modelId", "=", input.modelId),
         )
-        .leftJoin(
-          "DatasetEvalOutputSource as deos",
-          "deos.id",
-          "selectedDer.datasetEvalOutputSourceId",
+        .leftJoin("DatasetEvalResult as selectedDer", (join) =>
+          join
+            .onRef("selectedDer.datasetEvalDatasetEntryId", "=", "dede.id")
+            .onRef("selectedDer.datasetEvalOutputSourceId", "=", "deos.id"),
         )
-        .where("deos.modelId", "=", input.modelId)
         .distinctOn("deos.modelId")
         .innerJoin("NodeData as nd", (join) =>
           join
             .onRef("nd.nodeId", "=", "d.nodeId")
             .onRef("nd.importId", "=", "dede.importId")
-            .onRef("nd.inputHash", "=", "dede.inputHash")
             .on("nd.split", "=", "TEST")
             .on("nd.status", "=", "PROCESSED"),
         )
-        .distinctOn(["nd.importId", "nd.inputHash"])
         .innerJoin("DatasetEntryInput as dei", "dei.hash", "nd.inputHash")
-        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.originalOutputHash")
+        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
         .leftJoin("FineTuneTestingEntry as ftte", (join) =>
           join
             .on("ftte.inputHash", "=", input.inputHash)

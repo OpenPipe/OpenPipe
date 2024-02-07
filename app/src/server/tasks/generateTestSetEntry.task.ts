@@ -17,7 +17,6 @@ import {
 } from "../utils/calculateFieldComparisonScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
-import { queueHeadToHeadEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
@@ -43,142 +42,19 @@ export function calculateQueryDelay(
 export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
   id: "generateTestSetEntry",
   handler: async (task) => {
-    const { modelId, nodeDataId, skipCache, numPreviousTries } = task;
+    const { modelId, nodeDataId, numPreviousTries } = task;
 
-    const nodeData = await kysely
-      .selectFrom("NodeData as nd")
-      .where("nd.id", "=", nodeDataId)
-      .innerJoin("Node as n", "n.id", "nd.nodeId")
-      .innerJoin("Dataset as d", "d.nodeId", "n.id")
-      .innerJoin("DatasetEntryInput as dei", "dei.hash", "nd.inputHash")
-      .select([
-        "n.projectId",
-        "d.id as datasetId",
-        "nd.importId",
-        "nd.inputHash",
-        "dei.tool_choice",
-        "dei.tools",
-        "dei.messages",
-        "dei.response_format",
-      ])
-      .executeTakeFirst();
+    const nodeData = await prisma.nodeData.findFirst({
+      where: { id: nodeDataId },
+    });
 
     if (!nodeData) return;
 
     try {
-      let fineTune;
-      if (!isComparisonModel(modelId)) {
-        fineTune = await prisma.fineTune
-          .findUnique({
-            where: { id: modelId },
-          })
-          .then((ft) => ft && typedFineTune(ft));
-      }
-
-      // If the fine-tune was deleted then we don't need to generate a test set
-      // entry
-      if (!fineTune && !isComparisonModel(modelId)) return;
-
-      const tNodeData = typedDatasetEntry(nodeData);
-
-      const existingTestEntry = await prisma.fineTuneTestingEntry.findFirst({
-        where: { modelId, inputHash: nodeData.inputHash },
-      });
-
-      if (existingTestEntry?.output && !existingTestEntry.errorMessage && !skipCache) {
-        await triggerEvals(tNodeData, existingTestEntry);
-        return;
-      }
-
-      if (!existingTestEntry) {
-        await prisma.fineTuneTestingEntry.create({
-          data: {
-            modelId,
-            fineTuneId: fineTune?.id,
-            inputHash: tNodeData.inputHash,
-          },
-        });
-      }
-
-      let completion: ChatCompletion;
-      const input: ChatCompletionCreateParamsNonStreaming = {
-        model: fineTune
-          ? `openpipe:${fineTune.slug}`
-          : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
-        messages: tNodeData.messages,
-        tool_choice: tNodeData.tool_choice ?? undefined,
-        tools: tNodeData.tools ?? undefined,
-        response_format: tNodeData.response_format ?? undefined,
-        stream: false,
-      };
-
-      try {
-        if (isComparisonModel(modelId)) {
-          completion = await getOpenaiCompletion(tNodeData.projectId, input);
-        } else if (fineTune) {
-          completion = await getCompletion(fineTune, input);
-        } else {
-          await prisma.fineTuneTestingEntry.updateMany({
-            where: { modelId, inputHash: tNodeData.inputHash },
-            data: {
-              errorMessage: "The model is not set up for inference",
-            },
-          });
-          return;
-        }
-
-        const choice = completion.choices[0];
-        if (!choice) throw new Error("No completion returned");
-        const completionMessage = choice.message;
-
-        if (fineTune) {
-          const inputTokens = completion.usage?.prompt_tokens ?? 0;
-          const outputTokens = completion.usage?.completion_tokens ?? 0;
-
-          await prisma.usageLog.create({
-            data: {
-              fineTuneId: fineTune.id,
-              projectId: fineTune.projectId,
-              baseModel: fineTune.baseModel,
-              type: UsageType.TESTING,
-              inputTokens,
-              outputTokens,
-              ...calculateCost(fineTune, 0, inputTokens, outputTokens),
-            },
-          });
-        }
-
-        await prisma.fineTuneTestingEntry.updateMany({
-          where: { modelId, inputHash: nodeData.inputHash },
-          data: {
-            output: completionMessage as unknown as Prisma.InputJsonValue,
-            finishReason: choice.finish_reason,
-            prunedInputTokens: completion.usage?.prompt_tokens,
-            outputTokens: completion.usage?.completion_tokens,
-            errorMessage: null,
-          },
-        });
-
-        // TODO: retrieve from update call once uniqueness on inputHash is enforced
-        const updatedFineTuneTestingEntry = await prisma.fineTuneTestingEntry.findFirstOrThrow({
-          where: { modelId, inputHash: nodeData.inputHash },
-        });
-
-        await triggerEvals(tNodeData, updatedFineTuneTestingEntry);
-      } catch (e: unknown) {
-        const typedError = e as { message?: string; error?: { message: string } };
-        await prisma.fineTuneTestingEntry.updateMany({
-          where: { modelId, inputHash: nodeData.inputHash },
-          data: {
-            errorMessage:
-              typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
-          },
-        });
-        throw e;
-      }
+      await generateEntry(task);
     } catch (e) {
       console.error("error in generateTestSetEntry", e);
-      if (numPreviousTries < MAX_TRIES) {
+      if (task.numPreviousTries < MAX_TRIES) {
         await generateTestSetEntry.enqueue(
           {
             ...task,
@@ -196,7 +72,6 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
           },
         });
       }
-      return;
     }
   },
   specDefaults: {
@@ -204,11 +79,151 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
   },
 });
 
-const triggerEvals = async (
+export const generateEntry = async ({
+  modelId,
+  nodeDataId,
+  skipCache,
+}: {
+  modelId: string;
+  nodeDataId: string;
+  skipCache?: boolean;
+}) => {
+  const nodeData = await kysely
+    .selectFrom("NodeData as nd")
+    .where("nd.id", "=", nodeDataId)
+    .innerJoin("Node as n", "n.id", "nd.nodeId")
+    .innerJoin("Dataset as d", "d.nodeId", "n.id")
+    .innerJoin("DatasetEntryInput as dei", "dei.hash", "nd.inputHash")
+    .select([
+      "n.projectId",
+      "d.id as datasetId",
+      "nd.importId",
+      "nd.inputHash",
+      "dei.tool_choice",
+      "dei.tools",
+      "dei.messages",
+      "dei.response_format",
+    ])
+    .executeTakeFirst();
+
+  if (!nodeData) return;
+
+  let fineTune;
+  if (!isComparisonModel(modelId)) {
+    fineTune = await prisma.fineTune
+      .findUnique({
+        where: { id: modelId },
+      })
+      .then((ft) => ft && typedFineTune(ft));
+  }
+
+  // If the fine-tune was deleted then we don't need to generate a test set
+  // entry
+  if (!fineTune && !isComparisonModel(modelId)) return;
+
+  const tNodeData = typedDatasetEntry(nodeData);
+
+  const existingTestEntry = await prisma.fineTuneTestingEntry.findFirst({
+    where: { modelId, inputHash: nodeData.inputHash },
+  });
+
+  if (existingTestEntry?.output && !existingTestEntry.errorMessage && !skipCache) {
+    await triggerFieldComparisonEval(tNodeData, existingTestEntry);
+    return;
+  }
+
+  if (!existingTestEntry) {
+    await prisma.fineTuneTestingEntry.create({
+      data: {
+        modelId,
+        fineTuneId: fineTune?.id,
+        inputHash: tNodeData.inputHash,
+      },
+    });
+  }
+
+  let completion: ChatCompletion;
+  const input: ChatCompletionCreateParamsNonStreaming = {
+    model: fineTune
+      ? `openpipe:${fineTune.slug}`
+      : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
+    messages: tNodeData.messages,
+    tool_choice: tNodeData.tool_choice ?? undefined,
+    tools: tNodeData.tools ?? undefined,
+    response_format: tNodeData.response_format ?? undefined,
+    stream: false,
+  };
+
+  try {
+    if (isComparisonModel(modelId)) {
+      completion = await getOpenaiCompletion(tNodeData.projectId, input);
+    } else if (fineTune) {
+      completion = await getCompletion(fineTune, input);
+    } else {
+      await prisma.fineTuneTestingEntry.updateMany({
+        where: { modelId, inputHash: tNodeData.inputHash },
+        data: {
+          errorMessage: "The model is not set up for inference",
+        },
+      });
+      return;
+    }
+
+    const choice = completion.choices[0];
+    if (!choice) throw new Error("No completion returned");
+    const completionMessage = choice.message;
+
+    if (fineTune) {
+      const inputTokens = completion.usage?.prompt_tokens ?? 0;
+      const outputTokens = completion.usage?.completion_tokens ?? 0;
+
+      await prisma.usageLog.create({
+        data: {
+          fineTuneId: fineTune.id,
+          projectId: fineTune.projectId,
+          baseModel: fineTune.baseModel,
+          type: UsageType.TESTING,
+          inputTokens,
+          outputTokens,
+          ...calculateCost(fineTune, 0, inputTokens, outputTokens),
+        },
+      });
+    }
+
+    await prisma.fineTuneTestingEntry.updateMany({
+      where: { modelId, inputHash: nodeData.inputHash },
+      data: {
+        output: completionMessage as unknown as Prisma.InputJsonValue,
+        finishReason: choice.finish_reason,
+        prunedInputTokens: completion.usage?.prompt_tokens,
+        outputTokens: completion.usage?.completion_tokens,
+        errorMessage: null,
+      },
+    });
+
+    // TODO: retrieve from update call once uniqueness on inputHash is enforced
+    const updatedFineTuneTestingEntry = await prisma.fineTuneTestingEntry.findFirstOrThrow({
+      where: { modelId, inputHash: nodeData.inputHash },
+    });
+
+    await triggerFieldComparisonEval(tNodeData, updatedFineTuneTestingEntry);
+  } catch (e: unknown) {
+    const typedError = e as { message?: string; error?: { message: string } };
+    await prisma.fineTuneTestingEntry.updateMany({
+      where: { modelId, inputHash: nodeData.inputHash },
+      data: {
+        errorMessage:
+          typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
+      },
+    });
+    throw e;
+  }
+};
+
+const triggerFieldComparisonEval = async (
   nodeData: ReturnType<typeof typedDatasetEntry> & {
     datasetId: string;
     importId: string;
-    inputHash: string;
   },
   fineTuneTestingEntry: FineTuneTestingEntry,
 ) => {
@@ -222,11 +237,8 @@ const triggerEvals = async (
     await saveFieldComparisonScore({
       datasetId: nodeData.datasetId,
       importId: nodeData.importId,
-      inputHash: nodeData.inputHash,
       score: fieldComparisonScore,
       modelId: fineTuneTestingEntry.modelId,
     });
   }
-
-  await queueHeadToHeadEvalJobsForTestingEntry(fineTuneTestingEntry, nodeData.datasetId);
 };

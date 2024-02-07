@@ -1,16 +1,13 @@
 import { type Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 
 import {
   prepareDatasetCreation,
   prepareLLMRelabelCreation,
   prepareManualRelabelCreation,
-  prepareMonitorCreation,
 } from "./prepareNodeCreation";
-import { DEFAULT_MAX_OUTPUT_SIZE, RelabelOptions } from "../node.types";
+import { RelabelOptions } from "../node.types";
 import { prisma } from "~/server/db";
-import { type filtersSchema } from "~/types/shared.types";
 
 export const prepareIntegratedDatasetCreation = ({
   projectId,
@@ -98,52 +95,4 @@ export const prepareIntegratedDatasetCreation = ({
   );
 
   return { prismaCreations, datasetId, llmRelabelNodeId: preparedLLMRelabelCreation.relabelNodeId };
-};
-
-export const prepareIntegratedMonitorCreation = ({
-  projectId,
-  initialFilters,
-}: {
-  projectId: string;
-  initialFilters: z.infer<typeof filtersSchema>;
-}) => {
-  const llmRelabelNodeId = uuidv4();
-  const prismaCreations: Prisma.PrismaPromise<unknown>[] = [];
-
-  const preparedMonitorCreation = prepareMonitorCreation({
-    nodeParams: {
-      name: "New Monitor",
-      projectId,
-      config: {
-        llmRelabelNodeId,
-        initialFilters,
-        checkFilters: initialFilters,
-        lastLoggedCallUpdatedAt: new Date(0),
-        maxEntriesPerMinute: 100,
-        maxLLMConcurrency: 2,
-        maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
-      },
-    },
-  });
-
-  prismaCreations.push(...preparedMonitorCreation.prismaCreations);
-
-  const preparedLLMRelabelCreation = prepareLLMRelabelCreation({
-    nodeParams: {
-      id: llmRelabelNodeId,
-      name: "Monitor LLM Relabel",
-      projectId,
-      config: {
-        relabelLLM: RelabelOptions.SkipRelabel,
-        maxEntriesPerMinute: 100,
-        maxLLMConcurrency: 2,
-      },
-    },
-  });
-
-  return {
-    prismaCreations,
-    monitorNodeId: preparedMonitorCreation.monitorNodeId,
-    llmRelabelNodeId: preparedLLMRelabelCreation.relabelNodeId,
-  };
 };

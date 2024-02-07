@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
-import { updateDatasetPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
 import {
   requireCanModifyProject,
   requireCanViewProject,
