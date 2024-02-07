@@ -13,6 +13,7 @@ import { useLoggedCalls } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import DateFilter from "~/components/Filters/DateFilter";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -49,13 +50,18 @@ export default function LoggedCalls() {
               onClick={() => void utils.loggedCalls.list.invalidate()}
             />
           </HStack>
-          <HStack w="full" justifyContent="flex-end">
-            <ConditionallyEnable accessRequired="requireCanModifyProject">
-              <AddToDatasetButton />
-            </ConditionallyEnable>
-            <ExportButton />
-            <ColumnVisibilityDropdown />
-            <ToggleFiltersButton defaultShown />
+          <HStack w="full" justifyContent="space-between">
+            <HStack>
+              <DateFilter />
+            </HStack>
+            <HStack>
+              <ConditionallyEnable accessRequired="requireCanModifyProject">
+                <AddToDatasetButton />
+              </ConditionallyEnable>
+              <ExportButton />
+              <ColumnVisibilityDropdown />
+              <ToggleFiltersButton defaultShown />
+            </HStack>
           </HStack>
           {filtersShown && <LogFilters />}
           <LoggedCallTable />

@@ -169,13 +169,15 @@ model PruningRuleMatch {
 }
 
 model Project {
-    id               String  @id @default(uuid()) @db.Uuid
-    slug             String  @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
-    name             String  @default("Project 1")
-    isPublic         Boolean @default(false)
-    isHidden         Boolean @default(false)
+    id               String   @id @default(uuid()) @db.Uuid
+    slug             String   @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
+    name             String   @default("Project 1")
+    isPublic         Boolean  @default(false)
+    isHidden         Boolean  @default(false)
     stripeCustomerId String?
-    billable         Boolean @default(true)
+    billable         Boolean  @default(true)
+    numLoggedCalls   Int      @default(0) // auto-increments on logged call creation
+    tagNames         String[] @default([]) // cached list of tag names for the project
 
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
