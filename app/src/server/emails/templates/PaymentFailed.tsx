@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Button, EmailLayout, Heading, InvoiceDescription, Text } from "./layout";
 import { Link } from "@react-email/components";
+import { demoDescription } from "./layout/DemoData";
 
 interface Props {
   projectName: string;
