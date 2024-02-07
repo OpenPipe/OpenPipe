@@ -224,39 +224,39 @@ export const recordLoggedCall = async ({
 };
 
 async function createTags(projectId: string, loggedCallId: string, tags: Record<string, string>) {
-  await kysely.transaction().execute(async (trx) => {
-    const project = await trx
-      .selectFrom("Project")
+  const tagsToCreate = Object.entries(tags).map(([name, value]) => ({
+    id: uuidv4(),
+    projectId,
+    loggedCallId,
+    name: name.replaceAll(/[^a-zA-Z0-9_$.]/g, "_"),
+    value,
+  }));
+
+  await kysely.insertInto("LoggedCallTag").values(tagsToCreate).execute();
+
+  const project = await kysely
+    .selectFrom("Project")
+    .where("id", "=", projectId)
+    .select(["tagNames"])
+    .executeTakeFirst();
+
+  if (!project) return;
+
+  const tagNames = project.tagNames ?? [];
+
+  const tagsNamesToAdd = tagsToCreate
+    .filter((tag) => !tagNames.includes(tag.name))
+    .map((tag) => tag.name);
+
+  // optimistically assume that no two requests will simultaneously add different tags
+  // this avoids row level locks
+  if (tagsNamesToAdd.length) {
+    await kysely
+      .updateTable("Project")
+      .set({
+        tagNames: [...tagNames, ...tagsNamesToAdd],
+      })
       .where("id", "=", projectId)
-      .select(["tagNames"])
-      .executeTakeFirst();
-
-    if (!project) return;
-
-    const tagNames = project.tagNames ?? [];
-
-    const tagsToCreate = Object.entries(tags).map(([name, value]) => ({
-      id: uuidv4(),
-      projectId,
-      loggedCallId,
-      name: name.replaceAll(/[^a-zA-Z0-9_$.]/g, "_"),
-      value,
-    }));
-
-    await trx.insertInto("LoggedCallTag").values(tagsToCreate).execute();
-
-    const tagsNamesToAdd = tagsToCreate
-      .filter((tag) => !tagNames.includes(tag.name))
-      .map((tag) => tag.name);
-
-    if (tagsNamesToAdd.length) {
-      await trx
-        .updateTable("Project")
-        .set({
-          tagNames: [...tagNames, ...tagsNamesToAdd],
-        })
-        .where("id", "=", projectId)
-        .execute();
-    }
-  });
+      .execute();
+  }
 }
