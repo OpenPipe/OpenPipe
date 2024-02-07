@@ -23,10 +23,12 @@ import {
   useIsClientInitialized,
   useLoggedCalls,
   useTotalNumLogsSelected,
-  useTagNames,
+  useSelectedProject,
 } from "~/utils/hooks";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import { useFilters } from "../Filters/useFilters";
+import { useDateFilter } from "../Filters/useDateFilter";
+import { ProjectLink } from "~/components/ProjectLink";
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
@@ -35,7 +37,7 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
   const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const toggleAllSelected = useAppStore((s) => s.selectedLogs.toggleAllSelected);
-  const tagNames = useTagNames().data;
+  const tagNames = useSelectedProject().data?.tagNames;
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
 
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -102,7 +104,7 @@ export const TableRow = ({
   );
   const toggleChecked = useAppStore((s) => s.selectedLogs.toggleSelectedLogId);
 
-  const tagNames = useTagNames().data;
+  const tagNames = useSelectedProject().data?.tagNames;
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
 
   const visibleTagNames = useMemo(() => {
@@ -225,17 +227,27 @@ export const TableRow = ({
 
 export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: boolean }) => {
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
-  const filters = useFilters().filters;
-  const { isLoading } = useLoggedCalls();
+  const generalFilters = useFilters().filters;
+  const dateFilters = useDateFilter().filters;
+  const allFilters = [...generalFilters, ...dateFilters];
+  const { isFetching, isLoading } = useLoggedCalls(true);
 
-  if (isLoading) return null;
+  if (isLoading || isFetching) {
+    return null;
+  }
 
-  if (filters.length && filtersApplied) {
+  if (allFilters.length && filtersApplied) {
     return (
       <Tr>
         <Td w="full" colSpan={visibleColumns.size + 1}>
           <Text color="gray.500" textAlign="center" w="full" p={4}>
-            No matching request logs found. Try removing some filters.
+            No matching request logs found. Try removing some filters or view{" "}
+            <ProjectLink href={{ pathname: "/request-logs", query: { dateFilter: "[]" } }}>
+              <Text as={"b"} color="blue.600">
+                all
+              </Text>
+            </ProjectLink>{" "}
+            records.
           </Text>
         </Td>
       </Tr>

@@ -6,7 +6,7 @@ import { Box } from "@chakra-ui/react";
 import { useSelectedProject } from "~/utils/hooks";
 
 type ExtractSlugRoutes<T> = T extends DynamicRoute<`/p/[projectSlug]${infer Rest}`, infer Params>
-  ? { path: Rest; query: Omit<Params, "projectSlug"> & { projectSlug?: string } }
+  ? { path: Rest; query: Omit<Params, "projectSlug"> & Record<string, string | undefined> }
   : never;
 
 export type ProjectRoute = ExtractSlugRoutes<Route>;
