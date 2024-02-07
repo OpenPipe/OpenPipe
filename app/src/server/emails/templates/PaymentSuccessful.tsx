@@ -3,10 +3,9 @@ import { Button, EmailLayout, Heading, InvoiceDescription, Text } from "./layout
 import { Link } from "@react-email/components";
 
 interface Props {
-  subject: string;
   projectName: string;
   amount: string;
-  billingPeriod?: string;
+  billingPeriod: string;
   projectLink: string;
   invoicesLink: string;
   invoiceLink: string;
@@ -14,7 +13,6 @@ interface Props {
 }
 
 const PaymentSuccessful = ({
-  subject,
   projectName,
   amount,
   billingPeriod,
@@ -27,7 +25,7 @@ const PaymentSuccessful = ({
 
   return (
     <EmailLayout previewText={previewText}>
-      <Heading>{subject}</Heading>
+      <Heading>Payment Successful for {projectName}</Heading>
       <Text style={{ fontSize: "1.5em" }}>OpenPipe Usage {billingPeriod} </Text>
 
       <Text>
@@ -48,22 +46,13 @@ const PaymentSuccessful = ({
 };
 
 PaymentSuccessful.PreviewProps = {
-  subject: "Payment Successful for My Project",
   projectName: "My Project",
   amount: "0.00",
   billingPeriod: "Feb 2024",
   projectLink: "#projectLink",
   invoicesLink: "#invoicesLink",
   invoiceLink: "#invoiceLink",
-  description: [
-    {
-      text: "Total inference spend",
-      value: "$64.50",
-      description:
-        "Tokens: 2,958,490 ($0.0000218/token) \n \n      Input tokens: 1,470,393 \n\n      Output tokens: 1,488,097",
-    },
-    { text: "Total training spend", value: "$9.63", description: "Training tokens: 475,029" },
-  ],
+  description: demoDescription,
 } as Props;
 
 export default PaymentSuccessful;

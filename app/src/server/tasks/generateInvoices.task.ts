@@ -11,8 +11,7 @@ import { calculateSpendingsWithCredits } from "~/utils/billing";
 import { getStats } from "../api/routers/usage.router";
 import { chargeInvoice } from "./chargeInvoices.task";
 import { sendToAdmins } from "../emails/sendToAdmins";
-import { sendPaymentSuccessful } from "../emails/sendPaymentSuccessful";
-import { sendProjectInvitation } from "../emails/sendProjectInvitation";
+import { sendInvoiceNotificationWithoutRequiredPayment } from "../emails/sendInvoiceNotificationWithoutRequiredPayment";
 
 export const generateInvoices = defineTask({
   id: "generateInvoices",
@@ -31,12 +30,12 @@ export const generateInvoices = defineTask({
 
         //Send success email if a user spent credits but does not have to pay.
         if (data && data.creditsUsed > 0 && Number(data.invoice.amount) <= 1) {
-          console.log("It runs");
-          await sendToAdmins(data.invoice.id, (email: string) =>
-            sendPaymentSuccessful(
+          await sendToAdmins(data.invoice.projectId, (email: string) =>
+            sendInvoiceNotificationWithoutRequiredPayment(
               data.invoice.id,
               Number(data.invoice.amount),
               data.invoice.description,
+              data.invoice.billingPeriod || "",
               project.name,
               project.slug,
               email,
@@ -71,7 +70,16 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
         slug: generateInvoiceSlug(),
         billingPeriod: getPreviousMonthWithYearString(),
       })
-      .returning(["id", "createdAt", "slug", "amount", "billingPeriod", "status", "description"])
+      .returning([
+        "id",
+        "createdAt",
+        "slug",
+        "amount",
+        "billingPeriod",
+        "status",
+        "description",
+        "projectId",
+      ])
       .executeTakeFirst();
 
     if (!invoice) throw new Error("No data available for invoice generation");
@@ -128,7 +136,16 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
         ),
       })
       .where("id", "=", invoice.id)
-      .returning(["id", "createdAt", "slug", "amount", "billingPeriod", "status", "description"])
+      .returning([
+        "id",
+        "createdAt",
+        "slug",
+        "amount",
+        "billingPeriod",
+        "status",
+        "description",
+        "projectId",
+      ])
       .executeTakeFirst();
     if (!invoice) throw new Error("No data available for invoice generation");
 

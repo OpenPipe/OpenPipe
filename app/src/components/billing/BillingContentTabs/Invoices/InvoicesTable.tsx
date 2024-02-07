@@ -157,6 +157,8 @@ export const getStatusColor = (status: InvoiceStatus) => {
       return "green";
     case "PENDING":
       return "red";
+    case "FREE":
+      return "blue";
     case "CANCELLED":
       return "pink";
     case "REFUNDED":

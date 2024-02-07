@@ -1,10 +1,14 @@
-import { Row, Section } from "@react-email/components";
+import { Row, Section, Text } from "@react-email/components";
 import React from "react";
 
 export default function Header() {
   return (
     <Section>
       <Row>
+        <Text style={footer}>
+          Sincerely, <br />
+          The OpenPipe Team
+        </Text>
         <span style={footer}>© {new Date().getFullYear()} OpenPipe, Inc.</span>
       </Row>
     </Section>

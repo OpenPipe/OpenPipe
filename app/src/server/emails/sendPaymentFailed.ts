@@ -1,24 +1,26 @@
 import { env } from "~/env.mjs";
 import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
-import PaymentFailed from "~/components/emails/PaymentFailed";
-import { Invoice } from "@prisma/client";
 import { typedInvoice } from "~/types/dbColumns.types";
+import PaymentFailed from "./templates/PaymentFailed";
+import { JsonValue } from "~/types/kysely-codegen.types";
 
 export const sendPaymentFailed = async (
-  invoice: Invoice,
+  invoiceId: string,
+  amount: number,
+  description: JsonValue,
+  billingPeriod: string,
   projectName: string,
   projectSlug: string,
   recipientEmail: string,
 ) => {
-  const subject = `Payment Required`;
   const projectLink = `${env.NEXT_PUBLIC_HOST}/p/${projectSlug}`;
-  const invoicesLink = `${projectLink}/billing/invoices/${invoice.id}`;
+  const invoicesLink = `${projectLink}/billing/invoices/${invoiceId}`;
   const paymentMethodsLink = `${projectLink}/billing/payment-methods`;
 
-  let description;
+  let typedDescription;
   try {
-    ({ description } = typedInvoice(invoice));
+    ({ description: typedDescription } = typedInvoice({ description }));
   } catch (e) {
     return;
   }
@@ -26,18 +28,18 @@ export const sendPaymentFailed = async (
   const emailBody = render(
     PaymentFailed({
       projectName,
-      amount: Number(Number(invoice.amount).toFixed(2)).toLocaleString(),
+      amount: Number(Number(amount).toFixed(2)).toLocaleString(),
       paymentMethodsLink,
       invoicesLink,
       projectLink,
-      billingPeriod: invoice.billingPeriod || "",
-      description,
+      billingPeriod,
+      description: typedDescription,
     }),
   );
 
   await sendEmail({
     to: recipientEmail,
-    subject,
+    subject: "Payment Required",
     body: emailBody,
   });
 };

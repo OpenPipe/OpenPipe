@@ -14,13 +14,6 @@ export default function Button({ style, href, children }: Props) {
   );
 }
 
-const heading = {
-  fontSize: "32px",
-  lineHeight: "1.3",
-  fontWeight: "700",
-  color: "#484848",
-};
-
 const button = {
   backgroundColor: "#ff5733",
   borderRadius: "3px",

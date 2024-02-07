@@ -15,10 +15,10 @@ export default function EmailLayout({ previewText, children }: EmailLayoutProps)
       <Body style={main}>
         <Container style={container}>
           <Logo />
-          <Section style={{ paddingTop: "40px", paddingBottom: "80px" }}>
+          <Section style={{ paddingTop: "40px", paddingBottom: "40px" }}>
             <Row>{children}</Row>
+            <Footer />
           </Section>
-          <Footer />
         </Container>
       </Body>
     </Html>

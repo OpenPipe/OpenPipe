@@ -1,7 +1,7 @@
 import { env } from "~/env.mjs";
 import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
-import ProjectInvitation from "~/components/emails/ProjectInvitation";
+import ProjectInvitation from "./templates/ProjectInvitation";
 
 export const sendProjectInvitation = async ({
   invitationToken,

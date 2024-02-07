@@ -11,8 +11,8 @@
   "scripts": {
     "build": "next build",
     "dev:next": "NODE_OPTIONS='--no-node-snapshot' TZ=UTC next dev",
-    "dev:worker": "NODE_OPTIONS='--no-node-snapshot' tsx --watch src/server/tasks/worker.ts",
-    "worker": "tsx src/server/tasks/worker.ts",
+    "dev:worker": "NODE_OPTIONS='--no-node-snapshot' tsx --tsconfig tsconfig.server.json --watch src/server/tasks/worker.ts",
+    "worker": "tsx --tsconfig tsconfig.server.json src/server/tasks/worker.ts",
     "dev": "tsx scripts/run-dev.ts",
     "dev:tunnel": "tsx scripts/dev-tunnel.ts",
     "postinstall": "prisma generate",
@@ -28,7 +28,8 @@
     "repl": "tsx scripts/repl.ts",
     "repl:watch": "tsx --watch scripts/repl.ts",
     "dev:modal": "cd ../trainer && MODAL_ENVIRONMENT='dev' concurrently 'poetry run modal serve src/lora_inference/main.py' 'poetry run modal serve src/trainer/main.py' --kill-others",
-    "email": "email dev --dir src/components/emails"
+    "email": "email dev --dir src/server/emails/templates",
+    "tsx": "tsx --tsconfig tsconfig.server.json"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^10.1.0",

@@ -211,6 +211,7 @@ export interface FineTune {
   numEpochs: number | null;
   numTrainingAutoretries: Generated<number>;
   gpt4FallbackEnabled: Generated<boolean>;
+  forceA10: Generated<boolean>;
 }
 
 export interface FineTuneTestingEntry {
@@ -284,7 +285,7 @@ export interface Invoice {
   amount: Generated<Numeric>;
   paidAt: Timestamp | null;
   paymentId: string | null;
-  status: Generated<"CANCELLED" | "PAID" | "PENDING" | "REFUNDED">;
+  status: Generated<"CANCELLED" | "FREE" | "PAID" | "PENDING" | "REFUNDED">;
   billingPeriod: string | null;
   slug: string;
 }
