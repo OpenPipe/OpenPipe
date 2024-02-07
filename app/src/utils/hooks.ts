@@ -11,6 +11,7 @@ import { useSortOrder } from "~/components/sorting";
 import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 import { toUTC } from "./dayjs";
+import { useDateFilter } from "~/components/Filters/useDateFilter";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
@@ -234,7 +235,7 @@ export const useStats = (
     ? toUTC(new Date(endDate)).endOf("day").toDate()
     : toUTC(new Date()).endOf("month").toDate();
 
-  const stats = api.usage.stats.useQuery(
+  return api.usage.stats.useQuery(
     {
       projectId: selectedProjectId,
       startDate: startDateUTC,
@@ -242,8 +243,6 @@ export const useStats = (
     },
     { enabled: !!selectedProjectId },
   );
-
-  return useStableData(stats);
 };
 
 export const useModelTestingStats = (
@@ -265,11 +264,19 @@ export const useModelTestingStats = (
 export const useLoggedCalls = (applyFilters = true) => {
   const selectedProjectId = useSelectedProject().data?.id;
   const { page, pageSize } = usePageParams();
-  const filters = useFilters().filters;
+  const generalFilters = useFilters().filters;
+  const dateFilters = useDateFilter().filters;
+  const allFilters = [...generalFilters, ...dateFilters];
+
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
   const result = api.loggedCalls.list.useQuery(
-    { projectId: selectedProjectId ?? "", page, pageSize, filters: applyFilters ? filters : [] },
+    {
+      projectId: selectedProjectId ?? "",
+      page,
+      pageSize,
+      filters: applyFilters ? allFilters : [],
+    },
     { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
   );
 
@@ -277,7 +284,7 @@ export const useLoggedCalls = (applyFilters = true) => {
     if (!result.isFetching) setMatchingLogsCount(result.data?.count ?? 0);
   }, [result, setMatchingLogsCount]);
 
-  return useStableData(result);
+  return result;
 };
 
 export const useTotalNumLogsSelected = () => {

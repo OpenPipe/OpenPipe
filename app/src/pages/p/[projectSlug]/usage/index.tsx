@@ -23,6 +23,7 @@ import {
   TabPanels,
   TabPanel,
   IconButton,
+  Skeleton,
 } from "@chakra-ui/react";
 import { ChevronRightIcon, ChevronLeftIcon, DollarSign, Hash } from "lucide-react";
 import { StringParam, withDefault, useQueryParams } from "use-query-params";
@@ -61,9 +62,9 @@ export default function Usage() {
     totalInputTokens,
     totalOutputTokens,
     totalTrainingTokens,
-  } = stats.data?.totals ?? {};
+  } = stats?.data?.totals ?? {};
 
-  const credits = stats.data?.credits ?? 0;
+  const credits = stats?.data?.credits ?? 0;
 
   const { totalSpent, creditsUsed, remainingCredits } = calculateSpendingsWithCredits(
     Number(cost ?? 0),
@@ -127,82 +128,88 @@ export default function Usage() {
               </HStack>
             </Card>
           </HStack>
-
           <TabPanels>
             <TabPanel paddingX={0}>
               <HStack gap={4} align="start">
                 <Card flex={1}>
-                  <CardBody>
-                    <CostGraph startDate={query.start} endDate={query.end} />
-                  </CardBody>
+                  <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
+                    <CardBody>
+                      <CostGraph startDate={query.start} endDate={query.end} />
+                    </CardBody>
+                  </Skeleton>
                 </Card>
+
                 <VStack spacing="4" width="300px" align="stretch">
                   <Card>
-                    <CardBody>
-                      {credits > 0 && (
-                        <Stat marginBottom={1}>
+                    <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
+                      <CardBody>
+                        {credits > 0 && (
+                          <Stat marginBottom={1}>
+                            <HStack>
+                              <StatLabel flex={1}>Total used</StatLabel>
+                              <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                            </HStack>
+                            <StatNumber color="gray.600" fontSize={"xl"}>
+                              $
+                              {Number(cost ?? 0)
+                                .toFixed(2)
+                                .toLocaleString()}
+                            </StatNumber>
+                          </Stat>
+                        )}
+                        {credits > 0 && (
+                          <>
+                            <Stat marginBottom={1}>
+                              <HStack>
+                                <StatLabel flex={1}>Credits used</StatLabel>
+                                <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                              </HStack>
+                              <StatNumber color="gray.600" fontSize={"xl"}>
+                                ${creditsUsed.toFixed(2).toLocaleString()} / $
+                                {(creditsUsed + remainingCredits).toFixed(2).toLocaleString()}
+                              </StatNumber>
+                            </Stat>
+                          </>
+                        )}
+                        <Stat>
                           <HStack>
-                            <StatLabel flex={1}>Total used</StatLabel>
+                            <StatLabel flex={1}>Total spend</StatLabel>
+                            <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                          </HStack>
+                          <StatNumber>${Number(totalSpent.toFixed(2)).toLocaleString()}</StatNumber>
+                        </Stat>
+                      </CardBody>
+                    </Skeleton>
+                  </Card>
+                  <Card>
+                    <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
+                      <CardBody>
+                        <Stat marginBottom={4}>
+                          <HStack>
+                            <StatLabel flex={1}>Total inference spend</StatLabel>
                             <Icon as={DollarSign} boxSize={4} color="gray.500" />
                           </HStack>
                           <StatNumber color="gray.600" fontSize={"xl"}>
                             $
-                            {Number(cost ?? 0)
-                              .toFixed(2)
-                              .toLocaleString()}
+                            {Number(
+                              numberWithDefault(totalInferenceSpend).toFixed(2),
+                            ).toLocaleString()}
                           </StatNumber>
                         </Stat>
-                      )}
-                      {credits > 0 && (
-                        <>
-                          <Stat marginBottom={1}>
-                            <HStack>
-                              <StatLabel flex={1}>Credits used</StatLabel>
-                              <Icon as={DollarSign} boxSize={4} color="gray.500" />
-                            </HStack>
-                            <StatNumber color="gray.600" fontSize={"xl"}>
-                              ${creditsUsed.toFixed(2).toLocaleString()} / $
-                              {(creditsUsed + remainingCredits).toFixed(2).toLocaleString()}
-                            </StatNumber>
-                          </Stat>
-                        </>
-                      )}
-                      <Stat>
-                        <HStack>
-                          <StatLabel flex={1}>Total spend</StatLabel>
-                          <Icon as={DollarSign} boxSize={4} color="gray.500" />
-                        </HStack>
-                        <StatNumber>${Number(totalSpent.toFixed(2)).toLocaleString()}</StatNumber>
-                      </Stat>
-                    </CardBody>
-                  </Card>
-                  <Card>
-                    <CardBody>
-                      <Stat marginBottom={4}>
-                        <HStack>
-                          <StatLabel flex={1}>Total inference spend</StatLabel>
-                          <Icon as={DollarSign} boxSize={4} color="gray.500" />
-                        </HStack>
-                        <StatNumber color="gray.600" fontSize={"xl"}>
-                          $
-                          {Number(
-                            numberWithDefault(totalInferenceSpend).toFixed(2),
-                          ).toLocaleString()}
-                        </StatNumber>
-                      </Stat>
-                      <Stat>
-                        <HStack>
-                          <StatLabel flex={1}>Total training spend</StatLabel>
-                          <Icon as={DollarSign} boxSize={4} color="gray.500" />
-                        </HStack>
-                        <StatNumber color="gray.600" fontSize={"xl"}>
-                          $
-                          {Number(
-                            numberWithDefault(totalTrainingSpend).toFixed(2),
-                          ).toLocaleString()}
-                        </StatNumber>
-                      </Stat>
-                    </CardBody>
+                        <Stat>
+                          <HStack>
+                            <StatLabel flex={1}>Total training spend</StatLabel>
+                            <Icon as={DollarSign} boxSize={4} color="gray.500" />
+                          </HStack>
+                          <StatNumber color="gray.600" fontSize={"xl"}>
+                            $
+                            {Number(
+                              numberWithDefault(totalTrainingSpend).toFixed(2),
+                            ).toLocaleString()}
+                          </StatNumber>
+                        </Stat>
+                      </CardBody>
+                    </Skeleton>
                   </Card>
                 </VStack>
               </HStack>
@@ -268,51 +275,53 @@ export default function Usage() {
             Models
           </Heading>
           <Card>
-            <Table>
-              <Thead>
-                <Tr>
-                  <Th>ID</Th>
-                  <Th>Created At</Th>
-                  <Th>Base Model</Th>
-                  <Th isNumeric>Requests</Th>
-                  <Th isNumeric>Input Tokens</Th>
-                  <Th isNumeric>Output Tokens</Th>
-                  <Th isNumeric>Spent</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {stats.data?.fineTunes.map((model) => (
-                  <Tr key={model.ftId}>
-                    <Td>
-                      <ProjectLink
-                        href={{ pathname: "/fine-tunes/[id]", query: { id: model.ftId } }}
-                      >
-                        <Text color="blue.600">openpipe:{model.slug}</Text>
-                      </ProjectLink>
-                    </Td>
-                    <Td>
-                      <Box whiteSpace="nowrap" minW="120px">
-                        {dayjs(model.createdAt).format("MMMM D h:mm A")}
-                      </Box>
-                    </Td>
-                    <Td>
-                      <Text
-                        color="orange.500"
-                        fontWeight="bold"
-                        fontSize="xs"
-                        textTransform="uppercase"
-                      >
-                        {modelInfo(model).name}
-                      </Text>
-                    </Td>
-                    <Td isNumeric>{numberWithDefault(model.numQueries).toLocaleString()}</Td>
-                    <Td isNumeric>{numberWithDefault(model.inputTokens).toLocaleString()}</Td>
-                    <Td isNumeric>{numberWithDefault(model.outputTokens).toLocaleString()}</Td>
-                    <Td isNumeric>{numberWithDefault(model.cost).toFixed(2)}</Td>
+            <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
+              <Table>
+                <Thead>
+                  <Tr>
+                    <Th>ID</Th>
+                    <Th>Created At</Th>
+                    <Th>Base Model</Th>
+                    <Th isNumeric>Requests</Th>
+                    <Th isNumeric>Input Tokens</Th>
+                    <Th isNumeric>Output Tokens</Th>
+                    <Th isNumeric>Spent</Th>
                   </Tr>
-                )) ?? <Tr />}
-              </Tbody>
-            </Table>
+                </Thead>
+                <Tbody>
+                  {stats.data?.fineTunes.map((model) => (
+                    <Tr key={model.ftId}>
+                      <Td>
+                        <ProjectLink
+                          href={{ pathname: "/fine-tunes/[id]", query: { id: model.ftId } }}
+                        >
+                          <Text color="blue.600">openpipe:{model.slug}</Text>
+                        </ProjectLink>
+                      </Td>
+                      <Td>
+                        <Box whiteSpace="nowrap" minW="120px">
+                          {dayjs(model.createdAt).format("MMMM D h:mm A")}
+                        </Box>
+                      </Td>
+                      <Td>
+                        <Text
+                          color="orange.500"
+                          fontWeight="bold"
+                          fontSize="xs"
+                          textTransform="uppercase"
+                        >
+                          {modelInfo(model).name}
+                        </Text>
+                      </Td>
+                      <Td isNumeric>{numberWithDefault(model.numQueries).toLocaleString()}</Td>
+                      <Td isNumeric>{numberWithDefault(model.inputTokens).toLocaleString()}</Td>
+                      <Td isNumeric>{numberWithDefault(model.outputTokens).toLocaleString()}</Td>
+                      <Td isNumeric>{numberWithDefault(model.cost).toFixed(2)}</Td>
+                    </Tr>
+                  )) ?? <Tr />}
+                </Tbody>
+              </Table>
+            </Skeleton>
           </Card>
         </VStack>
       </VStack>

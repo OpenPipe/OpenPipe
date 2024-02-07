@@ -38,6 +38,7 @@ config:
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
+  openpipe:NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_51OcEiyIpUtvR6wbgpoMtjp7GzrWoNcjM2kLSeYlEAcP9BevVtv69TeUvhndrg87A4zigWNXYfTjeHyDqX4dt3Pm100pZ8BTBtu
   openpipe:NEXTAUTH_SECRET:
     secure: AAABAKKJBI/ho0yyHuRiI/zImyHNq1ZsQGFmBkBkIHhFUD8UzqW68YaKbLKC+hMU3drGuDHKuR883vTP6MOBRgEFPIMnUFD37V/VMQ==
   openpipe:NODE_ENV: production
@@ -53,5 +54,9 @@ config:
   openpipe:SMTP_LOGIN: founders@openpipe.ai
   openpipe:SMTP_PASSWORD:
     secure: AAABAOEiU4VL50BHLBNMrsyuNZPI/YDtxrDQr73KU3fVUPp09Z+Cd0tFPs+KloUu
+  openpipe:STRIPE_SECRET_KEY:
+    secure: AAABAAh63+NEQ44atnTz7N1w1pg/3oICESNTlCeckpKEmdOjvY9DwV+1H3X8KT1krQ4uxxsACS2ag6vd7aHe4019ToQxz5cmWoKsHszuWREUuTqbm26cziP1+TmDnY0dB9QRpCv15NZer4oFZUQiBLKcEKQkm8eV+6pUL7gakZIUytFyeWSJn5SGXw==
+  openpipe:STRIPE_WEBHOOK_SECRET:
+    secure: AAABADzeRZbO7/GinUsuWmRkvN/gEc3+HSJ9n9O4qwbaHJfx9nwyO7uWnU2wiNMLPw8iLxq5ObrZjY1dq28K9GMzn/RgMg==
   openpipe:WORKER_CONCURRENCY: "10"
   openpipe:deployDomain: openpipestage.com
