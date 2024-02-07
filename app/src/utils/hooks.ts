@@ -300,14 +300,6 @@ export const useTotalNumLogsSelected = () => {
   return selectedLogIds.size;
 };
 
-export const useTagNames = () => {
-  const selectedProjectId = useSelectedProject().data?.id;
-  return api.loggedCalls.getTagNames.useQuery(
-    { projectId: selectedProjectId ?? "" },
-    { enabled: !!selectedProjectId },
-  );
-};
-
 export const useDatasetFineTunes = () => {
   const dataset = useDataset().data;
 

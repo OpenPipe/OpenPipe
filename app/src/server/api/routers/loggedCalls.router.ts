@@ -2,6 +2,7 @@ import { z } from "zod";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { WritableStreamBuffer } from "stream-buffers";
 import type { JsonValue } from "type-fest";
+import { sql } from "kysely";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely } from "~/server/db";
@@ -21,11 +22,11 @@ export const loggedCallsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { projectId, page, pageSize } = input;
+      const { projectId, page, pageSize, filters } = input;
 
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructLoggedCallFiltersQuery({ filters: input.filters, projectId });
+      const baseQuery = constructLoggedCallFiltersQuery({ filters, projectId });
 
       const rawCalls = await baseQuery
         .select((eb) => [
@@ -81,13 +82,23 @@ export const loggedCallsRouter = createTRPCRouter({
         };
       });
 
-      const count = (
-        await baseQuery
-          .select(({ fn }) => [fn.count("lc.id").as("match_count")])
-          .executeTakeFirstOrThrow()
-      )?.match_count;
+      let count;
 
-      return { calls, count: Number(count) };
+      if (filters.length) {
+        count = await baseQuery
+          .select(sql<number>`count(*)::int`.as("matchCount"))
+          .executeTakeFirstOrThrow()
+          .then((result) => result.matchCount);
+      } else {
+        count = await kysely
+          .selectFrom("Project")
+          .where("id", "=", projectId)
+          .select("numLoggedCalls")
+          .executeTakeFirstOrThrow()
+          .then((project) => project.numLoggedCalls);
+      }
+
+      return { calls, count };
     }),
   getTagNames: protectedProcedure
     .input(z.object({ projectId: z.string() }))

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
 import Filters from "../Filters/Filters";
-import { useTagNames } from "~/utils/hooks";
+import { useSelectedProject } from "~/utils/hooks";
 import { type FilterOption } from "../Filters/types";
 
 const defaultFilterOptions: FilterOption[] = [
@@ -14,7 +14,7 @@ const defaultFilterOptions: FilterOption[] = [
 ];
 
 const LogFilters = () => {
-  const tagNames = useTagNames().data;
+  const tagNames = useSelectedProject().data?.tagNames;
 
   const filterOptions = useMemo(() => {
     const tagFilters: FilterOption[] = (tagNames || []).map((tag) => ({

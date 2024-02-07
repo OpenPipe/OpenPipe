@@ -180,7 +180,7 @@ const ProjectOption = ({
   isActive,
   onClick,
 }: {
-  proj: Project;
+  proj: Pick<Project, "name" | "slug">;
   isActive: boolean;
   onClick: () => void;
 }) => {
