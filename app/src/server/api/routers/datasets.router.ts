@@ -15,6 +15,7 @@ import { filtersSchema } from "~/types/shared.types";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -70,61 +71,53 @@ export const datasetsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      // Ensure pruningRuleIds always contains at least one element, using a value that won't match anything
-      const safePruningRuleIds = pruningRuleIds.length > 0 ? pruningRuleIds : [uuidv4()];
-
-      const trainingEntryStats = await constructDatasetEntryFiltersQuery({ filters, datasetId })
+      const datasetEntryStats = await constructDatasetEntryFiltersQuery({ filters, datasetId })
         .where("de.split", "=", "TRAIN")
         .where("de.output", "is not", null)
-        .leftJoin("PruningRuleMatch as prm", "prm.datasetEntryId", "de.id")
-        .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
-        .where("pr.id", "in", safePruningRuleIds)
         .select([
           sql<number>`count(distinct de.id)::int`.as("numEntries"),
           sql<number>`sum(de."inputTokens")::int`.as("totalInputTokens"),
           sql<number>`sum(de."outputTokens")::int`.as("totalOutputTokens"),
-          sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens"),
         ])
         .executeTakeFirst();
 
-      if (!trainingEntryStats) return;
+      if (!datasetEntryStats) return;
+
+      let totalMatchTokens = 0;
+
+      if (pruningRuleIds.length > 0) {
+        const pruningRuleStats = await constructDatasetEntryFiltersQuery({ filters, datasetId })
+          .where("de.split", "=", "TRAIN")
+          .where("de.output", "is not", null)
+          .innerJoin("PruningRuleMatch", (join) =>
+            join
+              .onRef("PruningRuleMatch.datasetEntryId", "=", "de.id")
+              .on("PruningRuleMatch.pruningRuleId", "in", pruningRuleIds),
+          )
+          .leftJoin("PruningRule as pr", "PruningRuleMatch.pruningRuleId", "pr.id")
+          .select(sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens"))
+          .executeTakeFirst();
+
+        totalMatchTokens = pruningRuleStats?.totalMatchTokens || 0;
+      }
 
       const trainingTokens =
-        trainingEntryStats.totalInputTokens +
-        trainingEntryStats.totalOutputTokens -
-        (trainingEntryStats.totalMatchTokens ?? 0);
-
-      const totalTestingCount = await prisma.datasetEntry.count({
-        where: {
-          datasetId,
-          outdated: false,
-          split: "TEST",
-        },
-      });
+        datasetEntryStats.totalInputTokens + datasetEntryStats.totalOutputTokens - totalMatchTokens;
 
       const { cost, inputCost, outputCost } = calculateCost(
         baseModel,
         0,
-        trainingEntryStats.totalInputTokens - (trainingEntryStats.totalMatchTokens ?? 0),
-        trainingEntryStats.totalOutputTokens,
+        datasetEntryStats.totalInputTokens - totalMatchTokens,
+        datasetEntryStats.totalOutputTokens,
       );
 
-      const { cost: costWithoutPruning } = calculateCost(
-        baseModel,
-        0,
-        trainingEntryStats.totalInputTokens,
-        trainingEntryStats.totalOutputTokens,
-      );
+      const numEpochs = calculateNumEpochs(datasetEntryStats.numEntries);
 
       return {
-        cost,
-        costWithoutPruning,
-        matchingTrainingCount: trainingEntryStats.numEntries,
-        totalTestingCount,
-        trainingTokens,
-        prunedTokens: trainingEntryStats.totalMatchTokens ?? 0,
+        cost: cost * numEpochs,
         inputCost,
         outputCost,
+        trainingTokens,
       };
     }),
   list: protectedProcedure

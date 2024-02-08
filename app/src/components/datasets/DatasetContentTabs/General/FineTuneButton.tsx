@@ -19,6 +19,7 @@ import {
   type UseDisclosureReturn,
   Collapse,
   Checkbox,
+  Skeleton,
 } from "@chakra-ui/react";
 import humanId from "human-id";
 import { useSession } from "next-auth/react";
@@ -41,6 +42,7 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
   useDataset,
   useDatasetEntries,
+  useDatasetTrainingCost,
   useHandledAsyncCallback,
   useIsMissingBetaAccess,
   usePruningRules,
@@ -120,6 +122,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     () => setAppliedPruningRuleIds(pruningRules?.map((rule) => rule.id) ?? []),
     [pruningRules],
   );
+
+  const stats = useDatasetTrainingCost(selectedBaseModel, appliedPruningRuleIds);
 
   const utils = api.useContext();
   const router = useRouter();
@@ -241,13 +245,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 . You'll receive an email at <b>{email}</b> when you're approved.
               </Text>
             )}
-            {!needsMissingOpenaiKey && !needsMissingBetaAccess && (
-              <TrainingEntryMeter
-                selectedBaseModel={selectedBaseModel}
-                appliedPruningRuleIds={appliedPruningRuleIds}
-                mt={8}
-              />
-            )}
+            {!needsMissingOpenaiKey && !needsMissingBetaAccess && <TrainingEntryMeter mt={8} />}
             <VStack w="full" alignItems="flex-start" spacing={0}>
               <Button
                 variant="unstyled"
@@ -318,6 +316,12 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
         </ModalBody>
         <ModalFooter>
           <HStack>
+            <HStack fontSize="sm" spacing={1}>
+              <Text>Estimated training price:</Text>
+              <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
+                <Text>${Number(stats.data?.cost ?? 0).toFixed(2)}</Text>
+              </Skeleton>
+            </HStack>
             <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
               Cancel
             </Button>
