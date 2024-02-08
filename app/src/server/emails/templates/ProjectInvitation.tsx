@@ -2,7 +2,6 @@ import * as React from "react";
 import { Button, EmailLayout, Header, Text } from "./layout";
 
 interface Props {
-  subject: string;
   projectName: string;
   invitationSenderName: string;
   invitationSenderEmail: string;
