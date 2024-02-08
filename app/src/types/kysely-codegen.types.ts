@@ -75,11 +75,11 @@ export interface CachedResponse {
 export interface CreditAdjustment {
   id: string;
   amount: Numeric;
-  description: string | null;
   projectId: string;
+  description: string | null;
   invoiceId: string | null;
-  type: "BONUS" | "INVOICE" | "REFUND";
   createdAt: Generated<Timestamp>;
+  type: "BONUS" | "INVOICE" | "REFUND";
 }
 
 export interface Dataset {
@@ -279,22 +279,15 @@ export interface GraphileWorkerMigrations {
 
 export interface Invoice {
   id: string;
-  amount: Generated<Numeric>;
-<<<<<<< HEAD
-  paidAt: Timestamp | null;
-  paymentId: string | null;
-  status: Generated<"CANCELLED" | "FREE" | "PAID" | "PENDING" | "REFUNDED">;
-  billingPeriod: string | null;
-=======
-  status: Generated<"CANCELLED" | "PAID" | "PENDING" | "REFUNDED">;
->>>>>>> 06664009d4f24a58d57e2a91a593d3be1eb4219c
-  slug: string;
-  billingPeriod: string | null;
-  paidAt: Timestamp | null;
-  description: Json | null;
-  paymentId: string | null;
   projectId: string;
+  description: Json | null;
   createdAt: Generated<Timestamp>;
+  amount: Generated<Numeric>;
+  paidAt: Timestamp | null;
+  paymentId: string | null;
+  billingPeriod: string | null;
+  slug: string;
+  status: Generated<"CANCELLED" | "FREE" | "PAID" | "PENDING" | "REFUNDED">;
 }
 
 export interface LoggedCall {
@@ -335,8 +328,8 @@ export interface Project {
   slug: Generated<string>;
   isPublic: Generated<boolean>;
   isHidden: Generated<boolean>;
-  billable: Generated<boolean>;
   stripeCustomerId: string | null;
+  billable: Generated<boolean>;
   tagNames: Generated<string[] | null>;
 }
 
@@ -392,9 +385,9 @@ export interface UsageLog {
   createdAt: Generated<Timestamp>;
   projectId: string | null;
   billable: Generated<boolean>;
+  invoiceId: string | null;
   baseModel: string | null;
   inputCost: Generated<Numeric>;
-  invoiceId: string | null;
   outputCost: Generated<Numeric>;
 }
 
