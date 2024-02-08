@@ -304,7 +304,7 @@ export const useLoggedCallsCount = () => {
       refetchOnWindowFocus: false,
       trpc: {
         context: {
-          skipBatch: true,
+          slowBatch: true,
         },
       },
     },
