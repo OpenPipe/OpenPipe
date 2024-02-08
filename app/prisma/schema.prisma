@@ -174,7 +174,6 @@ model Project {
     isHidden         Boolean  @default(false)
     stripeCustomerId String?
     billable         Boolean  @default(true)
-    numLoggedCalls   Int      @default(0) // auto-increments on logged call creation
     tagNames         String[] @default([]) // cached list of tag names for the project
 
     personalProjectUserId String? @unique @db.Uuid
