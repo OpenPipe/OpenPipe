@@ -337,7 +337,6 @@ export interface Project {
   isHidden: Generated<boolean>;
   billable: Generated<boolean>;
   stripeCustomerId: string | null;
-  numLoggedCalls: Generated<number>;
   tagNames: Generated<string[] | null>;
 }
 

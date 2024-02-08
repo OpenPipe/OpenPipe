@@ -12,6 +12,7 @@ import {
   VStack,
   Text,
   Checkbox,
+  Skeleton,
   Link as ChakraLink,
 } from "@chakra-ui/react";
 
@@ -22,6 +23,7 @@ import { useAppStore } from "~/state/store";
 import {
   useIsClientInitialized,
   useLoggedCalls,
+  useLoggedCallsCount,
   useTotalNumLogsSelected,
   useSelectedProject,
 } from "~/utils/hooks";
@@ -33,7 +35,7 @@ import { ProjectLink } from "~/components/ProjectLink";
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
 export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
-  const matchingCount = useLoggedCalls().data?.count;
+  const loggedCallsCount = useLoggedCallsCount();
   const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const toggleAllSelected = useAppStore((s) => s.selectedLogs.toggleAllSelected);
@@ -56,10 +58,17 @@ export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
                 onChange={toggleAllSelected}
                 _hover={{ borderColor: "gray.300" }}
               />
-              <Text>
-                ({totalNumLogsSelected ? `${totalNumLogsSelected.toLocaleString()}/` : ""}
-                {(matchingCount ?? 0).toLocaleString()})
-              </Text>
+              <Skeleton
+                startColor="gray.100"
+                endColor="gray.300"
+                isLoaded={!loggedCallsCount.isLoading}
+                minW={16}
+              >
+                <Text>
+                  ({totalNumLogsSelected ? `${totalNumLogsSelected.toLocaleString()}/` : ""}
+                  {(loggedCallsCount.data?.count ?? 0).toLocaleString()})
+                </Text>
+              </Skeleton>
             </HStack>
           </Th>
         )}
@@ -230,7 +239,7 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
   const generalFilters = useFilters().filters;
   const dateFilters = useDateFilter().filters;
   const allFilters = [...generalFilters, ...dateFilters];
-  const { isFetching, isLoading } = useLoggedCalls(true);
+  const { isFetching, isLoading } = useLoggedCalls();
 
   if (isLoading || isFetching) {
     return null;

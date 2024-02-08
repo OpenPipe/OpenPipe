@@ -25,7 +25,7 @@ export default function LoggedCalls() {
 
   const utils = api.useContext();
 
-  const { isFetching, isLoading } = useLoggedCalls(true);
+  const { isFetching, isLoading } = useLoggedCalls();
 
   return (
     <AppShell title="Request Logs" requireAuth>
@@ -47,7 +47,10 @@ export default function LoggedCalls() {
                 />
               }
               isDisabled={isFetching || isLoading}
-              onClick={() => void utils.loggedCalls.list.invalidate()}
+              onClick={() => {
+                void utils.loggedCalls.list.invalidate();
+                void utils.loggedCalls.getMatchingCount.invalidate();
+              }}
             />
           </HStack>
           <HStack w="full" justifyContent="space-between">

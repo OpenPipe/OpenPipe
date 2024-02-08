@@ -27,7 +27,7 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   password: password.result,
   dbName,
   instanceClass: "db.m7g.2xlarge",
-  allocatedStorage: 400,
+  allocatedStorage: 750,
   maxAllocatedStorage: 1000,
   storageType: "io1",
   iops: 12000,
@@ -42,7 +42,7 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   performanceInsightsEnabled: true,
   multiAz: isProd,
   skipFinalSnapshot: !isProd,
-  snapshotIdentifier: isProd ? undefined : "rds:app-pl-prod2de906e-2024-01-16-08-43",
+  snapshotIdentifier: isProd ? undefined : "rds:app-pl-prod2de906e-2024-02-06-08-43",
   finalSnapshotIdentifier: nm("app-db-final-snapshot"),
 });
 
