@@ -10,17 +10,16 @@ interface Props {
 }
 
 const ProjectInvitation = ({
-  subject,
   projectName,
   invitationSenderName,
   invitationSenderEmail,
   invitationLink,
 }: Props) => {
-  const previewText = `You have been invited to join ${projectName} by ${invitationSenderName} (${invitationSenderEmail}).`;
-
   return (
-    <EmailLayout previewText={previewText}>
-      <Header>{subject}</Header>
+    <EmailLayout
+      previewText={`You have been invited to join ${projectName} by ${invitationSenderName} (${invitationSenderEmail}).`}
+    >
+      <Header>You've been invited to join a project</Header>
 
       <Text>
         You have been invited to join <strong>{projectName}</strong> by {invitationSenderName} (

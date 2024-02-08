@@ -44,7 +44,7 @@ const PaymentFailed = ({
         total={amount}
       />
 
-      <Text>Avoid service interruptions by updating a payment method.</Text>
+      <Text>Avoid service interruptions by updating your payment method.</Text>
       <Button href={paymentMethodsLink}>Update Payment Method</Button>
     </EmailLayout>
   );
