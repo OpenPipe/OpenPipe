@@ -76,7 +76,7 @@ const runner = await run({
       identifier: generateInvoices.task.identifier,
     },
 
-    //If an invoice payment failed, it will retry on the next day
+    // If an invoice payment failed, it will retry on the next day
     {
       task: chargeInvoices.task.identifier,
       // run at 8 AM UTC, on the second day of each month

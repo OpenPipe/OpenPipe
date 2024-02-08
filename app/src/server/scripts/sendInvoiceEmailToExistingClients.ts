@@ -18,7 +18,6 @@ const creditAdjustments = await prisma.creditAdjustment.findMany({
 });
 
 for (const creditAdjustment of creditAdjustments) {
-  creditAdjustment.invoice;
   const invoice = creditAdjustment.invoice;
   const project = creditAdjustment.project;
 

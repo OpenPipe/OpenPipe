@@ -134,7 +134,7 @@ const InvoicesTable = ({ invoices }: Props) => {
                     <ProjectLink
                       href={{ pathname: "/billing/invoices/[id]", query: { id: invoice.id } }}
                     >
-                      <Text as={"b"} color="gray.900">
+                      <Text as="b" color="gray.900">
                         ${parseFloat(invoice.amount.toString()).toFixed(2)}
                       </Text>
                     </ProjectLink>

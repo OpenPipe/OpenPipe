@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, EmailLayout, Heading, InvoiceDescription, Text } from "./layout";
+import { Button, EmailLayout, Header, InvoiceDescription, Text } from "./layout";
 import { Link } from "@react-email/components";
 import { demoDescription } from "./layout/DemoData";
 
@@ -26,13 +26,16 @@ const PaymentFailed = ({
 
   return (
     <EmailLayout previewText={previewText}>
-      <Heading>Payment required</Heading>
-      <Text>Avoid any interruption of service by adding a payment method.</Text>
+      <Header>Payment required</Header>
       <Text style={{ fontSize: "1.5em" }}>OpenPipe Usage {billingPeriod} </Text>
 
       <Text>
-        This is your monthly <Link href={invoicesLink}>invoice</Link> for OpenPipe Project{" "}
-        <Link href={projectLink}>{projectName}</Link>.
+        We were unable to process the payment for your invoice. Please update your payment
+        information.
+      </Text>
+      <Text>
+        Your monthly <Link href={invoicesLink}>invoice</Link> for OpenPipe project{" "}
+        <Link href={projectLink}>{projectName}</Link>:
       </Text>
 
       <InvoiceDescription
@@ -41,7 +44,8 @@ const PaymentFailed = ({
         total={amount}
       />
 
-      <Button href={paymentMethodsLink}>Add Payment Method</Button>
+      <Text>Avoid service interruptions by updating a payment method.</Text>
+      <Button href={paymentMethodsLink}>Update Payment Method</Button>
     </EmailLayout>
   );
 };

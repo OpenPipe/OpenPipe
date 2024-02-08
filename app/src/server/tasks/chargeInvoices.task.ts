@@ -8,6 +8,7 @@ import {
   usdToCents,
 } from "../utils/stripe";
 import { env } from "~/env.mjs";
+import dayjs from "dayjs";
 
 export const chargeInvoices = defineTask({
   id: "chargeInvoices",
@@ -15,6 +16,9 @@ export const chargeInvoices = defineTask({
     const invoices = await prisma.invoice.findMany({
       where: {
         status: "PENDING",
+        createdAt: {
+          gte: dayjs().subtract(3, "month").toDate(),
+        },
       },
     });
 

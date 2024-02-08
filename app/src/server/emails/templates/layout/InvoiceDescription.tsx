@@ -15,7 +15,6 @@ export default function InvoiceDescription({ description, total, style }: Props)
           <Row key={index}>
             <Column style={{ width: "100%" }}>
               <Text>{item.text}:</Text>
-              {/* {item.description?.split("\n").map((i, key) => <Text key={key}>{i}</Text>)} */}
             </Column>
             <Column style={{ width: "100%" }}>
               <Text>{item.value}</Text>

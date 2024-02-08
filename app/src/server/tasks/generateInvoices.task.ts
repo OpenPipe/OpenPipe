@@ -18,30 +18,28 @@ export const generateInvoices = defineTask({
   handler: async () => {
     const [startOfPreviousMonth, endOfPreviousMonth] = getPreviousMonthPeriodUTC();
 
-    const projects = await prisma.project.findMany();
+    const projects = await prisma.project.findMany({ where: { billable: true } });
 
     for (const project of projects) {
-      if (project.billable) {
-        const data = await createInvoice(project.id, startOfPreviousMonth, endOfPreviousMonth);
+      const data = await createInvoice(project.id, startOfPreviousMonth, endOfPreviousMonth);
 
-        if (data?.invoice) {
-          await chargeInvoice(data.invoice.id);
-        }
+      if (data?.invoice) {
+        await chargeInvoice(data.invoice.id);
+      }
 
-        //Send success email if a user spent credits but does not have to pay.
-        if (data && data.creditsUsed > 0 && Number(data.invoice.amount) <= 1) {
-          await sendToAdmins(data.invoice.projectId, (email: string) =>
-            sendInvoiceNotificationWithoutRequiredPayment(
-              data.invoice.id,
-              Number(data.invoice.amount),
-              data.invoice.description,
-              data.invoice.billingPeriod || "",
-              project.name,
-              project.slug,
-              email,
-            ),
-          );
-        }
+      //Send success email if a user spent credits but does not have to pay.
+      if (data && data.creditsUsed > 0 && Number(data.invoice.amount) <= 1) {
+        await sendToAdmins(data.invoice.projectId, (email: string) =>
+          sendInvoiceNotificationWithoutRequiredPayment(
+            data.invoice.id,
+            Number(data.invoice.amount),
+            data.invoice.description,
+            data.invoice.billingPeriod || "",
+            project.name,
+            project.slug,
+            email,
+          ),
+        );
       }
     }
   },
@@ -157,7 +155,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
           id: uuidv4(),
           projectId: projectId,
           amount: -creditsUsed,
-          //Adjustments should be created on the first day of the next month, when invoices are generated
+          // Adjustments should be created on the first day of the next month, when invoices are generated
           createdAt: dayjs(endDate).add(1, "month").startOf("month").toDate(),
           description: `Invoice ${invoice.slug}`,
           invoiceId: invoice.id,

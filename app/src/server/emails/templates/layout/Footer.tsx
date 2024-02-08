@@ -1,7 +1,7 @@
 import { Row, Section, Text } from "@react-email/components";
 import React from "react";
 
-export default function Header() {
+export default function Footer() {
   return (
     <Section>
       <Row>

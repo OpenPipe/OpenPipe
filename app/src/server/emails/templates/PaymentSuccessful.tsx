@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, EmailLayout, Heading, InvoiceDescription, Text } from "./layout";
+import { Button, EmailLayout, Header, InvoiceDescription, Text } from "./layout";
 import { Link } from "@react-email/components";
 import { demoDescription } from "./layout/DemoData";
 
@@ -26,12 +26,12 @@ const PaymentSuccessful = ({
 
   return (
     <EmailLayout previewText={previewText}>
-      <Heading>Payment Successful for {projectName}</Heading>
+      <Header>Payment Successful for {projectName}</Header>
       <Text style={{ fontSize: "1.5em" }}>OpenPipe Usage {billingPeriod} </Text>
 
       <Text>
         Your <Link href={invoiceLink}>invoice</Link> of ${amount} for project{" "}
-        <Link href={projectLink}>{projectName}</Link> has been successfully paid!
+        <Link href={projectLink}>{projectName}</Link> has been successfully paid:
       </Text>
       <InvoiceDescription
         style={{ marginBottom: "20px" }}

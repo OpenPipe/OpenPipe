@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, EmailLayout, Heading, InvoiceDescription, Text } from "./layout";
+import { Button, EmailLayout, Header, InvoiceDescription, Text } from "./layout";
 import { Link } from "@react-email/components";
 import { demoDescription } from "./layout/DemoData";
 
@@ -24,11 +24,11 @@ const InvoiceNotificationWithoutRequiredPayment = ({
 
   return (
     <EmailLayout previewText={previewText}>
-      <Heading>OpenPipe Usage {billingPeriod}</Heading>
+      <Header>OpenPipe Usage {billingPeriod}</Header>
 
       <Text>
-        This is your monthly <Link href={invoicesLink}>invoice</Link> for OpenPipe Project{" "}
-        <Link href={projectLink}>{projectName}</Link>.
+        This is your monthly <Link href={invoicesLink}>invoice</Link> for OpenPipe project{" "}
+        <Link href={projectLink}>{projectName}</Link>:
       </Text>
 
       <InvoiceDescription
@@ -37,8 +37,8 @@ const InvoiceNotificationWithoutRequiredPayment = ({
         total={amount}
       />
       <Text>
-        Please visit your <Link href={invoicesLink}>invoice</Link> to see more details and add a
-        payment method. This will ensure we avoid any interruption of service!
+        Please visit your account to see more details and update a payment method. This will ensure
+        we avoid any interruption of service!
       </Text>
       <Button href={invoicesLink}>Details</Button>
     </EmailLayout>

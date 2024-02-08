@@ -243,7 +243,7 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
           <Text color="gray.500" textAlign="center" w="full" p={4}>
             No matching request logs found. Try removing some filters or view{" "}
             <ProjectLink href={{ pathname: "/request-logs", query: { dateFilter: "[]" } }}>
-              <Text as={"b"} color="blue.600">
+              <Text as="b" color="blue.600">
                 all
               </Text>
             </ProjectLink>{" "}

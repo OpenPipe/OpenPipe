@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, EmailLayout, Heading, Text } from "./layout";
+import { Button, EmailLayout, Header, Text } from "./layout";
 
 interface Props {
   subject: string;
@@ -20,9 +20,12 @@ const ProjectInvitation = ({
 
   return (
     <EmailLayout previewText={previewText}>
-      <Heading>{subject}</Heading>
+      <Header>{subject}</Header>
 
-      <Text>{previewText}</Text>
+      <Text>
+        You have been invited to join <strong>{projectName}</strong> by {invitationSenderName} (
+        {invitationSenderEmail}).
+      </Text>
 
       <Button href={invitationLink}>Accept invitation</Button>
     </EmailLayout>
