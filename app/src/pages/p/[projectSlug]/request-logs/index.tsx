@@ -25,7 +25,7 @@ export default function LoggedCalls() {
 
   const utils = api.useContext();
 
-  const { isFetching, isLoading } = useLoggedCalls(true);
+  const { isFetching, isLoading } = useLoggedCalls();
 
   return (
     <AppShell title="Request Logs" requireAuth>

@@ -5,7 +5,6 @@ import type { JsonValue } from "type-fest";
 import { sql } from "kysely";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { kysely } from "~/server/db";
 import { requireCanViewProject } from "~/utils/accessControl";
 import hashObject from "~/server/utils/hashObject";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
@@ -26,9 +25,7 @@ export const loggedCallsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructLoggedCallFiltersQuery({ filters, projectId });
-
-      const rawCalls = await baseQuery
+      const rawCalls = await constructLoggedCallFiltersQuery({ filters, projectId })
         .select((eb) => [
           "lc.id as id",
           "lc.requestedAt as requestedAt",
@@ -82,38 +79,21 @@ export const loggedCallsRouter = createTRPCRouter({
         };
       });
 
-      let count;
-
-      if (filters.length) {
-        count = await baseQuery
-          .select(sql<number>`count(*)::int`.as("matchCount"))
-          .executeTakeFirstOrThrow()
-          .then((result) => result.matchCount);
-      } else {
-        count = await kysely
-          .selectFrom("Project")
-          .where("id", "=", projectId)
-          .select("numLoggedCalls")
-          .executeTakeFirstOrThrow()
-          .then((project) => project.numLoggedCalls);
-      }
-
-      return { calls, count };
+      return { calls };
     }),
-  getTagNames: protectedProcedure
-    .input(z.object({ projectId: z.string() }))
+  getMatchingCount: protectedProcedure
+    .input(z.object({ projectId: z.string(), filters: filtersSchema }))
     .query(async ({ input, ctx }) => {
-      await requireCanViewProject(input.projectId, ctx);
+      const { projectId, filters } = input;
 
-      const tags = await kysely
-        .selectFrom("LoggedCallTag")
-        .select("name")
-        .distinct()
-        .where("projectId", "=", input.projectId)
-        .orderBy("name")
-        .execute();
+      await requireCanViewProject(projectId, ctx);
 
-      return tags.map((tag) => tag.name);
+      const count = await constructLoggedCallFiltersQuery({ filters, projectId })
+        .select(sql<number>`count(*)::int`.as("matchCount"))
+        .executeTakeFirstOrThrow()
+        .then((result) => result.matchCount);
+
+      return { count };
     }),
   export: protectedProcedure
     .input(

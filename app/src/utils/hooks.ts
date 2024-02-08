@@ -261,26 +261,53 @@ export const useModelTestingStats = (
   return useStableData(result);
 };
 
-export const useLoggedCalls = (applyFilters = true) => {
-  const selectedProjectId = useSelectedProject().data?.id;
-  const { page, pageSize } = usePageParams();
+const useFiltersWithValues = () => {
   const generalFilters = useFilters().filters;
   const dateFilters = useDateFilter().filters;
   const allFilters = [...generalFilters, ...dateFilters];
 
   // prevent blank filters from throwing off caching
-  const filtersWithValues = allFilters.filter((filter) => filter.value !== "");
+  return allFilters.filter((filter) => filter.value !== "");
+};
 
-  const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
+export const useLoggedCalls = () => {
+  const selectedProjectId = useSelectedProject().data?.id;
+  const { page, pageSize } = usePageParams();
+
+  const filtersWithValues = useFiltersWithValues();
 
   const result = api.loggedCalls.list.useQuery(
     {
       projectId: selectedProjectId ?? "",
       page,
       pageSize,
-      filters: applyFilters ? filtersWithValues : [],
+      filters: filtersWithValues,
     },
     { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
+  );
+
+  return result;
+};
+
+export const useLoggedCallsCount = () => {
+  const selectedProjectId = useSelectedProject().data?.id;
+  const filtersWithValues = useFiltersWithValues();
+  const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
+
+  const result = api.loggedCalls.getMatchingCount.useQuery(
+    {
+      projectId: selectedProjectId ?? "",
+      filters: filtersWithValues,
+    },
+    {
+      enabled: !!selectedProjectId,
+      refetchOnWindowFocus: false,
+      trpc: {
+        context: {
+          skipBatch: true,
+        },
+      },
+    },
   );
 
   useEffect(() => {

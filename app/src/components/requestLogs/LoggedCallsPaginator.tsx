@@ -1,10 +1,10 @@
 import { type StackProps } from "@chakra-ui/react";
 
-import { useLoggedCalls } from "~/utils/hooks";
+import { useLoggedCallsCount } from "~/utils/hooks";
 import Paginator from "../Paginator";
 
 const LoggedCallsPaginator = (props: StackProps) => {
-  const { data } = useLoggedCalls();
+  const { data } = useLoggedCallsCount();
 
   if (!data) return null;
 

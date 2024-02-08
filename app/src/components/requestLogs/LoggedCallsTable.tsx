@@ -5,7 +5,7 @@ import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
 
 export default function LoggedCallsTable() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const { data: loggedCalls, isLoading } = useLoggedCalls(true);
+  const { data: loggedCalls, isLoading } = useLoggedCalls();
 
   return (
     <Card width="100%" overflowX="auto">
