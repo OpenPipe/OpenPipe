@@ -28,7 +28,8 @@ const FormattedJson = ({ json }: { json: any }) => {
         }}
         wrapLines
       >
-        {jsonString}
+        {/* convert non-breaking spaces into regular spaces */}
+        {jsonString.replace(/[\u00A0]+/g, " ")}
       </SyntaxHighlighter>
       <IconButton
         aria-label="Copy"
