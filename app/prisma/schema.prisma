@@ -286,6 +286,7 @@ model LoggedCallTag {
     @@index([name, projectId])
     @@index([projectId, name])
     @@index([projectId, name, value])
+    @@index([value, name, projectId])
 }
 
 enum ApiKeyProvider {
