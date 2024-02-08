@@ -4,7 +4,7 @@
  *
  * We also create a few inference helpers for input and output types.
  */
-import { httpBatchLink, httpLink, splitLink, loggerLink } from "@trpc/client";
+import { httpBatchLink, splitLink, loggerLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import superjson from "superjson";
@@ -40,9 +40,10 @@ export const api = createTRPCNext<AppRouter>({
         }),
         splitLink({
           condition(op) {
-            return op.context.skipBatch === true;
+            return op.context.slowBatch === true;
           },
-          true: httpLink({
+          // separate batching for slow requests
+          true: httpBatchLink({
             url: `${getBaseUrl()}/api/trpc`,
           }),
           false: httpBatchLink({
