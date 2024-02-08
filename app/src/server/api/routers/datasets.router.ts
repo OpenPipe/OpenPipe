@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { sql } from "kysely";
 import type { ComparisonModel } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
