@@ -241,7 +241,13 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 . You'll receive an email at <b>{email}</b> when you're approved.
               </Text>
             )}
-            {!needsMissingOpenaiKey && !needsMissingBetaAccess && <TrainingEntryMeter mt={8} />}
+            {!needsMissingOpenaiKey && !needsMissingBetaAccess && (
+              <TrainingEntryMeter
+                selectedBaseModel={selectedBaseModel}
+                appliedPruningRuleIds={appliedPruningRuleIds}
+                mt={8}
+              />
+            )}
             <VStack w="full" alignItems="flex-start" spacing={0}>
               <Button
                 variant="unstyled"

@@ -1,11 +1,39 @@
 import React from "react";
 import chroma from "chroma-js";
 
-import { VStack, HStack, Text, Box, type StackProps } from "@chakra-ui/react";
-import { useDatasetEntries } from "~/utils/hooks";
+import { VStack, HStack, Text, Box, type StackProps, Spinner } from "@chakra-ui/react";
+import { useDataset, useDatasetEntries } from "~/utils/hooks";
+import { useFilters } from "~/components/Filters/useFilters";
+import { ProviderWithModel } from "~/server/fineTuningProviders/types";
+import { splitProvider } from "~/server/fineTuningProviders/supportedModels";
+import { api } from "~/utils/api";
 
-const TrainingEntryMeter = (props: StackProps) => {
+interface Props extends StackProps {
+  selectedBaseModel: ProviderWithModel;
+  appliedPruningRuleIds: string[];
+}
+
+const TrainingEntryMeter = (props: Props) => {
   const datasetEntries = useDatasetEntries().data;
+
+  const dataset = useDataset().data;
+  const filters = useFilters().filters;
+
+  if (!dataset) return null;
+
+  const stats = api.datasets.getTrainingCosts.useQuery(
+    {
+      datasetId: dataset?.id,
+      baseModel: splitProvider(props.selectedBaseModel),
+      filters,
+      pruningRuleIds: props.appliedPruningRuleIds,
+    },
+    { enabled: !!dataset },
+  );
+
+  console.log(stats.data);
+
+  const { cost, costWithoutPruning } = stats.data ?? {};
 
   // Get the number of training entries
   const numTrainingEntries = datasetEntries?.matchingTrainingCount || 0;
@@ -39,10 +67,25 @@ const TrainingEntryMeter = (props: StackProps) => {
       borderRadius={4}
       {...props}
     >
-      <HStack fontSize="sm" spacing={1}>
-        <Text fontWeight="bold">Training Size:</Text>
-        <TrainingSizeScore numTrainingEntries={numTrainingEntries} />
+      <HStack justifyContent="space-between" w="100%">
+        <HStack fontSize="sm" spacing={1}>
+          <Text fontWeight="bold">Training Size:</Text>
+          <TrainingSizeScore numTrainingEntries={numTrainingEntries} />
+        </HStack>
+        <VStack fontSize="sm" spacing={1} alignItems="end">
+          <Text fontWeight="bold">
+            Estimated training price:{" "}
+            {stats.isLoading ? <Spinner /> : "$" + Number(cost ?? 0).toFixed(2)}
+          </Text>
+          {!stats.isLoading && Number(costWithoutPruning ?? 0) > Number(cost ?? 0) && (
+            <Text>
+              Saved with pruning: -$
+              {(Number(costWithoutPruning ?? 0) - Number(cost ?? 0)).toFixed(2)}
+            </Text>
+          )}
+        </VStack>
       </HStack>
+
       <Text fontSize="sm">{helperText}</Text>
       <VStack w="full">
         <HStack w="full" justifyContent="space-between">

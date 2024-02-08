@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { sql } from "kysely";
 import type { ComparisonModel } from "@prisma/client";
-
+import { v4 as uuidv4 } from "uuid";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
@@ -13,6 +13,8 @@ import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
+import { baseModel } from "~/server/fineTuningProviders/types";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -53,38 +55,39 @@ export const datasetsRouter = createTRPCRouter({
   getTrainingCosts: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        datasetId: z.string(),
+        baseModel: baseModel,
         filters: filtersSchema,
-        selectedPruningRuleIds: z.array(z.string()),
+        pruningRuleIds: z.array(z.string()),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { id, filters, selectedPruningRuleIds } = input;
+      const { datasetId, filters, baseModel, pruningRuleIds } = input;
 
       const { projectId } = await prisma.dataset.findUniqueOrThrow({
-        where: { id },
+        where: { id: datasetId },
       });
 
       await requireCanViewProject(projectId, ctx);
 
-      const trainingEntryStats = await constructDatasetEntryFiltersQuery({ filters, datasetId: id })
+      // Ensure pruningRuleIds always contains at least one element, using a value that won't match anything
+      const safePruningRuleIds = pruningRuleIds.length > 0 ? pruningRuleIds : [uuidv4()];
+
+      const trainingEntryStats = await constructDatasetEntryFiltersQuery({ filters, datasetId })
         .where("de.split", "=", "TRAIN")
         .where("de.output", "is not", null)
-        .select((eb) => [
-          sql<number>`count(*)::int`.as("numEntries"),
+        .leftJoin("PruningRuleMatch as prm", "prm.datasetEntryId", "de.id")
+        .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
+        .where("pr.id", "in", safePruningRuleIds)
+        .select([
+          sql<number>`count(distinct de.id)::int`.as("numEntries"),
           sql<number>`sum(de."inputTokens")::int`.as("totalInputTokens"),
           sql<number>`sum(de."outputTokens")::int`.as("totalOutputTokens"),
-          eb
-            .selectFrom("PruningRuleMatch as prm")
-            .whereRef("prm.datasetEntryId", "=", "de.id")
-            .where("prm.pruningRuleId", "in", selectedPruningRuleIds)
-            .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
-            .select(() => [sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens")])
-            .as("totalMatchTokens"),
+          sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens"),
         ])
         .executeTakeFirst();
 
-      if (!trainingEntryStats) return error("No training data found");
+      if (!trainingEntryStats) return;
 
       const trainingTokens =
         trainingEntryStats.totalInputTokens +
@@ -93,16 +96,35 @@ export const datasetsRouter = createTRPCRouter({
 
       const totalTestingCount = await prisma.datasetEntry.count({
         where: {
-          datasetId: id,
+          datasetId,
           outdated: false,
           split: "TEST",
         },
       });
 
+      const { cost, inputCost, outputCost } = calculateCost(
+        baseModel,
+        0,
+        trainingEntryStats.totalInputTokens - (trainingEntryStats.totalMatchTokens ?? 0),
+        trainingEntryStats.totalOutputTokens,
+      );
+
+      const { cost: costWithoutPruning } = calculateCost(
+        baseModel,
+        0,
+        trainingEntryStats.totalInputTokens,
+        trainingEntryStats.totalOutputTokens,
+      );
+
       return {
+        cost,
+        costWithoutPruning,
         matchingTrainingCount: trainingEntryStats.numEntries,
         totalTestingCount,
         trainingTokens,
+        prunedTokens: trainingEntryStats.totalMatchTokens ?? 0,
+        inputCost,
+        outputCost,
       };
     }),
   list: protectedProcedure
