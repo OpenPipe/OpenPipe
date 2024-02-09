@@ -2,6 +2,14 @@ const frontendModelProvider = {
   name: "OpenAI ChatCompletion",
 
   models: {
+    "gpt-4-0125-preview": {
+      name: "GPT-4 0125 Preview",
+      contextWindow: 128000,
+      promptTokenPrice: 0.00001,
+      completionTokenPrice: 0.00003,
+      speed: "fast",
+      provider: "openai/ChatCompletion",
+    },
     "gpt-4-1106-preview": {
       name: "GPT-4 1106 Preview",
       contextWindow: 128000,
@@ -27,6 +35,14 @@ const frontendModelProvider = {
       speed: "medium",
       provider: "openai/ChatCompletion",
       learnMoreUrl: "https://openai.com/gpt-4",
+    },
+    "gpt-3.5-turbo-0125": {
+      name: "GPT-3.5 Turbo 0125",
+      contextWindow: 16385,
+      promptTokenPrice: 0.0000005,
+      completionTokenPrice: 0.0000015,
+      speed: "fast",
+      provider: "openai/ChatCompletion",
     },
     "gpt-3.5-turbo-1106": {
       name: "GPT-3.5 Turbo 1106",

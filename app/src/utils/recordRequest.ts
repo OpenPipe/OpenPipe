@@ -90,8 +90,8 @@ export const recordUsage = async ({
 };
 
 export type CalculatedUsage = {
-  inputTokens: number;
-  outputTokens: number;
+  inputTokens?: number;
+  outputTokens?: number;
   cost?: number;
   inputCost?: number;
   outputCost?: number;
