@@ -366,7 +366,7 @@ const constructJudgementInput = (
   const approximateTokens = countOpenAIChatTokens("gpt-4-0613", input.messages);
 
   if (approximateTokens > 7168) {
-    input.model = "gpt-4-0125-preview";
+    input.model = "gpt-4-1106-preview";
   }
 
   return input;
