@@ -37,6 +37,7 @@ export const environment = new kubernetes.core.v1.Secret(
       AZURE_OPENAI_API_KEY_SOUTHINDIA: cfg.requireSecret("AZURE_OPENAI_API_KEY_SOUTHINDIA"),
       EXPORTED_MODELS_BUCKET_NAME: exportedModelsBucketName,
       ANYSCALE_INFERENCE_API_KEY: cfg.requireSecret("ANYSCALE_INFERENCE_API_KEY"),
+      FIREWORKS_API_KEY: cfg.requireSecret("FIREWORKS_API_KEY"),
       STRIPE_SECRET_KEY: cfg.requireSecret("STRIPE_SECRET_KEY"),
       STRIPE_WEBHOOK_SECRET: cfg.requireSecret("STRIPE_WEBHOOK_SECRET"),
 

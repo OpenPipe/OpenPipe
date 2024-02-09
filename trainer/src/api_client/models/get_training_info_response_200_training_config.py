@@ -14,6 +14,9 @@ if TYPE_CHECKING:
     from ..models.get_training_info_response_200_training_config_datasets_item import (
         GetTrainingInfoResponse200TrainingConfigDatasetsItem,
     )
+    from ..models.get_training_info_response_200_training_config_model_config import (
+        GetTrainingInfoResponse200TrainingConfigModelConfig,
+    )
     from ..models.get_training_info_response_200_training_config_special_tokens import (
         GetTrainingInfoResponse200TrainingConfigSpecialTokens,
     )
@@ -56,6 +59,8 @@ class GetTrainingInfoResponse200TrainingConfig:
         is_llama_derived_model (Union[Unset, bool]):
         is_mistral_derived_model (Union[Unset, bool]):
         load_in_4bit (Union[Unset, bool]):
+        model_config (Union[Unset, GetTrainingInfoResponse200TrainingConfigModelConfig]):
+        eval_sample_packing (Union[Unset, bool]):
         pad_to_sequence_len (Union[Unset, bool]):
         lora_target_modules (Union[Unset, List[str]]):
         base_model (Union[Unset, str]):
@@ -70,6 +75,7 @@ class GetTrainingInfoResponse200TrainingConfig:
         eval_steps (Union[Unset, float]):
         strict (Union[Unset, bool]):
         save_strategy (Union[Unset, str]):
+        deepspeed (Union[Unset, str]):
     """
 
     model_type: GetTrainingInfoResponse200TrainingConfigModelType
@@ -102,6 +108,8 @@ class GetTrainingInfoResponse200TrainingConfig:
     is_llama_derived_model: Union[Unset, bool] = UNSET
     is_mistral_derived_model: Union[Unset, bool] = UNSET
     load_in_4bit: Union[Unset, bool] = UNSET
+    model_config: Union[Unset, "GetTrainingInfoResponse200TrainingConfigModelConfig"] = UNSET
+    eval_sample_packing: Union[Unset, bool] = UNSET
     pad_to_sequence_len: Union[Unset, bool] = UNSET
     lora_target_modules: Union[Unset, List[str]] = UNSET
     base_model: Union[Unset, str] = UNSET
@@ -116,6 +124,7 @@ class GetTrainingInfoResponse200TrainingConfig:
     eval_steps: Union[Unset, float] = UNSET
     strict: Union[Unset, bool] = UNSET
     save_strategy: Union[Unset, str] = UNSET
+    deepspeed: Union[Unset, str] = UNSET
 
     def to_dict(self) -> Dict[str, Any]:
         model_type = self.model_type.value
@@ -156,6 +165,11 @@ class GetTrainingInfoResponse200TrainingConfig:
         is_llama_derived_model = self.is_llama_derived_model
         is_mistral_derived_model = self.is_mistral_derived_model
         load_in_4bit = self.load_in_4bit
+        model_config: Union[Unset, Dict[str, Any]] = UNSET
+        if not isinstance(self.model_config, Unset):
+            model_config = self.model_config.to_dict()
+
+        eval_sample_packing = self.eval_sample_packing
         pad_to_sequence_len = self.pad_to_sequence_len
         lora_target_modules: Union[Unset, List[str]] = UNSET
         if not isinstance(self.lora_target_modules, Unset):
@@ -173,6 +187,7 @@ class GetTrainingInfoResponse200TrainingConfig:
         eval_steps = self.eval_steps
         strict = self.strict
         save_strategy = self.save_strategy
+        deepspeed = self.deepspeed
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(
@@ -212,6 +227,10 @@ class GetTrainingInfoResponse200TrainingConfig:
             field_dict["is_mistral_derived_model"] = is_mistral_derived_model
         if load_in_4bit is not UNSET:
             field_dict["load_in_4bit"] = load_in_4bit
+        if model_config is not UNSET:
+            field_dict["model_config"] = model_config
+        if eval_sample_packing is not UNSET:
+            field_dict["eval_sample_packing"] = eval_sample_packing
         if pad_to_sequence_len is not UNSET:
             field_dict["pad_to_sequence_len"] = pad_to_sequence_len
         if lora_target_modules is not UNSET:
@@ -240,6 +259,8 @@ class GetTrainingInfoResponse200TrainingConfig:
             field_dict["strict"] = strict
         if save_strategy is not UNSET:
             field_dict["save_strategy"] = save_strategy
+        if deepspeed is not UNSET:
+            field_dict["deepspeed"] = deepspeed
 
         return field_dict
 
@@ -247,6 +268,9 @@ class GetTrainingInfoResponse200TrainingConfig:
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         from ..models.get_training_info_response_200_training_config_datasets_item import (
             GetTrainingInfoResponse200TrainingConfigDatasetsItem,
+        )
+        from ..models.get_training_info_response_200_training_config_model_config import (
+            GetTrainingInfoResponse200TrainingConfigModelConfig,
         )
         from ..models.get_training_info_response_200_training_config_special_tokens import (
             GetTrainingInfoResponse200TrainingConfigSpecialTokens,
@@ -318,6 +342,15 @@ class GetTrainingInfoResponse200TrainingConfig:
 
         load_in_4bit = d.pop("load_in_4bit", UNSET)
 
+        _model_config = d.pop("model_config", UNSET)
+        model_config: Union[Unset, GetTrainingInfoResponse200TrainingConfigModelConfig]
+        if isinstance(_model_config, Unset):
+            model_config = UNSET
+        else:
+            model_config = GetTrainingInfoResponse200TrainingConfigModelConfig.from_dict(_model_config)
+
+        eval_sample_packing = d.pop("eval_sample_packing", UNSET)
+
         pad_to_sequence_len = d.pop("pad_to_sequence_len", UNSET)
 
         lora_target_modules = cast(List[str], d.pop("lora_target_modules", UNSET))
@@ -345,6 +378,8 @@ class GetTrainingInfoResponse200TrainingConfig:
         strict = d.pop("strict", UNSET)
 
         save_strategy = d.pop("save_strategy", UNSET)
+
+        deepspeed = d.pop("deepspeed", UNSET)
 
         get_training_info_response_200_training_config = cls(
             model_type=model_type,
@@ -377,6 +412,8 @@ class GetTrainingInfoResponse200TrainingConfig:
             is_llama_derived_model=is_llama_derived_model,
             is_mistral_derived_model=is_mistral_derived_model,
             load_in_4bit=load_in_4bit,
+            model_config=model_config,
+            eval_sample_packing=eval_sample_packing,
             pad_to_sequence_len=pad_to_sequence_len,
             lora_target_modules=lora_target_modules,
             base_model=base_model,
@@ -391,6 +428,7 @@ class GetTrainingInfoResponse200TrainingConfig:
             eval_steps=eval_steps,
             strict=strict,
             save_strategy=save_strategy,
+            deepspeed=deepspeed,
         )
 
         return get_training_info_response_200_training_config

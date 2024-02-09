@@ -59,7 +59,7 @@ const FineTunesTable = ({}) => {
                     />
                   </Td>
                   <Td fontSize="sm" fontWeight="bold">
-                    <Text color={getStatusColor(fineTune.status)}>{fineTune.status}</Text>
+                    <FTStatus status={fineTune.status} />
                   </Td>
                 </Tr>
               );
@@ -86,7 +86,7 @@ const FineTunesTable = ({}) => {
 
 export default FineTunesTable;
 
-export const getStatusColor = (status: FineTuneStatus) => {
+const getStatusColor = (status: FineTuneStatus) => {
   switch (status) {
     case "DEPLOYED":
       return "green.500";
@@ -95,4 +95,22 @@ export const getStatusColor = (status: FineTuneStatus) => {
     default:
       return "yellow.500";
   }
+};
+
+export const FTStatus = (props: { status: FineTuneStatus }) => {
+  const statusText = (status: FineTuneStatus) => {
+    switch (status) {
+      // This status is too long and breaks the UI
+      case "TRANSFERRING_TRAINING_DATA":
+        return "PREPARING";
+      default:
+        return status;
+    }
+  };
+
+  return (
+    <Text fontWeight="bold" color={getStatusColor(props.status)}>
+      {statusText(props.status)}
+    </Text>
+  );
 };

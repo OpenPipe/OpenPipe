@@ -19,6 +19,7 @@ import { type TypedFineTune } from "~/types/dbColumns.types";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { getModalCompletion } from "./getModalCompletion";
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
+import { getFireworksCompletion } from "./getFireworksCompletion";
 
 export async function getCompletion(
   fineTune: TypedFineTune,
@@ -50,7 +51,9 @@ export async function getCompletion(
         return getModalCompletion(fineTune, prunedInput);
       case 3:
         let completion: Promise<ChatCompletion>;
-        if (fineTune.gpt4FallbackEnabled) {
+        if (fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1") {
+          completion = getFireworksCompletion(fineTune, prunedInput);
+        } else if (fineTune.gpt4FallbackEnabled) {
           completion = getAzureGpt4Completion(input);
           // keep gpus hot
           void getAnyscaleCompletion(fineTune, prunedInput).catch((e) => reportError(e));

@@ -110,7 +110,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     !selectedProject?.condensedOpenAIKey && splitProvider(selectedBaseModel).provider === "openai";
 
   const needsMissingBetaAccess =
-    splitProvider(selectedBaseModel).provider === "openpipe" && isMissingBetaAccess;
+    splitProvider(selectedBaseModel).baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1" &&
+    isMissingBetaAccess;
 
   const numTrainingEntries = datasetEntries?.matchingTrainingCount || 0;
   const numTestingEntries = datasetEntries?.totalTestingCount || 0;
@@ -249,8 +250,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             )}
             {needsMissingBetaAccess && (
               <Text>
-                LLama2 and Mistral fine-tuning is currently in beta. To receive early access to
-                beta-only features,{" "}
+                Fine-tuning Mixtral is currently in beta. To receive early access to beta-only
+                features,{" "}
                 <ChakraLink
                   href="https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc#email=${email}"
                   target="_blank"

@@ -10,7 +10,6 @@ export const persistOptions: PersistOptions<State, PersistedState> = {
   name: "persisted-app-store",
   partialize: (state) => ({
     columnVisibility: pick(state.columnVisibility, ["visibleColumns"]),
-    betaBannerDismissed: state.betaBannerDismissed,
   }),
   merge: (saved, state) => merge(state, saved),
   storage: {

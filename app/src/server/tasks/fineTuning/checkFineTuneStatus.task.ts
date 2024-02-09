@@ -40,12 +40,6 @@ export const checkFineTuneStatus = defineTask({
             });
             if (!currentFineTune) return;
             const typedFT = typedFineTune(currentFineTune);
-            if (typedFT.huggingFaceModelId) {
-              // this kicks off the upload of the model weights and returns almost immediately.
-              // We currently don't check whether the weights actually uploaded, probably should
-              // add that at some point!
-              await trainerv1.default.persistModelWeights(typedFT.huggingFaceModelId);
-            }
 
             const trainingStats = await kysely
               .selectFrom("FineTuneTrainingEntry as ftte")
