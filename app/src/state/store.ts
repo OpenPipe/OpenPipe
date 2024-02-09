@@ -28,8 +28,6 @@ export type State = {
   setSidebarExpanded: (expanded: boolean) => void;
   api: APIClient | null;
   setApi: (api: APIClient) => void;
-  betaBannerDismissed: boolean;
-  dismissBetaBanner: () => void;
   sharedArgumentsEditor: SharedArgumentsEditorSlice;
   selectedLogs: SelectedLogsSlice;
   selectedDatasetEntries: SelectedDatasetEntriesSlice;
@@ -61,11 +59,6 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
       setApi: (api) =>
         set((state) => {
           state.api = api;
-        }),
-      betaBannerDismissed: false,
-      dismissBetaBanner: () =>
-        set((state) => {
-          state.betaBannerDismissed = true;
         }),
       sharedArgumentsEditor: createArgumentsEditorSlice(set, get, ...rest),
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),

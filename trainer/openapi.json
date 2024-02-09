@@ -51,7 +51,8 @@
                           "type": "string",
                           "enum": [
                             "LlamaForCausalLM",
-                            "MistralForCausalLM"
+                            "MistralForCausalLM",
+                            "MixtralForCausalLM"
                           ]
                         },
                         "tokenizer_type": {
@@ -76,10 +77,22 @@
                             "qlora"
                           ]
                         },
+                        "model_config": {
+                          "type": "object",
+                          "properties": {
+                            "output_router_logits": {
+                              "type": "boolean"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
                         "sequence_len": {
                           "type": "number"
                         },
                         "sample_packing": {
+                          "type": "boolean"
+                        },
+                        "eval_sample_packing": {
                           "type": "boolean"
                         },
                         "pad_to_sequence_len": {
@@ -223,6 +236,9 @@
                         },
                         "save_strategy": {
                           "type": "string"
+                        },
+                        "deepspeed": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -255,6 +271,9 @@
                         "num_epochs"
                       ],
                       "additionalProperties": false
+                    },
+                    "fireworksBaseModel": {
+                      "type": "string"
                     }
                   },
                   "required": [
