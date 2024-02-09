@@ -472,6 +472,7 @@ enum ComparisonModel {
     GPT_3_5_TURBO
     GPT_4_0613
     GPT_4_1106_PREVIEW
+    GPT_4_0125_PREVIEW
 }
 
 model FineTuneTestingEntry {
