@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { sql } from "kysely";
 import type { ComparisonModel } from "@prisma/client";
+
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
@@ -59,22 +60,24 @@ export const datasetsRouter = createTRPCRouter({
         baseModel: baseModel,
         filters: filtersSchema,
         pruningRuleIds: z.array(z.string()),
+        selectedNumberOfEpochs: z.number().min(1).max(20).optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { datasetId, filters, baseModel, pruningRuleIds } = input;
-
+      const { datasetId, filters, baseModel, pruningRuleIds, selectedNumberOfEpochs } = input;
       const { projectId } = await prisma.dataset.findUniqueOrThrow({
         where: { id: datasetId },
       });
 
       await requireCanViewProject(projectId, ctx);
 
-      const datasetEntryStats = await constructDatasetEntryFiltersQuery({ filters, datasetId })
+      const baseQuery = constructDatasetEntryFiltersQuery({ filters, datasetId })
         .where("de.split", "=", "TRAIN")
-        .where("de.output", "is not", null)
+        .where("de.output", "is not", null);
+
+      const datasetEntryStats = await baseQuery
         .select([
-          sql<number>`count(distinct de.id)::int`.as("numEntries"),
+          sql<number>`count(de.id)::int`.as("numEntries"),
           sql<number>`sum(de."inputTokens")::int`.as("totalInputTokens"),
           sql<number>`sum(de."outputTokens")::int`.as("totalOutputTokens"),
         ])
@@ -85,9 +88,7 @@ export const datasetsRouter = createTRPCRouter({
       let totalMatchTokens = 0;
 
       if (pruningRuleIds.length > 0) {
-        const pruningRuleStats = await constructDatasetEntryFiltersQuery({ filters, datasetId })
-          .where("de.split", "=", "TRAIN")
-          .where("de.output", "is not", null)
+        totalMatchTokens = await baseQuery
           .innerJoin("PruningRuleMatch", (join) =>
             join
               .onRef("PruningRuleMatch.datasetEntryId", "=", "de.id")
@@ -95,28 +96,21 @@ export const datasetsRouter = createTRPCRouter({
           )
           .leftJoin("PruningRule as pr", "PruningRuleMatch.pruningRuleId", "pr.id")
           .select(sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens"))
-          .executeTakeFirst();
-
-        totalMatchTokens = pruningRuleStats?.totalMatchTokens || 0;
+          .executeTakeFirst()
+          .then((stats) => stats?.totalMatchTokens || 0);
       }
 
-      const trainingTokens =
-        datasetEntryStats.totalInputTokens + datasetEntryStats.totalOutputTokens - totalMatchTokens;
-
-      const { cost, inputCost, outputCost } = calculateCost(
+      const { cost } = calculateCost(
         baseModel,
         0,
         datasetEntryStats.totalInputTokens - totalMatchTokens,
         datasetEntryStats.totalOutputTokens,
       );
 
-      const numEpochs = calculateNumEpochs(datasetEntryStats.numEntries);
+      const numEpochs = selectedNumberOfEpochs || calculateNumEpochs(datasetEntryStats.numEntries);
 
       return {
         cost: cost * numEpochs,
-        inputCost,
-        outputCost,
-        trainingTokens,
       };
     }),
   list: protectedProcedure
