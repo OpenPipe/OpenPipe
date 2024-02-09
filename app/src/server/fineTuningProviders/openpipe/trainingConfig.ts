@@ -138,3 +138,10 @@ export const calculateNumEpochs = (trainingEntries: number) => {
   // Target 10,000 training entries, but don't go under 1 or over 10 epochs.
   return Math.min(Math.max(1, Math.round(10000 / trainingEntries)), 10);
 };
+
+export const getNumEpochsFromConfig = (fineTune: TypedFineTune) => {
+  const config = fineTune?.trainingConfigOverrides;
+  if (config && typeof config === "object" && "num_epochs" in config) {
+    return Number(config.num_epochs);
+  }
+};

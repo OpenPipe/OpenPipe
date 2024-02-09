@@ -9,7 +9,10 @@ import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
-import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
+import {
+  calculateNumEpochs,
+  getNumEpochsFromConfig,
+} from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
 
 const MAX_AUTO_RETRIES = 2;
@@ -52,7 +55,8 @@ export const checkFineTuneStatus = defineTask({
               .executeTakeFirst();
 
             const numTrainingEntries = trainingStats?.numTrainingEntries ?? 0;
-            const numEpochs = calculateNumEpochs(numTrainingEntries);
+            const numEpochs =
+              getNumEpochsFromConfig(typedFT) || calculateNumEpochs(numTrainingEntries);
 
             const totalInputTokens = (trainingStats?.totalInputTokens ?? 0) * numEpochs;
             const totalOutputTokens = (trainingStats?.totalOutputTokens ?? 0) * numEpochs;
@@ -74,7 +78,7 @@ export const checkFineTuneStatus = defineTask({
               data: {
                 trainingFinishedAt: new Date(),
                 status: "DEPLOYED",
-                numEpochs: calculateNumEpochs(numTrainingEntries),
+                numEpochs,
               },
             });
 
