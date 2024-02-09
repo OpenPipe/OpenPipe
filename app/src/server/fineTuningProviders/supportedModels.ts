@@ -10,10 +10,13 @@ export type FrontendModelInfo = {
   };
 };
 
+// Cost in dollars per million tokens
+const cpm = (dollars: number) => dollars / 1e6;
+
 const sevenBCosts = {
-  training: 0.000004,
-  input: 0.0000012,
-  output: 0.0000016,
+  training: cpm(4),
+  input: cpm(1.2),
+  output: cpm(1.6),
 };
 
 // Do not remove models from this list if any users still have them in production.
@@ -24,17 +27,25 @@ export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
     cost: sevenBCosts,
     trainable: true,
   },
+  "openpipe:mistralai/Mixtral-8x7B-Instruct-v0.1": {
+    name: "Mixtral 8x7B Instruct",
+    cost: {
+      training: cpm(8),
+      input: cpm(2.4),
+      output: cpm(3.2),
+    },
+    trainable: true,
+  },
   "openpipe:meta-llama/Llama-2-13b-hf": {
     name: "Llama 2 13B",
-    cost: { training: 0.000008, input: 0.0000024, output: 0.0000032 },
+    cost: { training: cpm(8), input: cpm(2.4), output: cpm(3.2) },
     trainable: true,
   },
   "openai:gpt-3.5-turbo-1106": {
     name: "GPT 3.5 Turbo",
-    cost: { training: 0.000008, input: 0.000003, output: 0.000006 },
+    cost: { training: cpm(8), input: cpm(3), output: cpm(6) },
     trainable: true,
   },
-
   "openpipe:mistralai/Mistral-7B-v0.1": {
     name: "Mistral 7B",
     cost: sevenBCosts,
@@ -44,7 +55,7 @@ export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
   // Old models, no longer supported for training
   "openai:gpt-3.5-turbo-0613": {
     name: "GPT 3.5 Turbo (0613)",
-    cost: { training: 0.000008, input: 0.000012, output: 0.000016 },
+    cost: { training: cpm(8), input: cpm(12), output: cpm(16) },
     trainable: false,
   },
   "openpipe:OpenPipe/mistral-ft-optimized-1218": {

@@ -1,7 +1,6 @@
 import { Card, VStack, HStack, Text, Button } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { setActiveTab } from "~/components/ContentTabs";
-import { getStatusColor } from "~/components/fineTunes/FineTunesTable";
 import dayjs from "~/utils/dayjs";
 
 import { useDatasetFineTunes } from "~/utils/hooks";
@@ -9,6 +8,7 @@ import { DATASET_GENERAL_TAB_KEY } from "../DatasetContentTabs";
 import ViewEvaluationButton from "../Evaluation/ViewEvaluationButton";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { ProjectLink } from "~/components/ProjectLink";
+import { FTStatus } from "~/components/fineTunes/FineTunesTable";
 
 const Models = () => {
   const fineTunes = useDatasetFineTunes().data;
@@ -76,9 +76,7 @@ const Models = () => {
             <HStack alignItems="flex-start">
               <Text w={180}>Status</Text>
               <HStack alignItems="center" spacing={4}>
-                <Text fontWeight="bold" color={getStatusColor(fineTune.status)}>
-                  {fineTune.status}
-                </Text>
+                <FTStatus status={fineTune.status} />
                 {fineTune.errorMessage && <Text color="gray.500">{fineTune.errorMessage}</Text>}
               </HStack>
             </HStack>

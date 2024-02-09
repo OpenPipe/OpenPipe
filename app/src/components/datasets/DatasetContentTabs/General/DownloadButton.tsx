@@ -44,7 +44,6 @@ const ExportButton = () => {
         label="Download"
         icon={AiOutlineDownload}
         isDisabled={selectedIds.size === 0}
-        requireBeta
       />
       <ExportDatasetEntriesModal disclosure={disclosure} />
     </>

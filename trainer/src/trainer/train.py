@@ -2,21 +2,18 @@ from ..api_client.api.default import get_training_info
 from ..api_client.client import AuthenticatedClient
 from ..shared import (
     lora_s3_path,
-    merged_model_cache_dir,
     lora_model_cache_dir,
     upload_directory_to_s3,
 )
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
 
 import shutil
-import torch
 import logging
 import os
 import subprocess
 import urllib.request
 import yaml
+import json
 
 logging.basicConfig(
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -70,7 +67,8 @@ def do_train(fine_tune_id: str, base_url: str):
         # and we get OOMs when we reload the peft model to merge it.
         subprocess.run(
             [
-                "python",
+                "accelerate",
+                "launch",
                 "-m",
                 "axolotl.cli.train",
                 config_path,
@@ -88,25 +86,39 @@ def do_train(fine_tune_id: str, base_url: str):
         bucket=os.environ["USER_MODELS_BUCKET"],
     )
 
-    with torch.device("cuda:0"):
-        logging.info("Reloading the base model")
-        model = AutoModelForCausalLM.from_pretrained(
-            config.base_model,
-            return_dict=True,
-            torch_dtype=torch.float16,
+    if training_info.fireworks_base_model:
+        logging.info("Deploying to fireworks")
+
+        fireworks_json = {"base_model": training_info.fireworks_base_model}
+
+        with open(os.path.join(lora_model_path, "fireworks.json"), "w") as f:
+            json.dump(fireworks_json, f)
+
+        # Currently Fireworks doesn't support the "use_rslora" key in the adapter_config.json. We should just remove it if it exists and is set to false, and throw an error if it's set to true.
+
+        adapter_config_path = os.path.join(lora_model_path, "adapter_config.json")
+        with open(adapter_config_path, "r") as f:
+            adapter_config = json.load(f)
+            if "use_rslora" in adapter_config:
+                if adapter_config["use_rslora"]:
+                    raise Exception(
+                        "Fireworks does not support the use_rslora adapter config key"
+                    )
+                else:
+                    del adapter_config["use_rslora"]
+
+        with open(adapter_config_path, "w") as f:
+            json.dump(adapter_config, f)
+
+        subprocess.run(
+            [
+                "firectl",
+                "create",
+                "model",
+                fine_tune_id,
+                "--deploy",
+                "--wait",
+                lora_model_path,
+            ],
+            check=True,
         )
-
-        logging.info("Loading PEFT model")
-        model = PeftModel.from_pretrained(model, lora_model_path)
-        logging.info("Merging the model")
-        model = model.merge_and_unload()
-
-        merged_model_path = merged_model_cache_dir(training_info.hugging_face_model_id)
-        logging.info(f"Saving the merged model to {merged_model_path}")
-        shutil.rmtree(merged_model_path, ignore_errors=True)
-        os.makedirs(merged_model_path, exist_ok=True)
-        model.save_pretrained(merged_model_path, safe_serialization=True)
-
-        logging.info("Saving the tokenizer")
-        tokenizer = AutoTokenizer.from_pretrained(lora_model_path)
-        tokenizer.save_pretrained(merged_model_path, safe_serialization=True)

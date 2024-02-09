@@ -1,15 +1,21 @@
 import { z } from "zod";
 
 export const axolotlConfig = z.object({
-  model_type: z.enum(["LlamaForCausalLM", "MistralForCausalLM"]),
+  model_type: z.enum(["LlamaForCausalLM", "MistralForCausalLM", "MixtralForCausalLM"]),
   tokenizer_type: z.string(),
   is_llama_derived_model: z.boolean().optional(),
   is_mistral_derived_model: z.boolean().optional(),
   load_in_8bit: z.boolean(),
   load_in_4bit: z.boolean().optional(),
   adapter: z.enum(["lora", "qlora"]),
+  model_config: z
+    .object({
+      output_router_logits: z.boolean().optional(),
+    })
+    .optional(),
   sequence_len: z.number(),
   sample_packing: z.boolean(),
+  eval_sample_packing: z.boolean().optional(),
   pad_to_sequence_len: z.boolean().optional(),
   lora_r: z.number(),
   lora_alpha: z.number(),
@@ -46,7 +52,7 @@ export const axolotlConfig = z.object({
     )
     .nonempty(),
   dataset_processes: z.number().optional(),
-  val_set_size: z.number().optional(),
+  val_set_size: z.number(),
   output_dir: z.string().optional(),
   wandb_project: z.string().optional(),
   wandb_run_id: z.string().optional(),
@@ -56,6 +62,7 @@ export const axolotlConfig = z.object({
   eval_steps: z.number().optional(),
   strict: z.boolean().optional(),
   save_strategy: z.string().optional(),
+  deepspeed: z.string().optional(),
 });
 
 export type AxolotlConfig = z.infer<typeof axolotlConfig>;

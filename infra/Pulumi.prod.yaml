@@ -31,6 +31,8 @@ config:
   openpipe:AZURE_STORAGE_CONTAINER_NAME: uploadedtrainingdata
   openpipe:DATABASE_URL:
     secure: AAABAF/wSE4f7jtFeT5DbflebyOWQzFucV0aNwdJSt9FbBC6rAKfrJpnVfQ3wDdaflnnkbT67XKxmA7s3VCY2mpOqBBFwwDwiH3IEiLw7Eoocyi/k5+3ApZIwPhAmWF1TCXqERjiTWBun7ze6iIAAZCN1JBMk0z3hD52McsoWj7TLr0omtgsp5DwOzn2gQ9Ds/YJApBcufgr/WhRnxsVkhQEL9CFPw==
+  openpipe:FIREWORKS_API_KEY:
+    secure: AAABALUy9/PL2CgsC2qOvRSNqpMboViBI0tHqt+YtKBMCG/jyaGeGJL0nrPBoGvfd4ZXEZpUdrrDN+sEWiTjWdZjOAf6R+u7PfZbBjwNatI=
   openpipe:GITHUB_CLIENT_ID:
     secure: AAABANRbnlcfg+gQ5WafloCEN5CyAyRhS2M1UfefNLY0S6i8feC4iwESdQUyi6bimgSkiw==
   openpipe:GITHUB_CLIENT_SECRET:

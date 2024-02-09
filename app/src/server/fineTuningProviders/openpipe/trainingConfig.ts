@@ -1,8 +1,10 @@
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 
 import { cloneDeep } from "lodash-es";
 import { type AxolotlConfig, axolotlConfig } from "./axolotlConfig";
+import { type PartialDeep } from "type-fest";
+import { sql } from "kysely";
 
 const baseConfig: Partial<AxolotlConfig> = {
   datasets: [{ path: "__placeholder__", type: "alpaca_instruct.load_no_prompt" }],
@@ -16,7 +18,6 @@ const baseConfig: Partial<AxolotlConfig> = {
   gradient_accumulation_steps: 4,
   micro_batch_size: 2,
   pad_to_sequence_len: true,
-  sample_packing: true,
   bf16: true,
   fp16: false,
   tf32: false,
@@ -32,10 +33,10 @@ const baseConfig: Partial<AxolotlConfig> = {
   optimizer: "adamw_bnb_8bit",
   output_dir: "__placeholder__",
   dataset_processes: 8,
-  val_set_size: 0.05,
   logging_steps: 1,
   save_safetensors: true,
-  eval_steps: 0.1,
+  val_set_size: 0,
+  // eval_steps: 0.1,
   strict: true,
   save_strategy: "no",
 };
@@ -45,9 +46,17 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
     where: { id: fineTune.projectId },
   });
 
-  const trainingEntries = await prisma.fineTuneTrainingEntry.count({
-    where: { fineTuneId: fineTune.id },
-  });
+  const trainingEntries = await kysely
+    .selectFrom("FineTuneTrainingEntry as ftte")
+    .where("ftte.fineTuneId", "=", fineTune.id)
+    .select(({ fn }) => [
+      fn.count<string>("ftte.id").as("count"),
+      fn.sum<string>("ftte.prunedInputTokens").as("inputTokens"),
+      fn.sum<string>("ftte.outputTokens").as("outputTokens"),
+      sql<string>`max(ftte."prunedInputTokens" + ftte."outputTokens")`.as("maxTokens"),
+    ])
+    .executeTakeFirstOrThrow();
+
   if (fineTune.provider !== "openpipe") {
     throw new Error(`Unsupported provider ${fineTune.provider}`);
   }
@@ -59,10 +68,11 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
       "meta-llama/Llama-2-7b-hf": "LlamaForCausalLM",
       "OpenPipe/mistral-ft-optimized-1218": "MistralForCausalLM",
       "OpenPipe/mistral-ft-optimized-1227": "MistralForCausalLM",
+      "mistralai/Mixtral-8x7B-Instruct-v0.1": "MixtralForCausalLM",
     } as const
   )[fineTune.baseModel];
 
-  const archConfig =
+  const archConfig: PartialDeep<AxolotlConfig> & { sequence_len: number } =
     modelType === "MistralForCausalLM"
       ? { is_mistral_derived_model: true, sequence_len: 8192 }
       : modelType === "LlamaForCausalLM"
@@ -79,11 +89,33 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
             "o_proj",
           ],
         }
+      : modelType === "MixtralForCausalLM"
+      ? {
+          load_in_8bit: false,
+          load_in_4bit: true,
+          adapter: "qlora",
+          optimizer: "paged_adamw_8bit",
+          model_config: {
+            output_router_logits: true,
+          },
+          sequence_len: 16384,
+          lora_target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"],
+          gradient_accumulation_steps: 2,
+          micro_batch_size: 1,
+          // deepspeed: "/axolotl/deepspeed_configs/zero3_bf16.json",
+        }
       : (() => {
           throw new Error(`Unsupported architecture`);
         })();
 
-  const numEpochs = calculateNumEpochs(trainingEntries);
+  const numEpochs = calculateNumEpochs(Number(trainingEntries.count));
+
+  const enableSamplePacking =
+    Number(trainingEntries.inputTokens) + Number(trainingEntries.outputTokens) > 100000;
+
+  const sequenceLen = enableSamplePacking
+    ? archConfig.sequence_len
+    : Number(trainingEntries.maxTokens) + 100;
 
   return axolotlConfig.parse({
     ...cloneDeep(baseConfig),
@@ -95,6 +127,9 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
     wandb_run_id: fineTune.slug,
     num_epochs: numEpochs,
     ...fineTune.trainingConfigOverrides,
+    sample_packing: enableSamplePacking,
+    pad_to_sequence_len: enableSamplePacking,
+    sequence_len: sequenceLen,
   });
 }
 
