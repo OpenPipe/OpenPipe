@@ -36,6 +36,14 @@ const frontendModelProvider = {
       provider: "openai/ChatCompletion",
       learnMoreUrl: "https://openai.com/gpt-4",
     },
+    "gpt-3.5-turbo-0125": {
+      name: "GPT-3.5 Turbo 0125",
+      contextWindow: 16385,
+      promptTokenPrice: 0.0000005,
+      completionTokenPrice: 0.0000015,
+      speed: "fast",
+      provider: "openai/ChatCompletion",
+    },
     "gpt-3.5-turbo-1106": {
       name: "GPT-3.5 Turbo 1106",
       contextWindow: 16385,

@@ -1,4 +1,4 @@
-import { GPTTokens } from "gpt-tokens";
+import { type supportModelType, GPTTokens } from "gpt-tokens";
 import llamaTokenizer from "llama-tokenizer-js";
 import { type ChatCompletionMessage, type ChatCompletionMessageParam } from "openai/resources/chat";
 
@@ -25,11 +25,21 @@ export const countOpenAIChatTokens = (
       JSON.stringify("tool_calls" in message ? message.tool_calls : "") ||
       "",
   }));
+
   return new GPTTokens({
-    model,
+    model: getSupportedModel(model),
     messages: reformattedMessages as unknown as GPTTokensMessageItem[],
   }).usedTokens;
 };
+
+// "gpt-tokens" does not support new models. This is a temporary workaround.
+function getSupportedModel(model: string): supportModelType {
+  const modelMapping: Record<string, supportModelType> = {
+    "gpt-4-0125-preview": "gpt-4-1106-preview",
+  };
+
+  return modelMapping[model] || (model as supportModelType);
+}
 
 export const countLlamaTokens = (input: string) => llamaTokenizer.encode(input).length;
 
