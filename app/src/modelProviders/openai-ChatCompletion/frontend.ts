@@ -2,6 +2,14 @@ const frontendModelProvider = {
   name: "OpenAI ChatCompletion",
 
   models: {
+    "gpt-4-0125-preview": {
+      name: "GPT-4 0125 Preview",
+      contextWindow: 128000,
+      promptTokenPrice: 0.00001,
+      completionTokenPrice: 0.00003,
+      speed: "fast",
+      provider: "openai/ChatCompletion",
+    },
     "gpt-4-1106-preview": {
       name: "GPT-4 1106 Preview",
       contextWindow: 128000,
