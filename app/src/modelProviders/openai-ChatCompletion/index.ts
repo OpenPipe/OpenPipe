@@ -32,7 +32,12 @@ const getModel = (model: string) => {
 const modelProvider = {
   getUsage: (input: ChatCompletionCreateParams, output?: ChatCompletion) => {
     const model = getModel(output?.model ?? input.model);
-    if (!model) return null;
+    if (!model)
+      return {
+        inputTokens: output?.usage?.prompt_tokens ?? null,
+        outputTokens: output?.usage?.completion_tokens ?? null,
+        cost: null,
+      };
 
     let inputTokens: number;
     let outputTokens: number;
