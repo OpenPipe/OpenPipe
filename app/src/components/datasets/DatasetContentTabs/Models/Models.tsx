@@ -69,6 +69,16 @@ const Models = () => {
               <Text w={180}>Pruning Rules</Text>
               <Text color="gray.500">{fineTune.numPruningRules}</Text>
             </HStack>
+            {fineTune.trainingConfigOverrides && (
+              <HStack>
+                <Text w={180}>Training Config</Text>
+                <Text color="gray.500">
+                  {Object.entries(fineTune.trainingConfigOverrides)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(", ")}
+                </Text>
+              </HStack>
+            )}
             <HStack>
               <Text w={180}>Created At</Text>
               <Text color="gray.500">{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Text>
