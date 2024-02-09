@@ -78,7 +78,7 @@ const General = () => {
                 <Text w={180}>Training Config</Text>
                 <Text color="gray.500">
                   {Object.entries(fineTune.trainingConfigOverrides)
-                    .map(([key, value]) => `${key}: ${value}`)
+                    .map(([key, value]) => `${key}: ${String(value)}`)
                     .join(", ")}
                 </Text>
               </HStack>
