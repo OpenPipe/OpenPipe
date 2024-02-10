@@ -19,9 +19,9 @@ dump_prod_db() {
     rm -rf "$CACHE_DIR"
     mkdir -p "$CACHE_DIR"
     
-    # Throw an error if $PROD_DATABASE_URL is not set
-    if [ -z "$PROD_DATABASE_URL" ]; then
-        echo "ERROR: PROD_DATABASE_URL environment variable is not set."
+    # Throw an error if $REMOTE_DATABASE_URL is not set
+    if [ -z "$REMOTE_DATABASE_URL" ]; then
+        echo "ERROR: REMOTE_DATABASE_URL environment variable is not set."
         exit 1
     fi
     
@@ -34,7 +34,7 @@ dump_prod_db() {
       --exclude-table-data '"LoggedCall"' \
       --exclude-table-data '"LoggedCallTag"' \
       --exclude-table-data 'graphile_worker.jobs' \
-      -d "$PROD_DATABASE_URL"
+      -d "$REMOTE_DATABASE_URL"
 }
 
 terminate_connections() {

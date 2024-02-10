@@ -28,6 +28,7 @@ export const v1ApiRouter = createOpenApiRouter({
         trainingDataUrl: z.string(),
         huggingFaceModelId: z.string(),
         trainingConfig: axolotlConfig,
+        fireworksBaseModel: z.string().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -43,10 +44,16 @@ export const v1ApiRouter = createOpenApiRouter({
           message: "missing precondition",
         });
 
+      const fireworksBaseModel =
+        fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1"
+          ? "accounts/fireworks/models/mixtral-8x7b-instruct"
+          : undefined;
+
       return {
         trainingDataUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),
         huggingFaceModelId: fineTune.huggingFaceModelId,
         trainingConfig: fineTune.trainingConfig,
+        fireworksBaseModel,
       };
     }),
   getModelExportInfo: openApiProtectedProc

@@ -16,6 +16,22 @@ npm install --save openpipe
 yarn add openpipe
 ```
 
+## Import
+
+### ESM
+
+```js
+// import OpenAI from "openai"
+import OpenAI from "openpipe/openai";
+```
+
+### CJS
+
+```js
+// const OpenAI = require("openai")
+const OpenAI = require("openpipe/openai").default;
+```
+
 ## Usage
 
 1. Create a project at https://app.openpipe.ai
@@ -23,7 +39,7 @@ yarn add openpipe
 3. Configure the OpenPipe client as shown below.
 
 ```js
-// import OpenAI from 'openai'
+// import OpenAI from "openai"
 import OpenAI from "openpipe/openai";
 
 // Fully compatible with original OpenAI initialization

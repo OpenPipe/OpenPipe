@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { supportedModels as openpipeModels } from "./openpipe/types";
+import { supportedModels as openpipeModels } from "./openpipe/supportedModels";
 import { supportedModels as openaiModels } from "./openai/types";
 
 export const baseModel = z.discriminatedUnion("provider", [

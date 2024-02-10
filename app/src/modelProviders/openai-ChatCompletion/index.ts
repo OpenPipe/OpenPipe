@@ -4,9 +4,11 @@ import { truthyFilter } from "~/utils/utils";
 import frontendModelProvider from "./frontend";
 
 const supportedModels = [
+  "gpt-4-0125-preview",
   "gpt-4-1106-preview",
   "gpt-4-0613",
   "gpt-4-32k-0613",
+  "gpt-3.5-turbo-0125",
   "gpt-3.5-turbo-1106",
   "gpt-3.5-turbo-0613",
   "gpt-3.5-turbo-16k-0613",
@@ -32,7 +34,12 @@ const getModel = (model: string) => {
 const modelProvider = {
   getUsage: (input: ChatCompletionCreateParams, output?: ChatCompletion) => {
     const model = getModel(output?.model ?? input.model);
-    if (!model) return null;
+    if (!model)
+      return {
+        inputTokens: output?.usage?.prompt_tokens ?? undefined,
+        outputTokens: output?.usage?.completion_tokens ?? undefined,
+        cost: undefined,
+      };
 
     let inputTokens: number;
     let outputTokens: number;

@@ -63,7 +63,7 @@ completion = client.chat.completions.create(
 ```
 
   </Tab>
-  <Tab title="NodeJS">
+  <Tab title="NodeJS (ESM)">
 
 Find the SDK at https://www.npmjs.com/package/openpipe
 
@@ -86,6 +86,66 @@ with this one
 
 ```typescript
 import OpenAI from "openpipe/openai";
+```
+
+## Adding Searchable Tags
+
+OpenPipe has a concept of "tagging." You can use tags in the [Request Logs](/features/request-logs) view to narrow down the data your model will train on.
+We recommend assigning a unique tag to each of your prompts.
+These tags will help you find all the input/output pairs associated with a certain prompt and fine-tune a model to replace it.
+
+Here's how you can use the tagging feature:
+
+```typescript
+// Fully compatible with original OpenAI initialization
+const openai = new OpenAI({
+  apiKey: "my api key", // defaults to process.env["OPENAI_API_KEY"]
+  // openpipe key is optional
+  openpipe: {
+    apiKey: "my api key", // defaults to process.env["OPENPIPE_API_KEY"]
+    baseUrl: "my url", // defaults to process.env["OPENPIPE_BASE_URL"] or https://app.openpipe.ai/api/v1 if not set
+  },
+});
+
+const completion = await openai.chat.completions.create({
+  messages: [{ role: "user", content: "Count to 10" }],
+  model: "gpt-3.5-turbo",
+  // optional
+  openpipe: {
+    // Add custom searchable tags
+    tags: {
+      prompt_id: "counting",
+      any_key: "any_value",
+    },
+    logRequest: true, // Enable/disable data collection. Defaults to true.
+  },
+});
+```
+
+  </Tab>
+  <Tab title="NodeJS (CJS)">
+
+Find the SDK at https://www.npmjs.com/package/openpipe
+
+## Simple Integration
+
+Add `OPENPIPE_API_KEY` to your environment variables.
+
+```bash
+export OPENPIPE_API_KEY=opk-<your-api-key>
+# Or you can set it in your code, as shown in the example below
+```
+
+Replace this line
+
+```typescript
+const OpenAI = require("openai");
+```
+
+with this one
+
+```typescript
+const OpenAI = require("openpipe/openai").default;
 ```
 
 ## Adding Searchable Tags

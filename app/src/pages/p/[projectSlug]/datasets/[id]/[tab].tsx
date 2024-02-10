@@ -7,7 +7,6 @@ import { useDataset } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import { useAppStore } from "~/state/store";
-import BetaBanner from "~/components/BetaBanner";
 import FileUploadsCard from "~/components/datasets/FileUploadsCard";
 import DatasetContentTabs from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 import { ProjectLink } from "~/components/ProjectLink";
@@ -32,7 +31,6 @@ export default function Dataset() {
   return (
     <AppShell title={dataset.data?.name} containerProps={{ position: "relative" }}>
       <VStack position="sticky" left={0} right={0} w="full">
-        <BetaBanner />
         <PageHeaderContainer>
           <Breadcrumb>
             <BreadcrumbItem>

@@ -25,20 +25,24 @@ export const prisma =
         : ["error"],
   });
 
-// WARNING: if you start getting errors that the certificate is expired or not
-// valid, download the latest certificate from AWS and replace the one in the
-// codebase! It expires in August 2024. TODO: automatically the latest version
-// into the Docker image at build time.
-// https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.RegionCertificates
-const ca = env.DATABASE_URL?.includes("us-west-2.rds.amazonaws.com")
-  ? readFileSync("./prisma/us-west-2-bundle.pem").toString()
-  : undefined;
+export const getPool = (dbUrl: string) => {
+  // WARNING: if you start getting errors that the certificate is expired or not
+  // valid, download the latest certificate from AWS and replace the one in the
+  // codebase! It expires in August 2024. TODO: automatically the latest version
+  // into the Docker image at build time.
+  // https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.RegionCertificates
+  const ca = dbUrl?.includes("us-west-2.rds.amazonaws.com")
+    ? readFileSync("./prisma/us-west-2-bundle.pem").toString()
+    : undefined;
 
-export const pgPool = new Pool({
-  connectionString: env.DATABASE_URL,
-  ssl: ca ? { rejectUnauthorized: false, ca } : undefined,
-  max: env.PG_MAX_POOL_SIZE,
-});
+  return new Pool({
+    connectionString: dbUrl,
+    ssl: ca ? { rejectUnauthorized: false, ca } : undefined,
+    max: env.PG_MAX_POOL_SIZE,
+  });
+};
+
+export const pgPool = getPool(env.DATABASE_URL);
 
 export const kysely = new Kysely<DB>({
   dialect: new PostgresDialect({ pool: pgPool }),
