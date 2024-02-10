@@ -1,30 +1,17 @@
-import {
-  Box,
-  Td,
-  Tr,
-  Thead,
-  Th,
-  Tooltip,
-  HStack,
-  Text,
-  Checkbox,
-  Button,
-  Badge,
-} from "@chakra-ui/react";
-import { DatasetEntrySplit, RelabelRequestStatus } from "@prisma/client";
+import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Button, Badge } from "@chakra-ui/react";
+import { DatasetEntrySplit } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
 import { type RouterInputs, type RouterOutputs } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import { useIsClientInitialized, useDatasetEntries } from "~/utils/hooks";
-import { useMemo } from "react";
+import { useIsClientInitialized, useNodeEntries } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import { useSortOrder, SortArrows } from "~/components/sorting";
 import { ProjectLink } from "~/components/ProjectLink";
 
-type DatasetEntry = RouterOutputs["datasetEntries"]["list"]["entries"][0];
+type DatasetEntry = RouterOutputs["nodeEntries"]["list"]["entries"][0];
 
-type SortableField = NonNullable<RouterInputs["datasetEntries"]["list"]["sortOrder"]>["field"];
+type SortableField = NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>["field"];
 
 const SortableHeader = (props: { title: string; field: SortableField; isNumeric?: boolean }) => {
   const sortOrder = useSortOrder<SortableField>();
@@ -38,41 +25,14 @@ const SortableHeader = (props: { title: string; field: SortableField; isNumeric?
   );
 };
 
-export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColumn: boolean }) => {
-  const matchingDatasetEntryIds = useDatasetEntries().data?.matchingEntryIds;
-  const selectedDatasetEntryIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
-  const addSelectedIds = useAppStore((s) => s.selectedDatasetEntries.addSelectedIds);
-  const clearSelectedIds = useAppStore((s) => s.selectedDatasetEntries.clearSelectedIds);
-  const allSelected = useMemo(() => {
-    if (!matchingDatasetEntryIds || !matchingDatasetEntryIds.length) return false;
-    return matchingDatasetEntryIds.every((id) => selectedDatasetEntryIds.has(id));
-  }, [matchingDatasetEntryIds, selectedDatasetEntryIds]);
+export const TableHeader = () => {
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
 
   return (
     <Thead>
       <Tr>
-        <Th pr={0}>
-          <HStack minW={16}>
-            <Checkbox
-              isChecked={allSelected}
-              onChange={() => {
-                allSelected ? clearSelectedIds() : addSelectedIds(matchingDatasetEntryIds || []);
-              }}
-              _hover={{ borderColor: "gray.300" }}
-            />
-            <Text>
-              (
-              {selectedDatasetEntryIds.size
-                ? `${selectedDatasetEntryIds.size.toLocaleString()}/`
-                : ""}
-              {(matchingDatasetEntryIds?.length || 0).toLocaleString()})
-            </Text>
-          </HStack>
-        </Th>
         <SortableHeader title="Updated At" field="createdAt" />
-        {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
         <SortableHeader isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader isNumeric title="Output Tokens" field="outputTokens" />
         <SortableHeader isNumeric title="Split" field="split" />
@@ -85,20 +45,13 @@ export const TableRow = ({
   datasetEntry,
   isExpanded,
   toggleExpanded,
-  showOptions,
-  showRelabelStatusColumn,
 }: {
   datasetEntry: DatasetEntry;
   isExpanded: boolean;
   toggleExpanded: (persistentId: string) => void;
-  showOptions?: boolean;
-  showRelabelStatusColumn?: boolean;
 }) => {
   const createdAt = dayjs(datasetEntry.createdAt).format("MMMM D h:mm A");
   const fullTime = dayjs(datasetEntry.createdAt).toString();
-
-  const isChecked = useAppStore((s) => s.selectedDatasetEntries.selectedIds.has(datasetEntry.id));
-  const toggleChecked = useAppStore((s) => s.selectedDatasetEntries.toggleSelectedId);
 
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
@@ -112,15 +65,6 @@ export const TableRow = ({
       transition="background-color 1.2s"
       fontSize="sm"
     >
-      {showOptions && (
-        <Td>
-          <Checkbox
-            isChecked={isChecked}
-            onChange={() => toggleChecked(datasetEntry.id)}
-            _hover={{ borderColor: "gray.300" }}
-          />
-        </Td>
-      )}
       <Td>
         <Tooltip label={fullTime} placement="top">
           <Box whiteSpace="nowrap" minW="120px">
@@ -128,11 +72,6 @@ export const TableRow = ({
           </Box>
         </Tooltip>
       </Td>
-      {showRelabelStatusColumn && (
-        <Td>
-          <RelabelingStatus status={datasetEntry.relabelStatuses?.[0]?.status} />
-        </Td>
-      )}
       <Td isNumeric>
         {datasetEntry.inputTokens?.toLocaleString() ?? <Text color="gray.500">counting</Text>}
       </Td>
@@ -164,44 +103,10 @@ const EntrySplit = ({ split }: { split: string }) => {
   );
 };
 
-const RelabelingStatus = ({ status }: { status?: RelabelRequestStatus }) => {
-  if (!status) return null;
-
-  let color;
-  let text;
-
-  switch (status) {
-    case RelabelRequestStatus.ERROR:
-      color = "red.500";
-      text = "Failed";
-      break;
-    case RelabelRequestStatus.IN_PROGRESS:
-      color = "blue.500";
-      text = "In Progress";
-      break;
-    case RelabelRequestStatus.PENDING:
-      color = "gray.500";
-      text = "Pending";
-      break;
-    case RelabelRequestStatus.COMPLETE:
-      color = "green.500";
-      text = "Complete";
-      break;
-    default:
-      return null;
-  }
-
-  return (
-    <Text fontWeight="bold" color={color}>
-      {text}
-    </Text>
-  );
-};
-
 export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: boolean }) => {
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
   const filters = useFilters().filters;
-  const { isLoading } = useDatasetEntries();
+  const { isLoading } = useNodeEntries();
 
   if (isLoading) return null;
 

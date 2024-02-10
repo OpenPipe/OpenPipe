@@ -9,7 +9,6 @@ import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatu
 import { generateTestSetEntry } from "./generateTestSetEntry.task";
 import { evaluateTestSetEntries } from "./evaluateTestSetEntries.task";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
-import { relabelLoggedCall } from "./relabelLoggedCall.task";
 import type defineTask from "./defineTask";
 import { pgPool } from "../db";
 import { generateInvoices } from "./generateInvoices.task";
@@ -28,7 +27,6 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   generateTestSetEntry,
   evaluateTestSetEntries,
   countDatasetEntryTokens,
-  relabelLoggedCall,
   generateInvoices,
   chargeInvoices,
 ];

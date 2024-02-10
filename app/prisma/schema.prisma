@@ -147,7 +147,8 @@ model PruningRule {
 
     textToMatch  String
     tokensInText Int
-    matches      PruningRuleMatch[]
+    oldMatches   PruningRuleMatch[]
+    matches      NewPruningRuleMatch[]
 
     datasetId String?  @db.Uuid
     dataset   Dataset? @relation(fields: [datasetId], references: [id], onDelete: Cascade)
@@ -162,19 +163,26 @@ model PruningRule {
 }
 
 model PruningRuleMatch {
-    id             String        @id @default(uuid()) @db.Uuid
-    pruningRuleId  String        @db.Uuid
-    pruningRule    PruningRule   @relation(fields: [pruningRuleId], references: [id], onDelete: Cascade)
-    datasetEntryId String?       @db.Uuid
-    datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+    id             String       @id @default(uuid()) @db.Uuid
+    pruningRuleId  String       @db.Uuid
+    pruningRule    PruningRule  @relation(fields: [pruningRuleId], references: [id], onDelete: Cascade)
+    datasetEntryId String       @db.Uuid
+    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
-    inputHash String?
-    input     DatasetEntryInput? @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
-
-    // @@unique([pruningRuleId, datasetEntryId])
-    @@index([pruningRuleId, datasetEntryId])
-    @@index([inputHash, pruningRuleId])
+    @@unique([pruningRuleId, datasetEntryId])
     @@index([datasetEntryId])
+}
+
+model NewPruningRuleMatch {
+    id            String      @id @default(uuid()) @db.Uuid
+    pruningRuleId String      @db.Uuid
+    pruningRule   PruningRule @relation(fields: [pruningRuleId], references: [id], onDelete: Cascade)
+
+    inputHash String
+    input     DatasetEntryInput @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
+
+    @@unique([inputHash, pruningRuleId])
+    @@index([inputHash, pruningRuleId])
 }
 
 model Project {
@@ -255,7 +263,7 @@ model LoggedCall {
     model          String?
     tags           LoggedCallTag[]
     datasetEntries DatasetEntry[]
-    nodeData       NodeData[]
+    nodeEntries    NodeEntry[]
     monitorMatches MonitorMatch[]
 
     createdAt DateTime @default(now())
@@ -370,14 +378,14 @@ model User {
 
     role UserRole @default(USER)
 
-    accounts                Account[]
-    sessions                Session[]
-    projectUsers            ProjectUser[]
-    projects                Project[]
-    sentUserInvitations     UserInvitation[]
-    authoredDatasetEntries  DatasetEntry[]
-    createdNodes            Node[]
-    cachedProcessedNodeData CachedProcessedNodeData[]
+    accounts                 Account[]
+    sessions                 Session[]
+    projectUsers             ProjectUser[]
+    projects                 Project[]
+    sentUserInvitations      UserInvitation[]
+    authoredDatasetEntries   DatasetEntry[]
+    createdNodes             Node[]
+    cachedProcessedNodeEntry CachedProcessedNodeEntry[]
 
     createdAt             DateTime               @default(now())
     updatedAt             DateTime               @default(now()) @updatedAt
@@ -441,10 +449,12 @@ model FineTune {
     gpt4FallbackEnabled    Boolean          @default(false)
     forceA10               Boolean          @default(false)
 
-    trainingEntries FineTuneTrainingEntry[]
-    testingEntries  FineTuneTestingEntry[]
-    pruningRules    PruningRule[]
-    usageLogs       UsageLog[]
+    oldTrainingEntries FineTuneTrainingEntry[]
+    trainingEntries    NewFineTuneTrainingEntry[]
+    oldTestingEntries  FineTuneTestingEntry[]
+    testingEntries     NewFineTuneTestingEntry[]
+    pruningRules       PruningRule[]
+    usageLogs          UsageLog[]
 
     datasetId String  @db.Uuid
     dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
@@ -465,18 +475,14 @@ model FineTune {
     exportWeightsRequests   ExportWeightsRequest[]
 }
 
+// TODO: Delete FineTuneTrainingEntry after migrating to NewFineTuneTrainingEntry
 model FineTuneTrainingEntry {
     id                String @id @default(uuid()) @db.Uuid
     prunedInputTokens Int?
     outputTokens      Int?
 
-    inputHash  String?
-    input      DatasetEntryInput?  @relation(fields: [inputHash], references: [hash], onDelete: SetNull)
-    outputHash String?
-    output     DatasetEntryOutput? @relation(fields: [outputHash], references: [hash], onDelete: SetNull)
-
-    datasetEntryId String?       @db.Uuid
-    datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+    datasetEntryId String       @db.Uuid
+    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
     fineTuneId String   @db.Uuid
     fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
@@ -484,8 +490,30 @@ model FineTuneTrainingEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    // @@unique([datasetEntryId, fineTuneId])
-    @@index([datasetEntryId, fineTuneId])
+    @@unique([datasetEntryId, fineTuneId])
+    @@index([fineTuneId, createdAt, id])
+    @@index([fineTuneId])
+}
+
+model NewFineTuneTrainingEntry {
+    id                String @id @default(uuid()) @db.Uuid
+    prunedInputTokens Int?
+    outputTokens      Int?
+
+    persistentId String
+
+    inputHash  String
+    input      DatasetEntryInput  @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
+    outputHash String
+    output     DatasetEntryOutput @relation(fields: [outputHash], references: [hash], onDelete: Cascade)
+
+    fineTuneId String   @db.Uuid
+    fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([persistentId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
     @@index([fineTuneId])
 }
@@ -499,7 +527,6 @@ enum ComparisonModel {
 model FineTuneTestingEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    // TODO: Delete cacheKey. inputHash and modelId should be enough.
     cacheKey          String?
     prunedInputTokens Int?
 
@@ -518,23 +545,43 @@ model FineTuneTestingEntry {
     fineTuneId String?   @db.Uuid
     fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
 
-    datasetEntryId String?       @db.Uuid
-    datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
-
-    inputHash    String?
-    input        DatasetEntryInput?  @relation(fields: [inputHash], references: [hash], onDelete: SetNull)
-    // for the modelId and inputHash, we cache the produced output
-    outputHash   String?
-    cachedOutput DatasetEntryOutput? @relation(fields: [outputHash], references: [hash], onDelete: SetNull)
+    datasetEntryId String       @db.Uuid
+    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    // @@unique([modelId, datasetEntryId])
-    @@index([modelId, datasetEntryId])
-    // @@unique([inputHash, outputHash, modelId])
+    @@unique([modelId, datasetEntryId])
     @@index([datasetEntryId])
     @@index([cacheKey])
+    @@index([fineTuneId])
+}
+
+model NewFineTuneTestingEntry {
+    id String @id @default(uuid()) @db.Uuid
+
+    prunedInputTokens Int?
+
+    finishReason String?
+
+    errorMessage String?
+
+    // Used for querying both fine-tuned and comparison models
+    modelId    String
+    // Duplicates the modelId field, but Prisma needs it to make the fineTune relation work
+    fineTuneId String?   @db.Uuid
+    fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
+
+    inputHash    String
+    input        DatasetEntryInput   @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
+    // for the modelId and inputHash, we cache the produced output
+    outputHash   String?
+    cachedOutput DatasetEntryOutput? @relation(fields: [outputHash], references: [hash], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([inputHash, modelId])
     @@index([fineTuneId])
 }
 
@@ -551,6 +598,7 @@ model DatasetEval {
     type         DatasetEvalType @default(HEAD_TO_HEAD)
 
     datasetEvalDatasetEntries DatasetEvalDatasetEntry[]
+    datasetEvalNodeEntry      DatasetEvalNodeEntry[]
     datasetEvalOutputSources  DatasetEvalOutputSource[]
 
     datasetId String  @db.Uuid
@@ -574,16 +622,29 @@ model DatasetEvalDatasetEntry {
     datasetEntryId String?       @db.Uuid
     datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
-    importId String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([datasetEvalId, datasetEntryId])
+    @@index([datasetEntryId])
+}
+
+model DatasetEvalNodeEntry {
+    id String @id @default(uuid()) @db.Uuid
+
+    results NewDatasetEvalResult[]
+
+    datasetEvalId String      @db.Uuid
+    datasetEval   DatasetEval @relation(fields: [datasetEvalId], references: [id], onDelete: Cascade)
+
+    nodeEntryPersistentId String
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    // @@unique([datasetEvalId, datasetEntryId])
-    @@index([datasetEvalId, datasetEntryId])
-    @@index([datasetEntryId])
-    @@index([datasetEvalId, importId])
-    @@index([importId, datasetEvalId])
+    @@unique([nodeEntryPersistentId, datasetEvalId])
+    @@index([datasetEvalId, nodeEntryPersistentId])
+    @@index([nodeEntryPersistentId, datasetEvalId])
 }
 
 // Used to record whether the dataset output and which comparison and
@@ -594,8 +655,11 @@ model DatasetEvalOutputSource {
     // The id of the model, or "original" for the dataset output
     modelId String
 
-    results           DatasetEvalResult[]
-    comparisonResults DatasetEvalResult[] @relation("comparison")
+    oldResults           DatasetEvalResult[]
+    oldComparisonResults DatasetEvalResult[] @relation("comparison")
+
+    results           NewDatasetEvalResult[]
+    comparisonResults NewDatasetEvalResult[] @relation("comparison")
 
     datasetEvalId String      @db.Uuid
     datasetEval   DatasetEval @relation(fields: [datasetEvalId], references: [id], onDelete: Cascade)
@@ -634,6 +698,37 @@ model DatasetEvalResult {
     datasetEvalDatasetEntryId String                  @db.Uuid
     datasetEvalDatasetEntry   DatasetEvalDatasetEntry @relation(fields: [datasetEvalDatasetEntryId], references: [id], onDelete: Cascade)
 
+    datasetEvalOutputSourceId String                  @db.Uuid
+    datasetEvalOutputSource   DatasetEvalOutputSource @relation(fields: [datasetEvalOutputSourceId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([datasetEvalDatasetEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
+    @@index([comparisonResultId])
+}
+
+model NewDatasetEvalResult {
+    id String @id @default(uuid()) @db.Uuid
+
+    score        Float?
+    explanation  String?
+    errorMessage String?
+    status       DatasetEvalResultStatus @default(PENDING)
+    judge        String?
+
+    // For comparative evaluations, whether this was the first option presented
+    // to the judge
+    wasFirst Boolean?
+
+    comparisonResultId String? @db.Uuid // The id of the DatasetEvalResult to compare against
+
+    comparisonOutputSourceId String?                  @db.Uuid // The id of the DatasetEvalOutputSource to compare against
+    comparisonOutputSource   DatasetEvalOutputSource? @relation("comparison", fields: [comparisonOutputSourceId], references: [id], onDelete: Cascade)
+
+    datasetEvalNodeEntryId String               @db.Uuid
+    datasetEvalNodeEntry   DatasetEvalNodeEntry @relation(fields: [datasetEvalNodeEntryId], references: [id], onDelete: Cascade)
+
     inputHash  String?
     outputHash String?
 
@@ -643,8 +738,7 @@ model DatasetEvalResult {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    // @@unique([datasetEvalDatasetEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
-    @@index([datasetEvalDatasetEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
+    @@unique([datasetEvalNodeEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
     @@index([inputHash, outputHash, datasetEvalOutputSourceId])
     @@index([comparisonResultId])
 }
@@ -797,7 +891,7 @@ model Node {
     config Json
     hash   String
 
-    nodeData           NodeData[]
+    nodeEntries        NodeEntry[]
     inputDataChannels  DataChannel[]
     outputs            NodeOutput[]
     datasetFileUploads DatasetFileUpload[]
@@ -832,30 +926,30 @@ model DataChannel {
     lastProcessedAt DateTime @default("1970-01-01T00:00:00Z")
 
     originId String?     @db.Uuid
-    origin   NodeOutput? @relation(fields: [originId], references: [id], onDelete: SetNull)
+    origin   NodeOutput? @relation(fields: [originId], references: [id], onDelete: Cascade)
 
     destinationId String @db.Uuid
     destination   Node   @relation(fields: [destinationId], references: [id], onDelete: Cascade)
 
-    nodeData NodeData[]
+    nodeEntries NodeEntry[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
 
-enum NodeDataStatus {
+enum NodeEntryStatus {
     PENDING
     PROCESSING
     ERROR
     PROCESSED
 }
 
-model NodeData {
-    id       String            @id @default(uuid()) @db.Uuid
-    importId String
-    status   NodeDataStatus    @default(PENDING)
-    error    String?
-    split    DatasetEntrySplit
+model NodeEntry {
+    id           String            @id @default(uuid()) @db.Uuid
+    persistentId String
+    status       NodeEntryStatus   @default(PENDING)
+    error        String?
+    split        DatasetEntrySplit
 
     loggedCallId String?     @db.Uuid
     loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: SetNull)
@@ -873,26 +967,19 @@ model NodeData {
     dataChannelId String      @db.Uuid
     dataChannel   DataChannel @relation(fields: [dataChannelId], references: [id], onDelete: Cascade)
 
-    parentNodeDataId String?   @db.Uuid
-    parentNodeData   NodeData? @relation("ancestry", fields: [parentNodeDataId], references: [id], onDelete: Cascade)
+    parentNodeEntryId String?    @db.Uuid
+    parentNodeEntry   NodeEntry? @relation("ancestry", fields: [parentNodeEntryId], references: [id], onDelete: Cascade)
 
-    childrenNodeData NodeData[] @relation("ancestry")
+    childrenNodeEntry NodeEntry[] @relation("ancestry")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@index([nodeId, importId])
-    @@index([nodeId, inputHash, importId])
+    @@index([nodeId, persistentId])
+    @@index([nodeId, inputHash, persistentId])
     @@index([loggedCallId, dataChannelId])
-    @@index([parentNodeDataId, dataChannelId])
+    @@index([parentNodeEntryId, dataChannelId])
     @@index([nodeId, status, updatedAt])
-}
-
-enum NewDatasetEntryProvenance {
-    RequestLog
-    StaticDataset
-    ManualRelabel
-    LLMRelabel
 }
 
 model DatasetEntryInput {
@@ -902,15 +989,15 @@ model DatasetEntryInput {
     response_format Json?
     inputTokens     Int?
 
-    matchedRules PruningRuleMatch[]
+    matchedRules NewPruningRuleMatch[]
     hash         String
 
-    nodeData                NodeData[]
-    fineTuneTrainingEntries FineTuneTrainingEntry[]
-    fineTuneTestingEntries  FineTuneTestingEntry[]
+    nodeEntries             NodeEntry[]
+    fineTuneTrainingEntries NewFineTuneTrainingEntry[]
+    fineTuneTestingEntries  NewFineTuneTestingEntry[]
 
-    incomingCachedEntries CachedProcessedNodeData[] @relation("incoming")
-    outgoingCachedEntries CachedProcessedNodeData[] @relation("outgoing")
+    incomingCachedEntries CachedProcessedNodeEntry[] @relation("incoming")
+    outgoingCachedEntries CachedProcessedNodeEntry[] @relation("outgoing")
 
     createdAt DateTime @default(now())
 
@@ -922,24 +1009,24 @@ model DatasetEntryOutput {
     hash         String
     outputTokens Int?
 
-    nodeData                NodeData[]              @relation("output")
-    originalNodeData        NodeData[]              @relation("originalOutput")
-    fineTuneTrainingEntries FineTuneTrainingEntry[]
-    fineTuneTestingEntries  FineTuneTestingEntry[]
+    nodeEntries             NodeEntry[]                @relation("output")
+    originalNodeEntry       NodeEntry[]                @relation("originalOutput")
+    fineTuneTrainingEntries NewFineTuneTrainingEntry[]
+    fineTuneTestingEntries  NewFineTuneTestingEntry[]
 
-    incomingCachedEntries CachedProcessedNodeData[] @relation("incoming")
-    outgoingCachedEntries CachedProcessedNodeData[] @relation("outgoing")
+    incomingCachedEntries CachedProcessedNodeEntry[] @relation("incoming")
+    outgoingCachedEntries CachedProcessedNodeEntry[] @relation("outgoing")
 
     createdAt DateTime @default(now())
 
     @@unique([hash])
 }
 
-model CachedProcessedNodeData {
+model CachedProcessedNodeEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    nodeHash String
-    importId String?
+    nodeHash              String
+    nodeEntryPersistentId String?
 
     userId String? @db.Uuid
     user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -960,6 +1047,6 @@ model CachedProcessedNodeData {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([importId, incomingDEIHash, nodeHash, incomingDEOHash])
+    @@unique([nodeEntryPersistentId, incomingDEIHash, nodeHash, incomingDEOHash])
     @@index([incomingDEIHash, nodeHash])
 }

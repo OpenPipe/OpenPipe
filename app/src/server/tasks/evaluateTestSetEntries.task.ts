@@ -23,7 +23,7 @@ import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { generateEntry } from "./generateTestSetEntry.task";
 
 export type EvalKey = {
-  nodeDataId: string;
+  nodeEntryId: string;
   firstOutputSourceId: string;
   secondOutputSourceId: string;
 };
@@ -38,15 +38,15 @@ const MAX_TRIES = 50;
 export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
   id: "evaluateTestSetEntries",
   handler: async (task) => {
-    let { nodeDataId, firstOutputSourceId, secondOutputSourceId, numPreviousTries = 0 } = task;
+    let { nodeEntryId, firstOutputSourceId, secondOutputSourceId, numPreviousTries = 0 } = task;
 
     // randomize the order of the output sources to avoid bias
     if (Math.random() > 0.5) {
       [firstOutputSourceId, secondOutputSourceId] = [secondOutputSourceId, firstOutputSourceId];
     }
 
-    const nodeData = await prisma.nodeData.findUnique({
-      where: { id: nodeDataId },
+    const nodeEntry = await prisma.nodeEntry.findUnique({
+      where: { id: nodeEntryId },
     });
 
     const firstOutputSource = await prisma.datasetEvalOutputSource.findUnique({
@@ -64,14 +64,14 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       where: { id: secondOutputSourceId },
     });
 
-    if (!nodeData || !firstOutputSource || !secondOutputSource) return;
+    if (!nodeEntry || !firstOutputSource || !secondOutputSource) return;
 
     const getOutput = async ({ outputSource }: { outputSource: DatasetEvalOutputSource }) => {
       if (outputSource.modelId !== ORIGINAL_MODEL_ID) {
         return kysely
-          .selectFrom("FineTuneTestingEntry as ftte")
+          .selectFrom("NewFineTuneTestingEntry as ftte")
           .where("ftte.modelId", "=", outputSource.modelId)
-          .where("ftte.inputHash", "=", nodeData.inputHash)
+          .where("ftte.inputHash", "=", nodeEntry.inputHash)
           .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
           .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
           .select(["ftte.outputHash"])
@@ -79,9 +79,9 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           .then((entry) => entry?.outputHash);
       } else {
         return kysely
-          .selectFrom("NodeData as nd")
-          .where("nd.id", "=", nodeDataId)
-          .select(["nd.outputHash"])
+          .selectFrom("NodeEntry as ne")
+          .where("ne.id", "=", nodeEntryId)
+          .select(["ne.outputHash"])
           .executeTakeFirst()
           .then((entry) => entry?.outputHash);
       }
@@ -99,7 +99,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       generationPromises.push(
         generateEntry({
           modelId: firstOutputSource.modelId,
-          nodeDataId,
+          nodeEntryId,
         }),
       );
     }
@@ -108,7 +108,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       generationPromises.push(
         generateEntry({
           modelId: secondOutputSource.modelId,
-          nodeDataId,
+          nodeEntryId,
         }),
       );
     }
@@ -124,29 +124,29 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
     const findCombinedResult = () =>
       kysely
-        .selectFrom("NodeData as nd")
-        .where("nd.id", "=", nodeDataId)
+        .selectFrom("NodeEntry as ne")
+        .where("ne.id", "=", nodeEntryId)
         .innerJoin("DatasetEvalOutputSource as deos", (join) =>
           join.on("deos.id", "=", firstOutputSourceId),
         )
         .innerJoin("DatasetEvalOutputSource as comparisonDeos", (join) =>
           join.on("comparisonDeos.id", "=", secondOutputSourceId),
         )
-        .innerJoin("DatasetEvalResult as der", (join) =>
+        .innerJoin("NewDatasetEvalResult as der", (join) =>
           join
-            .onRef("der.inputHash", "=", "nd.inputHash")
+            .onRef("der.inputHash", "=", "ne.inputHash")
             .on("der.outputHash", "=", firstOutputHash)
             .on("der.datasetEvalOutputSourceId", "=", firstOutputSourceId),
         )
-        .innerJoin("DatasetEvalResult as comparisonDer", (join) =>
+        .innerJoin("NewDatasetEvalResult as comparisonDer", (join) =>
           join
-            .onRef("comparisonDer.inputHash", "=", "nd.inputHash")
+            .onRef("comparisonDer.inputHash", "=", "ne.inputHash")
             .on("comparisonDer.outputHash", "=", secondOutputHash)
             .on("comparisonDer.datasetEvalOutputSourceId", "=", secondOutputSourceId),
         );
 
     const exactMatchCombinedResult = await findCombinedResult()
-      .innerJoin("DatasetEvalDatasetEntry as dede", "dede.importId", "nd.importId")
+      .innerJoin("DatasetEvalNodeEntry as dene", "dene.nodeEntryPersistentId", "ne.persistentId")
       .select([
         "der.id as firstResultId",
         "der.status as firstResultStatus",
@@ -169,24 +169,27 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       firstResultId = exactMatchCombinedResult.firstResultId;
       secondResultId = exactMatchCombinedResult.secondResultId;
     } else {
-      const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.findFirst({
-        where: { importId: nodeData.importId, datasetEvalId: firstOutputSource.datasetEvalId },
+      const datasetEvalNodeEntry = await prisma.datasetEvalNodeEntry.findFirst({
+        where: {
+          nodeEntryPersistentId: nodeEntry.persistentId,
+          datasetEvalId: firstOutputSource.datasetEvalId,
+        },
       });
 
-      if (!datasetEvalDatasetEntry) return;
+      if (!datasetEvalNodeEntry) return;
 
       firstResultId = uuidv4();
       secondResultId = uuidv4();
 
       await kysely
-        .insertInto("DatasetEvalResult")
+        .insertInto("NewDatasetEvalResult")
         .values([
           {
             id: firstResultId,
             datasetEvalOutputSourceId: firstOutputSourceId,
-            inputHash: nodeData.inputHash,
+            inputHash: nodeEntry.inputHash,
             outputHash: firstOutputHash,
-            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+            datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
             comparisonOutputSourceId: secondOutputSourceId,
             comparisonResultId: secondResultId,
             status: "PENDING",
@@ -195,9 +198,9 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           {
             id: secondResultId,
             datasetEvalOutputSourceId: secondOutputSourceId,
-            inputHash: nodeData.inputHash,
+            inputHash: nodeEntry.inputHash,
             outputHash: secondOutputHash,
-            datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+            datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
             comparisonOutputSourceId: firstOutputSourceId,
             comparisonResultId: firstResultId,
             status: "PENDING",
@@ -207,19 +210,19 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         .execute();
     }
 
-    // delete all past results for this importId and these output sources
+    // delete all past results for this persistentId and these output sources
     await kysely
-      .deleteFrom("DatasetEvalResult as der")
-      .innerJoin("DatasetEvalDatasetEntry as dede", "dede.id", "der.datasetEvalDatasetEntryId")
-      .where("dede.importId", "=", nodeData.importId)
+      .deleteFrom("NewDatasetEvalResult as der")
+      .innerJoin("DatasetEvalNodeEntry as dene", "dene.id", "der.datasetEvalNodeEntryId")
+      .where("dene.nodeEntryPersistentId", "=", nodeEntry.persistentId)
       .where("datasetEvalOutputSourceId", "=", firstOutputSourceId)
       .where("comparisonOutputSourceId", "=", secondOutputSourceId)
       .where("der.id", "!=", firstResultId)
       .execute();
     await kysely
-      .deleteFrom("DatasetEvalResult as der")
-      .innerJoin("DatasetEvalDatasetEntry as dede", "dede.id", "der.datasetEvalDatasetEntryId")
-      .where("dede.importId", "=", nodeData.importId)
+      .deleteFrom("NewDatasetEvalResult as der")
+      .innerJoin("DatasetEvalNodeEntry as dene", "dene.id", "der.datasetEvalNodeEntryId")
+      .where("dene.nodeEntryPersistentId", "=", nodeEntry.persistentId)
       .where("datasetEvalOutputSourceId", "=", secondOutputSourceId)
       .where("comparisonOutputSourceId", "=", firstOutputSourceId)
       .where("der.id", "!=", secondResultId)
@@ -239,7 +242,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       .executeTakeFirst();
 
     if (completeCombinedResult) {
-      await prisma.datasetEvalResult.update({
+      await prisma.newDatasetEvalResult.update({
         where: { id: firstResultId },
         data: {
           score: completeCombinedResult.firstResultScore,
@@ -250,7 +253,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           errorMessage: null,
         },
       });
-      await prisma.datasetEvalResult.update({
+      await prisma.newDatasetEvalResult.update({
         where: { id: secondResultId },
         data: {
           score: completeCombinedResult.secondResultScore,
@@ -264,11 +267,11 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       return;
     }
 
-    const findResult = (criteria: Prisma.DatasetEvalResultWhereInput) =>
-      prisma.datasetEvalResult.findFirst({
+    const findResult = (criteria: Prisma.NewDatasetEvalResultWhereInput) =>
+      prisma.newDatasetEvalResult.findFirst({
         where: criteria,
         include: {
-          datasetEvalDatasetEntry: {
+          datasetEvalNodeEntry: {
             include: {
               datasetEval: {
                 include: {
@@ -284,13 +287,13 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
     const [firstResult, secondResult] = await Promise.all([
       findResult({
         datasetEvalOutputSourceId: task.firstOutputSourceId,
-        inputHash: nodeData.inputHash,
+        inputHash: nodeEntry.inputHash,
         outputHash: firstOutputHash,
         comparisonOutputSourceId: task.secondOutputSourceId,
       }),
       findResult({
         datasetEvalOutputSourceId: task.secondOutputSourceId,
-        inputHash: nodeData.inputHash,
+        inputHash: nodeEntry.inputHash,
         outputHash: secondOutputHash,
         comparisonOutputSourceId: task.firstOutputSourceId,
       }),
@@ -307,7 +310,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       return;
 
     try {
-      await prisma.datasetEvalResult.updateMany({
+      await prisma.newDatasetEvalResult.updateMany({
         where: {
           id: {
             in: [firstResult.id, secondResult.id],
@@ -320,11 +323,11 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       });
 
       const input = await prisma.datasetEntryInput.findUnique({
-        where: { hash: nodeData.inputHash },
+        where: { hash: nodeEntry.inputHash },
       });
 
       if (!input) {
-        await prisma.datasetEvalResult.updateMany({
+        await prisma.newDatasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -345,9 +348,9 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         try {
           if (result.datasetEvalOutputSource.modelId !== ORIGINAL_MODEL_ID) {
             const entry = await kysely
-              .selectFrom("FineTuneTestingEntry as ftte")
+              .selectFrom("NewFineTuneTestingEntry as ftte")
               .where("ftte.modelId", "=", result.datasetEvalOutputSource.modelId)
-              .where("ftte.inputHash", "=", nodeData.inputHash)
+              .where("ftte.inputHash", "=", nodeEntry.inputHash)
               .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
               .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
               .select([
@@ -369,9 +372,9 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
             }
           } else {
             const entry = await kysely
-              .selectFrom("NodeData as nd")
-              .where("nd.id", "=", nodeDataId)
-              .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
+              .selectFrom("NodeEntry as ne")
+              .where("ne.id", "=", nodeEntryId)
+              .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
               .select(["deo.output"])
               .executeTakeFirstOrThrow();
             outputs.push(entry.output);
@@ -379,7 +382,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           }
         } catch (e) {
           console.error("error getting entry for result", result, e);
-          await prisma.datasetEvalResult.updateMany({
+          await prisma.newDatasetEvalResult.updateMany({
             where: {
               id: {
                 in: [firstResult.id, secondResult.id],
@@ -397,7 +400,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       const [firstOutput, secondOutput] = outputs;
       if (!firstOutput || !secondOutput) {
         // This job will be retried when the output is available
-        await prisma.datasetEvalResult.updateMany({
+        await prisma.newDatasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -410,7 +413,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
       const [firstEntryId, secondEntryId] = entryIds;
       if (!firstEntryId || !secondEntryId) {
-        await prisma.datasetEvalResult.updateMany({
+        await prisma.newDatasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -425,7 +428,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       }
 
       if (outputsAreEqual(firstOutput, secondOutput)) {
-        await prisma.datasetEvalResult.updateMany({
+        await prisma.newDatasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -474,7 +477,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       } catch (e) {
         console.error("error getting judgement", args, e);
         captureException(e, { extra: { args } });
-        await prisma.datasetEvalResult.updateMany({
+        await prisma.newDatasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -512,7 +515,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           break;
       }
 
-      await prisma.datasetEvalResult.update({
+      await prisma.newDatasetEvalResult.update({
         where: { id: firstResult.id },
         data: {
           status: "COMPLETE",
@@ -523,7 +526,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         },
       });
 
-      await prisma.datasetEvalResult.update({
+      await prisma.newDatasetEvalResult.update({
         where: { id: secondResult.id },
         data: {
           status: "COMPLETE",
@@ -544,7 +547,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           { runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries)), priority: 3 },
         );
       } else {
-        await prisma.datasetEvalResult.updateMany({
+        await prisma.newDatasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],

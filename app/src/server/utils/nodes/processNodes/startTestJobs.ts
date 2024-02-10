@@ -5,22 +5,22 @@ import { kysely } from "~/server/db";
 import { type EvalKey, evaluateTestSetEntries } from "~/server/tasks/evaluateTestSetEntries.task";
 import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
 
-import type { DB, NodeData } from "~/types/kysely-codegen.types";
+import type { DB, NodeEntry } from "~/types/kysely-codegen.types";
 
-type NodeDataBaseQuery = SelectQueryBuilder<
+type NodeEntryBaseQuery = SelectQueryBuilder<
   DB & {
-    nd: NodeData;
+    ne: NodeEntry;
   },
-  "nd",
+  "ne",
   object
 >;
 
 export const startDatasetTestJobs = async ({
   datasetId,
-  nodeDataBaseQuery,
+  nodeEntryBaseQuery,
 }: {
   datasetId: string;
-  nodeDataBaseQuery: NodeDataBaseQuery;
+  nodeEntryBaseQuery: NodeEntryBaseQuery;
 }) => {
   const dataset = await kysely
     .selectFrom("Dataset as d")
@@ -41,7 +41,7 @@ export const startDatasetTestJobs = async ({
   for (const evaluation of dataset.evaluations) {
     await startTestJobsForEval({
       datasetEvalId: evaluation.id,
-      nodeDataBaseQuery,
+      nodeEntryBaseQuery,
     });
   }
 
@@ -52,26 +52,31 @@ export const startDatasetTestJobs = async ({
   for (const modelId of modelIds) {
     await startTestJobsForModel({
       modelId,
-      nodeDataBaseQuery,
+      nodeEntryBaseQuery,
     });
   }
 };
 
 export const startTestJobsForEval = async ({
   datasetEvalId,
-  nodeDataBaseQuery,
+  nodeEntryBaseQuery,
 }: {
   datasetEvalId: string;
-  nodeDataBaseQuery: NodeDataBaseQuery;
+  nodeEntryBaseQuery: NodeEntryBaseQuery;
 }) => {
   const datasetEval = await kysely
     .selectFrom("DatasetEval as eval")
     .where("eval.id", "=", datasetEvalId)
     .select((eb) => [
       jsonArrayFrom(
-        nodeDataBaseQuery
-          .innerJoin("DatasetEvalDatasetEntry as dede", "dede.importId", "nd.importId")
-          .select(["nd.id as nodeDataId", "dede.id", "dede.datasetEvalId"])
+        nodeEntryBaseQuery
+          .where("ne.split", "=", "TEST")
+          .innerJoin(
+            "DatasetEvalNodeEntry as dene",
+            "dene.nodeEntryPersistentId",
+            "ne.persistentId",
+          )
+          .select(["ne.id as nodeEntryId", "dene.id", "dene.datasetEvalId"])
           .where("datasetEvalId", "=", datasetEvalId),
       ).as("datasetEvalDatasetEntries"),
       jsonArrayFrom(
@@ -87,11 +92,11 @@ export const startTestJobsForEval = async ({
 
   const evalsToRun: EvalKey[] = [];
 
-  for (const datasetEvalDatasetEntry of datasetEval.datasetEvalDatasetEntries) {
+  for (const datasetEvalNodeEntry of datasetEval.datasetEvalDatasetEntries) {
     for (let i = 0; i < datasetEval.outputSources.length; i++) {
       for (let j = i + 1; j < datasetEval.outputSources.length; j++) {
         evalsToRun.push({
-          nodeDataId: datasetEvalDatasetEntry.nodeDataId,
+          nodeEntryId: datasetEvalNodeEntry.nodeEntryId,
           firstOutputSourceId: datasetEval.outputSources[i]?.id as string,
           secondOutputSourceId: datasetEval.outputSources[j]?.id as string,
         });
@@ -109,22 +114,23 @@ export const startTestJobsForEval = async ({
 
 export const startTestJobsForModel = async ({
   modelId,
-  nodeDataBaseQuery,
+  nodeEntryBaseQuery,
 }: {
   modelId: string;
-  nodeDataBaseQuery: NodeDataBaseQuery;
+  nodeEntryBaseQuery: NodeEntryBaseQuery;
 }) => {
-  const nodeDataToRun = await nodeDataBaseQuery
-    .leftJoin("FineTuneTestingEntry as ftte", (join) =>
-      join.onRef("ftte.inputHash", "=", "nd.inputHash").on("ftte.modelId", "=", modelId),
+  const nodeEntryToRun = await nodeEntryBaseQuery
+    .where("ne.split", "=", "TEST")
+    .leftJoin("NewFineTuneTestingEntry as ftte", (join) =>
+      join.onRef("ftte.inputHash", "=", "ne.inputHash").on("ftte.modelId", "=", modelId),
     )
     .where("ftte.id", "is", null)
-    .select(["nd.id as nodeDataId"])
+    .select(["ne.id as nodeEntryId"])
     .execute();
 
-  const jobsToRun = nodeDataToRun.map((nodeData) => ({
+  const jobsToRun = nodeEntryToRun.map((nodeEntry) => ({
     modelId,
-    nodeDataId: nodeData.nodeDataId,
+    nodeEntryId: nodeEntry.nodeEntryId,
     numPreviousTries: 0,
   }));
 

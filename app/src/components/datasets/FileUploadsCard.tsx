@@ -87,7 +87,7 @@ const FileUploadRow = ({ fileUpload }: { fileUpload: FileUpload }) => {
 
   useEffect(() => {
     // Invalidate dataset entries list when upload is processed
-    if (status === "COMPLETE") void utils.datasetEntries.list.invalidate();
+    if (status === "COMPLETE") void utils.nodeEntries.list.invalidate();
   }, [status, utils]);
 
   return (

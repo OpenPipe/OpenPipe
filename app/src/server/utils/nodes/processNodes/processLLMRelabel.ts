@@ -1,22 +1,17 @@
 import type { ZodError } from "zod";
-import type { DatasetEntryInput, Prisma } from "@prisma/client";
+import type { DatasetEntryInput } from "@prisma/client";
 import pLimit from "p-limit";
 import { sql } from "kysely";
 
 import { kysely, prisma } from "~/server/db";
-import {
-  LLMRelabelOutputs,
-  RelabelOptions,
-  typedDatasetEntryInput,
-  typedNode,
-} from "../node.types";
+import { LLMRelabelOutput, RelabelOption, typedDatasetEntryInput, typedNode } from "../node.types";
 import { getOpenaiCompletion } from "../../openai";
-import { countLlamaOutputTokens } from "~/utils/countTokens";
-import { hashDatasetEntryOutput } from "../hashNode";
+import { hashAndSaveDatasetEntryOutput } from "../hashNode";
 import { APIError } from "openai";
 import { processNode } from "~/server/tasks/nodes/processNode.task";
 import dayjs from "~/utils/dayjs";
-import { forwardNodeData } from "../forwardNodeData";
+import { forwardNodeEntries } from "../forwardNodeEntries";
+import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 
 export const processLLMRelabel = async (nodeId: string) => {
   const startTime = Date.now();
@@ -37,29 +32,29 @@ export const processLLMRelabel = async (nodeId: string) => {
   if (node?.type !== "LLMRelabel") return;
   const { relabelLLM, maxEntriesPerMinute, maxLLMConcurrency } = node.config;
 
-  if (relabelLLM === RelabelOptions.SkipRelabel) {
+  if (relabelLLM === RelabelOption.SkipRelabel) {
     await kysely
-      .updateTable("NodeData as nd")
-      .where("nd.nodeId", "=", node.id)
-      .where("nd.status", "=", "PENDING")
+      .updateTable("NodeEntry as ne")
+      .where("ne.nodeId", "=", node.id)
+      .where("ne.status", "=", "PENDING")
       .set({
         status: "PROCESSED",
       })
       .execute();
-    await forwardNodeData({ nodeId, nodeOutputLabel: LLMRelabelOutputs.Relabeled });
+    await forwardNodeEntries({ nodeId, nodeOutputLabel: LLMRelabelOutput.Relabeled });
   } else {
     // process all cached entries
     await kysely
-      .updateTable("NodeData")
+      .updateTable("NodeEntry")
       .set({
         status: "PROCESSED",
-        outputHash: sql`"cpnd"."outgoingDEOHash"`,
+        outputHash: sql`"cpne"."outgoingDEOHash"`,
       })
-      .from("CachedProcessedNodeData as cpnd")
-      .where("NodeData.nodeId", "=", node.id)
-      .where("NodeData.status", "=", "PENDING")
-      .where("cpnd.nodeHash", "=", node.hash)
-      .whereRef("NodeData.inputHash", "=", "cpnd.incomingDEIHash")
+      .from("CachedProcessedNodeEntry as cpne")
+      .where("NodeEntry.nodeId", "=", node.id)
+      .where("NodeEntry.status", "=", "PENDING")
+      .where("cpne.nodeHash", "=", node.hash)
+      .whereRef("NodeEntry.inputHash", "=", "cpne.incomingDEIHash")
       .execute();
 
     const openaiApiKey = node.project.apiKeys.find((apiKey) => apiKey.provider === "OPENPIPE")
@@ -68,16 +63,16 @@ export const processLLMRelabel = async (nodeId: string) => {
     if (!openaiApiKey) return;
 
     const entriesToProcess = await kysely
-      .selectFrom("NodeData as nd")
-      .where("nd.nodeId", "=", node.id)
-      .where("nd.status", "=", "PENDING")
-      .orderBy("nd.createdAt", "asc")
+      .selectFrom("NodeEntry as ne")
+      .where("ne.nodeId", "=", node.id)
+      .where("ne.status", "=", "PENDING")
+      .orderBy("ne.createdAt", "asc")
       .limit(maxEntriesPerMinute)
-      .innerJoin("DatasetEntryInput as dei", "dei.hash", "nd.inputHash")
-      .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
+      .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
+      .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
       .select([
-        "nd.id as nodeDataId",
-        "nd.originalOutputHash as originalOutputHash",
+        "ne.id as nodeEntryId",
+        "ne.originalOutputHash as originalOutputHash",
         "dei.hash as inputHash",
         "dei.tool_choice as tool_choice",
         "dei.tools as tools",
@@ -102,19 +97,19 @@ export const processLLMRelabel = async (nodeId: string) => {
 
     await Promise.all(tasks);
 
-    await forwardNodeData({ nodeId, nodeOutputLabel: LLMRelabelOutputs.Relabeled });
-    await forwardNodeData({
+    await forwardNodeEntries({ nodeId, nodeOutputLabel: LLMRelabelOutput.Relabeled });
+    await forwardNodeEntries({
       nodeId,
-      nodeOutputLabel: LLMRelabelOutputs.Unprocessed,
+      nodeOutputLabel: LLMRelabelOutput.Unprocessed,
       selectionExpression: llmRelabelUnprocessedSelectionExpression,
     });
   }
 
   // check if there are more entries to process
   const moreEntriesToProcess = await kysely
-    .selectFrom("NodeData as nd")
-    .where("nd.nodeId", "=", node.id)
-    .where("nd.status", "=", "PENDING")
+    .selectFrom("NodeEntry as ne")
+    .where("ne.nodeId", "=", node.id)
+    .where("ne.status", "=", "PENDING")
     .limit(1)
     .execute()
     .then((rows) => rows.length > 0);
@@ -135,15 +130,15 @@ const processEntry = async ({
 }: {
   projectId: string;
   nodeHash: string;
-  relabelLLM: RelabelOptions.GPT40613 | RelabelOptions.GPT41106 | RelabelOptions.GPT432k;
+  relabelLLM: RelabelOption.GPT40613 | RelabelOption.GPT41106 | RelabelOption.GPT432k;
   entry: Pick<DatasetEntryInput, "tool_choice" | "tools" | "messages" | "response_format"> & {
-    nodeDataId: string;
+    nodeEntryId: string;
     inputHash: string;
     originalOutputHash: string;
   };
 }) => {
-  await prisma.nodeData.update({
-    where: { id: entry.nodeDataId },
+  await prisma.nodeEntry.update({
+    where: { id: entry.nodeEntryId },
     data: { status: "PROCESSING", error: "" },
   });
 
@@ -151,8 +146,8 @@ const processEntry = async ({
   try {
     typedEntry = typedDatasetEntryInput(entry);
   } catch (e) {
-    await prisma.nodeData.update({
-      where: { id: entry.nodeDataId },
+    await prisma.nodeEntry.update({
+      where: { id: entry.nodeEntryId },
       data: { status: "ERROR", error: (e as ZodError).message },
     });
     return;
@@ -171,23 +166,13 @@ const processEntry = async ({
 
     const completionMessage = completion.choices[0]?.message;
     if (!completionMessage) throw new Error("No completion returned");
-    const outputTokens = countLlamaOutputTokens(completionMessage);
-    const outputHash = hashDatasetEntryOutput({
+
+    const outputHash = await hashAndSaveDatasetEntryOutput({
       projectId,
       output: completionMessage,
     });
-    await prisma.datasetEntryOutput.createMany({
-      data: [
-        {
-          hash: outputHash,
-          output: completionMessage as unknown as Prisma.InputJsonValue,
-          outputTokens,
-        },
-      ],
-      skipDuplicates: true,
-    });
 
-    await prisma.cachedProcessedNodeData.createMany({
+    await prisma.cachedProcessedNodeEntry.createMany({
       data: [
         {
           nodeHash,
@@ -198,33 +183,35 @@ const processEntry = async ({
       skipDuplicates: true,
     });
 
-    const originalNodeData = await prisma.nodeData.findUniqueOrThrow({
-      where: { id: typedEntry.nodeDataId },
+    const originalNodeEntry = await prisma.nodeEntry.findUniqueOrThrow({
+      where: { id: typedEntry.nodeEntryId },
     });
 
     await prisma.$transaction([
       // delete the original node data to remove all its children
-      prisma.nodeData.delete({
-        where: { id: originalNodeData.id },
+      prisma.nodeEntry.delete({
+        where: { id: originalNodeEntry.id },
       }),
-      prisma.nodeData.create({
+      prisma.nodeEntry.create({
         data: {
-          ...originalNodeData,
+          ...originalNodeEntry,
           status: "PROCESSED",
           outputHash,
           originalOutputHash,
         },
       }),
     ]);
+
+    await countDatasetEntryTokens.enqueue();
   } catch (e) {
     if (e instanceof APIError && e.status === 429) {
-      await prisma.nodeData.update({
-        where: { id: typedEntry.nodeDataId },
+      await prisma.nodeEntry.update({
+        where: { id: typedEntry.nodeEntryId },
         data: { status: "PENDING", error: (e as Error).message },
       });
     } else {
-      await prisma.nodeData.update({
-        where: { id: typedEntry.nodeDataId },
+      await prisma.nodeEntry.update({
+        where: { id: typedEntry.nodeEntryId },
         data: { status: "ERROR", error: (e as Error).message },
       });
     }
@@ -243,18 +230,18 @@ export const llmRelabelUnprocessedSelectionExpression = ({
   channelId: string;
 }) =>
   kysely
-    .selectFrom("NodeData as nd")
-    .where("nd.nodeId", "=", originNodeId)
-    .where("nd.status", "!=", "PROCESSED")
-    .where("nd.createdAt", ">=", dayjs(lastProcessedAt).subtract(10, "seconds").toDate())
+    .selectFrom("NodeEntry as ne")
+    .where("ne.nodeId", "=", originNodeId)
+    .where("ne.status", "!=", "PROCESSED")
+    .where("ne.createdAt", ">=", dayjs(lastProcessedAt).subtract(10, "seconds").toDate())
     .select((eb) => [
-      "nd.importId as importId",
+      "ne.persistentId as persistentId",
       eb.val(destinationNodeId).as("nodeId"),
       eb.val(channelId).as("dataChannelId"),
-      "nd.id as parentNodeDataId",
-      "nd.loggedCallId",
-      "nd.inputHash",
-      "nd.outputHash",
-      "nd.originalOutputHash",
-      "nd.split",
+      "ne.id as parentNodeEntryId",
+      "ne.loggedCallId",
+      "ne.inputHash",
+      "ne.outputHash",
+      "ne.originalOutputHash",
+      "ne.split",
     ]);

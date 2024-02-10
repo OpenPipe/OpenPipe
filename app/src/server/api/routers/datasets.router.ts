@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { sql } from "kysely";
+import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 import type { ComparisonModel } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
 import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -12,59 +12,91 @@ import { generateBlobUploadUrl } from "~/utils/azure/server";
 import { env } from "~/env.mjs";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
-import { constructNodeDataFiltersQuery } from "~/server/utils/constructNodeDataFiltersQuery";
-import {
-  ArchiveOutputs,
-  DEFAULT_MAX_OUTPUT_SIZE,
-  typedNode,
-} from "~/server/utils/nodes/node.types";
+import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
+import { DEFAULT_MAX_OUTPUT_SIZE, typedNode } from "~/server/utils/nodes/node.types";
 import { processNode } from "~/server/tasks/nodes/processNode.task";
-import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { startDatasetTestJobs } from "~/server/utils/nodes/processNodes/startTestJobs";
 import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
 import { getUpstreamSources } from "~/server/utils/nodes/relationalQueries";
-import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
+import { relabelOptions } from "~/server/utils/nodes/node.types";
+import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    const dataset = await prisma.dataset.findUniqueOrThrow({
-      where: { id: input.id },
-      include: {
-        project: true,
-        fineTunes: {
-          where: {
-            status: "DEPLOYED",
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-        datasetEvals: {
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-      },
-    });
+    const dataset = await kysely
+      .selectFrom("Dataset as d")
+      .where("d.id", "=", input.id)
+      .selectAll("d")
+      .select((eb) => [
+        jsonObjectFrom(
+          eb
+            .selectFrom("Project as p")
+            .whereRef("p.id", "=", "d.projectId")
+            .select(["p.id", "p.name"]),
+        ).as("project"),
+        jsonObjectFrom(eb.selectFrom("Node as n").where("n.id", "=", "d.nodeId").selectAll("n")).as(
+          "node",
+        ),
+        jsonArrayFrom(
+          eb
+            .selectFrom("DatasetEval as de")
+            .where("de.datasetId", "=", input.id)
+            .orderBy("de.createdAt", "desc")
+            .selectAll("de"),
+        ).as("datasetEvals"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("FineTune as ft")
+            .where("ft.datasetId", "=", input.id)
+            .where("ft.status", "=", "DEPLOYED")
+            .orderBy("ft.createdAt", "desc")
+            .selectAll("ft"),
+        ).as("deployedFineTunes"),
+        eb
+          .selectFrom("NodeEntry as ne")
+          .whereRef("ne.nodeId", "=", "d.nodeId")
+          .where("ne.status", "=", "PROCESSED")
+          .where("ne.split", "=", "TEST")
+          .select(sql<number>`count(*)::int`.as("count"))
+          .as("numTestEntries"),
+      ])
+      .executeTakeFirst();
 
-    if (!dataset.nodeId) return error("Dataset node not found");
-
-    const numTestEntries = await prisma.nodeData.count({
-      where: {
-        nodeId: dataset.nodeId,
-        status: "PROCESSED",
-        split: "TEST",
-      },
-    });
+    if (!dataset?.nodeId || !dataset?.node)
+      throw new TRPCError({ message: "Dataset node not found", code: "NOT_FOUND" });
 
     await requireCanViewProject(dataset.projectId, ctx);
 
-    const { fineTunes, ...rest } = dataset;
-    return { deployedFineTunes: fineTunes, numTestEntries, ...rest };
+    const tNode = typedNode(dataset.node);
+
+    if (tNode.type !== "Dataset")
+      throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
+
+    const llmRelabelNode = await kysely
+      .selectFrom("Node as n")
+      .where("n.id", "=", tNode.config.llmRelabelNodeId)
+      .selectAll("n")
+      .executeTakeFirst();
+
+    if (!llmRelabelNode)
+      throw new TRPCError({ message: "Relabeling model not found", code: "NOT_FOUND" });
+
+    const tLlmRelabelNode = typedNode(llmRelabelNode);
+
+    if (tLlmRelabelNode.type !== "LLMRelabel")
+      throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
+
+    const enabledComparisonModels = (dataset.enabledComparisonModels ?? []) as ComparisonModel[];
+
+    return {
+      ...dataset,
+      enabledComparisonModels,
+      relabelLLM: tLlmRelabelNode.config.relabelLLM,
+    };
   }),
   getTrainingCosts: protectedProcedure
     .input(
@@ -78,15 +110,19 @@ export const datasetsRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const { datasetId, filters, baseModel, pruningRuleIds, selectedNumberOfEpochs } = input;
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+      const { projectId, nodeId } = await prisma.dataset.findUniqueOrThrow({
         where: { id: datasetId },
       });
 
+      if (!nodeId) throw new TRPCError({ message: "Dataset node not found", code: "NOT_FOUND" });
+
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructDatasetEntryFiltersQuery({ filters, datasetId })
-        .where("de.split", "=", "TRAIN")
-        .where("de.output", "is not", null);
+      const baseQuery = constructNodeEntryFiltersQuery({ filters, datasetNodeId: nodeId }).where(
+        "ne.split",
+        "=",
+        "TRAIN",
+      );
 
       const datasetEntryStats = await baseQuery
         .select([
@@ -102,12 +138,12 @@ export const datasetsRouter = createTRPCRouter({
 
       if (pruningRuleIds.length > 0) {
         totalMatchTokens = await baseQuery
-          .innerJoin("PruningRuleMatch", (join) =>
+          .innerJoin("NewPruningRuleMatch as prm", (join) =>
             join
-              .onRef("PruningRuleMatch.datasetEntryId", "=", "de.id")
-              .on("PruningRuleMatch.pruningRuleId", "in", pruningRuleIds),
+              .onRef("prm.inputHash", "=", "ne.inputHash")
+              .on("prm.pruningRuleId", "in", pruningRuleIds),
           )
-          .leftJoin("PruningRule as pr", "PruningRuleMatch.pruningRuleId", "pr.id")
+          .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
           .select(sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens"))
           .executeTakeFirst()
           .then((stats) => stats?.totalMatchTokens || 0);
@@ -138,7 +174,7 @@ export const datasetsRouter = createTRPCRouter({
         .where("nodeId", "is not", null)
         .selectAll()
         .select(() => [
-          sql<number>`(select count(*) from "NodeData" where "nodeId" = d."nodeId" and status = "PROCESSED")::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and status = "PROCESSED")::int`.as(
             "datasetEntryCount",
           ),
           sql<number>`(select count(*) from "FineTune" where "datasetId" = d.id)::int`.as(
@@ -200,15 +236,76 @@ export const datasetsRouter = createTRPCRouter({
       if (input.updates.enabledComparisonModels) {
         await startDatasetTestJobs({
           datasetId: input.id,
-          nodeDataBaseQuery: kysely
-            .selectFrom("NodeData as nd")
-            .where("nd.nodeId", "=", input.id)
-            .where("nd.split", "=", "TEST")
-            .where("nd.status", "=", "PROCESSED"),
+          nodeEntryBaseQuery: kysely
+            .selectFrom("NodeEntry as ne")
+            .where("ne.nodeId", "=", input.id)
+            .where("ne.split", "=", "TEST")
+            .where("ne.status", "=", "PROCESSED"),
         });
       }
 
       return success("Dataset updated");
+    }),
+
+  updateRelabelingModel: protectedProcedure
+    .input(
+      z.object({
+        datasetId: z.string(),
+        relabelOption: z.enum(relabelOptions),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: { id: input.datasetId },
+      });
+      await requireCanModifyProject(projectId, ctx);
+
+      const datasetNode = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .executeTakeFirst();
+
+      if (!datasetNode) return error("Dataset not found");
+
+      const tDatasetNode = typedNode(datasetNode);
+
+      if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
+
+      const llmRelabelNode = await kysely
+        .selectFrom("Node as n")
+        .where("n.id", "=", tDatasetNode.config.llmRelabelNodeId)
+        .selectAll("n")
+        .executeTakeFirst();
+
+      if (!llmRelabelNode) return error("Relabeling model not found");
+
+      const tLlmRelabelNode = typedNode(llmRelabelNode);
+
+      if (tLlmRelabelNode.type !== "LLMRelabel") return error("Node incorrect type");
+
+      if (tLlmRelabelNode.config.relabelLLM === input.relabelOption)
+        return success("Dataset relabeling model already set to this option");
+
+      await prisma.node.update({
+        where: { id: tLlmRelabelNode.id },
+        data: checkNodeInput({
+          ...tLlmRelabelNode,
+          config: {
+            ...tLlmRelabelNode.config,
+            relabelLLM: input.relabelOption,
+          },
+        }),
+      });
+
+      await processNode.enqueue({
+        nodeId: tLlmRelabelNode.id,
+        nodeType: "LLMRelabel",
+        invalidateData: true,
+      });
+
+      return success("Dataset relabeling model updated");
     }),
 
   delete: protectedProcedure
@@ -325,13 +422,6 @@ export const datasetsRouter = createTRPCRouter({
   listFileUploads: protectedProcedure
     .input(z.object({ datasetId: z.string() }))
     .query(async ({ input, ctx }) => {
-      // const { projectId, nodeId } = await prisma.dataset.findUniqueOrThrow({
-      //   where: { id: input.datasetId },
-      // });
-      // await requireCanViewProject(projectId, ctx);
-
-      // if (!nodeId) return error("Dataset node not found");
-
       const datasetNode = await kysely
         .selectFrom("Dataset as d")
         .where("d.id", "=", input.datasetId)
@@ -372,10 +462,10 @@ export const datasetsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       if (!input.fileUploadIds.length) return error("No file upload ids provided");
 
-      const { dataset } = await prisma.datasetFileUpload.findUniqueOrThrow({
+      const { node } = await prisma.datasetFileUpload.findUniqueOrThrow({
         where: { id: input.fileUploadIds[0] },
         select: {
-          dataset: {
+          node: {
             select: {
               id: true,
               projectId: true,
@@ -384,16 +474,15 @@ export const datasetsRouter = createTRPCRouter({
         },
       });
 
-      if (!dataset) return error("Dataset not found");
+      if (!node) return error("Node not found");
 
-      await requireCanModifyProject(dataset.projectId, ctx);
+      await requireCanModifyProject(node.projectId, ctx);
 
       await prisma.datasetFileUpload.updateMany({
         where: {
           id: {
             in: input.fileUploadIds,
           },
-          datasetId: dataset.id,
         },
         data: {
           visible: false,

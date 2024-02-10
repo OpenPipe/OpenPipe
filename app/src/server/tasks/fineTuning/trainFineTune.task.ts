@@ -45,7 +45,7 @@ export async function* iterateTrainingRows(fineTuneId: string) {
   let offset = 0;
   while (true) {
     const rows = await kysely
-      .selectFrom("FineTuneTrainingEntry as ftte")
+      .selectFrom("NewFineTuneTrainingEntry as ftte")
       .where("ftte.fineTuneId", "=", fineTuneId)
       .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
       .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
@@ -110,7 +110,7 @@ const trainModalFineTune = async (fineTuneId: string) => {
       const prunedInputTokens = stringsToPrune?.length
         ? countLlamaInputTokens(input)
         : tEntry.inputTokens;
-      await prisma.fineTuneTrainingEntry.update({
+      await prisma.newFineTuneTrainingEntry.update({
         where: { id: row.id },
         data: { prunedInputTokens, outputTokens: tEntry.outputTokens },
       });

@@ -1,10 +1,10 @@
 import OpenAI from "openai";
 
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import defineTask from "../defineTask";
-import { startTestJobs } from "~/server/utils/startTestJobs";
 import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 import { typedFineTune } from "~/types/dbColumns.types";
+import { startTestJobsForModel } from "~/server/utils/nodes/processNodes/startTestJobs";
 
 const runOnce = async () => {
   const trainingOpenaiFineTunes = await prisma.fineTune
@@ -58,7 +58,20 @@ const runOnce = async () => {
             },
           });
           captureFineTuneTrainingFinished(fineTune.projectId, fineTune.slug, true);
-          await startTestJobs(fineTune.datasetId, fineTune.id);
+
+          const dataset = await prisma.dataset.findUnique({
+            where: { id: fineTune.datasetId },
+          });
+
+          if (dataset?.nodeId) {
+            await startTestJobsForModel({
+              modelId: fineTune.id,
+              nodeEntryBaseQuery: kysely
+                .selectFrom("NodeEntry as ne")
+                .where("ne.nodeId", "=", dataset.nodeId)
+                .where("ne.status", "=", "PROCESSED"),
+            });
+          }
         } else if (resp.status === "failed") {
           await prisma.fineTune.update({
             where: { id: fineTune.id },

@@ -4,12 +4,9 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
-import {
-  requireCanModifyProject,
-  requireCanViewProject,
-  requireCanModifyPruningRule,
-} from "~/utils/accessControl";
+import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { countLlamaTokens } from "~/utils/countTokens";
+import { error } from "~/utils/errorHandling/standardResponses";
 
 export const pruningRulesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -27,16 +24,16 @@ export const pruningRulesRouter = createTRPCRouter({
       const pruningRules = await kysely
         .selectFrom("Dataset as d")
         .where("d.id", "=", input.datasetId)
-        .leftJoin("PruningRule as pr", "pr.datasetId", "d.id")
-        .leftJoin("PruningRuleMatch as prm", "prm.pruningRuleId", "pr.id")
-        .leftJoin("NodeData as nd", (join) =>
+        .innerJoin("PruningRule as pr", "pr.datasetId", "d.id")
+        .leftJoin("NewPruningRuleMatch as prm", "prm.pruningRuleId", "pr.id")
+        .leftJoin("NodeEntry as ne", (join) =>
           join
-            .onRef("nd.nodeId", "=", "d.nodeId")
-            .onRef("nd.inputHash", "=", "prm.inputHash")
-            .on("nd.status", "=", "PROCESSED"),
+            .onRef("ne.nodeId", "=", "d.nodeId")
+            .onRef("ne.inputHash", "=", "prm.inputHash")
+            .on("ne.status", "=", "PROCESSED"),
         )
         .selectAll("pr")
-        .select((eb) => ["projectId", eb.fn.count<number>("nd.id").as("numMatches")])
+        .select((eb) => ["projectId", eb.fn.count<number>("ne.id").as("numMatches")])
         .groupBy("pr.id")
         .orderBy("pr.createdAt", "asc")
         .execute();
@@ -46,7 +43,18 @@ export const pruningRulesRouter = createTRPCRouter({
   update: protectedProcedure
     .input(z.object({ id: z.string(), updates: z.object({ textToMatch: z.string() }) }))
     .mutation(async ({ input, ctx }) => {
-      await requireCanModifyPruningRule(input.id, ctx);
+      const datasetNode = await kysely
+        .selectFrom("PruningRule as pr")
+        .where("pr.id", "=", input.id)
+        .innerJoin("Dataset as d", "d.id", "pr.datasetId")
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .select("d.id as datasetId")
+        .executeTakeFirst();
+
+      if (!datasetNode) return error("Dataset node not found");
+
+      await requireCanModifyProject(datasetNode.projectId, ctx);
 
       const { datasetId, createdAt } = await prisma.pruningRule.update({
         where: {
@@ -60,18 +68,30 @@ export const pruningRulesRouter = createTRPCRouter({
 
       if (!datasetId) return;
 
-      await updateDatasetPruningRuleMatches(datasetId, createdAt);
+      await updateDatasetPruningRuleMatches({
+        nodeHash: datasetNode.hash,
+        datasetId: datasetNode.datasetId,
+        nodeEntryBaseQuery: kysely
+          .selectFrom("NodeEntry as ne")
+          .where("ne.nodeId", "=", datasetNode.id)
+          .where("ne.status", "=", "PROCESSED"),
+        pruningRuleCutoffDate: createdAt,
+      });
     }),
   create: protectedProcedure
     .input(z.object({ datasetId: z.string(), textToMatch: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      const dataset = await prisma.dataset.findUnique({
-        where: {
-          id: input.datasetId,
-        },
-      });
-      if (!dataset) throw new TRPCError({ code: "NOT_FOUND" });
-      await requireCanModifyProject(dataset.projectId, ctx);
+      const datasetNode = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .select("d.id as datasetId")
+        .executeTakeFirst();
+
+      if (!datasetNode) return error("Dataset node not found");
+
+      await requireCanModifyProject(datasetNode.projectId, ctx);
 
       const { datasetId, createdAt } = await prisma.pruningRule.create({
         data: {
@@ -83,12 +103,31 @@ export const pruningRulesRouter = createTRPCRouter({
 
       if (!datasetId) return;
 
-      await updateDatasetPruningRuleMatches(datasetId, createdAt);
+      await updateDatasetPruningRuleMatches({
+        nodeHash: datasetNode.hash,
+        datasetId: datasetNode.datasetId,
+        nodeEntryBaseQuery: kysely
+          .selectFrom("NodeEntry as ne")
+          .where("ne.nodeId", "=", datasetNode.id)
+          .where("ne.status", "=", "PROCESSED"),
+        pruningRuleCutoffDate: createdAt,
+      });
     }),
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await requireCanModifyPruningRule(input.id, ctx);
+      const datasetNode = await kysely
+        .selectFrom("PruningRule as pr")
+        .where("pr.id", "=", input.id)
+        .innerJoin("Dataset as d", "d.id", "pr.datasetId")
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .select("d.id as datasetId")
+        .executeTakeFirst();
+
+      if (!datasetNode) return error("Dataset node not found");
+
+      await requireCanModifyProject(datasetNode.projectId, ctx);
 
       const { datasetId, createdAt } = await prisma.pruningRule.delete({
         where: {
@@ -98,6 +137,14 @@ export const pruningRulesRouter = createTRPCRouter({
 
       if (!datasetId) return;
 
-      await updateDatasetPruningRuleMatches(datasetId, createdAt);
+      await updateDatasetPruningRuleMatches({
+        nodeHash: datasetNode.hash,
+        datasetId: datasetNode.datasetId,
+        nodeEntryBaseQuery: kysely
+          .selectFrom("NodeEntry as ne")
+          .where("ne.nodeId", "=", datasetNode.id)
+          .where("ne.status", "=", "PROCESSED"),
+        pruningRuleCutoffDate: createdAt,
+      });
     }),
 });

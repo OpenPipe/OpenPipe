@@ -12,7 +12,7 @@ import { fineTunesRouter } from "./routers/fineTunes/fineTunes.router";
 import { invoicesRouter } from "./routers/invoices.router";
 import { paymentsRouter } from "./routers/payments.router";
 import { monitorsRouter } from "./routers/monitors.router";
-import { nodeDataRouter } from "./routers/nodeData.router";
+import { nodeEntriesRouter } from "./routers/nodeEntries.router";
 
 /**
  * This is the primary router for your server.
@@ -33,7 +33,7 @@ export const appRouter = createTRPCRouter({
   invoices: invoicesRouter,
   payments: paymentsRouter,
   monitors: monitorsRouter,
-  nodeData: nodeDataRouter,
+  nodeEntries: nodeEntriesRouter,
 });
 
 // export type definition of API

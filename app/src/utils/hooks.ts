@@ -145,7 +145,7 @@ export const useDataset = (datasetId?: string) => {
   return dataset;
 };
 
-export const useDatasetEntries = (refetchInterval = 0) => {
+export const useNodeEntries = (refetchInterval = 0) => {
   const dataset = useDataset().data;
 
   const filters = useFilters().filters;
@@ -153,10 +153,9 @@ export const useDatasetEntries = (refetchInterval = 0) => {
   const { page, pageSize } = usePageParams();
 
   const sort =
-    useSortOrder<NonNullable<RouterInputs["datasetEntries"]["list"]["sortOrder"]>["field"]>()
-      .params;
+    useSortOrder<NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>["field"]>().params;
 
-  const result = api.datasetEntries.list.useQuery(
+  const result = api.nodeEntries.list.useQuery(
     { datasetId: dataset?.id ?? "", filters, page, pageSize, sortOrder: sort },
     { enabled: !!dataset?.id, refetchInterval },
   );
@@ -201,11 +200,14 @@ const useStableData = <TData, TError>(result: UseQueryResult<TData, TError>) => 
   return { ...result, data: stableData };
 };
 
-export const useDatasetEntry = (persistentId: string | null) => {
-  const result = api.datasetEntries.get.useQuery(
-    { persistentId: persistentId as string },
-    { enabled: !!persistentId },
+export const useDatasetNodeEntry = (persistentId: string | null) => {
+  const dataset = useDataset().data;
+
+  const result = api.nodeEntries.get.useQuery(
+    { persistentId: persistentId as string, datasetId: dataset?.id ?? "" },
+    { enabled: !!persistentId && !!dataset?.id },
   );
+
   return useStableData(result);
 };
 
@@ -232,7 +234,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
 
   const { testEntrySortOrder } = useTestEntrySortOrder();
 
-  const result = api.datasetEntries.listTestingEntries.useQuery(
+  const result = api.nodeEntries.listTestingEntries.useQuery(
     {
       datasetId: dataset?.id || "",
       filters,
@@ -278,7 +280,7 @@ export const useModelTestingStats = (
   const filters = useMappedModelIdFilters();
   const visibleModelIds = useVisibleModelIds().visibleModelIds;
 
-  const result = api.datasetEntries.testingStats.useQuery(
+  const result = api.nodeEntries.testingStats.useQuery(
     { datasetId: datasetId ?? "", filters, modelId: modelId ?? "", visibleModelIds },
     { enabled: !!datasetId && !!modelId, refetchInterval },
   );

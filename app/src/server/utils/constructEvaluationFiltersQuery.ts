@@ -14,14 +14,14 @@ export const constructEvaluationFiltersQuery = ({
   nodeId: string;
 }) => {
   const baseQuery = kysely
-    .selectFrom("NodeData as nd")
-    .innerJoin("DatasetEntryInput as dei", "dei.hash", "nd.inputHash")
-    .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
+    .selectFrom("NodeEntry as ne")
+    .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
+    .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
     .where((eb) => {
       const wheres: Expression<SqlBool>[] = [
-        eb("nd.nodeId", "=", nodeId),
-        eb("nd.status", "=", "PROCESSED"),
-        eb("nd.split", "=", "TEST"),
+        eb("ne.nodeId", "=", nodeId),
+        eb("ne.status", "=", "PROCESSED"),
+        eb("ne.split", "=", "TEST"),
       ];
 
       for (const filter of filters) {
@@ -36,9 +36,6 @@ export const constructEvaluationFiltersQuery = ({
         }
         if (filter.field === EvaluationFiltersDefaultFields.DatasetOutput) {
           wheres.push(filterExpression(sql.raw(`deo."output"::text`)));
-        }
-        if (filter.field === EvaluationFiltersDefaultFields.ImportId) {
-          wheres.push(filterExpression(sql.raw(`nd."importId"`)));
         }
       }
 
@@ -66,9 +63,9 @@ export const constructEvaluationFiltersQuery = ({
 
     const tableAlias = `te${i}`;
     updatedBaseQuery = updatedBaseQuery
-      .leftJoin(`FineTuneTestingEntry as ${tableAlias}`, (join) =>
+      .leftJoin(`NewFineTuneTestingEntry as ${tableAlias}`, (join) =>
         join
-          .onRef("nd.inputHash", "=", `${tableAlias}.inputHash`)
+          .onRef("ne.inputHash", "=", `${tableAlias}.inputHash`)
           .on(`${tableAlias}.modelId`, "=", filter.field),
       )
       .where(
@@ -91,9 +88,9 @@ export const constructEvaluationFiltersQuery = ({
       if (filter.field === EvaluationFiltersDefaultFields.EvalApplied) {
         const existsClause = eb.exists(
           eb
-            .selectFrom("DatasetEvalDatasetEntry as dede")
-            .whereRef("nd.importId", "=", "dede.importId")
-            .innerJoin("DatasetEval as eval", "eval.id", "dede.datasetEvalId")
+            .selectFrom("DatasetEvalNodeEntry as dene")
+            .whereRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
+            .innerJoin("DatasetEval as eval", "eval.id", "dene.datasetEvalId")
             .where("eval.id", "=", filter.value as string),
         );
         wheres.push(filter.comparator === "=" ? existsClause : eb.not(existsClause));

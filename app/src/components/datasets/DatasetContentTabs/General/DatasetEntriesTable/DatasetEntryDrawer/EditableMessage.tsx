@@ -35,7 +35,7 @@ const EditableMessage = ({
   onEdit: (message: ChatCompletionMessageParam) => void;
   onDelete?: () => void;
   isOutput?: boolean;
-  ruleMatches?: RouterOutputs["datasetEntries"]["get"]["matchedRules"];
+  ruleMatches?: RouterOutputs["nodeEntries"]["get"]["matchedRules"];
 }) => {
   const { role = "assistant", content = "" } = message || {};
 
@@ -65,12 +65,10 @@ const EditableMessage = ({
     let savedTokens = 0;
     ruleMatches.forEach((match) => {
       const prevMessageContentLength = messageContent.length;
-      messageContent = messageContent.replaceAll(match.pruningRule.textToMatch, "");
-      // Hacky way to calculate how many tokens were saved with this particular rule
-      savedTokens +=
-        ((prevMessageContentLength - messageContent.length) /
-          match.pruningRule.textToMatch.length) *
-        match.pruningRule.tokensInText;
+      messageContent = messageContent.replaceAll(match.textToMatch, "");
+      const numMatches =
+        (prevMessageContentLength - messageContent.length) / match.textToMatch.length;
+      savedTokens += numMatches * match.tokensInText;
     });
     return [messageContent, savedTokens];
   }, [stringifiedMessageContent, ruleMatches]);

@@ -1,8 +1,8 @@
 import { sql } from "kysely";
 
 import { kysely, prisma } from "~/server/db";
-import { ManualRelabelOutputs, typedNode } from "../node.types";
-import { forwardNodeData } from "../forwardNodeData";
+import { ManualRelabelOutput, typedNode } from "../node.types";
+import { forwardNodeEntries } from "../forwardNodeEntries";
 
 export const processManualRelabel = async (nodeId: string) => {
   const node = await prisma.node
@@ -13,9 +13,9 @@ export const processManualRelabel = async (nodeId: string) => {
   if (node?.type !== "ManualRelabel") return;
 
   await kysely
-    .updateTable("NodeData")
-    .where("NodeData.nodeId", "=", node.id)
-    .where("NodeData.status", "=", "PENDING")
+    .updateTable("NodeEntry")
+    .where("NodeEntry.nodeId", "=", node.id)
+    .where("NodeEntry.status", "=", "PENDING")
     .set({
       status: "PROCESSING",
     })
@@ -23,36 +23,36 @@ export const processManualRelabel = async (nodeId: string) => {
 
   // process all cached entries
   await kysely
-    .updateTable("NodeData")
+    .updateTable("NodeEntry")
     .set({
-      inputHash: sql`"cpnd"."outgoingDEIHash"`,
-      outputHash: sql`"cpnd"."outgoingDEOHash"`,
-      split: sql`"cpnd"."outgoingSplit"`,
+      inputHash: sql`"cpne"."outgoingDEIHash"`,
+      outputHash: sql`"cpne"."outgoingDEOHash"`,
+      split: sql`"cpne"."outgoingSplit"`,
     })
-    .from("CachedProcessedNodeData as cpnd")
-    .where("NodeData.nodeId", "=", node.id)
-    .where("NodeData.status", "=", "PROCESSING")
-    .whereRef("cpnd.importId", "=", "NodeData.importId")
-    .where("cpnd.nodeHash", "=", node.hash)
+    .from("CachedProcessedNodeEntry as cpne")
+    .where("NodeEntry.nodeId", "=", node.id)
+    .where("NodeEntry.status", "=", "PROCESSING")
+    .whereRef("cpne.nodeEntryPersistentId", "=", "NodeEntry.persistentId")
+    .where("cpne.nodeHash", "=", node.hash)
     .execute();
 
   // TODO: apply general inputHash rules
 
-  await forwardNodeData({
+  await forwardNodeEntries({
     nodeId,
-    nodeOutputLabel: ManualRelabelOutputs.Relabeled,
+    nodeOutputLabel: ManualRelabelOutput.Relabeled,
     selectionExpression: manualRelabelRelabeledSelectionExpression,
   });
-  await forwardNodeData({
+  await forwardNodeEntries({
     nodeId,
-    nodeOutputLabel: ManualRelabelOutputs.Unprocessed,
+    nodeOutputLabel: ManualRelabelOutput.Unprocessed,
     selectionExpression: manualRelabelUnprocessedSelectionExpression,
   });
 
   await kysely
-    .updateTable("NodeData")
-    .where("NodeData.nodeId", "=", node.id)
-    .where("NodeData.status", "=", "PROCESSING")
+    .updateTable("NodeEntry")
+    .where("NodeEntry.nodeId", "=", node.id)
+    .where("NodeEntry.status", "=", "PROCESSING")
     .set({
       status: "PROCESSED",
     })
@@ -72,24 +72,24 @@ export const manualRelabelRelabeledSelectionExpression = ({
   channelId: string;
 }) =>
   kysely
-    .selectFrom("NodeData as nd")
-    .where("nd.nodeId", "=", originNodeId)
-    .where("nd.status", "=", "PROCESSING")
-    .innerJoin("CachedProcessedNodeData as cpnd", (eb) =>
+    .selectFrom("NodeEntry as ne")
+    .where("ne.nodeId", "=", originNodeId)
+    .where("ne.status", "=", "PROCESSING")
+    .innerJoin("CachedProcessedNodeEntry as cpne", (eb) =>
       eb
-        .onRef("cpnd.incomingDEIHash", "=", "nd.inputHash")
-        .on("cpnd.nodeHash", "=", originNodeHash),
+        .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
+        .on("cpne.nodeHash", "=", originNodeHash),
     )
     .select((eb) => [
-      "nd.importId as importId",
+      "ne.persistentId as persistentId",
       eb.val(destinationNodeId).as("nodeId"),
       eb.val(channelId).as("dataChannelId"),
-      "nd.id as parentNodeDataId",
-      "nd.loggedCallId",
-      "nd.inputHash",
-      "nd.outputHash",
-      "nd.originalOutputHash",
-      "nd.split",
+      "ne.id as parentNodeEntryId",
+      "ne.loggedCallId",
+      "ne.inputHash",
+      "ne.outputHash",
+      "ne.originalOutputHash",
+      "ne.split",
     ]);
 
 export const manualRelabelUnprocessedSelectionExpression = ({
@@ -105,23 +105,23 @@ export const manualRelabelUnprocessedSelectionExpression = ({
   channelId: string;
 }) =>
   kysely
-    .selectFrom("NodeData as nd")
-    .where("nd.nodeId", "=", originNodeId)
-    .where("nd.status", "=", "PROCESSING")
-    .leftJoin("CachedProcessedNodeData as cpnd", (eb) =>
+    .selectFrom("NodeEntry as ne")
+    .where("ne.nodeId", "=", originNodeId)
+    .where("ne.status", "=", "PROCESSING")
+    .leftJoin("CachedProcessedNodeEntry as cpne", (eb) =>
       eb
-        .onRef("cpnd.incomingDEIHash", "=", "nd.inputHash")
-        .on("cpnd.nodeHash", "=", originNodeHash),
+        .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
+        .on("cpne.nodeHash", "=", originNodeHash),
     )
-    .where("cpnd.id", "is", null)
+    .where("cpne.id", "is", null)
     .select((eb) => [
-      "nd.importId as importId",
+      "ne.persistentId as persistentId",
       eb.val(destinationNodeId).as("nodeId"),
       eb.val(channelId).as("dataChannelId"),
-      "nd.id as parentNodeDataId",
-      "nd.loggedCallId",
-      "nd.inputHash",
-      "nd.outputHash",
-      "nd.originalOutputHash",
-      "nd.split",
+      "ne.id as parentNodeEntryId",
+      "ne.loggedCallId",
+      "ne.inputHash",
+      "ne.outputHash",
+      "ne.originalOutputHash",
+      "ne.split",
     ]);

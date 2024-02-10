@@ -1,4 +1,4 @@
-import { Prisma, UsageType, type ComparisonModel, type FineTuneTestingEntry } from "@prisma/client";
+import { UsageType, type ComparisonModel, type NewFineTuneTestingEntry } from "@prisma/client";
 import { isNumber } from "lodash-es";
 import type { ChatCompletion, ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat";
 
@@ -17,10 +17,11 @@ import {
 } from "../utils/calculateFieldComparisonScore";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
+import { hashAndSaveDatasetEntryOutput } from "../utils/nodes/hashNode";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
-  nodeDataId: string;
+  nodeEntryId: string;
   numPreviousTries: number;
   skipCache?: boolean;
 };
@@ -42,13 +43,13 @@ export function calculateQueryDelay(
 export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
   id: "generateTestSetEntry",
   handler: async (task) => {
-    const { modelId, nodeDataId, numPreviousTries } = task;
+    const { modelId, nodeEntryId, numPreviousTries } = task;
 
-    const nodeData = await prisma.nodeData.findFirst({
-      where: { id: nodeDataId },
+    const nodeEntry = await prisma.nodeEntry.findFirst({
+      where: { id: nodeEntryId },
     });
 
-    if (!nodeData) return;
+    if (!nodeEntry) return;
 
     try {
       await generateEntry(task);
@@ -63,11 +64,10 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
           { runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries)), priority: 3 },
         );
       } else {
-        await prisma.fineTuneTestingEntry.updateMany({
-          where: { modelId, inputHash: nodeData.inputHash },
+        await prisma.newFineTuneTestingEntry.updateMany({
+          where: { modelId, inputHash: nodeEntry.inputHash },
           data: {
-            output: Prisma.JsonNull,
-            outputTokens: null,
+            outputHash: null,
             errorMessage: "Unable to evaluate input",
           },
         });
@@ -81,24 +81,24 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
 
 export const generateEntry = async ({
   modelId,
-  nodeDataId,
+  nodeEntryId,
   skipCache,
 }: {
   modelId: string;
-  nodeDataId: string;
+  nodeEntryId: string;
   skipCache?: boolean;
 }) => {
-  const nodeData = await kysely
-    .selectFrom("NodeData as nd")
-    .where("nd.id", "=", nodeDataId)
-    .innerJoin("Node as n", "n.id", "nd.nodeId")
+  const nodeEntry = await kysely
+    .selectFrom("NodeEntry as ne")
+    .where("ne.id", "=", nodeEntryId)
+    .innerJoin("Node as n", "n.id", "ne.nodeId")
     .innerJoin("Dataset as d", "d.nodeId", "n.id")
-    .innerJoin("DatasetEntryInput as dei", "dei.hash", "nd.inputHash")
+    .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
     .select([
       "n.projectId",
       "d.id as datasetId",
-      "nd.importId",
-      "nd.inputHash",
+      "ne.persistentId",
+      "ne.inputHash",
       "dei.tool_choice",
       "dei.tools",
       "dei.messages",
@@ -106,7 +106,7 @@ export const generateEntry = async ({
     ])
     .executeTakeFirst();
 
-  if (!nodeData) return;
+  if (!nodeEntry) return;
 
   let fineTune;
   if (!isComparisonModel(modelId)) {
@@ -121,23 +121,23 @@ export const generateEntry = async ({
   // entry
   if (!fineTune && !isComparisonModel(modelId)) return;
 
-  const tNodeData = typedDatasetEntry(nodeData);
+  const tNodeEntry = typedDatasetEntry(nodeEntry);
 
-  const existingTestEntry = await prisma.fineTuneTestingEntry.findFirst({
-    where: { modelId, inputHash: nodeData.inputHash },
+  const existingTestEntry = await prisma.newFineTuneTestingEntry.findUnique({
+    where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },
   });
 
-  if (existingTestEntry?.output && !existingTestEntry.errorMessage && !skipCache) {
-    await triggerFieldComparisonEval(tNodeData, existingTestEntry);
+  if (existingTestEntry?.outputHash && !existingTestEntry.errorMessage && !skipCache) {
+    await triggerFieldComparisonEval(tNodeEntry, existingTestEntry);
     return;
   }
 
   if (!existingTestEntry) {
-    await prisma.fineTuneTestingEntry.create({
+    await prisma.newFineTuneTestingEntry.create({
       data: {
         modelId,
         fineTuneId: fineTune?.id,
-        inputHash: tNodeData.inputHash,
+        inputHash: tNodeEntry.inputHash,
       },
     });
   }
@@ -147,21 +147,21 @@ export const generateEntry = async ({
     model: fineTune
       ? `openpipe:${fineTune.slug}`
       : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
-    messages: tNodeData.messages,
-    tool_choice: tNodeData.tool_choice ?? undefined,
-    tools: tNodeData.tools ?? undefined,
-    response_format: tNodeData.response_format ?? undefined,
+    messages: tNodeEntry.messages,
+    tool_choice: tNodeEntry.tool_choice ?? undefined,
+    tools: tNodeEntry.tools ?? undefined,
+    response_format: tNodeEntry.response_format ?? undefined,
     stream: false,
   };
 
   try {
     if (isComparisonModel(modelId)) {
-      completion = await getOpenaiCompletion(tNodeData.projectId, input);
+      completion = await getOpenaiCompletion(tNodeEntry.projectId, input);
     } else if (fineTune) {
       completion = await getCompletion(fineTune, input);
     } else {
-      await prisma.fineTuneTestingEntry.updateMany({
-        where: { modelId, inputHash: tNodeData.inputHash },
+      await prisma.newFineTuneTestingEntry.updateMany({
+        where: { modelId, inputHash: tNodeEntry.inputHash },
         data: {
           errorMessage: "The model is not set up for inference",
         },
@@ -190,27 +190,26 @@ export const generateEntry = async ({
       });
     }
 
-    await prisma.fineTuneTestingEntry.updateMany({
-      where: { modelId, inputHash: nodeData.inputHash },
+    const outputHash = await hashAndSaveDatasetEntryOutput({
+      projectId: tNodeEntry.projectId,
+      output: completionMessage,
+    });
+
+    const updatedFineTuneTestingEntry = await prisma.newFineTuneTestingEntry.update({
+      where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },
       data: {
-        output: completionMessage as unknown as Prisma.InputJsonValue,
+        outputHash,
         finishReason: choice.finish_reason,
         prunedInputTokens: completion.usage?.prompt_tokens,
-        outputTokens: completion.usage?.completion_tokens,
         errorMessage: null,
       },
     });
 
-    // TODO: retrieve from update call once uniqueness on inputHash is enforced
-    const updatedFineTuneTestingEntry = await prisma.fineTuneTestingEntry.findFirstOrThrow({
-      where: { modelId, inputHash: nodeData.inputHash },
-    });
-
-    await triggerFieldComparisonEval(tNodeData, updatedFineTuneTestingEntry);
+    await triggerFieldComparisonEval(tNodeEntry, updatedFineTuneTestingEntry);
   } catch (e: unknown) {
     const typedError = e as { message?: string; error?: { message: string } };
-    await prisma.fineTuneTestingEntry.updateMany({
-      where: { modelId, inputHash: nodeData.inputHash },
+    await prisma.newFineTuneTestingEntry.updateMany({
+      where: { modelId, inputHash: nodeEntry.inputHash },
       data: {
         errorMessage:
           typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
@@ -221,22 +220,22 @@ export const generateEntry = async ({
 };
 
 const triggerFieldComparisonEval = async (
-  nodeData: ReturnType<typeof typedDatasetEntry> & {
+  nodeEntry: ReturnType<typeof typedDatasetEntry> & {
     datasetId: string;
-    importId: string;
+    persistentId: string;
   },
-  fineTuneTestingEntry: FineTuneTestingEntry,
+  fineTuneTestingEntry: NewFineTuneTestingEntry,
 ) => {
   const typedTestingEntry = typedFineTuneTestingEntry(fineTuneTestingEntry);
 
   if (!typedTestingEntry.output) throw new Error("No completion returned");
 
-  const fieldComparisonScore = calculateFieldComparisonScore(nodeData, typedTestingEntry);
+  const fieldComparisonScore = calculateFieldComparisonScore(nodeEntry, typedTestingEntry);
 
   if (isNumber(fieldComparisonScore)) {
     await saveFieldComparisonScore({
-      datasetId: nodeData.datasetId,
-      importId: nodeData.importId,
+      datasetId: nodeEntry.datasetId,
+      persistentId: nodeEntry.persistentId,
       score: fieldComparisonScore,
       modelId: fineTuneTestingEntry.modelId,
     });

@@ -6,7 +6,7 @@ import {
   prepareLLMRelabelCreation,
   prepareManualRelabelCreation,
 } from "./prepareNodeCreation";
-import { RelabelOptions } from "../node.types";
+import { RelabelOption } from "../node.types";
 import { prisma } from "~/server/db";
 
 export const prepareIntegratedDatasetCreation = ({
@@ -24,7 +24,7 @@ export const prepareIntegratedDatasetCreation = ({
       name: "Dataset LLM Relabel",
       projectId,
       config: {
-        relabelLLM: RelabelOptions.SkipRelabel,
+        relabelLLM: RelabelOption.SkipRelabel,
         maxEntriesPerMinute: 100,
         maxLLMConcurrency: 2,
       },
@@ -70,6 +70,8 @@ export const prepareIntegratedDatasetCreation = ({
     },
   });
 
+  const manualRelabelDatasetInputChannelId = uuidv4();
+
   prismaCreations.push(
     ...preparedDatasetCreation.prismaCreations,
     prisma.dataChannel.create({
@@ -80,6 +82,7 @@ export const prepareIntegratedDatasetCreation = ({
     }),
     prisma.dataChannel.create({
       data: {
+        id: manualRelabelDatasetInputChannelId,
         originId: preparedManualRelabelCreation.unprocessedOutputId,
         destinationId: preparedDatasetCreation.datasetNodeId,
       },
@@ -94,5 +97,12 @@ export const prepareIntegratedDatasetCreation = ({
     }),
   );
 
-  return { prismaCreations, datasetId, llmRelabelNodeId: preparedLLMRelabelCreation.relabelNodeId };
+  return {
+    prismaCreations,
+    datasetId,
+    datasetNodeId: preparedDatasetCreation.datasetNodeId,
+    datasetNodeHash: preparedDatasetCreation.datasetNodeHash,
+    manualRelabelDatasetInputChannelId,
+    llmRelabelNodeId: preparedLLMRelabelCreation.relabelNodeId,
+  };
 };

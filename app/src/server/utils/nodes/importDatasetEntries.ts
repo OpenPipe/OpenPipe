@@ -9,7 +9,7 @@ import {
 } from "~/components/datasets/parseRowsToImport";
 import { prepareDatasetEntriesForImport } from "../datasetEntryCreation/prepareDatasetEntriesForImport";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
-import { generateImportId } from "./importId";
+import { generatePersistentId } from "./persistentId";
 
 export const importDatasetEntries = async ({
   projectId,
@@ -86,7 +86,7 @@ export const importDatasetEntries = async ({
 
   const entriesToImport = goodRows.slice(0, maxEntriesToImport).map((row, index) => ({
     ...row,
-    importId: generateImportId({
+    persistentId: generatePersistentId({
       uniquePrefix: `${importTime}-${index}`,
       nodeId,
     }),
@@ -94,9 +94,9 @@ export const importDatasetEntries = async ({
 
   let datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[];
   let datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[];
-  let nodeDataToCreate: Prisma.NodeDataCreateManyInput[];
+  let nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[];
   try {
-    ({ datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeDataToCreate } =
+    ({ datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
       prepareDatasetEntriesForImport({
         projectId,
         nodeId,
@@ -141,15 +141,15 @@ export const importDatasetEntries = async ({
     });
   }
 
-  // save nodeData in batches of 1000
-  for (let i = 0; i < nodeDataToCreate.length; i += 1000) {
-    const chunk = nodeDataToCreate.slice(i, i + 1000);
-    await prisma.nodeData.createMany({
+  // save nodeEntries in batches of 1000
+  for (let i = 0; i < nodeEntriesToCreate.length; i += 1000) {
+    const chunk = nodeEntriesToCreate.slice(i, i + 1000);
+    await prisma.nodeEntry.createMany({
       data: chunk,
       skipDuplicates: true,
     });
     await updateDatasetFileUpload({
-      progress: 90 + Math.floor(5 * (i / nodeDataToCreate.length)),
+      progress: 90 + Math.floor(5 * (i / nodeEntriesToCreate.length)),
     });
   }
 

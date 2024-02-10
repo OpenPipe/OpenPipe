@@ -69,7 +69,7 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
       updates: { enabledComparisonModels: selectedModels },
     });
     if (maybeReportError(resp)) return;
-    await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
+    await utils.nodeEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
 
     ensureCorrectModelsShown(modelsToEnable, modelsToDisable);
@@ -122,7 +122,7 @@ const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclos
                   >
                     <Text>
                       Outputs from selected models will be computed for your{" "}
-                      <b>{dataset.numTestDatasetEntries}</b> current and all future test entries.
+                      <b>{dataset.numTestEntries}</b> current and all future test entries.
                     </Text>
                   </VStack>
                   <VStack alignItems="flex-start">

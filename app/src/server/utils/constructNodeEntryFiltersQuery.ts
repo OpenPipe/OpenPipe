@@ -6,24 +6,24 @@ import { type DB } from "~/types/kysely-codegen.types";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
-export const constructNodeDataFiltersQuery = ({
+export const constructNodeEntryFiltersQuery = ({
   filters,
   datasetNodeId,
   ftteEB,
 }: {
   filters: z.infer<typeof filtersSchema>;
   datasetNodeId: string;
-  ftteEB?: ExpressionBuilder<DB, "FineTuneTrainingEntry">;
+  ftteEB?: ExpressionBuilder<DB, "NewFineTuneTrainingEntry">;
 }) => {
   const queryBuilder = (ftteEB ?? kysely) as typeof kysely;
   const baseQuery = queryBuilder
-    .selectFrom("NodeData as nd")
-    .innerJoin("DatasetEntryInput as dei", "dei.hash", "nd.inputHash")
-    .innerJoin("DatasetEntryOutput as deo", "deo.hash", "nd.outputHash")
+    .selectFrom("NodeEntry as ne")
+    .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
+    .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
     .where((eb) => {
       const wheres: Expression<SqlBool>[] = [
-        eb("nd.nodeId", "=", datasetNodeId),
-        eb("nd.status", "=", "PROCESSED"),
+        eb("ne.nodeId", "=", datasetNodeId),
+        eb("ne.status", "=", "PROCESSED"),
       ];
 
       for (const filter of filters) {
@@ -58,7 +58,7 @@ export const constructNodeDataFiltersQuery = ({
       filter.value as string,
     );
 
-    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql.raw(`nd."split"`)));
+    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql.raw(`ne."split"`)));
   }
 
   return updatedBaseQuery;

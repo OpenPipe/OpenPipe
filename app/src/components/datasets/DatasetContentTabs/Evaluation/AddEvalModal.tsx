@@ -23,7 +23,7 @@ import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import {
   useDataset,
-  useDatasetEntries,
+  useNodeEntries,
   useHandledAsyncCallback,
   useSelectedProject,
 } from "~/utils/hooks";
@@ -45,7 +45,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
 
   const dataset = useDataset().data;
-  const testingCount = useDatasetEntries().data?.totalTestingCount;
+  const testingCount = useNodeEntries().data?.totalTestingCount;
 
   const modelOptions = useMemo(() => {
     const options = [
@@ -70,24 +70,17 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
-  const [numDatasetEntries, setNumDatasetEntries] = useState(0);
+  const [numRows, setNumRows] = useState(0);
   const [includedModelIds, setIncludedModelIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (disclosure.isOpen) {
       setName("Eval1");
       setInstructions("Which model’s output better matches the prompt?");
-      setNumDatasetEntries(Math.min(10, testingCount || 0));
+      setNumRows(Math.min(10, testingCount || 0));
       setIncludedModelIds([ORIGINAL_MODEL_ID]);
     }
-  }, [
-    disclosure.isOpen,
-    setName,
-    setInstructions,
-    setNumDatasetEntries,
-    setIncludedModelIds,
-    testingCount,
-  ]);
+  }, [disclosure.isOpen, setName, setInstructions, setNumRows, setIncludedModelIds, testingCount]);
 
   const ensureEvalShown = useVisibleEvalIds().ensureEvalShown;
   const addFilter = useFilters().addFilter;
@@ -98,7 +91,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       !dataset?.id ||
       !name ||
       !instructions ||
-      !numDatasetEntries ||
+      !numRows ||
       includedModelIds.length < 2
     )
       return;
@@ -106,7 +99,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       datasetId: dataset.id,
       name,
       instructions,
-      numDatasetEntries,
+      numRows,
       modelIds: includedModelIds,
     });
     if (maybeReportError(resp)) return;
@@ -126,8 +119,8 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   ]);
 
   const numComparisons = useMemo(
-    () => ((numDatasetEntries || 0) * includedModelIds.length * (includedModelIds.length - 1)) / 2,
-    [numDatasetEntries, includedModelIds],
+    () => ((numRows || 0) * includedModelIds.length * (includedModelIds.length - 1)) / 2,
+    [numRows, includedModelIds],
   );
 
   return (
@@ -196,8 +189,8 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                     <InfoCircle tooltipText="The number of randomly selected dataset entries to apply this eval to." />
                   </HStack>
                   <Input
-                    value={numDatasetEntries}
-                    onChange={(e) => setNumDatasetEntries(Number(e.target.value) || 0)}
+                    value={numRows}
+                    onChange={(e) => setNumRows(Number(e.target.value) || 0)}
                     placeholder="10"
                     w="full"
                   />
@@ -238,7 +231,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                 [!needsMissingOpenaiKey, "OpenAI API key is required"],
                 [!!name, "Name is required"],
                 [!!instructions, "Instructions are required"],
-                [!!numDatasetEntries, "Include one or more dataset entries"],
+                [!!numRows, "Include one or more rows"],
                 [includedModelIds.length >= 2, "At least 2 models are required"],
               ]}
             >

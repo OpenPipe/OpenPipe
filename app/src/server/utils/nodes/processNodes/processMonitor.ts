@@ -1,14 +1,14 @@
 import { kysely, prisma } from "~/server/db";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
-import { MonitorOutputs, typedNode } from "~/server/utils/nodes/node.types";
+import { MonitorOutput, typedNode } from "~/server/utils/nodes/node.types";
 import dayjs from "~/utils/dayjs";
 import { MonitorCheckFiltersExtendedFields } from "~/types/shared.types";
 import { typedLoggedCall } from "~/types/dbColumns.types";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { truthyFilter } from "~/utils/utils";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
-import { forwardNodeData } from "../forwardNodeData";
-import { generateImportId } from "../importId";
+import { forwardNodeEntries } from "../forwardNodeEntries";
+import { generatePersistentId } from "../persistentId";
 
 export const processMonitor = async (nodeId: string) => {
   const node = await prisma.node
@@ -104,12 +104,12 @@ export const processMonitor = async (nodeId: string) => {
       .where("mm.monitorId", "=", nodeId)
       .where("mm.checkPassed", "=", true)
       .where("mm.loggedCallId", ">=", cutoffLoggedCallId)
-      .leftJoin("NodeData as nd", (eb) =>
+      .leftJoin("NodeEntry as ne", (eb) =>
         eb
-          .onRef("nd.loggedCallId", "=", "mm.loggedCallId")
-          .on("nd.dataChannelId", "=", inputDataChannel.id),
+          .onRef("ne.loggedCallId", "=", "mm.loggedCallId")
+          .on("ne.dataChannelId", "=", inputDataChannel.id),
       )
-      .where("nd.id", "is", null)
+      .where("ne.id", "is", null)
       .innerJoin("LoggedCall as lc", "lc.id", "mm.loggedCallId")
       .selectAll("lc")
       .execute();
@@ -127,7 +127,7 @@ export const processMonitor = async (nodeId: string) => {
           if ("error" in validated) return null;
           return {
             ...validated,
-            importId: generateImportId({
+            persistentId: generatePersistentId({
               uniquePrefix: `${tLoggedCall.createdAt.toISOString()}-${tLoggedCall.id}`,
               nodeId,
             }),
@@ -139,7 +139,7 @@ export const processMonitor = async (nodeId: string) => {
       })
       .filter(truthyFilter);
 
-    const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeDataToCreate } =
+    const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
       prepareDatasetEntriesForImport({
         projectId: node.projectId,
         nodeId,
@@ -156,11 +156,11 @@ export const processMonitor = async (nodeId: string) => {
         data: datasetEntryOutputsToCreate,
         skipDuplicates: true,
       }),
-      prisma.nodeData.createMany({
-        data: nodeDataToCreate,
+      prisma.nodeEntry.createMany({
+        data: nodeEntriesToCreate,
         skipDuplicates: true,
       }),
-      prisma.nodeData.deleteMany({
+      prisma.nodeEntry.deleteMany({
         where: {
           dataChannelId: inputDataChannel.id,
           loggedCallId: {
@@ -171,5 +171,5 @@ export const processMonitor = async (nodeId: string) => {
     ]);
   }
 
-  await forwardNodeData({ nodeId, nodeOutputLabel: MonitorOutputs.MatchedLogs });
+  await forwardNodeEntries({ nodeId, nodeOutputLabel: MonitorOutput.MatchedLogs });
 };

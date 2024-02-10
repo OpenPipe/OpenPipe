@@ -48,7 +48,7 @@ const HeadToHeadComparisonModal = () => {
   const { data } = api.datasetEvals.getHeadToHeadComparisonDetails.useQuery(
     {
       datasetEvalId: comparisonCriteria?.datasetEvalId ?? "",
-      datasetEntryId: comparisonCriteria?.datasetEntryId ?? "",
+      nodeEntryId: comparisonCriteria?.nodeEntryId ?? "",
       modelId: comparisonCriteria?.modelId ?? "",
       visibleModelIds,
     },
@@ -70,7 +70,7 @@ const HeadToHeadComparisonModal = () => {
         <ModalHeader>
           <HStack>
             <Icon as={FaBalanceScale} />
-            <Text>{data.datasetEval.name} - Head To Head Comparison</Text>
+            <Text>{data.entry.datasetEvalName} - Head To Head Comparison</Text>
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
@@ -86,7 +86,7 @@ const HeadToHeadComparisonModal = () => {
               borderColor="gray.300"
             >
               <Text fontWeight="bold">Evaluation Criteria</Text>
-              <Text>{data.datasetEval.instructions}</Text>
+              <Text>{data.entry.datasetEvalInstructions}</Text>
             </VStack>
             <Grid
               display="grid"

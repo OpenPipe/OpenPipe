@@ -3,7 +3,7 @@ import type { NodeType } from "@prisma/client";
 import defineTask from "../defineTask";
 import { processMonitor } from "~/server/utils/nodes/processNodes/processMonitor";
 import { processLLMRelabel } from "~/server/utils/nodes/processNodes/processLLMRelabel";
-import { invalidateNodeData } from "~/server/utils/nodes/invalidateNodeData";
+import { invalidateNodeEntries } from "~/server/utils/nodes/invalidateNodeEntries";
 import { processArchive } from "~/server/utils/nodes/processNodes/processArchive";
 import { processDataset } from "~/server/utils/nodes/processNodes/processDataset";
 import { enqueueDescendants } from "~/server/utils/nodes/processNodes/enqueueDescendants";
@@ -19,7 +19,7 @@ export const processNode = defineTask<ProcessNodeJob>({
   handler: async (task) => {
     const { nodeId, nodeType, invalidateData } = task;
     if (invalidateData) {
-      await invalidateNodeData(nodeId);
+      await invalidateNodeEntries(nodeId);
     }
     if (nodeType === "Archive") {
       await processArchive(nodeId);

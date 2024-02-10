@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from "uuid";
 
 import {
   type InferNodeConfig,
-  DatasetOutputs,
-  LLMRelabelOutputs,
-  ArchiveOutputs,
-  MonitorOutputs,
-  ManualRelabelOutputs,
+  DatasetOutput,
+  LLMRelabelOutput,
+  ArchiveOutput,
+  MonitorOutput,
+  ManualRelabelOutput,
 } from "../node.types";
 import { checkNodeInput } from "../checkNodeInput";
 import { prisma } from "~/server/db";
@@ -34,7 +34,7 @@ export const prepareArchiveCreation = ({
     prisma.nodeOutput.create({
       data: {
         nodeId: archiveNodeId,
-        label: ArchiveOutputs.Entries,
+        label: ArchiveOutput.Entries,
       },
     }),
     prisma.dataChannel.create({
@@ -70,7 +70,7 @@ export const prepareMonitorCreation = ({
     prisma.nodeOutput.create({
       data: {
         nodeId: monitorNodeId,
-        label: MonitorOutputs.MatchedLogs,
+        label: MonitorOutput.MatchedLogs,
       },
     }),
     prisma.dataChannel.create({
@@ -107,14 +107,14 @@ export const prepareLLMRelabelCreation = ({
       data: {
         id: relabeledOutputId,
         nodeId: relabelNodeId,
-        label: LLMRelabelOutputs.Relabeled,
+        label: LLMRelabelOutput.Relabeled,
       },
     }),
     prisma.nodeOutput.create({
       data: {
         id: unprocessedOutputId,
         nodeId: relabelNodeId,
-        label: LLMRelabelOutputs.Unprocessed,
+        label: LLMRelabelOutput.Unprocessed,
       },
     }),
   ];
@@ -145,14 +145,14 @@ export const prepareManualRelabelCreation = ({
       data: {
         id: relabeledOutputId,
         nodeId: relabelNodeId,
-        label: ManualRelabelOutputs.Relabeled,
+        label: ManualRelabelOutput.Relabeled,
       },
     }),
     prisma.nodeOutput.create({
       data: {
         id: unprocessedOutputId,
         nodeId: relabelNodeId,
-        label: ManualRelabelOutputs.Unprocessed,
+        label: ManualRelabelOutput.Unprocessed,
       },
     }),
   ];
@@ -170,21 +170,28 @@ export const prepareDatasetCreation = ({
 }) => {
   const datasetNodeId = nodeParams.id || uuidv4();
   const entriesOutputId = uuidv4();
+
+  const preparedDatasetNodeParams = checkNodeInput({
+    ...nodeParams,
+    id: datasetNodeId,
+    type: "Dataset",
+  });
   const prismaCreations: Prisma.PrismaPromise<unknown>[] = [
     prisma.node.create({
-      data: checkNodeInput({
-        ...nodeParams,
-        id: datasetNodeId,
-        type: "Dataset",
-      }),
+      data: preparedDatasetNodeParams,
     }),
     prisma.nodeOutput.create({
       data: {
         nodeId: datasetNodeId,
-        label: DatasetOutputs.Entries,
+        label: DatasetOutput.Entries,
       },
     }),
   ];
 
-  return { prismaCreations, datasetNodeId, entriesOutputId };
+  return {
+    prismaCreations,
+    datasetNodeId,
+    datasetNodeHash: preparedDatasetNodeParams.hash,
+    entriesOutputId,
+  };
 };

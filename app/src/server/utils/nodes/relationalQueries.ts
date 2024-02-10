@@ -1,6 +1,6 @@
 import { type Node } from "@prisma/client";
 import { kysely } from "~/server/db";
-import { LLMRelabelOutputs, MonitorOutputs, typedNode } from "~/server/utils/nodes/node.types";
+import { LLMRelabelOutput, MonitorOutput, typedNode } from "~/server/utils/nodes/node.types";
 
 export const getDescendantNodes = (nodeId: string) => {
   return kysely
@@ -16,7 +16,7 @@ export const getDownstreamDatasets = (monitorNodeId: string) => {
     .selectFrom("Node as monitorNode")
     .where("monitorNode.id", "=", monitorNodeId)
     .innerJoin("NodeOutput as monitorNodeOutput", "monitorNodeOutput.nodeId", "monitorNode.id")
-    .where("monitorNodeOutput.label", "=", MonitorOutputs.MatchedLogs)
+    .where("monitorNodeOutput.label", "=", MonitorOutput.MatchedLogs)
     .innerJoin("DataChannel as dc", "dc.originId", "monitorNodeOutput.id")
     .innerJoin("Node as monitorLLMRelabelNode", "monitorLLMRelabelNode.id", "dc.destinationId")
     .innerJoin(
@@ -24,7 +24,7 @@ export const getDownstreamDatasets = (monitorNodeId: string) => {
       "monitorLLMRelabelNodeOutput.nodeId",
       "monitorLLMRelabelNode.id",
     )
-    .where("monitorLLMRelabelNodeOutput.label", "=", LLMRelabelOutputs.Relabeled)
+    .where("monitorLLMRelabelNodeOutput.label", "=", LLMRelabelOutput.Relabeled)
     .innerJoin("DataChannel as dc2", "dc2.originId", "monitorLLMRelabelNodeOutput.id")
     .innerJoin("Node as datasetLLMRelabelNode", "datasetLLMRelabelNode.id", "dc2.destinationId")
     .innerJoin(
@@ -32,7 +32,7 @@ export const getDownstreamDatasets = (monitorNodeId: string) => {
       "datasetLLMRelabelNodeOutput.nodeId",
       "datasetLLMRelabelNode.id",
     )
-    .where("datasetLLMRelabelNodeOutput.label", "=", LLMRelabelOutputs.Relabeled)
+    .where("datasetLLMRelabelNodeOutput.label", "=", LLMRelabelOutput.Relabeled)
     .innerJoin("DataChannel as dc3", "dc3.originId", "datasetLLMRelabelNodeOutput.id")
     .innerJoin("Node as manualRelabelNode", "manualRelabelNode.id", "dc3.destinationId")
     .innerJoin(

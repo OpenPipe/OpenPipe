@@ -1,9 +1,8 @@
 import { VStack, HStack } from "@chakra-ui/react";
 
-import DeleteButton from "./DeleteButton";
 import FineTuneButton from "./FineTuneButton";
 import UploadDataButton from "./UploadDataButton";
-import DatasetEntriesTable from "./DatasetEntriesTable/DatasetEntriesTable";
+import DatasetEntriesTable from "./DatasetEntriesTable/DatasetEntryTable";
 import DatasetEntryPaginator from "./DatasetEntryPaginator";
 import GeneralFilters from "./GeneralFilters";
 import { useFilters } from "~/components/Filters/useFilters";
@@ -20,7 +19,6 @@ const General = () => {
         <UploadDataButton />
         <ToggleFiltersButton />
         <RelabelButton />
-        <DeleteButton />
       </HStack>
       {filtersShown && <GeneralFilters />}
       <DatasetEntriesTable />

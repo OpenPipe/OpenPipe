@@ -1,6 +1,6 @@
 import { kysely, prisma } from "~/server/db";
-import { ArchiveOutputs, typedNode } from "~/server/utils/nodes/node.types";
-import { forwardNodeData } from "../forwardNodeData";
+import { ArchiveOutput, typedNode } from "~/server/utils/nodes/node.types";
+import { forwardNodeEntries } from "../forwardNodeEntries";
 import { importDatasetEntries } from "../importDatasetEntries";
 
 export const processArchive = async (nodeId: string) => {
@@ -29,7 +29,7 @@ export const processArchive = async (nodeId: string) => {
   }
 
   await kysely
-    .updateTable("NodeData")
+    .updateTable("NodeEntry")
     .where("nodeId", "=", nodeId)
     .where("status", "=", "PENDING")
     .set({
@@ -37,5 +37,5 @@ export const processArchive = async (nodeId: string) => {
     })
     .execute();
 
-  await forwardNodeData({ nodeId, nodeOutputLabel: ArchiveOutputs.Entries });
+  await forwardNodeEntries({ nodeId, nodeOutputLabel: ArchiveOutput.Entries });
 };

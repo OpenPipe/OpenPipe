@@ -36,7 +36,6 @@ import { statusCodeFromTrpcCode, trpcCodeFromHttpStatus } from "~/server/utils/t
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import { sql } from "kysely";
 import { hashRequest } from "~/server/utils/hashObject";
-import { queueRelabelLoggedCalls } from "~/server/tasks/relabelLoggedCall.task";
 
 export const v1ApiRouter = createOpenApiRouter({
   checkCache: openApiProtectedProc
@@ -546,13 +545,6 @@ export const v1ApiRouter = createOpenApiRouter({
           ctx.key.projectId,
           tagsToUpsert.map(([name]) => name),
         );
-      }
-
-      if (tags["relabel"] === "true" && tags["add_to_dataset"] === "original_model_dataset") {
-        await queueRelabelLoggedCalls({
-          projectId: ctx.key.projectId,
-          loggedCallIds,
-        });
       }
 
       return { matchedLogs: matchedLogs?.count ?? 0 };

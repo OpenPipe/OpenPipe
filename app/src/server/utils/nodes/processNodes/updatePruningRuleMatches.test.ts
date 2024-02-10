@@ -1,15 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { type DatasetEntrySplit, type Prisma } from "@prisma/client";
+import { type DatasetEntrySplit } from "@prisma/client";
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
-import { v4 as uuidv4 } from "uuid";
+import { type JsonValue } from "type-fest";
 
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import {
   copyPruningRulesForFineTune,
   insertTrainingDataPruningRuleMatches,
   updateDatasetPruningRuleMatches,
 } from "./updatePruningRuleMatches";
+import { prepareIntegratedDatasetCreation } from "../nodeCreation/prepareIntegratedNodesCreation";
+import {
+  hashAndSaveDatasetEntryInput,
+  hashAndSaveDatasetEntryOutput,
+} from "~/server/utils/nodes/hashNode";
 
 const input1: ChatCompletionMessageParam[] = [
   {
@@ -39,41 +44,62 @@ const input1: ChatCompletionMessageParam[] = [
   },
 ];
 
-const createProject = async (datasetId: string) => {
-  return await prisma.project.create({
+const initializeProject = async () => {
+  const project = await prisma.project.create({
     data: {
-      id: uuidv4(),
       name: "test",
-      datasets: {
-        create: [
-          {
-            id: datasetId,
-            name: "test",
-          },
-        ],
-      },
     },
   });
+
+  const preparedIntegratedDatasetCreation = prepareIntegratedDatasetCreation({
+    projectId: project.id,
+    datasetName: "test",
+  });
+
+  await prisma.$transaction(preparedIntegratedDatasetCreation.prismaCreations);
+
+  return {
+    projectId: project.id,
+    datasetId: preparedIntegratedDatasetCreation.datasetId,
+    datasetNodeId: preparedIntegratedDatasetCreation.datasetNodeId,
+    datasetNodeHash: preparedIntegratedDatasetCreation.datasetNodeHash,
+    inputChannelId: preparedIntegratedDatasetCreation.manualRelabelDatasetInputChannelId,
+  };
 };
 
-const datasetId = uuidv4();
+const createNodeEntry = async ({
+  projectId,
+  nodeId,
+  dataChannelId,
+  messages,
+  split = "TRAIN",
+}: {
+  projectId: string;
+  nodeId: string;
+  dataChannelId: string;
+  messages: ChatCompletionMessageParam[];
+  split?: DatasetEntrySplit;
+}) => {
+  const inputHash = await hashAndSaveDatasetEntryInput({
+    projectId,
+    messages: messages as unknown as JsonValue,
+  });
 
-const createDatasetEntry = async (
-  datasetId: string,
-  messages: ChatCompletionMessageParam[],
-  split: DatasetEntrySplit = "TRAIN",
-) => {
-  return await prisma.datasetEntry.create({
+  const outputHash = await hashAndSaveDatasetEntryOutput({
+    projectId,
+    output: {},
+  });
+
+  return await prisma.nodeEntry.create({
     data: {
-      messages: messages as unknown as Prisma.InputJsonValue,
-      output: {},
-      inputTokens: 0,
-      outputTokens: 0,
-      datasetId,
+      dataChannelId,
+      nodeId,
+      persistentId: "_",
+      inputHash,
+      originalOutputHash: outputHash,
+      outputHash,
       split,
-      sortKey: "_",
-      importId: "_",
-      provenance: "UPLOAD",
+      status: "PROCESSED",
     },
   });
 };
@@ -101,28 +127,56 @@ const createFineTune = async (projectId: string, datasetId: string) => {
   });
 };
 
-const createFineTuneTrainingEntry = async (fineTuneId: string, datasetEntryId: string) => {
-  return await prisma.fineTuneTrainingEntry.create({
+const createFineTuneTrainingEntry = async ({
+  fineTuneId,
+  persistentId,
+  inputHash,
+  outputHash,
+}: {
+  fineTuneId: string;
+  persistentId: string;
+  inputHash: string;
+  outputHash: string;
+}) => {
+  return await prisma.newFineTuneTrainingEntry.create({
     data: {
       fineTuneId,
-      datasetEntryId,
+      persistentId,
+      inputHash,
+      outputHash,
     },
   });
 };
 
 it("matches basic string", async () => {
-  await createProject(datasetId);
+  const creationParams = await initializeProject();
   // Create experiments concurrently
   const [_, rule] = await Promise.all([
-    createDatasetEntry(datasetId, input1),
-    createPruningRule(datasetId, "The user is testing multiple scenarios against the same prompt"),
+    createNodeEntry({
+      projectId: creationParams.projectId,
+      nodeId: creationParams.datasetNodeId,
+      dataChannelId: creationParams.inputChannelId,
+      messages: input1,
+    }),
+    createPruningRule(
+      creationParams.datasetId,
+      "The user is testing multiple scenarios against the same prompt",
+    ),
   ]);
 
-  await updateDatasetPruningRuleMatches(datasetId, new Date(0));
+  await updateDatasetPruningRuleMatches({
+    nodeHash: creationParams.datasetNodeHash,
+    datasetId: creationParams.datasetId,
+    nodeEntryBaseQuery: kysely
+      .selectFrom("NodeEntry as ne")
+      .where("ne.nodeId", "=", creationParams.datasetNodeId)
+      .where("ne.status", "=", "PROCESSED"),
+    pruningRuleCutoffDate: new Date(0),
+  });
 
   // Make sure there are a total of 4 scenarios for exp2
   expect(
-    await prisma.pruningRuleMatch.count({
+    await prisma.newPruningRuleMatch.count({
       where: {
         pruningRuleId: rule.id,
       },
@@ -131,21 +185,35 @@ it("matches basic string", async () => {
 });
 
 it("matches string with newline", async () => {
-  await createProject(datasetId);
+  const creationParams = await initializeProject();
+
   // Create experiments concurrently
   const [_, rule] = await Promise.all([
-    createDatasetEntry(datasetId, input1),
+    createNodeEntry({
+      projectId: creationParams.projectId,
+      nodeId: creationParams.datasetNodeId,
+      dataChannelId: creationParams.inputChannelId,
+      messages: input1,
+    }),
     createPruningRule(
-      datasetId,
+      creationParams.datasetId,
       "This is the user message.\nIt has a newline.\n\nAnd another two. ",
     ),
   ]);
 
-  await updateDatasetPruningRuleMatches(datasetId, new Date(0));
+  await updateDatasetPruningRuleMatches({
+    nodeHash: creationParams.datasetNodeHash,
+    datasetId: creationParams.datasetId,
+    nodeEntryBaseQuery: kysely
+      .selectFrom("NodeEntry as ne")
+      .where("ne.nodeId", "=", creationParams.datasetNodeId)
+      .where("ne.status", "=", "PROCESSED"),
+    pruningRuleCutoffDate: new Date(0),
+  });
 
   // Make sure there are a total of 4 scenarios for exp2
   expect(
-    await prisma.pruningRuleMatch.count({
+    await prisma.newPruningRuleMatch.count({
       where: {
         pruningRuleId: rule.id,
       },
@@ -155,19 +223,32 @@ it("matches string with newline", async () => {
 
 describe("fine tune pruning rules", () => {
   it("matches basic string", async () => {
-    const project = await createProject(datasetId);
+    const creationParams = await initializeProject();
 
-    const [datasetEntry, rule] = await Promise.all([
-      createDatasetEntry(datasetId, input1),
+    const [nodeEntry, rule] = await Promise.all([
+      createNodeEntry({
+        projectId: creationParams.projectId,
+        nodeId: creationParams.datasetNodeId,
+        dataChannelId: creationParams.inputChannelId,
+        messages: input1,
+      }),
       createPruningRule(
-        datasetId,
+        creationParams.datasetId,
         "The user is testing multiple scenarios against the same prompt",
       ),
     ]);
 
-    await updateDatasetPruningRuleMatches(datasetId, new Date(0));
+    await updateDatasetPruningRuleMatches({
+      nodeHash: creationParams.datasetNodeHash,
+      datasetId: creationParams.datasetId,
+      nodeEntryBaseQuery: kysely
+        .selectFrom("NodeEntry as ne")
+        .where("ne.nodeId", "=", creationParams.datasetNodeId)
+        .where("ne.status", "=", "PROCESSED"),
+      pruningRuleCutoffDate: new Date(0),
+    });
 
-    const fineTune = await createFineTune(project.id, datasetId);
+    const fineTune = await createFineTune(creationParams.projectId, creationParams.datasetId);
 
     await copyPruningRulesForFineTune(fineTune.id, [rule.id]);
 
@@ -179,13 +260,18 @@ describe("fine tune pruning rules", () => {
       }),
     ).toBe(1);
 
-    await createFineTuneTrainingEntry(fineTune.id, datasetEntry.id);
+    await createFineTuneTrainingEntry({
+      fineTuneId: fineTune.id,
+      persistentId: "_",
+      inputHash: nodeEntry.inputHash,
+      outputHash: nodeEntry.outputHash,
+    });
 
     await insertTrainingDataPruningRuleMatches(fineTune.id);
 
     // Make sure there are a total of 4 scenarios for exp2
     expect(
-      await prisma.pruningRuleMatch.count({
+      await prisma.newPruningRuleMatch.count({
         where: {
           pruningRule: {
             fineTuneId: fineTune.id,
@@ -196,23 +282,41 @@ describe("fine tune pruning rules", () => {
   });
 
   it("properly prunes input", async () => {
-    const project = await createProject(datasetId);
+    const creationParams = await initializeProject();
 
-    const [datasetEntry, rule] = await Promise.all([
-      createDatasetEntry(datasetId, input1),
+    const [nodeEntry, rule] = await Promise.all([
+      createNodeEntry({
+        projectId: creationParams.projectId,
+        nodeId: creationParams.datasetNodeId,
+        dataChannelId: creationParams.inputChannelId,
+        messages: input1,
+      }),
       createPruningRule(
-        datasetId,
+        creationParams.datasetId,
         "The user is testing multiple scenarios against the same prompt",
       ),
     ]);
 
-    await updateDatasetPruningRuleMatches(datasetId, new Date(0));
+    await updateDatasetPruningRuleMatches({
+      nodeHash: creationParams.datasetNodeHash,
+      datasetId: creationParams.datasetId,
+      nodeEntryBaseQuery: kysely
+        .selectFrom("NodeEntry as ne")
+        .where("ne.nodeId", "=", creationParams.datasetNodeId)
+        .where("ne.status", "=", "PROCESSED"),
+      pruningRuleCutoffDate: new Date(0),
+    });
 
-    const fineTune = await createFineTune(project.id, datasetId);
+    const fineTune = await createFineTune(creationParams.projectId, creationParams.datasetId);
 
     await copyPruningRulesForFineTune(fineTune.id, [rule.id]);
 
-    await createFineTuneTrainingEntry(fineTune.id, datasetEntry.id);
+    await createFineTuneTrainingEntry({
+      fineTuneId: fineTune.id,
+      persistentId: "_",
+      inputHash: nodeEntry.inputHash,
+      outputHash: nodeEntry.outputHash,
+    });
 
     await insertTrainingDataPruningRuleMatches(fineTune.id);
 

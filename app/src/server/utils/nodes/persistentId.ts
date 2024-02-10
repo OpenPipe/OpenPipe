@@ -1,4 +1,4 @@
-export const generateImportId = ({
+export const generatePersistentId = ({
   uniquePrefix,
   nodeId,
 }: {

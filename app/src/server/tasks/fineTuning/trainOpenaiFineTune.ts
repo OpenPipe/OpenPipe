@@ -16,19 +16,6 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
   const fineTune = await prisma.fineTune.findUnique({
     where: { id: fineTuneId },
     include: {
-      trainingEntries: {
-        select: {
-          id: true,
-          datasetEntry: {
-            select: {
-              messages: true,
-              output: true,
-              tool_choice: true,
-              tools: true,
-            },
-          },
-        },
-      },
       project: {
         select: {
           apiKeys: true,
@@ -62,7 +49,7 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
       );
       const prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages);
       const outputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", [outputMessage]);
-      await prisma.fineTuneTrainingEntry.update({
+      await prisma.newFineTuneTrainingEntry.update({
         where: { id: row.id },
         data: { prunedInputTokens, outputTokens },
       });

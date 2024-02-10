@@ -2,10 +2,10 @@ import { type SelectQueryBuilder, type Selection } from "kysely";
 
 import { kysely, prisma } from "~/server/db";
 import { processNode } from "~/server/tasks/nodes/processNode.task";
-import type { DB, NodeData } from "~/types/kysely-codegen.types";
+import type { DB, NodeEntry } from "~/types/kysely-codegen.types";
 import dayjs from "~/utils/dayjs";
 
-export const forwardNodeData = async ({
+export const forwardNodeEntries = async ({
   nodeId,
   nodeOutputLabel,
   selectionExpression = defaultSelectionExpression,
@@ -36,7 +36,7 @@ export const forwardNodeData = async ({
     const { originNodeHash, channelId, destinationNodeId, nodeType, lastProcessedAt } =
       outputDataChannel;
     await kysely
-      .insertInto("NodeData")
+      .insertInto("NodeEntry")
       .expression(
         selectionExpression({
           originNodeId: nodeId,
@@ -46,7 +46,7 @@ export const forwardNodeData = async ({
           channelId,
         }),
       )
-      .onConflict((oc) => oc.columns(["parentNodeDataId", "dataChannelId"]).doNothing())
+      .onConflict((oc) => oc.columns(["parentNodeEntryId", "dataChannelId"]).doNothing())
       .execute();
 
     await prisma.dataChannel.update({
@@ -70,12 +70,12 @@ type SelectionExpression = (params: {
   channelId: string;
 }) => SelectQueryBuilder<
   DB & {
-    nd: Pick<
-      NodeData,
-      | "importId"
+    ne: Pick<
+      NodeEntry,
+      | "persistentId"
       | "nodeId"
       | "dataChannelId"
-      | "parentNodeDataId"
+      | "parentNodeEntryId"
       | "loggedCallId"
       | "inputHash"
       | "outputHash"
@@ -85,15 +85,15 @@ type SelectionExpression = (params: {
       id: string | null;
     };
   },
-  "nd",
+  "ne",
   Selection<
     DB & {
-      nd: Pick<
-        NodeData,
-        | "importId"
+      ne: Pick<
+        NodeEntry,
+        | "persistentId"
         | "nodeId"
         | "dataChannelId"
-        | "parentNodeDataId"
+        | "parentNodeEntryId"
         | "loggedCallId"
         | "inputHash"
         | "outputHash"
@@ -103,16 +103,16 @@ type SelectionExpression = (params: {
         id: string | null;
       };
     },
-    "nd",
-    | "nd.importId"
-    | "nd.nodeId"
-    | "nd.dataChannelId"
-    | "nd.parentNodeDataId"
-    | "nd.loggedCallId"
-    | "nd.inputHash"
-    | "nd.outputHash"
-    | "nd.originalOutputHash"
-    | "nd.split"
+    "ne",
+    | "ne.persistentId"
+    | "ne.nodeId"
+    | "ne.dataChannelId"
+    | "ne.parentNodeEntryId"
+    | "ne.loggedCallId"
+    | "ne.inputHash"
+    | "ne.outputHash"
+    | "ne.originalOutputHash"
+    | "ne.split"
   >
 >;
 
@@ -129,18 +129,18 @@ const defaultSelectionExpression: SelectionExpression = ({
   channelId: string;
 }) =>
   kysely
-    .selectFrom("NodeData as nd")
-    .where("nd.nodeId", "=", originNodeId)
-    .where("nd.status", "=", "PROCESSED")
-    .where("nd.updatedAt", ">=", dayjs(lastProcessedAt).subtract(10, "seconds").toDate())
+    .selectFrom("NodeEntry as ne")
+    .where("ne.nodeId", "=", originNodeId)
+    .where("ne.status", "=", "PROCESSED")
+    .where("ne.updatedAt", ">=", dayjs(lastProcessedAt).subtract(10, "seconds").toDate())
     .select((eb) => [
-      "nd.importId as importId",
+      "ne.persistentId as persistentId",
       eb.val(destinationNodeId).as("nodeId"),
       eb.val(channelId).as("dataChannelId"),
-      "nd.id as parentNodeDataId",
-      "nd.loggedCallId",
-      "nd.inputHash",
-      "nd.outputHash",
-      "nd.originalOutputHash",
-      "nd.split",
+      "ne.id as parentNodeEntryId",
+      "ne.loggedCallId",
+      "ne.inputHash",
+      "ne.outputHash",
+      "ne.originalOutputHash",
+      "ne.split",
     ]);

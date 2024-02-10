@@ -104,34 +104,6 @@ export const requireIsProjectAdmin = async (projectId: string, ctx: TRPCContext)
   }
 };
 
-export const requireCanModifyPruningRule = async (pruningRuleId: string, ctx: TRPCContext) => {
-  ctx.markAccessControlRun();
-
-  const userId = requireUserId(ctx);
-
-  const pruningRule = await prisma.pruningRule.findFirst({
-    where: {
-      id: pruningRuleId,
-      dataset: {
-        project: {
-          projectUsers: {
-            some: {
-              role: { in: [ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
-              userId,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!pruningRule)
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You don't have access to modify this pruning rule.",
-    });
-};
-
 export const requireIsAdmin = async (ctx: TRPCContext) => {
   ctx.markAccessControlRun();
 

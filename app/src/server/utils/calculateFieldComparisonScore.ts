@@ -9,12 +9,12 @@ export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 
 export const saveFieldComparisonScore = async ({
   datasetId,
-  importId,
+  persistentId,
   score,
   modelId,
 }: {
   datasetId: string;
-  importId: string;
+  persistentId: string;
   score: number;
   modelId: string;
 }) => {
@@ -41,21 +41,21 @@ export const saveFieldComparisonScore = async ({
 
   if (!datasetEval) throw new Error("Error retrieving dataset eval");
 
-  const datasetEvalDatasetEntryId = uuidv4();
+  const datasetEvalNodeEntryId = uuidv4();
 
   await kysely
-    .insertInto("DatasetEvalDatasetEntry")
+    .insertInto("DatasetEvalNodeEntry")
     .values({
-      id: datasetEvalDatasetEntryId,
+      id: datasetEvalNodeEntryId,
       datasetEvalId: datasetEval.id,
-      importId,
+      nodeEntryPersistentId: persistentId,
       updatedAt: new Date(),
     })
-    .onConflict((oc) => oc.columns(["datasetEvalId", "importId"]).doNothing())
+    .onConflict((oc) => oc.columns(["datasetEvalId", "nodeEntryPersistentId"]).doNothing())
     .execute();
 
-  const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.findFirstOrThrow({
-    where: { datasetEvalId: datasetEval.id, importId },
+  const datasetEvalNodeEntry = await prisma.datasetEvalNodeEntry.findFirstOrThrow({
+    where: { datasetEvalId: datasetEval.id, nodeEntryPersistentId: persistentId },
   });
 
   let datasetEvalOutputSource;
@@ -79,16 +79,16 @@ export const saveFieldComparisonScore = async ({
 
   if (!datasetEvalOutputSource) throw new Error("Error retrieving dataset eval details");
 
-  const datasetEvalResult = await prisma.datasetEvalResult.findFirst({
+  const datasetEvalResult = await prisma.newDatasetEvalResult.findFirst({
     where: {
-      datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+      datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
       datasetEvalOutputSourceId: datasetEvalOutputSource.id,
     },
   });
 
   // Prisma doesn't support upserting for records with a foreign key that contains a nullable value
   if (datasetEvalResult) {
-    await prisma.datasetEvalResult.update({
+    await prisma.newDatasetEvalResult.update({
       where: { id: datasetEvalResult.id },
       data: {
         score,
@@ -96,9 +96,9 @@ export const saveFieldComparisonScore = async ({
       },
     });
   } else {
-    await prisma.datasetEvalResult.create({
+    await prisma.newDatasetEvalResult.create({
       data: {
-        datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
+        datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
         datasetEvalOutputSourceId: datasetEvalOutputSource.id,
         score,
         status: "COMPLETE",

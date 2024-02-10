@@ -6,24 +6,20 @@ import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { TRPCError } from "@trpc/server";
 import { filtersSchema } from "~/types/shared.types";
-import {
-  DEFAULT_MAX_OUTPUT_SIZE,
-  MonitorOutputs,
-  typedNode,
-} from "~/server/utils/nodes/node.types";
+import { DEFAULT_MAX_OUTPUT_SIZE, MonitorOutput, typedNode } from "~/server/utils/nodes/node.types";
 import { success } from "~/utils/errorHandling/standardResponses";
-import { getDescendantNodes, getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
+import { getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 import { prepareMonitorCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
+import { processNode } from "~/server/tasks/nodes/processNode.task";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
-    const monitor = await getDescendantNodes(input.id)
-      .selectAll("originalNode")
-      .select([
-        "descendantNode.id as relabelindNodeId",
-        "descendantNode.config as relabelingConfig",
-      ])
+    const monitor = await kysely
+      .selectFrom("Node as n")
+      .where("n.id", "=", input.id)
+      .where("n.type", "=", "Monitor")
+      .selectAll("n")
       .executeTakeFirst();
 
     if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
@@ -49,6 +45,7 @@ export const monitorsRouter = createTRPCRouter({
         .selectFrom("Node as n")
         .where("n.projectId", "=", input.projectId)
         .where("n.type", "=", "Monitor")
+        .selectAll("n")
         .orderBy("n.createdAt", "desc")
         .execute();
 
@@ -109,7 +106,7 @@ export const monitorsRouter = createTRPCRouter({
         .selectFrom("Node as n")
         .where("n.id", "=", id)
         .innerJoin("NodeOutput as dno", "dno.nodeId", "n.id")
-        .where("dno.label", "=", MonitorOutputs.MatchedLogs)
+        .where("dno.label", "=", MonitorOutput.MatchedLogs)
         .selectAll("n")
         .select(["dno.id as matchedLogsOutputId"])
         .executeTakeFirst();
@@ -139,7 +136,9 @@ export const monitorsRouter = createTRPCRouter({
         }),
       });
 
-      if (preserveCache && monitor.hash !== updatedHash) {
+      const invalidateData = initialHash !== updatedHash;
+
+      if (preserveCache && invalidateData) {
         // check to see if cached data is being used by any other nodes
         const similarNodes = await prisma.node.findMany({
           where: {
@@ -150,7 +149,7 @@ export const monitorsRouter = createTRPCRouter({
         if (similarNodes.length) {
           // make new copies of the cached data
           await kysely
-            .insertInto("CachedProcessedNodeData")
+            .insertInto("CachedProcessedNodeEntry")
             .columns([
               "incomingDEIHash",
               "incomingDEOHash",
@@ -164,7 +163,7 @@ export const monitorsRouter = createTRPCRouter({
             ])
             .expression((eb) =>
               eb
-                .selectFrom("CachedProcessedNodeData")
+                .selectFrom("CachedProcessedNodeEntry")
                 .select((eb) => [
                   "incomingDEIHash",
                   "incomingDEOHash",
@@ -184,7 +183,7 @@ export const monitorsRouter = createTRPCRouter({
             .execute();
         } else {
           // update cached data
-          await prisma.cachedProcessedNodeData.updateMany({
+          await prisma.cachedProcessedNodeEntry.updateMany({
             where: {
               nodeHash: initialHash,
             },
@@ -193,6 +192,12 @@ export const monitorsRouter = createTRPCRouter({
             },
           });
         }
+      } else {
+        await prisma.monitorMatch.deleteMany({
+          where: {
+            monitorId: id,
+          },
+        });
       }
 
       if (datasetLLMRelabelNodeIds) {
@@ -218,8 +223,8 @@ export const monitorsRouter = createTRPCRouter({
           )
           .execute();
 
-        const datasetNodeIdsToDisconnect = existingDatasetLLMRelabelNodeIds.filter((id) =>
-          datasetLLMRelabelNodeIds.includes(id),
+        const datasetNodeIdsToDisconnect = existingDatasetLLMRelabelNodeIds.filter(
+          (id) => !datasetLLMRelabelNodeIds.includes(id),
         );
 
         await kysely
@@ -228,6 +233,8 @@ export const monitorsRouter = createTRPCRouter({
           .where("destinationId", "in", datasetNodeIdsToDisconnect)
           .execute();
       }
+
+      await processNode.enqueue({ nodeId: id, nodeType: "Monitor", invalidateData });
 
       return success("Monitor updated");
     }),

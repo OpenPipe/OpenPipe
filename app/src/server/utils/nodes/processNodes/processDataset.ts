@@ -1,6 +1,6 @@
 import { kysely, prisma } from "~/server/db";
-import { DatasetOutputs, typedNode } from "../node.types";
-import { forwardNodeData } from "../forwardNodeData";
+import { DatasetOutput, typedNode } from "../node.types";
+import { forwardNodeEntries } from "../forwardNodeEntries";
 import { updateDatasetPruningRuleMatches } from "./updatePruningRuleMatches";
 import { startDatasetTestJobs } from "./startTestJobs";
 
@@ -21,9 +21,9 @@ export const processDataset = async (nodeId: string) => {
   if (!dataset) return;
 
   await kysely
-    .updateTable("NodeData as nd")
-    .where("nd.status", "=", "PENDING")
-    .where("nd.nodeId", "=", node.id)
+    .updateTable("NodeEntry as ne")
+    .where("ne.status", "=", "PENDING")
+    .where("ne.nodeId", "=", node.id)
     .set({
       status: "PROCESSING",
     })
@@ -33,32 +33,32 @@ export const processDataset = async (nodeId: string) => {
   await updateDatasetPruningRuleMatches({
     nodeHash: node.hash,
     datasetId: dataset.id,
-    nodeDataBaseQuery: kysely
-      .selectFrom("NodeData as nd")
-      .where("nd.nodeId", "=", node.id)
-      .where("nd.status", "=", "PROCESSING"),
+    nodeEntryBaseQuery: kysely
+      .selectFrom("NodeEntry as ne")
+      .where("ne.nodeId", "=", node.id)
+      .where("ne.status", "=", "PROCESSING"),
   });
 
   // start test jobs
   await startDatasetTestJobs({
     datasetId: dataset.id,
-    nodeDataBaseQuery: kysely
-      .selectFrom("NodeData as nd")
-      .where("nd.nodeId", "=", node.id)
-      .where("nd.status", "=", "PROCESSING"),
+    nodeEntryBaseQuery: kysely
+      .selectFrom("NodeEntry as ne")
+      .where("ne.nodeId", "=", node.id)
+      .where("ne.status", "=", "PROCESSING"),
   });
 
   await kysely
-    .updateTable("NodeData")
-    .where("NodeData.nodeId", "=", node.id)
-    .where("NodeData.status", "=", "PROCESSING")
+    .updateTable("NodeEntry")
+    .where("NodeEntry.nodeId", "=", node.id)
+    .where("NodeEntry.status", "=", "PROCESSING")
     .set({
       status: "PROCESSED",
     })
     .execute();
 
-  await forwardNodeData({
+  await forwardNodeEntries({
     nodeId,
-    nodeOutputLabel: DatasetOutputs.Entries,
+    nodeOutputLabel: DatasetOutput.Entries,
   });
 };

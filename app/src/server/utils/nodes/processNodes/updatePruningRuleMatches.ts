@@ -1,26 +1,24 @@
 import { sql, type Expression, type SqlBool, type SelectQueryBuilder } from "kysely";
 
 import { prisma, kysely } from "~/server/db";
-import type { DB, NodeData } from "~/types/kysely-codegen.types";
+import type { DB, NodeEntry } from "~/types/kysely-codegen.types";
 import { escapeString, escapeLikeString } from "~/utils/pruningRules";
 
 export const updateDatasetPruningRuleMatches = async ({
   nodeHash,
   datasetId,
-  nodeDataBaseQuery,
-  deletePruningRuleMatches,
-  pruningRuleCutoffDate = new Date(0),
+  nodeEntryBaseQuery,
+  pruningRuleCutoffDate,
 }: {
   nodeHash: string;
   datasetId: string;
-  nodeDataBaseQuery: SelectQueryBuilder<
+  nodeEntryBaseQuery: SelectQueryBuilder<
     DB & {
-      nd: NodeData;
+      ne: NodeEntry;
     },
-    "nd",
+    "ne",
     object
   >;
-  deletePruningRuleMatches?: boolean;
   pruningRuleCutoffDate?: Date;
 }) => {
   const allPruningRules = await prisma.pruningRule.findMany({
@@ -30,16 +28,16 @@ export const updateDatasetPruningRuleMatches = async ({
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
 
-  const pruningRulesToUpdate = allPruningRules.filter(
-    (pr) => pr.createdAt >= pruningRuleCutoffDate,
-  );
+  const pruningRulesToUpdate = pruningRuleCutoffDate
+    ? allPruningRules.filter((pr) => pr.createdAt >= pruningRuleCutoffDate)
+    : [];
   const numOmittedRules = allPruningRules.length - pruningRulesToUpdate.length;
 
   await kysely.transaction().execute(async (trx) => {
-    if (deletePruningRuleMatches) {
-      await trx.deleteFrom("CachedProcessedNodeData").where("nodeHash", "=", nodeHash).execute();
+    if (pruningRulesToUpdate.length) {
+      await trx.deleteFrom("CachedProcessedNodeEntry").where("nodeHash", "=", nodeHash).execute();
       await trx
-        .deleteFrom("PruningRuleMatch as prm")
+        .deleteFrom("NewPruningRuleMatch as prm")
         .where(
           "prm.pruningRuleId",
           "in",
@@ -60,19 +58,32 @@ export const updateDatasetPruningRuleMatches = async ({
 
       const ruleTextToMatch = escapeLikeString(allPruningRules[i]?.textToMatch);
 
+      console.log("ruleTextToMatch", ruleTextToMatch);
+      const stuff = await nodeEntryBaseQuery
+        .innerJoin("DatasetEntryInput as dei", "ne.inputHash", "dei.hash")
+        .selectAll("ne")
+        .select(["dei.messages"])
+        .execute();
+
+      for (const row of stuff) {
+        console.log("row", row.messages);
+      }
+
+      console.log("stuff", stuff);
+
       // Insert PruningRuleMatch entries
       await kysely
-        .insertInto("PruningRuleMatch")
+        .insertInto("NewPruningRuleMatch")
         .columns(["id", "pruningRuleId", "inputHash"])
         .expression(() =>
-          nodeDataBaseQuery
-            .leftJoin("CachedProcessedNodeData as cpnd", (join) =>
+          nodeEntryBaseQuery
+            .leftJoin("CachedProcessedNodeEntry as cpne", (join) =>
               join
-                .onRef("cpnd.incomingDEIHash", "=", "nd.inputHash")
-                .on("cpnd.nodeHash", "=", nodeHash),
+                .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
+                .on("cpne.nodeHash", "=", nodeHash),
             )
-            .where("cpnd.id", "is", null)
-            .innerJoin("DatasetEntryInput as dei", "nd.inputHash", "dei.hash")
+            .where("cpne.id", "is", null)
+            .innerJoin("DatasetEntryInput as dei", "ne.inputHash", "dei.hash")
             .where((eb) => {
               const andArr: Expression<SqlBool>[] = [
                 sql`${prunedInput} LIKE ${"%" + ruleTextToMatch + "%"}`,
@@ -82,7 +93,7 @@ export const updateDatasetPruningRuleMatches = async ({
             .select(() => [
               sql`uuid_generate_v4()`.as("id"),
               sql`${allPruningRules[i]?.id}`.as("pruningRuleId"),
-              "nd.inputHash as inputHash",
+              "ne.inputHash as inputHash",
             ]),
         )
         .onConflict((oc) => oc.columns(["pruningRuleId", "inputHash"]).doNothing())
@@ -91,16 +102,21 @@ export const updateDatasetPruningRuleMatches = async ({
 
     // Mark all relevant node data as processed
     await trx
-      .insertInto("CachedProcessedNodeData")
-      .columns(["id", "nodeHash", "incomingDEIHash"])
+      .insertInto("CachedProcessedNodeEntry")
+      .columns(["id", "nodeHash", "incomingDEIHash", "updatedAt"])
       .expression(() =>
-        nodeDataBaseQuery.select(() => [
+        nodeEntryBaseQuery.select((eb) => [
           sql`uuid_generate_v4()`.as("id"),
           sql`${nodeHash}`.as("nodeHash"),
-          "nd.inputHash as incomingDEIHash",
+          "ne.inputHash as incomingDEIHash",
+          eb.val(new Date()).as("updatedAt"),
         ]),
       )
-      .onConflict((oc) => oc.columns(["nodeHash", "incomingDEIHash"]).doNothing())
+      .onConflict((oc) =>
+        oc
+          .columns(["nodeHash", "incomingDEIHash", "nodeEntryPersistentId", "incomingDEOHash"])
+          .doNothing(),
+      )
       .execute();
   });
 };
@@ -143,7 +159,7 @@ export const insertTrainingDataPruningRuleMatches = async (fineTuneId: string) =
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
 
-  await prisma.pruningRuleMatch.deleteMany({
+  await prisma.newPruningRuleMatch.deleteMany({
     where: {
       pruningRuleId: {
         in: pruningRules.map((pr) => pr.id),
@@ -163,11 +179,11 @@ export const insertTrainingDataPruningRuleMatches = async (fineTuneId: string) =
 
     // Insert PruningRuleMatch entries
     await kysely
-      .insertInto("PruningRuleMatch")
-      .columns(["id", "pruningRuleId", "datasetEntryId"])
+      .insertInto("NewPruningRuleMatch")
+      .columns(["id", "pruningRuleId", "inputHash"])
       .expression((eb) =>
         eb
-          .selectFrom("FineTuneTrainingEntry as ftte")
+          .selectFrom("NewFineTuneTrainingEntry as ftte")
           .where("ftte.fineTuneId", "=", fineTuneId)
           .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
           .where(sql`${prunedInput} LIKE ${"%" + ruleTextToMatch + "%"}`)

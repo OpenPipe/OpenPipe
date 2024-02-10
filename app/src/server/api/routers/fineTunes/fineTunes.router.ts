@@ -8,7 +8,7 @@ import { kysely, prisma } from "~/server/db";
 import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
-import { constructNodeDataFiltersQuery } from "~/server/utils/constructNodeDataFiltersQuery";
+import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
 import { copyPruningRulesForFineTune } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { CURRENT_PIPELINE_VERSION, filtersSchema } from "~/types/shared.types";
@@ -37,7 +37,7 @@ export const fineTunesRouter = createTRPCRouter({
         .selectAll("ft")
         .select(() => [
           "d.name as datasetName",
-          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
         ])
@@ -74,14 +74,15 @@ export const fineTunesRouter = createTRPCRouter({
       await requireCanViewProject(dataset?.projectId, ctx);
 
       const fineTunes = await kysely
-        .selectFrom("FineTune as ft")
-        .where("datasetId", "=", datasetId)
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", datasetId)
+        .innerJoin("FineTune as ft", "ft.datasetId", "d.id")
         .selectAll()
         .select(() => [
-          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "split" = 'TEST' and not outdated)::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
             "numTestingEntries",
           ),
           sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
@@ -103,14 +104,14 @@ export const fineTunesRouter = createTRPCRouter({
       const fineTune = await kysely
         .selectFrom("FineTune as ft")
         .where("ft.id", "=", input.id)
-        .leftJoin("Dataset as d", "ft.datasetId", "d.id")
+        .innerJoin("Dataset as d", "ft.datasetId", "d.id")
         .select("d.name as datasetName")
         .selectAll("ft")
         .select((eb) => [
-          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "split" = 'TEST' and not outdated)::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
             "numTestingEntries",
           ),
           jsonArrayFrom(
@@ -199,10 +200,10 @@ export const fineTunesRouter = createTRPCRouter({
       );
 
       await kysely
-        .insertInto("FineTuneTrainingEntry")
+        .insertInto("NewFineTuneTrainingEntry")
         .columns(["id", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
         .expression((eb) =>
-          constructNodeDataFiltersQuery({
+          constructNodeEntryFiltersQuery({
             filters: input.filters,
             datasetNodeId,
             ftteEB: eb,
@@ -331,7 +332,7 @@ export const fineTunesRouter = createTRPCRouter({
       await requireCanViewProject(fineTune.projectId, ctx);
 
       const entries = await kysely
-        .selectFrom("FineTuneTrainingEntry as ftte")
+        .selectFrom("NewFineTuneTrainingEntry as ftte")
         .where("ftte.fineTuneId", "=", fineTuneId)
         .innerJoin("DatasetEntryInput as dei", "ftte.inputHash", "dei.hash")
         .innerJoin("DatasetEntryOutput as deo", "ftte.outputHash", "deo.hash")
@@ -353,7 +354,7 @@ export const fineTunesRouter = createTRPCRouter({
         .offset((page - 1) * pageSize)
         .execute();
 
-      const count = await prisma.fineTuneTrainingEntry.count({
+      const count = await prisma.newFineTuneTrainingEntry.count({
         where: {
           fineTuneId: fineTuneId,
         },

@@ -3,6 +3,7 @@ import { type z } from "zod";
 
 import hashObject from "../hashObject";
 import { type nodeSchema, type InferNodeConfig, typedNode } from "./node.types";
+import { kysely } from "~/server/db";
 
 export const hashNode = <T extends z.infer<typeof nodeSchema>["type"]>({
   projectId,
@@ -56,6 +57,42 @@ export const hashDatasetEntryInput = ({
   });
 };
 
+export const hashAndSaveDatasetEntryInput = async ({
+  projectId,
+  tool_choice,
+  tools,
+  messages,
+  response_format,
+}: {
+  projectId: string;
+  tool_choice?: JsonValue;
+  tools?: object[];
+  messages: JsonValue;
+  response_format?: JsonValue;
+}) => {
+  const inputHash = hashDatasetEntryInput({
+    projectId,
+    tool_choice,
+    tools,
+    messages,
+    response_format,
+  });
+
+  await kysely
+    .insertInto("DatasetEntryInput")
+    .values({
+      hash: inputHash,
+      tool_choice: tool_choice ? JSON.stringify(tool_choice) : undefined,
+      tools: tools ? JSON.stringify(tools) : undefined,
+      messages: JSON.stringify(messages),
+      response_format: response_format ? JSON.stringify(response_format) : undefined,
+    })
+    .onConflict((oc) => oc.columns(["hash"]).doNothing())
+    .execute();
+
+  return inputHash;
+};
+
 export const hashDatasetEntryOutput = ({
   projectId,
   output,
@@ -67,4 +104,25 @@ export const hashDatasetEntryOutput = ({
     projectId,
     output: output as JsonValue,
   });
+};
+
+export const hashAndSaveDatasetEntryOutput = async ({
+  projectId,
+  output,
+}: {
+  projectId: string;
+  output: object;
+}) => {
+  const outputHash = hashDatasetEntryOutput({ projectId, output });
+
+  await kysely
+    .insertInto("DatasetEntryOutput")
+    .values({
+      hash: outputHash,
+      output: JSON.stringify(output),
+    })
+    .onConflict((oc) => oc.columns(["hash"]).doNothing())
+    .execute();
+
+  return outputHash;
 };

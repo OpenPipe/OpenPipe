@@ -6,7 +6,7 @@ import { chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 
 export const DEFAULT_MAX_OUTPUT_SIZE = 50000;
 
-export enum RelabelOptions {
+export enum RelabelOption {
   GPT40613 = "gpt-4-0613",
   GPT41106 = "gpt-4-1106-preview",
   GPT432k = "gpt-4-32k",
@@ -14,31 +14,31 @@ export enum RelabelOptions {
 }
 
 export const relabelOptions = [
-  RelabelOptions.GPT40613,
-  RelabelOptions.GPT41106,
-  RelabelOptions.GPT432k,
-  RelabelOptions.SkipRelabel,
+  RelabelOption.GPT40613,
+  RelabelOption.GPT41106,
+  RelabelOption.GPT432k,
+  RelabelOption.SkipRelabel,
 ] as const;
 
-export enum ArchiveOutputs {
+export enum ArchiveOutput {
   Entries = "entries",
 }
 
-export enum MonitorOutputs {
+export enum MonitorOutput {
   MatchedLogs = "Matched Logs",
 }
 
-export enum LLMRelabelOutputs {
+export enum LLMRelabelOutput {
   Relabeled = "relabeled",
   Unprocessed = "unprocessed",
 }
 
-export enum ManualRelabelOutputs {
+export enum ManualRelabelOutput {
   Relabeled = "relabeled",
   Unprocessed = "unprocessed",
 }
 
-export enum DatasetOutputs {
+export enum DatasetOutput {
   Entries = "entries",
 }
 
@@ -72,7 +72,7 @@ export const nodeSchema = z.discriminatedUnion("type", [
     type: z.literal("LLMRelabel"),
     config: z
       .object({
-        relabelLLM: z.enum(relabelOptions).default(RelabelOptions.GPT40613),
+        relabelLLM: z.enum(relabelOptions).default(RelabelOption.GPT40613),
         maxEntriesPerMinute: z.number().default(100),
         maxLLMConcurrency: z.number().default(2),
       })
@@ -139,14 +139,14 @@ export const typedDatasetEntryOutput = <T extends Pick<DatasetEntryOutput, "outp
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
   z.infer<typeof datasetEntryOutput> => datasetEntryOutput.parse(input);
 
-const nodeData = z.intersection(datasetEntryInput, datasetEntryOutput.passthrough());
+const nodeEntry = z.intersection(datasetEntryInput, datasetEntryOutput.passthrough());
 
-export const typedNodeData = <
+export const typedNodeEntry = <
   T extends Pick<DatasetEntryInput, "messages" | "tool_choice" | "tools" | "response_format"> &
     Pick<DatasetEntryOutput, "output">,
 >(
   input: T,
 ): Omit<T, "messages" | "tool_choice" | "tools" | "response_format" | "output"> &
-  z.infer<typeof nodeData> =>
+  z.infer<typeof nodeEntry> =>
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
-  nodeData.parse(input);
+  nodeEntry.parse(input);

@@ -21,15 +21,15 @@ export const prepareDatasetEntriesForImport = ({
   projectId: string;
   nodeId: string;
   dataChannelId: string;
-  entriesToImport: (RowToImport & { importId: string; loggedCallId?: string })[];
+  entriesToImport: (RowToImport & { persistentId: string; loggedCallId?: string })[];
 }): {
   datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[];
   datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[];
-  nodeDataToCreate: Prisma.NodeDataCreateManyInput[];
+  nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[];
 } => {
   const datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[] = [];
   const datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[] = [];
-  const nodeDataToCreate: Prisma.NodeDataCreateManyInput[] = [];
+  const nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[] = [];
 
   for (const row of entriesToImport) {
     const tool_choice =
@@ -72,8 +72,8 @@ export const prepareDatasetEntriesForImport = ({
       hash: outputHash,
     });
 
-    nodeDataToCreate.push({
-      importId: row.importId,
+    nodeEntriesToCreate.push({
+      persistentId: row.persistentId,
       nodeId,
       dataChannelId,
       inputHash,
@@ -85,15 +85,17 @@ export const prepareDatasetEntriesForImport = ({
   }
 
   // TODO: intelligently update split
-  shuffle(nodeDataToCreate);
+  shuffle(nodeEntriesToCreate);
   // set first 20% to TEST split
-  nodeDataToCreate.slice(0, Math.floor(nodeDataToCreate.length * 0.2)).forEach((nodeData) => {
-    nodeData.split = "TEST";
-  });
+  nodeEntriesToCreate
+    .slice(0, Math.floor(nodeEntriesToCreate.length * 0.2))
+    .forEach((nodeEntry) => {
+      nodeEntry.split = "TEST";
+    });
 
   return {
     datasetEntryInputsToCreate,
     datasetEntryOutputsToCreate,
-    nodeDataToCreate: shuffle(nodeDataToCreate),
+    nodeEntriesToCreate: shuffle(nodeEntriesToCreate),
   };
 };
