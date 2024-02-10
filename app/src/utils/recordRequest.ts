@@ -236,7 +236,7 @@ async function createTags(projectId: string, loggedCallId: string, tags: Record<
 
   const tagNames = tagsToCreate.map((tag) => tag.name);
 
-  await recordTagNames(projectId, tagNames);
+  void recordTagNames(projectId, tagNames).catch((e) => captureException(e));
 }
 
 export async function recordTagNames(projectId: string, tagNames: string[]) {
