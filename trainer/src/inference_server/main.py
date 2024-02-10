@@ -41,7 +41,7 @@ stub = modal.Stub(APP_NAME)
 stub.volume = volume
 stub.vllm_image = vllm_image
 
-with vllm_image.run_inside():
+with vllm_image.imports():
     from vllm import SamplingParams
     from vllm.utils import random_uuid
     from vllm.outputs import RequestOutput
