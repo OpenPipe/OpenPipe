@@ -81,7 +81,7 @@ import os
 from openpipe import OpenAI
 
 client = OpenAI(
-    api_key="My API Key",
+    api_key="Your API Key",
     openpipe={
         "api_key": "Your OpenPipe API Key",
         "base_url": "http://localhost:3000/api/v1", # Local OpenPipe instance
