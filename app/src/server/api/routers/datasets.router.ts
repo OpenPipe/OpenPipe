@@ -13,6 +13,9 @@ import { startDatasetTestJobs } from "~/server/utils/startTestJobs";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
 import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
+import { baseModel } from "~/server/fineTuningProviders/types";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -53,56 +56,61 @@ export const datasetsRouter = createTRPCRouter({
   getTrainingCosts: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        datasetId: z.string(),
+        baseModel: baseModel,
         filters: filtersSchema,
-        selectedPruningRuleIds: z.array(z.string()),
+        pruningRuleIds: z.array(z.string()),
+        selectedNumberOfEpochs: z.number().min(1).max(20).optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { id, filters, selectedPruningRuleIds } = input;
-
+      const { datasetId, filters, baseModel, pruningRuleIds, selectedNumberOfEpochs } = input;
       const { projectId } = await prisma.dataset.findUniqueOrThrow({
-        where: { id },
+        where: { id: datasetId },
       });
 
       await requireCanViewProject(projectId, ctx);
 
-      const trainingEntryStats = await constructDatasetEntryFiltersQuery({ filters, datasetId: id })
+      const baseQuery = constructDatasetEntryFiltersQuery({ filters, datasetId })
         .where("de.split", "=", "TRAIN")
-        .where("de.output", "is not", null)
-        .select((eb) => [
-          sql<number>`count(*)::int`.as("numEntries"),
+        .where("de.output", "is not", null);
+
+      const datasetEntryStats = await baseQuery
+        .select([
+          sql<number>`count(de.id)::int`.as("numEntries"),
           sql<number>`sum(de."inputTokens")::int`.as("totalInputTokens"),
           sql<number>`sum(de."outputTokens")::int`.as("totalOutputTokens"),
-          eb
-            .selectFrom("PruningRuleMatch as prm")
-            .whereRef("prm.datasetEntryId", "=", "de.id")
-            .where("prm.pruningRuleId", "in", selectedPruningRuleIds)
-            .leftJoin("PruningRule as pr", "prm.pruningRuleId", "pr.id")
-            .select(() => [sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens")])
-            .as("totalMatchTokens"),
         ])
         .executeTakeFirst();
 
-      if (!trainingEntryStats) return error("No training data found");
+      if (!datasetEntryStats) return;
 
-      const trainingTokens =
-        trainingEntryStats.totalInputTokens +
-        trainingEntryStats.totalOutputTokens -
-        (trainingEntryStats.totalMatchTokens ?? 0);
+      let totalMatchTokens = 0;
 
-      const totalTestingCount = await prisma.datasetEntry.count({
-        where: {
-          datasetId: id,
-          outdated: false,
-          split: "TEST",
-        },
-      });
+      if (pruningRuleIds.length > 0) {
+        totalMatchTokens = await baseQuery
+          .innerJoin("PruningRuleMatch", (join) =>
+            join
+              .onRef("PruningRuleMatch.datasetEntryId", "=", "de.id")
+              .on("PruningRuleMatch.pruningRuleId", "in", pruningRuleIds),
+          )
+          .leftJoin("PruningRule as pr", "PruningRuleMatch.pruningRuleId", "pr.id")
+          .select(sql<number>`sum(pr."tokensInText")::int`.as("totalMatchTokens"))
+          .executeTakeFirst()
+          .then((stats) => stats?.totalMatchTokens || 0);
+      }
+
+      const { cost } = calculateCost(
+        baseModel,
+        0,
+        datasetEntryStats.totalInputTokens - totalMatchTokens,
+        datasetEntryStats.totalOutputTokens,
+      );
+
+      const numEpochs = selectedNumberOfEpochs || calculateNumEpochs(datasetEntryStats.numEntries);
 
       return {
-        matchingTrainingCount: trainingEntryStats.numEntries,
-        totalTestingCount,
-        trainingTokens,
+        cost: cost * numEpochs,
       };
     }),
   list: protectedProcedure

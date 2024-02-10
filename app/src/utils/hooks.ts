@@ -12,6 +12,8 @@ import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 import { toUTC } from "./dayjs";
 import { useDateFilter } from "~/components/Filters/useDateFilter";
+import { ProviderWithModel } from "~/server/fineTuningProviders/types";
+import { splitProvider } from "~/server/fineTuningProviders/supportedModels";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
@@ -160,6 +162,29 @@ export const useDatasetEntries = (refetchInterval = 0) => {
   );
 
   return useStableData(result);
+};
+
+export const useDatasetTrainingCost = (
+  selectedBaseModel: ProviderWithModel,
+  pruningRuleIds: string[],
+  selectedNumberOfEpochs: number | undefined,
+) => {
+  const dataset = useDataset().data;
+
+  const filters = useFilters().filters;
+
+  const stats = api.datasets.getTrainingCosts.useQuery(
+    {
+      datasetId: dataset?.id || "",
+      baseModel: splitProvider(selectedBaseModel),
+      filters,
+      pruningRuleIds,
+      selectedNumberOfEpochs,
+    },
+    { enabled: !!dataset },
+  );
+
+  return stats;
 };
 
 // Prevent annoying flashes while loading from the server
