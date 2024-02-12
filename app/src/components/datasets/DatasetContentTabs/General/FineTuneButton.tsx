@@ -105,6 +105,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const [trainingConfigOverrides, setTrainingConfigOverrides] = useState<
     Partial<AxolotlConfig> | undefined
   >();
+  const [calculationRefetchInterval, setCalculationRefetchInterval] = useState(0);
 
   const needsMissingOpenaiKey =
     !selectedProject?.condensedOpenAIKey && splitProvider(selectedBaseModel).provider === "openai";
@@ -120,6 +121,18 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const email = session.data?.user.email ?? "";
 
+  const price = useDatasetTrainingCost(
+    selectedBaseModel,
+    appliedPruningRuleIds,
+    trainingConfigOverrides?.num_epochs,
+    calculationRefetchInterval,
+  );
+
+  useEffect(
+    () => setCalculationRefetchInterval(price.data?.calculating ? 5000 : 0),
+    [price.data?.calculating],
+  );
+
   useEffect(() => {
     if (disclosure.isOpen) {
       setSelectedBaseModel(visibleModels[0]);
@@ -133,12 +146,6 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   useEffect(
     () => setAppliedPruningRuleIds(pruningRules?.map((rule) => rule.id) ?? []),
     [pruningRules],
-  );
-
-  const stats = useDatasetTrainingCost(
-    selectedBaseModel,
-    appliedPruningRuleIds,
-    trainingConfigOverrides?.num_epochs,
   );
 
   const utils = api.useContext();
@@ -396,11 +403,11 @@ Controls the magnitude of updates to the model's parameters during training."
           <VStack alignItems="end">
             <HStack fontSize="sm" spacing={1}>
               <Text>Estimated training price:</Text>
-              <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
+              <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!price.isLoading}>
                 <Text>
-                  {stats.data?.calculating
+                  {price.data?.calculating
                     ? "calculating..."
-                    : "$" + Number(stats.data?.cost ?? 0).toFixed(2)}
+                    : "$" + Number(price.data?.cost ?? 0).toFixed(2)}
                 </Text>
               </Skeleton>
             </HStack>
