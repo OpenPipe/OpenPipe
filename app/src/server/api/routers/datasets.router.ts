@@ -109,12 +109,9 @@ export const datasetsRouter = createTRPCRouter({
           .then((stats) => stats?.totalMatchTokens || 0);
       }
 
-      const { cost } = calculateCost(
-        baseModel,
-        0,
-        datasetEntryStats.totalInputTokens - totalMatchTokens,
-        datasetEntryStats.totalOutputTokens,
-      );
+      const trainingTokens =
+        datasetEntryStats.totalInputTokens - totalMatchTokens + datasetEntryStats.totalOutputTokens;
+      const { cost } = calculateCost(baseModel, trainingTokens, 0, 0);
 
       const numEpochs = selectedNumberOfEpochs || calculateNumEpochs(datasetEntryStats.numEntries);
 
