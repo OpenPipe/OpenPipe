@@ -1,4 +1,5 @@
 import type { NodeType } from "@prisma/client";
+import type { TaskSpec } from "graphile-worker";
 
 import defineTask from "../defineTask";
 import { processMonitor } from "~/server/utils/nodes/processNodes/processMonitor";
@@ -7,6 +8,8 @@ import { invalidateNodeEntries } from "~/server/utils/nodes/invalidateNodeEntrie
 import { processArchive } from "~/server/utils/nodes/processNodes/processArchive";
 import { processDataset } from "~/server/utils/nodes/processNodes/processDataset";
 import { enqueueDescendants } from "~/server/utils/nodes/processNodes/enqueueDescendants";
+// import { printNodeEntries } from "~/server/utils/nodes/utils";
+import { processManualRelabel } from "~/server/utils/nodes/processNodes/processManualRelabel";
 
 export type ProcessNodeJob = {
   nodeId: string;
@@ -17,6 +20,9 @@ export type ProcessNodeJob = {
 export const processNode = defineTask<ProcessNodeJob>({
   id: "processNode",
   handler: async (task) => {
+    console.log(task);
+    // await printNodeEntries(task.nodeId);
+
     const { nodeId, nodeType, invalidateData } = task;
     if (invalidateData) {
       await invalidateNodeEntries(nodeId);
@@ -30,9 +36,16 @@ export const processNode = defineTask<ProcessNodeJob>({
     if (nodeType === "LLMRelabel") {
       await processLLMRelabel(nodeId);
     }
+    if (nodeType === "ManualRelabel") {
+      await processManualRelabel(nodeId);
+    }
     if (nodeType === "Dataset") {
       await processDataset(nodeId);
     }
     await enqueueDescendants(nodeId);
   },
 });
+
+export const enqueueProcessNode = async (job: ProcessNodeJob, spec?: TaskSpec) => {
+  await processNode.enqueue(job, { ...spec, queueName: job.nodeId });
+};

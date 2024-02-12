@@ -6,7 +6,7 @@ import { useDatasetEvals } from "~/utils/hooks";
 import ViewDatasetButton from "../datasets/ViewDatasetButton";
 import { ProjectLink } from "../ProjectLink";
 
-const EvalsTable = ({}) => {
+const EvalsTable = () => {
   const datasetEvals = useDatasetEvals().data;
 
   if (!datasetEvals) return null;
@@ -35,7 +35,7 @@ const EvalsTable = ({}) => {
                   </Td>
                   <Td>{dayjs(datasetEval.createdAt).format("MMMM D h:mm A")}</Td>
                   <Td>{datasetEval.numModels.toLocaleString()}</Td>
-                  <Td>{datasetEval.numDatasetEntries.toLocaleString()}</Td>
+                  <Td>{datasetEval.numRows.toLocaleString()}</Td>
                   <Td>
                     <ViewDatasetButton
                       buttonText={datasetEval.datasetName}

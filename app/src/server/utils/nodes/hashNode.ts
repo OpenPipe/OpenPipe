@@ -37,23 +37,31 @@ export const hashNode = <T extends z.infer<typeof nodeSchema>["type"]>({
 
 export const hashDatasetEntryInput = ({
   projectId,
-  tool_choice = {},
-  tools = [],
+  tool_choice,
+  tools,
   messages,
-  response_format = {},
+  response_format,
 }: {
   projectId: string;
-  tool_choice?: JsonValue;
-  tools?: object[];
+  tool_choice?: string | object | null;
+  tools?: object[] | null;
   messages: JsonValue;
   response_format?: JsonValue;
 }) => {
-  return hashObject({
+  console.log("args in hashDatasetEntryInput", {
     projectId,
     tool_choice,
-    tools: tools as JsonValue,
+    tools,
     messages,
     response_format,
+  });
+  return hashObject({
+    projectId,
+    tool_choice: (tool_choice ?? null) as JsonValue,
+    // default tools to empty array to match db
+    tools: (tools ?? []) as JsonValue,
+    messages,
+    response_format: response_format ?? null,
   });
 };
 
@@ -65,8 +73,8 @@ export const hashAndSaveDatasetEntryInput = async ({
   response_format,
 }: {
   projectId: string;
-  tool_choice?: JsonValue;
-  tools?: object[];
+  tool_choice?: string | object | null;
+  tools?: object[] | null;
   messages: JsonValue;
   response_format?: JsonValue;
 }) => {

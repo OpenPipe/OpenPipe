@@ -33,6 +33,7 @@ export const prepareArchiveCreation = ({
     }),
     prisma.nodeOutput.create({
       data: {
+        id: entriesOutputId,
         nodeId: archiveNodeId,
         label: ArchiveOutput.Entries,
       },
@@ -69,6 +70,7 @@ export const prepareMonitorCreation = ({
     }),
     prisma.nodeOutput.create({
       data: {
+        id: matchedLogsOutputId,
         nodeId: monitorNodeId,
         label: MonitorOutput.MatchedLogs,
       },
@@ -176,12 +178,14 @@ export const prepareDatasetCreation = ({
     id: datasetNodeId,
     type: "Dataset",
   });
+
   const prismaCreations: Prisma.PrismaPromise<unknown>[] = [
     prisma.node.create({
       data: preparedDatasetNodeParams,
     }),
     prisma.nodeOutput.create({
       data: {
+        id: entriesOutputId,
         nodeId: datasetNodeId,
         label: DatasetOutput.Entries,
       },

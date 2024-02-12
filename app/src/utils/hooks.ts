@@ -134,13 +134,15 @@ export const useDatasets = () => {
   );
 };
 
-export const useDataset = (datasetId?: string) => {
+export const useDataset = (options?: { datasetId?: string; refetchInterval?: number }) => {
   const router = useRouter();
 
-  if (!datasetId) {
-    datasetId = router.query.id as string;
-  }
-  const dataset = api.datasets.get.useQuery({ id: datasetId }, { enabled: !!datasetId });
+  const datasetId = options?.datasetId ?? (router.query.id as string);
+
+  const dataset = api.datasets.get.useQuery(
+    { id: datasetId },
+    { enabled: !!datasetId, refetchInterval: options?.refetchInterval },
+  );
 
   return dataset;
 };

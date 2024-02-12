@@ -393,12 +393,12 @@ export interface NewDatasetEvalResult {
   wasFirst: boolean | null;
   comparisonResultId: string | null;
   comparisonOutputSourceId: string | null;
+  datasetEvalNodeEntryId: string;
   inputHash: string | null;
   outputHash: string | null;
   datasetEvalOutputSourceId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  datasetEvalNodeEntryId: string;
 }
 
 export interface NewFineTuneTestingEntry {
@@ -418,12 +418,12 @@ export interface NewFineTuneTrainingEntry {
   id: string;
   prunedInputTokens: number | null;
   outputTokens: number | null;
+  persistentId: string;
   inputHash: string;
   outputHash: string;
   fineTuneId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  persistentId: string;
 }
 
 export interface NewPruningRuleMatch {

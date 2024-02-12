@@ -49,6 +49,7 @@ model Dataset {
     datasetFileUploads      DatasetFileUpload[]
     pruningRules            PruningRule[]
     trainingRatio           Float               @default(0.8)
+    // TODO: convert to type JSON for better kysely parsing
     enabledComparisonModels ComparisonModel[]   @default([])
 
     datasetEvals DatasetEval[]
@@ -975,6 +976,7 @@ model NodeEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
+    @@unique([parentNodeEntryId, dataChannelId])
     @@index([nodeId, persistentId])
     @@index([nodeId, inputHash, persistentId])
     @@index([loggedCallId, dataChannelId])
@@ -984,7 +986,7 @@ model NodeEntry {
 
 model DatasetEntryInput {
     tool_choice     Json?
-    tools           Json?
+    tools           Json  @default("[]")
     messages        Json  @default("[]")
     response_format Json?
     inputTokens     Int?

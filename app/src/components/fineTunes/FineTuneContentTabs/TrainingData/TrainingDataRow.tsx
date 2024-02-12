@@ -17,7 +17,7 @@ export const TableHeader = () => {
 const TrainingDataRow = ({
   datasetEntry: entry,
 }: {
-  datasetEntry: RouterOutputs["fineTunes"]["listTrainingEntries"]["entries"][number]["datasetEntry"];
+  datasetEntry: RouterOutputs["fineTunes"]["listTrainingEntries"]["entries"][number];
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 

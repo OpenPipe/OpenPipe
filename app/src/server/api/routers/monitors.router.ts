@@ -11,7 +11,7 @@ import { success } from "~/utils/errorHandling/standardResponses";
 import { getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 import { prepareMonitorCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
-import { processNode } from "~/server/tasks/nodes/processNode.task";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNode.task";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -234,7 +234,7 @@ export const monitorsRouter = createTRPCRouter({
           .execute();
       }
 
-      await processNode.enqueue({ nodeId: id, nodeType: "Monitor", invalidateData });
+      await enqueueProcessNode({ nodeId: id, nodeType: "Monitor", invalidateData });
 
       return success("Monitor updated");
     }),

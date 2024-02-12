@@ -12,8 +12,6 @@ const defaultFilterOptions: FilterOption[] = [
     field: GeneralFiltersDefaultFields.Split,
     options: [{ value: "TRAIN" }, { value: "TEST" }],
   },
-  { type: "text", field: GeneralFiltersDefaultFields.ImportId },
-  { type: "text", field: GeneralFiltersDefaultFields.RelabelBatchId },
 ];
 
 const GeneralFilters = () => {

@@ -1,8 +1,9 @@
 import { sql } from "kysely";
+import { type DatasetEntrySplit } from "@prisma/client";
 
 import { kysely, prisma } from "~/server/db";
 import { ManualRelabelOutput, typedNode } from "../node.types";
-import { forwardNodeEntries } from "../forwardNodeEntries";
+import { type ForwardEntriesSelectionExpression, forwardNodeEntries } from "../forwardNodeEntries";
 
 export const processManualRelabel = async (nodeId: string) => {
   const node = await prisma.node
@@ -21,23 +22,6 @@ export const processManualRelabel = async (nodeId: string) => {
     })
     .execute();
 
-  // process all cached entries
-  await kysely
-    .updateTable("NodeEntry")
-    .set({
-      inputHash: sql`"cpne"."outgoingDEIHash"`,
-      outputHash: sql`"cpne"."outgoingDEOHash"`,
-      split: sql`"cpne"."outgoingSplit"`,
-    })
-    .from("CachedProcessedNodeEntry as cpne")
-    .where("NodeEntry.nodeId", "=", node.id)
-    .where("NodeEntry.status", "=", "PROCESSING")
-    .whereRef("cpne.nodeEntryPersistentId", "=", "NodeEntry.persistentId")
-    .where("cpne.nodeHash", "=", node.hash)
-    .execute();
-
-  // TODO: apply general inputHash rules
-
   await forwardNodeEntries({
     nodeId,
     nodeOutputLabel: ManualRelabelOutput.Relabeled,
@@ -46,8 +30,12 @@ export const processManualRelabel = async (nodeId: string) => {
   await forwardNodeEntries({
     nodeId,
     nodeOutputLabel: ManualRelabelOutput.Unprocessed,
-    selectionExpression: manualRelabelUnprocessedSelectionExpression,
+    // cpne.id being null throws off type inference
+    selectionExpression:
+      manualRelabelUnprocessedSelectionExpression as unknown as ForwardEntriesSelectionExpression,
   });
+
+  console.log("entries forwarded");
 
   await kysely
     .updateTable("NodeEntry")
@@ -62,14 +50,10 @@ export const processManualRelabel = async (nodeId: string) => {
 export const manualRelabelRelabeledSelectionExpression = ({
   originNodeId,
   originNodeHash,
-  destinationNodeId,
-  channelId,
 }: {
   originNodeId: string;
   originNodeHash: string;
   lastProcessedAt: Date;
-  destinationNodeId: string;
-  channelId: string;
 }) =>
   kysely
     .selectFrom("NodeEntry as ne")
@@ -78,31 +62,22 @@ export const manualRelabelRelabeledSelectionExpression = ({
     .innerJoin("CachedProcessedNodeEntry as cpne", (eb) =>
       eb
         .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
+        .onRef("cpne.nodeEntryPersistentId", "=", "ne.persistentId")
         .on("cpne.nodeHash", "=", originNodeHash),
     )
-    .select((eb) => [
-      "ne.persistentId as persistentId",
-      eb.val(destinationNodeId).as("nodeId"),
-      eb.val(channelId).as("dataChannelId"),
-      "ne.id as parentNodeEntryId",
-      "ne.loggedCallId",
-      "ne.inputHash",
-      "ne.outputHash",
-      "ne.originalOutputHash",
-      "ne.split",
+    .select([
+      sql<DatasetEntrySplit>`cpne."outgoingSplit"`.as("split"),
+      sql<string>`"cpne"."outgoingDEIHash"`.as("inputHash"),
+      sql<string>`"cpne"."outgoingDEOHash"`.as("outputHash"),
     ]);
 
 export const manualRelabelUnprocessedSelectionExpression = ({
   originNodeId,
   originNodeHash,
-  destinationNodeId,
-  channelId,
 }: {
   originNodeId: string;
   originNodeHash: string;
   lastProcessedAt: Date;
-  destinationNodeId: string;
-  channelId: string;
 }) =>
   kysely
     .selectFrom("NodeEntry as ne")
@@ -111,17 +86,8 @@ export const manualRelabelUnprocessedSelectionExpression = ({
     .leftJoin("CachedProcessedNodeEntry as cpne", (eb) =>
       eb
         .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
+        .onRef("cpne.nodeEntryPersistentId", "=", "ne.persistentId")
         .on("cpne.nodeHash", "=", originNodeHash),
     )
     .where("cpne.id", "is", null)
-    .select((eb) => [
-      "ne.persistentId as persistentId",
-      eb.val(destinationNodeId).as("nodeId"),
-      eb.val(channelId).as("dataChannelId"),
-      "ne.id as parentNodeEntryId",
-      "ne.loggedCallId",
-      "ne.inputHash",
-      "ne.outputHash",
-      "ne.originalOutputHash",
-      "ne.split",
-    ]);
+    .select(["ne.split", "ne.inputHash", "ne.outputHash"]);

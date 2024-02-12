@@ -21,10 +21,7 @@ export const constructNodeEntryFiltersQuery = ({
     .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
     .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
     .where((eb) => {
-      const wheres: Expression<SqlBool>[] = [
-        eb("ne.nodeId", "=", datasetNodeId),
-        eb("ne.status", "=", "PROCESSED"),
-      ];
+      const wheres: Expression<SqlBool>[] = [eb("ne.nodeId", "=", datasetNodeId)];
 
       for (const filter of filters) {
         if (!filter.value) continue;

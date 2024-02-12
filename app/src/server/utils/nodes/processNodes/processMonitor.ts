@@ -8,7 +8,7 @@ import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { truthyFilter } from "~/utils/utils";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { forwardNodeEntries } from "../forwardNodeEntries";
-import { generatePersistentId } from "../persistentId";
+import { generatePersistentId } from "../utils";
 
 export const processMonitor = async (nodeId: string) => {
   const node = await prisma.node
@@ -128,7 +128,8 @@ export const processMonitor = async (nodeId: string) => {
           return {
             ...validated,
             persistentId: generatePersistentId({
-              uniquePrefix: `${tLoggedCall.createdAt.toISOString()}-${tLoggedCall.id}`,
+              creationTime: tLoggedCall.requestedAt,
+              key: `${tLoggedCall.id}`,
               nodeId,
             }),
           };

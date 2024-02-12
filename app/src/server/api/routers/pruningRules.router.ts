@@ -33,8 +33,8 @@ export const pruningRulesRouter = createTRPCRouter({
             .on("ne.status", "=", "PROCESSED"),
         )
         .selectAll("pr")
-        .select((eb) => ["projectId", eb.fn.count<number>("ne.id").as("numMatches")])
-        .groupBy("pr.id")
+        .select((eb) => ["d.projectId", eb.fn.count<number>("ne.id").as("numMatches")])
+        .groupBy(["d.projectId", "pr.id"])
         .orderBy("pr.createdAt", "asc")
         .execute();
 

@@ -2,10 +2,10 @@ import React from "react";
 import chroma from "chroma-js";
 
 import { VStack, HStack, Text, Box, type StackProps } from "@chakra-ui/react";
-import { useDatasetEntries } from "~/utils/hooks";
+import { useNodeEntries } from "~/utils/hooks";
 
 const TrainingEntryMeter = (props: StackProps) => {
-  const datasetEntries = useDatasetEntries().data;
+  const datasetEntries = useNodeEntries().data;
 
   // Get the number of training entries
   const numTrainingEntries = datasetEntries?.matchingTrainingCount || 0;

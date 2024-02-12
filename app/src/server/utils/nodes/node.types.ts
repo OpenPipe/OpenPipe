@@ -14,8 +14,8 @@ export enum RelabelOption {
 }
 
 export const relabelOptions = [
-  RelabelOption.GPT40613,
   RelabelOption.GPT41106,
+  RelabelOption.GPT40613,
   RelabelOption.GPT432k,
   RelabelOption.SkipRelabel,
 ] as const;
@@ -72,7 +72,7 @@ export const nodeSchema = z.discriminatedUnion("type", [
     type: z.literal("LLMRelabel"),
     config: z
       .object({
-        relabelLLM: z.enum(relabelOptions).default(RelabelOption.GPT40613),
+        relabelLLM: z.enum(relabelOptions).default(RelabelOption.SkipRelabel),
         maxEntriesPerMinute: z.number().default(100),
         maxLLMConcurrency: z.number().default(2),
       })
@@ -108,7 +108,10 @@ export type InferNodeConfig<T extends z.infer<typeof nodeSchema>["type"]> = Extr
 
 export const typedNode = <T extends Pick<Node, "type"> & { config: Prisma.JsonValue | object }>(
   input: T,
-): Omit<T, "type" | "config"> & z.infer<typeof nodeSchema> => nodeSchema.parse(input);
+): Omit<T, "type" | "config"> & z.infer<typeof nodeSchema> => ({
+  ...input,
+  ...nodeSchema.parse(input),
+});
 
 const datasetEntryInput = z
   .object({

@@ -18,7 +18,7 @@ export default function DatasetEntryTable() {
   );
 
   useEffect(
-    () => setRefetchInterval(countingIncomplete ? 5000 : 0),
+    () => setRefetchInterval(countingIncomplete ? 5000 : 10000),
     [countingIncomplete, setRefetchInterval],
   );
 

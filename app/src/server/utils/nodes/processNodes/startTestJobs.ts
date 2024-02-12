@@ -1,10 +1,11 @@
-import { type SelectQueryBuilder } from "kysely";
+import { type SelectQueryBuilder, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { shuffle } from "lodash-es";
+import type { ComparisonModel } from "@prisma/client";
+
 import { kysely } from "~/server/db";
 import { type EvalKey, evaluateTestSetEntries } from "~/server/tasks/evaluateTestSetEntries.task";
 import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
-
 import type { DB, NodeEntry } from "~/types/kysely-codegen.types";
 
 type NodeEntryBaseQuery = SelectQueryBuilder<
@@ -32,7 +33,7 @@ export const startDatasetTestJobs = async ({
       jsonArrayFrom(
         eb.selectFrom("FineTune as ft").where("ft.datasetId", "=", datasetId).select(["ft.id"]),
       ).as("fineTunes"),
-      "d.enabledComparisonModels",
+      sql<ComparisonModel[]>`d."enabledComparisonModels"::text[]`.as("enabledComparisonModels"),
     ])
     .executeTakeFirst();
 

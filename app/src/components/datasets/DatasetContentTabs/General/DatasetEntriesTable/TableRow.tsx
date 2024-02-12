@@ -32,7 +32,7 @@ export const TableHeader = () => {
   return (
     <Thead>
       <Tr>
-        <SortableHeader title="Updated At" field="createdAt" />
+        <SortableHeader title="Created At" field="createdAt" />
         <SortableHeader isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader isNumeric title="Output Tokens" field="outputTokens" />
         <SortableHeader isNumeric title="Split" field="split" />
@@ -50,8 +50,8 @@ export const TableRow = ({
   isExpanded: boolean;
   toggleExpanded: (persistentId: string) => void;
 }) => {
-  const createdAt = dayjs(datasetEntry.createdAt).format("MMMM D h:mm A");
-  const fullTime = dayjs(datasetEntry.createdAt).toString();
+  const createdAt = dayjs(datasetEntry.creationTime).format("MMMM D h:mm A");
+  const fullTime = dayjs(datasetEntry.creationTime).toString();
 
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
@@ -66,7 +66,7 @@ export const TableRow = ({
       fontSize="sm"
     >
       <Td>
-        <Tooltip label={fullTime} placement="top">
+        <Tooltip label={fullTime} placement="top-start">
           <Box whiteSpace="nowrap" minW="120px">
             {createdAt}
           </Box>

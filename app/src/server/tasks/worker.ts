@@ -13,6 +13,8 @@ import type defineTask from "./defineTask";
 import { pgPool } from "../db";
 import { generateInvoices } from "./generateInvoices.task";
 import { chargeInvoices } from "./chargeInvoices.task";
+import { processNode } from "./nodes/processNode.task";
+import { feedMonitors } from "./nodes/feedMonitors.task";
 
 console.log("Starting worker...");
 
@@ -29,6 +31,8 @@ const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
   countDatasetEntryTokens,
   generateInvoices,
   chargeInvoices,
+  processNode,
+  feedMonitors,
 ];
 
 const taskList = registeredTasks.reduce((acc, task) => {

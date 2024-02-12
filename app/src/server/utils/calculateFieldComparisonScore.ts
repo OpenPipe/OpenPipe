@@ -2,7 +2,7 @@ import { isEqual, mean } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
-import { type typedFineTuneTestingEntry, type typedDatasetEntry } from "~/types/dbColumns.types";
+import { type typedNodeEntry } from "./nodes/node.types";
 import { kysely, prisma } from "../db";
 
 export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
@@ -108,29 +108,46 @@ export const saveFieldComparisonScore = async ({
 };
 
 export const calculateFieldComparisonScore = (
-  datasetEntry: ReturnType<typeof typedDatasetEntry>,
-  fineTuneTestingEntry: ReturnType<typeof typedFineTuneTestingEntry>,
+  nodeEntry: ReturnType<typeof typedNodeEntry>,
+  fineTuneTestingEntryOutput: ChatCompletionMessage,
 ) => {
-  if (datasetEntry.response_format?.type === "json_object" && !datasetEntry.output?.tool_calls) {
+  if (nodeEntry.response_format?.type === "json_object" && !nodeEntry.output?.tool_calls) {
     return calculateToolCallScore(
-      { name: "content", arguments: datasetEntry.output?.content ?? "" },
-      { name: "content", arguments: fineTuneTestingEntry.output?.content ?? "" },
+      { name: "content", arguments: nodeEntry.output?.content ?? "" },
+      { name: "content", arguments: fineTuneTestingEntryOutput?.content ?? "" },
     );
-  } else if (datasetEntry.output?.tool_calls) {
-    const generatedToolCalls = Object.fromEntries(
-      fineTuneTestingEntry.output?.tool_calls?.map((toolCall) => [
-        toolCall.function.name,
-        toolCall.function.arguments,
-      ]) ?? [],
-    );
+  } else if (nodeEntry.output?.tool_calls) {
+    // const generatedToolCalls = Object.fromEntries(
+    //   fineTuneTestingEntryOutput?.tool_calls?.map((toolCall) => [
+    //     toolCall.function.name,
+    //     toolCall.function.arguments,
+    //   ]) ?? [],
+    // );
 
-    const scores = datasetEntry.output?.tool_calls.map((toolCall) => {
-      const generatedToolCall = generatedToolCalls[toolCall.function.name];
-      if (!generatedToolCall) return 0;
-      return calculateToolCallScore(toolCall.function, {
-        name: toolCall.function.name,
-        arguments: generatedToolCall,
-      });
+    const generatedToolCalls: Record<string, string[]> = {};
+
+    for (const toolCall of fineTuneTestingEntryOutput?.tool_calls ?? []) {
+      const argumentsList = generatedToolCalls[toolCall.function.name] ?? [];
+      argumentsList.push(toolCall.function.arguments);
+      generatedToolCalls[toolCall.function.name] = argumentsList;
+    }
+
+    const scores = nodeEntry.output?.tool_calls.map((toolCall) => {
+      const argumentsList = generatedToolCalls[toolCall.function.name];
+      if (!argumentsList) return 0;
+      // return max score of all generated tool calls with the same name
+      return Math.max(
+        ...argumentsList.map((args) =>
+          calculateToolCallScore(toolCall.function, {
+            name: toolCall.function.name,
+            arguments: args,
+          }),
+        ),
+      );
+      // return calculateToolCallScore(toolCall.function, {
+      //   name: toolCall.function.name,
+      //   arguments: generatedToolCall,
+      // });
     });
 
     return mean(scores);
@@ -146,6 +163,8 @@ export const calculateToolCallScore = (
   originalFunctionCall: ChatCompletionMessage["function_call"],
   generatedFunctionCall: ChatCompletionMessage["function_call"],
 ) => {
+  console.log("originalFunctionCall", originalFunctionCall);
+  console.log("generatedFunctionCall", generatedFunctionCall);
   // If function names don't match, return 0
   if (!originalFunctionCall || !generatedFunctionCall) return 0;
   // If neither have args, then congrats, we matched them.

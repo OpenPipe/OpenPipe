@@ -8,7 +8,7 @@ import { LLMRelabelOutput, RelabelOption, typedDatasetEntryInput, typedNode } fr
 import { getOpenaiCompletion } from "../../openai";
 import { hashAndSaveDatasetEntryOutput } from "../hashNode";
 import { APIError } from "openai";
-import { processNode } from "~/server/tasks/nodes/processNode.task";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNode.task";
 import dayjs from "~/utils/dayjs";
 import { forwardNodeEntries } from "../forwardNodeEntries";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
@@ -115,7 +115,7 @@ export const processLLMRelabel = async (nodeId: string) => {
     .then((rows) => rows.length > 0);
 
   if (moreEntriesToProcess) {
-    await processNode.enqueue(
+    await enqueueProcessNode(
       { nodeId, nodeType: "LLMRelabel" },
       { runAt: dayjs(startTime).add(1, "minute").toDate() },
     );
@@ -221,27 +221,13 @@ const processEntry = async ({
 export const llmRelabelUnprocessedSelectionExpression = ({
   originNodeId,
   lastProcessedAt,
-  destinationNodeId,
-  channelId,
 }: {
   originNodeId: string;
   lastProcessedAt: Date;
-  destinationNodeId: string;
-  channelId: string;
 }) =>
   kysely
     .selectFrom("NodeEntry as ne")
     .where("ne.nodeId", "=", originNodeId)
     .where("ne.status", "!=", "PROCESSED")
     .where("ne.createdAt", ">=", dayjs(lastProcessedAt).subtract(10, "seconds").toDate())
-    .select((eb) => [
-      "ne.persistentId as persistentId",
-      eb.val(destinationNodeId).as("nodeId"),
-      eb.val(channelId).as("dataChannelId"),
-      "ne.id as parentNodeEntryId",
-      "ne.loggedCallId",
-      "ne.inputHash",
-      "ne.outputHash",
-      "ne.originalOutputHash",
-      "ne.split",
-    ]);
+    .select(["ne.split", "ne.inputHash", "ne.outputHash"]);

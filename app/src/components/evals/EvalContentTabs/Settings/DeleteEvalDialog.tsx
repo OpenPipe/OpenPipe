@@ -34,7 +34,7 @@ const DeleteEvalDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) =
     if (!selectedProject || !datasetEval?.id) return;
     const resp = await deleteMutation.mutateAsync({ id: datasetEval.id });
     if (maybeReportError(resp)) return;
-    await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: datasetEval.datasetId });
+    await utils.nodeEntries.listTestingEntries.invalidate({ datasetId: datasetEval.datasetId });
     await utils.datasets.get.invalidate();
 
     disclosure.onClose();

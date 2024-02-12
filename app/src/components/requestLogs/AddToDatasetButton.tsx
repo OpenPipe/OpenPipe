@@ -32,8 +32,7 @@ import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useRouter } from "next/router";
-import { constructFiltersQueryParams, useFilters } from "../Filters/useFilters";
-import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { useFilters } from "../Filters/useFilters";
 import { DATASET_GENERAL_TAB_KEY } from "../datasets/DatasetContentTabs/DatasetContentTabs";
 
 const AddToDatasetButton = () => {
@@ -93,7 +92,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
     }
   }, [disclosure.isOpen, existingDatasetOptions, maxSampleSize]);
 
-  const createDatasetEntriesMutation = api.datasetEntries.createFromLoggedCalls.useMutation();
+  const createDatasetEntriesMutation = api.nodeEntries.createFromLoggedCalls.useMutation();
 
   const [addToDataset, addingInProgress] = useHandledAsyncCallback(async () => {
     if (
@@ -116,16 +115,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
 
     if (maybeReportError(response)) return;
 
-    const { datasetId, importId } = response.payload;
-
-    const filtersQueryParams = constructFiltersQueryParams([
-      {
-        id: Date.now().toString(),
-        field: GeneralFiltersDefaultFields.ImportId,
-        comparator: "=",
-        value: importId,
-      },
-    ]);
+    const { datasetId } = response.payload;
 
     await router.push({
       pathname: "/p/[projectSlug]/datasets/[id]/[tab]",
@@ -133,7 +123,6 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
         projectSlug: selectedProject.slug,
         id: datasetId,
         tab: DATASET_GENERAL_TAB_KEY,
-        ...filtersQueryParams,
       },
     });
 

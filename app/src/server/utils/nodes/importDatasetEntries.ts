@@ -9,7 +9,7 @@ import {
 } from "~/components/datasets/parseRowsToImport";
 import { prepareDatasetEntriesForImport } from "../datasetEntryCreation/prepareDatasetEntriesForImport";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
-import { generatePersistentId } from "./persistentId";
+import { generatePersistentId } from "./utils";
 
 export const importDatasetEntries = async ({
   projectId,
@@ -82,12 +82,13 @@ export const importDatasetEntries = async ({
     progress: 60,
   });
 
-  const importTime = new Date().toISOString();
+  const importTime = new Date();
 
   const entriesToImport = goodRows.slice(0, maxEntriesToImport).map((row, index) => ({
     ...row,
     persistentId: generatePersistentId({
-      uniquePrefix: `${importTime}-${index}`,
+      creationTime: importTime,
+      key: index.toString(),
       nodeId,
     }),
   }));

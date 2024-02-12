@@ -28,15 +28,14 @@ import { truthyFilter } from "~/utils/utils";
 import {
   typedNode,
   DEFAULT_MAX_OUTPUT_SIZE,
-  relabelOptions,
   typedNodeEntry,
+  ManualRelabelOutput,
 } from "~/server/utils/nodes/node.types";
 import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
-import { generatePersistentId } from "~/server/utils/nodes/persistentId";
+import { generatePersistentId, creationTimeFromPersistentId } from "~/server/utils/nodes/utils";
 import { hashDatasetEntryInput, hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";
-import { processNode } from "~/server/tasks/nodes/processNode.task";
-import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
+import { enqueueProcessNode, processNode } from "~/server/tasks/nodes/processNode.task";
 import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
 import { startDatasetTestJobs } from "~/server/utils/nodes/processNodes/startTestJobs";
 
@@ -75,6 +74,8 @@ export const nodeEntriesRouter = createTRPCRouter({
           "ne.persistentId as persistentId",
           "ne.createdAt as createdAt",
           "ne.updatedAt as updatedAt",
+          "ne.parentNodeEntryId",
+          "ne.dataChannelId",
           "dei.messages as messages",
           "dei.inputTokens as inputTokens",
           "deo.output as output",
@@ -100,10 +101,19 @@ export const nodeEntriesRouter = createTRPCRouter({
         entriesQuery = entriesQuery.orderBy("ne.persistentId", "desc");
       }
 
-      const entries = await entriesQuery.orderBy("inputHash").execute();
+      const entries = await entriesQuery
+        .orderBy("inputHash")
+        .execute()
+        .then((res) =>
+          res.map((entry) => ({
+            ...entry,
+            creationTime: creationTimeFromPersistentId(entry.persistentId),
+          })),
+        );
+
+      console.log("entries", entries);
 
       const matchingCounts = await baseQuery
-        .where("ne.split", "=", "TRAIN")
         .select([
           sql<number>`count(case when ne.split = 'TRAIN' then 1 end)::int`.as(
             "matchingTrainingCount",
@@ -132,7 +142,7 @@ export const nodeEntriesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const nodeEntry = await kysely
         .selectFrom("NodeEntry as ne")
-        .where("ne.id", "=", input.persistentId)
+        .where("ne.persistentId", "=", input.persistentId)
         .innerJoin("Node as n", "n.id", "ne.nodeId")
         .innerJoin("Dataset as d", (join) =>
           join.onRef("d.nodeId", "=", "n.id").on("d.id", "=", input.datasetId),
@@ -258,7 +268,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         return error("No matching request logs");
       }
 
-      const importedAt = new Date().toISOString();
+      const importedAt = new Date();
 
       const rowsToConvert = loggedCalls
         .map((loggedCall, index) => {
@@ -274,7 +284,8 @@ export const nodeEntriesRouter = createTRPCRouter({
             return {
               ...validated,
               persistentId: generatePersistentId({
-                uniquePrefix: `${importedAt}-${index}`,
+                creationTime: importedAt,
+                key: index.toString(),
                 nodeId: preparedArchiveCreation.archiveNodeId,
               }),
               loggedCallId: tLoggedCall.id,
@@ -313,6 +324,11 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       await countDatasetEntryTokens.enqueue();
 
+      await processNode.runNow({
+        nodeId: preparedArchiveCreation.archiveNodeId,
+        nodeType: "Archive",
+      });
+
       return success({ datasetId, importedAt });
     }),
   update: protectedProcedure
@@ -334,6 +350,13 @@ export const nodeEntriesRouter = createTRPCRouter({
         .innerJoin("NodeEntry as parentNodeEntry", "parentNodeEntry.id", "ne.parentNodeEntryId")
         .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
         .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
+        .innerJoin("Node as n", "n.id", "ne.nodeId")
+        .innerJoin("DataChannel as dc", "dc.destinationId", "n.id")
+        .innerJoin("NodeOutput as no", (join) =>
+          join
+            .onRef("no.id", "=", "dc.originId")
+            .on("no.label", "=", ManualRelabelOutput.Relabeled),
+        )
         .selectAll("ne")
         .select((eb) => [
           "parentNodeEntry.inputHash as parentNodeEntryInputHash",
@@ -345,10 +368,11 @@ export const nodeEntriesRouter = createTRPCRouter({
           jsonObjectFrom(
             eb
               .selectFrom("Node as n")
-              .where("n.id", "=", "ne.nodeId")
+              .whereRef("n.id", "=", "ne.nodeId")
               .innerJoin("Dataset as d", "d.nodeId", "n.id")
               .select(["n.projectId", "n.id", "n.type", "n.config", "n.hash", "d.id as datasetId"]),
           ).as("node"),
+          "dc.id as relabeledDataChannelId",
         ])
         .executeTakeFirst();
 
@@ -406,7 +430,6 @@ export const nodeEntriesRouter = createTRPCRouter({
         const updatedInputHash = hashDatasetEntryInput({
           ...tNodeEntry,
           projectId: tNode.projectId,
-          tools: tNodeEntry.tools ?? undefined,
         });
         const inputUpdated = updatedInputHash !== tNodeEntry.inputHash;
         if (inputUpdated) {
@@ -417,7 +440,6 @@ export const nodeEntriesRouter = createTRPCRouter({
               tools: JSON.stringify(tNodeEntry.tools),
               messages: JSON.stringify(tNodeEntry.messages),
               response_format: JSON.stringify(tNodeEntry.response_format),
-              inputTokens: 0,
               hash: updatedInputHash,
             })
             .onConflict((oc) => oc.columns(["hash"]).doNothing())
@@ -434,7 +456,6 @@ export const nodeEntriesRouter = createTRPCRouter({
             .insertInto("DatasetEntryOutput")
             .values({
               output: JSON.stringify(tNodeEntry.output),
-              outputTokens: 0,
               hash: updatedOutputHash,
             })
             .onConflict((oc) => oc.columns(["hash"]).doNothing())
@@ -464,11 +485,19 @@ export const nodeEntriesRouter = createTRPCRouter({
               updatedAt: new Date(),
             })
             .onConflict((oc) =>
-              oc.columns(["nodeHash", "nodeEntryPersistentId", "incomingDEIHash"]).doUpdateSet({
-                updatedAt: new Date(),
-                outgoingDEIHash: updatedInputHash,
-                outgoingDEOHash: updatedOutputHash,
-              }),
+              oc
+                .columns([
+                  "nodeEntryPersistentId",
+                  "incomingDEIHash",
+                  "nodeHash",
+                  "incomingDEOHash",
+                ])
+                .doUpdateSet({
+                  updatedAt: new Date(),
+                  outgoingDEIHash: updatedInputHash,
+                  outgoingDEOHash: updatedOutputHash,
+                  outgoingSplit: updatedSplit,
+                }),
             )
             .execute();
 
@@ -503,99 +532,35 @@ export const nodeEntriesRouter = createTRPCRouter({
             .updateTable("NodeEntry")
             .where("id", "=", tNodeEntry.id)
             .set({
+              status: "PENDING",
               inputHash: updatedInputHash,
               outputHash: updatedOutputHash,
               split: updatedSplit,
+              dataChannelId: tNodeEntry.relabeledDataChannelId,
               updatedAt: new Date(),
             })
             .execute();
 
-          await processNode.enqueue({ nodeId: manualRelabelNode.id, nodeType: "ManualRelabel" });
+          await enqueueProcessNode({ nodeId: manualRelabelNode.id, nodeType: "ManualRelabel" });
           await countDatasetEntryTokens.enqueue();
 
           await updateDatasetPruningRuleMatches({
             nodeHash: tNode.hash,
             datasetId: tNode.datasetId,
-            nodeEntryBaseQuery: kysely
-              .selectFrom("NodeEntry as ne")
-              .where("ne.nodeId", "=", input.id)
-              .where("ne.status", "=", "PROCESSED"),
+            nodeEntryBaseQuery: kysely.selectFrom("NodeEntry as ne").where("ne.id", "=", input.id),
           });
           if (updatedSplit === "TEST") {
             await startDatasetTestJobs({
               datasetId: tNode.datasetId,
               nodeEntryBaseQuery: kysely
                 .selectFrom("NodeEntry as ne")
-                .where("ne.nodeId", "=", input.id)
-                .where("ne.split", "=", "TEST")
-                .where("ne.status", "=", "PROCESSED"),
+                .where("ne.id", "=", input.id),
             });
           }
         }
       }
 
       return success("Update complete");
-    }),
-
-  updateRelabelModel: protectedProcedure
-    .input(
-      z.object({
-        datasetId: z.string(),
-        relabelLLM: z.enum(relabelOptions),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const { datasetId, relabelLLM } = input;
-
-      const dataset = await prisma.dataset.findUnique({
-        where: {
-          id: datasetId,
-        },
-        include: {
-          node: true,
-        },
-      });
-
-      if (!dataset || !dataset.node) return error("Dataset not found");
-
-      await requireCanModifyProject(dataset.projectId, ctx);
-
-      const tNode = typedNode(dataset.node);
-
-      if (tNode.type !== "Dataset") return error("Dataset node not found");
-
-      const llmRelabelNode = await prisma.node.findUnique({
-        where: {
-          id: tNode.config.llmRelabelNodeId,
-        },
-      });
-
-      if (!llmRelabelNode) return error("Unable to find LLM Relabel Node");
-
-      const tLLMRelabelNode = typedNode(llmRelabelNode);
-
-      if (tLLMRelabelNode.type !== "LLMRelabel") return error("LLM Relabel node not found");
-
-      await prisma.node.update({
-        where: {
-          id: tNode.id,
-        },
-        data: checkNodeInput({
-          ...tLLMRelabelNode,
-          config: {
-            ...tLLMRelabelNode.config,
-            relabelLLM,
-          },
-        }),
-      });
-
-      await processNode.enqueue({
-        nodeId: tLLMRelabelNode.id,
-        nodeType: "LLMRelabel",
-        invalidateData: true,
-      });
-
-      return success("Relabel model updated");
     }),
 
   // TODO: move to datasets router after great migration
@@ -739,6 +704,10 @@ export const nodeEntriesRouter = createTRPCRouter({
         .limit(pageSize)
         .execute();
 
+      console.log("testingEntries", entries);
+
+      // console.log(entries[0].fineTuneTestDatasetEntries[0].output.tool_calls);
+
       const count = await baseQuery
         .select([sql<number>`count(*)::int`.as("count")])
         .executeTakeFirst()
@@ -783,19 +752,18 @@ export const nodeEntriesRouter = createTRPCRouter({
         throw new TRPCError({ message: "Dataset node does not exist", code: "NOT_FOUND" });
 
       const finishedCount = await kysely
-        .selectFrom("NewFineTuneTestingEntry as ftte")
-        .innerJoin("NodeEntry as nd", (join) =>
+        .selectFrom("NodeEntry as ne")
+        .where("ne.nodeId", "=", dataset.nodeId)
+        .where("ne.split", "=", "TEST")
+        .innerJoin("NewFineTuneTestingEntry as ftte", (join) =>
           join
-            .on("nd.nodeId", "=", dataset.nodeId)
-            .onRef("nd.inputHash", "=", "ftte.inputHash")
-            .on("nd.split", "=", "TEST")
-            .on("nd.status", "=", "PROCESSED"),
+            .onRef("ftte.inputHash", "=", "ne.inputHash")
+            .on("ftte.modelId", "=", modelId)
+            .on("ftte.outputHash", "is not", null),
         )
-        .distinctOn(["nd.persistentId", "nd.inputHash"])
-        .where("ftte.modelId", "=", modelId)
-        .where(sql`"ftte"."output" is not null`)
         .select([sql<number>`count(*)::int`.as("count")])
-        .execute();
+        .executeTakeFirst()
+        .then((res) => res?.count ?? 0);
 
       const baseQuery = constructEvaluationFiltersQuery({ filters, nodeId: dataset.nodeId });
 
@@ -844,7 +812,7 @@ export const nodeEntriesRouter = createTRPCRouter({
                 ])
                 .groupBy(["dene.nodeEntryPersistentId"])
                 .as(alias),
-            (join) => join.onRef(`${alias}.persistentId`, "=", "nd.persistentId"),
+            (join) => join.onRef(`${alias}.persistentId`, "=", "ne.persistentId"),
           )
           .select((eb) => [
             eb.fn.agg<number>("AVG", [`${alias}.scoreForEval`]).as(`score_${datasetEval.id}`),
@@ -919,7 +887,7 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       return {
         fineTune,
-        finishedCount: finishedCount.length,
+        finishedCount,
         evalPerformances,
         resultsPending,
       };

@@ -1,5 +1,5 @@
 import { kysely } from "~/server/db";
-import { processNode } from "~/server/tasks/nodes/processNode.task";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNode.task";
 
 export const enqueueDescendants = async (nodeId: string) => {
   const descendants = await kysely
@@ -8,10 +8,16 @@ export const enqueueDescendants = async (nodeId: string) => {
     .innerJoin("NodeOutput as no", "no.nodeId", "parentNode.id")
     .innerJoin("DataChannel as dc", "dc.originId", "no.id")
     .innerJoin("Node as descendantNode", "descendantNode.id", "dc.destinationId")
-    .select(["descendantNode.id", "descendantNode.type"])
+    .distinctOn("descendantNode.id")
+    .select([
+      "descendantNode.id",
+      "descendantNode.type",
+      "no.id as nodeOutputId",
+      "dc.id as dataChannelId",
+    ])
     .execute();
 
   for (const descendant of descendants) {
-    await processNode.enqueue({ nodeId: descendant.id, nodeType: descendant.type });
+    await enqueueProcessNode({ nodeId: descendant.id, nodeType: descendant.type });
   }
 };

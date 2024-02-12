@@ -1,6 +1,6 @@
 import { kysely } from "~/server/db";
 import defineTask from "../defineTask";
-import { processNode } from "./processNode.task";
+import { enqueueProcessNode } from "./processNode.task";
 
 export const feedMonitors = defineTask({
   id: "feedMonitors",
@@ -12,7 +12,7 @@ export const feedMonitors = defineTask({
       .execute();
 
     for (const monitor of monitors) {
-      await processNode.enqueue({
+      await enqueueProcessNode({
         nodeId: monitor.id,
         nodeType: "Monitor",
       });

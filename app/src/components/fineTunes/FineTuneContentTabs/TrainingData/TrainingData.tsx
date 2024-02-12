@@ -34,7 +34,7 @@ const TrainingData = () => {
               <TableHeader />
               <Tbody>
                 {entries.map((entry) => (
-                  <TrainingDataRow key={entry.id} datasetEntry={entry.datasetEntry} />
+                  <TrainingDataRow key={entry.id} datasetEntry={entry} />
                 ))}
               </Tbody>
             </Table>

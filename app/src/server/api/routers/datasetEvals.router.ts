@@ -53,7 +53,7 @@ export const datasetEvalsRouter = createTRPCRouter({
             .select(["deos.id", "deos.modelId"])
             .orderBy("deos.createdAt", "asc"),
         ).as("outputSources"),
-        eb.fn.count<string>("dene.id").as("numDatasetEntries"),
+        eb.fn.count<string>("dene.id").as("numRows"),
       ])
       .groupBy(["eval.id", "d.name", "d.projectId"])
       .executeTakeFirst();
@@ -117,7 +117,7 @@ export const datasetEvalsRouter = createTRPCRouter({
 
     return {
       ...datasetEval,
-      numDatasetEntries: parseInt(datasetEval.numDatasetEntries),
+      numRows: parseInt(datasetEval.numRows),
       results: {
         leaderboard,
         headToHead,

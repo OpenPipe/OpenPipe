@@ -16,7 +16,7 @@ import {
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
 import { AiOutlineEdit } from "react-icons/ai";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 import { api } from "~/utils/api";
 import { type RelabelOption, relabelOptions } from "~/server/utils/nodes/node.types";
@@ -51,6 +51,10 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
   const utils = api.useContext();
 
   const [relabelOption, setRelabelOption] = useState(dataset?.relabelLLM);
+
+  useEffect(() => {
+    setRelabelOption(dataset?.relabelLLM);
+  }, [dataset?.relabelLLM, setRelabelOption]);
 
   const [onRelabelConfirm, confirmingRelabelInProgress] = useHandledAsyncCallback(async () => {
     if (!dataset || !relabelOption || relabelOption === dataset.relabelLLM) return;
@@ -94,12 +98,13 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
               ) : (
                 <VStack alignItems="flex-start">
                   <RadioGroup
+                    colorScheme="orange"
                     onChange={(option) => setRelabelOption(option as RelabelOption)}
                     value={relabelOption}
                   >
                     <Stack>
                       {relabelOptions.map((option) => (
-                        <Radio key={option} name={option}>
+                        <Radio key={option} value={option}>
                           {option}
                         </Radio>
                       ))}

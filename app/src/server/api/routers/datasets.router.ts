@@ -14,7 +14,7 @@ import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
 import { DEFAULT_MAX_OUTPUT_SIZE, typedNode } from "~/server/utils/nodes/node.types";
-import { processNode } from "~/server/tasks/nodes/processNode.task";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNode.task";
 import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { startDatasetTestJobs } from "~/server/utils/nodes/processNodes/startTestJobs";
 import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
@@ -30,17 +30,21 @@ export const datasetsRouter = createTRPCRouter({
     const dataset = await kysely
       .selectFrom("Dataset as d")
       .where("d.id", "=", input.id)
-      .selectAll("d")
       .select((eb) => [
+        "d.projectId",
+        "d.nodeId",
+        "d.id",
+        "d.name",
+        sql<ComparisonModel[]>`d."enabledComparisonModels"::text[]`.as("enabledComparisonModels"),
         jsonObjectFrom(
           eb
             .selectFrom("Project as p")
             .whereRef("p.id", "=", "d.projectId")
             .select(["p.id", "p.name"]),
         ).as("project"),
-        jsonObjectFrom(eb.selectFrom("Node as n").where("n.id", "=", "d.nodeId").selectAll("n")).as(
-          "node",
-        ),
+        jsonObjectFrom(
+          eb.selectFrom("Node as n").whereRef("n.id", "=", "d.nodeId").selectAll("n"),
+        ).as("node"),
         jsonArrayFrom(
           eb
             .selectFrom("DatasetEval as de")
@@ -90,11 +94,8 @@ export const datasetsRouter = createTRPCRouter({
     if (tLlmRelabelNode.type !== "LLMRelabel")
       throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
 
-    const enabledComparisonModels = (dataset.enabledComparisonModels ?? []) as ComparisonModel[];
-
     return {
       ...dataset,
-      enabledComparisonModels,
       relabelLLM: tLlmRelabelNode.config.relabelLLM,
     };
   }),
@@ -126,9 +127,9 @@ export const datasetsRouter = createTRPCRouter({
 
       const datasetEntryStats = await baseQuery
         .select([
-          sql<number>`count(de.id)::int`.as("numEntries"),
-          sql<number>`sum(de."inputTokens")::int`.as("totalInputTokens"),
-          sql<number>`sum(de."outputTokens")::int`.as("totalOutputTokens"),
+          sql<number>`count(ne.id)::int`.as("numEntries"),
+          sql<number>`sum(dei."inputTokens")::int`.as("totalInputTokens"),
+          sql<number>`sum(deo."outputTokens")::int`.as("totalOutputTokens"),
         ])
         .executeTakeFirst();
 
@@ -148,6 +149,8 @@ export const datasetsRouter = createTRPCRouter({
           .executeTakeFirst()
           .then((stats) => stats?.totalMatchTokens || 0);
       }
+
+      if (datasetEntryStats.numEntries === 0) return;
 
       const { cost } = calculateCost(
         baseModel,
@@ -174,7 +177,7 @@ export const datasetsRouter = createTRPCRouter({
         .where("nodeId", "is not", null)
         .selectAll()
         .select(() => [
-          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and status = "PROCESSED")::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "status" = 'PROCESSED')::int`.as(
             "datasetEntryCount",
           ),
           sql<number>`(select count(*) from "FineTune" where "datasetId" = d.id)::int`.as(
@@ -220,7 +223,7 @@ export const datasetsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+      const { projectId, nodeId } = await prisma.dataset.findUniqueOrThrow({
         where: { id: input.id },
       });
       await requireCanModifyProject(projectId, ctx);
@@ -238,7 +241,7 @@ export const datasetsRouter = createTRPCRouter({
           datasetId: input.id,
           nodeEntryBaseQuery: kysely
             .selectFrom("NodeEntry as ne")
-            .where("ne.nodeId", "=", input.id)
+            .where("ne.nodeId", "=", nodeId)
             .where("ne.split", "=", "TEST")
             .where("ne.status", "=", "PROCESSED"),
         });
@@ -299,7 +302,7 @@ export const datasetsRouter = createTRPCRouter({
         }),
       });
 
-      await processNode.enqueue({
+      await enqueueProcessNode({
         nodeId: tLlmRelabelNode.id,
         nodeType: "LLMRelabel",
         invalidateData: true,
@@ -417,7 +420,7 @@ export const datasetsRouter = createTRPCRouter({
         }),
       ]);
 
-      await processNode.enqueue({ nodeId: archiveNodeId, nodeType: "Archive" });
+      await enqueueProcessNode({ nodeId: archiveNodeId, nodeType: "Archive" });
     }),
   listFileUploads: protectedProcedure
     .input(z.object({ datasetId: z.string() }))

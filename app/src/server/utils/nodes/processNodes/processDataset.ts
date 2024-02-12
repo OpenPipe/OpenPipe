@@ -3,6 +3,7 @@ import { DatasetOutput, typedNode } from "../node.types";
 import { forwardNodeEntries } from "../forwardNodeEntries";
 import { updateDatasetPruningRuleMatches } from "./updatePruningRuleMatches";
 import { startDatasetTestJobs } from "./startTestJobs";
+import { printNodeEntries } from "../utils";
 
 export const processDataset = async (nodeId: string) => {
   const node = await prisma.node
