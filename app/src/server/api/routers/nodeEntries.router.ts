@@ -3,7 +3,7 @@ import { sql } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import { pick } from "lodash-es";
 import { z } from "zod";
-import { type Prisma } from "@prisma/client";
+import { type ComparisonModel, type Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
@@ -584,22 +584,30 @@ export const nodeEntriesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { datasetId, filters, visibleModelIds, page, pageSize, sortOrder } = input;
 
-      const dataset = await prisma.dataset.findUnique({
-        where: {
-          id: datasetId,
-        },
-        include: {
-          node: true,
-        },
-      });
+      const dataset = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .leftJoin("FineTune as ft", (join) =>
+          join.onRef("ft.datasetId", "=", "d.id").on("ft.status", "=", "DEPLOYED"),
+        )
+        .groupBy(["d.id", "n.id"])
+        .select([
+          "d.id as id",
+          "d.projectId as projectId",
+          sql<ComparisonModel[]>`d."enabledComparisonModels"::text[]`.as("enabledComparisonModels"),
+          "n.id as nodeId",
+          "n.hash as nodeHash",
+          "n.type as nodeType",
+          "n.config as nodeConfig",
+          sql<number>`count(ft.id)::int`.as("numDeployedModels"),
+        ])
+        .executeTakeFirst();
 
       if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
       await requireCanViewProject(dataset.projectId, ctx);
 
-      if (!dataset.node)
-        throw new TRPCError({ message: "Dataset node not found", code: "NOT_FOUND" });
-
-      const baseQuery = constructEvaluationFiltersQuery({ filters, nodeId: dataset.node.id });
+      const baseQuery = constructEvaluationFiltersQuery({ filters, nodeId: dataset.nodeId });
 
       let updatedQuery = baseQuery;
 
@@ -658,14 +666,16 @@ export const nodeEntriesRouter = createTRPCRouter({
           jsonArrayFrom(
             eb
               .selectFrom("NewFineTuneTestingEntry as ftte")
+              .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
+              .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
               .select([
-                "id",
+                "ftte.id",
                 "ftte.modelId",
-                "output",
-                "errorMessage",
-                "finishReason",
-                "inputTokens",
-                "outputTokens",
+                "ftte.errorMessage",
+                "ftte.finishReason",
+                "dei.inputTokens",
+                "deo.output",
+                "deo.outputTokens",
               ])
               .whereRef("ftte.inputHash", "=", "ne.inputHash")
               .where("ftte.modelId", "in", visibleModelIds),
@@ -704,17 +714,17 @@ export const nodeEntriesRouter = createTRPCRouter({
         .limit(pageSize)
         .execute();
 
-      console.log("testingEntries", entries);
-
-      // console.log(entries[0].fineTuneTestDatasetEntries[0].output.tool_calls);
-
       const count = await baseQuery
         .select([sql<number>`count(*)::int`.as("count")])
         .executeTakeFirst()
         .then((res) => res?.count ?? 0);
 
+      const generatedOutputsPerRow =
+        dataset.enabledComparisonModels.length + dataset.numDeployedModels;
+
       const pageIncomplete = entries.some(
         (entry) =>
+          entry.fineTuneTestDatasetEntries.length !== generatedOutputsPerRow ||
           entry.fineTuneTestDatasetEntries.some((entry) => !entry.output) ||
           entry.datasetEvalResults.some(
             (entry) => entry.status === "PENDING" || entry.status === "IN_PROGRESS",

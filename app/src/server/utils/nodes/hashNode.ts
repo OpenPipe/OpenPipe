@@ -48,13 +48,6 @@ export const hashDatasetEntryInput = ({
   messages: JsonValue;
   response_format?: JsonValue;
 }) => {
-  console.log("args in hashDatasetEntryInput", {
-    projectId,
-    tool_choice,
-    tools,
-    messages,
-    response_format,
-  });
   return hashObject({
     projectId,
     tool_choice: (tool_choice ?? null) as JsonValue,

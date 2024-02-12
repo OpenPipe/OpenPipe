@@ -79,32 +79,30 @@ export const saveFieldComparisonScore = async ({
 
   if (!datasetEvalOutputSource) throw new Error("Error retrieving dataset eval details");
 
-  const datasetEvalResult = await prisma.newDatasetEvalResult.findFirst({
-    where: {
+  await kysely
+    .insertInto("NewDatasetEvalResult")
+    .values({
+      id: uuidv4(),
       datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
       datasetEvalOutputSourceId: datasetEvalOutputSource.id,
-    },
-  });
-
-  // Prisma doesn't support upserting for records with a foreign key that contains a nullable value
-  if (datasetEvalResult) {
-    await prisma.newDatasetEvalResult.update({
-      where: { id: datasetEvalResult.id },
-      data: {
-        score,
-        status: "COMPLETE",
-      },
-    });
-  } else {
-    await prisma.newDatasetEvalResult.create({
-      data: {
-        datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
-        datasetEvalOutputSourceId: datasetEvalOutputSource.id,
-        score,
-        status: "COMPLETE",
-      },
-    });
-  }
+      score,
+      status: "COMPLETE",
+      updatedAt: new Date(),
+    })
+    .onConflict((oc) =>
+      oc
+        .columns([
+          "datasetEvalNodeEntryId",
+          "datasetEvalOutputSourceId",
+          "comparisonOutputSourceId",
+        ])
+        .doUpdateSet({
+          score,
+          status: "COMPLETE",
+          updatedAt: new Date(),
+        }),
+    )
+    .execute();
 };
 
 export const calculateFieldComparisonScore = (
@@ -117,13 +115,6 @@ export const calculateFieldComparisonScore = (
       { name: "content", arguments: fineTuneTestingEntryOutput?.content ?? "" },
     );
   } else if (nodeEntry.output?.tool_calls) {
-    // const generatedToolCalls = Object.fromEntries(
-    //   fineTuneTestingEntryOutput?.tool_calls?.map((toolCall) => [
-    //     toolCall.function.name,
-    //     toolCall.function.arguments,
-    //   ]) ?? [],
-    // );
-
     const generatedToolCalls: Record<string, string[]> = {};
 
     for (const toolCall of fineTuneTestingEntryOutput?.tool_calls ?? []) {
@@ -144,10 +135,6 @@ export const calculateFieldComparisonScore = (
           }),
         ),
       );
-      // return calculateToolCallScore(toolCall.function, {
-      //   name: toolCall.function.name,
-      //   arguments: generatedToolCall,
-      // });
     });
 
     return mean(scores);
