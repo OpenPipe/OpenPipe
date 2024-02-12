@@ -47,8 +47,8 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 To fine-tune Mistral and Llama 2 models in the hosted app, [join the waitlist](https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc).
 
 - mixtral-8x7B-instruct
-- mistral-7b-optimized-1227
-- llama-2-13b
+- mistral-7B-optimized-1227
+- llama-2-13B
 - gpt-3.5-turbo
 
 ## Documentation
