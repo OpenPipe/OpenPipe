@@ -125,6 +125,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       setSelectedBaseModel(visibleModels[0]);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
       setTrainingConfigOverrides(undefined);
+      utils.datasets.getTrainingCosts.invalidate();
     }
   }, [disclosure.isOpen]);
 
@@ -394,9 +395,14 @@ Controls the magnitude of updates to the model's parameters during training."
         <ModalFooter>
           <VStack alignItems="end">
             <HStack fontSize="sm" spacing={1}>
+              {" "}
               <Text>Estimated training price:</Text>
               <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
-                <Text>${Number(stats.data?.cost ?? 0).toFixed(2)}</Text>
+                <Text>
+                  {stats.data?.calculating
+                    ? "calculating..."
+                    : "$" + Number(stats.data?.cost ?? 0).toFixed(2)}
+                </Text>
               </Skeleton>
             </HStack>
             <HStack>
