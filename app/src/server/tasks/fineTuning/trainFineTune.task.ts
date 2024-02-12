@@ -1,3 +1,8 @@
+import { captureException } from "@sentry/node";
+import { from } from "ix/asynciterable";
+import { filter, map } from "ix/asynciterable/operators";
+import { toNodeStream } from "ix/asynciterable/tonodestream";
+
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
 import { callbackBaseUrl, trainerv1 } from "~/server/modal-rpc/clients";
@@ -9,9 +14,6 @@ import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-t
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
-import { from } from "ix/asynciterable";
-import { filter, map } from "ix/asynciterable/operators";
-import { toNodeStream } from "ix/asynciterable/tonodestream";
 import { insertTrainingDataPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
 import { trainingConfig } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { countLlamaInputTokens } from "~/utils/countTokens";
@@ -156,7 +158,16 @@ const trainModalFineTune = async (fineTuneId: string) => {
       },
     });
   } catch (e) {
+    captureException(e, {
+      extra: {
+        text: "Failed to start training",
+        fineTuneId,
+        huggingFaceModelId,
+      },
+    });
+
     console.error("Failed to start training", e);
+
     await prisma.fineTune.update({
       where: { id: fineTuneId },
       data: {
