@@ -14,6 +14,7 @@ import {
   getNumEpochsFromConfig,
 } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
+import { captureException } from "@sentry/node";
 
 const MAX_AUTO_RETRIES = 2;
 
@@ -96,6 +97,13 @@ export const checkFineTuneStatus = defineTask({
               });
               await trainFineTune.enqueue({ fineTuneId: ft.id });
             } else {
+              captureException("Training job failed.", {
+                extra: {
+                  fineTuneId: ft.id,
+                  resp,
+                },
+              });
+
               await prisma.fineTune.update({
                 where: { id: ft.id },
                 data: {
@@ -122,7 +130,12 @@ export const checkFineTuneStatus = defineTask({
             captureFineTuneTrainingFinished(ft.projectId, ft.slug, false);
           }
         } catch (e) {
-          console.error(`Failed to check training status for model ${ft.id}`, e);
+          captureException(e, {
+            extra: {
+              test: `Failed to check training status for model ${ft.id}`,
+              fineTuneId: ft.id,
+            },
+          });
           return;
         }
       }),
