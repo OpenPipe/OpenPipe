@@ -114,6 +114,9 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     splitProvider(selectedBaseModel).baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1" &&
     isMissingBetaAccess;
 
+  const advancedConfigEnabled = splitProvider(selectedBaseModel).provider !== "openai";
+  const displayCostEnabled = splitProvider(selectedBaseModel).provider !== "openai";
+
   const numTrainingEntries = datasetEntries?.matchingTrainingCount || 0;
   const numTestingEntries = datasetEntries?.totalTestingCount || 0;
 
@@ -335,65 +338,61 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                     tab.
                   </Text>
 
-                  <HStack>
-                    <Text fontWeight="bold">Learning rate</Text>{" "}
-                    <InfoCircle
-                      tooltipText="
+                  {advancedConfigEnabled && (
+                    <VStack alignItems="start">
+                      <HStack>
+                        <Text fontWeight="bold">Learning rate</Text>{" "}
+                        <InfoCircle
+                          tooltipText="
 Controls the magnitude of updates to the model's parameters during training."
-                    />
-                  </HStack>
+                        />
+                      </HStack>
 
-                  <VStack w="full" alignItems="flex-start">
-                    <NumberInput
-                      step={0.0001}
-                      min={0.0001}
-                      max={1000}
-                      value={trainingConfigOverrides?.learning_rate}
-                      backgroundColor="white"
-                      onChange={(_, learning_rate) => {
-                        setTrainingConfigOverrides((prevState) => ({
-                          ...prevState,
-                          learning_rate,
-                        }));
-                      }}
-                    >
-                      <NumberInputField
-                        placeholder={trainingConfigOverrides?.learning_rate?.toString() || "Auto"}
-                      />
-                      <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                      </NumberInputStepper>
-                    </NumberInput>
-                  </VStack>
-                  <HStack>
-                    <Text fontWeight="bold">Number of Epochs</Text>{" "}
-                    <InfoCircle tooltipText="The total number of times the entire dataset is passed forward and backward through a neural network during training." />
-                  </HStack>
+                      <NumberInput
+                        step={0.0001}
+                        min={0.0001}
+                        max={1000}
+                        value={trainingConfigOverrides?.learning_rate}
+                        backgroundColor="white"
+                        onChange={(_, learning_rate) => {
+                          setTrainingConfigOverrides((prevState) => ({
+                            ...prevState,
+                            learning_rate,
+                          }));
+                        }}
+                      >
+                        <NumberInputField
+                          placeholder={trainingConfigOverrides?.learning_rate?.toString() || "Auto"}
+                        />
+                      </NumberInput>
+                      <HStack>
+                        <Text fontWeight="bold">Number of Epochs</Text>{" "}
+                        <InfoCircle tooltipText="The total number of times the entire dataset is passed forward and backward through a neural network during training." />
+                      </HStack>
 
-                  <VStack w="full" alignItems="flex-start">
-                    <NumberInput
-                      backgroundColor="white"
-                      step={1}
-                      min={1}
-                      max={20}
-                      value={trainingConfigOverrides?.num_epochs}
-                      onChange={(_, num_epochs) => {
-                        setTrainingConfigOverrides((prevState) => ({
-                          ...prevState,
-                          num_epochs,
-                        }));
-                      }}
-                    >
-                      <NumberInputField
-                        placeholder={trainingConfigOverrides?.num_epochs?.toString() || "Auto"}
-                      />
-                      <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                      </NumberInputStepper>
-                    </NumberInput>
-                  </VStack>
+                      <NumberInput
+                        backgroundColor="white"
+                        step={1}
+                        min={1}
+                        max={20}
+                        value={trainingConfigOverrides?.num_epochs}
+                        onChange={(_, num_epochs) => {
+                          setTrainingConfigOverrides((prevState) => ({
+                            ...prevState,
+                            num_epochs,
+                          }));
+                        }}
+                      >
+                        <NumberInputField
+                          placeholder={trainingConfigOverrides?.num_epochs?.toString() || "Auto"}
+                        />
+                        <NumberInputStepper>
+                          <NumberIncrementStepper />
+                          <NumberDecrementStepper />
+                        </NumberInputStepper>
+                      </NumberInput>
+                    </VStack>
+                  )}
                 </VStack>
               </Collapse>
             </VStack>
@@ -401,16 +400,18 @@ Controls the magnitude of updates to the model's parameters during training."
         </ModalBody>
         <ModalFooter>
           <VStack alignItems="end">
-            <HStack fontSize="sm" spacing={1}>
-              <Text>Estimated training price:</Text>
-              <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!price.isLoading}>
-                <Text>
-                  {price.data?.calculating
-                    ? "calculating..."
-                    : "$" + Number(price.data?.cost ?? 0).toFixed(2)}
-                </Text>
-              </Skeleton>
-            </HStack>
+            {price.data?.calculating ? (
+              <Text>Processing dataset...</Text>
+            ) : (
+              displayCostEnabled && (
+                <HStack fontSize="sm" spacing={1}>
+                  <Text>Estimated training price:</Text>
+                  <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!price.isLoading}>
+                    <Text>${Number(price.data?.cost ?? 0).toFixed(2)}</Text>
+                  </Skeleton>
+                </HStack>
+              )
+            )}
             <HStack>
               <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
                 Cancel
@@ -429,6 +430,7 @@ Controls the magnitude of updates to the model's parameters during training."
                   onClick={createFineTune}
                   isLoading={creationInProgress}
                   minW={24}
+                  isDisabled={price.isLoading || price.data?.calculating}
                 >
                   Start Training
                 </Button>
