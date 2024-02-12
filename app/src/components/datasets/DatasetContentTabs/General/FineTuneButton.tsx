@@ -164,7 +164,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       datasetId: dataset.id,
       filters,
       pruningRuleIds: appliedPruningRuleIds,
-      trainingConfigOverrides,
+      trainingConfigOverrides: advancedConfigEnabled ? trainingConfigOverrides : undefined,
     });
     if (maybeReportError(resp)) return;
 
