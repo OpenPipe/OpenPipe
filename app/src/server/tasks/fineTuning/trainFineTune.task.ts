@@ -166,8 +166,6 @@ const trainModalFineTune = async (fineTuneId: string) => {
       },
     });
 
-    console.error("Failed to start training", e);
-
     await prisma.fineTune.update({
       where: { id: fineTuneId },
       data: {
