@@ -350,7 +350,7 @@ Controls the magnitude of updates to the model's parameters during training."
 
                       <NumberInput
                         step={0.0001}
-                        min={0.0001}
+                        min={0}
                         max={1000}
                         value={trainingConfigOverrides?.learning_rate}
                         backgroundColor="white"
