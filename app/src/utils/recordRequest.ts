@@ -234,6 +234,12 @@ async function createTags(projectId: string, loggedCallId: string, tags: Record<
 
   await kysely.insertInto("LoggedCallTag").values(tagsToCreate).execute();
 
+  const tagNames = tagsToCreate.map((tag) => tag.name);
+
+  void recordTagNames(projectId, tagNames).catch((e) => captureException(e));
+}
+
+export async function recordTagNames(projectId: string, tagNames: string[]) {
   const project = await kysely
     .selectFrom("Project")
     .where("id", "=", projectId)
@@ -242,11 +248,9 @@ async function createTags(projectId: string, loggedCallId: string, tags: Record<
 
   if (!project) return;
 
-  const tagNames = project.tagNames ?? [];
+  const existingTagNames = project.tagNames ?? [];
 
-  const tagsNamesToAdd = tagsToCreate
-    .filter((tag) => !tagNames.includes(tag.name))
-    .map((tag) => tag.name);
+  const tagsNamesToAdd = tagNames.filter((tagName) => !existingTagNames.includes(tagName));
 
   // optimistically assume that no two requests will simultaneously add different tags
   // this avoids row level locks
@@ -254,7 +258,7 @@ async function createTags(projectId: string, loggedCallId: string, tags: Record<
     await kysely
       .updateTable("Project")
       .set({
-        tagNames: [...tagNames, ...tagsNamesToAdd],
+        tagNames: [...existingTagNames, ...tagsNamesToAdd],
       })
       .where("id", "=", projectId)
       .execute();

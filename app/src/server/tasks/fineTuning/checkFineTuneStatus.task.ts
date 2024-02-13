@@ -9,8 +9,12 @@ import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
-import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
+import {
+  calculateNumEpochs,
+  getNumEpochsFromConfig,
+} from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
+import { captureException } from "@sentry/node";
 
 const MAX_AUTO_RETRIES = 2;
 
@@ -52,7 +56,8 @@ export const checkFineTuneStatus = defineTask({
               .executeTakeFirst();
 
             const numTrainingEntries = trainingStats?.numTrainingEntries ?? 0;
-            const numEpochs = calculateNumEpochs(numTrainingEntries);
+            const numEpochs =
+              getNumEpochsFromConfig(typedFT) || calculateNumEpochs(numTrainingEntries);
 
             const totalInputTokens = (trainingStats?.totalInputTokens ?? 0) * numEpochs;
             const totalOutputTokens = (trainingStats?.totalOutputTokens ?? 0) * numEpochs;
@@ -74,7 +79,7 @@ export const checkFineTuneStatus = defineTask({
               data: {
                 trainingFinishedAt: new Date(),
                 status: "DEPLOYED",
-                numEpochs: calculateNumEpochs(numTrainingEntries),
+                numEpochs,
               },
             });
 
@@ -92,6 +97,13 @@ export const checkFineTuneStatus = defineTask({
               });
               await trainFineTune.enqueue({ fineTuneId: ft.id });
             } else {
+              captureException("Training job failed.", {
+                extra: {
+                  fineTuneId: ft.id,
+                  resp,
+                },
+              });
+
               await prisma.fineTune.update({
                 where: { id: ft.id },
                 data: {
@@ -118,7 +130,12 @@ export const checkFineTuneStatus = defineTask({
             captureFineTuneTrainingFinished(ft.projectId, ft.slug, false);
           }
         } catch (e) {
-          console.error(`Failed to check training status for model ${ft.id}`, e);
+          captureException(e, {
+            extra: {
+              test: `Failed to check training status for model ${ft.id}`,
+              fineTuneId: ft.id,
+            },
+          });
           return;
         }
       }),
