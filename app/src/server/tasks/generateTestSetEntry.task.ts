@@ -175,6 +175,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
               inputTokens,
               outputTokens,
               ...calculateCost(fineTune, 0, inputTokens, outputTokens),
+              billable: fineTune.provider === "openpipe",
             },
           });
         }
