@@ -9,6 +9,7 @@ export { deployAccessKeyId, deployAccessKeySecret } from "./src/deployUser";
 export * from "./src/vanta";
 export * from "./src/anyscale";
 export * from "./src/models";
+export * from "./src/app-user";
 
 export const kubeconfig = cluster.kubeconfig;
 export const vpcId = vpc.vpcId;

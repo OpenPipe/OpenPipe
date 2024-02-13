@@ -31,7 +31,7 @@ export const exportedModelsBucketName = exportedModelsBucket.id;
 export const exportedModelsBucketArn = exportedModelsBucket.arn;
 
 // IAM policy for modal user to have write access to both buckets
-const bucketWritePolicy = new aws.iam.Policy(nm("model-trainer"), {
+export const writeExportBucket = new aws.iam.Policy(nm("model-trainer"), {
   policy: pulumi.interpolate`{
         "Version": "2012-10-17",
         "Statement": [{
@@ -51,7 +51,7 @@ const modalUser = new aws.iam.User(nm("model-trainer"), {});
 
 new aws.iam.UserPolicyAttachment(nm("model-trainer"), {
   user: modalUser.name,
-  policyArn: bucketWritePolicy.arn,
+  policyArn: writeExportBucket.arn,
 });
 
 const modalAccessKey = new aws.iam.AccessKey(nm("model-trainer"), {

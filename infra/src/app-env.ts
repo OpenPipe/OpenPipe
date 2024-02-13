@@ -4,6 +4,7 @@ import { nm } from "./helpers";
 import { dbConnectionString } from "./database";
 import { exportedModelsBucketName } from "./models";
 import * as pulumi from "@pulumi/pulumi";
+import { appUserAccessKeyId, appUserSecretAccessKey } from "./app-user";
 
 const cfg = new pulumi.Config();
 
@@ -57,6 +58,8 @@ export const environment = new kubernetes.core.v1.Secret(
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: cfg.require("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
       NEXT_PUBLIC_HOST: appUrl,
       NEXTAUTH_URL: appUrl,
+      AWS_ACCESS_KEY_ID: appUserAccessKeyId,
+      AWS_SECRET_ACCESS_KEY: appUserSecretAccessKey,
     },
   },
   { provider: eksProvider },
