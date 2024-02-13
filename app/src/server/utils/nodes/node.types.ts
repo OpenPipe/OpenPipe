@@ -7,16 +7,16 @@ import { chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 export const DEFAULT_MAX_OUTPUT_SIZE = 50000;
 
 export enum RelabelOption {
-  GPT40613 = "gpt-4-0613",
+  GPT351106 = "gpt-3.5-turbo-1106",
   GPT41106 = "gpt-4-1106-preview",
-  GPT432k = "gpt-4-32k",
+  GPT40613 = "gpt-4-0613",
   SkipRelabel = "skip relabeling",
 }
 
 export const relabelOptions = [
+  RelabelOption.GPT351106,
   RelabelOption.GPT41106,
   RelabelOption.GPT40613,
-  RelabelOption.GPT432k,
   RelabelOption.SkipRelabel,
 ] as const;
 

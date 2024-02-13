@@ -10,11 +10,13 @@ export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 export const saveFieldComparisonScore = async ({
   datasetId,
   persistentId,
+  nodeEntryInputHash,
   score,
   modelId,
 }: {
   datasetId: string;
   persistentId: string;
+  nodeEntryInputHash: string;
   score: number;
   modelId: string;
 }) => {
@@ -112,6 +114,7 @@ export const saveFieldComparisonScore = async ({
       await tx
         .updateTable("NewDatasetEvalResult")
         .set({
+          nodeEntryInputHash,
           score,
           status: "COMPLETE",
           updatedAt: new Date(),
@@ -125,6 +128,7 @@ export const saveFieldComparisonScore = async ({
           id: uuidv4(),
           datasetEvalNodeEntryId: datasetEvalNodeEntryId,
           datasetEvalOutputSourceId: datasetEvalOutputSourceId,
+          nodeEntryInputHash,
           score,
           status: "COMPLETE",
           updatedAt: new Date(),

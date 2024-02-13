@@ -4,7 +4,7 @@ import { DatasetEntrySplit } from "@prisma/client";
 import dayjs from "~/utils/dayjs";
 import { type RouterInputs, type RouterOutputs } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import { useIsClientInitialized, useNodeEntries } from "~/utils/hooks";
+import { useDataset, useIsClientInitialized, useNodeEntries } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import { useSortOrder, SortArrows } from "~/components/sorting";
 import { ProjectLink } from "~/components/ProjectLink";
@@ -108,6 +108,8 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
   const filters = useFilters().filters;
   const { isLoading } = useNodeEntries();
 
+  const numRelabelingEntries = useDataset().data?.numRelabelingEntries;
+
   if (isLoading) return null;
 
   if (filters.length && filtersApplied) {
@@ -122,11 +124,15 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
     );
   }
 
+  const initialText = numRelabelingEntries
+    ? `This dataset has ${numRelabelingEntries} entries pending LLM relabeling.`
+    : "This dataset has no entries.";
+
   return (
     <Tr>
       <Td w="full" colSpan={visibleColumns.size + 1}>
         <Text color="gray.500" textAlign="center" w="full" p={4}>
-          This dataset has no entries. Import logs from the{" "}
+          {initialText} You can add entries from the{" "}
           <Button variant="link" as={ProjectLink} href="/request-logs">
             <Text as="span" color="blue.600">
               Request Logs

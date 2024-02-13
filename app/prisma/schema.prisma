@@ -183,7 +183,7 @@ model NewPruningRuleMatch {
     input     DatasetEntryInput @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
 
     @@unique([inputHash, pruningRuleId])
-    @@index([inputHash, pruningRuleId])
+    @@index([pruningRuleId])
 }
 
 model Project {
@@ -712,11 +712,13 @@ model DatasetEvalResult {
 model NewDatasetEvalResult {
     id String @id @default(uuid()) @db.Uuid
 
-    score        Float?
-    explanation  String?
-    errorMessage String?
-    status       DatasetEvalResultStatus @default(PENDING)
-    judge        String?
+    score               Float?
+    explanation         String?
+    errorMessage        String?
+    status              DatasetEvalResultStatus @default(PENDING)
+    judge               String?
+    nodeEntryInputHash  String
+    nodeEntryOutputHash String?
 
     // For comparative evaluations, whether this was the first option presented
     // to the judge
@@ -730,9 +732,6 @@ model NewDatasetEvalResult {
     datasetEvalNodeEntryId String               @db.Uuid
     datasetEvalNodeEntry   DatasetEvalNodeEntry @relation(fields: [datasetEvalNodeEntryId], references: [id], onDelete: Cascade)
 
-    inputHash  String?
-    outputHash String?
-
     datasetEvalOutputSourceId String                  @db.Uuid
     datasetEvalOutputSource   DatasetEvalOutputSource @relation(fields: [datasetEvalOutputSourceId], references: [id], onDelete: Cascade)
 
@@ -740,7 +739,7 @@ model NewDatasetEvalResult {
     updatedAt DateTime @updatedAt
 
     @@unique([datasetEvalNodeEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
-    @@index([inputHash, outputHash, datasetEvalOutputSourceId])
+    @@index([nodeEntryInputHash, nodeEntryOutputHash, datasetEvalOutputSourceId])
     @@index([comparisonResultId])
 }
 

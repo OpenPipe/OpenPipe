@@ -1,4 +1,4 @@
-import { Box } from "@chakra-ui/react";
+import { Box, type BoxProps } from "@chakra-ui/react";
 
 import Filters from "~/components/Filters/Filters";
 import { type FilterOption } from "~/components/Filters/types";
@@ -14,9 +14,9 @@ const defaultFilterOptions: FilterOption[] = [
   },
 ];
 
-const GeneralFilters = () => {
+const GeneralFilters = (props: BoxProps) => {
   return (
-    <Box w="full" pt={1}>
+    <Box w="full" pt={1} {...props}>
       <Filters filterOptions={defaultFilterOptions} />
     </Box>
   );

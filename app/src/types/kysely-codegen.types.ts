@@ -144,7 +144,7 @@ export interface DatasetEntry {
 
 export interface DatasetEntryInput {
   tool_choice: Json | null;
-  tools: Json | null;
+  tools: Generated<Json>;
   messages: Generated<Json>;
   response_format: Json | null;
   inputTokens: number | null;
@@ -394,11 +394,11 @@ export interface NewDatasetEvalResult {
   comparisonResultId: string | null;
   comparisonOutputSourceId: string | null;
   datasetEvalNodeEntryId: string;
-  inputHash: string | null;
-  outputHash: string | null;
   datasetEvalOutputSourceId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  nodeEntryInputHash: string;
+  nodeEntryOutputHash: string | null;
 }
 
 export interface NewFineTuneTestingEntry {

@@ -73,7 +73,7 @@ export const datasetEvalsRouter = createTRPCRouter({
           .on("ne.nodeId", "=", datasetNodeId)
           .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
           .on("ne.split", "=", "TEST")
-          .on("ne.status", "=", "PROCESSED"),
+          .onRef("ne.inputHash", "=", "der.nodeEntryInputHash"),
       )
       .distinctOn(["ne.persistentId"])
       .leftJoin("FineTune as ft", (join) => join.onRef(sql`ft.id::text`, "=", "deos.modelId"));

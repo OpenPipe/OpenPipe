@@ -84,6 +84,14 @@ export const datasetsRouter = createTRPCRouter({
       .selectFrom("Node as n")
       .where("n.id", "=", tNode.config.llmRelabelNodeId)
       .selectAll("n")
+      .select((eb) => [
+        eb
+          .selectFrom("NodeEntry as ne")
+          .whereRef("ne.nodeId", "=", "n.id")
+          .where("ne.status", "!=", "PROCESSED")
+          .select(sql<number>`count(*)::int`.as("count"))
+          .as("numRelabelingEntries"),
+      ])
       .executeTakeFirst();
 
     if (!llmRelabelNode)
@@ -97,6 +105,7 @@ export const datasetsRouter = createTRPCRouter({
     return {
       ...dataset,
       relabelLLM: tLlmRelabelNode.config.relabelLLM,
+      numRelabelingEntries: llmRelabelNode.numRelabelingEntries,
     };
   }),
   getTrainingCosts: protectedProcedure
@@ -144,7 +153,7 @@ export const datasetsRouter = createTRPCRouter({
         ])
         .executeTakeFirst();
 
-      if (!datasetEntryStats) return;
+      if (!datasetEntryStats?.numEntries) return { cost: 0, calculating: false };
 
       let totalMatchTokens = 0;
 

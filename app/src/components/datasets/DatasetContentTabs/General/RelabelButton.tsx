@@ -83,7 +83,7 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
-                Choose an model to relabel all current and future entries in <b>{dataset.name}</b>.
+                Choose a model to relabel all current and future entries in <b>{dataset.name}</b>.
                 This project's OpenAI API key will be used for the API calls.
               </Text>
 

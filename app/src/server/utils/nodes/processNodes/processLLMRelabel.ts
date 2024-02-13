@@ -130,7 +130,7 @@ const processEntry = async ({
 }: {
   projectId: string;
   nodeHash: string;
-  relabelLLM: RelabelOption.GPT40613 | RelabelOption.GPT41106 | RelabelOption.GPT432k;
+  relabelLLM: RelabelOption.GPT351106 | RelabelOption.GPT41106 | RelabelOption.GPT40613;
   entry: Pick<DatasetEntryInput, "tool_choice" | "tools" | "messages" | "response_format"> & {
     nodeEntryId: string;
     inputHash: string;

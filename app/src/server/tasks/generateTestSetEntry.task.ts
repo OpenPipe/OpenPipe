@@ -264,7 +264,7 @@ const triggerFieldComparisonEval = async ({
   datasetId: string;
   persistentId: string;
   modelId: string;
-  nodeEntry: ReturnType<typeof typedNodeEntry>;
+  nodeEntry: ReturnType<typeof typedNodeEntry> & { inputHash: string };
   fineTuneTestingEntryOutput: ChatCompletionMessage;
 }) => {
   const fieldComparisonScore = calculateFieldComparisonScore(nodeEntry, fineTuneTestingEntryOutput);
@@ -273,6 +273,7 @@ const triggerFieldComparisonEval = async ({
     await saveFieldComparisonScore({
       datasetId,
       persistentId,
+      nodeEntryInputHash: nodeEntry.inputHash,
       score: fieldComparisonScore,
       modelId,
     });

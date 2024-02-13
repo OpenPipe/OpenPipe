@@ -36,6 +36,7 @@ export const updateDatasetPruningRuleMatches = async ({
   await kysely.transaction().execute(async (trx) => {
     if (pruningRulesToUpdate.length) {
       await trx.deleteFrom("CachedProcessedNodeEntry").where("nodeHash", "=", nodeHash).execute();
+
       await trx
         .deleteFrom("NewPruningRuleMatch as prm")
         .where(
@@ -48,6 +49,9 @@ export const updateDatasetPruningRuleMatches = async ({
 
     for (let i = numOmittedRules; i < allPruningRules.length; i++) {
       let prunedInput = sql`CAST("dei"."messages" AS TEXT)`;
+      const currentPruningRule = allPruningRules[i];
+
+      if (!currentPruningRule) continue;
 
       // For each rule to update, find all the dataset entries with matching prompts, after previous rules have been applied
       for (let j = 0; j < i; j++) {
@@ -56,23 +60,23 @@ export const updateDatasetPruningRuleMatches = async ({
         )}, '')`;
       }
 
-      const ruleTextToMatch = escapeLikeString(allPruningRules[i]?.textToMatch);
+      const ruleTextToMatch = escapeLikeString(currentPruningRule.textToMatch);
 
-      console.log("ruleTextToMatch", ruleTextToMatch);
-      const stuff = await nodeEntryBaseQuery
-        .innerJoin("DatasetEntryInput as dei", "ne.inputHash", "dei.hash")
-        .selectAll("ne")
-        .select(["dei.messages"])
-        .execute();
+      // console.log("ruleTextToMatch", ruleTextToMatch);
+      // const stuff = await nodeEntryBaseQuery
+      //   .innerJoin("DatasetEntryInput as dei", "ne.inputHash", "dei.hash")
+      //   .selectAll("ne")
+      //   .select(["dei.messages"])
+      //   .execute();
 
-      for (const row of stuff) {
-        console.log("row", row.messages);
-      }
+      // for (const row of stuff) {
+      //   console.log("row", row.messages);
+      // }
 
-      console.log("stuff", stuff);
+      // console.log("stuff", stuff);
 
       // Insert PruningRuleMatch entries
-      await kysely
+      await trx
         .insertInto("NewPruningRuleMatch")
         .columns(["id", "pruningRuleId", "inputHash"])
         .expression(() =>
@@ -90,9 +94,9 @@ export const updateDatasetPruningRuleMatches = async ({
               ];
               return eb.and(andArr);
             })
-            .select(() => [
+            .select((eb) => [
               sql`uuid_generate_v4()`.as("id"),
-              sql`${allPruningRules[i]?.id}`.as("pruningRuleId"),
+              eb.val(currentPruningRule.id).as("pruningRuleId"),
               "ne.inputHash as inputHash",
             ]),
         )

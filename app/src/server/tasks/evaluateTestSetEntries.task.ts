@@ -134,14 +134,14 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         )
         .innerJoin("NewDatasetEvalResult as der", (join) =>
           join
-            .onRef("der.inputHash", "=", "ne.inputHash")
-            .on("der.outputHash", "=", firstOutputHash)
+            .onRef("der.nodeEntryInputHash", "=", "ne.inputHash")
+            .on("der.nodeEntryOutputHash", "=", firstOutputHash)
             .on("der.datasetEvalOutputSourceId", "=", firstOutputSourceId),
         )
         .innerJoin("NewDatasetEvalResult as comparisonDer", (join) =>
           join
-            .onRef("comparisonDer.inputHash", "=", "ne.inputHash")
-            .on("comparisonDer.outputHash", "=", secondOutputHash)
+            .onRef("comparisonDer.nodeEntryInputHash", "=", "ne.inputHash")
+            .on("comparisonDer.nodeEntryOutputHash", "=", secondOutputHash)
             .on("comparisonDer.datasetEvalOutputSourceId", "=", secondOutputSourceId),
         );
 
@@ -187,8 +187,8 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           {
             id: firstResultId,
             datasetEvalOutputSourceId: firstOutputSourceId,
-            inputHash: nodeEntry.inputHash,
-            outputHash: firstOutputHash,
+            nodeEntryInputHash: nodeEntry.inputHash,
+            nodeEntryOutputHash: firstOutputHash,
             datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
             comparisonOutputSourceId: secondOutputSourceId,
             comparisonResultId: secondResultId,
@@ -198,8 +198,8 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           {
             id: secondResultId,
             datasetEvalOutputSourceId: secondOutputSourceId,
-            inputHash: nodeEntry.inputHash,
-            outputHash: secondOutputHash,
+            nodeEntryInputHash: nodeEntry.inputHash,
+            nodeEntryOutputHash: secondOutputHash,
             datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
             comparisonOutputSourceId: firstOutputSourceId,
             comparisonResultId: firstResultId,
@@ -287,14 +287,14 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
     const [firstResult, secondResult] = await Promise.all([
       findResult({
         datasetEvalOutputSourceId: task.firstOutputSourceId,
-        inputHash: nodeEntry.inputHash,
-        outputHash: firstOutputHash,
+        nodeEntryInputHash: nodeEntry.inputHash,
+        nodeEntryOutputHash: firstOutputHash,
         comparisonOutputSourceId: task.secondOutputSourceId,
       }),
       findResult({
         datasetEvalOutputSourceId: task.secondOutputSourceId,
-        inputHash: nodeEntry.inputHash,
-        outputHash: secondOutputHash,
+        nodeEntryInputHash: nodeEntry.inputHash,
+        nodeEntryOutputHash: secondOutputHash,
         comparisonOutputSourceId: task.firstOutputSourceId,
       }),
     ]);

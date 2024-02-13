@@ -12,15 +12,12 @@ export const checkNodeInput = <
   input: U & {
     type: T;
     config: InferNodeConfig<T>;
-    hash?: string;
   },
 ): U & { type: T; config: object; hash: string } => {
-  const hash =
-    input.hash ??
-    hashNode({
-      projectId: input.projectId,
-      node: input,
-    });
+  const hash = hashNode({
+    projectId: input.projectId,
+    node: input,
+  });
   return {
     ...input,
     config: input.config as object,

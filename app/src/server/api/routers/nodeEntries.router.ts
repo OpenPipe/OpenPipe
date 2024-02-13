@@ -616,18 +616,32 @@ export const nodeEntriesRouter = createTRPCRouter({
           .leftJoin(
             (eb) =>
               eb
-                .selectFrom("DatasetEvalNodeEntry as dene")
-                .where("dene.datasetEvalId", "=", sortOrder.evalId)
+                .selectFrom("DatasetEval as de")
+                .where("de.id", "=", sortOrder.evalId)
+                .innerJoin("Dataset as d", "d.id", "de.datasetId")
+                .innerJoin("DatasetEvalNodeEntry as dene", "dene.datasetEvalId", "de.id")
+                .innerJoin("NodeEntry as ne", (join) =>
+                  join
+                    .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
+                    .on("ne.nodeId", "=", dataset.nodeId)
+                    .on("ne.split", "=", "TEST"),
+                )
                 .leftJoin(
                   (eb) =>
                     eb
                       .selectFrom("NewDatasetEvalResult as der")
-                      .innerJoin(
-                        "DatasetEvalOutputSource as comparisonDeos",
-                        "comparisonDeos.id",
-                        "der.comparisonOutputSourceId",
+                      .leftJoin("DatasetEvalOutputSource as comparisonDeos", (join) =>
+                        join
+                          .onRef("comparisonDeos.id", "=", "der.comparisonOutputSourceId")
+                          .on("comparisonDeos.modelId", "in", visibleModelIds)
+                          .on("comparisonDeos.datasetEvalId", "=", sortOrder.evalId),
                       )
-                      .where("comparisonDeos.modelId", "in", visibleModelIds)
+                      .where((eb) =>
+                        eb.or([
+                          eb("der.comparisonOutputSourceId", "is", null),
+                          eb("comparisonDeos.id", "is not", null),
+                        ]),
+                      )
                       .selectAll("der")
                       .as("der"),
                   (join) => join.onRef("der.datasetEvalNodeEntryId", "=", "dene.id"),
@@ -650,7 +664,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           .orderBy(
             () =>
               sql`CASE
-                WHEN "averageScoreForEval"."inputHash" IS NULL THEN 1
+                WHEN "averageScoreForEval"."denePersistentId" IS NULL THEN 1
                 ELSE 0
               END`,
           )
@@ -683,10 +697,11 @@ export const nodeEntriesRouter = createTRPCRouter({
           jsonArrayFrom(
             eb
               .selectFrom("NewDatasetEvalResult as der")
-              .leftJoin(
-                "DatasetEvalNodeEntry as dene",
-                "dene.nodeEntryPersistentId",
-                "ne.persistentId",
+              .whereRef("der.nodeEntryInputHash", "=", "ne.inputHash")
+              .innerJoin("DatasetEvalNodeEntry as dene", (join) =>
+                join
+                  .onRef("dene.nodeEntryPersistentId", "=", "ne.persistentId")
+                  .onRef("der.datasetEvalNodeEntryId", "=", "dene.id"),
               )
               .leftJoin(
                 "DatasetEvalOutputSource as deos",
@@ -699,7 +714,6 @@ export const nodeEntriesRouter = createTRPCRouter({
                 "der.comparisonOutputSourceId",
               )
               .select(["der.score", "der.status", "deos.datasetEvalId", "deos.modelId"])
-              .whereRef("der.datasetEvalNodeEntryId", "=", "dene.id")
               .where((eb) =>
                 eb.or([
                   eb("der.comparisonOutputSourceId", "is", null),
@@ -787,9 +801,16 @@ export const nodeEntriesRouter = createTRPCRouter({
           .leftJoin(
             (eb) =>
               eb
-                .selectFrom(`DatasetEvalNodeEntry as dene`)
-                .where("dene.datasetEvalId", "=", datasetEval.id)
-                .leftJoin("NewDatasetEvalResult as der", "der.datasetEvalNodeEntryId", "dene.id")
+                .selectFrom(`DatasetEval as de`)
+                .where("de.id", "=", datasetEval.id)
+                .innerJoin("Dataset as d", "d.id", "de.datasetId")
+                .innerJoin("DatasetEvalNodeEntry as dene", "dene.datasetEvalId", "de.id")
+                .innerJoin("NodeEntry as ne", "ne.persistentId", "dene.nodeEntryPersistentId")
+                .leftJoin("NewDatasetEvalResult as der", (join) =>
+                  join
+                    .onRef("der.datasetEvalNodeEntryId", "=", "dene.id")
+                    .onRef("der.nodeEntryInputHash", "=", "ne.inputHash"),
+                )
                 .leftJoin(
                   "DatasetEvalOutputSource as deos",
                   "deos.id",
