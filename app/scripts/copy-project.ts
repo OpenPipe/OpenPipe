@@ -1,5 +1,5 @@
 // disable eslint for this entire file
-// USAGE: pnpm tsx scripts/copy-project.ts --slug X0JGgB2tfH --overwrite
+// USAGE: pnpm tsx scripts/copy-project.ts --slug X0JGgB2tfH --overwrite --include usage --include logs
 
 import "dotenv/config";
 import yargs from "yargs";
@@ -18,6 +18,12 @@ const argv = await yargs(hideBin(process.argv))
     type: "boolean",
     description: "Overwrite the existing project if it exists",
     default: false,
+  })
+  .option("include", {
+    type: "array",
+    description: "Extra features to include, e.g., logs, usage",
+    choices: ["logs", "usage"] as const,
+    default: [] as string[],
   }).argv;
 
 if (!process.env.REMOTE_DATABASE_URL) {
@@ -91,25 +97,32 @@ await Promise.all([
   copyTable("Project", `id = '${projectId}'`),
   copyTable("FineTune", `"projectId" = '${projectId}'`),
   copyTable("Dataset", `"projectId" = '${projectId}'`),
-  // Copy Dataset Entries
   copyTable(
     "DatasetEntry",
     `"datasetId" IN (SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}')`,
   ),
-  // Copy FineTune Testing Entries
   copyTable(
     "FineTuneTestingEntry",
     `"fineTuneId" IN (SELECT id FROM "FineTune" WHERE "projectId" = '${projectId}')`,
   ),
-  // Copy FineTune Training Entries
   copyTable(
     "FineTuneTrainingEntry",
     `"fineTuneId" IN (SELECT id FROM "FineTune" WHERE "projectId" = '${projectId}')`,
   ),
+  ...(argv.include.includes("usage")
+    ? [copyTable("UsageLog", `"projectId" = '${projectId}'`)]
+    : []),
+  ...(argv.include.includes("logs")
+    ? [
+        copyTable("LoggedCall", `"projectId" = '${projectId}'`),
+        copyTable("LoggedCallTag", `"projectId" = '${projectId}'`),
+      ]
+    : []),
 ]);
 
-console.log("Project data copied and database constraints re-enabled.");
+console.log("Project data copied");
 await localPool.query("SET session_replication_role = DEFAULT;");
+console.log("Constraints re-enabled");
 
 if (process.env.LOCAL_ADMIN_USER) {
   console.log("Connecting local admin user to the project...");
