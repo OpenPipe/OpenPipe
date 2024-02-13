@@ -3,7 +3,7 @@ import { type ChatCompletionMessage } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
 import { type typedNodeEntry } from "./nodes/node.types";
-import { kysely, prisma } from "../db";
+import { kysely } from "../db";
 
 export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 
@@ -18,91 +18,120 @@ export const saveFieldComparisonScore = async ({
   score: number;
   modelId: string;
 }) => {
-  let datasetEval;
-  let numDatasetEvalTries = 0;
-  while (!datasetEval && numDatasetEvalTries < 2) {
-    try {
-      datasetEval = await prisma.datasetEval.upsert({
-        where: {
-          datasetId_name: { datasetId: datasetId, name: FIELD_COMPARISON_EVAL_NAME },
-        },
-        create: {
+  let datasetEvalId = "";
+
+  await kysely.transaction().execute(async (tx) => {
+    const datasetEval = await tx
+      .selectFrom("DatasetEval")
+      .where("datasetId", "=", datasetId)
+      .where("name", "=", FIELD_COMPARISON_EVAL_NAME)
+      .select(["id"])
+      .executeTakeFirst();
+
+    if (datasetEval) {
+      datasetEvalId = datasetEval.id;
+    } else {
+      datasetEvalId = uuidv4();
+      await tx
+        .insertInto("DatasetEval")
+        .values({
+          id: datasetEvalId,
           datasetId,
           name: FIELD_COMPARISON_EVAL_NAME,
           type: "FIELD_COMPARISON",
-        },
-        update: {},
-      });
-    } catch (e) {
-      // If we attempt to create the same eval from multiple processes at the same time, we may get a unique constraint error.
-      numDatasetEvalTries++;
+          updatedAt: new Date(),
+        })
+        .onConflict((oc) => oc.columns(["datasetId", "name"]).doNothing())
+        .execute();
     }
-  }
-
-  if (!datasetEval) throw new Error("Error retrieving dataset eval");
-
-  const datasetEvalNodeEntryId = uuidv4();
-
-  await kysely
-    .insertInto("DatasetEvalNodeEntry")
-    .values({
-      id: datasetEvalNodeEntryId,
-      datasetEvalId: datasetEval.id,
-      nodeEntryPersistentId: persistentId,
-      updatedAt: new Date(),
-    })
-    .onConflict((oc) => oc.columns(["datasetEvalId", "nodeEntryPersistentId"]).doNothing())
-    .execute();
-
-  const datasetEvalNodeEntry = await prisma.datasetEvalNodeEntry.findFirstOrThrow({
-    where: { datasetEvalId: datasetEval.id, nodeEntryPersistentId: persistentId },
   });
 
-  let datasetEvalOutputSource;
-  let numDatatsetEvalOutputSourceTries = 0;
-  while (!datasetEvalOutputSource && numDatatsetEvalOutputSourceTries < 2) {
-    try {
-      datasetEvalOutputSource = await prisma.datasetEvalOutputSource.upsert({
-        where: {
-          datasetEvalId_modelId: { datasetEvalId: datasetEval.id, modelId },
-        },
-        create: {
-          datasetEvalId: datasetEval.id,
-          modelId,
-        },
-        update: {},
-      });
-    } catch (e) {
-      numDatatsetEvalOutputSourceTries++;
+  let datasetEvalNodeEntryId = "";
+
+  await kysely.transaction().execute(async (tx) => {
+    const datasetEvalNodeEntry = await tx
+      .selectFrom("DatasetEvalNodeEntry")
+      .where("datasetEvalId", "=", datasetEvalId)
+      .where("nodeEntryPersistentId", "=", persistentId)
+      .select(["id"])
+      .executeTakeFirst();
+
+    if (datasetEvalNodeEntry) {
+      datasetEvalNodeEntryId = datasetEvalNodeEntry.id;
+    } else {
+      datasetEvalNodeEntryId = uuidv4();
+      await tx
+        .insertInto("DatasetEvalNodeEntry")
+        .values({
+          id: datasetEvalNodeEntryId,
+          datasetEvalId: datasetEvalId,
+          nodeEntryPersistentId: persistentId,
+          updatedAt: new Date(),
+        })
+        .onConflict((oc) => oc.columns(["datasetEvalId", "nodeEntryPersistentId"]).doNothing())
+        .execute();
     }
-  }
+  });
 
-  if (!datasetEvalOutputSource) throw new Error("Error retrieving dataset eval details");
+  let datasetEvalOutputSourceId = "";
 
-  await kysely
-    .insertInto("NewDatasetEvalResult")
-    .values({
-      id: uuidv4(),
-      datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
-      datasetEvalOutputSourceId: datasetEvalOutputSource.id,
-      score,
-      status: "COMPLETE",
-      updatedAt: new Date(),
-    })
-    .onConflict((oc) =>
-      oc
-        .columns([
-          "datasetEvalNodeEntryId",
-          "datasetEvalOutputSourceId",
-          "comparisonOutputSourceId",
-        ])
-        .doUpdateSet({
+  await kysely.transaction().execute(async (tx) => {
+    const datasetEvalOutputSource = await tx
+      .selectFrom("DatasetEvalOutputSource")
+      .where("datasetEvalId", "=", datasetEvalId)
+      .where("modelId", "=", modelId)
+      .select(["id"])
+      .executeTakeFirst();
+
+    if (datasetEvalOutputSource) {
+      datasetEvalOutputSourceId = datasetEvalOutputSource.id;
+    } else {
+      datasetEvalOutputSourceId = uuidv4();
+      await tx
+        .insertInto("DatasetEvalOutputSource")
+        .values({
+          id: datasetEvalOutputSourceId,
+          datasetEvalId,
+          modelId,
+          updatedAt: new Date(),
+        })
+        .onConflict((oc) => oc.columns(["datasetEvalId", "modelId"]).doNothing())
+        .execute();
+    }
+  });
+
+  await kysely.transaction().execute(async (tx) => {
+    const datasetEvalResult = await tx
+      .selectFrom("NewDatasetEvalResult")
+      .where("datasetEvalNodeEntryId", "=", datasetEvalNodeEntryId)
+      .where("datasetEvalOutputSourceId", "=", datasetEvalOutputSourceId)
+      .select(["id"])
+      .executeTakeFirst();
+
+    if (datasetEvalResult) {
+      await tx
+        .updateTable("NewDatasetEvalResult")
+        .set({
           score,
           status: "COMPLETE",
           updatedAt: new Date(),
-        }),
-    )
-    .execute();
+        })
+        .where("id", "=", datasetEvalResult.id)
+        .execute();
+    } else {
+      await kysely
+        .insertInto("NewDatasetEvalResult")
+        .values({
+          id: uuidv4(),
+          datasetEvalNodeEntryId: datasetEvalNodeEntryId,
+          datasetEvalOutputSourceId: datasetEvalOutputSourceId,
+          score,
+          status: "COMPLETE",
+          updatedAt: new Date(),
+        })
+        .execute();
+    }
+  });
 };
 
 export const calculateFieldComparisonScore = (

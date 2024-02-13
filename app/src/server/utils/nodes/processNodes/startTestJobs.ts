@@ -28,7 +28,11 @@ export const startDatasetTestJobs = async ({
     .where("d.id", "=", datasetId)
     .select((eb) => [
       jsonArrayFrom(
-        eb.selectFrom("DatasetEval as de").where("de.datasetId", "=", datasetId).select(["de.id"]),
+        eb
+          .selectFrom("DatasetEval as de")
+          .where("de.datasetId", "=", datasetId)
+          .where("de.type", "=", "HEAD_TO_HEAD")
+          .select(["de.id"]),
       ).as("evaluations"),
       jsonArrayFrom(
         eb.selectFrom("FineTune as ft").where("ft.datasetId", "=", datasetId).select(["ft.id"]),
