@@ -46,7 +46,7 @@ export const v1ApiRouter = createOpenApiRouter({
 
       const fireworksBaseModel =
         fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1"
-          ? "accounts/fireworks/models/mixtral-8x7b-instruct"
+          ? "accounts/fireworks/models/mixtral-8x7b-instruct-hf"
           : undefined;
 
       return {
