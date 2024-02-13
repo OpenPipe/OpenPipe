@@ -35,7 +35,7 @@ fi
 echo "Deploying in environment: $ENV"
 
 # List of all apps to be deployed
-declare -a apps=("src/trainer/main.py" "src/lora_inference/main.py" "src/inference_server/main.py")
+declare -a apps=("src.trainer.main" "src.lora_inference.main" "src.inference_server.main")
 
 # Deploy all apps
 for app in "${apps[@]}"; do

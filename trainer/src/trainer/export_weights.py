@@ -14,7 +14,7 @@ from ..api_client.api.default import get_model_export_info, report_model_export_
 @stub.function(
     volumes={"/models": stub.volume},
     timeout=60 * 60 * 1,
-    secret=modal.Secret.from_name("openpipe"),
+    secrets=[modal.Secret.from_name("openpipe")],
     gpu=modal.gpu.A100(memory=40, count=1),
 )
 async def do_export_weights(export_id: str, base_url: str):

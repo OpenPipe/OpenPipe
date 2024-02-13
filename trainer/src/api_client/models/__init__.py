@@ -7,6 +7,9 @@ from .get_training_info_response_200_training_config_adapter import GetTrainingI
 from .get_training_info_response_200_training_config_datasets_item import (
     GetTrainingInfoResponse200TrainingConfigDatasetsItem,
 )
+from .get_training_info_response_200_training_config_model_config import (
+    GetTrainingInfoResponse200TrainingConfigModelConfig,
+)
 from .get_training_info_response_200_training_config_model_type import GetTrainingInfoResponse200TrainingConfigModelType
 from .get_training_info_response_200_training_config_special_tokens import (
     GetTrainingInfoResponse200TrainingConfigSpecialTokens,
@@ -20,6 +23,7 @@ __all__ = (
     "GetTrainingInfoResponse200TrainingConfig",
     "GetTrainingInfoResponse200TrainingConfigAdapter",
     "GetTrainingInfoResponse200TrainingConfigDatasetsItem",
+    "GetTrainingInfoResponse200TrainingConfigModelConfig",
     "GetTrainingInfoResponse200TrainingConfigModelType",
     "GetTrainingInfoResponse200TrainingConfigSpecialTokens",
     "ReportModelExportCompleteJsonBody",

@@ -46,7 +46,7 @@ vllm_image = (
         "cd /vllm && git checkout 4b2224e > /dev/null 2>&1",
         "pip3 install -e '/vllm'",
     )
-    .run_function(cache_base_model_weights, secret=modal.Secret.from_name("openpipe"))
+    .run_function(cache_base_model_weights, secrets=[modal.Secret.from_name("openpipe")])
 )
 
 
@@ -61,7 +61,7 @@ stub.vllm_image = vllm_image
 
 MAX_INPUTS = 20
 
-with vllm_image.run_inside():
+with vllm_image.imports():
     from vllm import SamplingParams
     from vllm.utils import random_uuid
     from vllm.outputs import RequestOutput
@@ -73,7 +73,7 @@ with vllm_image.run_inside():
 
 @stub.cls(
     gpu=modal.gpu.A100(memory=40, count=1),
-    secret=modal.Secret.from_name("openpipe"),
+    secrets=[modal.Secret.from_name("openpipe")],
     allow_concurrent_inputs=MAX_INPUTS,
     timeout=1 * 60 * 60,
     volumes={"/models": volume},
@@ -168,7 +168,7 @@ web_app = fastapi.FastAPI(title=APP_NAME)
     allow_concurrent_inputs=20,
     timeout=1 * 60 * 60,
     keep_warm=1,
-    secret=modal.Secret.from_name("openpipe"),
+    secrets=[modal.Secret.from_name("openpipe")],
 )
 @modal.asgi_app(label=APP_NAME)
 def fastapi_app():

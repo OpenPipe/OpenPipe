@@ -9,8 +9,12 @@ import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
-import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
+import {
+  calculateNumEpochs,
+  getNumEpochsFromConfig,
+} from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
+import { captureException } from "@sentry/node";
 
 const MAX_AUTO_RETRIES = 2;
 
@@ -40,12 +44,6 @@ export const checkFineTuneStatus = defineTask({
             });
             if (!currentFineTune) return;
             const typedFT = typedFineTune(currentFineTune);
-            if (typedFT.huggingFaceModelId) {
-              // this kicks off the upload of the model weights and returns almost immediately.
-              // We currently don't check whether the weights actually uploaded, probably should
-              // add that at some point!
-              await trainerv1.default.persistModelWeights(typedFT.huggingFaceModelId);
-            }
 
             const trainingStats = await kysely
               .selectFrom("FineTuneTrainingEntry as ftte")
@@ -58,7 +56,8 @@ export const checkFineTuneStatus = defineTask({
               .executeTakeFirst();
 
             const numTrainingEntries = trainingStats?.numTrainingEntries ?? 0;
-            const numEpochs = calculateNumEpochs(numTrainingEntries);
+            const numEpochs =
+              getNumEpochsFromConfig(typedFT) || calculateNumEpochs(numTrainingEntries);
 
             const totalInputTokens = (trainingStats?.totalInputTokens ?? 0) * numEpochs;
             const totalOutputTokens = (trainingStats?.totalOutputTokens ?? 0) * numEpochs;
@@ -80,7 +79,7 @@ export const checkFineTuneStatus = defineTask({
               data: {
                 trainingFinishedAt: new Date(),
                 status: "DEPLOYED",
-                numEpochs: calculateNumEpochs(numTrainingEntries),
+                numEpochs,
               },
             });
 
@@ -98,6 +97,13 @@ export const checkFineTuneStatus = defineTask({
               });
               await trainFineTune.enqueue({ fineTuneId: ft.id });
             } else {
+              captureException("Training job failed.", {
+                extra: {
+                  fineTuneId: ft.id,
+                  resp,
+                },
+              });
+
               await prisma.fineTune.update({
                 where: { id: ft.id },
                 data: {
@@ -124,7 +130,12 @@ export const checkFineTuneStatus = defineTask({
             captureFineTuneTrainingFinished(ft.projectId, ft.slug, false);
           }
         } catch (e) {
-          console.error(`Failed to check training status for model ${ft.id}`, e);
+          captureException(e, {
+            extra: {
+              test: `Failed to check training status for model ${ft.id}`,
+              fineTuneId: ft.id,
+            },
+          });
           return;
         }
       }),

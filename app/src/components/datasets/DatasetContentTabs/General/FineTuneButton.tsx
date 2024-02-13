@@ -19,6 +19,12 @@ import {
   type UseDisclosureReturn,
   Collapse,
   Checkbox,
+  Skeleton,
+  NumberInput,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  NumberInputField,
 } from "@chakra-ui/react";
 import humanId from "human-id";
 import { useSession } from "next-auth/react";
@@ -41,6 +47,7 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
   useDataset,
   useDatasetEntries,
+  useDatasetTrainingCost,
   useHandledAsyncCallback,
   useIsMissingBetaAccess,
   usePruningRules,
@@ -53,6 +60,7 @@ import TrainingEntryMeter from "./TrainingEntryMeter";
 import { useFilters } from "~/components/Filters/useFilters";
 import { ProjectLink } from "~/components/ProjectLink";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { AxolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 const FineTuneButton = () => {
   const datasetEntries = useDatasetEntries().data;
@@ -94,12 +102,20 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const [modelSlug, setModelSlug] = useState(humanId({ separator: "-", capitalize: false }));
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [appliedPruningRuleIds, setAppliedPruningRuleIds] = useState<string[]>([]);
+  const [trainingConfigOverrides, setTrainingConfigOverrides] = useState<
+    Partial<AxolotlConfig> | undefined
+  >();
+  const [calculationRefetchInterval, setCalculationRefetchInterval] = useState(0);
 
   const needsMissingOpenaiKey =
     !selectedProject?.condensedOpenAIKey && splitProvider(selectedBaseModel).provider === "openai";
 
   const needsMissingBetaAccess =
-    splitProvider(selectedBaseModel).provider === "openpipe" && isMissingBetaAccess;
+    splitProvider(selectedBaseModel).baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1" &&
+    isMissingBetaAccess;
+
+  const advancedConfigEnabled = splitProvider(selectedBaseModel).provider !== "openai";
+  const displayCostEnabled = splitProvider(selectedBaseModel).provider !== "openai";
 
   const numTrainingEntries = datasetEntries?.matchingTrainingCount || 0;
   const numTestingEntries = datasetEntries?.totalTestingCount || 0;
@@ -108,10 +124,24 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const email = session.data?.user.email ?? "";
 
+  const price = useDatasetTrainingCost(
+    selectedBaseModel,
+    appliedPruningRuleIds,
+    trainingConfigOverrides?.num_epochs,
+    calculationRefetchInterval,
+  );
+
+  useEffect(
+    () => setCalculationRefetchInterval(price.data?.calculating ? 5000 : 0),
+    [price.data?.calculating],
+  );
+
   useEffect(() => {
     if (disclosure.isOpen) {
       setSelectedBaseModel(visibleModels[0]);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
+      setTrainingConfigOverrides(undefined);
+      void utils.datasets.getTrainingCosts.invalidate();
     }
   }, [disclosure.isOpen]);
 
@@ -134,6 +164,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       datasetId: dataset.id,
       filters,
       pruningRuleIds: appliedPruningRuleIds,
+      trainingConfigOverrides: advancedConfigEnabled ? trainingConfigOverrides : undefined,
     });
     if (maybeReportError(resp)) return;
 
@@ -149,6 +180,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     modelSlug,
     selectedBaseModel,
     appliedPruningRuleIds,
+    trainingConfigOverrides,
   ]);
 
   return (
@@ -229,8 +261,8 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             )}
             {needsMissingBetaAccess && (
               <Text>
-                LLama2 and Mistral fine-tuning is currently in beta. To receive early access to
-                beta-only features,{" "}
+                Fine-tuning Mixtral is currently in beta. To receive early access to beta-only
+                features,{" "}
                 <ChakraLink
                   href="https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc#email=${email}"
                   target="_blank"
@@ -305,35 +337,106 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                     </Button>{" "}
                     tab.
                   </Text>
+
+                  {advancedConfigEnabled && (
+                    <VStack alignItems="start">
+                      <HStack>
+                        <Text fontWeight="bold">Learning rate</Text>{" "}
+                        <InfoCircle
+                          tooltipText="
+Controls the magnitude of updates to the model's parameters during training."
+                        />
+                      </HStack>
+
+                      <NumberInput
+                        step={0.0001}
+                        min={0}
+                        max={1000}
+                        value={trainingConfigOverrides?.learning_rate}
+                        backgroundColor="white"
+                        onChange={(_, learning_rate) => {
+                          setTrainingConfigOverrides((prevState) => ({
+                            ...prevState,
+                            learning_rate,
+                          }));
+                        }}
+                      >
+                        <NumberInputField
+                          placeholder={trainingConfigOverrides?.learning_rate?.toString() || "Auto"}
+                        />
+                      </NumberInput>
+                      <HStack>
+                        <Text fontWeight="bold">Number of Epochs</Text>{" "}
+                        <InfoCircle tooltipText="The total number of times the entire dataset is passed forward and backward through a neural network during training." />
+                      </HStack>
+
+                      <NumberInput
+                        backgroundColor="white"
+                        step={1}
+                        min={1}
+                        max={20}
+                        value={trainingConfigOverrides?.num_epochs}
+                        onChange={(_, num_epochs) => {
+                          setTrainingConfigOverrides((prevState) => ({
+                            ...prevState,
+                            num_epochs,
+                          }));
+                        }}
+                      >
+                        <NumberInputField
+                          placeholder={trainingConfigOverrides?.num_epochs?.toString() || "Auto"}
+                        />
+                        <NumberInputStepper>
+                          <NumberIncrementStepper />
+                          <NumberDecrementStepper />
+                        </NumberInputStepper>
+                      </NumberInput>
+                    </VStack>
+                  )}
                 </VStack>
               </Collapse>
             </VStack>
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <HStack>
-            <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
-              Cancel
-            </Button>
-            <ConditionallyEnable
-              accessRequired="requireCanModifyProject"
-              checks={[
-                [!needsMissingOpenaiKey, "OpenAI API key is required"],
-                [!needsMissingBetaAccess, "Training this model requires beta access"],
-                [!needsMoreTrainingData, "At least 10 training entries are required"],
-                [!!modelSlug, "Add a Model ID"],
-              ]}
-            >
-              <Button
-                colorScheme="orange"
-                onClick={createFineTune}
-                isLoading={creationInProgress}
-                minW={24}
-              >
-                Start Training
+          <VStack alignItems="end">
+            {price.data?.calculating ? (
+              <Text>Processing dataset...</Text>
+            ) : (
+              displayCostEnabled && (
+                <HStack fontSize="sm" spacing={1}>
+                  <Text>Estimated training price:</Text>
+                  <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!price.isLoading}>
+                    <Text>${Number(price.data?.cost ?? 0).toFixed(2)}</Text>
+                  </Skeleton>
+                </HStack>
+              )
+            )}
+            <HStack>
+              <Button colorScheme="gray" onClick={disclosure.onClose} minW={24}>
+                Cancel
               </Button>
-            </ConditionallyEnable>
-          </HStack>
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[
+                  [!needsMissingOpenaiKey, "OpenAI API key is required"],
+                  [!needsMissingBetaAccess, "Training this model requires beta access"],
+                  [!needsMoreTrainingData, "At least 10 training entries are required"],
+                  [!!modelSlug, "Add a Model ID"],
+                ]}
+              >
+                <Button
+                  colorScheme="orange"
+                  onClick={createFineTune}
+                  isLoading={creationInProgress}
+                  minW={24}
+                  isDisabled={price.isLoading || price.data?.calculating}
+                >
+                  Start Training
+                </Button>
+              </ConditionallyEnable>
+            </HStack>
+          </VStack>
         </ModalFooter>
       </ModalContent>
     </Modal>

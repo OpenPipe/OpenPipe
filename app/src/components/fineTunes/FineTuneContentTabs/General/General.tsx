@@ -3,7 +3,6 @@ import { useFineTune, useHandledAsyncCallback } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";
 import FineTuneDangerZone from "./FineTuneDangerZone";
 import dayjs from "~/utils/dayjs";
-import { getStatusColor } from "../../FineTunesTable";
 import { api } from "~/utils/api";
 import ViewEvaluationButton from "~/components/datasets/DatasetContentTabs/Evaluation/ViewEvaluationButton";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
@@ -12,6 +11,7 @@ import ConditionallyEnable from "~/components/ConditionallyEnable";
 import FineTunePruningRules from "./FineTunePruningRules";
 import InferenceCodeTabs from "./InferenceCodeTabs/InferenceCodeTabs";
 import ExportWeights from "./ExportWeights";
+import { FTStatus } from "../../FineTunesTable";
 
 const General = () => {
   const fineTune = useFineTune().data;
@@ -73,6 +73,16 @@ const General = () => {
               <Text w={180}>Pipeline Version</Text>
               <Text color="gray.500">{fineTune.pipelineVersion}</Text>
             </HStack>
+            {fineTune.trainingConfigOverrides && (
+              <HStack>
+                <Text w={180}>Training Config</Text>
+                <Text color="gray.500">
+                  {Object.entries(fineTune.trainingConfigOverrides)
+                    .map(([key, value]) => `${key}: ${String(value)}`)
+                    .join(", ")}
+                </Text>
+              </HStack>
+            )}
             <HStack>
               <Text w={180}>Created At</Text>
               <Text color="gray.500">{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Text>
@@ -80,9 +90,7 @@ const General = () => {
             <HStack alignItems="flex-start">
               <Text w={180}>Status</Text>
               <HStack alignItems="center" spacing={4}>
-                <Text fontWeight="bold" color={getStatusColor(fineTune.status)}>
-                  {fineTune.status}
-                </Text>
+                <FTStatus status={fineTune.status} />
                 {fineTune.errorMessage && <Text color="gray.500">{fineTune.errorMessage}</Text>}
                 {fineTune.status === "ERROR" && (
                   <ConditionallyEnable accessRequired="requireCanModifyProject">

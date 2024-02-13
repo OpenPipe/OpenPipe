@@ -28,6 +28,7 @@ import {
   recordLoggedCall,
   recordUsage,
   reqValidator,
+  recordTagNames,
 } from "~/utils/recordRequest";
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { parseTags } from "~/server/utils/parseTags";
@@ -540,6 +541,11 @@ export const v1ApiRouter = createOpenApiRouter({
             })),
           )
           .execute();
+
+        await recordTagNames(
+          ctx.key.projectId,
+          tagsToUpsert.map(([name]) => name),
+        );
       }
 
       if (tags["relabel"] === "true" && tags["add_to_dataset"] === "original_model_dataset") {

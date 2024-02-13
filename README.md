@@ -46,9 +46,9 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 
 To fine-tune Mistral and Llama 2 models in the hosted app, [join the waitlist](https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc).
 
-- mistral-7b
-- mistral-7b-optimized-1227
-- llama-2-13b
+- mixtral-8x7B-instruct
+- mistral-7B-optimized-1227
+- llama-2-13B
 - gpt-3.5-turbo
 
 ## Documentation
@@ -74,6 +74,29 @@ ALTER ROLE postgres SUPERUSER;
 10. Update the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` values from the Github OAuth app (Note: a PR to make auth optional when running locally would be a great contribution!).
 11. To start the app run `pnpm dev` in the `app` directory.
 12. Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Using Locally
+```sh
+import os
+from openpipe import OpenAI
+
+client = OpenAI(
+    api_key="Your API Key",
+    openpipe={
+        "api_key": "Your OpenPipe API Key",
+        "base_url": "http://localhost:3000/api/v1", # Local OpenPipe instance
+    }
+)
+
+completion = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "system", "content": "count to 10"}], 
+    openpipe={
+        "tags": {"prompt_id": "counting"}, 
+        "log_request": True
+    },
+)
+```
 
 ## Testing Locally
 

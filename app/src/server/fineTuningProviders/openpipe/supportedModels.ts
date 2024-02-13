@@ -9,4 +9,5 @@ export const supportedModels = z.enum([
   "meta-llama/Llama-2-7b-hf",
   "OpenPipe/mistral-ft-optimized-1218",
   "OpenPipe/mistral-ft-optimized-1227",
+  "mistralai/Mixtral-8x7B-Instruct-v0.1",
 ]);

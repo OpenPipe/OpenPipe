@@ -8,5 +8,5 @@ set -o allexport
 source .env
 set +o allexport
 
-echo "Connecting to prod db"
-DATABASE_URL=$PROD_DATABASE_URL pnpm prisma studio --port 5556
+echo "Connecting to remote db"
+DATABASE_URL=$REMOTE_DATABASE_URL pnpm prisma studio --port 5556

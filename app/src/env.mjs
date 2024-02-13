@@ -42,6 +42,7 @@ export const env = createEnv({
       .string()
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
+    FIREWORKS_API_KEY: z.string().optional(),
     WORKER_CONCURRENCY: z
       .string()
       .default("10")
@@ -117,10 +118,11 @@ export const env = createEnv({
     EXPORTED_MODELS_BUCKET_NAME: process.env.EXPORTED_MODELS_BUCKET_NAME,
     ANYSCALE_INFERENCE_BASE_URL: process.env.ANYSCALE_INFERENCE_BASE_URL,
     ANYSCALE_INFERENCE_API_KEY: process.env.ANYSCALE_INFERENCE_API_KEY,
+    ANYSCALE_ENABLE_A100: process.env.ANYSCALE_ENABLE_A100,
+    FIREWORKS_API_KEY: process.env.FIREWORKS_API_KEY,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    ANYSCALE_ENABLE_A100: process.env.ANYSCALE_ENABLE_A100,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
