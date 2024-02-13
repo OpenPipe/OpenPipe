@@ -1,6 +1,5 @@
 import { prisma } from "../db";
 import { sendInvoiceNotificationWithoutRequiredPayment } from "../emails/sendInvoiceNotificationWithoutRequiredPayment";
-import { sendToAdmins } from "../emails/sendToAdmins";
 
 const email = process.argv[2];
 
