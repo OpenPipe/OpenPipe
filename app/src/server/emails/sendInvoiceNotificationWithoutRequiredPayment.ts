@@ -3,9 +3,9 @@ import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
 import { typedInvoice } from "~/types/dbColumns.types";
 import { JsonValue } from "~/types/kysely-codegen.types";
-import PaymentSuccessful from "./templates/PaymentSuccessful";
+import InvoiceNotificationWithoutRequiredPayment from "./templates/InvoiceNotificationWithoutRequiredPayment";
 
-export const sendPaymentSuccessful = async (
+export const sendInvoiceNotificationWithoutRequiredPayment = async (
   invoiceId: string,
   amount: number,
   description: JsonValue,
@@ -15,31 +15,29 @@ export const sendPaymentSuccessful = async (
   recipientEmail: string,
 ) => {
   const projectLink = `${env.NEXT_PUBLIC_HOST}/p/${projectSlug}`;
-  const invoicesLink = `${projectLink}/billing/invoices`;
-  const invoiceLink = `${invoicesLink}/${invoiceId}`;
+  const invoicesLink = `${projectLink}/billing/invoices/${invoiceId}`;
 
-  let typedDescription;
+  let parsedDescription;
   try {
-    ({ description: typedDescription } = typedInvoice({ description }));
+    ({ description: parsedDescription } = typedInvoice({ description }));
   } catch (e) {
     return;
   }
 
   const emailBody = render(
-    PaymentSuccessful({
-      amount: Number(Number(amount).toFixed(2)).toLocaleString(),
+    InvoiceNotificationWithoutRequiredPayment({
       projectName,
-      description: typedDescription,
-      billingPeriod,
-      projectLink,
+      amount: Number(Number(amount).toFixed(2)).toLocaleString(),
       invoicesLink,
-      invoiceLink,
+      projectLink,
+      billingPeriod: billingPeriod || "",
+      description: parsedDescription,
     }),
   );
 
   await sendEmail({
     to: recipientEmail,
-    subject: `Payment Successful for ${projectName}`,
+    subject: `OpenPipe Usage ${billingPeriod}`,
     body: emailBody,
   });
 };

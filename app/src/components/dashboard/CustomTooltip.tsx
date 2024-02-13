@@ -22,7 +22,7 @@ function CustomTooltip({
     return (
       <Card>
         <VStack alignItems="flex-start" p={4}>
-          <Text as={"b"}>{formatToUTCDayMonth(label)} UTC</Text>
+          <Text as="b">{formatToUTCDayMonth(label)} UTC</Text>
           {payload.map((p) => (
             <Text key={p.name} style={{ color: p.color }}>{`${p.name}: ${valuePrefix || ""}${
               p.value

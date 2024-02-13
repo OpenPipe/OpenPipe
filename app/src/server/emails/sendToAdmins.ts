@@ -1,15 +1,9 @@
 import { prisma } from "../db";
 
-export async function sendToAdmins(invoiceId: string, callback: (...args: any[]) => Promise<void>) {
-  const invoice = await prisma.invoice.findFirstOrThrow({
-    where: {
-      id: invoiceId,
-    },
-  });
-
+export async function sendToAdmins(projectId: string, callback: (...args: any[]) => Promise<void>) {
   const admins = await prisma.projectUser.findMany({
     where: {
-      projectId: invoice.projectId,
+      projectId: projectId,
       role: "ADMIN",
     },
     select: {

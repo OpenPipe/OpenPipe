@@ -23,7 +23,8 @@ export const usageRouter = createTRPCRouter({
         .selectFrom("UsageLog as ul")
         .where("ul.projectId", "=", input.projectId)
         .where(sql`"ul"."createdAt"`, ">=", input.startDate)
-        .where(sql`"ul"."createdAt"`, "<=", input.endDate);
+        .where(sql`"ul"."createdAt"`, "<=", input.endDate)
+        .where("ul.billable", "=", true);
 
       const finetunesQuery = kysely
         .selectFrom(
@@ -41,9 +42,7 @@ export const usageRouter = createTRPCRouter({
               fn
                 .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
                 .as("outputTokens"),
-              fn
-                .sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`)
-                .as("cost"),
+              fn.sum(sql<number>`ul."cost"`).as("cost"),
             ])
             .groupBy("ftId")
             .as("stats"),
@@ -70,9 +69,7 @@ export const usageRouter = createTRPCRouter({
               .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
               .as("trainingCost"),
             eb.fn
-              .sum(
-                sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
-              )
+              .sum(sql<number>`case when ul.type != 'TRAINING' then ul.cost else 0 end`)
               .as("inferenceCost"),
           ])
           .groupBy("period")
@@ -135,14 +132,12 @@ export function getStats(
 ) {
   return baseQuery
     .select(({ fn }) => [
-      fn.sum(sql<number>`case when ul.billable = false then 0 else ul."cost" end`).as("cost"),
+      fn.sum(sql<number>`ul."cost"`).as("cost"),
       fn
         .sum(sql<number>`case when ul.type = 'TRAINING' then ul.cost else 0 end`)
         .as("totalTrainingSpend"),
       fn
-        .sum(
-          sql<number>`case when ul.type != 'TRAINING' and ul.billable = true then ul.cost else 0 end`,
-        )
+        .sum(sql<number>`case when ul.type != 'TRAINING' then ul.cost else 0 end`)
         .as("totalInferenceSpend"),
       fn
         .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
