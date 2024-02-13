@@ -12,7 +12,7 @@ export default async function userProject(userId: string) {
       projectUsers: {
         create: {
           userId: userId,
-          role: "ADMIN",
+          role: "OWNER",
         },
       },
       apiKeys: {

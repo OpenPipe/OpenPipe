@@ -335,7 +335,7 @@ export interface Project {
 
 export interface ProjectUser {
   id: string;
-  role: "ADMIN" | "MEMBER" | "VIEWER";
+  role: "ADMIN" | "MEMBER" | "OWNER" | "VIEWER";
   projectId: string;
   userId: string;
   createdAt: Generated<Timestamp>;
@@ -408,7 +408,7 @@ export interface UserInvitation {
   id: string;
   projectId: string;
   email: string;
-  role: "ADMIN" | "MEMBER" | "VIEWER";
+  role: "ADMIN" | "MEMBER" | "OWNER" | "VIEWER";
   invitationToken: string;
   senderId: string;
   createdAt: Generated<Timestamp>;

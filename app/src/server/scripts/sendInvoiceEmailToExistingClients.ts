@@ -1,6 +1,6 @@
 import { prisma } from "../db";
 import { sendInvoiceNotificationWithoutRequiredPayment } from "../emails/sendInvoiceNotificationWithoutRequiredPayment";
-import { sendToAdmins } from "../emails/sendToAdmins";
+import { sendToOwner } from "../emails/sendToOwner";
 
 console.log("Doing: sending emiails");
 
@@ -28,7 +28,7 @@ for (const creditAdjustment of creditAdjustments) {
     invoice &&
     (invoice.status === "PENDING" || Number(creditAdjustment.amount) > -100)
   ) {
-    await sendToAdmins(invoice.projectId, (email: string) =>
+    await sendToOwner(invoice.projectId, (email: string) =>
       sendInvoiceNotificationWithoutRequiredPayment(
         invoice.id,
         Number(invoice.amount),

@@ -3,9 +3,9 @@ import Stripe from "stripe";
 import { prisma } from "~/server/db";
 import { env } from "~/env.mjs";
 import { captureException } from "@sentry/node";
-import { sendToAdmins } from "~/server/emails/sendToAdmins";
 import { sendPaymentSuccessful } from "~/server/emails/sendPaymentSuccessful";
 import { sendPaymentFailed } from "~/server/emails/sendPaymentFailed";
+import { sendToOwner } from "~/server/emails/sendToOwner";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY ?? "");
 const endpointSecret = env.STRIPE_WEBHOOK_SECRET ?? "";
@@ -136,7 +136,7 @@ async function notifyAdminsAboutPayment(
     });
 
     if (result === "SUCCESS") {
-      await sendToAdmins(invoice.projectId, (email: string) =>
+      await sendToOwner(invoice.projectId, (email: string) =>
         sendPaymentSuccessful(
           invoice.id,
           Number(invoice.amount),
@@ -150,7 +150,7 @@ async function notifyAdminsAboutPayment(
     }
 
     if (result === "FAILURE") {
-      await sendToAdmins(invoice.projectId, (email: string) =>
+      await sendToOwner(invoice.projectId, (email: string) =>
         sendPaymentFailed(
           invoice.id,
           Number(invoice.amount),
