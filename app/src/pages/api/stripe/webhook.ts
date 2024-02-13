@@ -58,7 +58,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
-      await notifyAdminsAboutPayment(invoiceId, "SUCCESS");
+      await sendPaymentNotification(invoiceId, "SUCCESS");
 
       break;
 
@@ -75,7 +75,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
-      await notifyAdminsAboutPayment(invoiceId, "FAILURE");
+      await sendPaymentNotification(invoiceId, "FAILURE");
 
       break;
 
@@ -92,7 +92,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
-      await notifyAdminsAboutPayment(invoiceId, "FAILURE");
+      await sendPaymentNotification(invoiceId, "FAILURE");
 
       break;
     case "payment_intent.succeeded":
@@ -108,7 +108,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
-      await notifyAdminsAboutPayment(invoiceId, "SUCCESS");
+      await sendPaymentNotification(invoiceId, "SUCCESS");
 
       break;
   }
@@ -118,7 +118,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 export default handler;
 
-async function notifyAdminsAboutPayment(
+async function sendPaymentNotification(
   invoiceId: string | undefined,
   result: "SUCCESS" | "FAILURE",
 ) {
