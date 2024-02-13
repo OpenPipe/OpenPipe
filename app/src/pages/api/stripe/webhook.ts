@@ -136,14 +136,30 @@ async function notifyAdminsAboutPayment(
     });
 
     if (result === "SUCCESS") {
-      await sendToAdmins(invoiceId!, (email: string) =>
-        sendPaymentSuccessful(Number(invoice.amount), project.name, project.slug, email),
+      await sendToAdmins(invoice.projectId, (email: string) =>
+        sendPaymentSuccessful(
+          invoice.id,
+          Number(invoice.amount),
+          invoice.description,
+          invoice.billingPeriod || "",
+          project.name,
+          project.slug,
+          email,
+        ),
       );
     }
 
     if (result === "FAILURE") {
-      await sendToAdmins(invoiceId!, (email: string) =>
-        sendPaymentFailed(Number(invoice.amount), project.name, project.slug, email),
+      await sendToAdmins(invoice.projectId, (email: string) =>
+        sendPaymentFailed(
+          invoice.id,
+          Number(invoice.amount),
+          invoice.description,
+          invoice.billingPeriod || "",
+          project.name,
+          project.slug,
+          email,
+        ),
       );
     }
   } catch (e) {

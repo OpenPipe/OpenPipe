@@ -1,24 +1,45 @@
 import { env } from "~/env.mjs";
 import { sendEmail } from "./sendEmail";
+import { render } from "@react-email/render";
+import { typedInvoice } from "~/types/dbColumns.types";
+import PaymentFailed from "./templates/PaymentFailed";
+import { JsonValue } from "~/types/kysely-codegen.types";
 
 export const sendPaymentFailed = async (
+  invoiceId: string,
   amount: number,
+  description: JsonValue,
+  billingPeriod: string,
   projectName: string,
   projectSlug: string,
   recipientEmail: string,
 ) => {
-  const paymentMethodsLink = `${env.NEXT_PUBLIC_HOST}/p/${projectSlug}/billing/payment-methods`;
+  const projectLink = `${env.NEXT_PUBLIC_HOST}/p/${projectSlug}`;
+  const invoicesLink = `${projectLink}/billing/invoices/${invoiceId}`;
+  const paymentMethodsLink = `${projectLink}/billing/payment-methods`;
 
-  const emailBody = `
-  <p>We attempted to charge your default payment method for project "${projectName}" but the payment of $${amount.toFixed(
-    2,
-  )} failed.</p>
-  <p>Please review and update your payment information by clicking <a href="${paymentMethodsLink}">here</a>.</p>
-`;
+  let typedDescription;
+  try {
+    ({ description: typedDescription } = typedInvoice({ description }));
+  } catch (e) {
+    return;
+  }
+
+  const emailBody = render(
+    PaymentFailed({
+      projectName,
+      amount: Number(Number(amount).toFixed(2)).toLocaleString(),
+      paymentMethodsLink,
+      invoicesLink,
+      projectLink,
+      billingPeriod,
+      description: typedDescription,
+    }),
+  );
 
   await sendEmail({
     to: recipientEmail,
-    subject: `Payment Failed for ${projectName}`,
+    subject: "Payment Required",
     body: emailBody,
   });
 };

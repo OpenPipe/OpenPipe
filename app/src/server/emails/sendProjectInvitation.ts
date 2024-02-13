@@ -1,5 +1,7 @@
 import { env } from "~/env.mjs";
 import { sendEmail } from "./sendEmail";
+import { render } from "@react-email/render";
+import ProjectInvitation from "./templates/ProjectInvitation";
 
 export const sendProjectInvitation = async ({
   invitationToken,
@@ -16,10 +18,14 @@ export const sendProjectInvitation = async ({
 }) => {
   const invitationLink = `${env.NEXT_PUBLIC_HOST}/invitations/${invitationToken}`;
 
-  const emailBody = `
-    <p>You have been invited to join ${projectName} by ${invitationSenderName} (${invitationSenderEmail}).</p>
-    <p>Click <a href="${invitationLink}">here</a> to accept the invitation.</p>
-    `;
+  const emailBody = render(
+    ProjectInvitation({
+      projectName,
+      invitationSenderName,
+      invitationSenderEmail,
+      invitationLink,
+    }),
+  );
 
   await sendEmail({
     to: recipientEmail,

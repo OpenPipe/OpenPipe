@@ -55,6 +55,8 @@ model Dataset {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@index([projectId])
 }
 
 enum DatasetEntrySplit {
@@ -446,6 +448,9 @@ model FineTune {
     openaiModelId           String?
     pipelineVersion         Int
     exportWeightsRequests   ExportWeightsRequest[]
+
+    @@index([projectId])
+    @@index([datasetId])
 }
 
 model FineTuneTrainingEntry {
@@ -646,6 +651,7 @@ enum InvoiceStatus {
     PAID
     CANCELLED
     REFUNDED
+    FREE
 }
 
 model Invoice {
@@ -684,7 +690,7 @@ model CreditAdjustment {
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    Invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+    invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
     invoiceId String?  @db.Uuid
 
     type CreditAdjustmentType
