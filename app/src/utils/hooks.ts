@@ -169,6 +169,7 @@ export const useDatasetTrainingCost = (
   selectedBaseModel: ProviderWithModel,
   pruningRuleIds: string[],
   selectedNumberOfEpochs: number | undefined,
+  refetchInterval?: number,
 ) => {
   const dataset = useDataset().data;
 
@@ -182,7 +183,7 @@ export const useDatasetTrainingCost = (
       pruningRuleIds,
       selectedNumberOfEpochs,
     },
-    { enabled: !!dataset },
+    { enabled: !!dataset, refetchInterval },
   );
 
   return stats;

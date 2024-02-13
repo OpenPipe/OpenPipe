@@ -125,6 +125,17 @@ export const datasetsRouter = createTRPCRouter({
         "TRAIN",
       );
 
+      const datasetCalculationInProgress = await baseQuery
+        .where((eb) =>
+          eb.or([eb("dei.inputTokens", "is", null), eb("deo.outputTokens", "is", null)]),
+        )
+        .select("id")
+        .executeTakeFirst();
+
+      if (datasetCalculationInProgress) {
+        return { cost: 0, calculating: true };
+      }
+
       const datasetEntryStats = await baseQuery
         .select([
           sql<number>`count(ne.id)::int`.as("numEntries"),
@@ -150,19 +161,15 @@ export const datasetsRouter = createTRPCRouter({
           .then((stats) => stats?.totalMatchTokens || 0);
       }
 
-      if (datasetEntryStats.numEntries === 0) return;
-
-      const { cost } = calculateCost(
-        baseModel,
-        0,
-        datasetEntryStats.totalInputTokens - totalMatchTokens,
-        datasetEntryStats.totalOutputTokens,
-      );
+      const trainingTokens =
+        datasetEntryStats.totalInputTokens - totalMatchTokens + datasetEntryStats.totalOutputTokens;
+      const { cost } = calculateCost(baseModel, trainingTokens, 0, 0);
 
       const numEpochs = selectedNumberOfEpochs || calculateNumEpochs(datasetEntryStats.numEntries);
 
       return {
         cost: cost * numEpochs,
+        calculating: false,
       };
     }),
   list: protectedProcedure
