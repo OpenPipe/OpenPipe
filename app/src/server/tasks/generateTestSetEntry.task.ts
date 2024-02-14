@@ -194,13 +194,9 @@ export const generateEntry = async ({
       return;
     }
 
-    console.log("completion", completion);
-
     const choice = completion.choices[0];
     if (!choice) throw new Error("No completion returned");
     const completionMessage = choice.message;
-
-    console.log("completionMessage.tool_calls", completionMessage.tool_calls);
 
     if (fineTune) {
       const inputTokens = completion.usage?.prompt_tokens ?? 0;
@@ -215,6 +211,7 @@ export const generateEntry = async ({
           inputTokens,
           outputTokens,
           ...calculateCost(fineTune, 0, inputTokens, outputTokens),
+          billable: fineTune.provider === "openpipe",
         },
       });
     }

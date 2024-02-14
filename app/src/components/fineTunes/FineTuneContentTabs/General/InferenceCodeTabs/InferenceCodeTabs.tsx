@@ -3,13 +3,14 @@ import { useMemo } from "react";
 import { type RouterOutputs } from "~/utils/api";
 import { useFineTune, useSelectedProject, useTrainingEntries } from "~/utils/hooks";
 import CopiableCodeTabs, { type CodeTab } from "./CopiableCodeTabs";
+import { env } from "~/env.mjs";
 
 const baseTabs: CodeTab[] = [
   {
     title: "cURL",
     language: "bash",
     code: `curl --request POST \\
---url https://app.openpipe.ai/api/v1/chat/completions \\
+--url ${env.NEXT_PUBLIC_HOST}/api/v1/chat/completions \\
 --header 'Authorization: Bearer {{TEMPLATED_OPENPIPE_API_KEY}}' \\
 --header 'Content-Type: application/json' \\
 --header 'op-log-request: true' \\
