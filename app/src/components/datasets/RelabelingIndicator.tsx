@@ -30,7 +30,7 @@ export const RelabelingIndicator = () => {
     >
       <Icon as={RiInformationFill} color="orange.300" boxSize={4} />{" "}
       <Text>
-        Pending: {dataset.numRelabelingEntries} dataset{" "}
+        Processing: {dataset.numRelabelingEntries} dataset{" "}
         {dataset.numRelabelingEntries === 1 ? "entry is" : "entries are"} pending relabeling by{" "}
         {dataset.relabelLLM}
       </Text>

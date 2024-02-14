@@ -112,17 +112,19 @@ export const updateDatasetPruningRuleMatches = async ({
       .insertInto("CachedProcessedNodeEntry")
       .columns(["id", "nodeHash", "incomingDEIHash", "updatedAt"])
       .expression(() =>
-        nodeEntryBaseQuery.select((eb) => [
-          sql`uuid_generate_v4()`.as("id"),
-          sql`${nodeHash}`.as("nodeHash"),
-          "ne.inputHash as incomingDEIHash",
-          eb.val(new Date()).as("updatedAt"),
-        ]),
-      )
-      .onConflict((oc) =>
-        oc
-          .columns(["nodeHash", "incomingDEIHash", "nodeEntryPersistentId", "incomingDEOHash"])
-          .doNothing(),
+        nodeEntryBaseQuery
+          .select((eb) => [
+            sql`uuid_generate_v4()`.as("id"),
+            sql`${nodeHash}`.as("nodeHash"),
+            "ne.inputHash as incomingDEIHash",
+            eb.val(new Date()).as("updatedAt"),
+          ])
+          .leftJoin("CachedProcessedNodeEntry as cpne", (join) =>
+            join
+              .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
+              .on("cpne.nodeHash", "=", nodeHash),
+          )
+          .where("cpne.nodeHash", "is", null),
       )
       .execute();
   });

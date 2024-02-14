@@ -472,34 +472,42 @@ export const nodeEntriesRouter = createTRPCRouter({
 
           if (!manualRelabelNode) return error("Unable to find ManualRelabel Node");
 
-          await kysely
-            .insertInto("CachedProcessedNodeEntry")
-            .values({
-              id: uuidv4(),
-              nodeHash: manualRelabelNode.hash,
-              nodeEntryPersistentId: nodeEntry.persistentId,
-              incomingDEIHash: nodeEntry.parentNodeEntryInputHash,
-              outgoingDEIHash: updatedInputHash,
-              outgoingDEOHash: updatedOutputHash,
-              outgoingSplit: updatedSplit,
-              updatedAt: new Date(),
-            })
-            .onConflict((oc) =>
-              oc
-                .columns([
-                  "nodeEntryPersistentId",
-                  "incomingDEIHash",
-                  "nodeHash",
-                  "incomingDEOHash",
-                ])
-                .doUpdateSet({
-                  updatedAt: new Date(),
+          await kysely.transaction().execute(async (trx) => {
+            const cachedProcessedNodeEntry = await trx
+              .selectFrom("CachedProcessedNodeEntry")
+              .where("nodeHash", "=", manualRelabelNode.hash)
+              .where("nodeEntryPersistentId", "=", nodeEntry.persistentId)
+              .where("incomingDEIHash", "=", nodeEntry.parentNodeEntryInputHash)
+              .select(["id"])
+              .executeTakeFirst();
+
+            if (cachedProcessedNodeEntry) {
+              await trx
+                .updateTable("CachedProcessedNodeEntry")
+                .where("id", "=", cachedProcessedNodeEntry.id)
+                .set({
                   outgoingDEIHash: updatedInputHash,
                   outgoingDEOHash: updatedOutputHash,
                   outgoingSplit: updatedSplit,
-                }),
-            )
-            .execute();
+                  updatedAt: new Date(),
+                })
+                .execute();
+            } else {
+              await trx
+                .insertInto("CachedProcessedNodeEntry")
+                .values({
+                  id: uuidv4(),
+                  nodeHash: manualRelabelNode.hash,
+                  nodeEntryPersistentId: nodeEntry.persistentId,
+                  incomingDEIHash: nodeEntry.parentNodeEntryInputHash,
+                  outgoingDEIHash: updatedInputHash,
+                  outgoingDEOHash: updatedOutputHash,
+                  outgoingSplit: updatedSplit,
+                  updatedAt: new Date(),
+                })
+                .execute();
+            }
+          });
 
           const parentNodeEntryId = tNodeEntry.parentNodeEntryId;
 

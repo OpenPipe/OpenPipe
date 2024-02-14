@@ -4,6 +4,7 @@ import { Card, Table, Tbody } from "@chakra-ui/react";
 import { useDataset, useNodeEntries } from "~/utils/hooks";
 import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
 import DatasetEntryDrawer from "./DatasetEntryDrawer/DatasetEntryDrawer";
+import { api } from "~/utils/api";
 
 export default function DatasetEntryTable() {
   const [expandedNodeEntryPersistentId, setExpandedNodeEntryPersistentId] = useState<string | null>(
@@ -18,9 +19,17 @@ export default function DatasetEntryTable() {
     [nodeEntries],
   );
 
+  const awaitingRelabeling = !!numRelabelingEntries;
+
+  const utils = api.useUtils();
+
+  useEffect(() => {
+    void utils.nodeEntries.list.invalidate();
+  }, [awaitingRelabeling, utils.nodeEntries.list]);
+
   useEffect(
-    () => setRefetchInterval(countingIncomplete || numRelabelingEntries ? 5000 : 0),
-    [countingIncomplete, numRelabelingEntries, setRefetchInterval],
+    () => setRefetchInterval(countingIncomplete || awaitingRelabeling ? 5000 : 0),
+    [countingIncomplete, awaitingRelabeling, setRefetchInterval],
   );
 
   const toggleExpanded = useCallback(

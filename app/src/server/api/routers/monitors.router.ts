@@ -163,7 +163,7 @@ export const monitorsRouter = createTRPCRouter({
             ])
             .expression((eb) =>
               eb
-                .selectFrom("CachedProcessedNodeEntry")
+                .selectFrom("CachedProcessedNodeEntry as new")
                 .select((eb) => [
                   "incomingDEIHash",
                   "incomingDEOHash",
@@ -175,10 +175,14 @@ export const monitorsRouter = createTRPCRouter({
                   "updatedAt",
                   eb.val(updatedHash).as("nodeHash"), // Set the new nodeHash
                 ])
-                .where("nodeHash", "=", initialHash),
-            )
-            .onConflict((oc) =>
-              oc.columns(["nodeHash", "incomingDEIHash", "incomingDEOHash"]).doNothing(),
+                .where("nodeHash", "=", initialHash)
+                .leftJoin("CachedProcessedNodeEntry as existing", (join) =>
+                  join
+                    .onRef("existing.incomingDEIHash", "=", "new.incomingDEIHash")
+                    .onRef("existing.incomingDEOHash", "=", "new.incomingDEOHash")
+                    .onRef("existing.nodeHash", "=", "new.nodeHash"),
+                )
+                .where("existing.nodeHash", "is", null),
             )
             .execute();
         } else {

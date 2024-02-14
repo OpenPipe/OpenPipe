@@ -62,8 +62,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       modelId2: secondOutputSource.modelId,
     });
 
-    console.log(5.3);
-
     if (!firstOutputHash || !secondOutputHash) return;
 
     const findResult = async ({
@@ -102,8 +100,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       }),
     ]);
 
-    console.log(5.5);
-
     if (!firstResult || !secondResult) return;
 
     const firstResultHandled =
@@ -130,8 +126,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         errorMessage: null,
       },
     });
-
-    console.log(6);
 
     // Combine query to ensure both results are complete
     const completeCombinedResult = await kysely
@@ -208,16 +202,11 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
     }
 
     try {
-      console.log(18);
-
       const input = await prisma.datasetEntryInput.findUnique({
         where: { hash: nodeEntry.inputHash },
       });
 
-      console.log(19);
-
       if (!input) {
-        console.log(19.5);
         await prisma.newDatasetEvalResult.updateMany({
           where: {
             id: {
@@ -231,8 +220,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         });
         return;
       }
-
-      console.log(20);
 
       const outputs = [];
       const entryIds = [];
@@ -290,12 +277,9 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         }
       }
 
-      console.log(22);
-
       const [firstOutput, secondOutput] = outputs;
       const [firstEntryId, secondEntryId] = entryIds;
       if (!firstOutput || !secondOutput || !firstEntryId || !secondEntryId) {
-        console.log(22.5);
         await prisma.newDatasetEvalResult.updateMany({
           where: {
             id: {
@@ -309,8 +293,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         });
         return;
       }
-
-      console.log(23);
 
       if (outputsAreEqual(firstOutput, secondOutput)) {
         await prisma.newDatasetEvalResult.updateMany({
@@ -327,8 +309,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         });
         return;
       }
-
-      console.log(24);
 
       let explanation;
       let judgement;
@@ -355,11 +335,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           datasetEval.instructions,
         );
 
-        console.log(25);
-
         const response = await getOpenaiCompletion(datasetEval.projectId, judgementInput);
-
-        console.log(26);
 
         args = response.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
 
@@ -388,8 +364,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         throw e;
       }
 
-      console.log(27);
-
       explanation = explanation
         .replaceAll("response 1", firstEntryId)
         .replaceAll("Response 1", firstEntryId)
@@ -413,8 +387,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           break;
       }
 
-      console.log(28);
-
       await prisma.newDatasetEvalResult.update({
         where: { id: firstResult.id },
         data: {
@@ -436,8 +408,6 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
           judge: judgementInput?.model,
         },
       });
-
-      console.log(29);
     } catch (e) {
       console.error("error in evaluateTestSetEntries", e);
       if (numPreviousTries < MAX_TRIES) {
@@ -598,7 +568,6 @@ const getOutputHashes = async ({
 }) => {
   const getOutputHash = async ({ modelId }: { modelId: string }) => {
     if (modelId !== ORIGINAL_MODEL_ID) {
-      console.log("a");
       return kysely
         .selectFrom("NewFineTuneTestingEntry as ftte")
         .where("ftte.modelId", "=", modelId)
@@ -609,7 +578,6 @@ const getOutputHashes = async ({
         .executeTakeFirst()
         .then((entry) => entry?.outputHash);
     } else {
-      console.log("b");
       return kysely
         .selectFrom("NodeEntry as ne")
         .where("ne.id", "=", nodeEntry.id)
@@ -625,17 +593,9 @@ const getOutputHashes = async ({
     getOutputHash({ modelId: modelId2 }),
   ]);
 
-  console.log({
-    existingFirstOutputHash,
-    existingSecondOutputHash,
-  });
-
-  console.log(4);
-
   const generationPromises = [];
 
   if (!existingFirstOutputHash) {
-    console.log(4.1);
     generationPromises.push(
       generateEntry({
         modelId: modelId1,
@@ -645,7 +605,6 @@ const getOutputHashes = async ({
   }
 
   if (!existingSecondOutputHash) {
-    console.log(4.2);
     generationPromises.push(
       generateEntry({
         modelId: modelId2,
@@ -655,8 +614,6 @@ const getOutputHashes = async ({
   }
 
   await Promise.all(generationPromises);
-
-  console.log(5);
 
   return Promise.all([getOutputHash({ modelId: modelId1 }), getOutputHash({ modelId: modelId2 })]);
 };

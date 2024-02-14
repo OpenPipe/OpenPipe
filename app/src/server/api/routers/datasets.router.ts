@@ -80,6 +80,22 @@ export const datasetsRouter = createTRPCRouter({
     if (tNode.type !== "Dataset")
       throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
 
+    const manualRelabelNode = await kysely
+      .selectFrom("Node as n")
+      .where("n.id", "=", tNode.config.manualRelabelNodeId)
+      .select((eb) => [
+        eb
+          .selectFrom("NodeEntry as ne")
+          .whereRef("ne.nodeId", "=", "n.id")
+          .where("ne.status", "!=", "PROCESSED")
+          .select(sql<number>`count(*)::int`.as("count"))
+          .as("numProcessingEntries"),
+      ])
+      .executeTakeFirst();
+
+    if (!manualRelabelNode)
+      throw new TRPCError({ message: "Manual relabeling node not found", code: "NOT_FOUND" });
+
     const llmRelabelNode = await kysely
       .selectFrom("Node as n")
       .where("n.id", "=", tNode.config.llmRelabelNodeId)
@@ -95,17 +111,20 @@ export const datasetsRouter = createTRPCRouter({
       .executeTakeFirst();
 
     if (!llmRelabelNode)
-      throw new TRPCError({ message: "Relabeling model not found", code: "NOT_FOUND" });
+      throw new TRPCError({ message: "LLM relabeling model not found", code: "NOT_FOUND" });
 
     const tLlmRelabelNode = typedNode(llmRelabelNode);
 
     if (tLlmRelabelNode.type !== "LLMRelabel")
       throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
 
+    const numRelabelingEntries =
+      (tLlmRelabelNode.numRelabelingEntries ?? 0) + (manualRelabelNode.numProcessingEntries ?? 0);
+
     return {
       ...dataset,
       relabelLLM: tLlmRelabelNode.config.relabelLLM,
-      numRelabelingEntries: llmRelabelNode.numRelabelingEntries,
+      numRelabelingEntries,
     };
   }),
   getTrainingCosts: protectedProcedure
