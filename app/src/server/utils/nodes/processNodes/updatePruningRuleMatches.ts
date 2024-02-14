@@ -8,7 +8,8 @@ export const updateDatasetPruningRuleMatches = async ({
   nodeHash,
   datasetId,
   nodeEntryBaseQuery,
-  pruningRuleCutoffDate,
+  pruningRuleCutoffDate = new Date(0),
+  deleteMatches,
 }: {
   nodeHash: string;
   datasetId: string;
@@ -20,6 +21,7 @@ export const updateDatasetPruningRuleMatches = async ({
     object
   >;
   pruningRuleCutoffDate?: Date;
+  deleteMatches?: boolean;
 }) => {
   const allPruningRules = await prisma.pruningRule.findMany({
     where: {
@@ -34,17 +36,18 @@ export const updateDatasetPruningRuleMatches = async ({
   const numOmittedRules = allPruningRules.length - pruningRulesToUpdate.length;
 
   await kysely.transaction().execute(async (trx) => {
-    if (pruningRulesToUpdate.length) {
+    if (deleteMatches) {
       await trx.deleteFrom("CachedProcessedNodeEntry").where("nodeHash", "=", nodeHash).execute();
-
-      await trx
-        .deleteFrom("NewPruningRuleMatch as prm")
-        .where(
-          "prm.pruningRuleId",
-          "in",
-          pruningRulesToUpdate.map((pr) => pr.id),
-        )
-        .execute();
+      if (pruningRulesToUpdate.length > 0) {
+        await trx
+          .deleteFrom("NewPruningRuleMatch as prm")
+          .where(
+            "prm.pruningRuleId",
+            "in",
+            pruningRulesToUpdate.map((pr) => pr.id),
+          )
+          .execute();
+      }
     }
 
     for (let i = numOmittedRules; i < allPruningRules.length; i++) {

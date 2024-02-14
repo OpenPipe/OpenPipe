@@ -186,7 +186,7 @@ const ComparisonsHeader = () => (
 type ComparisonResult =
   RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"]["comparisonResults"][number];
 
-const VERTICAL_PADDING = 32;
+const VERTICAL_PADDING = 64;
 const MIN_EXPANDABLE_HEIGHT = 200;
 
 const ComparisonRow = ({
@@ -324,7 +324,7 @@ const SelectedComparisonTable = ({
   const expandable = maxHeight > MIN_HEIGHT;
 
   const contentProps = {
-    maxH: !expandable ? maxHeight : expanded ? maxHeight + 160 : MIN_HEIGHT,
+    maxH: !expandable ? maxHeight + 32 : expanded ? maxHeight + 160 : MIN_HEIGHT,
     overflow: "hidden",
     transition: "max-height 0.5s ease-in-out",
   };
@@ -347,12 +347,12 @@ const SelectedComparisonTable = ({
         }}
       >
         <GridItem>
-          <Text fontWeight="bold" color="gray.500">
+          <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
             Input
           </Text>
         </GridItem>
         <GridItem {...leftBorderProps}>
-          <Text fontWeight="bold" color="gray.500">
+          <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
             {selectedOutputTitle}
           </Text>
         </GridItem>

@@ -30,15 +30,7 @@ export const datasetEvalsRouter = createTRPCRouter({
       .selectFrom("DatasetEval as eval")
       .where("eval.id", "=", input.id)
       .leftJoin("Dataset as d", "d.id", "eval.datasetId")
-      .leftJoin("DatasetEvalNodeEntry as dene", "dene.datasetEvalId", "eval.id")
-      .innerJoin("NodeEntry as ne", (join) =>
-        join
-          .onRef("ne.nodeId", "=", "d.nodeId")
-          .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
-          .on("ne.split", "=", "TEST")
-          .on("ne.status", "=", "PROCESSED"),
-      )
-      .distinctOn(["ne.persistentId"])
+
       .select((eb) => [
         "eval.id",
         "eval.name",
@@ -53,9 +45,20 @@ export const datasetEvalsRouter = createTRPCRouter({
             .select(["deos.id", "deos.modelId"])
             .orderBy("deos.createdAt", "asc"),
         ).as("outputSources"),
-        eb.fn.count<string>("dene.id").as("numRows"),
+        eb
+          .selectFrom("DatasetEvalNodeEntry as dene")
+          .whereRef("dene.datasetEvalId", "=", "eval.id")
+          .innerJoin("NodeEntry as ne", (join) =>
+            join
+              .onRef("ne.nodeId", "=", "d.nodeId")
+              .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
+              .on("ne.split", "=", "TEST")
+              .on("ne.status", "=", "PROCESSED"),
+          )
+          .select((eb) => [eb.fn.count<string>("dene.id").as("count")])
+          .as("numRows"),
       ])
-      .groupBy(["eval.id", "d.name", "d.projectId"])
+      .groupBy(["eval.id", "d.name", "d.projectId", "d.nodeId"])
       .executeTakeFirst();
 
     if (!datasetEval?.projectId)
@@ -75,7 +78,6 @@ export const datasetEvalsRouter = createTRPCRouter({
           .on("ne.split", "=", "TEST")
           .onRef("ne.inputHash", "=", "der.nodeEntryInputHash"),
       )
-      .distinctOn(["ne.persistentId"])
       .leftJoin("FineTune as ft", (join) => join.onRef(sql`ft.id::text`, "=", "deos.modelId"));
 
     const [leaderboard, headToHead, completionCount] = await Promise.all([
@@ -117,7 +119,7 @@ export const datasetEvalsRouter = createTRPCRouter({
 
     return {
       ...datasetEval,
-      numRows: parseInt(datasetEval.numRows),
+      numRows: parseInt(datasetEval.numRows ?? "0"),
       results: {
         leaderboard,
         headToHead,
@@ -374,12 +376,29 @@ export const datasetEvalsRouter = createTRPCRouter({
             .on("ne.split", "=", "TEST")
             .on("ne.status", "=", "PROCESSED"),
         )
-        .select("dene.id")
+        .selectAll("dene")
         .execute();
 
       const currentNumRows = currentDatasetEvalNodeEntries.length;
 
       if (input.updates.numRows && input.updates.numRows !== currentNumRows) {
+        // delete all datasetEvalNodeEntries without NodeEntries currently in dataset
+        await kysely
+          .deleteFrom("DatasetEvalNodeEntry as dene")
+          .where("dene.datasetEvalId", "=", input.id)
+          .where((eb) =>
+            eb.not(
+              eb.exists(
+                eb
+                  .selectFrom("NodeEntry as ne")
+                  .where("ne.nodeId", "=", datasetEval.dataset.nodeId)
+                  .where("ne.split", "=", "TEST")
+                  .whereRef("ne.persistentId", "=", "dene.nodeEntryPersistentId"),
+              ),
+            ),
+          )
+          .execute();
+
         if (currentNumRows > input.updates.numRows) {
           const numRowsToDelete = currentNumRows - input.updates.numRows;
 
@@ -392,7 +411,9 @@ export const datasetEvalsRouter = createTRPCRouter({
             .where("id", "in", datasetEvalNodeEntriesToDelete)
             .execute();
         } else {
-          const currentlyExcludedNodeEntries = await kysely
+          const numRowsToCreate = input.updates.numRows - currentNumRows;
+
+          const nodeEntriesToCreate = await kysely
             .selectFrom("NodeEntry as ne")
             .where("ne.nodeId", "=", datasetEval.dataset.nodeId)
             .where("ne.split", "=", "TEST")
@@ -403,19 +424,13 @@ export const datasetEvalsRouter = createTRPCRouter({
                 .on("dene.datasetEvalId", "=", input.id),
             )
             .where("dene.id", "is", null)
+            .orderBy(sql`random()`)
+            .limit(numRowsToCreate)
             .select(["ne.persistentId"])
             .execute();
 
-          const numRowsToCreate = input.updates.numRows - currentNumRows;
-
-          const nodeEntriesToCreate = shuffle(currentlyExcludedNodeEntries).slice(
-            0,
-            numRowsToCreate,
-          );
-
           await prisma.datasetEvalNodeEntry.createMany({
             data: nodeEntriesToCreate.map((nodeEntry) => ({
-              ...nodeEntry,
               nodeEntryPersistentId: nodeEntry.persistentId,
               datasetEvalId: input.id,
             })),
@@ -570,7 +585,7 @@ export const datasetEvalsRouter = createTRPCRouter({
               .where("comparisonDeos.modelId", "in", input.visibleModelIds)
               .leftJoin("NewFineTuneTestingEntry as comparisonFtte", (join) =>
                 join
-                  .on("comparisonFtte.inputHash", "=", "ne.inputHash")
+                  .onRef("comparisonFtte.inputHash", "=", "ne.inputHash")
                   .onRef("comparisonFtte.modelId", "=", "comparisonDeos.modelId"),
               )
               .leftJoin(

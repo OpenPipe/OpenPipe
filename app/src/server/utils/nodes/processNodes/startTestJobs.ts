@@ -1,10 +1,14 @@
 import { type SelectQueryBuilder, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { shuffle } from "lodash-es";
-import type { ComparisonModel } from "@prisma/client";
+import type { ComparisonModel, Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 
-import { kysely } from "~/server/db";
-import { type EvalKey, evaluateTestSetEntries } from "~/server/tasks/evaluateTestSetEntries.task";
+import { kysely, prisma } from "~/server/db";
+import {
+  type EvalKey,
+  enqueueEvaluateTestSetEntries,
+} from "~/server/tasks/evaluateTestSetEntries.task";
 import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
 import type { DB, NodeEntry } from "~/types/kysely-codegen.types";
 
@@ -81,7 +85,13 @@ export const startTestJobsForEval = async ({
             "dene.nodeEntryPersistentId",
             "ne.persistentId",
           )
-          .select(["ne.id as nodeEntryId", "dene.id", "dene.datasetEvalId"])
+          .select([
+            "ne.id as nodeEntryId",
+            "ne.inputHash as nodeEntryInputHash",
+            "ne.outputHash as nodeEntryOutputHash",
+            "dene.id",
+            "dene.datasetEvalId",
+          ])
           .where("datasetEvalId", "=", datasetEvalId),
       ).as("datasetEvalDatasetEntries"),
       jsonArrayFrom(
@@ -96,14 +106,37 @@ export const startTestJobsForEval = async ({
   if (!datasetEval) return;
 
   const evalsToRun: EvalKey[] = [];
+  const datasetEvalResultsToCreate: Prisma.NewDatasetEvalResultCreateManyInput[] = [];
 
   for (const datasetEvalNodeEntry of datasetEval.datasetEvalDatasetEntries) {
     for (let i = 0; i < datasetEval.outputSources.length; i++) {
       for (let j = i + 1; j < datasetEval.outputSources.length; j++) {
+        const firstOutputSourceId = datasetEval.outputSources[i]?.id as string;
+        const secondOutputSourceId = datasetEval.outputSources[j]?.id as string;
         evalsToRun.push({
           nodeEntryId: datasetEvalNodeEntry.nodeEntryId,
-          firstOutputSourceId: datasetEval.outputSources[i]?.id as string,
-          secondOutputSourceId: datasetEval.outputSources[j]?.id as string,
+          firstOutputSourceId,
+          secondOutputSourceId,
+        });
+        const firstResultId = uuidv4();
+        const secondResultId = uuidv4();
+        datasetEvalResultsToCreate.push({
+          id: firstResultId,
+          nodeEntryInputHash: datasetEvalNodeEntry.nodeEntryInputHash,
+          nodeEntryOutputHash: datasetEvalNodeEntry.nodeEntryOutputHash,
+          datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
+          datasetEvalOutputSourceId: firstOutputSourceId,
+          comparisonResultId: secondResultId,
+          comparisonOutputSourceId: secondOutputSourceId,
+        });
+        datasetEvalResultsToCreate.push({
+          id: secondResultId,
+          nodeEntryInputHash: datasetEvalNodeEntry.nodeEntryInputHash,
+          nodeEntryOutputHash: datasetEvalNodeEntry.nodeEntryOutputHash,
+          datasetEvalNodeEntryId: datasetEvalNodeEntry.id,
+          datasetEvalOutputSourceId: secondOutputSourceId,
+          comparisonResultId: firstResultId,
+          comparisonOutputSourceId: firstOutputSourceId,
         });
       }
     }
@@ -112,8 +145,13 @@ export const startTestJobsForEval = async ({
   // Shuffle so all models get results run at roughly the same rate
   const shuffledEvalsToRun = shuffle(evalsToRun);
 
+  await prisma.newDatasetEvalResult.createMany({
+    data: datasetEvalResultsToCreate,
+    skipDuplicates: true,
+  });
+
   for (const evalKey of shuffledEvalsToRun) {
-    await evaluateTestSetEntries.enqueue(evalKey);
+    await enqueueEvaluateTestSetEntries(evalKey);
   }
 };
 

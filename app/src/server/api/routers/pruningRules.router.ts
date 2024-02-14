@@ -76,6 +76,7 @@ export const pruningRulesRouter = createTRPCRouter({
           .where("ne.nodeId", "=", datasetNode.id)
           .where("ne.status", "=", "PROCESSED"),
         pruningRuleCutoffDate: createdAt,
+        deleteMatches: true,
       });
     }),
   create: protectedProcedure
@@ -111,6 +112,7 @@ export const pruningRulesRouter = createTRPCRouter({
           .where("ne.nodeId", "=", datasetNode.id)
           .where("ne.status", "=", "PROCESSED"),
         pruningRuleCutoffDate: createdAt,
+        deleteMatches: true,
       });
     }),
   delete: protectedProcedure
@@ -145,6 +147,7 @@ export const pruningRulesRouter = createTRPCRouter({
           .where("ne.nodeId", "=", datasetNode.id)
           .where("ne.status", "=", "PROCESSED"),
         pruningRuleCutoffDate: createdAt,
+        deleteMatches: true,
       });
     }),
 });

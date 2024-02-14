@@ -738,7 +738,7 @@ model NewDatasetEvalResult {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([datasetEvalNodeEntryId, datasetEvalOutputSourceId, comparisonOutputSourceId])
+    @@unique([datasetEvalNodeEntryId, nodeEntryInputHash, datasetEvalOutputSourceId, comparisonOutputSourceId])
     @@index([nodeEntryInputHash, nodeEntryOutputHash, datasetEvalOutputSourceId])
     @@index([comparisonResultId])
 }

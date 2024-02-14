@@ -541,14 +541,18 @@ export const nodeEntriesRouter = createTRPCRouter({
             })
             .execute();
 
-          await enqueueProcessNode({ nodeId: manualRelabelNode.id, nodeType: "ManualRelabel" });
           await countDatasetEntryTokens.enqueue();
 
           await updateDatasetPruningRuleMatches({
             nodeHash: tNode.hash,
             datasetId: tNode.datasetId,
-            nodeEntryBaseQuery: kysely.selectFrom("NodeEntry as ne").where("ne.id", "=", input.id),
+            nodeEntryBaseQuery: kysely
+              .selectFrom("NodeEntry as ne")
+              .where("ne.id", "=", tNodeEntry.id),
           });
+
+          await enqueueProcessNode({ nodeId: manualRelabelNode.id, nodeType: "ManualRelabel" });
+
           if (updatedSplit === "TEST") {
             await startDatasetTestJobs({
               datasetId: tNode.datasetId,

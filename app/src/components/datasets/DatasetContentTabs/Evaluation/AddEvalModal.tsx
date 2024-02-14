@@ -190,7 +190,8 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   </HStack>
                   <Input
                     value={numRows}
-                    onChange={(e) => setNumRows(Number(e.target.value) || 0)}
+                    type="number"
+                    onChange={(e) => setNumRows(parseInt(e.target.value.match(/\d+/g)?.[0] ?? ""))}
                     placeholder="10"
                     w="full"
                   />
