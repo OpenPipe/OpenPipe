@@ -13,6 +13,7 @@ import { env } from "~/env.mjs";
 import { zip } from "lodash-es";
 import { type Completion } from "openai/resources";
 import { Stream } from "openai/streaming";
+import { Readable } from "stream";
 
 async function* yieldChunks(reader: ReadableStreamDefaultReader): AsyncGenerator<Completion> {
   let leftover = "";
@@ -26,6 +27,7 @@ async function* yieldChunks(reader: ReadableStreamDefaultReader): AsyncGenerator
 
       while (end !== -1) {
         let line = chunk.substring(start, end).trim();
+
         if (line === "data: [DONE]") {
           return; // Terminate the generator upon encountering the special [DONE] message
         }
@@ -41,7 +43,9 @@ async function* yieldChunks(reader: ReadableStreamDefaultReader): AsyncGenerator
               data += "\n" + line.slice(5).trim();
             }
           }
-          yield JSON.parse(data);
+          const transformedChunk = await transformChunk(data);
+
+          yield transformedChunk;
         }
         start = end + 1;
         end = chunk.indexOf("\n", start);
@@ -58,29 +62,76 @@ async function* yieldChunks(reader: ReadableStreamDefaultReader): AsyncGenerator
     yield JSON.parse(leftover.slice(5).trim()) as Completion;
   }
 }
+async function transformChunk(chunk: string) {
+  // Transform the chunk. This is where you apply your custom logic.
+  // For example, you might modify the chunk or simply log it.
+  // Return the transformed chunk.
+  const jsonData = JSON.parse(chunk);
+
+  return {
+    ...jsonData,
+    object: "chat.completion.chunk",
+    system_fingerprint: null,
+    choices: jsonData.choices.map(
+      (choice: { index: any; text: any; logprobs: any; finish_reason: any }) => ({
+        ...choice,
+        delta: { content: choice.text }, // Transform 'text' to 'delta.content'
+      }),
+    ),
+  };
+}
+async function yieldChunks2(reader: ReadableStreamDefaultReader) {
+  // Read from the stream
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    // Convert Uint8Array to string, then parse JSON
+    const chunk = new TextDecoder().decode(value);
+    const jsonData = JSON.parse(chunk);
+    console.log(jsonData);
+  }
+
+  return new ReadableStream({
+    async pull(controller) {
+      const { done, value } = await reader.read();
+      if (done) {
+        controller.close();
+      } else {
+        // Transform the chunk here before enqueuing it
+        const transformedChunk = await transformChunk(value);
+        controller.enqueue(transformedChunk);
+      }
+    },
+  });
+}
 
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParamsNonStreaming,
+  callback: (chunk: ChatCompletionChunk) => void,
 ): Promise<ChatCompletion>;
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParamsStreaming,
+  callback: (chunk: ChatCompletionChunk) => void,
 ): Promise<Stream<ChatCompletionChunk>>;
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
+  callback: (chunk: ChatCompletionChunk) => void,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
+  callback: (chunk: ChatCompletionChunk) => void,
 ): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
-  if (input.stream) {
-    throw new Error("Streaming is not yet supported");
-  }
+  // if (input.stream) {
+  //   throw new Error("Streaming is not yet supported");
+  // }
 
   if (!env.FIREWORKS_API_KEY) {
     throw new Error("FIREWORKS_API_KEY is required for Fireworks completions");
@@ -100,6 +151,7 @@ export async function getFireworksCompletion(
       temperature: input.temperature ?? 0,
       top_p: input.top_p ?? 0,
       max_tokens: input.max_tokens ?? 4096,
+      stream: input.stream ?? false,
     }),
   });
 
@@ -117,6 +169,11 @@ export async function getFireworksCompletion(
   // Not fully implemented actually, but saving this code since I accidentally
   // already wrote it
   if (input.stream) {
+    const stream = new Readable({
+      read() {},
+      objectMode: true, // Set objectMode to true if ChatCompletionChunk is an object
+    });
+
     const reader = response.body.getReader();
 
     const completionGenerator = yieldChunks(reader);
@@ -124,12 +181,8 @@ export async function getFireworksCompletion(
     resp = await completionGenerator.next().then((x) => x.value as Completion);
 
     for await (const chunk of completionGenerator) {
-      // const reader = response.body.getReader();
-      // // Use the yieldChunks generator to process and transform each chunk
-      // for await (const transformedChunk of yieldChunks(reader)) {
-      //   // console.log(transformedChunk);
-      //   return transformedChunk as unknown as Stream<ChatCompletionChunk>;
-      // }
+      callback(chunk as unknown as ChatCompletionChunk);
+      stream.push(chunk);
 
       const mergedChoices = zip(resp.choices, chunk.choices).map(([base, delta]) => {
         if (!base || !delta || base.index !== delta.index) {
@@ -146,6 +199,8 @@ export async function getFireworksCompletion(
         ...chunk,
         choices: mergedChoices,
       };
+
+      return stream as unknown as Stream<ChatCompletionChunk>;
     }
   } else {
     resp = await response.json();
