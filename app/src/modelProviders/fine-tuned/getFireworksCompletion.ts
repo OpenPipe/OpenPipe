@@ -1,11 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat";
+import type {
+  ChatCompletion,
+  ChatCompletionChunk,
+  ChatCompletionCreateParams,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
+} from "openai/resources/chat";
 
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
 import { zip } from "lodash-es";
 import { type Completion } from "openai/resources";
+import { Stream } from "openai/streaming";
 
 async function* yieldChunks(reader: ReadableStreamDefaultReader): AsyncGenerator<Completion> {
   let leftover = "";
@@ -54,8 +61,20 @@ async function* yieldChunks(reader: ReadableStreamDefaultReader): AsyncGenerator
 
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsNonStreaming,
+): Promise<ChatCompletion>;
+export async function getFireworksCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsStreaming,
+): Promise<Stream<ChatCompletionChunk>>;
+export async function getFireworksCompletion(
+  fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
-): Promise<ChatCompletion> {
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
+export async function getFireworksCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParams,
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
@@ -105,6 +124,13 @@ export async function getFireworksCompletion(
     resp = await completionGenerator.next().then((x) => x.value as Completion);
 
     for await (const chunk of completionGenerator) {
+      // const reader = response.body.getReader();
+      // // Use the yieldChunks generator to process and transform each chunk
+      // for await (const transformedChunk of yieldChunks(reader)) {
+      //   // console.log(transformedChunk);
+      //   return transformedChunk as unknown as Stream<ChatCompletionChunk>;
+      // }
+
       const mergedChoices = zip(resp.choices, chunk.choices).map(([base, delta]) => {
         if (!base || !delta || base.index !== delta.index) {
           throw new Error("Index mismatch");
