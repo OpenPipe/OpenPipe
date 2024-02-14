@@ -111,7 +111,8 @@ export const nodeEntriesRouter = createTRPCRouter({
           })),
         );
 
-      console.log("entries", entries);
+      // console.log("entries", entries);
+      console.log("getting entries");
 
       const matchingCounts = await baseQuery
         .select([

@@ -1,6 +1,5 @@
-import { type Node } from "@prisma/client";
 import { kysely } from "~/server/db";
-import { LLMRelabelOutput, MonitorOutput, typedNode } from "~/server/utils/nodes/node.types";
+import { LLMRelabelOutput, MonitorOutput } from "~/server/utils/nodes/node.types";
 
 export const getDescendantNodes = (nodeId: string) => {
   return kysely

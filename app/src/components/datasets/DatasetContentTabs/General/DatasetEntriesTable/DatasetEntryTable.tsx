@@ -25,7 +25,7 @@ export default function DatasetEntryTable() {
 
   useEffect(() => {
     void utils.nodeEntries.list.invalidate();
-  }, [awaitingRelabeling, utils.nodeEntries.list]);
+  }, [awaitingRelabeling]);
 
   useEffect(
     () => setRefetchInterval(countingIncomplete || awaitingRelabeling ? 5000 : 0),

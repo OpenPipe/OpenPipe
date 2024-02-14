@@ -425,6 +425,10 @@ export const datasetsRouter = createTRPCRouter({
 
       if (!datasetNode) return error("Dataset not found");
 
+      const tDatasetNode = typedNode(datasetNode);
+
+      if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
+
       const { prismaCreations, archiveNodeId, entriesOutputId } = prepareArchiveCreation({
         nodeParams: {
           projectId,
@@ -440,7 +444,7 @@ export const datasetsRouter = createTRPCRouter({
         prisma.dataChannel.create({
           data: {
             originId: entriesOutputId,
-            destinationId: datasetNode.id,
+            destinationId: tDatasetNode.config.llmRelabelNodeId,
           },
         }),
         prisma.datasetFileUpload.create({
@@ -484,6 +488,8 @@ export const datasetsRouter = createTRPCRouter({
         .where("sourceNode.type", "=", "Archive")
         .select(["sourceNode.id as sourceNodeId"])
         .execute();
+
+      if (!archives.length) return [];
 
       return await prisma.datasetFileUpload.findMany({
         where: {

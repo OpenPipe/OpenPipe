@@ -17,7 +17,6 @@ export const prepareArchiveCreation = ({
 }: {
   nodeParams: Omit<Prisma.NodeUncheckedCreateInput, "type" | "config" | "hash"> & {
     config: InferNodeConfig<"Archive">;
-    hash?: string;
   };
 }) => {
   const inputChannelId = uuidv4();
@@ -54,7 +53,6 @@ export const prepareMonitorCreation = ({
 }: {
   nodeParams: Omit<Prisma.NodeUncheckedCreateInput, "type" | "config" | "hash"> & {
     config: InferNodeConfig<"Monitor">;
-    hash?: string;
   };
 }) => {
   const inputChannelId = uuidv4();
@@ -91,7 +89,6 @@ export const prepareLLMRelabelCreation = ({
 }: {
   nodeParams: Omit<Prisma.NodeUncheckedCreateInput, "type" | "config" | "hash"> & {
     config: InferNodeConfig<"LLMRelabel">;
-    hash?: string;
   };
 }) => {
   const relabelNodeId = nodeParams.id || uuidv4();
@@ -129,7 +126,6 @@ export const prepareManualRelabelCreation = ({
 }: {
   nodeParams: Omit<Prisma.NodeUncheckedCreateInput, "type" | "config" | "hash"> & {
     config: InferNodeConfig<"ManualRelabel">;
-    hash?: string;
   };
 }) => {
   const relabelNodeId = nodeParams.id || uuidv4();
@@ -167,7 +163,6 @@ export const prepareDatasetCreation = ({
 }: {
   nodeParams: Omit<Prisma.NodeUncheckedCreateInput, "type" | "config" | "hash"> & {
     config: InferNodeConfig<"Dataset">;
-    hash?: string;
   };
 }) => {
   const datasetNodeId = nodeParams.id || uuidv4();
