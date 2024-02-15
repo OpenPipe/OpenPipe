@@ -17,10 +17,6 @@ const ProjectUserTable = () => {
   const owner = selectedProject?.projectUsers.find((u) => u.role === "OWNER");
   const utils = api.useContext();
 
-  const canLeaveProject =
-    !isAdmin ||
-    !selectedProject ||
-    selectedProject.projectUsers.filter((u) => u.role === "ADMIN" || u.role === "OWNER").length > 1;
   const [projectUserToRemove, setProjectUserToRemove] = useState<ProjectUser | null>(null);
 
   const cancelInvitationMutation = api.users.cancelProjectInvitation.useMutation();
@@ -76,14 +72,10 @@ const ProjectUserTable = () => {
                   <Td fontSize={{ base: "xs", md: "sm" }}>{member.role}</Td>
                   <Td textAlign="end">
                     {(member.userId === session?.user?.id || isAdmin) &&
-                      member.userId !== owner?.userId &&
                       member.userId !== selectedProject.personalProjectUserId && (
                         <ConditionallyEnable
                           checks={[
-                            [
-                              member.userId !== session?.user?.id || canLeaveProject,
-                              "You are the last remaining admin. If you wish to leave, appoint another admin or delete the project.",
-                            ],
+                            [member.userId !== owner?.userId, "You are an owner of this project."],
                           ]}
                         >
                           <IconButton
