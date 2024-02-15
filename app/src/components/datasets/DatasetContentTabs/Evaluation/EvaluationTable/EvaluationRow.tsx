@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Text,
   VStack,
@@ -111,6 +111,7 @@ const EvaluationRow = ({ entry }: { entry: TestingEntry }) => {
 };
 
 const VERTICAL_PADDING = 32;
+const MAX_HEIGHT = 500;
 const FormattedInputGridItem = ({
   entry,
   maxOutputHeight,
@@ -138,16 +139,31 @@ const FormattedInputGridItem = ({
 
   const [isExpanded, setIsExpanded] = useState(false);
   const expandable = innerContentHeight > maxOutputHeight + VERTICAL_PADDING;
+  const maxHeight = Math.min(Math.max(MAX_HEIGHT, maxOutputHeight), innerContentHeight + 52);
+
+  // Scroll to the end of the content when not expanded
+  useEffect(() => {
+    if (inputRef.current && !isExpanded) {
+      inputRef.current.scrollTop = inputRef.current.scrollHeight;
+    }
+  }, [isExpanded]);
 
   return (
     <GridItem
       position="relative"
       borderTopWidth={1}
-      h={isExpanded || !expandable ? innerContentHeight + 52 : maxOutputHeight + VERTICAL_PADDING}
-      overflow="hidden"
+      h={isExpanded || !expandable ? maxHeight : maxOutputHeight + VERTICAL_PADDING}
+      overflowY={isExpanded && innerContentHeight > maxHeight ? "auto" : "hidden"}
+      overflowX="hidden"
       transition="height 0.5s ease-in-out"
     >
-      <VStack ref={inputRef} alignItems="flex-start" spacing={8}>
+      <VStack
+        ref={inputRef}
+        alignItems="flex-start"
+        spacing={8}
+        position={expandable && !isExpanded ? "absolute" : "relative"}
+        bottom={expandable && !isExpanded ? `${VERTICAL_PADDING}px` : "auto"}
+      >
         <FormattedDatasetEntryInput messages={entry.messages} />
         <Text color="gray.500">
           <Text as="span" fontWeight="bold">
@@ -157,16 +173,14 @@ const FormattedInputGridItem = ({
         </Text>
       </VStack>
       {expandable && (
-        <VStack position="absolute" bottom={0} w="full" spacing={0}>
-          {!isExpanded && (
-            <Box
-              w="full"
-              h={16}
-              background="linear-gradient(to bottom, transparent, white)"
-              pointerEvents="none"
-            />
-          )}
-          <HStack w="full" h={8} alignItems="flex-end" justifyContent="center" bgColor="white">
+        <VStack position="absolute" top={0} w="full" spacing={0}>
+          <HStack
+            w="full"
+            h={8}
+            alignItems="flex-start"
+            justifyContent="center"
+            bgColor={isExpanded ? "transparent" : "white"}
+          >
             <Button
               variant="link"
               colorScheme="gray"
@@ -176,23 +190,28 @@ const FormattedInputGridItem = ({
             >
               {isExpanded ? (
                 <HStack spacing={0}>
-                  <Text>Show less</Text>
-                  <Icon as={FiChevronUp} mt={1} boxSize={5} />
+                  <Text>Show less</Text> <Icon as={FiChevronDown} mt={1} boxSize={5} />
                 </HStack>
               ) : (
                 <HStack spacing={0}>
-                  <Text>Show more</Text>
-                  <Icon as={FiChevronDown} mt={1} boxSize={5} />
+                  <Text>Show more</Text> <Icon as={FiChevronUp} mt={1} boxSize={5} />
                 </HStack>
               )}
             </Button>
           </HStack>
+          {!isExpanded && (
+            <Box
+              w="full"
+              h={16}
+              background="linear-gradient(to top, transparent, white)"
+              pointerEvents="none"
+            />
+          )}
         </VStack>
       )}
     </GridItem>
   );
 };
-
 type FTEntry = Partial<TestingEntry["fineTuneTestDatasetEntries"][number]>;
 
 const FormattedOutputGridItem = ({
