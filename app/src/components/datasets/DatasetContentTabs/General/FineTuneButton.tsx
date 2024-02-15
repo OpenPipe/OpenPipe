@@ -352,9 +352,10 @@ Controls the magnitude of updates to the model's parameters during training."
                         step={0.0001}
                         min={0}
                         max={1000}
-                        value={trainingConfigOverrides?.learning_rate}
                         backgroundColor="white"
-                        onChange={(_, learning_rate) => {
+                        onChange={(valueAsString) => {
+                          const learning_rate =
+                            valueAsString === "" ? undefined : parseFloat(valueAsString);
                           setTrainingConfigOverrides((prevState) => ({
                             ...prevState,
                             learning_rate,
@@ -375,8 +376,9 @@ Controls the magnitude of updates to the model's parameters during training."
                         step={1}
                         min={1}
                         max={20}
-                        value={trainingConfigOverrides?.num_epochs}
-                        onChange={(_, num_epochs) => {
+                        onChange={(valueAsString) => {
+                          const num_epochs =
+                            valueAsString === "" ? undefined : Number(valueAsString);
                           setTrainingConfigOverrides((prevState) => ({
                             ...prevState,
                             num_epochs,
