@@ -1,4 +1,4 @@
-from api_client.models.report_model_export_complete_json_body import (
+from ..api_client.models.report_model_export_complete_json_body import (
     ReportModelExportCompleteJsonBody,
 )
 import modal
@@ -8,14 +8,15 @@ import tempfile
 from .base import stub
 from ..shared import lora_s3_path, logging, download_directory_from_s3
 from ..api import client
+
 from ..api_client.api.default import get_model_export_info, report_model_export_complete
 
 
 @stub.function(
     volumes={"/models": stub.volume},
-    timeout=60 * 60 * 1,
+    timeout=60 * 60 * 4,
     secrets=[modal.Secret.from_name("openpipe")],
-    gpu=modal.gpu.A100(memory=40, count=1),
+    memory=100000,
 )
 async def do_export_weights(export_id: str, base_url: str):
     from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -50,22 +51,21 @@ async def do_export_weights(export_id: str, base_url: str):
 
     logging.info(f"Model downloaded to {lora_dir}")
 
-    with torch.device("cuda:0"):
-        logging.info("Loading model")
-        model = AutoModelForCausalLM.from_pretrained(
-            model_info.base_model,
-        )
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_info.base_model,
-        )
+    logging.info("Loading model")
+    model = AutoModelForCausalLM.from_pretrained(
+        model_info.base_model,
+    )
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_info.base_model,
+    )
 
-        model = PeftModel.from_pretrained(model, lora_dir)
+    model = PeftModel.from_pretrained(model, lora_dir)
 
-        logging.info("Merging model")
-        merged_dir = tempfile.mkdtemp()
-        model = model.merge_and_unload()
-        model.save_pretrained(merged_dir)
-        tokenizer.save_pretrained(merged_dir)
+    logging.info("Merging model")
+    merged_dir = tempfile.mkdtemp()
+    model = model.merge_and_unload()
+    model.save_pretrained(merged_dir)
+    tokenizer.save_pretrained(merged_dir)
 
     logging.info("Model successfully merged")
 

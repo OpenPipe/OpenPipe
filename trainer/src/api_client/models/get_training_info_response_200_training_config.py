@@ -55,6 +55,7 @@ class GetTrainingInfoResponse200TrainingConfig:
         weight_decay (float):
         special_tokens (GetTrainingInfoResponse200TrainingConfigSpecialTokens):
         datasets (List['GetTrainingInfoResponse200TrainingConfigDatasetsItem']):
+        val_set_size (float):
         num_epochs (float):
         is_llama_derived_model (Union[Unset, bool]):
         is_mistral_derived_model (Union[Unset, bool]):
@@ -66,7 +67,6 @@ class GetTrainingInfoResponse200TrainingConfig:
         base_model (Union[Unset, str]):
         base_model_config (Union[Unset, str]):
         dataset_processes (Union[Unset, float]):
-        val_set_size (Union[Unset, float]):
         output_dir (Union[Unset, str]):
         wandb_project (Union[Unset, str]):
         wandb_run_id (Union[Unset, str]):
@@ -104,6 +104,7 @@ class GetTrainingInfoResponse200TrainingConfig:
     weight_decay: float
     special_tokens: "GetTrainingInfoResponse200TrainingConfigSpecialTokens"
     datasets: List["GetTrainingInfoResponse200TrainingConfigDatasetsItem"]
+    val_set_size: float
     num_epochs: float
     is_llama_derived_model: Union[Unset, bool] = UNSET
     is_mistral_derived_model: Union[Unset, bool] = UNSET
@@ -115,7 +116,6 @@ class GetTrainingInfoResponse200TrainingConfig:
     base_model: Union[Unset, str] = UNSET
     base_model_config: Union[Unset, str] = UNSET
     dataset_processes: Union[Unset, float] = UNSET
-    val_set_size: Union[Unset, float] = UNSET
     output_dir: Union[Unset, str] = UNSET
     wandb_project: Union[Unset, str] = UNSET
     wandb_run_id: Union[Unset, str] = UNSET
@@ -161,6 +161,7 @@ class GetTrainingInfoResponse200TrainingConfig:
 
             datasets.append(datasets_item)
 
+        val_set_size = self.val_set_size
         num_epochs = self.num_epochs
         is_llama_derived_model = self.is_llama_derived_model
         is_mistral_derived_model = self.is_mistral_derived_model
@@ -178,7 +179,6 @@ class GetTrainingInfoResponse200TrainingConfig:
         base_model = self.base_model
         base_model_config = self.base_model_config
         dataset_processes = self.dataset_processes
-        val_set_size = self.val_set_size
         output_dir = self.output_dir
         wandb_project = self.wandb_project
         wandb_run_id = self.wandb_run_id
@@ -218,6 +218,7 @@ class GetTrainingInfoResponse200TrainingConfig:
                 "weight_decay": weight_decay,
                 "special_tokens": special_tokens,
                 "datasets": datasets,
+                "val_set_size": val_set_size,
                 "num_epochs": num_epochs,
             }
         )
@@ -241,8 +242,6 @@ class GetTrainingInfoResponse200TrainingConfig:
             field_dict["base_model_config"] = base_model_config
         if dataset_processes is not UNSET:
             field_dict["dataset_processes"] = dataset_processes
-        if val_set_size is not UNSET:
-            field_dict["val_set_size"] = val_set_size
         if output_dir is not UNSET:
             field_dict["output_dir"] = output_dir
         if wandb_project is not UNSET:
@@ -334,6 +333,8 @@ class GetTrainingInfoResponse200TrainingConfig:
 
             datasets.append(datasets_item)
 
+        val_set_size = d.pop("val_set_size")
+
         num_epochs = d.pop("num_epochs")
 
         is_llama_derived_model = d.pop("is_llama_derived_model", UNSET)
@@ -360,8 +361,6 @@ class GetTrainingInfoResponse200TrainingConfig:
         base_model_config = d.pop("base_model_config", UNSET)
 
         dataset_processes = d.pop("dataset_processes", UNSET)
-
-        val_set_size = d.pop("val_set_size", UNSET)
 
         output_dir = d.pop("output_dir", UNSET)
 
@@ -408,6 +407,7 @@ class GetTrainingInfoResponse200TrainingConfig:
             weight_decay=weight_decay,
             special_tokens=special_tokens,
             datasets=datasets,
+            val_set_size=val_set_size,
             num_epochs=num_epochs,
             is_llama_derived_model=is_llama_derived_model,
             is_mistral_derived_model=is_mistral_derived_model,
@@ -419,7 +419,6 @@ class GetTrainingInfoResponse200TrainingConfig:
             base_model=base_model,
             base_model_config=base_model_config,
             dataset_processes=dataset_processes,
-            val_set_size=val_set_size,
             output_dir=output_dir,
             wandb_project=wandb_project,
             wandb_run_id=wandb_run_id,
