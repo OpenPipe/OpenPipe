@@ -52,10 +52,7 @@ export async function getCompletion(
       case 3:
         let completion: Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
         if (fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1") {
-          completion = getFireworksCompletion(fineTune, prunedInput, (chunk) => {
-            // console.log("Chunk received in upper function:", chunk);
-          });
-          console.log("Completion in getCompletion:", await completion);
+          completion = getFireworksCompletion(fineTune, prunedInput);
         } else if (fineTune.gpt4FallbackEnabled) {
           completion = getAzureGpt4Completion(input);
           // keep gpus hot

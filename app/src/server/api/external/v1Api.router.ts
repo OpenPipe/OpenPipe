@@ -229,7 +229,6 @@ export const v1ApiRouter = createOpenApiRouter({
               ...inputPayload,
               stream: input.stream,
             });
-            console.log(completion);
           } catch (error: unknown) {
             if (error instanceof APIError) {
               // Pass through OpenAI API errors

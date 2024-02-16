@@ -1,4 +1,5 @@
 import type { ChatCompletion, ChatCompletionChunk } from "openai/resources/chat";
+import { CompletionUsage } from "openai/resources/completions";
 
 const omit = <T extends Record<string, unknown>, K extends keyof T>(
   obj: T,
@@ -13,7 +14,7 @@ const omit = <T extends Record<string, unknown>, K extends keyof T>(
 
 export default function mergeChunks(
   base: ChatCompletion | null,
-  chunk: ChatCompletionChunk,
+  chunk: ChatCompletionChunk & { usage?: CompletionUsage },
 ): ChatCompletion {
   if (base === null) {
     return mergeChunks(
@@ -87,6 +88,7 @@ export default function mergeChunks(
   const merged: ChatCompletion = {
     ...base,
     choices,
+    usage: chunk.usage || undefined,
   };
 
   return merged;

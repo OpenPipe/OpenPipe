@@ -47,6 +47,7 @@ export const recordUsage = async ({
     completion = merged;
   }
   const parsedCompletion = chatCompletionOutput.safeParse(completion);
+  console.log(parsedCompletion.data.choices);
   const usage = parsedCompletion.success
     ? calculateUsage({
         inputPayload,
