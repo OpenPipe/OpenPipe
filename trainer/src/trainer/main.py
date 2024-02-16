@@ -17,7 +17,7 @@ with image.imports():
 
 
 @stub.function(
-    gpu=modal.gpu.H100(count=1),
+    gpu=modal.gpu.A100(memory=80, count=1),
     secrets=[modal.Secret.from_name("openpipe")],
     # 24 hour timeout
     timeout=60 * 60 * 24,
