@@ -266,6 +266,20 @@ export const usersRouter = createTRPCRouter({
         await requireIsProjectAdmin(input.projectId, ctx);
       }
 
+      const owner = await prisma.projectUser.findFirst({
+        where: {
+          projectId: input.projectId,
+          role: "OWNER",
+        },
+      });
+
+      if (input.userId === owner?.userId) {
+        throw new TRPCError({
+          message: "You can't remove the owner of the project",
+          code: "FORBIDDEN",
+        });
+      }
+
       await prisma.projectUser.delete({
         where: {
           projectId_userId: {

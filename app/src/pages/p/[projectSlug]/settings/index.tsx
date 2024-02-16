@@ -122,7 +122,7 @@ export default function Settings() {
               </Box>
               <ConditionallyEnable
                 accessRequired="requireIsProjectAdmin"
-                accessDeniedText="Only admins can invite new members"
+                accessDeniedText="Only owners and admins can invite new members"
                 w="fit-content"
               >
                 <Button
@@ -151,7 +151,7 @@ export default function Settings() {
             <VStack alignItems="flex-start" w="full">
               <HStack>
                 <Subtitle fontSize="sm">Read/Write</Subtitle>
-                <InfoCircle tooltipText="Only available to project admins and members. Use this key to query models and record request logs." />
+                <InfoCircle tooltipText="Only available to project owners, admins and members. Use this key to query models and record request logs." />
               </HStack>
               <CopiableCode
                 code={
