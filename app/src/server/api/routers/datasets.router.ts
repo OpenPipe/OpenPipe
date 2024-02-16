@@ -121,10 +121,15 @@ export const datasetsRouter = createTRPCRouter({
     const numRelabelingEntries =
       (tLlmRelabelNode.numRelabelingEntries ?? 0) + (manualRelabelNode.numProcessingEntries ?? 0);
 
+    const archives = await getUpstreamSources({ llmRelabelNodeId: tNode.config.llmRelabelNodeId })
+      .where("sourceNode.type", "=", "Archive")
+      .select(["sourceNode.id", "sourceNode.name"])
+      .execute();
     return {
       ...dataset,
       relabelLLM: tLlmRelabelNode.config.relabelLLM,
       numRelabelingEntries,
+      archives,
     };
   }),
   getTrainingCosts: protectedProcedure
