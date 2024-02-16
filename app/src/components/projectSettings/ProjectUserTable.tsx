@@ -75,7 +75,7 @@ const ProjectUserTable = () => {
                       member.userId !== selectedProject.personalProjectUserId && (
                         <ConditionallyEnable
                           checks={[
-                            [member.userId !== owner?.userId, "You are an owner of this project."],
+                            [member.userId !== owner?.userId, "You are the owner of this project."],
                           ]}
                         >
                           <IconButton
