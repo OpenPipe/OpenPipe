@@ -165,12 +165,6 @@ const FormattedInputGridItem = ({
         bottom={expandable && !isExpanded ? `${VERTICAL_PADDING}px` : "auto"}
       >
         <FormattedDatasetEntryInput messages={entry.messages} />
-        <Text color="gray.500">
-          <Text as="span" fontWeight="bold">
-            ID:
-          </Text>{" "}
-          {entry.id}
-        </Text>
       </VStack>
       {expandable && (
         <VStack position="absolute" top={0} w="full" spacing={0}>
