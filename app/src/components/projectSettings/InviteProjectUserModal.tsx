@@ -36,7 +36,7 @@ export const InviteProjectUserModal = ({
   const utils = api.useContext();
 
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<ProjectUserRole>("MEMBER");
+  const [role, setRole] = useState<Exclude<ProjectUserRole, "OWNER">>("MEMBER");
 
   useEffect(() => {
     setEmail("");
@@ -77,7 +77,7 @@ export const InviteProjectUserModal = ({
 
             <RadioGroup
               value={role}
-              onChange={(e) => setRole(e as ProjectUserRole)}
+              onChange={(e) => setRole(e as Exclude<ProjectUserRole, "OWNER">)}
               colorScheme="orange"
             >
               <VStack w="full" alignItems="flex-start">

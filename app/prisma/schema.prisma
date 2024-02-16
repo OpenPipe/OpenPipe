@@ -220,6 +220,7 @@ enum ProjectUserRole {
     ADMIN
     MEMBER
     VIEWER
+    OWNER
 }
 
 model ProjectUser {

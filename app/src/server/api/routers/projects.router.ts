@@ -241,7 +241,7 @@ export const projectsRouter = createTRPCRouter({
           data: {
             userId: ctx.session.user.id,
             projectId: newProjectId,
-            role: "ADMIN",
+            role: "OWNER",
           },
         }),
         prisma.apiKey.create({
