@@ -1,4 +1,8 @@
-import type { ChatCompletionCreateParams, ChatCompletion } from "openai/resources";
+import type {
+  ChatCompletionCreateParams,
+  ChatCompletion,
+  ChatCompletionCreateParamsNonStreaming,
+} from "openai/resources";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
@@ -32,7 +36,7 @@ const timedCompletion = async (completion: Promise<ChatCompletion>) => {
 
 export function benchmarkCompletions(
   fineTune: TypedFineTune,
-  input: ChatCompletionCreateParams,
+  input: ChatCompletionCreateParamsNonStreaming,
 ): Promise<ChatCompletion> {
   const modalCompletion = getModalCompletion(fineTune, input);
   const anyscaleCompletion = getAnyscaleCompletion(fineTune, input);

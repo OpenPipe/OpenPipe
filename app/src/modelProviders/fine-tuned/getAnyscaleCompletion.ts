@@ -3,6 +3,8 @@ import type {
   ChatCompletion,
   ChatCompletionChunk,
   ChatCompletionCreateParams,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
 } from "openai/resources/chat";
 import { Stream } from "openai/streaming";
 import OpenAI from "openai";
@@ -26,6 +28,18 @@ const clients = env.ANYSCALE_INFERENCE_BASE_URL
     }
   : null;
 
+export async function getAnyscaleCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsNonStreaming,
+): Promise<ChatCompletion>;
+export async function getAnyscaleCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsStreaming,
+): Promise<Stream<ChatCompletionChunk>>;
+export async function getAnyscaleCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParams,
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
 export async function getAnyscaleCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
