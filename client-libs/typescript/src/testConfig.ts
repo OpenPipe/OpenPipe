@@ -4,6 +4,7 @@ dotenv.config();
 
 let OPENPIPE_BASE_URL: string;
 let OPENPIPE_API_KEY: string;
+let OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const testProduction = process.env.ENVIRONMENT === "production";
 
@@ -27,4 +28,4 @@ const TEST_LAST_LOGGED = !testProduction;
 process.env.OPENPIPE_BASE_URL = OPENPIPE_BASE_URL;
 process.env.OPENPIPE_API_KEY = OPENPIPE_API_KEY;
 
-export { OPENPIPE_BASE_URL, OPENPIPE_API_KEY, TEST_LAST_LOGGED };
+export { OPENPIPE_BASE_URL, OPENPIPE_API_KEY, OPENAI_API_KEY, TEST_LAST_LOGGED };

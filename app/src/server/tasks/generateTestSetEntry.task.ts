@@ -11,7 +11,7 @@ import {
   typedFineTune,
   typedFineTuneTestingEntry,
 } from "~/types/dbColumns.types";
-import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/comparisonModels";
+import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonModels";
 import { calculateCost } from "../fineTuningProviders/supportedModels";
 import {
   calculateFieldComparisonScore,
@@ -135,7 +135,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
       const input: ChatCompletionCreateParamsNonStreaming = {
         model: fineTune
           ? `openpipe:${fineTune.slug}`
-          : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
+          : getComparisonModelName(modelId as ComparisonModel) || "gpt-4-0125-preview",
         messages: datasetEntry.messages,
         tool_choice: datasetEntry.tool_choice ?? undefined,
         tools: datasetEntry.tools ?? undefined,

@@ -7,7 +7,7 @@ import {
   EVALUATION_FILTERS_OUTPUT_APPENDIX,
   EvaluationFiltersDefaultFields,
 } from "~/types/shared.types";
-import { COMPARISON_MODEL_NAMES } from "~/utils/comparisonModels";
+import { getComparisonModelName } from "~/utils/comparisonModels";
 import type {
   TextFilterOption,
   FilterOption,
@@ -26,7 +26,7 @@ const EvaluationFilters = () => {
       dataset?.enabledComparisonModels || []
     ).map((cm) => ({
       type: "text" as const,
-      field: COMPARISON_MODEL_NAMES[cm] + EVALUATION_FILTERS_OUTPUT_APPENDIX,
+      field: getComparisonModelName(cm) ?? "" + EVALUATION_FILTERS_OUTPUT_APPENDIX,
     }));
     const fineTuneOutputOptions: TextFilterOption[] = (dataset?.deployedFineTunes || []).map(
       (ft) => ({

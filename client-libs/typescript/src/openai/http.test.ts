@@ -1,6 +1,10 @@
 import { test, expect } from "vitest";
-import { OPENPIPE_BASE_URL, OPENPIPE_API_KEY } from "../testConfig";
-import { ReadableStream } from "node:stream/web";
+import { OPENPIPE_BASE_URL, OPENPIPE_API_KEY, OPENAI_API_KEY } from "../testConfig";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: OPENAI_API_KEY,
+});
 
 const OPENPIPE_API_CHAT_COMPLETIONS_URL = OPENPIPE_BASE_URL + "chat/completions";
 
@@ -12,7 +16,7 @@ test("fetches non-streamed output", async () => {
       Authorization: `Bearer ${OPENPIPE_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "openpipe:mix8",
+      model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: "Count to 7" }],
     }),
   });
@@ -22,7 +26,18 @@ test("fetches non-streamed output", async () => {
   expect(data.choices[0].message.content).toBeDefined();
 }, 200000);
 
-test.only("fetches streamed output", async () => {
+test("fetches OpenAI stream direct", async () => {
+  const stream = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "user", content: "Count to 7" }],
+    stream: true,
+  });
+  for await (const chunk of stream) {
+    validateOpenAIChunkSignature(chunk);
+  }
+});
+
+test("fetches streamed output", async () => {
   const response = await fetch(OPENPIPE_API_CHAT_COMPLETIONS_URL, {
     method: "POST",
     headers: {
@@ -55,26 +70,14 @@ test.only("fetches streamed output", async () => {
       // Process each potentially concatenated chunk by splitting on the "data: " prefix
       const splitChunks = chunkText.split(/\ndata: /);
       splitChunks.forEach((splitChunk, index) => {
-        console.log(chunkText);
-
         // For the first chunk only, remove "data: " if it's at the very start of the text
         if (index === 0 && splitChunk.startsWith("data: ")) {
           splitChunk = splitChunk.substring(5);
         }
 
         const chunkJson = JSON.parse(splitChunk);
-        expect(chunkJson).toHaveProperty("id");
-        expect(chunkJson.object).toEqual("chat.completion.chunk");
-        expect(chunkJson).toHaveProperty("created");
-        expect(chunkJson).toHaveProperty("model");
-        expect(chunkJson).toHaveProperty("choices");
-        expect(Array.isArray(chunkJson.choices)).toBeTruthy();
-        chunkJson.choices.forEach((choice: Record<string, any>[]) => {
-          expect(choice).toHaveProperty("index");
-          expect(choice).toHaveProperty("delta");
-          expect(choice).toHaveProperty("logprobs");
-          expect(choice).toHaveProperty("finish_reason");
-        });
+
+        validateOpenAIChunkSignature(chunkJson);
       });
     }
   }
@@ -100,3 +103,25 @@ test("bad tags", async () => {
   const error = await response.json();
   expect(error.message).toMatch(/Failed to parse tags/);
 });
+
+function validateOpenAIChunkSignature(chunk: any) {
+  expect(chunk).toHaveProperty("id");
+  expect(chunk.object).toEqual("chat.completion.chunk");
+  expect(chunk).toHaveProperty("created");
+  expect(chunk).toHaveProperty("model");
+  expect(chunk).toHaveProperty("choices");
+  expect(Array.isArray(chunk.choices)).toBeTruthy();
+  chunk.choices.forEach((choice: Record<string, any>) => {
+    expect(choice).toHaveProperty("index");
+    expect(choice).toHaveProperty("delta");
+    expect(choice).toHaveProperty("logprobs");
+    expect([
+      "stop",
+      "length",
+      "tool_calls",
+      "content_filter",
+      "function_call",
+      null,
+    ]).toContainEqual(choice.finish_reason);
+  });
+}

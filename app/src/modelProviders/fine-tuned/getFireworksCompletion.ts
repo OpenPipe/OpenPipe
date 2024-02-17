@@ -36,6 +36,12 @@ export async function getFireworksCompletion(
     throw new Error("FIREWORKS_API_KEY is required for Fireworks completions");
   }
 
+  if ((input.functions || input.tools) && input.stream) {
+    throw new Error(
+      `Error: Streaming completions are not supported for function calls. Model: ${fineTune.slug}`,
+    );
+  }
+
   const response = await fetch(`https://api.fireworks.ai/inference/v1/completions`, {
     method: "POST",
     headers: {
@@ -70,7 +76,7 @@ export async function getFireworksCompletion(
     const reader = response.body.getReader();
 
     async function* iterator() {
-      for await (const chunk of yieldChunks(reader)) {
+      for await (const chunk of yieldChunks(reader, input.model)) {
         yield chunk;
       }
     }
@@ -102,6 +108,7 @@ export async function getFireworksCompletion(
 
 async function* yieldChunks(
   reader: ReadableStreamDefaultReader,
+  model: string,
 ): AsyncGenerator<ChatCompletionChunk> {
   let leftover = "";
   try {
@@ -130,7 +137,7 @@ async function* yieldChunks(
               data += "\n" + line.slice(5).trim();
             }
           }
-          const transformedChunk = transformChunk(data);
+          const transformedChunk = transformChunk(data, model);
 
           yield transformedChunk;
         }
@@ -149,13 +156,13 @@ async function* yieldChunks(
     yield JSON.parse(leftover.slice(5).trim()) as ChatCompletionChunk;
   }
 }
-function transformChunk(chunk: string) {
+function transformChunk(chunk: string, model: string) {
   const jsonData = JSON.parse(chunk);
   return {
     id: jsonData.id,
     object: "chat.completion.chunk",
     created: jsonData.created,
-    model: jsonData.model, //Get model from input???
+    model,
     system_fingerprint: undefined,
     choices: jsonData.choices.map(
       (choice: { index: any; text: any; logprobs: any; finish_reason: any }) => ({

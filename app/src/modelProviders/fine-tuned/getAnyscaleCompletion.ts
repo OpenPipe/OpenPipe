@@ -63,6 +63,12 @@ export async function getAnyscaleCompletion(
     );
   }
 
+  if ((input.functions || input.tools) && input.stream) {
+    throw new Error(
+      `Error: Streaming completions are not supported for function calls. Model: ${fineTune.slug}`,
+    );
+  }
+
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
@@ -76,7 +82,7 @@ export async function getAnyscaleCompletion(
   });
 
   if (resp instanceof Stream) {
-    return transformStream(resp);
+    return transformStream(resp, input.model);
   }
 
   const convertToFunctions = (input.functions?.length ?? 0) > 0;
@@ -100,24 +106,27 @@ export async function getAnyscaleCompletion(
   };
 }
 
-function transformStream(originalStream: Stream<ChatCompletionChunk>): Stream<ChatCompletionChunk> {
+function transformStream(
+  originalStream: Stream<ChatCompletionChunk>,
+  model: string,
+): Stream<ChatCompletionChunk> {
   const controller = new AbortController();
 
   async function* iterator() {
     for await (const chunk of originalStream) {
-      yield transformChunk(chunk);
+      yield transformChunk(chunk, model);
     }
   }
 
   return new Stream(iterator, controller);
 }
 
-function transformChunk(chunk: any) {
+function transformChunk(chunk: any, model: string) {
   return {
     id: chunk.id,
     object: "chat.completion.chunk",
     created: chunk.created,
-    model: chunk.model,
+    model,
     choices: chunk.choices,
     usage: chunk.usage,
   } as ChatCompletionChunk;

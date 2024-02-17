@@ -41,7 +41,6 @@ export async function getCompletion(
 
   const prunedMessages = pruneInputMessages(input.messages, stringsToPrune);
   const prunedInput = { messages: prunedMessages, ...omit(input, "messages") };
-
   if (fineTune.provider === "openai") {
     return getOpenAIFineTuneCompletion(fineTune, prunedInput);
   } else {
