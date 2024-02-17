@@ -50,7 +50,7 @@ export async function getFireworksCompletion(
       temperature: input.temperature ?? 0,
       top_p: input.top_p ?? 0,
       max_tokens: input.max_tokens ?? 4096,
-      stream: input.stream ?? false,
+      stream: input.stream,
     }),
   });
 

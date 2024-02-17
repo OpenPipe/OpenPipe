@@ -30,7 +30,7 @@ test.only("fetches streamed output", async () => {
       Authorization: `Bearer ${OPENPIPE_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "openpipe:green-deer-sleep",
+      model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: "Count to 10" }],
       stream: true,
     }),

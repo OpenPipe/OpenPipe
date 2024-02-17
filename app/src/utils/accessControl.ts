@@ -31,6 +31,12 @@ export const requireCanViewProject = async (projectId: string, ctx: TRPCContext)
 
   const userId = requireUserId(ctx);
 
+  const user = await prisma.user.findFirst({
+    where: {
+      id: userId,
+    },
+  });
+
   const canView = await prisma.projectUser.findFirst({
     where: {
       userId,
@@ -38,7 +44,7 @@ export const requireCanViewProject = async (projectId: string, ctx: TRPCContext)
     },
   });
 
-  if (!canView) {
+  if (user?.role !== "ADMIN" && !canView) {
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
@@ -71,7 +77,7 @@ export const requireCanModifyProject = async (projectId: string, ctx: TRPCContex
     where: {
       userId,
       projectId,
-      role: { in: [ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
+      role: { in: [ProjectUserRole.OWNER, ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
     },
   });
 
@@ -92,7 +98,7 @@ export const requireIsProjectAdmin = async (projectId: string, ctx: TRPCContext)
     where: {
       userId,
       projectId,
-      role: "ADMIN",
+      role: { in: [ProjectUserRole.OWNER, ProjectUserRole.ADMIN] },
     },
   });
 
@@ -116,7 +122,7 @@ export const requireCanModifyPruningRule = async (pruningRuleId: string, ctx: TR
         project: {
           projectUsers: {
             some: {
-              role: { in: [ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
+              role: { in: [ProjectUserRole.OWNER, ProjectUserRole.ADMIN, ProjectUserRole.MEMBER] },
               userId,
             },
           },

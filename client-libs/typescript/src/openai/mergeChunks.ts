@@ -88,7 +88,7 @@ export default function mergeChunks(
   const merged: ChatCompletion = {
     ...base,
     choices,
-    usage: chunk.usage || undefined,
+    usage: chunk.usage,
   };
 
   return merged;

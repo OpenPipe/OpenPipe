@@ -10,8 +10,8 @@ import { sql } from "kysely";
 import { calculateSpendingsWithCredits } from "~/utils/billing";
 import { getStats } from "../api/routers/usage.router";
 import { chargeInvoice } from "./chargeInvoices.task";
-import { sendToAdmins } from "../emails/sendToAdmins";
 import { sendInvoiceNotificationWithoutRequiredPayment } from "../emails/sendInvoiceNotificationWithoutRequiredPayment";
+import { sendToOwner } from "../emails/sendToOwner";
 
 export const generateInvoices = defineTask({
   id: "generateInvoices",
@@ -29,7 +29,7 @@ export const generateInvoices = defineTask({
 
       //Send success email if a user spent credits but does not have to pay.
       if (data && data.creditsUsed > 0 && Number(data.invoice.amount) <= 1) {
-        await sendToAdmins(data.invoice.projectId, (email: string) =>
+        await sendToOwner(data.invoice.projectId, (email: string) =>
           sendInvoiceNotificationWithoutRequiredPayment(
             data.invoice.id,
             Number(data.invoice.amount),

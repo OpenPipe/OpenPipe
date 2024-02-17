@@ -4,12 +4,12 @@ import type {
   ChatCompletionChunk,
   ChatCompletionCreateParams,
 } from "openai/resources/chat";
-
+import { Stream } from "openai/streaming";
 import OpenAI from "openai";
+
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
-import { Stream } from "openai/streaming";
 
 const deployments = ["a100", "a10"] as const;
 
@@ -58,7 +58,7 @@ export async function getAnyscaleCompletion(
     temperature: input.temperature ?? 0,
     n: input.n ?? 1,
     max_tokens: input.max_tokens ?? undefined,
-    stream: input.stream ?? false,
+    stream: input.stream,
   });
 
   if (resp instanceof Stream) {
@@ -91,8 +91,7 @@ function transformStream(originalStream: Stream<ChatCompletionChunk>): Stream<Ch
 
   async function* iterator() {
     for await (const chunk of originalStream) {
-      const transformedChunk = transformChunk(chunk);
-      yield transformedChunk;
+      yield transformChunk(chunk);
     }
   }
 
