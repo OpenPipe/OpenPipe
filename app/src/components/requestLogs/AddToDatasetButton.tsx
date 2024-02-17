@@ -32,8 +32,9 @@ import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useRouter } from "next/router";
-import { useFilters } from "../Filters/useFilters";
+import { useFilters, constructFiltersQueryParams } from "../Filters/useFilters";
 import { DATASET_GENERAL_TAB_KEY } from "../datasets/DatasetContentTabs/DatasetContentTabs";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 
 const AddToDatasetButton = () => {
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -115,7 +116,16 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
 
     if (maybeReportError(response)) return;
 
-    const { datasetId } = response.payload;
+    const { datasetId, archiveNodeId } = response.payload;
+
+    const filtersQueryParams = constructFiltersQueryParams([
+      {
+        id: Date.now().toString(),
+        field: GeneralFiltersDefaultFields.Source,
+        comparator: "=",
+        value: archiveNodeId,
+      },
+    ]);
 
     await router.push({
       pathname: "/p/[projectSlug]/datasets/[id]/[tab]",
@@ -123,6 +133,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
         projectSlug: selectedProject.slug,
         id: datasetId,
         tab: DATASET_GENERAL_TAB_KEY,
+        ...filtersQueryParams,
       },
     });
 

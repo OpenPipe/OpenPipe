@@ -201,7 +201,7 @@ export const fineTunesRouter = createTRPCRouter({
 
       await kysely
         .insertInto("NewFineTuneTrainingEntry")
-        .columns(["id", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
+        .columns(["id", "persistentId", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
         .expression((eb) =>
           constructNodeEntryFiltersQuery({
             filters: input.filters,
@@ -212,6 +212,7 @@ export const fineTunesRouter = createTRPCRouter({
             .where("status", "=", "PROCESSED")
             .select([
               sql`uuid_generate_v4()`.as("id"),
+              "persistentId",
               "inputHash",
               "outputHash",
               sql`${fineTune.id}`.as("fineTuneId"),

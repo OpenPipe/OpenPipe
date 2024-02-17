@@ -1,7 +1,8 @@
 import ContentTabs from "~/components/ContentTabs";
 import General from "./General/General";
-import Evaluation from "./Evaluation/Evaluation";
 import Models from "./Models/Models";
+import Sources from "./Sources/Sources";
+import Evaluation from "./Evaluation/Evaluation";
 import Settings from "./Settings/Settings";
 import { RelabelingIndicator } from "../RelabelingIndicator";
 
@@ -19,6 +20,11 @@ const tabs = [
     key: "models",
     title: "Models",
     component: <Models />,
+  },
+  {
+    key: "sources",
+    title: "Sources",
+    component: <Sources />,
   },
   {
     key: DATASET_EVALUATION_TAB_KEY,

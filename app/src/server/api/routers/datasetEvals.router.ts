@@ -165,7 +165,6 @@ export const datasetEvalsRouter = createTRPCRouter({
             .on("ne.split", "=", "TEST")
             .on("ne.status", "=", "PROCESSED"),
         )
-        .distinctOn(["ne.persistentId"])
         .select((eb) => [
           "eval.id",
           "eval.name",

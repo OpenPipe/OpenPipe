@@ -63,7 +63,6 @@ export const datasetsRouter = createTRPCRouter({
         eb
           .selectFrom("NodeEntry as ne")
           .whereRef("ne.nodeId", "=", "d.nodeId")
-          .where("ne.status", "=", "PROCESSED")
           .where("ne.split", "=", "TEST")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numTestEntries"),
@@ -123,8 +122,17 @@ export const datasetsRouter = createTRPCRouter({
 
     const archives = await getUpstreamSources({ llmRelabelNodeId: tNode.config.llmRelabelNodeId })
       .where("sourceNode.type", "=", "Archive")
-      .select(["sourceNode.id", "sourceNode.name"])
+      .leftJoin("NodeEntry as nd", "sourceNode.id", "nd.nodeId")
+      .groupBy("sourceNode.id")
+      .distinctOn("sourceNode.createdAt")
+      .selectAll("sourceNode")
+      .select([
+        sql<number>`SUM(CASE WHEN nd.split = 'TRAIN' THEN 1 ELSE 0 END)::int`.as("numTrainEntries"),
+        sql<number>`SUM(CASE WHEN nd.split = 'TEST' THEN 1 ELSE 0 END)::int`.as("numTestEntries"),
+      ])
+      .orderBy("sourceNode.createdAt", "desc")
       .execute();
+
     return {
       ...dataset,
       relabelLLM: tLlmRelabelNode.config.relabelLLM,
@@ -414,13 +422,6 @@ export const datasetsRouter = createTRPCRouter({
       });
       await requireCanModifyProject(projectId, ctx);
 
-      const numArchives = await prisma.node.count({
-        where: {
-          projectId,
-          type: "Archive",
-        },
-      });
-
       const datasetNode = await kysely
         .selectFrom("Dataset as d")
         .where("d.id", "=", input.datasetId)
@@ -434,10 +435,23 @@ export const datasetsRouter = createTRPCRouter({
 
       if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
 
+      const latestUpload = await prisma.node.findFirst({
+        where: {
+          projectId,
+          type: "Archive",
+          name: { startsWith: "Upload #" },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const latestUploadIndex = latestUpload
+        ? parseInt(latestUpload.name.split("#")[1] as string)
+        : 0;
+
       const { prismaCreations, archiveNodeId, entriesOutputId } = prepareArchiveCreation({
         nodeParams: {
           projectId,
-          name: `Archive ${numArchives + 1}`,
+          name: `Upload #${latestUploadIndex + 1}`,
           config: {
             maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
           },
@@ -537,5 +551,44 @@ export const datasetsRouter = createTRPCRouter({
           visible: false,
         },
       });
+    }),
+
+  removeSource: protectedProcedure
+    .input(z.object({ datasetId: z.string(), sourceNodeId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const { projectId } = await prisma.dataset.findUniqueOrThrow({
+        where: { id: input.datasetId },
+      });
+      await requireCanModifyProject(projectId, ctx);
+
+      const datasetNode = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .executeTakeFirst();
+
+      if (!datasetNode) return error("Dataset not found");
+
+      const tDatasetNode = typedNode(datasetNode);
+
+      if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
+
+      const sourceNode = await kysely
+        .selectFrom("Node as n")
+        .where("n.id", "=", input.sourceNodeId)
+        .innerJoin("NodeOutput as no", "n.id", "no.nodeId")
+        .select(["no.id as nodeOutputId"])
+        .executeTakeFirst();
+
+      if (!sourceNode) return error("Source node not found");
+
+      await kysely
+        .deleteFrom("DataChannel")
+        .where("originId", "=", sourceNode.nodeOutputId)
+        .where("destinationId", "=", tDatasetNode.config.llmRelabelNodeId)
+        .execute();
+
+      return success("Source removed");
     }),
 });

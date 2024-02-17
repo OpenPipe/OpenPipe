@@ -123,10 +123,9 @@ export const nodeEntriesRouter = createTRPCRouter({
         ])
         .executeTakeFirst();
 
-      const totalTestingCount = await prisma.datasetEntry.count({
+      const totalTestingCount = await prisma.nodeEntry.count({
         where: {
-          datasetId: datasetId,
-          outdated: false,
+          nodeId,
           split: "TEST",
         },
       });
@@ -230,10 +229,23 @@ export const nodeEntriesRouter = createTRPCRouter({
         return error("No datasetId or newDatasetParams provided");
       }
 
+      const latestRequestLogsImport = await prisma.node.findFirst({
+        where: {
+          projectId,
+          type: "Archive",
+          name: { startsWith: "Request Logs Import #" },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const latestRequestLogsImportIndex = latestRequestLogsImport
+        ? parseInt(latestRequestLogsImport.name.split("#")[1] as string)
+        : 0;
+
       const preparedArchiveCreation = prepareArchiveCreation({
         nodeParams: {
           projectId,
-          name: "Logged Calls Import",
+          name: `Request Logs Import #${latestRequestLogsImportIndex + 1}`,
           config: {
             maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
           },
@@ -330,7 +342,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         nodeType: "Archive",
       });
 
-      return success({ datasetId, importedAt });
+      return success({ datasetId, archiveNodeId: preparedArchiveCreation.archiveNodeId });
     }),
   update: protectedProcedure
     .input(

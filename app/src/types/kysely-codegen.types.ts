@@ -91,11 +91,11 @@ export interface CachedResponse {
 export interface CreditAdjustment {
   id: string;
   amount: Numeric;
-  projectId: string;
   description: string | null;
+  projectId: string;
   invoiceId: string | null;
-  createdAt: Generated<Timestamp>;
   type: "BONUS" | "INVOICE" | "REFUND";
+  createdAt: Generated<Timestamp>;
 }
 
 export interface DataChannel {
@@ -333,15 +333,15 @@ export interface GraphileWorkerMigrations {
 
 export interface Invoice {
   id: string;
-  projectId: string;
-  description: Json | null;
-  createdAt: Generated<Timestamp>;
   amount: Generated<Numeric>;
-  paidAt: Timestamp | null;
-  paymentId: string | null;
-  billingPeriod: string | null;
-  slug: string;
   status: Generated<"CANCELLED" | "FREE" | "PAID" | "PENDING" | "REFUNDED">;
+  slug: string;
+  billingPeriod: string | null;
+  paidAt: Timestamp | null;
+  description: Json | null;
+  paymentId: string | null;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface LoggedCall {
@@ -390,6 +390,8 @@ export interface NewDatasetEvalResult {
   errorMessage: string | null;
   status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
   judge: string | null;
+  nodeEntryInputHash: string;
+  nodeEntryOutputHash: string | null;
   wasFirst: boolean | null;
   comparisonResultId: string | null;
   comparisonOutputSourceId: string | null;
@@ -397,8 +399,6 @@ export interface NewDatasetEvalResult {
   datasetEvalOutputSourceId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  nodeEntryInputHash: string;
-  nodeEntryOutputHash: string | null;
 }
 
 export interface NewFineTuneTestingEntry {
@@ -478,8 +478,8 @@ export interface Project {
   slug: Generated<string>;
   isPublic: Generated<boolean>;
   isHidden: Generated<boolean>;
-  stripeCustomerId: string | null;
   billable: Generated<boolean>;
+  stripeCustomerId: string | null;
   tagNames: Generated<string[] | null>;
 }
 
@@ -535,9 +535,9 @@ export interface UsageLog {
   createdAt: Generated<Timestamp>;
   projectId: string | null;
   billable: Generated<boolean>;
-  invoiceId: string | null;
   baseModel: string | null;
   inputCost: Generated<Numeric>;
+  invoiceId: string | null;
   outputCost: Generated<Numeric>;
 }
 

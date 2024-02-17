@@ -245,14 +245,14 @@ export enum GeneralFiltersDefaultFields {
   Input = "Input",
   Output = "Output",
   Split = "Split",
-  ImportedFrom = "Imported From",
+  Source = "Source",
 }
 
 export enum EvaluationFiltersDefaultFields {
   Input = "Input",
   DatasetOutput = "Dataset Output",
   EvalApplied = "Eval Applied",
-  ImportedFrom = "Imported From",
+  Source = "Source",
 }
 
 export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";

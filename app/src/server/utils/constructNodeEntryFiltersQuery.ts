@@ -55,7 +55,22 @@ export const constructNodeEntryFiltersQuery = ({
       filter.value as string,
     );
 
-    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql.raw(`ne."split"`)));
+    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql`ne."split"`));
+  }
+
+  const importFilters = filters.filter(
+    (filter) => filter.field === GeneralFiltersDefaultFields.Source,
+  );
+
+  for (let i = 0; i < importFilters.length; i++) {
+    const filter = importFilters[i];
+    if (!filter?.value) continue;
+    const filterExpression = textComparatorToSqlExpression(
+      filter.comparator === "=" ? "CONTAINS" : "NOT_CONTAINS",
+      filter.value as string,
+    );
+
+    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql`ne."persistentId"`));
   }
 
   return updatedBaseQuery;
