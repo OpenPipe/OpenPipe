@@ -1,8 +1,4 @@
-import type {
-  ChatCompletionCreateParams,
-  ChatCompletion,
-  ChatCompletionCreateParamsNonStreaming,
-} from "openai/resources";
+import type { ChatCompletion, ChatCompletionCreateParamsNonStreaming } from "openai/resources";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
