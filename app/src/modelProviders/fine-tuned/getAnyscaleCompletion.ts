@@ -1,10 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
-import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat";
+import type {
+  ChatCompletion,
+  ChatCompletionChunk,
+  ChatCompletionCreateParams,
+} from "openai/resources/chat";
 
 import OpenAI from "openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
+import { Stream } from "openai/streaming";
 
 const deployments = ["a100", "a10"] as const;
 
@@ -24,7 +29,7 @@ const clients = env.ANYSCALE_INFERENCE_BASE_URL
 export async function getAnyscaleCompletion(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
-): Promise<ChatCompletion> {
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const deployment =
     env.ANYSCALE_ENABLE_A100 &&
     fineTune.pipelineVersion === 3 &&
@@ -47,17 +52,18 @@ export async function getAnyscaleCompletion(
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
-  if (input.stream) {
-    throw new Error("Streaming is not yet supported");
-  }
-
   const resp = await client.chat.completions.create({
     model: `${fineTune.baseModel}:${fineTune.id}:1`,
     messages: [{ role: "system", content: templatedPrompt }],
     temperature: input.temperature ?? 0,
     n: input.n ?? 1,
     max_tokens: input.max_tokens ?? undefined,
+    stream: input.stream ?? false,
   });
+
+  if (resp instanceof Stream) {
+    return transformStream(resp);
+  }
 
   const convertToFunctions = (input.functions?.length ?? 0) > 0;
 
@@ -78,4 +84,28 @@ export async function getAnyscaleCompletion(
     choices,
     usage: resp.usage,
   };
+}
+
+function transformStream(originalStream: Stream<ChatCompletionChunk>): Stream<ChatCompletionChunk> {
+  const controller = new AbortController();
+
+  async function* iterator() {
+    for await (const chunk of originalStream) {
+      const transformedChunk = transformChunk(chunk);
+      yield transformedChunk;
+    }
+  }
+
+  return new Stream(iterator, controller);
+}
+
+function transformChunk(chunk: any) {
+  return {
+    id: chunk.id,
+    object: "chat.completion.chunk",
+    created: chunk.created,
+    model: chunk.model,
+    choices: chunk.choices,
+    usage: chunk.usage,
+  } as ChatCompletionChunk;
 }

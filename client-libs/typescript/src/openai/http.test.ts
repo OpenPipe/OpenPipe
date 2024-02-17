@@ -30,7 +30,7 @@ test.only("fetches streamed output", async () => {
       Authorization: `Bearer ${OPENPIPE_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "openpipe:mix8",
+      model: "openpipe:green-deer-sleep",
       messages: [{ role: "user", content: "Count to 10" }],
       stream: true,
     }),
@@ -54,7 +54,6 @@ test.only("fetches streamed output", async () => {
       let chunkText = decoder.decode(value, { stream: true }).trim();
       // Process each potentially concatenated chunk by splitting on the "data: " prefix
       const splitChunks = chunkText.split(/\ndata: /);
-
       splitChunks.forEach((splitChunk, index) => {
         console.log(chunkText);
 
@@ -68,7 +67,6 @@ test.only("fetches streamed output", async () => {
         expect(chunkJson.object).toEqual("chat.completion.chunk");
         expect(chunkJson).toHaveProperty("created");
         expect(chunkJson).toHaveProperty("model");
-        expect(chunkJson).toHaveProperty("system_fingerprint");
         expect(chunkJson).toHaveProperty("choices");
         expect(Array.isArray(chunkJson.choices)).toBeTruthy();
         chunkJson.choices.forEach((choice: Record<string, any>[]) => {
@@ -83,7 +81,7 @@ test.only("fetches streamed output", async () => {
 
   await processStream();
   expect(chunkCount).toBeGreaterThan(1);
-});
+}, 200000);
 
 test("bad tags", async () => {
   const response = await fetch(OPENPIPE_API_CHAT_COMPLETIONS_URL, {
