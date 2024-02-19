@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import { sendInvoiceNotificationWithoutRequiredPayment } from "../emails/sendInvoiceNotificationWithoutRequiredPayment";
+import { sendInvoiceNotification } from "../emails/sendInvoiceNotification";
 
 const email = process.argv[2];
 
@@ -30,7 +30,7 @@ for (const creditAdjustment of creditAdjustments) {
     invoice &&
     (invoice.status === "PENDING" || Number(creditAdjustment.amount) > -100)
   ) {
-    await sendInvoiceNotificationWithoutRequiredPayment(
+    await sendInvoiceNotification(
       invoice.id,
       Number(invoice.amount),
       invoice.description,

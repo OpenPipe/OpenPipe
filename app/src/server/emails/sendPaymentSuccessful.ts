@@ -27,7 +27,7 @@ export const sendPaymentSuccessful = async (
 
   const emailBody = render(
     PaymentSuccessful({
-      amount: Number(Number(amount).toFixed(2)).toLocaleString(),
+      amount: Number(amount).toFixed(2).toLocaleString(),
       projectName,
       description: typedDescription,
       billingPeriod,
