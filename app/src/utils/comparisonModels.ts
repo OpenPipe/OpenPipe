@@ -14,7 +14,7 @@ export const isComparisonModelName = (modelName: string) =>
 
 export const COMPARISON_MODEL_NAMES: Record<ComparisonModel, { name: string; slug: string }> = {
   GPT_3_5_TURBO: { name: "gpt-3.5-turbo-1106", slug: "GPT-3.5 Turbo (-1106)" },
-  GPT_4_0613: { name: "gpt-4-0613", slug: "GPT-4 (0613)" },
+  GPT_4_0613: { name: "gpt-4-0613", slug: "GPT-4 (-0613)" },
   GPT_4_1106_PREVIEW: { name: "gpt-4-0613-preview", slug: "GPT-4 Turbo (-1106)" },
   GPT_4_0125_PREVIEW: { name: "gpt-4-0125-preview", slug: "GPT-4 Turbo (-0125)" },
 };

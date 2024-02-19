@@ -65,7 +65,7 @@ export async function getAnyscaleCompletion(
 
   if ((input.functions || input.tools) && input.stream) {
     throw new Error(
-      `Error: Streaming completions are not supported for function calls. Model: ${fineTune.slug}`,
+      `We don't currently support streaming for function calls. Please open an issue if you need this functionality! https://github.com/openpipe/openpipe`,
     );
   }
 
