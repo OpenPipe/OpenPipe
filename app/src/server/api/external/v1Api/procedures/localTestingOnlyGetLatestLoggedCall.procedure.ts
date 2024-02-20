@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { prisma } from "~/server/db";
-import { openApiProtectedProc } from "../openApiTrpc";
+import { openApiProtectedProc } from "../../openApiTrpc";
 
 export const localTestingOnlyGetLatestLoggedCall = openApiProtectedProc
   .meta({

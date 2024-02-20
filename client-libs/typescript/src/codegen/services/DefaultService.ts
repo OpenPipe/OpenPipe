@@ -339,4 +339,115 @@ export class DefaultService {
             url: '/local-testing-only-get-latest-logged-call',
         });
     }
+    /**
+     * Create a new dataset. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+     * @param requestBody
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public unstableDatasetCreate(
+        requestBody: {
+            name: string;
+        },
+    ): CancelablePromise<{
+        datasetId: string;
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/unstable/dataset/create',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Create a new dataset entry. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+     * @param requestBody
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public unstableDatasetEntryCreate(
+        requestBody: {
+            datasetId: string;
+            entries: Array<{
+                messages: Array<({
+                    role: 'system';
+                    content?: string;
+                } | {
+                    role: 'user';
+                    content?: (string | Array<({
+                        type: 'image_url';
+                        image_url: {
+                            detail?: ('auto' | 'low' | 'high');
+                            url: string;
+                        };
+                    } | {
+                        type: 'text';
+                        text: string;
+                    })>);
+                } | {
+                    role: 'assistant';
+                    content?: (string | 'null' | null);
+                    function_call?: {
+                        name?: string;
+                        arguments?: string;
+                    };
+                    tool_calls?: Array<{
+                        id: string;
+                        function: {
+                            name: string;
+                            arguments: string;
+                        };
+                        type: 'function';
+                    }>;
+                } | {
+                    role: 'tool';
+                    content?: string;
+                    tool_call_id: string;
+                } | {
+                    role: 'function';
+                    name: string;
+                    content: (string | 'null' | null);
+                })>;
+                function_call?: ('none' | 'auto' | {
+                    name: string;
+                });
+                functions?: Array<{
+                    name: string;
+                    parameters?: Record<string, any>;
+                    description?: string;
+                }>;
+                tool_choice?: ('none' | 'auto' | {
+                    type?: 'function';
+                    function?: {
+                        name: string;
+                    };
+                });
+                tools?: Array<{
+                    function: {
+                        name: string;
+                        parameters?: Record<string, any>;
+                        description?: string;
+                    };
+                    type: 'function';
+                }>;
+                response_format?: {
+                    type: ('text' | 'json_object');
+                };
+                split?: 'TRAIN' | 'TEST';
+            }>;
+        },
+    ): CancelablePromise<{
+        createdEntries: number;
+        errors: Array<{
+            index: number;
+            message: string;
+        }>;
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/unstable/dataset-entry/create',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
 }

@@ -22,6 +22,9 @@ from .types.create_chat_completion_response import CreateChatCompletionResponse
 from .types.local_testing_only_get_latest_logged_call_response import LocalTestingOnlyGetLatestLoggedCallResponse
 from .types.report_request_tags_value import ReportRequestTagsValue
 from .types.report_response import ReportResponse
+from .types.unstable_dataset_create_response import UnstableDatasetCreateResponse
+from .types.unstable_dataset_entry_create_request_entries_item import UnstableDatasetEntryCreateRequestEntriesItem
+from .types.unstable_dataset_entry_create_response import UnstableDatasetEntryCreateResponse
 from .types.update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
 from .types.update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
 from .types.update_log_tags_response import UpdateLogTagsResponse
@@ -287,6 +290,54 @@ class OpenPipeApi:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
+    def unstable_dataset_create(self, *, name: str) -> UnstableDatasetCreateResponse:
+        """
+        Create a new dataset. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+
+        Parameters:
+            - name: str.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/dataset/create"),
+            json=jsonable_encoder({"name": name}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UnstableDatasetCreateResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    def unstable_dataset_entry_create(
+        self, *, dataset_id: str, entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem]
+    ) -> UnstableDatasetEntryCreateResponse:
+        """
+        Create a new dataset entry. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+
+        Parameters:
+            - dataset_id: str.
+
+            - entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem].
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/dataset-entry/create"),
+            json=jsonable_encoder({"datasetId": dataset_id, "entries": entries}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UnstableDatasetEntryCreateResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
 
 class AsyncOpenPipeApi:
     def __init__(
@@ -536,6 +587,54 @@ class AsyncOpenPipeApi:
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(typing.Optional[LocalTestingOnlyGetLatestLoggedCallResponse], _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def unstable_dataset_create(self, *, name: str) -> UnstableDatasetCreateResponse:
+        """
+        Create a new dataset. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+
+        Parameters:
+            - name: str.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/dataset/create"),
+            json=jsonable_encoder({"name": name}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UnstableDatasetCreateResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def unstable_dataset_entry_create(
+        self, *, dataset_id: str, entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem]
+    ) -> UnstableDatasetEntryCreateResponse:
+        """
+        Create a new dataset entry. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+
+        Parameters:
+            - dataset_id: str.
+
+            - entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem].
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/dataset-entry/create"),
+            json=jsonable_encoder({"datasetId": dataset_id, "entries": entries}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UnstableDatasetEntryCreateResponse, _response.json())  # type: ignore
         try:
             _response_json = _response.json()
         except JSONDecodeError:

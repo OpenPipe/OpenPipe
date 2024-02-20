@@ -25,7 +25,7 @@ import {
   toolsInput,
 } from "~/types/shared.types";
 import { recordLoggedCall, recordUsage } from "~/utils/recordRequest";
-import { openApiProtectedProc } from "../openApiTrpc";
+import { openApiProtectedProc } from "../../openApiTrpc";
 
 export const createChatCompletion = openApiProtectedProc
   .meta({

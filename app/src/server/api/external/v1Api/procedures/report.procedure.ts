@@ -10,7 +10,8 @@ import {
   reqValidator,
   type CalculatedUsage,
 } from "~/utils/recordRequest";
-import { openApiProtectedProc } from "../openApiTrpc";
+import { openApiProtectedProc } from "../../openApiTrpc";
+import { requireWriteKey } from "../helpers";
 
 export const report = openApiProtectedProc
   .meta({
@@ -40,12 +41,8 @@ export const report = openApiProtectedProc
   )
   .output(z.object({ status: z.union([z.literal("ok"), z.literal("error")]) }))
   .mutation(async ({ input, ctx }) => {
-    if (ctx.key.readOnly) {
-      throw new TRPCError({
-        message: "Read-only API keys cannot report API calls",
-        code: "FORBIDDEN",
-      });
-    }
+    await requireWriteKey(ctx);
+
     // Zod default messes up the generated OpenAPI spec, so we do it manually
     if (!input.requestedAt) input.requestedAt = Date.now();
 

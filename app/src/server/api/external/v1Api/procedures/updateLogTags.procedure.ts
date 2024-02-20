@@ -1,15 +1,16 @@
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-
 import { sql } from "kysely";
+
 import { kysely } from "~/server/db";
 import { queueRelabelLoggedCalls } from "~/server/tasks/relabelLoggedCall.task";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import { parseTags } from "~/server/utils/parseTags";
 import { type filtersSchema } from "~/types/shared.types";
 import { recordTagNames } from "~/utils/recordRequest";
-import { openApiProtectedProc } from "../openApiTrpc";
+import { openApiProtectedProc } from "../../openApiTrpc";
+import { requireWriteKey } from "../helpers";
 
 export const updateLogTags = openApiProtectedProc
   .meta({
@@ -41,12 +42,7 @@ export const updateLogTags = openApiProtectedProc
   )
   .output(z.object({ matchedLogs: z.number() }))
   .mutation(async ({ input, ctx }) => {
-    if (ctx.key.readOnly) {
-      throw new TRPCError({
-        message: "Read-only API keys cannot update log tags",
-        code: "FORBIDDEN",
-      });
-    }
+    await requireWriteKey(ctx);
 
     let tags: Record<string, string | null> = {};
     try {

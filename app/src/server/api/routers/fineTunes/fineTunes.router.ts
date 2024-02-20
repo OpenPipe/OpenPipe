@@ -5,17 +5,12 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
-import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
-import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
-import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
-import { copyPruningRulesForFineTune } from "~/server/utils/updatePruningRuleMatches";
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
-import { CURRENT_PIPELINE_VERSION, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
-import { captureFineTuneCreation } from "~/utils/analytics/serverAnalytics";
 import { isComparisonModelName } from "~/utils/comparisonModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
+import { createProcedure } from "./createFineTune";
 import { getExportWeightsRequest, requestExportWeights } from "./exportWeights";
 
 export const fineTunesRouter = createTRPCRouter({
@@ -129,95 +124,7 @@ export const fineTunesRouter = createTRPCRouter({
 
       return typedFineTune(fineTune);
     }),
-  create: protectedProcedure
-    .input(
-      z.object({
-        datasetId: z.string(),
-        slug: z.string(),
-        baseModel: baseModel,
-        filters: filtersSchema,
-        pruningRuleIds: z.array(z.string()),
-        trainingConfigOverrides: axolotlConfig.partial().optional(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const dataset = await prisma.dataset.findUniqueOrThrow({
-        where: {
-          id: input.datasetId,
-        },
-        include: {
-          pruningRules: true,
-        },
-      });
-      await requireCanModifyProject(dataset.projectId, ctx);
-
-      if (isComparisonModelName(input.slug)) {
-        return error("Fine tune IDs cannot match any base model names");
-      }
-
-      const existingFineTune = await prisma.fineTune.findFirst({
-        where: { slug: input.slug },
-      });
-
-      if (existingFineTune) {
-        return error("Fine tune IDs have to be globally unique. Please choose a different ID.");
-      }
-
-      const fineTune = await prisma.fineTune.create({
-        data: {
-          projectId: dataset.projectId,
-          slug: input.slug,
-          provider: input.baseModel.provider,
-          baseModel: input.baseModel.baseModel,
-          datasetId: input.datasetId,
-          pipelineVersion: CURRENT_PIPELINE_VERSION,
-          trainingConfigOverrides: input.trainingConfigOverrides,
-        },
-        include: {
-          project: {
-            select: { slug: true },
-          },
-        },
-      });
-      if (!fineTune) return error("Error creating fine tune");
-
-      await copyPruningRulesForFineTune(fineTune.id, input.pruningRuleIds);
-
-      captureFineTuneCreation(
-        ctx.session,
-        fineTune.projectId,
-        fineTune.project.slug,
-        input.datasetId,
-        input.slug,
-        fineTune.id,
-        input.baseModel.baseModel,
-      );
-
-      await kysely
-        .insertInto("FineTuneTrainingEntry")
-        .columns(["id", "datasetEntryId", "fineTuneId", "updatedAt"])
-        .expression((eb) =>
-          constructDatasetEntryFiltersQuery({
-            filters: input.filters,
-            datasetId: fineTune.datasetId,
-            ftteEB: eb,
-          })
-            .where("split", "=", "TRAIN")
-            .where("output", "is not", null)
-            .select([
-              sql`uuid_generate_v4()`.as("id"),
-              "id as datasetEntryId",
-              sql`${fineTune.id}`.as("fineTuneId"),
-              sql`now()`.as("updatedAt"),
-            ]),
-        )
-        .onConflict((oc) => oc.columns(["datasetEntryId", "fineTuneId"]).doNothing())
-        .execute();
-
-      await trainFineTune.enqueue({ fineTuneId: fineTune.id });
-
-      return success({ fineTuneId: fineTune.id });
-    }),
+  create: createProcedure,
   restartTraining: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {

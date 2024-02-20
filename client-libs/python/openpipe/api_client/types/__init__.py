@@ -179,6 +179,99 @@ from .local_testing_only_get_latest_logged_call_response import LocalTestingOnly
 from .report_request_tags_value import ReportRequestTagsValue
 from .report_response import ReportResponse
 from .report_response_status import ReportResponseStatus
+from .unstable_dataset_create_response import UnstableDatasetCreateResponse
+from .unstable_dataset_entry_create_request_entries_item import UnstableDatasetEntryCreateRequestEntriesItem
+from .unstable_dataset_entry_create_request_entries_item_function_call import (
+    UnstableDatasetEntryCreateRequestEntriesItemFunctionCall,
+)
+from .unstable_dataset_entry_create_request_entries_item_function_call_name import (
+    UnstableDatasetEntryCreateRequestEntriesItemFunctionCallName,
+)
+from .unstable_dataset_entry_create_request_entries_item_functions_item import (
+    UnstableDatasetEntryCreateRequestEntriesItemFunctionsItem,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItem,
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_Assistant,
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_Function,
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_System,
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_Tool,
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_User,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_assistant import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistant,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_assistant_content import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistantContent,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_assistant_function_call import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistantFunctionCall,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_assistant_tool_calls_item import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistantToolCallsItem,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_assistant_tool_calls_item_function import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistantToolCallsItemFunction,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_function import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemFunction,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_function_content import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemFunctionContent,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_system import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemSystem,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_tool import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemTool,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_user import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUser,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_user_content import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContent,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_user_content_item import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItem,
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItem_ImageUrl,
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItem_Text,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_user_content_item_image_url import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItemImageUrl,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_user_content_item_image_url_image_url import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItemImageUrlImageUrl,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_user_content_item_image_url_image_url_detail import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItemImageUrlImageUrlDetail,
+)
+from .unstable_dataset_entry_create_request_entries_item_messages_item_user_content_item_text import (
+    UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItemText,
+)
+from .unstable_dataset_entry_create_request_entries_item_response_format import (
+    UnstableDatasetEntryCreateRequestEntriesItemResponseFormat,
+)
+from .unstable_dataset_entry_create_request_entries_item_response_format_type import (
+    UnstableDatasetEntryCreateRequestEntriesItemResponseFormatType,
+)
+from .unstable_dataset_entry_create_request_entries_item_split import UnstableDatasetEntryCreateRequestEntriesItemSplit
+from .unstable_dataset_entry_create_request_entries_item_tool_choice import (
+    UnstableDatasetEntryCreateRequestEntriesItemToolChoice,
+)
+from .unstable_dataset_entry_create_request_entries_item_tool_choice_function import (
+    UnstableDatasetEntryCreateRequestEntriesItemToolChoiceFunction,
+)
+from .unstable_dataset_entry_create_request_entries_item_tool_choice_function_function import (
+    UnstableDatasetEntryCreateRequestEntriesItemToolChoiceFunctionFunction,
+)
+from .unstable_dataset_entry_create_request_entries_item_tools_item import (
+    UnstableDatasetEntryCreateRequestEntriesItemToolsItem,
+)
+from .unstable_dataset_entry_create_request_entries_item_tools_item_function import (
+    UnstableDatasetEntryCreateRequestEntriesItemToolsItemFunction,
+)
+from .unstable_dataset_entry_create_response import UnstableDatasetEntryCreateResponse
+from .unstable_dataset_entry_create_response_errors_item import UnstableDatasetEntryCreateResponseErrorsItem
 from .update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
 from .update_log_tags_request_filters_item_equals import UpdateLogTagsRequestFiltersItemEquals
 from .update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
@@ -272,6 +365,45 @@ __all__ = [
     "ReportRequestTagsValue",
     "ReportResponse",
     "ReportResponseStatus",
+    "UnstableDatasetCreateResponse",
+    "UnstableDatasetEntryCreateRequestEntriesItem",
+    "UnstableDatasetEntryCreateRequestEntriesItemFunctionCall",
+    "UnstableDatasetEntryCreateRequestEntriesItemFunctionCallName",
+    "UnstableDatasetEntryCreateRequestEntriesItemFunctionsItem",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItem",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistant",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistantContent",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistantFunctionCall",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistantToolCallsItem",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemAssistantToolCallsItemFunction",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemFunction",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemFunctionContent",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemSystem",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemTool",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUser",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContent",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItem",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItemImageUrl",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItemImageUrlImageUrl",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItemImageUrlImageUrlDetail",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItemText",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItem_ImageUrl",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItemUserContentItem_Text",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_Assistant",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_Function",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_System",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_Tool",
+    "UnstableDatasetEntryCreateRequestEntriesItemMessagesItem_User",
+    "UnstableDatasetEntryCreateRequestEntriesItemResponseFormat",
+    "UnstableDatasetEntryCreateRequestEntriesItemResponseFormatType",
+    "UnstableDatasetEntryCreateRequestEntriesItemSplit",
+    "UnstableDatasetEntryCreateRequestEntriesItemToolChoice",
+    "UnstableDatasetEntryCreateRequestEntriesItemToolChoiceFunction",
+    "UnstableDatasetEntryCreateRequestEntriesItemToolChoiceFunctionFunction",
+    "UnstableDatasetEntryCreateRequestEntriesItemToolsItem",
+    "UnstableDatasetEntryCreateRequestEntriesItemToolsItemFunction",
+    "UnstableDatasetEntryCreateResponse",
+    "UnstableDatasetEntryCreateResponseErrorsItem",
     "UpdateLogTagsRequestFiltersItem",
     "UpdateLogTagsRequestFiltersItemEquals",
     "UpdateLogTagsRequestTagsValue",
