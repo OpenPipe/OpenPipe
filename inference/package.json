@@ -23,6 +23,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.10"
+    "@types/node": "^20.11.19"
   }
 }

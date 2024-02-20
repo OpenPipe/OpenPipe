@@ -195,7 +195,7 @@ const optimizedNoHot = createLoraConfig(
       autoscaling_config: {
         min_replicas: 0,
         initial_replicas: 0,
-        max_replicas: 16,
+        max_replicas: 8,
         target_num_ongoing_requests_per_replica: 24,
         downscale_smoothing_factor: 0.5,
       },
