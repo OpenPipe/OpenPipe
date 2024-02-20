@@ -1,6 +1,7 @@
-import { Column, Row, Section } from "@react-email/components";
+import { Column, Row } from "@react-email/components";
 import React, { CSSProperties } from "react";
 import { Text } from ".";
+import Headlight from "./Highlight";
 
 interface Props {
   description?: Record<string, string>[];
@@ -9,7 +10,7 @@ interface Props {
 }
 export default function InvoiceDescription({ description, total, style }: Props) {
   return (
-    <Section style={{ ...style, ...dark }}>
+    <Headlight style={{ ...style }}>
       {description &&
         description.map((item, index) => (
           <Row key={index}>
@@ -30,12 +31,6 @@ export default function InvoiceDescription({ description, total, style }: Props)
           <Text style={{ fontWeight: "bold" }}>${total}</Text>
         </Column>
       </Row>
-    </Section>
+    </Headlight>
   );
 }
-
-const dark = {
-  padding: "24px",
-  backgroundColor: "#f2f3f3",
-  borderRadius: "4px",
-};

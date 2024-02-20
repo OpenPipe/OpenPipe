@@ -1,10 +1,7 @@
 import { env } from "~/env.mjs";
 import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
-import { typedInvoice } from "~/types/dbColumns.types";
-import { JsonValue } from "~/types/kysely-codegen.types";
-import PaymentSuccessful from "./templates/PaymentSuccessful";
-import FineTuneModelTrained from "./templates/FinetuneModelTrained";
+import FineTuneModelTrained from "./templates/FineTuneModelTrained";
 
 export const sendFineTuneModelTrained = async (
   fineTuneModelName: string,

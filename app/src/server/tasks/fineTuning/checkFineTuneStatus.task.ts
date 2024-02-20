@@ -85,11 +85,10 @@ export const checkFineTuneStatus = defineTask({
               },
             });
 
-            // Email
+            // Notify the owner that the model has been trained
             const project = await prisma.project.findUniqueOrThrow({
               where: { id: typedFT.projectId },
             });
-
             await sendToOwner(typedFT.projectId, (email: string) =>
               sendFineTuneModelTrained(
                 typedFT.id,
