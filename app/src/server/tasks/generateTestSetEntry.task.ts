@@ -147,6 +147,12 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
         if (isComparisonModel(modelId)) {
           completion = await getOpenaiCompletion(rawDatasetEntry.dataset.projectId, input);
         } else if (fineTune) {
+          // Need to add more rate limiting for Fireworks
+          if (fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1") {
+            throw new Error(
+              "Test set completions for Mixtral-8x7B-Instruct-v0.1 are temporarily paused and will be restored soon (Feb 20, 2024).",
+            );
+          }
           completion = await getCompletion(fineTune, input);
         } else {
           await prisma.fineTuneTestingEntry.update({
