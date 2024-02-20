@@ -1,4 +1,4 @@
-import type { DatasetEntry, FineTuneTestingEntry, Prisma } from "@prisma/client";
+import type { ComparisonModel, DatasetEntry, FineTuneTestingEntry, Prisma } from "@prisma/client";
 import type { ChatCompletionCreateParams, FunctionParameters } from "openai/resources";
 import { v4 as uuidv4 } from "uuid";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
@@ -105,7 +105,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
               },
             });
             if (isComparisonModel(entry.modelId)) {
-              entryIds.push(getComparisonModelName(entry.modelId));
+              entryIds.push(getComparisonModelName(entry.modelId as ComparisonModel));
             } else if (entry.fineTune) {
               entryIds.push("openpipe:" + entry.fineTune.slug);
             } else {
@@ -366,7 +366,7 @@ const constructJudgementInput = (
   const approximateTokens = countOpenAIChatTokens("gpt-4-0613", input.messages);
 
   if (approximateTokens > 7168) {
-    input.model = "gpt-4-1106-preview";
+    input.model = "gpt-4-0125-preview";
   }
 
   return input;
