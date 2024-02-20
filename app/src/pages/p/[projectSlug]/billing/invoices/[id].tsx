@@ -81,7 +81,7 @@ export default function Invoice() {
         <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
           <HStack w="full" justifyContent="start" gap={4}>
             <Text fontSize="2xl" fontWeight="bold">
-              Invoice {invoice.slug}{" "}
+              Invoice {invoice.slug}
             </Text>
             <Badge
               variant="outline"
@@ -148,9 +148,7 @@ export default function Invoice() {
                 <Text>Print</Text>
               </HStack>
             </Button>
-            {invoice.status === "UNPAID" && (
-              <PayButton invoiceId={invoice.id} theme={{ variant: "solid" }} />
-            )}
+            {invoice.status === "UNPAID" && <PayButton invoiceId={invoice.id} />}
           </HStack>
         </VStack>
       </VStack>

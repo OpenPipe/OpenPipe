@@ -5,8 +5,6 @@ import { typedInvoice } from "~/types/dbColumns.types";
 import { JsonValue } from "~/types/kysely-codegen.types";
 import InvoiceNotification from "./templates/InvoiceNotification";
 
-// We currently send this email when an invoice is FREE, but a user used the service.
-// If invoice is payable, we send a payment success/failed email.
 export const sendInvoiceNotification = async (
   invoiceId: string,
   amount: number,

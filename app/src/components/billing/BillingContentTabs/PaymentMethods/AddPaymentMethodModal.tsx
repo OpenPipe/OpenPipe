@@ -57,7 +57,7 @@ export default function PaymentDetailsModal({
         <ModalCloseButton />
         <ModalBody overflowY="auto" p={8}>
           <Box w="full">
-            <VStack w="full" justifyContent={"center"}>
+            <VStack w="full" justifyContent="center">
               <Elements stripe={stripePromise} options={options}>
                 <SetupStripePaymentMethodForm
                   disclosure={disclosure}
@@ -94,14 +94,17 @@ function SetupStripePaymentMethodForm({
     if (setupIntent) {
       switch (setupIntent.status) {
         case "succeeded":
-          if (successCallback) successCallback();
+          if (successCallback) {
+            successCallback();
+          } else {
+            toast({
+              description: "Your payment method has been saved!",
+              status: "success",
+              duration: 5000,
+              isClosable: true,
+            });
+          }
 
-          toast({
-            description: "Success! Your payment method has been saved.",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
           break;
 
         case "processing":

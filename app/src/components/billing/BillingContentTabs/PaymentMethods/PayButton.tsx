@@ -5,7 +5,6 @@ import { useHandledAsyncCallback, usePaymentMethods, useSelectedProject } from "
 import { api } from "~/utils/api";
 import PaymentDetailsModal from "./AddPaymentMethodModal";
 import { toast } from "~/theme/ChakraThemeProvider";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
 export default function PayButton({ invoiceId }: { invoiceId: string }) {
   const paymentMethodExist = usePaymentMethods().data?.data?.length ?? 0;
@@ -37,10 +36,16 @@ export default function PayButton({ invoiceId }: { invoiceId: string }) {
       invoiceId,
     });
 
-    if (!maybeReportError(resp)) {
+    if (resp.status === "success") {
       toast({
-        description: "Payment processing!",
+        description:
+          "The invoice has been successfully paid! Card details have been saved for future payments.",
         status: "success",
+      });
+    } else {
+      toast({
+        description: resp.message,
+        status: "info",
       });
     }
 
