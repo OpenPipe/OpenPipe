@@ -70,7 +70,7 @@ export default function PayButton({ invoiceId }: { invoiceId: string }) {
         clientSecret={clientSecret}
         disclosure={disclosure}
         successCallback={pay}
-        buttonText={"Pay and Save"}
+        buttonText={"Save and Pay"}
       />
     </>
   );
