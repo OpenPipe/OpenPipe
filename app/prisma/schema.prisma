@@ -648,7 +648,7 @@ model UsageLog {
 }
 
 enum InvoiceStatus {
-    PENDING
+    UNPAID
     PAID
     CANCELLED
     REFUNDED
@@ -658,7 +658,7 @@ enum InvoiceStatus {
 model Invoice {
     id            String        @id @default(uuid()) @db.Uuid
     amount        Decimal       @default(0)
-    status        InvoiceStatus @default(PENDING)
+    status        InvoiceStatus @default(UNPAID)
     slug          String
     billingPeriod String? // MM YYYY
     paidAt        DateTime?

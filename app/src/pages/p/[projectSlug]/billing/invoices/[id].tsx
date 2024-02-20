@@ -148,7 +148,7 @@ export default function Invoice() {
                 <Text>Print</Text>
               </HStack>
             </Button>
-            {invoice.status === "PENDING" && (
+            {invoice.status === "UNPAID" && (
               <PayButton invoiceId={invoice.id} theme={{ variant: "solid" }} />
             )}
           </HStack>

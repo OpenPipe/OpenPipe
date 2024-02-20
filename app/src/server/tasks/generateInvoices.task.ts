@@ -120,7 +120,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
       .updateTable("Invoice")
       .set({
         amount: totalSpent,
-        status: totalSpent >= 1 ? "PENDING" : "CANCELLED", // Minimum $1 charge
+        status: totalSpent >= 1 ? "UNPAID" : "CANCELLED", // Minimum $1 charge
         description: JSON.stringify(
           getInvoiceDescription({
             totalInferenceSpend: Number(stats?.totalInferenceSpend ?? 0),

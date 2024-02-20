@@ -15,7 +15,7 @@ export const chargeInvoices = defineTask({
   handler: async (task) => {
     const invoices = await prisma.invoice.findMany({
       where: {
-        status: "PENDING",
+        status: "UNPAID",
         createdAt: {
           gte: dayjs().subtract(3, "month").toDate(),
         },
@@ -38,7 +38,7 @@ export async function chargeInvoice(invoiceId: string) {
     },
   });
 
-  if (invoice?.status !== "PENDING" || Number(invoice.amount) < 1) {
+  if (invoice?.status !== "UNPAID" || Number(invoice.amount) < 1) {
     return error("The invoice has already been paid.");
   }
 

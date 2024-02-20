@@ -6,17 +6,17 @@ import { FaTable } from "react-icons/fa";
 const Invoices = () => {
   const query = useInvoices();
 
-  const pendingInvoices = query?.data?.filter((inv) => inv.status === "PENDING");
-  const historyInvoices = query?.data?.filter((inv) => inv.status !== "PENDING");
+  const unpaidInvoices = query?.data?.filter((inv) => inv.status === "UNPAID");
+  const historyInvoices = query?.data?.filter((inv) => inv.status !== "UNPAID");
 
   return (
     <VStack alignItems="flex-start" w="full" px={8} spacing={4} pb={8}>
-      {pendingInvoices?.length && (
+      {unpaidInvoices?.length && (
         <>
           <Heading as="h2" fontSize="2xl">
             Pending payments
           </Heading>
-          <InvoicesTable invoices={pendingInvoices} />
+          <InvoicesTable invoices={unpaidInvoices} />
         </>
       )}
       {historyInvoices?.length && (
@@ -28,7 +28,7 @@ const Invoices = () => {
         </>
       )}
 
-      {!pendingInvoices?.length && !historyInvoices?.length && !query.isLoading && (
+      {!unpaidInvoices?.length && !historyInvoices?.length && !query.isLoading && (
         <Card width="100%" overflowX="auto">
           <VStack py={8}>
             <Icon as={FaTable} boxSize={16} color="gray.300" />

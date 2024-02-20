@@ -70,7 +70,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           id: invoiceId,
         },
         data: {
-          status: "PENDING",
+          status: "UNPAID",
           paidAt: null,
         },
       });
@@ -87,7 +87,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           id: invoiceId,
         },
         data: {
-          status: "PENDING",
+          status: "UNPAID",
           paidAt: null,
         },
       });

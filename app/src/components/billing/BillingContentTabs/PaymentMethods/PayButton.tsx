@@ -1,20 +1,13 @@
 import { useState } from "react";
-import { Button, useDisclosure, ThemingProps } from "@chakra-ui/react";
+import { Button, useDisclosure } from "@chakra-ui/react";
 
 import { useHandledAsyncCallback, usePaymentMethods, useSelectedProject } from "~/utils/hooks";
 import { api } from "~/utils/api";
-import { BsPlus } from "react-icons/bs";
 import PaymentDetailsModal from "./AddPaymentMethodModal";
 import { toast } from "~/theme/ChakraThemeProvider";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
-export default function PayButton({
-  invoiceId,
-  theme,
-}: {
-  invoiceId: string;
-  theme?: ThemingProps<"Button">;
-}) {
+export default function PayButton({ invoiceId }: { invoiceId: string }) {
   const paymentMethodExist = usePaymentMethods().data?.data?.length ?? 0;
   const payMutation = api.payments.pay.useMutation();
   const utils = api.useContext();

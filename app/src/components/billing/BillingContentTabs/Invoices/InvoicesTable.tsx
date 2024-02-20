@@ -80,7 +80,7 @@ const InvoicesTable = ({ invoices }: Props) => {
                   </Td>
 
                   <Td w="400px" isNumeric>
-                    {invoice.status === "PENDING" && <PayButton invoiceId={invoice.id} />}
+                    {invoice.status === "UNPAID" && <PayButton invoiceId={invoice.id} />}
 
                     {invoice.paidAt && <Text>{dayjs(invoice.paidAt).format("MMM D, YYYY")}</Text>}
                   </Td>
@@ -109,7 +109,7 @@ export const getStatusColor = (status: InvoiceStatus) => {
   switch (status) {
     case "PAID":
       return "green";
-    case "PENDING":
+    case "UNPAID":
       return "red";
     case "FREE":
       return "blue";
