@@ -11,7 +11,6 @@ import {
   Button,
   Box,
   type UseDisclosureReturn,
-  Spinner,
 } from "@chakra-ui/react";
 
 import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
