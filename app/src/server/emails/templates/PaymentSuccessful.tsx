@@ -27,7 +27,7 @@ const PaymentSuccessful = ({
   return (
     <EmailLayout previewText={previewText}>
       <Header>Payment Successful for {projectName}</Header>
-      <Text style={{ fontSize: "1.5em" }}>OpenPipe Usage {billingPeriod} </Text>
+      <Text style={{ fontWeight: "bold" }}>OpenPipe Invoice {billingPeriod} </Text>
 
       <Text>
         Your <Link href={invoiceLink}>invoice</Link> of ${amount} for project{" "}

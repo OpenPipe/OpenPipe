@@ -7,7 +7,6 @@ import {
   Tbody,
   Td,
   Text,
-  Button,
   TableContainer,
   Badge,
 } from "@chakra-ui/react";
@@ -16,11 +15,8 @@ import { useSelectedProject } from "~/utils/hooks";
 import { ProjectLink } from "../../../ProjectLink";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
-import { type RouterOutputs, api } from "~/utils/api";
-import { useHandledAsyncCallback } from "~/utils/hooks";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { toast } from "~/theme/ChakraThemeProvider";
-import { useState } from "react";
+import { type RouterOutputs } from "~/utils/api";
+import PayButton from "../PaymentMethods/PayButton";
 
 type Invoices = RouterOutputs["invoices"]["list"];
 
@@ -29,36 +25,8 @@ type Props = {
 };
 
 const InvoicesTable = ({ invoices }: Props) => {
-  const selectedProject = useSelectedProject().data;
   const router = useRouter();
-
-  const payMutation = api.payments.pay.useMutation();
-  const utils = api.useContext();
-
-  const [processingInvoceId, setProcessingInvoiceId] = useState<string | null>(null);
-
-  const [pay, isPaymentLoading] = useHandledAsyncCallback(
-    async (invoiceId: string) => {
-      if (isPaymentLoading) return;
-
-      setProcessingInvoiceId(invoiceId);
-
-      const resp = await payMutation.mutateAsync({
-        invoiceId,
-      });
-
-      if (!maybeReportError(resp)) {
-        toast({
-          description: "Payment processing!",
-          status: "success",
-        });
-      }
-
-      await utils.invoices.list.invalidate();
-      setProcessingInvoiceId(null);
-    },
-    [utils, payMutation],
-  );
+  const selectedProject = useSelectedProject().data;
 
   const handleOpenInvoiceClick = (id: string) => {
     if (selectedProject?.slug) {
@@ -112,21 +80,7 @@ const InvoicesTable = ({ invoices }: Props) => {
                   </Td>
 
                   <Td w="400px" isNumeric>
-                    {invoice.status === "PENDING" && (
-                      <Button
-                        borderRadius={4}
-                        mt={2}
-                        variant="ghost"
-                        color="blue.500"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          pay(invoice.id);
-                        }}
-                        isLoading={isPaymentLoading && processingInvoceId === invoice.id}
-                      >
-                        Pay
-                      </Button>
-                    )}
+                    {invoice.status === "UNPAID" && <PayButton invoiceId={invoice.id} />}
 
                     {invoice.paidAt && <Text>{dayjs(invoice.paidAt).format("MMM D, YYYY")}</Text>}
                   </Td>
@@ -155,7 +109,7 @@ export const getStatusColor = (status: InvoiceStatus) => {
   switch (status) {
     case "PAID":
       return "green";
-    case "PENDING":
+    case "UNPAID":
       return "red";
     case "FREE":
       return "blue";

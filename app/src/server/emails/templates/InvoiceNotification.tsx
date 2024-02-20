@@ -12,7 +12,7 @@ interface Props {
   description?: Record<string, string>[];
 }
 
-const InvoiceNotificationWithoutRequiredPayment = ({
+const InvoiceNotification = ({
   projectName,
   amount,
   invoicesLink,
@@ -20,11 +20,11 @@ const InvoiceNotificationWithoutRequiredPayment = ({
   billingPeriod,
   description,
 }: Props) => {
-  const previewText = `OpenPipe Usage ${billingPeriod}`;
+  const previewText = `OpenPipe Invoice ${billingPeriod}`;
 
   return (
     <EmailLayout previewText={previewText}>
-      <Header>OpenPipe Usage {billingPeriod}</Header>
+      <Header>{previewText}</Header>
 
       <Text>
         This is your monthly <Link href={invoicesLink}>invoice</Link> for OpenPipe project{" "}
@@ -40,13 +40,13 @@ const InvoiceNotificationWithoutRequiredPayment = ({
         Please visit your account to see more details and update a payment method. This will ensure
         we avoid any interruption of service!
       </Text>
-      <Button href={invoicesLink}>Details</Button>
+      <Button href={invoicesLink}>{Number(amount) > 1 ? "Pay Now" : "Details"}</Button>
     </EmailLayout>
   );
 };
 
-InvoiceNotificationWithoutRequiredPayment.PreviewProps = {
-  subject: "OpenPipe Usage Feb 2024. Payment Required",
+InvoiceNotification.PreviewProps = {
+  subject: "OpenPipe Invoice Feb 2024. Payment Required",
   projectName: "My Project",
   amount: "0.00",
   invoicesLink: "#",
@@ -55,4 +55,4 @@ InvoiceNotificationWithoutRequiredPayment.PreviewProps = {
   description: demoDescription,
 } as Props;
 
-export default InvoiceNotificationWithoutRequiredPayment;
+export default InvoiceNotification;

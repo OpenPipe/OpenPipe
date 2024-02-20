@@ -3,9 +3,9 @@ import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
 import { typedInvoice } from "~/types/dbColumns.types";
 import { JsonValue } from "~/types/kysely-codegen.types";
-import InvoiceNotificationWithoutRequiredPayment from "./templates/InvoiceNotificationWithoutRequiredPayment";
+import InvoiceNotification from "./templates/InvoiceNotification";
 
-export const sendInvoiceNotificationWithoutRequiredPayment = async (
+export const sendInvoiceNotification = async (
   invoiceId: string,
   amount: number,
   description: JsonValue,
@@ -25,9 +25,9 @@ export const sendInvoiceNotificationWithoutRequiredPayment = async (
   }
 
   const emailBody = render(
-    InvoiceNotificationWithoutRequiredPayment({
+    InvoiceNotification({
       projectName,
-      amount: Number(Number(amount).toFixed(2)).toLocaleString(),
+      amount: Number(amount).toFixed(2).toLocaleString(),
       invoicesLink,
       projectLink,
       billingPeriod: billingPeriod || "",
@@ -37,7 +37,7 @@ export const sendInvoiceNotificationWithoutRequiredPayment = async (
 
   await sendEmail({
     to: recipientEmail,
-    subject: `OpenPipe Usage ${billingPeriod}`,
+    subject: `OpenPipe Invoice ${billingPeriod}`,
     body: emailBody,
   });
 };

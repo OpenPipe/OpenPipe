@@ -1,4 +1,5 @@
 import {
+  Badge,
   Breadcrumb,
   BreadcrumbItem,
   Button,
@@ -29,6 +30,9 @@ import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContent
 import { typedInvoice } from "~/types/dbColumns.types";
 import { useInvoice, useSelectedProject } from "~/utils/hooks";
 import { type JsonValue } from "~/types/kysely-codegen.types";
+import PayButton from "~/components/billing/BillingContentTabs/PaymentMethods/PayButton";
+import { getStatusColor } from "~/components/billing/BillingContentTabs/Invoices/InvoicesTable";
+import dayjs from "dayjs";
 
 export default function Invoice() {
   const selectedProject = useSelectedProject().data;
@@ -75,9 +79,23 @@ export default function Invoice() {
         </PageHeaderContainer>
 
         <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
-          <Text fontSize="2xl" fontWeight="bold">
-            Invoice {invoice.slug}
-          </Text>
+          <HStack w="full" justifyContent="start" gap={4}>
+            <Text fontSize="2xl" fontWeight="bold">
+              Invoice {invoice.slug}
+            </Text>
+            <Badge
+              variant="outline"
+              px={3}
+              py={1}
+              textAlign="center"
+              borderRadius={4}
+              colorScheme={getStatusColor(invoice.status)}
+            >
+              {invoice.status === "PAID"
+                ? "PAID ON " + dayjs(invoice.paidAt).format("MMM D YYYY")
+                : invoice.status}
+            </Badge>
+          </HStack>
           <Card width="100%" overflowX="auto">
             <VStack py={8}>
               <HStack px={8} w="900px" justifyContent="space-between" paddingBottom={5}>
@@ -123,13 +141,14 @@ export default function Invoice() {
               </TableContainer>
             </VStack>
           </Card>
-          <HStack w="full" justifyContent="flex-end">
-            <Button colorScheme="blue" onClick={() => window.print()}>
+          <HStack w="full" justifyContent="space-between">
+            <Button onClick={() => window.print()} variant="ghost">
               <HStack spacing={0}>
-                <Icon as={FaPrint} color="white" mr={2} />
+                <Icon as={FaPrint} color="gray.600" mr={2} />
                 <Text>Print</Text>
               </HStack>
             </Button>
+            {invoice.status === "UNPAID" && <PayButton invoiceId={invoice.id} />}
           </HStack>
         </VStack>
       </VStack>

@@ -10,7 +10,7 @@ import { sql } from "kysely";
 import { calculateSpendingsWithCredits } from "~/utils/billing";
 import { getStats } from "../api/routers/usage.router";
 import { chargeInvoice } from "./chargeInvoices.task";
-import { sendInvoiceNotificationWithoutRequiredPayment } from "../emails/sendInvoiceNotificationWithoutRequiredPayment";
+import { sendInvoiceNotification } from "../emails/sendInvoiceNotification";
 import { sendToOwner } from "../emails/sendToOwner";
 
 export const generateInvoices = defineTask({
@@ -30,7 +30,7 @@ export const generateInvoices = defineTask({
       //Send success email if a user spent credits but does not have to pay.
       if (data && data.creditsUsed > 0 && Number(data.invoice.amount) <= 1) {
         await sendToOwner(data.invoice.projectId, (email: string) =>
-          sendInvoiceNotificationWithoutRequiredPayment(
+          sendInvoiceNotification(
             data.invoice.id,
             Number(data.invoice.amount),
             data.invoice.description,
@@ -120,7 +120,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
       .updateTable("Invoice")
       .set({
         amount: totalSpent,
-        status: totalSpent >= 1 ? "PENDING" : "CANCELLED", // Minimum $1 charge
+        status: totalSpent >= 1 ? "UNPAID" : "CANCELLED", // Minimum $1 charge
         description: JSON.stringify(
           getInvoiceDescription({
             totalInferenceSpend: Number(stats?.totalInferenceSpend ?? 0),
