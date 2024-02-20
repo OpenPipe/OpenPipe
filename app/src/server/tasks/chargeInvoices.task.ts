@@ -63,7 +63,7 @@ export async function chargeInvoice(invoiceId: string) {
     if (paymentMethods && paymentMethods.data[0]?.id) {
       paymentMethodToUse = paymentMethods.data[0]?.id;
     } else {
-      // TODO: Replace it with a "Payment Failed" notification once we required a card to be added.
+      // TODO: Replace it with a "Payment Failed" notification once we require a card to be added.
       await sendToOwner(invoice.projectId, (email: string) =>
         sendInvoiceNotification(
           invoice.id,
@@ -102,13 +102,13 @@ export async function chargeInvoice(invoiceId: string) {
         },
       });
 
-      return success("Paid successfully!");
+      return success("The invoice has been successfully paid!");
     }
 
     if (paymentIntent.status === "processing") {
       return success("Payment is processing.");
     } else {
-      return error("Payments requires assitional verification.");
+      return error("Payment requires additional verification.");
     }
   } catch {
     return error("Failed to make a payment.");

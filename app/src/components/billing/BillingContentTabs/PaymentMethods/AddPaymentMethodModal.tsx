@@ -27,10 +27,12 @@ export default function PaymentDetailsModal({
   clientSecret,
   disclosure,
   successCallback,
+  buttonText,
 }: {
   clientSecret: string;
   disclosure: UseDisclosureReturn;
   successCallback?: () => void;
+  buttonText?: string;
 }) {
   const options = {
     clientSecret,
@@ -63,6 +65,7 @@ export default function PaymentDetailsModal({
                   disclosure={disclosure}
                   clientSecret={clientSecret}
                   successCallback={successCallback}
+                  buttonText={buttonText}
                 />
               </Elements>
             </VStack>
@@ -77,10 +80,12 @@ function SetupStripePaymentMethodForm({
   disclosure,
   clientSecret,
   successCallback,
+  buttonText,
 }: {
   disclosure: UseDisclosureReturn;
   clientSecret: string;
   successCallback?: () => void;
+  buttonText?: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -164,8 +169,13 @@ function SetupStripePaymentMethodForm({
     <Box style={{ width: "100%" }}>
       <PaymentElement />
       <HStack w="full" justifyContent="end">
-        <Button colorScheme="gray" minW={24} onClick={() => handleAddPaymentDetail()}>
-          {addPaymentDetailLoading ? <Spinner /> : "Save"}
+        <Button
+          colorScheme="gray"
+          minW={24}
+          isLoading={addPaymentDetailLoading}
+          onClick={() => handleAddPaymentDetail()}
+        >
+          {buttonText || "Save"}
         </Button>
       </HStack>
     </Box>

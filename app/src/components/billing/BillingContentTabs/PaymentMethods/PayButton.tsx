@@ -7,14 +7,14 @@ import PaymentDetailsModal from "./AddPaymentMethodModal";
 import { toast } from "~/theme/ChakraThemeProvider";
 
 export default function PayButton({ invoiceId }: { invoiceId: string }) {
-  const paymentMethodExist = usePaymentMethods().data?.data?.length ?? 0;
-  const payMutation = api.payments.pay.useMutation();
   const utils = api.useContext();
-
   const disclosure = useDisclosure();
   const selectedProject = useSelectedProject().data;
 
+  const payMutation = api.payments.pay.useMutation();
   const createStripeIntentMutation = api.payments.createStripeIntent.useMutation();
+
+  const paymentMethodExist = usePaymentMethods().data?.data?.length ?? 0;
 
   const [clientSecret, setClientSecret] = useState("");
 
@@ -70,6 +70,7 @@ export default function PayButton({ invoiceId }: { invoiceId: string }) {
         clientSecret={clientSecret}
         disclosure={disclosure}
         successCallback={pay}
+        buttonText={"Pay and Save"}
       />
     </>
   );
