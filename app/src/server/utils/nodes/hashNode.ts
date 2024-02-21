@@ -64,12 +64,14 @@ export const hashAndSaveDatasetEntryInput = async ({
   tools,
   messages,
   response_format,
+  trx = kysely,
 }: {
   projectId: string;
   tool_choice?: string | object | null;
   tools?: object[] | null;
   messages: JsonValue;
   response_format?: JsonValue;
+  trx?: typeof kysely;
 }) => {
   const inputHash = hashDatasetEntryInput({
     projectId,
@@ -79,7 +81,7 @@ export const hashAndSaveDatasetEntryInput = async ({
     response_format,
   });
 
-  await kysely
+  await trx
     .insertInto("DatasetEntryInput")
     .values({
       hash: inputHash,
@@ -110,13 +112,15 @@ export const hashDatasetEntryOutput = ({
 export const hashAndSaveDatasetEntryOutput = async ({
   projectId,
   output,
+  trx = kysely,
 }: {
   projectId: string;
   output: object;
+  trx?: typeof kysely;
 }) => {
   const outputHash = hashDatasetEntryOutput({ projectId, output });
 
-  await kysely
+  await trx
     .insertInto("DatasetEntryOutput")
     .values({
       hash: outputHash,

@@ -612,7 +612,7 @@ model DatasetEval {
     type         DatasetEvalType @default(HEAD_TO_HEAD)
 
     datasetEvalDatasetEntries DatasetEvalDatasetEntry[]
-    datasetEvalNodeEntry      DatasetEvalNodeEntry[]
+    datasetEvalNodeEntries    DatasetEvalNodeEntry[]
     datasetEvalOutputSources  DatasetEvalOutputSource[]
 
     datasetId String  @db.Uuid

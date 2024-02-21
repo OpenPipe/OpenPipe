@@ -108,6 +108,7 @@ export const updateDatasetPruningRuleMatches = async ({
           )
           .where("prc.nodeHash", "is", null),
       )
+      .onConflict((oc) => oc.columns(["nodeHash", "incomingDEIHash"]).doNothing())
       .execute();
   });
 };
