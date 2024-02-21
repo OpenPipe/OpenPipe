@@ -12,7 +12,7 @@ import { archiveProperties } from "./processArchive";
 import { datasetProperties } from "./processDataset";
 import { enqueueDescendants } from "./enqueueDescendants";
 import { manualRelabelProperties } from "./processManualRelabel";
-import { typedNode, typedNodeEntry } from "~/server/utils/nodes/node.types";
+import { NodeProperties, typedNode, typedNodeEntry } from "~/server/utils/nodes/node.types";
 import type { NodeEntry } from "~/types/kysely-codegen.types";
 import { kysely, prisma } from "~/server/db";
 import { type AtLeastOne } from "~/types/shared.types";
@@ -132,8 +132,8 @@ export const processNode = defineTask<ProcessNodeJob>({
               return {
                 ...result,
                 nodeEntryId: entry.id,
-                incomingDEIHash: entry.inputHash,
-                incomingDEOHash: entry.outputHash,
+                incomingInputHash: entry.inputHash,
+                incomingOutputHash: entry.outputHash,
               };
             } catch (error) {
               return {
@@ -175,11 +175,11 @@ export const processNode = defineTask<ProcessNodeJob>({
                 if (nodeProperties.cacheMatchFields?.includes("nodeEntryPersistentId")) {
                   ands.push(eb("ne.persistentId", "=", `cpe.nodeEntryPersistentId`));
                 }
-                if (nodeProperties.cacheMatchFields?.includes("incomingDEIHash")) {
-                  ands.push(eb("ne.inputHash", "=", `cpe.incomingDEIHash`));
+                if (nodeProperties.cacheMatchFields?.includes("incomingInputHash")) {
+                  ands.push(eb("ne.inputHash", "=", `cpe.incomingInputHash`));
                 }
-                if (nodeProperties.cacheMatchFields?.includes("incomingDEOHash")) {
-                  ands.push(eb("ne.outputHash", "=", `cpe.incomingDEOHash`));
+                if (nodeProperties.cacheMatchFields?.includes("incomingOutputHash")) {
+                  ands.push(eb("ne.outputHash", "=", `cpe.incomingOutputHash`));
                 }
 
                 return eb.and(ands);
@@ -222,14 +222,6 @@ export const processNodeProperties: Record<NodeType, NodeProperties> = {
   Dataset: datasetProperties,
 };
 
-type CacheMatchField = "nodeEntryPersistentId" | "incomingDEIHash" | "incomingDEOHash";
-type CacheWriteField =
-  | "outgoingDEIHash"
-  | "outgoingDEOHash"
-  | "outgoingSplit"
-  | "filterOutcome"
-  | "explanation";
-
 export type SuccessProcessEntryResult = {
   status: "PROCESSED";
   output?: ChatCompletionMessage;
@@ -243,26 +235,4 @@ export type ErrorProcessEntryResult = {
   error: string;
 };
 
-type ProcessEntryResult = SuccessProcessEntryResult | ErrorProcessEntryResult;
-
-export type NodeProperties = {
-  cacheMatchFields?: AtLeastOne<CacheMatchField>;
-  cacheWriteFields?: AtLeastOne<CacheWriteField>;
-  readBatchSize?: number;
-  getConcurrency?: (node: ReturnType<typeof typedNode>) => number;
-  processEntry?: ({
-    node,
-    entry,
-  }: {
-    node: ReturnType<typeof typedNode> & Pick<Node, "projectId" | "hash">;
-    entry: ReturnType<typeof typedNodeEntry> & Pick<NodeEntry, "id" | "outputHash">;
-  }) => Promise<ProcessEntryResult>;
-  beforeAll?: (
-    node: ReturnType<typeof typedNode> & Pick<Node, "id" | "projectId" | "hash">,
-  ) => Promise<void>;
-  afterAll?: (node: ReturnType<typeof typedNode> & Pick<Node, "id" | "hash">) => Promise<void>;
-  outputs: {
-    label: string;
-    selectionExpression?: ForwardEntriesSelectionExpression;
-  }[];
-};
+export type ProcessEntryResult = SuccessProcessEntryResult | ErrorProcessEntryResult;

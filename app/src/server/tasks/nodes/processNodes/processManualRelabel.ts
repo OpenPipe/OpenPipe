@@ -7,8 +7,8 @@ import { forwardNodeEntries } from "./forwardNodeEntries";
 import { type NodeProperties } from "./processNode.task";
 
 export const manualRelabelProperties: NodeProperties = {
-  cacheMatchFields: ["nodeEntryPersistentId", "incomingDEIHash"],
-  cacheWriteFields: ["outgoingDEIHash", "outgoingDEOHash", "outgoingSplit"],
+  cacheMatchFields: ["nodeEntryPersistentId", "incomingInputHash"],
+  cacheWriteFields: ["outgoingInputHash", "outgoingOutputHash", "outgoingSplit"],
   readBatchSize: 10000,
   outputs: [{ label: ManualRelabelOutput.Relabeled }],
 };
@@ -62,14 +62,14 @@ export const manualRelabelRelabeledSelectionExpression = ({
     .where("ne.status", "=", "PROCESSING")
     .innerJoin("CachedProcessedEntry as cpne", (eb) =>
       eb
-        .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
+        .onRef("cpne.incomingInputHash", "=", "ne.inputHash")
         .onRef("cpne.nodeEntryPersistentId", "=", "ne.persistentId")
         .on("cpne.nodeHash", "=", originNodeHash),
     )
     .select([
       sql<DatasetEntrySplit>`cpne."outgoingSplit"`.as("split"),
-      sql<string>`"cpne"."outgoingDEIHash"`.as("inputHash"),
-      sql<string>`"cpne"."outgoingDEOHash"`.as("outputHash"),
+      sql<string>`"cpne"."outgoingInputHash"`.as("inputHash"),
+      sql<string>`"cpne"."outgoingOutputHash"`.as("outputHash"),
     ]);
 
 export const manualRelabelUnprocessedSelectionExpression = ({
@@ -86,7 +86,7 @@ export const manualRelabelUnprocessedSelectionExpression = ({
     .where("ne.status", "=", "PROCESSING")
     .leftJoin("CachedProcessedEntry as cpne", (eb) =>
       eb
-        .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
+        .onRef("cpne.incomingInputHash", "=", "ne.inputHash")
         .onRef("cpne.nodeEntryPersistentId", "=", "ne.persistentId")
         .on("cpne.nodeHash", "=", originNodeHash),
     )

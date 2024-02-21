@@ -21,14 +21,14 @@ export const updateCached = async ({
       .where("ne.nodeId", "=", node.id)
       .where("ne.status", "=", "PENDING");
 
-    if (nodeProperties.cacheWriteFields.includes("outgoingDEIHash")) {
+    if (nodeProperties.cacheWriteFields.includes("outgoingInputHash")) {
       processCachedQuery = processCachedQuery.set({
-        inputHash: sql`"cpne"."outgoingDEIHash"`,
+        inputHash: sql`"cpne"."outgoingInputHash"`,
       });
     }
-    if (nodeProperties.cacheWriteFields.includes("outgoingDEOHash")) {
+    if (nodeProperties.cacheWriteFields.includes("outgoingOutputHash")) {
       processCachedQuery = processCachedQuery.set({
-        outputHash: sql`"cpne"."outgoingDEOHash"`,
+        outputHash: sql`"cpne"."outgoingOutputHash"`,
         originalOutputHash: sql`"ne"."outputHash"`,
       });
     }
@@ -42,14 +42,18 @@ export const updateCached = async ({
         "cpne.nodeEntryPersistentId",
       );
     }
-    if (nodeProperties.cacheMatchFields.includes("incomingDEIHash")) {
-      processCachedQuery = processCachedQuery.whereRef("ne.inputHash", "=", "cpne.incomingDEIHash");
+    if (nodeProperties.cacheMatchFields.includes("incomingInputHash")) {
+      processCachedQuery = processCachedQuery.whereRef(
+        "ne.inputHash",
+        "=",
+        "cpne.incomingInputHash",
+      );
     }
-    if (nodeProperties.cacheMatchFields.includes("incomingDEOHash")) {
+    if (nodeProperties.cacheMatchFields.includes("incomingOutputHash")) {
       processCachedQuery = processCachedQuery.whereRef(
         "ne.outputHash",
         "=",
-        "cpne.incomingDEOHash",
+        "cpne.incomingOutputHash",
       );
     }
     await processCachedQuery.execute();

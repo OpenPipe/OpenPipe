@@ -6,8 +6,8 @@ import { LLMRelabelOutput, RelabelOption } from "~/server/utils/nodes/node.types
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { type NodeProperties } from "~/server/tasks/nodes/processNodes/processNode.task";
 export const llmRelabelProperties: NodeProperties = {
-  cacheMatchFields: ["incomingDEIHash"],
-  cacheWriteFields: ["outgoingDEOHash"],
+  cacheMatchFields: ["incomingInputHash"],
+  cacheWriteFields: ["outgoingOutputHash"],
   readBatchSize: 50,
   beforeAll: async (node) => {
     if (node.type !== "LLMRelabel") throw new Error("Node type is not LLMRelabel");

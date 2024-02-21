@@ -4,10 +4,10 @@ export const convertCache = async ({ nodeHash, nodeId }: { nodeHash: string; nod
   await kysely
     .insertInto("CachedProcessedEntry")
     .columns([
-      "incomingDEIHash",
-      "incomingDEOHash",
-      "outgoingDEIHash",
-      "outgoingDEOHash",
+      "incomingInputHash",
+      "incomingOutputHash",
+      "outgoingInputHash",
+      "outgoingOutputHash",
       "filterOutcome",
       "explanation",
       "createdAt",
@@ -18,10 +18,10 @@ export const convertCache = async ({ nodeHash, nodeId }: { nodeHash: string; nod
       eb
         .selectFrom("CachedProcessedEntry as new")
         .select((eb) => [
-          "incomingDEIHash",
-          "incomingDEOHash",
-          "outgoingDEIHash",
-          "outgoingDEOHash",
+          "incomingInputHash",
+          "incomingOutputHash",
+          "outgoingInputHash",
+          "outgoingOutputHash",
           "filterOutcome",
           "explanation",
           "createdAt",
@@ -31,8 +31,8 @@ export const convertCache = async ({ nodeHash, nodeId }: { nodeHash: string; nod
         .where("nodeHash", "=", nodeHash)
         .leftJoin("CachedProcessedEntry as existing", (join) =>
           join
-            .onRef("existing.incomingDEIHash", "=", "new.incomingDEIHash")
-            .onRef("existing.incomingDEOHash", "=", "new.incomingDEOHash")
+            .onRef("existing.incomingInputHash", "=", "new.incomingInputHash")
+            .onRef("existing.incomingOutputHash", "=", "new.incomingOutputHash")
             .onRef("existing.nodeHash", "=", "new.nodeHash"),
         )
         .where("existing.nodeHash", "is", null),

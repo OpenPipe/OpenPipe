@@ -13,8 +13,8 @@ import { prisma } from "~/server/db";
 export type SaveableProcessEntryResult =
   | (SuccessProcessEntryResult & {
       nodeEntryId: string;
-      incomingDEIHash: string;
-      incomingDEOHash: string;
+      incomingInputHash: string;
+      incomingOutputHash: string;
     })
   | (ErrorProcessEntryResult & {
       nodeEntryId: string;
@@ -58,15 +58,15 @@ export const saveResults = async ({
 
       const cachedProcessedEntryToCreate: Prisma.CachedProcessedEntryCreateManyInput = {
         nodeHash: node.hash,
-        incomingDEIHash: result.incomingDEIHash,
+        incomingInputHash: result.incomingInputHash,
       };
-      if (nodeProperties.cacheMatchFields?.includes("incomingDEOHash")) {
-        if (!result.incomingDEOHash) throw new Error("incomingDEOHash is required");
-        cachedProcessedEntryToCreate.incomingDEOHash = result.incomingDEOHash;
+      if (nodeProperties.cacheMatchFields?.includes("incomingOutputHash")) {
+        if (!result.incomingOutputHash) throw new Error("incomingOutputHash is required");
+        cachedProcessedEntryToCreate.incomingOutputHash = result.incomingOutputHash;
       }
-      if (nodeProperties.cacheWriteFields?.includes("outgoingDEOHash")) {
+      if (nodeProperties.cacheWriteFields?.includes("outgoingOutputHash")) {
         if (!outputHash) throw new Error("outputHash is required");
-        cachedProcessedEntryToCreate.outgoingDEOHash = outputHash;
+        cachedProcessedEntryToCreate.outgoingOutputHash = outputHash;
       }
       if (nodeProperties.cacheWriteFields?.includes("filterOutcome")) {
         if (!result.filterOutcome) throw new Error("filterOutcome is required");

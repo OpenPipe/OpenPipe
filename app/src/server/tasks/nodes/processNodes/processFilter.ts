@@ -4,7 +4,7 @@ import { kysely, prisma } from "~/server/db";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
 
 export const filterProperties: NodeProperties = {
-  cacheMatchFields: ["incomingDEIHash", "incomingDEOHash"],
+  cacheMatchFields: ["incomingInputHash", "incomingOutputHash"],
   cacheWriteFields: ["filterOutcome", "explanation"],
   readBatchSize: 10000,
   getConcurrency: () => 2,
@@ -20,7 +20,7 @@ export const filterProperties: NodeProperties = {
 
     await kysely
       .insertInto("CachedProcessedEntry")
-      .columns(["incomingDEIHash", "incomingDEOHash", "filterOutcome"])
+      .columns(["incomingInputHash", "incomingOutputHash", "filterOutcome"])
       .expression((eb) =>
         constructNodeEntryFiltersQuery({
           filters,
@@ -36,7 +36,7 @@ export const filterProperties: NodeProperties = {
 
     await kysely
       .insertInto("CachedProcessedEntry")
-      .columns(["incomingDEIHash", "incomingDEOHash", "filterOutcome"])
+      .columns(["incomingInputHash", "incomingOutputHash", "filterOutcome"])
       .expression((eb) =>
         eb
           .selectFrom("NodeEntry as ne")
@@ -46,17 +46,17 @@ export const filterProperties: NodeProperties = {
           .leftJoin("CachedProcessedEntry as cpe1", (join) =>
             join
               .onRef("cpe1.nodeHash", "=", "n.hash")
-              .onRef("cpe1.incomingDEIHash", "=", "ne.inputHash")
-              .onRef("cpe1.incomingDEOHash", "=", "ne.outputHash"),
+              .onRef("cpe1.incomingInputHash", "=", "ne.inputHash")
+              .onRef("cpe1.incomingOutputHash", "=", "ne.outputHash"),
           )
-          .where("cpe1.incomingDEIHash", "is", null)
+          .where("cpe1.incomingInputHash", "is", null)
           .leftJoin("CachedProcessedEntry as cpe2", (join) =>
             join
               .onRef("cpe2.nodeId", "=", "ne.nodeId")
-              .onRef("cpe2.incomingDEIHash", "=", "ne.inputHash")
-              .onRef("cpe2.incomingDEOHash", "=", "ne.outputHash"),
+              .onRef("cpe2.incomingInputHash", "=", "ne.inputHash")
+              .onRef("cpe2.incomingOutputHash", "=", "ne.outputHash"),
           )
-          .where("cpe2.incomingDEIHash", "is", null)
+          .where("cpe2.incomingInputHash", "is", null)
           .select((eb) => [
             "ne.inputHash",
             "ne.outputHash",

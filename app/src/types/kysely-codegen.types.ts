@@ -65,10 +65,10 @@ export interface CachedProcessedEntry {
   nodeHash: string | null;
   nodeEntryPersistentId: string | null;
   nodeId: string | null;
-  incomingDEIHash: string;
-  incomingDEOHash: string | null;
-  outgoingDEIHash: string | null;
-  outgoingDEOHash: string | null;
+  incomingInputHash: string;
+  incomingOutputHash: string | null;
+  outgoingInputHash: string | null;
+  outgoingOutputHash: string | null;
   outgoingSplit: "TEST" | "TRAIN" | null;
   filterOutcome: string | null;
   explanation: string | null;
@@ -501,7 +501,7 @@ export interface PruningRuleMatch {
 
 export interface PruningRulesChecked {
   nodeHash: string;
-  incomingDEIHash: string;
+  incomingInputHash: string;
 }
 
 export interface RelabelRequest {

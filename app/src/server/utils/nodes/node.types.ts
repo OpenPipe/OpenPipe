@@ -1,24 +1,48 @@
-import type { DatasetEntryInput, DatasetEntryOutput, Node, Prisma } from "@prisma/client";
+import type {
+  DatasetEntryInput,
+  DatasetEntryOutput,
+  Node,
+  NodeEntry,
+  Prisma,
+} from "@prisma/client";
 import { z } from "zod";
+import { ForwardEntriesSelectionExpression } from "~/server/tasks/nodes/processNodes/forwardNodeEntries";
+import { ProcessEntryResult } from "~/server/tasks/nodes/processNodes/processNode.task";
 
 import { chatInputs } from "~/types/dbColumns.types";
-import { chatCompletionMessage, filtersSchema } from "~/types/shared.types";
+import { AtLeastOne, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 
 export const DEFAULT_MAX_OUTPUT_SIZE = 50000;
 
-export enum RelabelOption {
-  GPT351106 = "gpt-3.5-turbo-1106",
-  GPT41106 = "gpt-4-1106-preview",
-  GPT40613 = "gpt-4-0613",
-  SkipRelabel = "skip relabeling",
-}
+type CacheMatchField = "nodeEntryPersistentId" | "incomingInputHash" | "incomingOutputHash";
+type CacheWriteField =
+  | "outgoingInputHash"
+  | "outgoingOutputHash"
+  | "outgoingSplit"
+  | "filterOutcome"
+  | "explanation";
 
-export const relabelOptions = [
-  RelabelOption.GPT351106,
-  RelabelOption.GPT41106,
-  RelabelOption.GPT40613,
-  RelabelOption.SkipRelabel,
-] as const;
+export type NodeProperties = {
+  cacheMatchFields?: AtLeastOne<CacheMatchField>;
+  cacheWriteFields?: AtLeastOne<CacheWriteField>;
+  readBatchSize?: number;
+  getConcurrency?: (node: ReturnType<typeof typedNode>) => number;
+  processEntry?: ({
+    node,
+    entry,
+  }: {
+    node: ReturnType<typeof typedNode> & Pick<Node, "projectId" | "hash">;
+    entry: ReturnType<typeof typedNodeEntry> & Pick<NodeEntry, "id" | "outputHash">;
+  }) => Promise<ProcessEntryResult>;
+  beforeAll?: (
+    node: ReturnType<typeof typedNode> & Pick<Node, "id" | "projectId" | "hash">,
+  ) => Promise<void>;
+  afterAll?: (node: ReturnType<typeof typedNode> & Pick<Node, "id" | "hash">) => Promise<void>;
+  outputs: {
+    label: string;
+    selectionExpression?: ForwardEntriesSelectionExpression;
+  }[];
+};
 
 export enum ArchiveOutput {
   Entries = "entries",
@@ -44,6 +68,20 @@ export enum ManualRelabelOutput {
 export enum DatasetOutput {
   Entries = "entries",
 }
+
+export enum RelabelOption {
+  GPT351106 = "gpt-3.5-turbo-1106",
+  GPT41106 = "gpt-4-1106-preview",
+  GPT40613 = "gpt-4-0613",
+  SkipRelabel = "skip relabeling",
+}
+
+export const relabelOptions = [
+  RelabelOption.GPT351106,
+  RelabelOption.GPT41106,
+  RelabelOption.GPT40613,
+  RelabelOption.SkipRelabel,
+] as const;
 
 export const nodeSchema = z.discriminatedUnion("type", [
   z

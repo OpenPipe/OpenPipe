@@ -189,11 +189,11 @@ model NewPruningRuleMatch {
 }
 
 model PruningRulesChecked {
-    nodeHash        String
-    incomingDEIHash String
+    nodeHash          String
+    incomingInputHash String
 
-    @@unique([nodeHash, incomingDEIHash])
-    @@index([incomingDEIHash, nodeHash])
+    @@unique([nodeHash, incomingInputHash])
+    @@index([incomingInputHash, nodeHash])
 }
 
 model Project {
@@ -961,7 +961,7 @@ model NodeEntry {
     parentNodeEntryId String?    @db.Uuid
     parentNodeEntry   NodeEntry? @relation("ancestry", fields: [parentNodeEntryId], references: [id], onDelete: Cascade)
 
-    childrenNodeEntry NodeEntry[] @relation("ancestry")
+    childrenNodeEntries NodeEntry[] @relation("ancestry")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -1023,15 +1023,15 @@ model CachedProcessedEntry {
     nodeId String? @db.Uuid
     node   Node?   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
 
-    incomingDEIHash String
-    incomingDEI     DatasetEntryInput   @relation("incoming", fields: [incomingDEIHash], references: [hash], onDelete: Cascade)
-    incomingDEOHash String?
-    incomingDEO     DatasetEntryOutput? @relation("incoming", fields: [incomingDEOHash], references: [hash], onDelete: Cascade)
-    outgoingDEIHash String?
-    outgoingDEI     DatasetEntryInput?  @relation("outgoing", fields: [outgoingDEIHash], references: [hash], onDelete: Cascade)
-    outgoingDEOHash String?
-    outgoingDEO     DatasetEntryOutput? @relation("outgoing", fields: [outgoingDEOHash], references: [hash], onDelete: Cascade)
-    outgoingSplit   DatasetEntrySplit?
+    incomingInputHash  String
+    incomingInput      DatasetEntryInput   @relation("incoming", fields: [incomingInputHash], references: [hash], onDelete: Cascade)
+    incomingOutputHash String?
+    incomingOutput     DatasetEntryOutput? @relation("incoming", fields: [incomingOutputHash], references: [hash], onDelete: Cascade)
+    outgoingInputHash  String?
+    outgoingInput      DatasetEntryInput?  @relation("outgoing", fields: [outgoingInputHash], references: [hash], onDelete: Cascade)
+    outgoingOutputHash String?
+    outgoingOutput     DatasetEntryOutput? @relation("outgoing", fields: [outgoingOutputHash], references: [hash], onDelete: Cascade)
+    outgoingSplit      DatasetEntrySplit?
 
     filterOutcome String?
     explanation   String?
@@ -1039,7 +1039,7 @@ model CachedProcessedEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([nodeEntryPersistentId, incomingDEIHash, nodeHash, incomingDEOHash])
-    @@index([incomingDEIHash, nodeHash])
-    @@index([incomingDEIHash, nodeId])
+    @@unique([nodeEntryPersistentId, incomingInputHash, nodeHash, incomingOutputHash])
+    @@index([incomingInputHash, nodeHash])
+    @@index([incomingInputHash, nodeId])
 }

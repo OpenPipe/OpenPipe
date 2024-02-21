@@ -1,5 +1,11 @@
 import { prisma } from "../db";
 
+// delete all PruningRulesChecked
+await prisma.pruningRulesChecked.deleteMany();
+
+// delete all NodeEntries
+await prisma.nodeEntry.deleteMany();
+
 // delete all Nodes
 await prisma.node.deleteMany();
 

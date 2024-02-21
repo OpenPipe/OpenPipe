@@ -73,7 +73,7 @@ export const updateDatasetPruningRuleMatches = async ({
           nodeEntryBaseQuery
             .leftJoin("PruningRulesChecked as prc", (join) =>
               join
-                .onRef("prc.incomingDEIHash", "=", "ne.inputHash")
+                .onRef("prc.incomingInputHash", "=", "ne.inputHash")
                 .on("prc.nodeHash", "=", nodeHash),
             )
             .where("prc.nodeHash", "is", null)
@@ -97,18 +97,18 @@ export const updateDatasetPruningRuleMatches = async ({
     // Mark all relevant node data as processed
     await trx
       .insertInto("PruningRulesChecked")
-      .columns(["nodeHash", "incomingDEIHash"])
+      .columns(["nodeHash", "incomingInputHash"])
       .expression(() =>
         nodeEntryBaseQuery
-          .select([sql`${nodeHash}`.as("nodeHash"), "ne.inputHash as incomingDEIHash"])
+          .select([sql`${nodeHash}`.as("nodeHash"), "ne.inputHash as incomingInputHash"])
           .leftJoin("PruningRulesChecked as prc", (join) =>
             join
-              .onRef("prc.incomingDEIHash", "=", "ne.inputHash")
+              .onRef("prc.incomingInputHash", "=", "ne.inputHash")
               .on("prc.nodeHash", "=", nodeHash),
           )
           .where("prc.nodeHash", "is", null),
       )
-      .onConflict((oc) => oc.columns(["nodeHash", "incomingDEIHash"]).doNothing())
+      .onConflict((oc) => oc.columns(["nodeHash", "incomingInputHash"]).doNothing())
       .execute();
   });
 };

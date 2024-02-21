@@ -492,7 +492,7 @@ export const nodeEntriesRouter = createTRPCRouter({
               .selectFrom("CachedProcessedEntry")
               .where("nodeHash", "=", manualRelabelNode.hash)
               .where("nodeEntryPersistentId", "=", nodeEntry.persistentId)
-              .where("incomingDEIHash", "=", nodeEntry.parentNodeEntryInputHash)
+              .where("incomingInputHash", "=", nodeEntry.parentNodeEntryInputHash)
               .select(["id"])
               .executeTakeFirst();
 
@@ -501,8 +501,8 @@ export const nodeEntriesRouter = createTRPCRouter({
                 .updateTable("CachedProcessedEntry")
                 .where("id", "=", cachedProcessedEntry.id)
                 .set({
-                  outgoingDEIHash: updatedInputHash,
-                  outgoingDEOHash: updatedOutputHash,
+                  outgoingInputHash: updatedInputHash,
+                  outgoingOutputHash: updatedOutputHash,
                   outgoingSplit: updatedSplit,
                   updatedAt: new Date(),
                 })
@@ -514,9 +514,9 @@ export const nodeEntriesRouter = createTRPCRouter({
                   id: uuidv4(),
                   nodeHash: manualRelabelNode.hash,
                   nodeEntryPersistentId: nodeEntry.persistentId,
-                  incomingDEIHash: nodeEntry.parentNodeEntryInputHash,
-                  outgoingDEIHash: updatedInputHash,
-                  outgoingDEOHash: updatedOutputHash,
+                  incomingInputHash: nodeEntry.parentNodeEntryInputHash,
+                  outgoingInputHash: updatedInputHash,
+                  outgoingOutputHash: updatedOutputHash,
                   outgoingSplit: updatedSplit,
                   updatedAt: new Date(),
                 })
