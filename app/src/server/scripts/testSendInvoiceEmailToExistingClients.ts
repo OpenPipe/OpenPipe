@@ -17,10 +17,10 @@ const creditAdjustments = await prisma.creditAdjustment.findMany({
     project: true,
   },
 });
-
 for (const creditAdjustment of creditAdjustments) {
   const invoice = creditAdjustment.invoice;
   const project = creditAdjustment.project;
+  console.log(creditAdjustment);
 
   // Searching for unpaid invoices, and invoices with usage, but covered by credits
   // amount > -100 means that the credits covered all the usage

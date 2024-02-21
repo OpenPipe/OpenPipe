@@ -29,6 +29,7 @@ import IconLink from "./IconLink";
 import { BetaModal } from "../BetaModal";
 import { useIsMissingBetaAccess } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
+import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 
 const Divider = (props: BoxProps) => <Box h="1px" bgColor="gray.300" w="full" {...props} />;
 
@@ -87,7 +88,7 @@ const NavSidebar = () => {
               </Text>
               <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
               <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
-              {/* <IconLink icon={LiaFileInvoiceDollarSolid} label="Billing" href="/billing" /> */}
+              <IconLink icon={LiaFileInvoiceDollarSolid} label="Billing" href="/billing" />
               <IconButton
                 variant="ghost"
                 size="sm"

@@ -12,7 +12,7 @@ export default function InvoiceDescription({ description, total, style }: Props)
     <Section style={{ ...style, ...dark }}>
       {description &&
         description.map((item, index) => (
-          <Row key={index}>
+          <Row key={index} style={{ width: "100%" }}>
             <Column style={{ width: "100%" }}>
               <Text>{item.text}:</Text>
             </Column>
@@ -22,7 +22,7 @@ export default function InvoiceDescription({ description, total, style }: Props)
           </Row>
         ))}
 
-      <Row>
+      <Row style={{ width: "100%" }}>
         <Column style={{ width: "100%" }}>
           <Text style={{ fontWeight: "bold" }}>Billing Total:</Text>
         </Column>
