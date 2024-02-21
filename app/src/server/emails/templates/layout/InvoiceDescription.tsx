@@ -1,4 +1,4 @@
-import { Column, Row } from "@react-email/components";
+import { Column, Row, Section } from "@react-email/components";
 import React, { CSSProperties } from "react";
 import { Highlight, Text } from ".";
 
@@ -12,22 +12,21 @@ export default function InvoiceDescription({ description, total, style }: Props)
     <Highlight style={{ ...style }}>
       {description &&
         description.map((item, index) => (
-          <Row key={index} style={{ width: "100%" }}>
-            <Column style={{ width: "100%" }}>
+          <Row key={index} style={{ minWidth: "100%" }}>
+            <Column>
               <Text>{item.text}:</Text>
             </Column>
-            <Column style={{ width: "100%" }}>
+            <Column align="right">
               <Text>{item.value}</Text>
             </Column>
           </Row>
         ))}
-
-      <Row style={{ width: "100%" }}>
-        <Column style={{ width: "100%" }}>
-          <Text style={{ fontWeight: "bold" }}>Billing Total:</Text>
-        </Column>
+      <Row style={{ minWidth: "100%" }}>
         <Column>
-          <Text style={{ fontWeight: "bold" }}>${total}</Text>
+          <Text style={{ fontWeight: "bold" }}>Billing Total: </Text>
+        </Column>
+        <Column align="right">
+          <Text style={{ fontWeight: "bold" }}> ${total}</Text>
         </Column>
       </Row>
     </Highlight>
