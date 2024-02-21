@@ -13,7 +13,9 @@ declare module "nextjs-routes" {
   export type Route =
     | StaticRoute<"/account/signin">
     | StaticRoute<"/admin/impersonate">
+    | StaticRoute<"/admin">
     | StaticRoute<"/admin/jobs">
+    | StaticRoute<"/admin/projects/adminProjectsTable">
     | DynamicRoute<"/api/auth/[...nextauth]", { "nextauth": string[] }>
     | StaticRoute<"/api/experiments/og-image">
     | StaticRoute<"/api/healthcheck">
