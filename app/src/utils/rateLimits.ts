@@ -17,11 +17,10 @@ export const rateLimit = async (key: string, config: RateLimitConfig): Promise<b
     on conflict (key) do update set
       tokens = greatest(0, ${currentTokenCount} - 1),
       allowed = round(${currentTokenCount}) > 0,
-      "lastUpdated" = now()
+      "lastUpdated" = case when ${currentTokenCount} > 0 then now() else "RateLimit"."lastUpdated" end
     returning allowed, tokens as "tokensLeft";
   `;
   const result = await query.execute(kysely);
-  console.log(result.rows[0]);
 
   return result.rows[0]?.allowed ?? false;
 };

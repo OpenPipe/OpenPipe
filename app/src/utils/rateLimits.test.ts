@@ -47,7 +47,7 @@ describe("rateLimit", () => {
     expect(result).toBe(true);
   });
 
-  it.only("calls the fireworksTestSetLimit function", async () => {
+  it("calls the fireworksTestSetLimit function", async () => {
     const result = await fireworksTestSetLimit();
     expect(result).toBe(true);
   });

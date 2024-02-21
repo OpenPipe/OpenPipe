@@ -212,8 +212,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
           await prisma.fineTuneTestingEntry.update({
             where: { modelId_datasetEntryId: { modelId, datasetEntryId } },
             data: {
-              errorMessage:
-                "Pausing completion processing to avoid rate limiting, will retry soon.",
+              errorMessage: "Pending",
             },
           });
         } else {
