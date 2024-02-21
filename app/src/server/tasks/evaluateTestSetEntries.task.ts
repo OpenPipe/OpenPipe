@@ -1,17 +1,23 @@
-import type { DatasetEntry, DatasetEntryInput, NodeEntry } from "@prisma/client";
+import type {
+  DatasetEntry,
+  DatasetEntryInput,
+  NodeEntry,
+  ComparisonModel,
+  Prisma,
+} from "@prisma/client";
 import type { ChatCompletionCreateParams, FunctionParameters } from "openai/resources";
 import { captureException } from "@sentry/node";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { JsonObject } from "type-fest";
 import type { TaskSpec } from "graphile-worker";
+import { isEqual } from "lodash-es";
 
 import { kysely, prisma } from "~/server/db";
 import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonModels";
-import { isEqual } from "lodash-es";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { calculateQueryDelay } from "./generateTestSetEntry.task";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
@@ -244,7 +250,7 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
               .executeTakeFirstOrThrow();
             outputs.push(entry.output);
             if (isComparisonModel(entry.modelId)) {
-              entryIds.push(getComparisonModelName(entry.modelId));
+              entryIds.push(getComparisonModelName(entry.modelId as ComparisonModel));
             } else if (entry.fineTuneSlug) {
               entryIds.push("openpipe:" + entry.fineTuneSlug);
             } else {
@@ -509,7 +515,7 @@ const constructJudgementInput = (
   const approximateTokens = countOpenAIChatTokens("gpt-4-0613", input.messages);
 
   if (approximateTokens > 7168) {
-    input.model = "gpt-4-1106-preview";
+    input.model = "gpt-4-0125-preview";
   }
 
   return input;

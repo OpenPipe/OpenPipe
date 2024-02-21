@@ -61,7 +61,7 @@ async function main() {
     openpipe: {
       // Add custom searchable tags
       tags: {
-        prompt_id: "getCompletion",
+        prompt_id: "extract_user_intent",
         any_key: "any_value",
       },
       logRequest: true, // Enable/disable data collection. Defaults to true.

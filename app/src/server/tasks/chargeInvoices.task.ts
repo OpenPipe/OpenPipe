@@ -9,13 +9,15 @@ import {
 } from "../utils/stripe";
 import { env } from "~/env.mjs";
 import dayjs from "dayjs";
+import { sendToOwner } from "../emails/sendToOwner";
+import { sendInvoiceNotification } from "../emails/sendInvoiceNotification";
 
 export const chargeInvoices = defineTask({
   id: "chargeInvoices",
   handler: async (task) => {
     const invoices = await prisma.invoice.findMany({
       where: {
-        status: "PENDING",
+        status: "UNPAID",
         createdAt: {
           gte: dayjs().subtract(3, "month").toDate(),
         },
@@ -38,7 +40,7 @@ export async function chargeInvoice(invoiceId: string) {
     },
   });
 
-  if (invoice?.status !== "PENDING" || Number(invoice.amount) < 1) {
+  if (invoice?.status !== "UNPAID" || Number(invoice.amount) < 1) {
     return error("The invoice has already been paid.");
   }
 
@@ -61,6 +63,18 @@ export async function chargeInvoice(invoiceId: string) {
     if (paymentMethods && paymentMethods.data[0]?.id) {
       paymentMethodToUse = paymentMethods.data[0]?.id;
     } else {
+      // TODO: Replace it with a "Payment Failed" notification once we require a card to be added.
+      await sendToOwner(invoice.projectId, (email: string) =>
+        sendInvoiceNotification(
+          invoice.id,
+          Number(invoice.amount),
+          invoice.description,
+          invoice.billingPeriod || "",
+          project.name,
+          project.slug,
+          email,
+        ),
+      );
       return error("Add a payment method.");
     }
   }
@@ -88,10 +102,14 @@ export async function chargeInvoice(invoiceId: string) {
         },
       });
 
-      return success("Payment successfully applied.");
+      return success("The invoice has been successfully paid!");
     }
 
-    return error("Payment is processing.");
+    if (paymentIntent.status === "processing") {
+      return success("Payment is processing.");
+    } else {
+      return error("Payment requires additional verification.");
+    }
   } catch {
     return error("Failed to make a payment.");
   }

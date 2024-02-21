@@ -41,7 +41,6 @@ export async function getCompletion(
 
   const prunedMessages = pruneInputMessages(input.messages, stringsToPrune);
   const prunedInput = { messages: prunedMessages, ...omit(input, "messages") };
-
   if (fineTune.provider === "openai") {
     return getOpenAIFineTuneCompletion(fineTune, prunedInput);
   } else {
@@ -50,7 +49,7 @@ export async function getCompletion(
       case 2:
         return getModalCompletion(fineTune, prunedInput);
       case 3:
-        let completion: Promise<ChatCompletion>;
+        let completion: Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
         if (fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1") {
           completion = getFireworksCompletion(fineTune, prunedInput);
         } else if (fineTune.gpt4FallbackEnabled) {

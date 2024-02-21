@@ -1,70 +1,45 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat";
+import type {
+  ChatCompletion,
+  ChatCompletionChunk,
+  ChatCompletionCreateParams,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
+} from "openai/resources/chat";
 
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
-import { zip } from "lodash-es";
 import { type Completion } from "openai/resources";
-
-async function* yieldChunks(reader: ReadableStreamDefaultReader): AsyncGenerator<Completion> {
-  let leftover = "";
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = leftover + new TextDecoder().decode(value as Uint8Array);
-      let start = 0;
-      let end = chunk.indexOf("\n");
-
-      while (end !== -1) {
-        let line = chunk.substring(start, end).trim();
-        if (line === "data: [DONE]") {
-          return; // Terminate the generator upon encountering the special [DONE] message
-        }
-        if (line.startsWith("data:")) {
-          line = line.slice(5).trim(); // Remove 'data:' prefix and trim whitespace
-          // Handle multi-line data concatenation
-          let data = line;
-          while (end !== -1 && chunk.charAt(end + 1) !== "\n") {
-            start = end + 1;
-            end = chunk.indexOf("\n", start);
-            line = chunk.substring(start, end).trim();
-            if (line.startsWith("data:")) {
-              data += "\n" + line.slice(5).trim();
-            }
-          }
-          yield JSON.parse(data);
-        }
-        start = end + 1;
-        end = chunk.indexOf("\n", start);
-      }
-
-      leftover = chunk.substring(start);
-    }
-  } catch (error) {
-    console.error("Error reading stream:", error);
-    throw error; // Rethrow or handle as needed
-  }
-  if (leftover.startsWith("data:")) {
-    // Handle any final data chunk that didn't end with a newline
-    yield JSON.parse(leftover.slice(5).trim()) as Completion;
-  }
-}
+import { Stream } from "openai/streaming";
 
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsNonStreaming,
+): Promise<ChatCompletion>;
+export async function getFireworksCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsStreaming,
+): Promise<Stream<ChatCompletionChunk>>;
+export async function getFireworksCompletion(
+  fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
-): Promise<ChatCompletion> {
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
+export async function getFireworksCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParams,
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
-  if (input.stream) {
-    throw new Error("Streaming is not yet supported");
-  }
-
   if (!env.FIREWORKS_API_KEY) {
     throw new Error("FIREWORKS_API_KEY is required for Fireworks completions");
+  }
+
+  if ((input.functions || input.tools) && input.stream) {
+    throw new Error(
+      `We don't currently support streaming for function calls. Please open an issue if you need this functionality! https://github.com/openpipe/openpipe`,
+    );
   }
 
   const response = await fetch(`https://api.fireworks.ai/inference/v1/completions`, {
@@ -81,6 +56,7 @@ export async function getFireworksCompletion(
       temperature: input.temperature ?? 0,
       top_p: input.top_p ?? 0,
       max_tokens: input.max_tokens ?? 4096,
+      stream: input.stream,
     }),
   });
 
@@ -95,32 +71,17 @@ export async function getFireworksCompletion(
 
   let resp: Completion;
 
-  // Not fully implemented actually, but saving this code since I accidentally
-  // already wrote it
   if (input.stream) {
+    const controller = new AbortController();
     const reader = response.body.getReader();
 
-    const completionGenerator = yieldChunks(reader);
-
-    resp = await completionGenerator.next().then((x) => x.value as Completion);
-
-    for await (const chunk of completionGenerator) {
-      const mergedChoices = zip(resp.choices, chunk.choices).map(([base, delta]) => {
-        if (!base || !delta || base.index !== delta.index) {
-          throw new Error("Index mismatch");
-        }
-        return {
-          ...base,
-          ...delta,
-          text: base.text + delta.text,
-        };
-      });
-
-      resp = {
-        ...chunk,
-        choices: mergedChoices,
-      };
+    async function* iterator() {
+      for await (const chunk of yieldChunks(reader, input.model)) {
+        yield chunk;
+      }
     }
+
+    return new Stream(iterator, controller);
   } else {
     resp = await response.json();
   }
@@ -143,4 +104,72 @@ export async function getFireworksCompletion(
     choices,
     usage: resp.usage,
   };
+}
+
+async function* yieldChunks(
+  reader: ReadableStreamDefaultReader,
+  model: string,
+): AsyncGenerator<ChatCompletionChunk> {
+  let leftover = "";
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = leftover + new TextDecoder().decode(value as Uint8Array);
+      let start = 0;
+      let end = chunk.indexOf("\n");
+
+      while (end !== -1) {
+        let line = chunk.substring(start, end).trim();
+
+        if (line === "data: [DONE]") {
+          return; // Terminate the generator upon encountering the special [DONE] message
+        }
+        if (line.startsWith("data:")) {
+          line = line.slice(5).trim(); // Remove 'data:' prefix and trim whitespace
+          // Handle multi-line data concatenation
+          let data = line;
+          while (end !== -1 && chunk.charAt(end + 1) !== "\n") {
+            start = end + 1;
+            end = chunk.indexOf("\n", start);
+            line = chunk.substring(start, end).trim();
+            if (line.startsWith("data:")) {
+              data += "\n" + line.slice(5).trim();
+            }
+          }
+          const transformedChunk = transformChunk(data, model);
+
+          yield transformedChunk;
+        }
+        start = end + 1;
+        end = chunk.indexOf("\n", start);
+      }
+
+      leftover = chunk.substring(start);
+    }
+  } catch (error) {
+    console.error("Error reading stream:", error);
+    throw error; // Rethrow or handle as needed
+  }
+  if (leftover.startsWith("data:")) {
+    // Handle any final data chunk that didn't end with a newline
+    yield JSON.parse(leftover.slice(5).trim()) as ChatCompletionChunk;
+  }
+}
+function transformChunk(chunk: string, model: string) {
+  const jsonData = JSON.parse(chunk);
+  return {
+    id: jsonData.id,
+    object: "chat.completion.chunk",
+    created: jsonData.created,
+    model,
+    system_fingerprint: undefined,
+    choices: jsonData.choices.map(
+      (choice: { index: any; text: any; logprobs: any; finish_reason: any }) => ({
+        ...choice,
+        delta: { content: choice.text },
+      }),
+    ),
+    usage: jsonData.usage,
+  } as ChatCompletionChunk;
 }

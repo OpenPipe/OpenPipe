@@ -73,11 +73,12 @@ def upload_to_fireworks(fireworks_base_model: str, lora_model_path: str, fine_tu
         except subprocess.TimeoutExpired:
             logging.warning(f"Upload to Fireworks timed out after {timeout} seconds.")
         except subprocess.CalledProcessError as e:
-            if "code = AlreadyExists" in e.stderr.decode():
-                logging.info("Model already exists in Fireworks. Considering as success.")
+            error = e.stderr.decode()
+            if "code = AlreadyExists" in error:
+                logging.info("Model already exists in Fireworks. Considering as success. Error: {error}")
                 return
             else:
-                logging.error(f"Failed to deploy to Fireworks: {e.stderr.decode()}")
+                logging.error(f"Failed to deploy to Fireworks: {error}")
                 raise e
         attempt += 1
     raise Exception("Failed to upload to Fireworks after multiple attempts.")

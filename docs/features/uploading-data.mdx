@@ -27,7 +27,7 @@ You can include other parameters from the OpenAI chat completion input format (e
 
 ```jsonl
 ...
-{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Tasmania?"},{"role":"assistant","content":null,"function_call":{"name":"identify_capitol","arguments":"{\"capitol\":\"Hobart\"}"}}],"functions":[{"name":"identify_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]}
-{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capitol of Sweden?"},{"role":"assistant","content":null,"function_call":{"name":"identify_capitol","arguments":"{\"capitol\":\"Stockholm\"}"}}],"functions":[{"name":"identify_capitol","parameters":{"type":"object","properties":{"capitol":{"type":"string"}}}}]}
+{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capital of Tasmania?"},{"role":"assistant","content":null,"function_call":{"name":"identify_capital","arguments":"{\"capital\":\"Hobart\"}"}}],"functions":[{"name":"identify_capital","parameters":{"type":"object","properties":{"capital":{"type":"string"}}}}]}
+{"messages":[{"role":"system","content":"You are a helpful assistant"},{"role":"user","content":"What is the capital of Sweden?"},{"role":"assistant","content":null,"function_call":{"name":"identify_capital","arguments":"{\"capital\":\"Stockholm\"}"}}],"functions":[{"name":"identify_capital","parameters":{"type":"object","properties":{"capital":{"type":"string"}}}}]}
 ...
 ```

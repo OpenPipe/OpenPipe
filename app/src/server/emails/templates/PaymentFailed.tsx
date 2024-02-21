@@ -22,12 +22,12 @@ const PaymentFailed = ({
   billingPeriod,
   description,
 }: Props) => {
-  const previewText = `Add a payment method. OpenPipe Usage ${billingPeriod}.`;
+  const previewText = `Add a payment method. OpenPipe Invoice ${billingPeriod}.`;
 
   return (
     <EmailLayout previewText={previewText}>
       <Header>Payment required</Header>
-      <Text style={{ fontSize: "1.5em" }}>OpenPipe Usage {billingPeriod} </Text>
+      <Text style={{ fontWeight: "bold" }}>OpenPipe Invoice {billingPeriod} </Text>
 
       <Text>
         We were unable to process the payment for your invoice. Please update your payment
@@ -51,7 +51,7 @@ const PaymentFailed = ({
 };
 
 PaymentFailed.PreviewProps = {
-  subject: "OpenPipe Usage Feb 2024. Payment Required",
+  subject: "OpenPipe Invoice Feb 2024. Payment Required",
   projectName: "My Project",
   amount: "0.00",
   paymentMethodsLink: "#",

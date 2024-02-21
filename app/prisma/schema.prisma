@@ -528,6 +528,7 @@ enum ComparisonModel {
     GPT_3_5_TURBO
     GPT_4_0613
     GPT_4_1106_PREVIEW
+    GPT_4_0125_PREVIEW
 }
 
 model FineTuneTestingEntry {
@@ -782,7 +783,7 @@ model UsageLog {
 }
 
 enum InvoiceStatus {
-    PENDING
+    UNPAID
     PAID
     CANCELLED
     REFUNDED
@@ -792,7 +793,7 @@ enum InvoiceStatus {
 model Invoice {
     id            String        @id @default(uuid()) @db.Uuid
     amount        Decimal       @default(0)
-    status        InvoiceStatus @default(PENDING)
+    status        InvoiceStatus @default(UNPAID)
     slug          String
     billingPeriod String? // MM YYYY
     paidAt        DateTime?

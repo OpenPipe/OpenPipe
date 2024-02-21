@@ -366,7 +366,7 @@ Controls the magnitude of updates to the model's parameters during training."
                       </NumberInput>
                       <HStack>
                         <Text fontWeight="bold">Number of Epochs</Text>{" "}
-                        <InfoCircle tooltipText="The total number of times the entire dataset is passed forward and backward through a neural network during training." />
+                        <InfoCircle tooltipText="The number of times the model sees each example during training." />
                       </HStack>
 
                       <NumberInput
@@ -423,6 +423,7 @@ Controls the magnitude of updates to the model's parameters during training."
                   [!needsMissingBetaAccess, "Training this model requires beta access"],
                   [!needsMoreTrainingData, "At least 10 training entries are required"],
                   [!!modelSlug, "Add a Model ID"],
+                  [price.data?.cost !== undefined, "Price is being calculated"],
                 ]}
               >
                 <Button
@@ -430,7 +431,6 @@ Controls the magnitude of updates to the model's parameters during training."
                   onClick={createFineTune}
                   isLoading={creationInProgress}
                   minW={24}
-                  isDisabled={price.isLoading || price.data?.calculating}
                 >
                   Start Training
                 </Button>

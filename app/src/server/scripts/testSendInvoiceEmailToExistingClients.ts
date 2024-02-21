@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import { sendInvoiceNotificationWithoutRequiredPayment } from "../emails/sendInvoiceNotificationWithoutRequiredPayment";
+import { sendInvoiceNotification } from "../emails/sendInvoiceNotification";
 
 const email = process.argv[2];
 
@@ -22,15 +22,15 @@ for (const creditAdjustment of creditAdjustments) {
   const invoice = creditAdjustment.invoice;
   const project = creditAdjustment.project;
 
-  // Searching for pending invoices, and invoices with usage, but covered by credits
+  // Searching for unpaid invoices, and invoices with usage, but covered by credits
   // amount > -100 means that the credits covered all the usage
   if (
     email &&
     project.billable &&
     invoice &&
-    (invoice.status === "PENDING" || Number(creditAdjustment.amount) > -100)
+    (invoice.status === "UNPAID" || Number(creditAdjustment.amount) > -100)
   ) {
-    await sendInvoiceNotificationWithoutRequiredPayment(
+    await sendInvoiceNotification(
       invoice.id,
       Number(invoice.amount),
       invoice.description,

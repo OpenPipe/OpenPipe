@@ -10,7 +10,7 @@ export default function Header({ children, style }: Props) {
 }
 
 const heading = {
-  fontSize: "32px",
+  fontSize: "25px",
   lineHeight: "1.3",
   fontWeight: "700",
   color: "#484848",

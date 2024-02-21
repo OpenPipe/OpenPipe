@@ -28,7 +28,7 @@ export const sendPaymentFailed = async (
   const emailBody = render(
     PaymentFailed({
       projectName,
-      amount: Number(Number(amount).toFixed(2)).toLocaleString(),
+      amount: Number(amount).toFixed(2).toLocaleString(),
       paymentMethodsLink,
       invoicesLink,
       projectLink,

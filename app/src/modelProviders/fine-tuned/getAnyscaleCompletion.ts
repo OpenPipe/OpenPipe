@@ -1,7 +1,14 @@
 import { v4 as uuidv4 } from "uuid";
-import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resources/chat";
-
+import type {
+  ChatCompletion,
+  ChatCompletionChunk,
+  ChatCompletionCreateParams,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
+} from "openai/resources/chat";
+import { Stream } from "openai/streaming";
 import OpenAI from "openai";
+
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
@@ -23,8 +30,20 @@ const clients = env.ANYSCALE_INFERENCE_BASE_URL
 
 export async function getAnyscaleCompletion(
   fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsNonStreaming,
+): Promise<ChatCompletion>;
+export async function getAnyscaleCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParamsStreaming,
+): Promise<Stream<ChatCompletionChunk>>;
+export async function getAnyscaleCompletion(
+  fineTune: TypedFineTune,
   input: ChatCompletionCreateParams,
-): Promise<ChatCompletion> {
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
+export async function getAnyscaleCompletion(
+  fineTune: TypedFineTune,
+  input: ChatCompletionCreateParams,
+): Promise<ChatCompletion | Stream<ChatCompletionChunk>> {
   const deployment =
     env.ANYSCALE_ENABLE_A100 &&
     fineTune.pipelineVersion === 3 &&
@@ -44,12 +63,14 @@ export async function getAnyscaleCompletion(
     );
   }
 
+  if ((input.functions || input.tools) && input.stream) {
+    throw new Error(
+      `We don't currently support streaming for function calls. Please open an issue if you need this functionality! https://github.com/openpipe/openpipe`,
+    );
+  }
+
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
-
-  if (input.stream) {
-    throw new Error("Streaming is not yet supported");
-  }
 
   const resp = await client.chat.completions.create({
     model: `${fineTune.baseModel}:${fineTune.id}:1`,
@@ -57,7 +78,12 @@ export async function getAnyscaleCompletion(
     temperature: input.temperature ?? 0,
     n: input.n ?? 1,
     max_tokens: input.max_tokens ?? undefined,
+    stream: input.stream,
   });
+
+  if (resp instanceof Stream) {
+    return transformStream(resp, input.model);
+  }
 
   const convertToFunctions = (input.functions?.length ?? 0) > 0;
 
@@ -78,4 +104,30 @@ export async function getAnyscaleCompletion(
     choices,
     usage: resp.usage,
   };
+}
+
+function transformStream(
+  originalStream: Stream<ChatCompletionChunk>,
+  model: string,
+): Stream<ChatCompletionChunk> {
+  const controller = new AbortController();
+
+  async function* iterator() {
+    for await (const chunk of originalStream) {
+      yield transformChunk(chunk, model);
+    }
+  }
+
+  return new Stream(iterator, controller);
+}
+
+function transformChunk(chunk: any, model: string) {
+  return {
+    id: chunk.id,
+    object: "chat.completion.chunk",
+    created: chunk.created,
+    model,
+    choices: chunk.choices,
+    usage: chunk.usage,
+  } as ChatCompletionChunk;
 }
