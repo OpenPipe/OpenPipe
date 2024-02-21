@@ -8,13 +8,15 @@ import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalyti
 import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
-import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { calculateCost, modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import {
   calculateNumEpochs,
   getNumEpochsFromConfig,
 } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
 import { captureException } from "@sentry/node";
+import { sendToOwner } from "~/server/emails/sendToOwner";
+import { sendFineTuneModelTrained } from "~/server/emails/sendFineTuneModelTrained";
 
 const MAX_AUTO_RETRIES = 2;
 
@@ -82,6 +84,20 @@ export const checkFineTuneStatus = defineTask({
                 numEpochs,
               },
             });
+
+            // Notify the owner that the model has been trained
+            const project = await prisma.project.findUniqueOrThrow({
+              where: { id: typedFT.projectId },
+            });
+            await sendToOwner(typedFT.projectId, (email: string) =>
+              sendFineTuneModelTrained(
+                typedFT.id,
+                "openpipe:" + typedFT.slug,
+                modelInfo(typedFT).name,
+                project.slug,
+                email,
+              ),
+            );
 
             captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
 
