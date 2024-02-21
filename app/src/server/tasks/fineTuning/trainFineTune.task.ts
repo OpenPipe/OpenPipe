@@ -14,7 +14,7 @@ import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-t
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
-import { insertTrainingDataPruningRuleMatches } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
+import { insertTrainingDataPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { trainingConfig } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { countLlamaInputTokens } from "~/utils/countTokens";
 

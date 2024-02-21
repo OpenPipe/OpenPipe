@@ -45,7 +45,7 @@ const Sources = () => {
     [router, selectedProject, dataset?.id],
   );
 
-  if (!dataset)
+  if (!dataset?.archives.length)
     return (
       <Text px={8}>
         No dataset entries have been added to this dataset. You can import from Request Logs or

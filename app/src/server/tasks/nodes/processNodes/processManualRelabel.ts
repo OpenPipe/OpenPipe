@@ -2,8 +2,16 @@ import { sql } from "kysely";
 import { type DatasetEntrySplit } from "@prisma/client";
 
 import { kysely, prisma } from "~/server/db";
-import { ManualRelabelOutput, typedNode } from "../node.types";
-import { type ForwardEntriesSelectionExpression, forwardNodeEntries } from "../forwardNodeEntries";
+import { ManualRelabelOutput, typedNode } from "~/server/utils/nodes/node.types";
+import { forwardNodeEntries } from "./forwardNodeEntries";
+import { type NodeProperties } from "./processNode.task";
+
+export const manualRelabelProperties: NodeProperties = {
+  cacheMatchFields: ["nodeEntryPersistentId", "incomingDEIHash"],
+  cacheWriteFields: ["outgoingDEIHash", "outgoingDEOHash", "outgoingSplit"],
+  readBatchSize: 10000,
+  outputs: [{ label: ManualRelabelOutput.Relabeled }],
+};
 
 export const processManualRelabel = async (nodeId: string) => {
   const node = await prisma.node
@@ -25,14 +33,7 @@ export const processManualRelabel = async (nodeId: string) => {
   await forwardNodeEntries({
     nodeId,
     nodeOutputLabel: ManualRelabelOutput.Relabeled,
-    selectionExpression: manualRelabelRelabeledSelectionExpression,
-  });
-  await forwardNodeEntries({
-    nodeId,
-    nodeOutputLabel: ManualRelabelOutput.Unprocessed,
-    // cpne.id being null throws off type inference
-    selectionExpression:
-      manualRelabelUnprocessedSelectionExpression as unknown as ForwardEntriesSelectionExpression,
+    // selectionExpression: manualRelabelRelabeledSelectionExpression,
   });
 
   console.log("entries forwarded");
@@ -59,7 +60,7 @@ export const manualRelabelRelabeledSelectionExpression = ({
     .selectFrom("NodeEntry as ne")
     .where("ne.nodeId", "=", originNodeId)
     .where("ne.status", "=", "PROCESSING")
-    .innerJoin("CachedProcessedNodeEntry as cpne", (eb) =>
+    .innerJoin("CachedProcessedEntry as cpne", (eb) =>
       eb
         .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
         .onRef("cpne.nodeEntryPersistentId", "=", "ne.persistentId")
@@ -83,7 +84,7 @@ export const manualRelabelUnprocessedSelectionExpression = ({
     .selectFrom("NodeEntry as ne")
     .where("ne.nodeId", "=", originNodeId)
     .where("ne.status", "=", "PROCESSING")
-    .leftJoin("CachedProcessedNodeEntry as cpne", (eb) =>
+    .leftJoin("CachedProcessedEntry as cpne", (eb) =>
       eb
         .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
         .onRef("cpne.nodeEntryPersistentId", "=", "ne.persistentId")

@@ -1,5 +1,5 @@
 import { kysely } from "~/server/db";
-import { enqueueProcessNode } from "~/server/tasks/nodes/processNode.task";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
 
 export const enqueueDescendants = async (nodeId: string) => {
   const descendants = await kysely

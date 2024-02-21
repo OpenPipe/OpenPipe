@@ -3,6 +3,7 @@ import { HStack, Text, Icon } from "@chakra-ui/react";
 import { RiInformationFill } from "react-icons/ri";
 
 import { useDataset } from "~/utils/hooks";
+import { RelabelOption } from "~/server/utils/nodes/node.types";
 
 export const RelabelingIndicator = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -14,6 +15,9 @@ export const RelabelingIndicator = () => {
   }, [dataset?.numRelabelingEntries, setRefetchInterval]);
 
   if (!dataset?.numRelabelingEntries) return null;
+
+  const relabelingText =
+    dataset.relabelLLM !== RelabelOption.SkipRelabel ? `relabeling by ${dataset.relabelLLM}` : "";
 
   return (
     <HStack
@@ -30,9 +34,8 @@ export const RelabelingIndicator = () => {
     >
       <Icon as={RiInformationFill} color="orange.300" boxSize={4} />{" "}
       <Text>
-        Processing: {dataset.numRelabelingEntries} dataset{" "}
-        {dataset.numRelabelingEntries === 1 ? "entry is" : "entries are"} pending relabeling by{" "}
-        {dataset.relabelLLM}
+        Processing: {dataset.numRelabelingEntries.toLocaleString()} dataset{" "}
+        {dataset.numRelabelingEntries === 1 ? "entry is" : "entries are"} pending {relabelingText}
       </Text>
     </HStack>
   );

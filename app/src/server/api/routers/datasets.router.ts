@@ -14,9 +14,9 @@ import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
 import { DEFAULT_MAX_OUTPUT_SIZE, typedNode } from "~/server/utils/nodes/node.types";
-import { enqueueProcessNode } from "~/server/tasks/nodes/processNode.task";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
-import { startDatasetTestJobs } from "~/server/utils/nodes/processNodes/startTestJobs";
+import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
 import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
 import { getUpstreamSources } from "~/server/utils/nodes/relationalQueries";
 import { baseModel } from "~/server/fineTuningProviders/types";
@@ -66,6 +66,12 @@ export const datasetsRouter = createTRPCRouter({
           .where("ne.split", "=", "TEST")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numTestEntries"),
+        eb
+          .selectFrom("NodeEntry as ne")
+          .whereRef("ne.nodeId", "=", "d.nodeId")
+          .where("ne.status", "=", "PROCESSED")
+          .select(sql<number>`count(*)::int`.as("count"))
+          .as("numProcessedEntries"),
       ])
       .executeTakeFirst();
 
@@ -79,22 +85,6 @@ export const datasetsRouter = createTRPCRouter({
     if (tNode.type !== "Dataset")
       throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
 
-    const manualRelabelNode = await kysely
-      .selectFrom("Node as n")
-      .where("n.id", "=", tNode.config.manualRelabelNodeId)
-      .select((eb) => [
-        eb
-          .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "n.id")
-          .where("ne.status", "!=", "PROCESSED")
-          .select(sql<number>`count(*)::int`.as("count"))
-          .as("numProcessingEntries"),
-      ])
-      .executeTakeFirst();
-
-    if (!manualRelabelNode)
-      throw new TRPCError({ message: "Manual relabeling node not found", code: "NOT_FOUND" });
-
     const llmRelabelNode = await kysely
       .selectFrom("Node as n")
       .where("n.id", "=", tNode.config.llmRelabelNodeId)
@@ -105,7 +95,13 @@ export const datasetsRouter = createTRPCRouter({
           .whereRef("ne.nodeId", "=", "n.id")
           .where("ne.status", "!=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
-          .as("numRelabelingEntries"),
+          .as("numUnprocessedEntries"),
+        eb
+          .selectFrom("NodeEntry as ne")
+          .whereRef("ne.nodeId", "=", "n.id")
+          .where("ne.status", "=", "PROCESSED")
+          .select(sql<number>`count(*)::int`.as("count"))
+          .as("numProcessedEntries"),
       ])
       .executeTakeFirst();
 
@@ -118,7 +114,8 @@ export const datasetsRouter = createTRPCRouter({
       throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
 
     const numRelabelingEntries =
-      (tLlmRelabelNode.numRelabelingEntries ?? 0) + (manualRelabelNode.numProcessingEntries ?? 0);
+      (tLlmRelabelNode.numUnprocessedEntries ?? 0) +
+      Math.max(0, (tLlmRelabelNode.numProcessedEntries ?? 0) - (dataset.numProcessedEntries ?? 0));
 
     const archives = await getUpstreamSources({ llmRelabelNodeId: tNode.config.llmRelabelNodeId })
       .where("sourceNode.type", "=", "Archive")

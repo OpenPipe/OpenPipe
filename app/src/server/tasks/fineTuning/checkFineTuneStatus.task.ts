@@ -13,7 +13,7 @@ import {
   getNumEpochsFromConfig,
 } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
-import { startTestJobsForModel } from "~/server/utils/nodes/processNodes/startTestJobs";
+import { startTestJobsForModel } from "~/server/utils/nodes/startTestJobs";
 import { captureException } from "@sentry/node";
 
 const MAX_AUTO_RETRIES = 2;

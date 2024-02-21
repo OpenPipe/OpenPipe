@@ -1,23 +1,28 @@
 import { type z } from "zod";
-import { type Expression, type SqlBool, sql, type ExpressionBuilder } from "kysely";
+import { type Expression, type SqlBool, sql, type WhereInterface } from "kysely";
 
 import { kysely } from "~/server/db";
-import { type DB } from "~/types/kysely-codegen.types";
+import type { NodeEntry, DB } from "~/types/kysely-codegen.types";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
+
+const BASE_QUERY = kysely.selectFrom("NodeEntry as ne");
 
 export const constructNodeEntryFiltersQuery = ({
   filters,
   datasetNodeId,
-  ftteEB,
+  baseQuery = BASE_QUERY,
 }: {
   filters: z.infer<typeof filtersSchema>;
   datasetNodeId: string;
-  ftteEB?: ExpressionBuilder<DB, "NewFineTuneTrainingEntry">;
+  baseQuery?: WhereInterface<
+    DB & {
+      ne: NodeEntry;
+    },
+    "ne"
+  >;
 }) => {
-  const queryBuilder = (ftteEB ?? kysely) as typeof kysely;
-  const baseQuery = queryBuilder
-    .selectFrom("NodeEntry as ne")
+  let updatedBaseQuery = (baseQuery as typeof BASE_QUERY)
     .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
     .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
     .where((eb) => {
@@ -40,8 +45,6 @@ export const constructNodeEntryFiltersQuery = ({
 
       return eb.and(wheres);
     });
-
-  let updatedBaseQuery = baseQuery;
 
   const splitFilters = filters.filter(
     (filter) => filter.field === GeneralFiltersDefaultFields.Split,

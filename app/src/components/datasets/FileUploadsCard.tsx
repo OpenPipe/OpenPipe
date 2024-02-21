@@ -39,6 +39,7 @@ const FileUploadsCard = () => {
   useEffect(() => {
     if (numSuccessfulUploads) {
       void utils.nodeEntries.list.invalidate().catch(console.error);
+      void utils.datasets.get.invalidate().catch(console.error);
     }
   }, [numSuccessfulUploads]);
 

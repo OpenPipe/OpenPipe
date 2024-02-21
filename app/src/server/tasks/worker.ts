@@ -13,7 +13,7 @@ import type defineTask from "./defineTask";
 import { pgPool } from "../db";
 import { generateInvoices } from "./generateInvoices.task";
 import { chargeInvoices } from "./chargeInvoices.task";
-import { processNode } from "./nodes/processNode.task";
+import { processNode } from "./nodes/processNodes/processNode.task";
 import { feedMonitors } from "./nodes/feedMonitors.task";
 
 console.log("Starting worker...");

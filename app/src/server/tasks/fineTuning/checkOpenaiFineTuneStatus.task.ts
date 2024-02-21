@@ -4,7 +4,7 @@ import { kysely, prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 import { typedFineTune } from "~/types/dbColumns.types";
-import { startTestJobsForModel } from "~/server/utils/nodes/processNodes/startTestJobs";
+import { startTestJobsForModel } from "~/server/utils/nodes/startTestJobs";
 
 const runOnce = async () => {
   const trainingOpenaiFineTunes = await prisma.fineTune

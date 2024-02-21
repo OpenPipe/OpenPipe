@@ -10,7 +10,7 @@ import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { TRPCError } from "@trpc/server";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { sql } from "kysely";
-import { startTestJobsForEval } from "~/server/utils/nodes/processNodes/startTestJobs";
+import { startTestJobsForEval } from "~/server/utils/nodes/startTestJobs";
 
 export const datasetEvalsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {

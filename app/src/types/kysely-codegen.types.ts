@@ -60,11 +60,10 @@ export interface ApiKey {
   readOnly: Generated<boolean>;
 }
 
-export interface CachedProcessedNodeEntry {
+export interface CachedProcessedEntry {
   id: string;
-  nodeHash: string;
+  nodeHash: string | null;
   nodeEntryPersistentId: string | null;
-  userId: string | null;
   incomingDEIHash: string;
   incomingDEOHash: string | null;
   outgoingDEIHash: string | null;
@@ -74,6 +73,7 @@ export interface CachedProcessedNodeEntry {
   explanation: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  nodeId: string | null;
 }
 
 export interface CachedResponse {
@@ -434,7 +434,7 @@ export interface NewPruningRuleMatch {
 
 export interface Node {
   id: string;
-  type: "Archive" | "Dataset" | "Filter" | "LLMFilter" | "LLMRelabel" | "ManualRelabel" | "Monitor";
+  type: "Archive" | "Dataset" | "Filter" | "LLMRelabel" | "ManualRelabel" | "Monitor";
   name: string;
   config: Json;
   hash: string;
@@ -576,7 +576,7 @@ export interface DB {
   _prisma_migrations: _PrismaMigrations;
   Account: Account;
   ApiKey: ApiKey;
-  CachedProcessedNodeEntry: CachedProcessedNodeEntry;
+  CachedProcessedEntry: CachedProcessedEntry;
   CachedResponse: CachedResponse;
   CreditAdjustment: CreditAdjustment;
   DataChannel: DataChannel;

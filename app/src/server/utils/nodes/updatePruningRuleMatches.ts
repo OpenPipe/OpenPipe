@@ -37,7 +37,7 @@ export const updateDatasetPruningRuleMatches = async ({
 
   await kysely.transaction().execute(async (trx) => {
     if (deleteMatches) {
-      await trx.deleteFrom("CachedProcessedNodeEntry").where("nodeHash", "=", nodeHash).execute();
+      await trx.deleteFrom("CachedProcessedEntry").where("nodeHash", "=", nodeHash).execute();
       if (pruningRulesToUpdate.length > 0) {
         await trx
           .deleteFrom("NewPruningRuleMatch as prm")
@@ -65,26 +65,13 @@ export const updateDatasetPruningRuleMatches = async ({
 
       const ruleTextToMatch = escapeLikeString(currentPruningRule.textToMatch);
 
-      // console.log("ruleTextToMatch", ruleTextToMatch);
-      // const stuff = await nodeEntryBaseQuery
-      //   .innerJoin("DatasetEntryInput as dei", "ne.inputHash", "dei.hash")
-      //   .selectAll("ne")
-      //   .select(["dei.messages"])
-      //   .execute();
-
-      // for (const row of stuff) {
-      //   console.log("row", row.messages);
-      // }
-
-      // console.log("stuff", stuff);
-
       // Insert PruningRuleMatch entries
       await trx
         .insertInto("NewPruningRuleMatch")
         .columns(["id", "pruningRuleId", "inputHash"])
         .expression(() =>
           nodeEntryBaseQuery
-            .leftJoin("CachedProcessedNodeEntry as cpne", (join) =>
+            .leftJoin("CachedProcessedEntry as cpne", (join) =>
               join
                 .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
                 .on("cpne.nodeHash", "=", nodeHash),
@@ -109,7 +96,7 @@ export const updateDatasetPruningRuleMatches = async ({
 
     // Mark all relevant node data as processed
     await trx
-      .insertInto("CachedProcessedNodeEntry")
+      .insertInto("CachedProcessedEntry")
       .columns(["id", "nodeHash", "incomingDEIHash", "updatedAt"])
       .expression(() =>
         nodeEntryBaseQuery
@@ -119,7 +106,7 @@ export const updateDatasetPruningRuleMatches = async ({
             "ne.inputHash as incomingDEIHash",
             eb.val(new Date()).as("updatedAt"),
           ])
-          .leftJoin("CachedProcessedNodeEntry as cpne", (join) =>
+          .leftJoin("CachedProcessedEntry as cpne", (join) =>
             join
               .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
               .on("cpne.nodeHash", "=", nodeHash),

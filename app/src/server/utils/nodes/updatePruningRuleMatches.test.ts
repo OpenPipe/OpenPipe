@@ -10,7 +10,7 @@ import {
   insertTrainingDataPruningRuleMatches,
   updateDatasetPruningRuleMatches,
 } from "./updatePruningRuleMatches";
-import { prepareIntegratedDatasetCreation } from "../nodeCreation/prepareIntegratedNodesCreation";
+import { prepareIntegratedDatasetCreation } from "./nodeCreation/prepareIntegratedNodesCreation";
 import {
   hashAndSaveDatasetEntryInput,
   hashAndSaveDatasetEntryOutput,

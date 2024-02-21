@@ -28,14 +28,17 @@ export enum MonitorOutput {
   MatchedLogs = "Matched Logs",
 }
 
+export enum FilterOutput {
+  Passed = "passed",
+  Failed = "failed",
+}
+
 export enum LLMRelabelOutput {
   Relabeled = "relabeled",
-  Unprocessed = "unprocessed",
 }
 
 export enum ManualRelabelOutput {
   Relabeled = "relabeled",
-  Unprocessed = "unprocessed",
 }
 
 export enum DatasetOutput {
@@ -59,11 +62,21 @@ export const nodeSchema = z.discriminatedUnion("type", [
       config: z
         .object({
           initialFilters: filtersSchema,
-          checkFilters: filtersSchema,
           lastLoggedCallUpdatedAt: z.date().default(new Date(0)),
-          maxEntriesPerMinute: z.number().default(100),
-          maxLLMConcurrency: z.number().default(2),
           maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
+          sampleRate: z.number().default(1),
+          filterNodeId: z.string(),
+        })
+        .passthrough(),
+    })
+    .passthrough(),
+  z
+    .object({
+      type: z.literal("Filter"),
+      config: z
+        .object({
+          filters: filtersSchema,
+          maxLLMConcurrency: z.number().default(2),
         })
         .passthrough(),
     })
@@ -73,7 +86,6 @@ export const nodeSchema = z.discriminatedUnion("type", [
     config: z
       .object({
         relabelLLM: z.enum(relabelOptions).default(RelabelOption.SkipRelabel),
-        maxEntriesPerMinute: z.number().default(100),
         maxLLMConcurrency: z.number().default(2),
       })
       .passthrough(),

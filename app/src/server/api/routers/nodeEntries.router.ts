@@ -35,9 +35,12 @@ import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreat
 import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
 import { generatePersistentId, creationTimeFromPersistentId } from "~/server/utils/nodes/utils";
 import { hashDatasetEntryInput, hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";
-import { enqueueProcessNode, processNode } from "~/server/tasks/nodes/processNode.task";
-import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
-import { startDatasetTestJobs } from "~/server/utils/nodes/processNodes/startTestJobs";
+import {
+  enqueueProcessNode,
+  processNode,
+} from "~/server/tasks/nodes/processNodes/processNode.task";
+import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
+import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
 
 export const nodeEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -486,18 +489,18 @@ export const nodeEntriesRouter = createTRPCRouter({
           if (!manualRelabelNode) return error("Unable to find ManualRelabel Node");
 
           await kysely.transaction().execute(async (trx) => {
-            const cachedProcessedNodeEntry = await trx
-              .selectFrom("CachedProcessedNodeEntry")
+            const cachedProcessedEntry = await trx
+              .selectFrom("CachedProcessedEntry")
               .where("nodeHash", "=", manualRelabelNode.hash)
               .where("nodeEntryPersistentId", "=", nodeEntry.persistentId)
               .where("incomingDEIHash", "=", nodeEntry.parentNodeEntryInputHash)
               .select(["id"])
               .executeTakeFirst();
 
-            if (cachedProcessedNodeEntry) {
+            if (cachedProcessedEntry) {
               await trx
-                .updateTable("CachedProcessedNodeEntry")
-                .where("id", "=", cachedProcessedNodeEntry.id)
+                .updateTable("CachedProcessedEntry")
+                .where("id", "=", cachedProcessedEntry.id)
                 .set({
                   outgoingDEIHash: updatedInputHash,
                   outgoingDEOHash: updatedOutputHash,
@@ -507,7 +510,7 @@ export const nodeEntriesRouter = createTRPCRouter({
                 .execute();
             } else {
               await trx
-                .insertInto("CachedProcessedNodeEntry")
+                .insertInto("CachedProcessedEntry")
                 .values({
                   id: uuidv4(),
                   nodeHash: manualRelabelNode.hash,

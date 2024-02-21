@@ -1,6 +1,6 @@
 import { kysely } from "~/server/db";
 import defineTask from "../defineTask";
-import { enqueueProcessNode } from "./processNode.task";
+import { enqueueProcessNode } from "./processNodes/processNode.task";
 
 export const feedMonitors = defineTask({
   id: "feedMonitors",

@@ -10,7 +10,7 @@ await prisma.datasetEntryInput.deleteMany();
 await prisma.datasetEntryOutput.deleteMany();
 
 // delete all CachedProcessedNodeEntries
-await prisma.cachedProcessedNodeEntry.deleteMany();
+await prisma.cachedProcessedEntry.deleteMany();
 
 // // delete previously invalid uploads
 // await prisma.datasetFileUpload.deleteMany({

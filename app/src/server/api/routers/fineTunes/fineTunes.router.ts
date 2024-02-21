@@ -9,7 +9,7 @@ import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConf
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
-import { copyPruningRulesForFineTune } from "~/server/utils/nodes/processNodes/updatePruningRuleMatches";
+import { copyPruningRulesForFineTune } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { CURRENT_PIPELINE_VERSION, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
@@ -202,11 +202,10 @@ export const fineTunesRouter = createTRPCRouter({
       await kysely
         .insertInto("NewFineTuneTrainingEntry")
         .columns(["id", "persistentId", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
-        .expression((eb) =>
+        .expression(() =>
           constructNodeEntryFiltersQuery({
             filters: input.filters,
             datasetNodeId,
-            ftteEB: eb,
           })
             .where("split", "=", "TRAIN")
             .where("status", "=", "PROCESSED")

@@ -84,6 +84,43 @@ export const prepareMonitorCreation = ({
   return { prismaCreations, inputChannelId, monitorNodeId, matchedLogsOutputId };
 };
 
+export const prepareFilterCreation = ({
+  nodeParams,
+}: {
+  nodeParams: Omit<Prisma.NodeUncheckedCreateInput, "type" | "config" | "hash"> & {
+    config: InferNodeConfig<"Filter">;
+  };
+}) => {
+  const filterNodeId = nodeParams.id || uuidv4();
+  const passedOutputId = uuidv4();
+  const failedOutputId = uuidv4();
+  const prismaCreations: Prisma.PrismaPromise<unknown>[] = [
+    prisma.node.create({
+      data: checkNodeInput({
+        ...nodeParams,
+        id: filterNodeId,
+        type: "Filter",
+      }),
+    }),
+    prisma.nodeOutput.create({
+      data: {
+        id: passedOutputId,
+        nodeId: filterNodeId,
+        label: "passed",
+      },
+    }),
+    prisma.nodeOutput.create({
+      data: {
+        id: failedOutputId,
+        nodeId: filterNodeId,
+        label: "failed",
+      },
+    }),
+  ];
+
+  return { prismaCreations, filterNodeId, passedOutputId, failedOutputId };
+};
+
 export const prepareLLMRelabelCreation = ({
   nodeParams,
 }: {
@@ -93,7 +130,6 @@ export const prepareLLMRelabelCreation = ({
 }) => {
   const relabelNodeId = nodeParams.id || uuidv4();
   const relabeledOutputId = uuidv4();
-  const unprocessedOutputId = uuidv4();
   const prismaCreations: Prisma.PrismaPromise<unknown>[] = [
     prisma.node.create({
       data: checkNodeInput({
@@ -109,16 +145,9 @@ export const prepareLLMRelabelCreation = ({
         label: LLMRelabelOutput.Relabeled,
       },
     }),
-    prisma.nodeOutput.create({
-      data: {
-        id: unprocessedOutputId,
-        nodeId: relabelNodeId,
-        label: LLMRelabelOutput.Unprocessed,
-      },
-    }),
   ];
 
-  return { prismaCreations, relabelNodeId, relabeledOutputId, unprocessedOutputId };
+  return { prismaCreations, relabelNodeId, relabeledOutputId };
 };
 
 export const prepareManualRelabelCreation = ({
@@ -130,7 +159,6 @@ export const prepareManualRelabelCreation = ({
 }) => {
   const relabelNodeId = nodeParams.id || uuidv4();
   const relabeledOutputId = uuidv4();
-  const unprocessedOutputId = uuidv4();
   const prismaCreations: Prisma.PrismaPromise<unknown>[] = [
     prisma.node.create({
       data: checkNodeInput({
@@ -146,16 +174,9 @@ export const prepareManualRelabelCreation = ({
         label: ManualRelabelOutput.Relabeled,
       },
     }),
-    prisma.nodeOutput.create({
-      data: {
-        id: unprocessedOutputId,
-        nodeId: relabelNodeId,
-        label: ManualRelabelOutput.Unprocessed,
-      },
-    }),
   ];
 
-  return { prismaCreations, relabelNodeId, relabeledOutputId, unprocessedOutputId };
+  return { prismaCreations, relabelNodeId, relabeledOutputId };
 };
 
 export const prepareDatasetCreation = ({

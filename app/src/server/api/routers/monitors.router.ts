@@ -6,12 +6,14 @@ import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { TRPCError } from "@trpc/server";
 import { filtersSchema } from "~/types/shared.types";
-import { DEFAULT_MAX_OUTPUT_SIZE, MonitorOutput, typedNode } from "~/server/utils/nodes/node.types";
+import { FilterOutput, typedNode } from "~/server/utils/nodes/node.types";
 import { success } from "~/utils/errorHandling/standardResponses";
 import { getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
-import { prepareMonitorCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
-import { enqueueProcessNode } from "~/server/tasks/nodes/processNode.task";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
+import { prepareIntegratedMonitorCeation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
+import { convertCache } from "~/server/utils/nodes/convertCache";
+import { invalidateNodeEntries } from "~/server/tasks/nodes/processNodes/invalidateNodeEntries";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -63,24 +65,14 @@ export const monitorsRouter = createTRPCRouter({
 
       await requireCanModifyProject(projectId, ctx);
 
-      const preparedMonitorCreation = prepareMonitorCreation({
-        nodeParams: {
-          name: "New Monitor",
-          projectId,
-          config: {
-            initialFilters,
-            checkFilters: initialFilters,
-            lastLoggedCallUpdatedAt: new Date(0),
-            maxEntriesPerMinute: 100,
-            maxLLMConcurrency: 2,
-            maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
-          },
-        },
+      const preparedIntegratedMonitorCreation = prepareIntegratedMonitorCeation({
+        projectId,
+        initialFilters,
       });
 
-      await prisma.$transaction(preparedMonitorCreation.prismaCreations);
+      await prisma.$transaction(preparedIntegratedMonitorCreation.prismaCreations);
 
-      return preparedMonitorCreation.monitorNodeId;
+      return preparedIntegratedMonitorCreation.monitorNodeId;
     }),
   update: protectedProcedure
     .input(
@@ -105,10 +97,8 @@ export const monitorsRouter = createTRPCRouter({
       const monitor = await kysely
         .selectFrom("Node as n")
         .where("n.id", "=", id)
-        .innerJoin("NodeOutput as dno", "dno.nodeId", "n.id")
-        .where("dno.label", "=", MonitorOutput.MatchedLogs)
+
         .selectAll("n")
-        .select(["dno.id as matchedLogsOutputId"])
         .executeTakeFirst();
 
       if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
@@ -117,95 +107,81 @@ export const monitorsRouter = createTRPCRouter({
 
       if (tMonitor.type !== "Monitor") throw new TRPCError({ code: "BAD_REQUEST" });
 
+      const filter = await kysely
+        .selectFrom("Node as n")
+        .where("n.id", "=", tMonitor.config.filterNodeId)
+        .innerJoin("NodeOutput as no", "no.nodeId", "n.id")
+        .where("no.label", "=", FilterOutput.Passed)
+        .selectAll("n")
+        .select(["no.id as passedFilterOutputId"])
+        .executeTakeFirst();
+
+      if (!filter) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const tFilter = typedNode(filter);
+
+      if (tFilter.type !== "Filter") throw new TRPCError({ code: "BAD_REQUEST" });
+
       await requireCanModifyProject(tMonitor.projectId, ctx);
 
-      const initialHash = tMonitor.hash;
+      const initialMonitorHash = tMonitor.hash;
 
-      const { hash: updatedHash } = await prisma.node.update({
+      const { hash: updatedMonitorHash } = await prisma.node.update({
         where: { id },
         data: checkNodeInput({
-          id,
           projectId: monitor.projectId,
           name,
           type: "Monitor",
           config: {
             ...tMonitor.config,
             initialFilters: initialFilters ?? tMonitor.config.initialFilters,
-            checkFilters: checkFilters ?? tMonitor.config.checkFilters,
           },
         }),
       });
 
-      const invalidateData = initialHash !== updatedHash;
+      const invalidateMonitor = initialMonitorHash !== updatedMonitorHash && !preserveCache;
 
-      if (preserveCache && invalidateData) {
-        // check to see if cached data is being used by any other nodes
-        const similarNodes = await prisma.node.findMany({
-          where: {
-            hash: updatedHash,
-            id: { not: id },
-          },
-        });
-        if (similarNodes.length) {
-          // make new copies of the cached data
-          await kysely
-            .insertInto("CachedProcessedNodeEntry")
-            .columns([
-              "incomingDEIHash",
-              "incomingDEOHash",
-              "outgoingDEIHash",
-              "outgoingDEOHash",
-              "filterOutcome",
-              "explanation",
-              "createdAt",
-              "updatedAt",
-              "nodeHash",
-            ])
-            .expression((eb) =>
-              eb
-                .selectFrom("CachedProcessedNodeEntry as new")
-                .select((eb) => [
-                  "incomingDEIHash",
-                  "incomingDEOHash",
-                  "outgoingDEIHash",
-                  "outgoingDEOHash",
-                  "filterOutcome",
-                  "explanation",
-                  "createdAt",
-                  "updatedAt",
-                  eb.val(updatedHash).as("nodeHash"), // Set the new nodeHash
-                ])
-                .where("nodeHash", "=", initialHash)
-                .leftJoin("CachedProcessedNodeEntry as existing", (join) =>
-                  join
-                    .onRef("existing.incomingDEIHash", "=", "new.incomingDEIHash")
-                    .onRef("existing.incomingDEOHash", "=", "new.incomingDEOHash")
-                    .onRef("existing.nodeHash", "=", "new.nodeHash"),
-                )
-                .where("existing.nodeHash", "is", null),
-            )
-            .execute();
-        } else {
-          // update cached data
-          await prisma.cachedProcessedNodeEntry.updateMany({
-            where: {
-              nodeHash: initialHash,
+      if (invalidateMonitor) {
+        await prisma.node.update({
+          where: { id },
+          data: checkNodeInput({
+            projectId: monitor.projectId,
+            type: "Monitor",
+            config: {
+              ...tMonitor.config,
+              lastLoggedCallUpdatedAt: new Date(0),
             },
-            data: {
-              nodeHash: updatedHash,
-            },
-          });
-        }
-      } else {
-        await prisma.monitorMatch.deleteMany({
-          where: {
-            monitorId: id,
-          },
+          }),
         });
       }
 
+      const { hash: updatedFilterHash } = await prisma.node.update({
+        where: { id: tMonitor.config.filterNodeId },
+        data: checkNodeInput({
+          projectId: monitor.projectId,
+          type: "Filter",
+          config: {
+            ...tFilter.config,
+            filters: checkFilters ?? tFilter.config.filters,
+          },
+        }),
+      });
+
+      const filterChecksUpdated = updatedFilterHash !== tFilter.hash;
+
+      if (filterChecksUpdated) {
+        if (preserveCache) {
+          await convertCache({
+            nodeHash: tFilter.hash,
+            nodeId: tFilter.id,
+          });
+        } else {
+          await invalidateNodeEntries(tFilter.id);
+        }
+      }
+
       if (datasetLLMRelabelNodeIds) {
-        const existingDatasetLLMRelabelNodeIds = await getDownstreamDatasets(id)
+        const existingDatasetLLMRelabelNodeIds = await getDownstreamDatasets(tFilter.id)
           .select(["datasetLLMRelabelNode.id"])
           .execute()
           .then((nodes) => nodes.map((node) => node.id));
@@ -220,7 +196,7 @@ export const monitorsRouter = createTRPCRouter({
           .values(
             datasetLLMRelabelNodeIdsToConnect.map((llmRelabelNodeId) => ({
               id: uuidv4(),
-              originId: tMonitor.matchedLogsOutputId,
+              originId: tFilter.passedFilterOutputId,
               destinationId: llmRelabelNodeId,
               updatedAt: new Date(),
             })),
@@ -233,12 +209,16 @@ export const monitorsRouter = createTRPCRouter({
 
         await kysely
           .deleteFrom("DataChannel")
-          .where("originId", "=", tMonitor.matchedLogsOutputId)
+          .where("originId", "=", tFilter.passedFilterOutputId)
           .where("destinationId", "in", datasetNodeIdsToDisconnect)
           .execute();
       }
 
-      await enqueueProcessNode({ nodeId: id, nodeType: "Monitor", invalidateData });
+      await enqueueProcessNode({
+        nodeId: id,
+        nodeType: "Monitor",
+        invalidateData: invalidateMonitor,
+      });
 
       return success("Monitor updated");
     }),
@@ -255,11 +235,20 @@ export const monitorsRouter = createTRPCRouter({
 
       if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
 
+      const tMonitor = typedNode(monitor);
+
+      if (tMonitor.type !== "Monitor") throw new TRPCError({ code: "BAD_REQUEST" });
+
       await requireCanModifyProject(monitor.projectId, ctx);
 
-      await prisma.node.delete({
-        where: { id: input.id },
-      });
+      await prisma.$transaction([
+        prisma.node.delete({
+          where: { id: tMonitor.config.filterNodeId },
+        }),
+        prisma.node.delete({
+          where: { id: input.id },
+        }),
+      ]);
 
       return success("Monitor deleted");
     }),

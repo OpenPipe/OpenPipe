@@ -10,13 +10,13 @@ export const getDescendantNodes = (nodeId: string) => {
     .innerJoin("Node as descendantNode", "descendantNode.id", "dc.destinationId");
 };
 
-export const getDownstreamDatasets = (monitorNodeId: string) => {
+export const getDownstreamDatasets = (filterNodeId: string) => {
   return kysely
-    .selectFrom("Node as monitorNode")
-    .where("monitorNode.id", "=", monitorNodeId)
-    .innerJoin("NodeOutput as monitorNodeOutput", "monitorNodeOutput.nodeId", "monitorNode.id")
-    .where("monitorNodeOutput.label", "=", MonitorOutput.MatchedLogs)
-    .innerJoin("DataChannel as dc", "dc.originId", "monitorNodeOutput.id")
+    .selectFrom("Node as filterNode")
+    .where("filterNode.id", "=", filterNodeId)
+    .innerJoin("NodeOutput as filterNodeOutput", "filterNodeOutput.nodeId", "filterNode.id")
+    .where("filterNodeOutput.label", "=", MonitorOutput.MatchedLogs)
+    .innerJoin("DataChannel as dc", "dc.originId", "filterNodeOutput.id")
     .innerJoin("Node as monitorLLMRelabelNode", "monitorLLMRelabelNode.id", "dc.destinationId")
     .innerJoin(
       "NodeOutput as monitorLLMRelabelNodeOutput",

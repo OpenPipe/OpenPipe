@@ -32,14 +32,12 @@ export const prepareDatasetEntriesForImport = ({
   const nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[] = [];
 
   for (const row of entriesToImport) {
-    console.log("row is ", row);
     const tool_choice =
       row.input.tool_choice || convertFunctionCallToToolChoice(row.input.function_call);
     const tools = row.input.tools?.length
       ? row.input.tools
       : convertFunctionsToTools(row.input.functions);
 
-    console.log("tool_choice", tool_choice);
     const inputHash = hashDatasetEntryInput({
       ...row.input,
       projectId,

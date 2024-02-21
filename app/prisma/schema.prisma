@@ -382,18 +382,17 @@ model User {
 
     role UserRole @default(USER)
 
-    accounts                 Account[]
-    sessions                 Session[]
-    projectUsers             ProjectUser[]
-    projects                 Project[]
-    sentUserInvitations      UserInvitation[]
-    authoredDatasetEntries   DatasetEntry[]
-    createdNodes             Node[]
-    cachedProcessedNodeEntry CachedProcessedNodeEntry[]
+    accounts               Account[]
+    sessions               Session[]
+    projectUsers           ProjectUser[]
+    projects               Project[]
+    sentUserInvitations    UserInvitation[]
+    authoredDatasetEntries DatasetEntry[]
+    createdNodes           Node[]
+    exportWeightsRequests  ExportWeightsRequest[]
 
-    createdAt             DateTime               @default(now())
-    updatedAt             DateTime               @default(now()) @updatedAt
-    exportWeightsRequests ExportWeightsRequest[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 }
 
 model UserInvitation {
@@ -885,7 +884,6 @@ enum NodeType {
     Monitor
     Archive
     Filter
-    LLMFilter
     LLMRelabel
     ManualRelabel
     Dataset
@@ -898,12 +896,13 @@ model Node {
     config Json
     hash   String
 
-    nodeEntries        NodeEntry[]
-    inputDataChannels  DataChannel[]
-    outputs            NodeOutput[]
-    datasetFileUploads DatasetFileUpload[]
-    datasets           Dataset[]
-    monitorMatches     MonitorMatch[]
+    nodeEntries            NodeEntry[]
+    inputDataChannels      DataChannel[]
+    outputs                NodeOutput[]
+    datasetFileUploads     DatasetFileUpload[]
+    datasets               Dataset[]
+    monitorMatches         MonitorMatch[]
+    cachedProcessedEntries CachedProcessedEntry[]
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -1004,8 +1003,8 @@ model DatasetEntryInput {
     fineTuneTrainingEntries NewFineTuneTrainingEntry[]
     fineTuneTestingEntries  NewFineTuneTestingEntry[]
 
-    incomingCachedEntries CachedProcessedNodeEntry[] @relation("incoming")
-    outgoingCachedEntries CachedProcessedNodeEntry[] @relation("outgoing")
+    incomingCachedEntries CachedProcessedEntry[] @relation("incoming")
+    outgoingCachedEntries CachedProcessedEntry[] @relation("outgoing")
 
     createdAt DateTime @default(now())
 
@@ -1022,22 +1021,22 @@ model DatasetEntryOutput {
     fineTuneTrainingEntries NewFineTuneTrainingEntry[]
     fineTuneTestingEntries  NewFineTuneTestingEntry[]
 
-    incomingCachedEntries CachedProcessedNodeEntry[] @relation("incoming")
-    outgoingCachedEntries CachedProcessedNodeEntry[] @relation("outgoing")
+    incomingCachedEntries CachedProcessedEntry[] @relation("incoming")
+    outgoingCachedEntries CachedProcessedEntry[] @relation("outgoing")
 
     createdAt DateTime @default(now())
 
     @@unique([hash])
 }
 
-model CachedProcessedNodeEntry {
+model CachedProcessedEntry {
     id String @id @default(uuid()) @db.Uuid
 
-    nodeHash              String
+    nodeHash              String?
     nodeEntryPersistentId String?
 
-    userId String? @db.Uuid
-    user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+    nodeId String? @db.Uuid
+    node   Node?   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
 
     incomingDEIHash String
     incomingDEI     DatasetEntryInput   @relation("incoming", fields: [incomingDEIHash], references: [hash], onDelete: Cascade)
@@ -1057,4 +1056,5 @@ model CachedProcessedNodeEntry {
 
     @@unique([nodeEntryPersistentId, incomingDEIHash, nodeHash, incomingDEOHash])
     @@index([incomingDEIHash, nodeHash])
+    @@index([incomingDEIHash, nodeId])
 }

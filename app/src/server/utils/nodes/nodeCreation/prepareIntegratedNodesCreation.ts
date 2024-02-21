@@ -1,13 +1,70 @@
 import { type Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
+import { type z } from "zod";
 
 import {
   prepareDatasetCreation,
   prepareLLMRelabelCreation,
   prepareManualRelabelCreation,
+  prepareMonitorCreation,
+  prepareFilterCreation,
 } from "./prepareNodeCreation";
-import { RelabelOption } from "../node.types";
+import { DEFAULT_MAX_OUTPUT_SIZE, RelabelOption } from "../node.types";
 import { prisma } from "~/server/db";
+import { type filtersSchema } from "~/types/shared.types";
+
+export const prepareIntegratedMonitorCeation = ({
+  projectId,
+  initialFilters,
+}: {
+  projectId: string;
+  initialFilters: z.infer<typeof filtersSchema>;
+}) => {
+  const prismaCreations: Prisma.PrismaPromise<unknown>[] = [];
+
+  const preparedFilterCreation = prepareFilterCreation({
+    nodeParams: {
+      name: "Monitor Filter",
+      projectId,
+      config: {
+        maxLLMConcurrency: 2,
+        filters: [],
+      },
+    },
+  });
+
+  prismaCreations.push(...preparedFilterCreation.prismaCreations);
+
+  const preparedMonitorCreation = prepareMonitorCreation({
+    nodeParams: {
+      name: "New Monitor",
+      projectId,
+      config: {
+        maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
+        maxLLMConcurrency: 2,
+        sampleRate: 1,
+        initialFilters,
+        lastLoggedCallUpdatedAt: new Date(0),
+        filterNodeId: preparedFilterCreation.filterNodeId,
+      },
+    },
+  });
+
+  prismaCreations.push(
+    ...preparedMonitorCreation.prismaCreations,
+    prisma.dataChannel.create({
+      data: {
+        originId: preparedMonitorCreation.matchedLogsOutputId,
+        destinationId: preparedFilterCreation.filterNodeId,
+      },
+    }),
+  );
+
+  return {
+    prismaCreations,
+    monitorNodeId: preparedMonitorCreation.monitorNodeId,
+  };
+};
 
 export const prepareIntegratedDatasetCreation = ({
   projectId,
@@ -25,7 +82,6 @@ export const prepareIntegratedDatasetCreation = ({
       projectId,
       config: {
         relabelLLM: RelabelOption.SkipRelabel,
-        maxEntriesPerMinute: 100,
         maxLLMConcurrency: 2,
       },
     },
@@ -51,12 +107,6 @@ export const prepareIntegratedDatasetCreation = ({
         destinationId: preparedManualRelabelCreation.relabelNodeId,
       },
     }),
-    prisma.dataChannel.create({
-      data: {
-        originId: preparedLLMRelabelCreation.unprocessedOutputId,
-        destinationId: preparedManualRelabelCreation.relabelNodeId,
-      },
-    }),
   );
 
   const preparedDatasetCreation = prepareDatasetCreation({
@@ -77,13 +127,6 @@ export const prepareIntegratedDatasetCreation = ({
     prisma.dataChannel.create({
       data: {
         originId: preparedManualRelabelCreation.relabeledOutputId,
-        destinationId: preparedDatasetCreation.datasetNodeId,
-      },
-    }),
-    prisma.dataChannel.create({
-      data: {
-        id: manualRelabelDatasetInputChannelId,
-        originId: preparedManualRelabelCreation.unprocessedOutputId,
         destinationId: preparedDatasetCreation.datasetNodeId,
       },
     }),
