@@ -358,6 +358,12 @@ export interface PruningRuleMatch {
   datasetEntryId: string;
 }
 
+export interface RateLimit {
+  key: string;
+  tokens: number;
+  lastUpdated: Timestamp;
+}
+
 export interface RelabelRequest {
   id: string;
   batchId: string;
@@ -450,6 +456,7 @@ export interface DB {
   ProjectUser: ProjectUser;
   PruningRule: PruningRule;
   PruningRuleMatch: PruningRuleMatch;
+  RateLimit: RateLimit;
   RelabelRequest: RelabelRequest;
   Session: Session;
   UsageLog: UsageLog;
