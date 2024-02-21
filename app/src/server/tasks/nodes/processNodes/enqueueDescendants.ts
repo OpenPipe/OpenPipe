@@ -9,15 +9,10 @@ export const enqueueDescendants = async (nodeId: string) => {
     .innerJoin("DataChannel as dc", "dc.originId", "no.id")
     .innerJoin("Node as descendantNode", "descendantNode.id", "dc.destinationId")
     .distinctOn("descendantNode.id")
-    .select([
-      "descendantNode.id",
-      "descendantNode.type",
-      "no.id as nodeOutputId",
-      "dc.id as dataChannelId",
-    ])
+    .select(["descendantNode.id", "no.id as nodeOutputId", "dc.id as dataChannelId"])
     .execute();
 
   for (const descendant of descendants) {
-    await enqueueProcessNode({ nodeId: descendant.id, nodeType: descendant.type });
+    await enqueueProcessNode({ nodeId: descendant.id });
   }
 };

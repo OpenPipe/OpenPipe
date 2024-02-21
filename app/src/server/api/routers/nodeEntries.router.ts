@@ -342,7 +342,6 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       await processNode.runNow({
         nodeId: preparedArchiveCreation.archiveNodeId,
-        nodeType: "Archive",
       });
 
       return success({ datasetId, archiveNodeId: preparedArchiveCreation.archiveNodeId });
@@ -575,7 +574,7 @@ export const nodeEntriesRouter = createTRPCRouter({
               .where("ne.id", "=", tNodeEntry.id),
           });
 
-          await enqueueProcessNode({ nodeId: manualRelabelNode.id, nodeType: "ManualRelabel" });
+          await enqueueProcessNode({ nodeId: manualRelabelNode.id });
 
           if (updatedSplit === "TEST") {
             await startDatasetTestJobs({

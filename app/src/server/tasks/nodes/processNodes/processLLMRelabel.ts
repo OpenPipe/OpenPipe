@@ -190,10 +190,7 @@ export const processLLMRelabel = async (nodeId: string) => {
     .then((rows) => rows.length > 0);
 
   if (moreEntriesToProcess) {
-    await enqueueProcessNode(
-      { nodeId, nodeType: "LLMRelabel" },
-      { runAt: dayjs(startTime).add(1, "minute").toDate() },
-    );
+    await enqueueProcessNode({ nodeId }, { runAt: dayjs(startTime).add(1, "minute").toDate() });
   }
 };
 

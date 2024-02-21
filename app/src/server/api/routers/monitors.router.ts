@@ -216,7 +216,6 @@ export const monitorsRouter = createTRPCRouter({
 
       await enqueueProcessNode({
         nodeId: id,
-        nodeType: "Monitor",
         invalidateData: invalidateMonitor,
       });
 

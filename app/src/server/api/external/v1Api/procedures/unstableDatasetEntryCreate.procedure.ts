@@ -106,7 +106,6 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
 
     await enqueueProcessNode({
       nodeId: archive.id,
-      nodeType: "Archive",
     });
 
     await countDatasetEntryTokens.runNow({});

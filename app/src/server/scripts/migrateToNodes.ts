@@ -10,11 +10,13 @@ import {
 import { prepareIntegratedDatasetCreation } from "../utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { prepareArchiveCreation } from "../utils/nodes/nodeCreation/prepareNodeCreation";
 import { generatePersistentId } from "../utils/nodes/utils";
+import { enqueueProcessNode } from "../tasks/nodes/processNodes/processNode.task";
 
 const datasets = await kysely
   .selectFrom("Dataset")
   .where("nodeId", "is", null)
   .selectAll("Dataset")
+  .orderBy("createdAt", "desc")
   .execute();
 
 console.log("found datasets", datasets.length);
@@ -64,19 +66,19 @@ for (let i = 0; i < datasets.length; i++) {
     }),
   ]);
 
-  await kysely.transaction().execute(async (trx) => {
-    let offset = 0;
-    while (true) {
-      const entries = await trx
-        .selectFrom("DatasetEntry as de")
-        .where("de.datasetId", "=", dataset.id)
-        .limit(1000)
-        .offset(offset)
-        .selectAll("de")
-        .execute();
+  let offset = 0;
+  while (true) {
+    const entries = await kysely
+      .selectFrom("DatasetEntry as de")
+      .where("de.datasetId", "=", dataset.id)
+      .limit(1000)
+      .offset(offset)
+      .selectAll("de")
+      .execute();
 
-      if (entries.length === 0) break;
+    if (entries.length === 0) break;
 
+    await kysely.transaction().execute(async (trx) => {
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i]!;
 
@@ -130,6 +132,7 @@ for (let i = 0; i < datasets.length; i++) {
                 eb.val(inputHash).as("inputHash"),
               ]),
           )
+          .onConflict((oc) => oc.columns(["pruningRuleId", "inputHash"]).doNothing())
           .execute();
 
         await trx
@@ -187,6 +190,7 @@ for (let i = 0; i < datasets.length; i++) {
               outputHash: ftteOutputHash,
               updatedAt: new Date(),
             })
+            .onConflict((oc) => oc.columns(["modelId", "inputHash"]).doNothing())
             .execute();
         }
 
@@ -248,19 +252,32 @@ for (let i = 0; i < datasets.length; i++) {
                   "datasetEvalOutputSourceId",
                   sql`now()`.as("updatedAt"),
                 ]),
-            );
+            )
+            .onConflict((oc) =>
+              oc
+                .columns([
+                  "datasetEvalNodeEntryId",
+                  "nodeEntryInputHash",
+                  "datasetEvalOutputSourceId",
+                  "comparisonOutputSourceId",
+                ])
+                .doNothing(),
+            )
+            .execute();
         }
       }
+    });
 
-      offset += entries.length;
-      console.log(`migrated ${offset}/${entriesInDataset} entries`);
-    }
+    offset += entries.length;
+    console.log(`migrated ${offset}/${entriesInDataset} entries`);
+  }
 
-    // migrate dataset file uploads
-    await kysely
-      .updateTable("DatasetFileUpload")
-      .set({ nodeId: archiveCreation.archiveNodeId })
-      .where("datasetId", "=", dataset.id)
-      .execute();
-  });
+  // migrate dataset file uploads
+  await kysely
+    .updateTable("DatasetFileUpload")
+    .set({ nodeId: archiveCreation.archiveNodeId })
+    .where("datasetId", "=", dataset.id)
+    .execute();
+
+  await enqueueProcessNode({ nodeId: archiveCreation.archiveNodeId });
 }

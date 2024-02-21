@@ -23,7 +23,6 @@ import { printNodeEntries } from "~/server/utils/nodes/utils";
 
 export type ProcessNodeJob = {
   nodeId: string;
-  nodeType: NodeType;
   invalidateData?: boolean;
 };
 
@@ -32,173 +31,166 @@ export const processNode = defineTask<ProcessNodeJob>({
   handler: async (task) => {
     console.log(task);
 
-    const { nodeId, nodeType, invalidateData } = task;
+    const { nodeId, invalidateData } = task;
     if (invalidateData) {
       await invalidateNodeEntries(nodeId);
     }
-    if (
-      nodeType === "Archive" ||
-      nodeType === "Monitor" ||
-      nodeType === "LLMRelabel" ||
-      nodeType === "ManualRelabel" ||
-      nodeType === "Dataset"
-    ) {
-      const nodeProperties = processNodeProperties[nodeType];
-      const node = await prisma.node
-        .findUnique({
-          where: { id: nodeId },
-        })
-        .then((n) => (n ? typedNode(n) : null));
+    const node = await prisma.node
+      .findUnique({
+        where: { id: nodeId },
+      })
+      .then((n) => (n ? typedNode(n) : null));
 
-      if (!node) return;
+    if (!node) return;
 
-      // ensure that all "PROCESSING" entries are reset to "PENDING" after job restart
-      await kysely
-        .updateTable("NodeEntry as ne")
-        .set({ status: "PENDING" })
-        .where("ne.nodeId", "=", node.id)
-        .where("ne.status", "=", "PROCESSING")
-        .execute();
+    const nodeProperties = processNodeProperties[node.type];
 
-      await updateCached({ node });
+    // ensure that all "PROCESSING" entries are reset to "PENDING" after job restart
+    await kysely
+      .updateTable("NodeEntry as ne")
+      .set({ status: "PENDING" })
+      .where("ne.nodeId", "=", node.id)
+      .where("ne.status", "=", "PROCESSING")
+      .execute();
 
-      if (nodeProperties.beforeAll) {
-        await nodeProperties.beforeAll(node);
-      }
+    await updateCached({ node });
 
-      const forwardAllOutputs = async () => {
-        for (const output of nodeProperties.outputs) {
-          await forwardNodeEntries({
-            nodeId,
-            nodeOutputLabel: output.label,
-            selectionExpression: output.selectionExpression,
-          });
-        }
-        await enqueueDescendants(nodeId);
-      };
-
-      await forwardAllOutputs();
-
-      const processEntry = nodeProperties.processEntry;
-
-      if (processEntry && nodeProperties.getConcurrency) {
-        const concurrency = nodeProperties.getConcurrency(node);
-
-        while (true) {
-          await updateCached({ node });
-          const entriesBatch = await kysely
-            .selectFrom("NodeEntry as ne")
-            .where("nodeId", "=", node.id)
-            .where((eb) => eb.or([eb("ne.status", "=", "PENDING"), eb("ne.status", "=", "ERROR")]))
-            .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
-            .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
-            .select([
-              "ne.id",
-              "ne.inputHash",
-              "ne.outputHash",
-              "ne.originalOutputHash",
-              "dei.tool_choice",
-              "dei.tools",
-              "dei.messages",
-              "dei.response_format",
-              "deo.output",
-            ])
-            .orderBy("ne.createdAt", "asc")
-            .limit(nodeProperties.readBatchSize ?? 1000)
-            .execute();
-
-          if (!entriesBatch.length) {
-            break;
-          }
-
-          let processEntryResults: ProcessEntryResult[] = [];
-
-          const saveAndForward = async () => {
-            const resultsToProcess = processEntryResults;
-            processEntryResults = processEntryResults.slice(resultsToProcess.length);
-            if (resultsToProcess.length) {
-              await saveResults({ node, resultsToProcess });
-            }
-            await forwardAllOutputs();
-          };
-
-          const forwardInterval = setInterval(() => void saveAndForward(), 5000);
-
-          const pipeline = from(entriesBatch).pipe(
-            mergeMap(async (entry) => {
-              try {
-                await prisma.nodeEntry.update({
-                  where: { id: entry.id },
-                  data: { status: "PROCESSING", error: null },
-                });
-                return await processEntry({ node, entry: typedNodeEntry(entry) });
-              } catch (error) {
-                return {
-                  nodeEntryId: entry.id,
-                  status: "ERROR" as const,
-                  error: (error as Error).message,
-                };
-              }
-            }, concurrency),
-            tap((result) => {
-              // Side effect: Push each result into the array as it is emitted
-              processEntryResults.push(result);
-            }),
-          );
-
-          await lastValueFrom(pipeline);
-
-          clearInterval(forwardInterval);
-
-          await saveAndForward();
-        }
-      } else {
-        // If no processEntry function is provided, just mark all entries as PROCESSED
-        let updateQuery = kysely
-          .updateTable("NodeEntry as ne")
-          .set({ status: "PROCESSED" })
-          .where("ne.nodeId", "=", node.id)
-          .where("ne.status", "=", "PENDING");
-
-        if (nodeProperties.cacheMatchFields) {
-          updateQuery = updateQuery.where((eb) =>
-            eb.not(
-              eb.exists(
-                eb.selectFrom("CachedProcessedEntry as cpe").where((eb) => {
-                  const ands = [
-                    eb.or([eb("cpe.nodeHash", "=", node.hash), eb("cpe.nodeId", "=", node.id)]),
-                  ];
-
-                  if (nodeProperties.cacheMatchFields?.includes("nodeEntryPersistentId")) {
-                    ands.push(eb("ne.persistentId", "=", `cpe.nodeEntryPersistentId`));
-                  }
-                  if (nodeProperties.cacheMatchFields?.includes("incomingDEIHash")) {
-                    ands.push(eb("ne.inputHash", "=", `cpe.incomingDEIHash`));
-                  }
-                  if (nodeProperties.cacheMatchFields?.includes("incomingDEOHash")) {
-                    ands.push(eb("ne.outputHash", "=", `cpe.incomingDEOHash`));
-                  }
-
-                  return eb.and(ands);
-                }),
-              ),
-            ),
-          );
-        }
-
-        await updateQuery.execute();
-      }
-
-      if (node.type === "Archive") {
-        await printNodeEntries(nodeId);
-      }
-
-      if (nodeProperties.afterAll) {
-        await nodeProperties.afterAll(node);
-      }
-
-      await forwardAllOutputs();
+    if (nodeProperties.beforeAll) {
+      await nodeProperties.beforeAll(node);
     }
+
+    const forwardAllOutputs = async () => {
+      for (const output of nodeProperties.outputs) {
+        await forwardNodeEntries({
+          nodeId,
+          nodeOutputLabel: output.label,
+          selectionExpression: output.selectionExpression,
+        });
+      }
+      await enqueueDescendants(nodeId);
+    };
+
+    await forwardAllOutputs();
+
+    const processEntry = nodeProperties.processEntry;
+
+    if (processEntry && nodeProperties.getConcurrency) {
+      const concurrency = nodeProperties.getConcurrency(node);
+
+      while (true) {
+        await updateCached({ node });
+        const entriesBatch = await kysely
+          .selectFrom("NodeEntry as ne")
+          .where("nodeId", "=", node.id)
+          .where((eb) => eb.or([eb("ne.status", "=", "PENDING"), eb("ne.status", "=", "ERROR")]))
+          .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
+          .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
+          .select([
+            "ne.id",
+            "ne.inputHash",
+            "ne.outputHash",
+            "ne.originalOutputHash",
+            "dei.tool_choice",
+            "dei.tools",
+            "dei.messages",
+            "dei.response_format",
+            "deo.output",
+          ])
+          .orderBy("ne.createdAt", "asc")
+          .limit(nodeProperties.readBatchSize ?? 1000)
+          .execute();
+
+        if (!entriesBatch.length) {
+          break;
+        }
+
+        let processEntryResults: ProcessEntryResult[] = [];
+
+        const saveAndForward = async () => {
+          const resultsToProcess = processEntryResults;
+          processEntryResults = processEntryResults.slice(resultsToProcess.length);
+          if (resultsToProcess.length) {
+            await saveResults({ node, resultsToProcess });
+          }
+          await forwardAllOutputs();
+        };
+
+        const forwardInterval = setInterval(() => void saveAndForward(), 5000);
+
+        const pipeline = from(entriesBatch).pipe(
+          mergeMap(async (entry) => {
+            try {
+              await prisma.nodeEntry.update({
+                where: { id: entry.id },
+                data: { status: "PROCESSING", error: null },
+              });
+              return await processEntry({ node, entry: typedNodeEntry(entry) });
+            } catch (error) {
+              return {
+                nodeEntryId: entry.id,
+                status: "ERROR" as const,
+                error: (error as Error).message,
+              };
+            }
+          }, concurrency),
+          tap((result) => {
+            // Side effect: Push each result into the array as it is emitted
+            processEntryResults.push(result);
+          }),
+        );
+
+        await lastValueFrom(pipeline);
+
+        clearInterval(forwardInterval);
+
+        await saveAndForward();
+      }
+    } else {
+      // If no processEntry function is provided, just mark all entries as PROCESSED
+      let updateQuery = kysely
+        .updateTable("NodeEntry as ne")
+        .set({ status: "PROCESSED" })
+        .where("ne.nodeId", "=", node.id)
+        .where("ne.status", "=", "PENDING");
+
+      if (nodeProperties.cacheMatchFields) {
+        updateQuery = updateQuery.where((eb) =>
+          eb.not(
+            eb.exists(
+              eb.selectFrom("CachedProcessedEntry as cpe").where((eb) => {
+                const ands = [
+                  eb.or([eb("cpe.nodeHash", "=", node.hash), eb("cpe.nodeId", "=", node.id)]),
+                ];
+
+                if (nodeProperties.cacheMatchFields?.includes("nodeEntryPersistentId")) {
+                  ands.push(eb("ne.persistentId", "=", `cpe.nodeEntryPersistentId`));
+                }
+                if (nodeProperties.cacheMatchFields?.includes("incomingDEIHash")) {
+                  ands.push(eb("ne.inputHash", "=", `cpe.incomingDEIHash`));
+                }
+                if (nodeProperties.cacheMatchFields?.includes("incomingDEOHash")) {
+                  ands.push(eb("ne.outputHash", "=", `cpe.incomingDEOHash`));
+                }
+
+                return eb.and(ands);
+              }),
+            ),
+          ),
+        );
+      }
+
+      await updateQuery.execute();
+    }
+
+    if (node.type === "Archive") {
+      await printNodeEntries(nodeId);
+    }
+
+    if (nodeProperties.afterAll) {
+      await nodeProperties.afterAll(node);
+    }
+
+    await forwardAllOutputs();
   },
 });
 

@@ -14,7 +14,6 @@ export const feedMonitors = defineTask({
     for (const monitor of monitors) {
       await enqueueProcessNode({
         nodeId: monitor.id,
-        nodeType: "Monitor",
       });
     }
   },

@@ -349,7 +349,6 @@ export const datasetsRouter = createTRPCRouter({
 
       await enqueueProcessNode({
         nodeId: tLlmRelabelNode.id,
-        nodeType: "LLMRelabel",
         invalidateData: true,
       });
 
@@ -475,7 +474,7 @@ export const datasetsRouter = createTRPCRouter({
         }),
       ]);
 
-      await enqueueProcessNode({ nodeId: archiveNodeId, nodeType: "Archive" });
+      await enqueueProcessNode({ nodeId: archiveNodeId });
     }),
   listFileUploads: protectedProcedure
     .input(z.object({ datasetId: z.string() }))
