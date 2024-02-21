@@ -277,7 +277,7 @@ const prevProcessEntry = async ({
       }),
     ]);
 
-    await countDatasetEntryTokens.enqueue();
+    await countDatasetEntryTokens.enqueue({});
   } catch (e) {
     if (e instanceof APIError && e.status === 429) {
       await prisma.nodeEntry.update({

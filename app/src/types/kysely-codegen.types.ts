@@ -60,6 +60,22 @@ export interface ApiKey {
   readOnly: Generated<boolean>;
 }
 
+export interface CachedProcessedEntry {
+  id: string;
+  nodeHash: string | null;
+  nodeEntryPersistentId: string | null;
+  nodeId: string | null;
+  incomingDEIHash: string;
+  incomingDEOHash: string | null;
+  outgoingDEIHash: string | null;
+  outgoingDEOHash: string | null;
+  outgoingSplit: "TEST" | "TRAIN" | null;
+  filterOutcome: string | null;
+  explanation: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
 export interface CachedResponse {
   id: string;
   cacheKey: string;
@@ -82,6 +98,15 @@ export interface CreditAdjustment {
   createdAt: Generated<Timestamp>;
 }
 
+export interface DataChannel {
+  id: string;
+  lastProcessedAt: Generated<Timestamp>;
+  originId: string | null;
+  destinationId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
 export interface Dataset {
   id: string;
   name: string;
@@ -90,6 +115,7 @@ export interface Dataset {
   updatedAt: Timestamp;
   trainingRatio: Generated<number>;
   enabledComparisonModels: Generated<string[] | null>;
+  nodeId: string | null;
 }
 
 export interface DatasetEntry {
@@ -116,6 +142,23 @@ export interface DatasetEntry {
   response_format: Json | null;
 }
 
+export interface DatasetEntryInput {
+  tool_choice: Json | null;
+  tools: Generated<Json>;
+  messages: Generated<Json>;
+  response_format: Json | null;
+  inputTokens: number | null;
+  hash: string;
+  createdAt: Generated<Timestamp>;
+}
+
+export interface DatasetEntryOutput {
+  output: Json;
+  hash: string;
+  outputTokens: number | null;
+  createdAt: Generated<Timestamp>;
+}
+
 export interface DatasetEval {
   id: string;
   name: string;
@@ -129,7 +172,15 @@ export interface DatasetEval {
 export interface DatasetEvalDatasetEntry {
   id: string;
   datasetEvalId: string;
-  datasetEntryId: string;
+  datasetEntryId: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface DatasetEvalNodeEntry {
+  id: string;
+  datasetEvalId: string;
+  nodeEntryPersistentId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
 }
@@ -160,17 +211,20 @@ export interface DatasetEvalResult {
 
 export interface DatasetFileUpload {
   id: string;
-  datasetId: string;
+  datasetId: string | null;
   blobName: string;
   fileName: string;
   fileSize: number;
   progress: Generated<number>;
-  status: Generated<"COMPLETE" | "DOWNLOADING" | "ERROR" | "PENDING" | "PROCESSING" | "SAVING">;
+  status: Generated<
+    "COMPLETE" | "DOWNLOADING" | "ERROR" | "PENDING" | "PROCESSED" | "PROCESSING" | "SAVING"
+  >;
   uploadedAt: Timestamp;
   visible: Generated<boolean>;
   errorMessage: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  nodeId: string | null;
 }
 
 export interface ExportWeightsRequest {
@@ -280,7 +334,7 @@ export interface GraphileWorkerMigrations {
 export interface Invoice {
   id: string;
   amount: Generated<Numeric>;
-  status: Generated<"CANCELLED" | "FREE" | "PAID" | "PENDING" | "REFUNDED">;
+  status: Generated<"CANCELLED" | "FREE" | "PAID" | "REFUNDED" | "UNPAID">;
   slug: string;
   billingPeriod: string | null;
   paidAt: Timestamp | null;
@@ -317,6 +371,92 @@ export interface LoggedCallTag {
   value: string | null;
   loggedCallId: string;
   projectId: string;
+}
+
+export interface NewDatasetEvalResult {
+  id: string;
+  score: number | null;
+  explanation: string | null;
+  errorMessage: string | null;
+  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  judge: string | null;
+  nodeEntryInputHash: string;
+  nodeEntryOutputHash: string | null;
+  wasFirst: boolean | null;
+  comparisonResultId: string | null;
+  comparisonOutputSourceId: string | null;
+  datasetEvalNodeEntryId: string;
+  datasetEvalOutputSourceId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NewFineTuneTestingEntry {
+  id: string;
+  prunedInputTokens: number | null;
+  finishReason: string | null;
+  errorMessage: string | null;
+  modelId: string;
+  fineTuneId: string | null;
+  inputHash: string;
+  outputHash: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NewFineTuneTrainingEntry {
+  id: string;
+  prunedInputTokens: number | null;
+  outputTokens: number | null;
+  persistentId: string;
+  inputHash: string;
+  outputHash: string;
+  fineTuneId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NewPruningRuleMatch {
+  id: string;
+  pruningRuleId: string;
+  inputHash: string;
+}
+
+export interface Node {
+  id: string;
+  type: "Archive" | "Dataset" | "Filter" | "LLMRelabel" | "ManualRelabel" | "Monitor";
+  name: string;
+  config: Json;
+  hash: string;
+  projectId: string;
+  creatorId: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NodeEntry {
+  id: string;
+  persistentId: string;
+  status: Generated<"ERROR" | "PENDING" | "PROCESSED" | "PROCESSING">;
+  error: string | null;
+  split: "TEST" | "TRAIN";
+  loggedCallId: string | null;
+  inputHash: string;
+  outputHash: string;
+  originalOutputHash: string;
+  nodeId: string;
+  dataChannelId: string;
+  parentNodeEntryId: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NodeOutput {
+  id: string;
+  label: string;
+  nodeId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
 }
 
 export interface Project {
@@ -356,6 +496,11 @@ export interface PruningRuleMatch {
   id: string;
   pruningRuleId: string;
   datasetEntryId: string;
+}
+
+export interface PruningRulesChecked {
+  nodeHash: string;
+  incomingDEIHash: string;
 }
 
 export interface RelabelRequest {
@@ -426,12 +571,17 @@ export interface DB {
   _prisma_migrations: _PrismaMigrations;
   Account: Account;
   ApiKey: ApiKey;
+  CachedProcessedEntry: CachedProcessedEntry;
   CachedResponse: CachedResponse;
   CreditAdjustment: CreditAdjustment;
+  DataChannel: DataChannel;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
+  DatasetEntryInput: DatasetEntryInput;
+  DatasetEntryOutput: DatasetEntryOutput;
   DatasetEval: DatasetEval;
   DatasetEvalDatasetEntry: DatasetEvalDatasetEntry;
+  DatasetEvalNodeEntry: DatasetEvalNodeEntry;
   DatasetEvalOutputSource: DatasetEvalOutputSource;
   DatasetEvalResult: DatasetEvalResult;
   DatasetFileUpload: DatasetFileUpload;
@@ -446,10 +596,18 @@ export interface DB {
   Invoice: Invoice;
   LoggedCall: LoggedCall;
   LoggedCallTag: LoggedCallTag;
+  NewDatasetEvalResult: NewDatasetEvalResult;
+  NewFineTuneTestingEntry: NewFineTuneTestingEntry;
+  NewFineTuneTrainingEntry: NewFineTuneTrainingEntry;
+  NewPruningRuleMatch: NewPruningRuleMatch;
+  Node: Node;
+  NodeEntry: NodeEntry;
+  NodeOutput: NodeOutput;
   Project: Project;
   ProjectUser: ProjectUser;
   PruningRule: PruningRule;
   PruningRuleMatch: PruningRuleMatch;
+  PruningRulesChecked: PruningRulesChecked;
   RelabelRequest: RelabelRequest;
   Session: Session;
   UsageLog: UsageLog;

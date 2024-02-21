@@ -37,7 +37,7 @@ export const updateDatasetPruningRuleMatches = async ({
 
   await kysely.transaction().execute(async (trx) => {
     if (deleteMatches) {
-      await trx.deleteFrom("CachedProcessedEntry").where("nodeHash", "=", nodeHash).execute();
+      await trx.deleteFrom("PruningRulesChecked").where("nodeHash", "=", nodeHash).execute();
       if (pruningRulesToUpdate.length > 0) {
         await trx
           .deleteFrom("NewPruningRuleMatch as prm")
@@ -71,12 +71,12 @@ export const updateDatasetPruningRuleMatches = async ({
         .columns(["id", "pruningRuleId", "inputHash"])
         .expression(() =>
           nodeEntryBaseQuery
-            .leftJoin("CachedProcessedEntry as cpne", (join) =>
+            .leftJoin("PruningRulesChecked as prc", (join) =>
               join
-                .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
-                .on("cpne.nodeHash", "=", nodeHash),
+                .onRef("prc.incomingDEIHash", "=", "ne.inputHash")
+                .on("prc.nodeHash", "=", nodeHash),
             )
-            .where("cpne.id", "is", null)
+            .where("prc.nodeHash", "is", null)
             .innerJoin("DatasetEntryInput as dei", "ne.inputHash", "dei.hash")
             .where((eb) => {
               const andArr: Expression<SqlBool>[] = [
@@ -96,22 +96,17 @@ export const updateDatasetPruningRuleMatches = async ({
 
     // Mark all relevant node data as processed
     await trx
-      .insertInto("CachedProcessedEntry")
-      .columns(["id", "nodeHash", "incomingDEIHash", "updatedAt"])
+      .insertInto("PruningRulesChecked")
+      .columns(["nodeHash", "incomingDEIHash"])
       .expression(() =>
         nodeEntryBaseQuery
-          .select((eb) => [
-            sql`uuid_generate_v4()`.as("id"),
-            sql`${nodeHash}`.as("nodeHash"),
-            "ne.inputHash as incomingDEIHash",
-            eb.val(new Date()).as("updatedAt"),
-          ])
-          .leftJoin("CachedProcessedEntry as cpne", (join) =>
+          .select([sql`${nodeHash}`.as("nodeHash"), "ne.inputHash as incomingDEIHash"])
+          .leftJoin("PruningRulesChecked as prc", (join) =>
             join
-              .onRef("cpne.incomingDEIHash", "=", "ne.inputHash")
-              .on("cpne.nodeHash", "=", nodeHash),
+              .onRef("prc.incomingDEIHash", "=", "ne.inputHash")
+              .on("prc.nodeHash", "=", nodeHash),
           )
-          .where("cpne.nodeHash", "is", null),
+          .where("prc.nodeHash", "is", null),
       )
       .execute();
   });

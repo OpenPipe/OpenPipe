@@ -338,7 +338,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         }),
       ]);
 
-      await countDatasetEntryTokens.enqueue();
+      await countDatasetEntryTokens.enqueue({});
 
       await processNode.runNow({
         nodeId: preparedArchiveCreation.archiveNodeId,
@@ -565,7 +565,7 @@ export const nodeEntriesRouter = createTRPCRouter({
             })
             .execute();
 
-          await countDatasetEntryTokens.enqueue();
+          await countDatasetEntryTokens.enqueue({});
 
           await updateDatasetPruningRuleMatches({
             nodeHash: tNode.hash,

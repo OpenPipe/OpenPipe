@@ -9,6 +9,7 @@ import dayjs from "~/utils/dayjs";
 import { type Source, RemoveSourceDialog } from "./RemoveSourceDialog";
 import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { ProjectLink } from "~/components/ProjectLink";
 
 const Sources = () => {
   const dataset = useDataset().data;
@@ -48,8 +49,16 @@ const Sources = () => {
   if (!dataset?.archives.length)
     return (
       <Text px={8}>
-        No dataset entries have been added to this dataset. You can import from Request Logs or
-        upload a dataset in the{" "}
+        No dataset entries have been added to this dataset. You can import from{" "}
+        <Button
+          as={ProjectLink}
+          href="/request-logs"
+          variant="link"
+          _hover={{ textDecor: "underline" }}
+        >
+          Request Logs
+        </Button>{" "}
+        or upload a dataset in the{" "}
         <Button
           variant="link"
           _hover={{ textDecor: "underline" }}

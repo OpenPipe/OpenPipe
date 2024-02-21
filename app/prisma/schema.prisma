@@ -188,6 +188,14 @@ model NewPruningRuleMatch {
     @@index([pruningRuleId])
 }
 
+model PruningRulesChecked {
+    nodeHash        String
+    incomingDEIHash String
+
+    @@unique([nodeHash, incomingDEIHash])
+    @@index([incomingDEIHash, nodeHash])
+}
+
 model Project {
     id               String   @id @default(uuid()) @db.Uuid
     slug             String   @unique() @default(dbgenerated("nanoid()")) @db.VarChar(10)
@@ -268,7 +276,6 @@ model LoggedCall {
     tags           LoggedCallTag[]
     datasetEntries DatasetEntry[]
     nodeEntries    NodeEntry[]
-    monitorMatches MonitorMatch[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -858,29 +865,6 @@ model ExportWeightsRequest {
     createdAt DateTime @default(now())
 }
 
-enum MonitorMatchStatus {
-    PENDING
-    PROCESSED
-}
-
-model MonitorMatch {
-    id          String             @id @default(uuid()) @db.Uuid
-    checkPassed Boolean
-    status      MonitorMatchStatus @default(PENDING)
-
-    monitorId String @db.Uuid
-    monitor   Node   @relation(fields: [monitorId], references: [id], onDelete: Cascade)
-
-    loggedCallId String?     @db.Uuid
-    loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: SetNull)
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@unique([monitorId, loggedCallId])
-    @@index([monitorId, status, createdAt])
-}
-
 enum NodeType {
     Monitor
     Archive
@@ -902,7 +886,6 @@ model Node {
     outputs                NodeOutput[]
     datasetFileUploads     DatasetFileUpload[]
     datasets               Dataset[]
-    monitorMatches         MonitorMatch[]
     cachedProcessedEntries CachedProcessedEntry[]
 
     projectId String  @db.Uuid

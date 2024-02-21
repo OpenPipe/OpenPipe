@@ -74,12 +74,12 @@ export const constructEvaluationFiltersQuery = ({
   }
 
   // Add select filters
-  const selectFilters = filters.filter(
+  const evalAppliedFilters = filters.filter(
     (filter) => filter.field === EvaluationFiltersDefaultFields.EvalApplied,
   );
 
-  for (let i = 0; i < selectFilters.length; i++) {
-    const filter = selectFilters[i];
+  for (let i = 0; i < evalAppliedFilters.length; i++) {
+    const filter = evalAppliedFilters[i];
     if (!filter?.value) continue;
 
     updatedBaseQuery = updatedBaseQuery.where((eb) => {
@@ -98,6 +98,21 @@ export const constructEvaluationFiltersQuery = ({
 
       return eb.and(wheres);
     }) as unknown as typeof baseQuery;
+  }
+
+  const importFilters = filters.filter(
+    (filter) => filter.field === EvaluationFiltersDefaultFields.Source,
+  );
+
+  for (let i = 0; i < importFilters.length; i++) {
+    const filter = importFilters[i];
+    if (!filter?.value) continue;
+    const filterExpression = textComparatorToSqlExpression(
+      filter.comparator === "=" ? "CONTAINS" : "NOT_CONTAINS",
+      filter.value as string,
+    );
+
+    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql`ne."persistentId"`));
   }
 
   return updatedBaseQuery;

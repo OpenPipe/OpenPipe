@@ -171,7 +171,7 @@ export const generateEntry = async ({
   const input: ChatCompletionCreateParamsNonStreaming = {
     model: fineTune
       ? `openpipe:${fineTune.slug}`
-      : COMPARISON_MODEL_NAMES[modelId as ComparisonModel],
+      : COMPARISON_MODEL_NAMES[modelId as ComparisonModel].name,
     messages: tNodeEntry.messages,
     tool_choice: tNodeEntry.tool_choice ?? undefined,
     tools: tNodeEntry.tools ?? undefined,

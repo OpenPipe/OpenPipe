@@ -4,7 +4,7 @@ import defineTask from "../defineTask";
 import { typedDatasetEntryInput, typedDatasetEntryOutput } from "~/server/utils/nodes/node.types";
 
 type TaskData = {
-  datasetId?: string;
+  nodeId?: string;
 };
 
 export const countDatasetEntryTokens = defineTask<TaskData>({
@@ -19,8 +19,8 @@ export const countDatasetEntryTokens = defineTask<TaskData>({
           tools: true,
           response_format: true,
         },
-        orderBy: { sortKey: "desc" },
-        where: { inputTokens: null, datasetId: taskData.datasetId },
+        orderBy: { createdAt: "desc" },
+        where: { inputTokens: null },
         take: 1000,
       });
       const outputBatch = await prisma.datasetEntryOutput.findMany({

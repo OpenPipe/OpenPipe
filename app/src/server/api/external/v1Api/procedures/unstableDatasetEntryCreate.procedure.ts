@@ -6,11 +6,13 @@ import {
   openAIRowSchema,
   parseRowsToImport,
 } from "~/components/datasets/parseRowsToImport";
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { openApiProtectedProc } from "../../openApiTrpc";
 import { requireWriteKey } from "../helpers";
 import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
+import { generatePersistentId } from "~/server/utils/nodes/utils";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
 
 export const unstableDatasetEntryCreate = openApiProtectedProc
   .meta({
@@ -24,7 +26,7 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
   })
   .input(
     z.object({
-      datasetId: z.string(),
+      archiveId: z.string(),
       entries: z.array(openAIRowSchema).min(1).max(100),
     }),
   )
@@ -42,15 +44,23 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
   .mutation(async ({ input, ctx }) => {
     await requireWriteKey(ctx);
 
-    const dataset = await prisma.dataset.findFirst({
-      where: { id: input.datasetId, projectId: ctx.key.projectId },
-    });
-    if (!dataset) {
+    const archive = await kysely
+      .selectFrom("Node as n")
+      .where("n.id", "=", input.archiveId)
+      .where("n.projectId", "=", ctx.key.projectId)
+      .innerJoin("DataChannel as dc", "dc.destinationId", "n.id")
+      .selectAll("n")
+      .select("dc.id as inputDataChannelId")
+      .executeTakeFirst();
+
+    if (!archive) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: `Dataset with id '${input.datasetId}' not found in project`,
+        message: `Archive with id '${input.archiveId}' not found`,
       });
     }
+
+    const importedAt = new Date();
 
     const parsedRows = parseRowsToImport(input.entries.map((r) => JSON.stringify(r)));
 
@@ -62,22 +72,46 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
       }
     });
 
-    const goodRows = parsedRows.filter(isRowToImport);
-    const entriesToCreate = await prepareDatasetEntriesForImport(
-      dataset.id,
-      goodRows,
-      "UPLOAD",
-      new Date().toISOString(),
-      null,
-    );
+    const goodRows = parsedRows.filter(isRowToImport).map((r, index) => ({
+      ...r,
+      persistentId: generatePersistentId({
+        creationTime: importedAt,
+        key: index.toString(),
+        nodeId: archive.id,
+      }),
+    }));
 
-    await prisma.datasetEntry.createMany({
-      data: entriesToCreate,
+    const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
+      prepareDatasetEntriesForImport({
+        projectId: ctx.key.projectId,
+        nodeId: archive.id,
+        dataChannelId: archive.inputDataChannelId,
+        entriesToImport: goodRows,
+      });
+
+    await prisma.$transaction([
+      prisma.datasetEntryInput.createMany({
+        data: datasetEntryInputsToCreate,
+        skipDuplicates: true,
+      }),
+      prisma.datasetEntryOutput.createMany({
+        data: datasetEntryOutputsToCreate,
+        skipDuplicates: true,
+      }),
+      prisma.nodeEntry.createMany({
+        data: nodeEntriesToCreate,
+        skipDuplicates: true,
+      }),
+    ]);
+
+    await enqueueProcessNode({
+      nodeId: archive.id,
+      nodeType: "Archive",
     });
 
-    await countDatasetEntryTokens.runNow({ datasetId: dataset.id });
+    await countDatasetEntryTokens.runNow({});
     return {
-      createdEntries: entriesToCreate.length,
+      createdEntries: nodeEntriesToCreate.length,
       errors,
     };
   });

@@ -1,18 +1,26 @@
 import { useState, useEffect } from "react";
 import { Card, Grid, HStack, Box, Text } from "@chakra-ui/react";
 
-import { useTestingEntries } from "~/utils/hooks";
+import { useTestingEntries, useDataset } from "~/utils/hooks";
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
 import { useVisibleModelIds } from "../useVisibleModelIds";
+import { api } from "~/utils/api";
 
 const EvaluationTable = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
   const entries = useTestingEntries(refetchInterval).data;
+  const dataset = useDataset().data;
 
-  useEffect(
-    () => setRefetchInterval(entries?.pageIncomplete ? 5000 : 0),
-    [entries?.pageIncomplete],
-  );
+  const dataIncomplete = entries?.pageIncomplete || dataset?.numRelabelingEntries;
+
+  const utils = api.useUtils();
+
+  useEffect(() => {
+    setRefetchInterval(dataIncomplete ? 5000 : 0);
+    if (!dataIncomplete) {
+      void utils.nodeEntries.listTestingEntries.invalidate().catch(console.error);
+    }
+  }, [dataIncomplete, setRefetchInterval]);
 
   const { visibleModelIds } = useVisibleModelIds();
 

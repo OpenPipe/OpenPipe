@@ -46,9 +46,18 @@ const EvaluationFilters = () => {
           },
         ]
       : [];
-    const finalStaticOptions: FilterOption[] = [
-      { type: "text", field: EvaluationFiltersDefaultFields.ImportId },
-    ];
+    const finalStaticOptions: FilterOption[] = [];
+    if (dataset?.archives?.length) {
+      finalStaticOptions.push({
+        type: "select",
+        field: EvaluationFiltersDefaultFields.Source,
+        options: dataset.archives.map((archive) => ({
+          value: archive.id,
+          label: archive.name,
+        })),
+      });
+    }
+
     return [
       ...initialStaticOptions,
       ...comparisonModelOutputOptions,

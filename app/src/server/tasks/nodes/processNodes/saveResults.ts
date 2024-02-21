@@ -96,5 +96,5 @@ export const saveResults = async ({
     ...nodeEntriesToUpdate.map((updateArgs) => prisma.nodeEntry.update(updateArgs)),
   ]);
 
-  await countDatasetEntryTokens.enqueue();
+  await countDatasetEntryTokens.enqueue({});
 };
