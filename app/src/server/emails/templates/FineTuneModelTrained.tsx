@@ -8,7 +8,7 @@ interface Props {
 }
 
 const FineTuneModelTrained = ({ fineTuneModelName, baseModel, fineTuneModelLink }: Props) => {
-  const previewText = `Fine-tune model has been successfully trained!`;
+  const previewText = `Fine-tuned model has been successfully trained!`;
 
   return (
     <EmailLayout previewText={previewText}>
@@ -21,7 +21,7 @@ const FineTuneModelTrained = ({ fineTuneModelName, baseModel, fineTuneModelLink 
           Base model: <strong>{baseModel}</strong>
         </Text>
       </Highlight>
-      <Text>You can start using the new fine-tuned model now.</Text>
+      <Text>You can start using your fine-tuned model now.</Text>
 
       <Button href={fineTuneModelLink}>Details</Button>
     </EmailLayout>

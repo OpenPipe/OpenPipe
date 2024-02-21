@@ -4,8 +4,8 @@ import { render } from "@react-email/render";
 import FineTuneModelTrained from "./templates/FineTuneModelTrained";
 
 export const sendFineTuneModelTrained = async (
-  fineTuneModelName: string,
   fineTuneId: string,
+  fineTuneModelName: string,
   baseModel: string,
   projectSlug: string,
   recipientEmail: string,
@@ -23,7 +23,7 @@ export const sendFineTuneModelTrained = async (
 
   await sendEmail({
     to: recipientEmail,
-    subject: "Fine-tune model trained successfully! 🚀",
+    subject: "Fine-tuned model trained successfully! 🚀",
     body: emailBody,
   });
 };
