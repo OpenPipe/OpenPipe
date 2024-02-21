@@ -320,7 +320,7 @@ class OpenPipeApi:
         self, *, dataset_id: str, entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem]
     ) -> UnstableDatasetEntryCreateResponse:
         """
-        Create a new dataset entry. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+        Add new dataset entries. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
 
         Parameters:
             - dataset_id: str.
@@ -346,7 +346,7 @@ class OpenPipeApi:
         self, *, dataset_id: str, slug: str, base_model: UnstableFinetuneCreateRequestBaseModel
     ) -> UnstableFinetuneCreateResponse:
         """
-        Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+        Create a new finetune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
 
         Parameters:
             - dataset_id: str.
@@ -372,7 +372,7 @@ class OpenPipeApi:
 
     def unstable_finetune_get(self, *, fine_tune_id: str) -> UnstableFinetuneGetResponse:
         """
-        Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+        Get a finetune by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
 
         Parameters:
             - fine_tune_id: str.
@@ -673,7 +673,7 @@ class AsyncOpenPipeApi:
         self, *, dataset_id: str, entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem]
     ) -> UnstableDatasetEntryCreateResponse:
         """
-        Create a new dataset entry. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+        Add new dataset entries. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
 
         Parameters:
             - dataset_id: str.
@@ -699,7 +699,7 @@ class AsyncOpenPipeApi:
         self, *, dataset_id: str, slug: str, base_model: UnstableFinetuneCreateRequestBaseModel
     ) -> UnstableFinetuneCreateResponse:
         """
-        Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+        Create a new finetune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
 
         Parameters:
             - dataset_id: str.
@@ -725,7 +725,7 @@ class AsyncOpenPipeApi:
 
     async def unstable_finetune_get(self, *, fine_tune_id: str) -> UnstableFinetuneGetResponse:
         """
-        Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+        Get a finetune by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
 
         Parameters:
             - fine_tune_id: str.
