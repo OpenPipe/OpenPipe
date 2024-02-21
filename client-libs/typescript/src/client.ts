@@ -23,4 +23,22 @@ export default class OpenPipe {
   report(...params: Parameters<OPClient["default"]["report"]>) {
     return this.baseClient.default.report(...params);
   }
+
+  unstableDatasetCreate(...params: Parameters<OPClient["default"]["unstableDatasetCreate"]>) {
+    return this.baseClient.default.unstableDatasetCreate(...params);
+  }
+
+  unstableDatasetEntryCreate(
+    ...params: Parameters<OPClient["default"]["unstableDatasetEntryCreate"]>
+  ) {
+    return this.baseClient.default.unstableDatasetEntryCreate(...params);
+  }
+
+  unstableFinetuneCreate(...params: Parameters<OPClient["default"]["unstableFinetuneCreate"]>) {
+    return this.baseClient.default.unstableFinetuneCreate(...params);
+  }
+
+  unstableFinetuneGet(...params: Parameters<OPClient["default"]["unstableFinetuneGet"]>) {
+    return this.baseClient.default.unstableFinetuneGet(...params);
+  }
 }

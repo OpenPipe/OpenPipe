@@ -122,7 +122,7 @@ export const importDatasetEntries = defineTask<ImportDatasetEntriesJob>({
 
     await updateDatasetFileUpload({ progress: 99 });
 
-    await countDatasetEntryTokens.enqueue();
+    await countDatasetEntryTokens.enqueue({});
 
     await updateDatasetFileUpload({
       status: "COMPLETE",
