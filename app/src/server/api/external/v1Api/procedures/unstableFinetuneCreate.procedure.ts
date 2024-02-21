@@ -1,12 +1,10 @@
 import { z } from "zod";
 
+import { type Dataset } from "@prisma/client";
+import { createFineTune } from "~/server/api/routers/fineTunes/createFineTune";
 import { prisma } from "~/server/db";
 import { openApiProtectedProc } from "../../openApiTrpc";
 import { requireWriteKey } from "../helpers";
-import { type Dataset } from "@prisma/client";
-import { pick } from "lodash-es";
-import { baseModel } from "~/server/fineTuningProviders/types";
-import { createFineTune } from "~/server/api/routers/fineTunes/createFineTune";
 
 export const unstableFinetuneCreate = openApiProtectedProc
   .meta({
@@ -22,10 +20,15 @@ export const unstableFinetuneCreate = openApiProtectedProc
     z.object({
       datasetId: z.string(),
       slug: z.string(),
-      baseModel,
+      // one of 'model-1', 'model-2'
+      baseModel: z.union([
+        z.literal("OpenPipe/mistral-ft-optimized-1227"),
+        z.literal("meta-llama/Llama-2-13b-hf"),
+        z.literal("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+      ]),
     }),
   )
-  .output(z.object({ fineTuneId: z.string() }))
+  .output(z.object({ id: z.string() }))
   .mutation(async ({ input, ctx }) => {
     await requireWriteKey(ctx);
 
@@ -37,7 +40,11 @@ export const unstableFinetuneCreate = openApiProtectedProc
     });
 
     const fineTune = await createFineTune({
-      ...pick(input, ["slug", "baseModel"]),
+      slug: input.slug,
+      baseModel: {
+        provider: "openpipe",
+        baseModel: input.baseModel,
+      },
       filters: [],
       pruningRuleIds: [],
       dataset,
@@ -48,5 +55,5 @@ export const unstableFinetuneCreate = openApiProtectedProc
       throw new Error(fineTune.message);
     }
 
-    return { fineTuneId: fineTune.id };
+    return { id: fineTune.id };
   });

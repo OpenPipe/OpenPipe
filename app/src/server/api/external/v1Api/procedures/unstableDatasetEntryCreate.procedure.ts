@@ -10,6 +10,7 @@ import { prisma } from "~/server/db";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { openApiProtectedProc } from "../../openApiTrpc";
 import { requireWriteKey } from "../helpers";
+import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 
 export const unstableDatasetEntryCreate = openApiProtectedProc
   .meta({
@@ -74,6 +75,7 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
       data: entriesToCreate,
     });
 
+    await countDatasetEntryTokens.runNow({ datasetId: dataset.id });
     return {
       createdEntries: entriesToCreate.length,
       errors,

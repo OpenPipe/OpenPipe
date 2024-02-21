@@ -15,11 +15,7 @@ import { getExportWeightsRequest, requestExportWeights } from "./exportWeights";
 
 export const fineTunesRouter = createTRPCRouter({
   list: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-      }),
-    )
+    .input(z.object({ projectId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { projectId } = input;
 

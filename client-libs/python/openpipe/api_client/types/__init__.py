@@ -272,6 +272,10 @@ from .unstable_dataset_entry_create_request_entries_item_tools_item_function imp
 )
 from .unstable_dataset_entry_create_response import UnstableDatasetEntryCreateResponse
 from .unstable_dataset_entry_create_response_errors_item import UnstableDatasetEntryCreateResponseErrorsItem
+from .unstable_finetune_create_request_base_model import UnstableFinetuneCreateRequestBaseModel
+from .unstable_finetune_create_response import UnstableFinetuneCreateResponse
+from .unstable_finetune_get_response import UnstableFinetuneGetResponse
+from .unstable_finetune_get_response_status import UnstableFinetuneGetResponseStatus
 from .update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
 from .update_log_tags_request_filters_item_equals import UpdateLogTagsRequestFiltersItemEquals
 from .update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
@@ -404,6 +408,10 @@ __all__ = [
     "UnstableDatasetEntryCreateRequestEntriesItemToolsItemFunction",
     "UnstableDatasetEntryCreateResponse",
     "UnstableDatasetEntryCreateResponseErrorsItem",
+    "UnstableFinetuneCreateRequestBaseModel",
+    "UnstableFinetuneCreateResponse",
+    "UnstableFinetuneGetResponse",
+    "UnstableFinetuneGetResponseStatus",
     "UpdateLogTagsRequestFiltersItem",
     "UpdateLogTagsRequestFiltersItemEquals",
     "UpdateLogTagsRequestTagsValue",

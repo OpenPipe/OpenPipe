@@ -1564,12 +1564,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "datasetId": {
+                    "id": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "datasetId"
+                    "id"
                   ],
                   "additionalProperties": false
                 }
@@ -2087,6 +2087,195 @@
                   "required": [
                     "createdEntries",
                     "errors"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/unstable/finetune/create": {
+      "post": {
+        "operationId": "unstableFinetuneCreate",
+        "description": "Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "datasetId": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "baseModel": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "OpenPipe/mistral-ft-optimized-1227"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "meta-llama/Llama-2-13b-hf"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "mistralai/Mixtral-8x7B-Instruct-v0.1"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "datasetId",
+                  "slug",
+                  "baseModel"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/unstable/finetune/get": {
+      "get": {
+        "operationId": "unstableFinetuneGet",
+        "description": "Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fineTuneId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "PENDING"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "STARTED"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "TRANSFERRING_TRAINING_DATA"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "TRAINING"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "DEPLOYED"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "ERROR"
+                          ]
+                        }
+                      ]
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "baseModel": {
+                      "type": "string"
+                    },
+                    "errorMessage": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "datasetId": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "slug",
+                    "baseModel",
+                    "errorMessage",
+                    "datasetId",
+                    "createdAt"
                   ],
                   "additionalProperties": false
                 }

@@ -350,7 +350,7 @@ export class DefaultService {
             name: string;
         },
     ): CancelablePromise<{
-        datasetId: string;
+        id: string;
     }> {
         return this.httpRequest.request({
             method: 'POST',
@@ -448,6 +448,53 @@ export class DefaultService {
             url: '/unstable/dataset-entry/create',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+     * @param requestBody
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public unstableFinetuneCreate(
+        requestBody: {
+            datasetId: string;
+            slug: string;
+            baseModel: ('OpenPipe/mistral-ft-optimized-1227' | 'meta-llama/Llama-2-13b-hf' | 'mistralai/Mixtral-8x7B-Instruct-v0.1');
+        },
+    ): CancelablePromise<{
+        id: string;
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/unstable/finetune/create',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+     * @param fineTuneId
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public unstableFinetuneGet(
+        fineTuneId: string,
+    ): CancelablePromise<{
+        id: string;
+        status: ('PENDING' | 'STARTED' | 'TRANSFERRING_TRAINING_DATA' | 'TRAINING' | 'DEPLOYED' | 'ERROR');
+        slug: string;
+        baseModel: string;
+        errorMessage: string | null;
+        datasetId: string;
+        createdAt: string;
+    }> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/unstable/finetune/get',
+            query: {
+                'fineTuneId': fineTuneId,
+            },
         });
     }
 }

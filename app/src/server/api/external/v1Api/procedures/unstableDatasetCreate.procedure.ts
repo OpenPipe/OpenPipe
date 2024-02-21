@@ -15,7 +15,7 @@ export const unstableDatasetCreate = openApiProtectedProc
     },
   })
   .input(z.object({ name: z.string() }))
-  .output(z.object({ datasetId: z.string() }))
+  .output(z.object({ id: z.string() }))
   .mutation(async ({ input, ctx }) => {
     await requireWriteKey(ctx);
 
@@ -26,5 +26,5 @@ export const unstableDatasetCreate = openApiProtectedProc
       },
     });
 
-    return { datasetId: dataset.id };
+    return { id: dataset.id };
   });

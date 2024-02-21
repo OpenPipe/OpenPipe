@@ -11,7 +11,7 @@ except ImportError:
     import pydantic  # type: ignore
 
 
-class UnstableDatasetCreateResponse(pydantic.BaseModel):
+class UnstableFinetuneCreateResponse(pydantic.BaseModel):
     id: str
 
     def json(self, **kwargs: typing.Any) -> str:

@@ -9,6 +9,7 @@ import httpx
 from .core.api_error import ApiError
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .core.jsonable_encoder import jsonable_encoder
+from .core.remove_none_from_dict import remove_none_from_dict
 from .environment import OpenPipeApiEnvironment
 from .types.check_cache_response import CheckCacheResponse
 from .types.create_chat_completion_request_function_call import CreateChatCompletionRequestFunctionCall
@@ -25,6 +26,9 @@ from .types.report_response import ReportResponse
 from .types.unstable_dataset_create_response import UnstableDatasetCreateResponse
 from .types.unstable_dataset_entry_create_request_entries_item import UnstableDatasetEntryCreateRequestEntriesItem
 from .types.unstable_dataset_entry_create_response import UnstableDatasetEntryCreateResponse
+from .types.unstable_finetune_create_request_base_model import UnstableFinetuneCreateRequestBaseModel
+from .types.unstable_finetune_create_response import UnstableFinetuneCreateResponse
+from .types.unstable_finetune_get_response import UnstableFinetuneGetResponse
 from .types.update_log_tags_request_filters_item import UpdateLogTagsRequestFiltersItem
 from .types.update_log_tags_request_tags_value import UpdateLogTagsRequestTagsValue
 from .types.update_log_tags_response import UpdateLogTagsResponse
@@ -338,6 +342,56 @@ class OpenPipeApi:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
+    def unstable_finetune_create(
+        self, *, dataset_id: str, slug: str, base_model: UnstableFinetuneCreateRequestBaseModel
+    ) -> UnstableFinetuneCreateResponse:
+        """
+        Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+
+        Parameters:
+            - dataset_id: str.
+
+            - slug: str.
+
+            - base_model: UnstableFinetuneCreateRequestBaseModel.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/finetune/create"),
+            json=jsonable_encoder({"datasetId": dataset_id, "slug": slug, "baseModel": base_model}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UnstableFinetuneCreateResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    def unstable_finetune_get(self, *, fine_tune_id: str) -> UnstableFinetuneGetResponse:
+        """
+        Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+
+        Parameters:
+            - fine_tune_id: str.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "GET",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/finetune/get"),
+            params=remove_none_from_dict({"fineTuneId": fine_tune_id}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UnstableFinetuneGetResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
 
 class AsyncOpenPipeApi:
     def __init__(
@@ -635,6 +689,56 @@ class AsyncOpenPipeApi:
         )
         if 200 <= _response.status_code < 300:
             return pydantic.parse_obj_as(UnstableDatasetEntryCreateResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def unstable_finetune_create(
+        self, *, dataset_id: str, slug: str, base_model: UnstableFinetuneCreateRequestBaseModel
+    ) -> UnstableFinetuneCreateResponse:
+        """
+        Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+
+        Parameters:
+            - dataset_id: str.
+
+            - slug: str.
+
+            - base_model: UnstableFinetuneCreateRequestBaseModel.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "POST",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/finetune/create"),
+            json=jsonable_encoder({"datasetId": dataset_id, "slug": slug, "baseModel": base_model}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UnstableFinetuneCreateResponse, _response.json())  # type: ignore
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def unstable_finetune_get(self, *, fine_tune_id: str) -> UnstableFinetuneGetResponse:
+        """
+        Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+
+        Parameters:
+            - fine_tune_id: str.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "GET",
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/finetune/get"),
+            params=remove_none_from_dict({"fineTuneId": fine_tune_id}),
+            headers=self._client_wrapper.get_headers(),
+            timeout=240,
+        )
+        if 200 <= _response.status_code < 300:
+            return pydantic.parse_obj_as(UnstableFinetuneGetResponse, _response.json())  # type: ignore
         try:
             _response_json = _response.json()
         except JSONDecodeError:

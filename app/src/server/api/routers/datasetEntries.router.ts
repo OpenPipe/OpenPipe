@@ -281,7 +281,7 @@ export const datasetEntriesRouter = createTRPCRouter({
 
       await startDatasetTestJobs(datasetId);
 
-      await countDatasetEntryTokens.enqueue();
+      await countDatasetEntryTokens.enqueue({});
 
       return success({ datasetId, importId });
     }),
