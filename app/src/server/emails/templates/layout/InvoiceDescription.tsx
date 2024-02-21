@@ -1,4 +1,4 @@
-import { Column, Row, Section } from "@react-email/components";
+import { Column, Row } from "@react-email/components";
 import React, { CSSProperties } from "react";
 import { Highlight, Text } from ".";
 
