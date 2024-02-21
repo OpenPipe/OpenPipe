@@ -1,17 +1,31 @@
 import type { Node, Prisma } from "@prisma/client";
 
-import { processNodeProperties, type ProcessEntryResult } from "./processNode.task";
+import {
+  ErrorProcessEntryResult,
+  SuccessProcessEntryResult,
+  processNodeProperties,
+} from "./processNode.task";
 import { hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";
 import { countDatasetEntryTokens } from "../../fineTuning/countDatasetEntryTokens.task";
 import { type typedNode } from "~/server/utils/nodes/node.types";
 import { prisma } from "~/server/db";
+
+export type SaveableProcessEntryResult =
+  | (SuccessProcessEntryResult & {
+      nodeEntryId: string;
+      incomingDEIHash: string;
+      incomingDEOHash: string;
+    })
+  | (ErrorProcessEntryResult & {
+      nodeEntryId: string;
+    });
 
 export const saveResults = async ({
   node,
   resultsToProcess,
 }: {
   node: ReturnType<typeof typedNode> & Pick<Node, "projectId" | "hash">;
-  resultsToProcess: ProcessEntryResult[];
+  resultsToProcess: SaveableProcessEntryResult[];
 }) => {
   const outputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[] = [];
   const cachedProcessedEntriesToCreate: Prisma.CachedProcessedEntryCreateManyInput[] = [];

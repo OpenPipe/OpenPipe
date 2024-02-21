@@ -17,9 +17,8 @@ import type { NodeEntry } from "~/types/kysely-codegen.types";
 import { kysely, prisma } from "~/server/db";
 import { type AtLeastOne } from "~/types/shared.types";
 import { type ForwardEntriesSelectionExpression, forwardNodeEntries } from "./forwardNodeEntries";
-import { saveResults } from "./saveResults";
+import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
 import { updateCached } from "./updateCached";
-import { printNodeEntries } from "~/server/utils/nodes/utils";
 
 export type ProcessNodeJob = {
   nodeId: string;
@@ -109,7 +108,7 @@ export const processNode = defineTask<ProcessNodeJob>({
           break;
         }
 
-        let processEntryResults: ProcessEntryResult[] = [];
+        let processEntryResults: SaveableProcessEntryResult[] = [];
 
         const saveAndForward = async () => {
           const resultsToProcess = processEntryResults;
@@ -129,7 +128,13 @@ export const processNode = defineTask<ProcessNodeJob>({
                 where: { id: entry.id },
                 data: { status: "PROCESSING", error: null },
               });
-              return await processEntry({ node, entry: typedNodeEntry(entry) });
+              const result = await processEntry({ node, entry: typedNodeEntry(entry) });
+              return {
+                ...result,
+                nodeEntryId: entry.id,
+                incomingDEIHash: entry.inputHash,
+                incomingDEOHash: entry.outputHash,
+              };
             } catch (error) {
               return {
                 nodeEntryId: entry.id,
@@ -187,10 +192,6 @@ export const processNode = defineTask<ProcessNodeJob>({
       await updateQuery.execute();
     }
 
-    if (node.type === "Archive") {
-      await printNodeEntries(nodeId);
-    }
-
     if (nodeProperties.afterAll) {
       await nodeProperties.afterAll(node);
     }
@@ -228,22 +229,21 @@ type CacheWriteField =
   | "outgoingSplit"
   | "filterOutcome"
   | "explanation";
-export type ProcessEntryResult =
-  | {
-      nodeEntryId: string;
-      status: "PROCESSED";
-      output?: ChatCompletionMessage;
-      originalOutputHash?: string;
-      incomingDEIHash: string;
-      incomingDEOHash?: string;
-      filterOutcome?: string;
-      explanation?: string;
-    }
-  | {
-      nodeEntryId: string;
-      status: "PENDING" | "ERROR";
-      error: string;
-    };
+
+export type SuccessProcessEntryResult = {
+  status: "PROCESSED";
+  output?: ChatCompletionMessage;
+  originalOutputHash?: string;
+  filterOutcome?: string;
+  explanation?: string;
+};
+
+export type ErrorProcessEntryResult = {
+  status: "PENDING" | "ERROR";
+  error: string;
+};
+
+type ProcessEntryResult = SuccessProcessEntryResult | ErrorProcessEntryResult;
 
 export type NodeProperties = {
   cacheMatchFields?: AtLeastOne<CacheMatchField>;
@@ -255,8 +255,7 @@ export type NodeProperties = {
     entry,
   }: {
     node: ReturnType<typeof typedNode> & Pick<Node, "projectId" | "hash">;
-    entry: ReturnType<typeof typedNodeEntry> &
-      Pick<NodeEntry, "id" | "inputHash" | "outputHash" | "originalOutputHash">;
+    entry: ReturnType<typeof typedNodeEntry> & Pick<NodeEntry, "id" | "outputHash">;
   }) => Promise<ProcessEntryResult>;
   beforeAll?: (
     node: ReturnType<typeof typedNode> & Pick<Node, "id" | "projectId" | "hash">,

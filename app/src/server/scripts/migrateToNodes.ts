@@ -1,6 +1,7 @@
 import { JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { sql } from "kysely";
+import yargs from "yargs";
 
 import { kysely, prisma } from "../db";
 import {
@@ -11,13 +12,39 @@ import { prepareIntegratedDatasetCreation } from "../utils/nodes/nodeCreation/pr
 import { prepareArchiveCreation } from "../utils/nodes/nodeCreation/prepareNodeCreation";
 import { generatePersistentId } from "../utils/nodes/utils";
 import { enqueueProcessNode } from "../tasks/nodes/processNodes/processNode.task";
+import { hideBin } from "yargs/helpers";
+import { countDatasetEntryTokens } from "../tasks/fineTuning/countDatasetEntryTokens.task";
 
-const datasets = await kysely
+const argv = await yargs(hideBin(process.argv))
+  .option("projectId", {
+    type: "string",
+    description: "The id of the project to migrate",
+    demandOption: true,
+  })
+  .option("skipProjectIds", {
+    type: "string",
+    description: "project ids to skip, separated by commas",
+    default: "",
+  }).argv;
+
+const projectId = argv.projectId;
+const skipProjectIds = argv.skipProjectIds.split(",");
+
+let datasetsQuery = kysely
   .selectFrom("Dataset")
   .where("nodeId", "is", null)
   .selectAll("Dataset")
-  .orderBy("createdAt", "desc")
-  .execute();
+  .orderBy("createdAt", "desc");
+
+if (projectId !== "all") {
+  datasetsQuery = datasetsQuery.where("projectId", "=", projectId);
+}
+
+if (skipProjectIds[0]) {
+  datasetsQuery = datasetsQuery.where("projectId", "not in", skipProjectIds);
+}
+
+const datasets = await datasetsQuery.execute();
 
 console.log("found datasets", datasets.length);
 
@@ -268,6 +295,8 @@ for (let i = 0; i < datasets.length; i++) {
       }
     });
 
+    await countDatasetEntryTokens.enqueue({});
+
     offset += entries.length;
     console.log(`migrated ${offset}/${entriesInDataset} entries`);
   }
@@ -281,3 +310,5 @@ for (let i = 0; i < datasets.length; i++) {
 
   await enqueueProcessNode({ nodeId: archiveCreation.archiveNodeId });
 }
+
+console.log("done");

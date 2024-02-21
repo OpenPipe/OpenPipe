@@ -122,8 +122,6 @@ export const generateEntry = async ({
       .then((ft) => ft && typedFineTune(ft));
   }
 
-  console.log("generating something");
-
   // If the fine-tune was deleted then we don't need to generate a test set
   // entry
   if (!fineTune && !isComparisonModel(modelId)) return;
