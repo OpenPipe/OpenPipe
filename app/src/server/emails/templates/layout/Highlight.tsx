@@ -5,7 +5,7 @@ interface Props {
   style?: CSSProperties;
   children: ReactNode;
 }
-export default function Headlight({ style, children }: Props) {
+export default function Highlight({ style, children }: Props) {
   return <Section style={{ ...style, ...dark }}>{children}</Section>;
 }
 
