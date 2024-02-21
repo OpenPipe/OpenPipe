@@ -35,6 +35,7 @@ export const DeleteDatasetButton = () => {
 
       <DeleteDatasetDialog
         datasetId={dataset.data?.id}
+        datasetName={dataset.data?.name}
         onDelete={onDelete}
         disclosure={disclosure}
       />
