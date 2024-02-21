@@ -15,6 +15,7 @@ declare module "nextjs-routes" {
     | StaticRoute<"/admin/impersonate">
     | StaticRoute<"/admin">
     | StaticRoute<"/admin/jobs">
+    | StaticRoute<"/admin/projects/adminProjectsPaginator">
     | StaticRoute<"/admin/projects/adminProjectsTable">
     | DynamicRoute<"/api/auth/[...nextauth]", { "nextauth": string[] }>
     | StaticRoute<"/api/experiments/og-image">
