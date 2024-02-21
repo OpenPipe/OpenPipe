@@ -48,68 +48,72 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     case "charge.succeeded":
       invoiceId = event.data.object.metadata.invoiceId;
 
-      await prisma.invoice.update({
-        where: {
-          id: invoiceId,
-        },
-        data: {
-          status: "PAID",
-          paidAt: new Date(),
-        },
-      });
+      if (invoiceId) {
+        await prisma.invoice.update({
+          where: {
+            id: invoiceId,
+          },
+          data: {
+            status: "PAID",
+            paidAt: new Date(),
+          },
+        });
 
-      await sendPaymentNotification(invoiceId, "SUCCESS");
-
+        await sendPaymentNotification(invoiceId, "SUCCESS");
+      }
       break;
 
     case "charge.failed":
       invoiceId = event.data.object.metadata.invoiceId;
 
-      await prisma.invoice.update({
-        where: {
-          id: invoiceId,
-        },
-        data: {
-          status: "UNPAID",
-          paidAt: null,
-        },
-      });
+      if (invoiceId) {
+        await prisma.invoice.update({
+          where: {
+            id: invoiceId,
+          },
+          data: {
+            status: "UNPAID",
+            paidAt: null,
+          },
+        });
 
-      await sendPaymentNotification(invoiceId, "FAILURE");
-
+        await sendPaymentNotification(invoiceId, "FAILURE");
+      }
       break;
 
     case "charge.expired":
       invoiceId = event.data.object.metadata.invoiceId;
 
-      await prisma.invoice.update({
-        where: {
-          id: invoiceId,
-        },
-        data: {
-          status: "UNPAID",
-          paidAt: null,
-        },
-      });
+      if (invoiceId) {
+        await prisma.invoice.update({
+          where: {
+            id: invoiceId,
+          },
+          data: {
+            status: "UNPAID",
+            paidAt: null,
+          },
+        });
 
-      await sendPaymentNotification(invoiceId, "FAILURE");
-
+        await sendPaymentNotification(invoiceId, "FAILURE");
+      }
       break;
     case "payment_intent.succeeded":
       invoiceId = event.data.object.metadata.invoiceId;
 
-      await prisma.invoice.update({
-        where: {
-          id: invoiceId,
-        },
-        data: {
-          status: "PAID",
-          paidAt: new Date(),
-        },
-      });
+      if (invoiceId) {
+        await prisma.invoice.update({
+          where: {
+            id: invoiceId,
+          },
+          data: {
+            status: "PAID",
+            paidAt: new Date(),
+          },
+        });
 
-      await sendPaymentNotification(invoiceId, "SUCCESS");
-
+        await sendPaymentNotification(invoiceId, "SUCCESS");
+      }
       break;
   }
 
