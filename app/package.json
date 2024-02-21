@@ -115,7 +115,7 @@
     "rxjs": "^7.8.1",
     "stream-buffers": "^3.0.2",
     "stripe": "^14.13.0",
-    "superjson": "1.12.2",
+    "superjson": "1.13.3",
     "trpc-openapi": "github:OpenPipe/trpc-openapi#extended-trpc-build",
     "tsx": "^3.12.7",
     "type-fest": "^4.0.0",
