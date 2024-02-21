@@ -1585,7 +1585,7 @@
     "/unstable/dataset-entry/create": {
       "post": {
         "operationId": "unstableDatasetEntryCreate",
-        "description": "Create a new dataset entry. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
+        "description": "Add new dataset entries. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
         "security": [
           {
             "Authorization": []
@@ -2102,7 +2102,7 @@
     "/unstable/finetune/create": {
       "post": {
         "operationId": "unstableFinetuneCreate",
-        "description": "Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
+        "description": "Create a new finetune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
         "security": [
           {
             "Authorization": []
@@ -2184,7 +2184,7 @@
     "/unstable/finetune/get": {
       "get": {
         "operationId": "unstableFinetuneGet",
-        "description": "Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
+        "description": "Get a finetune by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
         "security": [
           {
             "Authorization": []

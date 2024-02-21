@@ -11,7 +11,7 @@ export const unstableFinetuneGet = openApiProtectedProc
       method: "GET",
       path: "/unstable/finetune/get",
       description:
-        "Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
+        "Get a finetune by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
       protect: true,
     },
   })

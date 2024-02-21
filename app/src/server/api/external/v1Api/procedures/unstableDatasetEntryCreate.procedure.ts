@@ -18,7 +18,7 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
       method: "POST",
       path: "/unstable/dataset-entry/create",
       description:
-        "Create a new dataset entry. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
+        "Add new dataset entries. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
       protect: true,
     },
   })

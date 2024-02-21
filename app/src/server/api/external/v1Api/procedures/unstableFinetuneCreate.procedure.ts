@@ -12,7 +12,7 @@ export const unstableFinetuneCreate = openApiProtectedProc
       method: "POST",
       path: "/unstable/finetune/create",
       description:
-        "Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
+        "Create a new finetune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.",
       protect: true,
     },
   })

@@ -360,7 +360,7 @@ export class DefaultService {
         });
     }
     /**
-     * Create a new dataset entry. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+     * Add new dataset entries. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
      * @param requestBody
      * @returns any Successful response
      * @throws ApiError
@@ -451,7 +451,7 @@ export class DefaultService {
         });
     }
     /**
-     * Create a new fine tune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+     * Create a new finetune. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
      * @param requestBody
      * @returns any Successful response
      * @throws ApiError
@@ -473,7 +473,7 @@ export class DefaultService {
         });
     }
     /**
-     * Get a fine tune object by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
+     * Get a finetune by ID. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
      * @param fineTuneId
      * @returns any Successful response
      * @throws ApiError
