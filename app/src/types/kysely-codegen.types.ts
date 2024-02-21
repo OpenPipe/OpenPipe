@@ -432,6 +432,7 @@ export interface Node {
   creatorId: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  stale: Generated<boolean>;
 }
 
 export interface NodeEntry {

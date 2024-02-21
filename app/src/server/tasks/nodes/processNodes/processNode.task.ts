@@ -23,7 +23,6 @@ import { printNodeEntries } from "~/server/utils/nodes/utils";
 
 export type ProcessNodeJob = {
   nodeId: string;
-  invalidateData?: boolean;
 };
 
 export const processNode = defineTask<ProcessNodeJob>({
@@ -31,10 +30,8 @@ export const processNode = defineTask<ProcessNodeJob>({
   handler: async (task) => {
     console.log(task);
 
-    const { nodeId, invalidateData } = task;
-    if (invalidateData) {
-      await invalidateNodeEntries(nodeId);
-    }
+    const { nodeId } = task;
+
     const node = await prisma.node
       .findUnique({
         where: { id: nodeId },
@@ -42,6 +39,14 @@ export const processNode = defineTask<ProcessNodeJob>({
       .then((n) => (n ? typedNode(n) : null));
 
     if (!node) return;
+
+    if (node.stale) {
+      await invalidateNodeEntries(nodeId);
+      await prisma.node.update({
+        where: { id: nodeId },
+        data: { stale: false },
+      });
+    }
 
     const nodeProperties = processNodeProperties[node.type];
 
@@ -194,7 +199,16 @@ export const processNode = defineTask<ProcessNodeJob>({
   },
 });
 
-export const enqueueProcessNode = async (job: ProcessNodeJob, spec?: TaskSpec) => {
+export const enqueueProcessNode = async (
+  job: ProcessNodeJob & { invalidateData?: boolean },
+  spec?: TaskSpec,
+) => {
+  if (job.invalidateData) {
+    await prisma.node.update({
+      where: { id: job.nodeId },
+      data: { stale: true },
+    });
+  }
   await processNode.enqueue(job, { ...spec, queueName: job.nodeId });
 };
 

@@ -880,6 +880,7 @@ model Node {
     name   String
     config Json
     hash   String
+    stale  Boolean  @default(false)
 
     nodeEntries            NodeEntry[]
     inputDataChannels      DataChannel[]
