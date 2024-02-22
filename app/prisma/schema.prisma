@@ -16,7 +16,6 @@ enum DatasetFileUploadStatus {
     PROCESSING
     SAVING
     COMPLETE
-    PROCESSED
     ERROR
 }
 
@@ -504,6 +503,7 @@ model FineTuneTrainingEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([datasetEntryId, fineTuneId])
+    @@index([datasetEntryId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
     @@index([fineTuneId])
 }
@@ -633,8 +633,8 @@ model DatasetEvalDatasetEntry {
     datasetEvalId String      @db.Uuid
     datasetEval   DatasetEval @relation(fields: [datasetEvalId], references: [id], onDelete: Cascade)
 
-    datasetEntryId String?       @db.Uuid
-    datasetEntry   DatasetEntry? @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
+    datasetEntryId String       @db.Uuid
+    datasetEntry   DatasetEntry @relation(fields: [datasetEntryId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
