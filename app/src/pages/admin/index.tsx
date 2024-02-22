@@ -1,22 +1,20 @@
-import { Box, Card, HStack, Image, Table, Tbody, Td, Text, Tooltip, Tr } from "@chakra-ui/react";
-import { Project, ProjectUser } from "@prisma/client";
-import dayjs from "dayjs";
-import { useRouter } from "next/router";
-import AsyncSelect from "react-select/async";
-
+import { Text, VStack } from "@chakra-ui/react";
 import AppShell from "~/components/nav/AppShell";
-import { type RouterOutputs, api } from "~/utils/api";
-import { useHandledAsyncCallback } from "~/utils/hooks";
-import AdminProjects from "./projects/adminProjectsTable";
-import AdminProjectsPaginator from "./projects/adminProjectsPaginator";
+import AdminProjectsTable from "~/components/admin/Projects/adminProjectsTable";
+import { useAccessCheck } from "~/components/ConditionallyEnable";
 
 export default function AdminDashboard() {
+  const isAdmin = useAccessCheck("requireIsAdmin").access;
+  if (!isAdmin) return null;
+
   return (
-    <AppShell title="Admin Impersonate">
-      <Card m={5} p={4}>
-        <AdminProjects />
-        <AdminProjectsPaginator />
-      </Card>
+    <AppShell title="Admin Dashboard">
+      <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
+        <Text fontSize="2xl" fontWeight="bold">
+          All projects
+        </Text>
+        <AdminProjectsTable />
+      </VStack>
     </AppShell>
   );
 }

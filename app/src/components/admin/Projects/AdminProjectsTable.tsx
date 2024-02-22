@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Card,
   Collapse,
   HStack,
@@ -20,38 +21,47 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { BiLogIn } from "react-icons/bi";
-import { BsPersonCircle } from "react-icons/bs";
+import { BiLogInCircle } from "react-icons/bi";
+import { AddCredits } from "~/components/admin/Actions/AddCredits";
 import { SortArrows, useSortOrder } from "~/components/sorting";
 import { type RouterOutputs, api, RouterInputs } from "~/utils/api";
 import { useAdminProjects, useHandledAsyncCallback, useSearchQuery } from "~/utils/hooks";
+import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
+import AdminProjectsPaginator from "./adminProjectsPaginator";
 
-export default function adminProjectsTable() {
+type SortableField = NonNullable<RouterInputs["adminProjects"]["list"]["sortOrder"]>["field"];
+
+const SortableHeader = ({
+  title,
+  field,
+  isNumeric,
+}: {
+  title: string;
+  field: SortableField;
+  isNumeric?: boolean;
+}) => {
+  const sortOrder = useSortOrder<SortableField>();
+  return (
+    <Th onClick={() => sortOrder.toggle(field)} cursor="pointer">
+      <HStack justify={isNumeric ? "end" : undefined}>
+        <Text>{title}</Text> <SortArrows<SortableField> field={field} />
+      </HStack>
+    </Th>
+  );
+};
+
+export default function AdminProjectsTable() {
   const { setSearchQueryParam } = useSearchQuery();
-
   const projects = useAdminProjects().data;
-  type SortableField = NonNullable<RouterInputs["adminProjects"]["list"]["sortOrder"]>["field"];
-
-  const SortableHeader = (props: { title: string; field: SortableField; isNumeric?: boolean }) => {
-    const sortOrder = useSortOrder<SortableField>();
-
-    return (
-      <Th onClick={() => sortOrder.toggle(props.field)} cursor="pointer">
-        <HStack justify={props.isNumeric ? "end" : undefined}>
-          <Text>{props.title}</Text> <SortArrows<SortableField> field={props.field} />
-        </HStack>
-      </Th>
-    );
-  };
 
   return (
-    <>
+    <Card p={4} w="100%">
       <Input
         placeholder="Search by project: name, slug | user: name, email | model: slug | baseModel"
         onChange={(e) => setSearchQueryParam({ search: e.target.value })}
       />
 
-      <Table>
+      <Table w="100%">
         <Thead>
           <Tr>
             <SortableHeader title="Name" field="name" />
@@ -68,14 +78,11 @@ export default function adminProjectsTable() {
         </Thead>
         <Tbody>
           {projects?.length &&
-            projects?.map((project) => (
-              <>
-                <TableRow project={project} />
-              </>
-            ))}
+            projects.map((project) => <TableRow key={project.id} project={project} />)}
         </Tbody>
       </Table>
-    </>
+      <AdminProjectsPaginator />
+    </Card>
   );
 }
 
@@ -85,10 +92,7 @@ const TableRow = ({ project }: { project: RouterOutputs["adminProjects"]["list"]
   return (
     <>
       <Tr
-        onClick={() =>
-          project.id === expandedRow ? setExpandedRow(null) : setExpandedRow(project.id)
-        }
-        key={project.id}
+        onClick={() => setExpandedRow(project.id === expandedRow ? null : project.id)}
         _hover={{ td: { bgColor: "gray.50", cursor: "pointer" } }}
         transition="background-color 1.2s"
         fontSize="sm"
@@ -101,7 +105,7 @@ const TableRow = ({ project }: { project: RouterOutputs["adminProjects"]["list"]
                 query: { projectSlug: project.slug },
               }}
             >
-              {project.name}
+              <Button variant="ghost">{project.name}</Button>
             </Link>
           </Text>
         </Td>
@@ -113,7 +117,7 @@ const TableRow = ({ project }: { project: RouterOutputs["adminProjects"]["list"]
         <Td>{project.slug}</Td>
         <Td>
           {project.projectUsers.map((user) => (
-            <Text>
+            <Text key={user.email}>
               {user.name} ({user.email})
             </Text>
           ))}
@@ -122,7 +126,7 @@ const TableRow = ({ project }: { project: RouterOutputs["adminProjects"]["list"]
         <Td isNumeric>
           {project.lastUsageLog[0]?.usageLogCreatedAt
             ? dayjs(project.lastUsageLog[0]?.usageLogCreatedAt).format("DD MMM YYYY")
-            : "None"}
+            : "-"}
         </Td>
       </Tr>
       <ExtendableArea expandedRow={expandedRow} project={project} />
@@ -130,15 +134,14 @@ const TableRow = ({ project }: { project: RouterOutputs["adminProjects"]["list"]
   );
 };
 
-const ExtendableArea = ({
-  expandedRow,
-  project,
-}: {
+interface ExtendableAreaProps {
   expandedRow: string | null;
   project: RouterOutputs["adminProjects"]["list"][0];
-}) => {
-  const impersonateMutation = api.adminUsers.impersonate.useMutation();
+}
 
+const ExtendableArea: React.FC<ExtendableAreaProps> = ({ expandedRow, project }) => {
+  const copyToClipboard = useCopyToClipboard();
+  const impersonateMutation = api.adminUsers.impersonate.useMutation();
   const router = useRouter();
 
   const [impersonate] = useHandledAsyncCallback(
@@ -154,16 +157,30 @@ const ExtendableArea = ({
       <Td colSpan={6} w="full" maxW="full" p={0}>
         <Collapse in={expandedRow === project.id} unmountOnExit={true}>
           <HStack px={6} pt={2} pb={4} spacing={4}>
-            <Text size="sm">Project ID: {project.id}</Text>
+            <Text as="b">ID:</Text>
+            <Text cursor="pointer" size="sm" onClick={() => copyToClipboard(project.id)}>
+              {project.id}
+            </Text>
+            <Text size="sm">
+              <strong>Credits:</strong> ${Number(project.credits ?? 0).toFixed(2)}
+            </Text>
+            <AddCredits projectId={project.id}>
+              <Button variant="ghost" colorScheme="orange" minW={24}>
+                Add credits
+              </Button>
+            </AddCredits>
           </HStack>
+
           <HStack align="stretch" px={6} pt={2} pb={4} spacing={4}>
             <VStack flex={1} align="stretch">
               <Heading size="sm">Users:</Heading>
               <Card p={3} mr={2} borderColor="orange.200" backgroundColor="orange.50">
                 {project.projectUsers.map((user) => (
-                  <HStack>
+                  <HStack key={user.email}>
                     <Text as="b">{user.name}</Text>
-                    <Text>({user.email})</Text>
+                    <Text cursor="pointer" onClick={() => copyToClipboard(user.email!)}>
+                      ({user.email})
+                    </Text>
                     <Text>{user.role}</Text>
                     {user.image && (
                       <Image
@@ -173,21 +190,25 @@ const ExtendableArea = ({
                         borderRadius="50%"
                       />
                     )}
-                    <Icon as={BiLogIn} boxSize={6} />
+                    <Button variant="ghost" onClick={() => impersonate(user.id!)}>
+                      <Icon as={BiLogInCircle} boxSize={6} onClick={() => impersonate(user.id!)} />
+                    </Button>
                   </HStack>
                 ))}
               </Card>
-            </VStack>
-            <VStack flex={1} align="stretch">
-              <Heading size="sm">Models:</Heading>
-              <Card p={3} mr={2} borderColor="orange.200" backgroundColor="orange.50">
-                {project.fineTunes.map((fineTune) => (
-                  <HStack>
-                    <Text as="b">openpipe:{fineTune.slug}</Text>
-                    <Text>({fineTune.baseModel})</Text>
-                  </HStack>
-                ))}
-              </Card>
+              {project.fineTunes.length > 0 && (
+                <>
+                  <Heading size="sm">Models:</Heading>
+                  <Card p={3} mr={2} borderColor="orange.200" backgroundColor="orange.50">
+                    {project.fineTunes.map((fineTune) => (
+                      <HStack key={fineTune.slug}>
+                        <Text as="b">openpipe:{fineTune.slug}</Text>
+                        <Text>({fineTune.baseModel})</Text>
+                      </HStack>
+                    ))}
+                  </Card>
+                </>
+              )}
             </VStack>
           </HStack>
         </Collapse>

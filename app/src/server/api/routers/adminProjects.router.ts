@@ -39,6 +39,9 @@ export const adminProjectsRouter = createTRPCRouter({
           sql<number>`(SELECT COUNT(DISTINCT ft.id) FROM "FineTune" as ft WHERE ft."projectId" = p.id)`.as(
             `fineTunesCount`,
           ),
+          sql<number>`(SELECT SUM(ca.amount) FROM "CreditAdjustment" as ca WHERE ca."projectId" = p.id)`.as(
+            "credits",
+          ),
           jsonArrayFrom(
             eb
               .selectFrom("FineTune as ft")
@@ -50,7 +53,7 @@ export const adminProjectsRouter = createTRPCRouter({
             eb
               .selectFrom("ProjectUser as pu")
               .leftJoin("User as u", "u.id", "pu.userId")
-              .select(["u.id as userId", "u.name", "u.email", "u.image", "u.role"])
+              .select(["u.id", "u.name", "u.email", "u.image", "pu.role"])
               .whereRef("pu.projectId", "=", "p.id")
               .orderBy("u.id"),
           ).as("projectUsers"),
