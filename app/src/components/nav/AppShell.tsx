@@ -20,20 +20,21 @@ import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
 import { FaBalanceScale, FaReadme } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
-// import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
+import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import { signIn, useSession } from "next-auth/react";
 
 import ProjectMenu from "./ProjectMenu";
 import NavSidebarOption from "./NavSidebarOption";
 import IconLink from "./IconLink";
 import { BetaModal } from "../BetaModal";
-import { useIsMissingBetaAccess } from "~/utils/hooks";
+import { useIsMissingBetaAccess, useSelectedProject } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 
 const Divider = (props: BoxProps) => <Box h="1px" bgColor="gray.300" w="full" {...props} />;
 
 const NavSidebar = () => {
   const user = useSession().data;
+  const project = useSelectedProject().data;
 
   const sidebarExpanded = useAppStore((state) => state.sidebarExpanded);
   const setSidebarExpanded = useAppStore((state) => state.setSidebarExpanded);
@@ -87,7 +88,9 @@ const NavSidebar = () => {
               </Text>
               <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
               <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
-              {/* <IconLink icon={LiaFileInvoiceDollarSolid} label="Billing" href="/billing" /> */}
+              {project?.billable && (
+                <IconLink icon={LiaFileInvoiceDollarSolid} label="Billing" href="/billing" />
+              )}
               <IconButton
                 variant="ghost"
                 size="sm"
