@@ -1,9 +1,8 @@
 import { kysely, prisma } from "~/server/db";
-import { DatasetOutput, typedNode } from "~/server/utils/nodes/node.types";
+import { DatasetOutput, typedNode, type NodeProperties } from "~/server/utils/nodes/node.types";
 import { forwardNodeEntries } from "./forwardNodeEntries";
 import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
-import { type NodeProperties } from "./processNode.task";
 
 export const datasetProperties: NodeProperties = {
   afterAll: async (node) => {

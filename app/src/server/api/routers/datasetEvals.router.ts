@@ -242,7 +242,7 @@ export const datasetEvalsRouter = createTRPCRouter({
                 modelId,
               })),
             },
-            datasetEvalNodeEntry: {
+            datasetEvalNodeEntries: {
               create: shuffledNodeEntries.map((nodeEntry) => ({
                 nodeEntryPersistentId: nodeEntry.persistentId,
               })),
@@ -250,7 +250,7 @@ export const datasetEvalsRouter = createTRPCRouter({
           },
           include: {
             datasetEvalOutputSources: true,
-            datasetEvalNodeEntry: true,
+            datasetEvalNodeEntries: true,
           },
         });
 

@@ -1,5 +1,4 @@
-import { FilterOutput } from "~/server/utils/nodes/node.types";
-import { type NodeProperties } from "./processNode.task";
+import { FilterOutput, type NodeProperties } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
 

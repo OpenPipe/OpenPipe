@@ -2,14 +2,13 @@ import { sql } from "kysely";
 
 import { kysely, prisma } from "~/server/db";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
-import { MonitorOutput } from "~/server/utils/nodes/node.types";
+import { MonitorOutput, type NodeProperties } from "~/server/utils/nodes/node.types";
 import dayjs from "~/utils/dayjs";
 import { typedLoggedCall } from "~/types/dbColumns.types";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { truthyFilter } from "~/utils/utils";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { generatePersistentId } from "~/server/utils/nodes/utils";
-import { type NodeProperties } from "./processNode.task";
 
 export const monitorProperties: NodeProperties = {
   beforeAll: async (node) => {

@@ -1,4 +1,4 @@
-import type { Node, NodeType } from "@prisma/client";
+import type { NodeType } from "@prisma/client";
 import type { TaskSpec } from "graphile-worker";
 import type { ChatCompletionMessage } from "openai/resources";
 import { from, lastValueFrom } from "rxjs";
@@ -12,11 +12,9 @@ import { archiveProperties } from "./processArchive";
 import { datasetProperties } from "./processDataset";
 import { enqueueDescendants } from "./enqueueDescendants";
 import { manualRelabelProperties } from "./processManualRelabel";
-import { NodeProperties, typedNode, typedNodeEntry } from "~/server/utils/nodes/node.types";
-import type { NodeEntry } from "~/types/kysely-codegen.types";
+import { type NodeProperties, typedNode, typedNodeEntry } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
-import { type AtLeastOne } from "~/types/shared.types";
-import { type ForwardEntriesSelectionExpression, forwardNodeEntries } from "./forwardNodeEntries";
+import { forwardNodeEntries } from "./forwardNodeEntries";
 import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
 import { updateCached } from "./updateCached";
 

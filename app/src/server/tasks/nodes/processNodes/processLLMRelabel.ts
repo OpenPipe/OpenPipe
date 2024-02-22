@@ -2,9 +2,13 @@ import { NodeEntryStatus } from "@prisma/client";
 import { APIError } from "openai";
 
 import { prisma } from "~/server/db";
-import { LLMRelabelOutput, RelabelOption } from "~/server/utils/nodes/node.types";
+import {
+  LLMRelabelOutput,
+  RelabelOption,
+  type NodeProperties,
+} from "~/server/utils/nodes/node.types";
 import { getOpenaiCompletion } from "~/server/utils/openai";
-import { type NodeProperties } from "~/server/tasks/nodes/processNodes/processNode.task";
+
 export const llmRelabelProperties: NodeProperties = {
   cacheMatchFields: ["incomingInputHash"],
   cacheWriteFields: ["outgoingOutputHash"],

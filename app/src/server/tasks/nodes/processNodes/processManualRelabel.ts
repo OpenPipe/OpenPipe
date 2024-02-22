@@ -2,9 +2,12 @@ import { sql } from "kysely";
 import { type DatasetEntrySplit } from "@prisma/client";
 
 import { kysely, prisma } from "~/server/db";
-import { ManualRelabelOutput, typedNode } from "~/server/utils/nodes/node.types";
+import {
+  ManualRelabelOutput,
+  typedNode,
+  type NodeProperties,
+} from "~/server/utils/nodes/node.types";
 import { forwardNodeEntries } from "./forwardNodeEntries";
-import { type NodeProperties } from "./processNode.task";
 
 export const manualRelabelProperties: NodeProperties = {
   cacheMatchFields: ["nodeEntryPersistentId", "incomingInputHash"],
