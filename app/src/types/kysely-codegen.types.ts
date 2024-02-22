@@ -172,7 +172,7 @@ export interface DatasetEval {
 export interface DatasetEvalDatasetEntry {
   id: string;
   datasetEvalId: string;
-  datasetEntryId: string | null;
+  datasetEntryId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
 }
@@ -216,9 +216,7 @@ export interface DatasetFileUpload {
   fileName: string;
   fileSize: number;
   progress: Generated<number>;
-  status: Generated<
-    "COMPLETE" | "DOWNLOADING" | "ERROR" | "PENDING" | "PROCESSED" | "PROCESSING" | "SAVING"
-  >;
+  status: Generated<"COMPLETE" | "DOWNLOADING" | "ERROR" | "PENDING" | "PROCESSING" | "SAVING">;
   uploadedAt: Timestamp;
   visible: Generated<boolean>;
   errorMessage: string | null;
