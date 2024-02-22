@@ -27,4 +27,3 @@ DROP TYPE "InvoiceStatus_old";
 COMMIT;
 -- Set the default value for the status column
 ALTER TABLE "Invoice" ALTER COLUMN "status" SET DEFAULT 'UNPAID';
-
