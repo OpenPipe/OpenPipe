@@ -62,6 +62,11 @@ export const env = createEnv({
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
     AWS_ACCESS_KEY_ID: z.string().optional(),
     AWS_SECRET_ACCESS_KEY: z.string().optional(),
+    AUTH0_SECRET: z.string().default("placeholder"),
+    AUTH0_BASE_URL: z.string().default("placeholder"),
+    AUTH0_ISSUER_BASE_URL: z.string().default("placeholder"),
+    AUTH0_CLIENT_ID: z.string().default("placeholder"),
+    AUTH0_CLIENT_SECRET: z.string().default("placeholder"),
   },
 
   /**
@@ -127,6 +132,11 @@ export const env = createEnv({
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AUTH0_SECRET: process.env.AUTH0_SECRET,
+    AUTH0_BASE_URL: process.env.AUTH0_BASE_URL,
+    AUTH0_ISSUER_BASE_URL: process.env.AUTH0_ISSUER_BASE_URL,
+    AUTH0_CLIENT_ID: process.env.AUTH0_CLIENT_ID,
+    AUTH0_CLIENT_SECRET: process.env.AUTH0_CLIENT_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

@@ -11,7 +11,11 @@ export default function SignIn() {
     if (session) {
       router.push("/").catch(console.error);
     } else if (session === null) {
-      signIn("github").catch(console.error);
+      if (process.env.NODE_ENV === "development") {
+        signIn("auth0").catch(console.error);
+      } else {
+        signIn("github").catch(console.error);
+      }
     }
   }, [session, router]);
 

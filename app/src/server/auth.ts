@@ -8,6 +8,7 @@ import {
 } from "next-auth";
 import * as Sentry from "@sentry/nextjs";
 import GitHubModule, { type GithubProfile } from "next-auth/providers/github";
+import Auth0Provider from "next-auth/providers/auth0";
 
 import { prisma } from "~/server/db";
 import { env } from "~/env.mjs";
@@ -55,7 +56,7 @@ export const authOptions: NextAuthOptions = {
   events: {
     signIn({ user, profile, isNewUser }) {
       Sentry.setUser({ id: user.id });
-      if (isNewUser) {
+      if (isNewUser && env.NODE_ENV !== "development") {
         captureSignup(user, (profile as Profile & { gitHubUsername: string }).gitHubUsername);
       }
     },
@@ -75,6 +76,19 @@ export const authOptions: NextAuthOptions = {
           email: profile.email,
           image: profile.avatar_url,
           gitHubUsername: profile.login,
+        };
+      },
+    }),
+    Auth0Provider({
+      clientId: env.AUTH0_CLIENT_ID,
+      clientSecret: env.AUTH0_CLIENT_SECRET,
+      issuer: env.AUTH0_ISSUER_BASE_URL,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
         };
       },
     }),
