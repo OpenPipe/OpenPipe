@@ -428,11 +428,11 @@ export interface Node {
   name: string;
   config: Json;
   hash: string;
+  stale: Generated<boolean>;
   projectId: string;
   creatorId: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  stale: Generated<boolean>;
 }
 
 export interface NodeEntry {
@@ -502,6 +502,13 @@ export interface PruningRuleMatch {
 export interface PruningRulesChecked {
   nodeHash: string;
   incomingInputHash: string;
+}
+
+export interface RateLimit {
+  key: string;
+  tokens: number;
+  allowed: boolean;
+  lastUpdated: Timestamp;
 }
 
 export interface RelabelRequest {
@@ -609,6 +616,7 @@ export interface DB {
   PruningRule: PruningRule;
   PruningRuleMatch: PruningRuleMatch;
   PruningRulesChecked: PruningRulesChecked;
+  RateLimit: RateLimit;
   RelabelRequest: RelabelRequest;
   Session: Session;
   UsageLog: UsageLog;
