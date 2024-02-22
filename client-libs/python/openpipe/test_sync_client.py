@@ -12,7 +12,7 @@ from .test_config import TEST_LAST_LOGGED
 load_dotenv()
 
 base_client = BaseOpenAI(
-    base_url="http://localhost:3000/api/v1", api_key=os.environ["OPENPIPE_API_KEY"]
+    base_url=os.environ["OPENPIPE_BASE_URL"], api_key=os.environ["OPENPIPE_API_KEY"]
 )
 client = OpenAI()
 
