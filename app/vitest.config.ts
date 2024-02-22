@@ -8,7 +8,7 @@ const config = defineConfig({
     globalSetup: ["./src/tests/helpers/globalSetup.ts"],
 
     // Unfortunately using threads seems to cause issues with isolated-vm
-    threads: false,
+    // threads: false,
   },
   plugins: [tsconfigPaths()],
 }) as UserConfig;

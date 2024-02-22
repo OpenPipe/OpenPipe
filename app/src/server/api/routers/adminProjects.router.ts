@@ -15,7 +15,7 @@ export const adminProjectsRouter = createTRPCRouter({
         searchQuery: z.string().optional(),
         sortOrder: z
           .object({
-            field: z.enum(["createdAt", "name", "fineTunesCount"]),
+            field: z.enum(["createdAt", "name", "slug", "fineTunesCount"]),
             order: z.enum(["asc", "desc"]),
           })
           .optional(),
@@ -50,7 +50,7 @@ export const adminProjectsRouter = createTRPCRouter({
             eb
               .selectFrom("ProjectUser as pu")
               .leftJoin("User as u", "u.id", "pu.userId")
-              .select(["u.id as userId", "u.name", "u.email"])
+              .select(["u.id as userId", "u.name", "u.email", "u.image", "u.role"])
               .whereRef("pu.projectId", "=", "p.id")
               .orderBy("u.id"),
           ).as("projectUsers"),

@@ -14,29 +14,6 @@ export const capturePath = (session: Session, path: string) => {
   posthogServerClient?.capture({ distinctId: session.user.id, event: path });
 };
 
-export const captureFineTuneCreation = (
-  session: Session,
-  projectId: string,
-  projectSlug: string,
-  datasetId: string,
-  slug: string,
-  modelId: string,
-  baseModel: string,
-) => {
-  posthogServerClient?.capture({
-    distinctId: session.user.id,
-    event: "fine-tune-created",
-    properties: {
-      projectId,
-      projectSlug,
-      datasetId,
-      slug,
-      modelId,
-      baseModel,
-    },
-  });
-};
-
 export const captureFineTuneTrainingFinished = (
   projectId: string,
   slug: string,

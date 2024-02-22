@@ -723,3 +723,11 @@ model ExportWeightsRequest {
 
     createdAt DateTime @default(now())
 }
+
+model RateLimit {
+    key         String   @id
+    tokens      Int
+    // Whether the current request is allowed. Has to be a separate variable to track state.
+    allowed     Boolean
+    lastUpdated DateTime @db.Timestamptz
+}

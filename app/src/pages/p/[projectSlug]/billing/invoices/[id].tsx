@@ -45,7 +45,7 @@ export default function Invoice() {
 
   if (!query.isLoading && !invoice) {
     return (
-      <AppShell title="Invoice not found">
+      <AppShell title="Invoice not found" requireAuth>
         <Center h="100%">
           <Text>Invoice not found 😕</Text>
         </Center>
@@ -54,7 +54,11 @@ export default function Invoice() {
   }
 
   if (!invoice) {
-    return null;
+    return (
+      <AppShell title="Billing" requireAuth>
+        <></>
+      </AppShell>
+    );
   }
 
   return (

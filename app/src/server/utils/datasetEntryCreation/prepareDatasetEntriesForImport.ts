@@ -16,7 +16,7 @@ export const prepareDatasetEntriesForImport = async (
   entriesToImport: RowToImport[],
   provenance: DatasetEntryProvenance,
   importId: string,
-  authoringUserId: string,
+  authoringUserId: string | null,
 ): Promise<(Prisma.DatasetEntryCreateManyInput & { id: string })[]> => {
   const [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
     prisma.dataset.findUnique({ where: { id: datasetId } }),

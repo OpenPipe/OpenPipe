@@ -3,7 +3,7 @@ import cors from "nextjs-cors";
 import { createOpenApiNextHandler } from "trpc-openapi";
 import * as Sentry from "@sentry/nextjs";
 
-import { v1ApiRouter } from "~/server/api/external/v1Api.router";
+import { v1ApiRouter } from "~/server/api/external/v1Api/router";
 import { createOpenApiContext } from "~/server/api/external/openApiTrpc";
 
 const openApiHandler = createOpenApiNextHandler({

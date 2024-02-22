@@ -368,7 +368,7 @@ Controls the magnitude of updates to the model's parameters during training."
                       </NumberInput>
                       <HStack>
                         <Text fontWeight="bold">Number of Epochs</Text>{" "}
-                        <InfoCircle tooltipText="The total number of times the entire dataset is passed forward and backward through a neural network during training." />
+                        <InfoCircle tooltipText="The number of times the model sees each example during training." />
                       </HStack>
 
                       <NumberInput

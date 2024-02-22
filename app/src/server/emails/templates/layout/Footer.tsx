@@ -3,8 +3,8 @@ import React from "react";
 
 export default function Footer() {
   return (
-    <Section>
-      <Row>
+    <Section style={{ minWidth: "100%" }}>
+      <Row style={{ minWidth: "100%" }}>
         <Text style={footer}>
           Sincerely, <br />
           The OpenPipe Team
