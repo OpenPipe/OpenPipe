@@ -6,6 +6,7 @@ import type {
   ChatCompletionMessage,
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
+import { RateLimitError } from "openai";
 
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { kysely, prisma } from "~/server/db";
@@ -21,6 +22,7 @@ import defineTask from "./defineTask";
 import { hashAndSaveDatasetEntryOutput } from "../utils/nodes/hashNode";
 import { typedNodeEntry } from "../utils/nodes/node.types";
 import { chatCompletionMessage } from "~/types/shared.types";
+import { fireworksTestSetLimit } from "~/utils/rateLimits";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
@@ -181,6 +183,17 @@ export const generateEntry = async ({
     if (isComparisonModel(modelId)) {
       completion = await getOpenaiCompletion(tNodeEntry.projectId, input);
     } else if (fineTune) {
+      if (
+        fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1" &&
+        !(await fireworksTestSetLimit())
+      ) {
+        throw new RateLimitError(
+          429,
+          { error: "Completion rate limit exceeded" },
+          "Completion rate limit exceeded",
+          {},
+        );
+      }
       completion = await getCompletion(fineTune, input);
     } else {
       await prisma.newFineTuneTestingEntry.updateMany({
@@ -237,14 +250,31 @@ export const generateEntry = async ({
       fineTuneTestingEntryOutput: completionMessage,
     });
   } catch (e: unknown) {
-    const typedError = e as { message?: string; error?: { message: string } };
-    await prisma.newFineTuneTestingEntry.updateMany({
-      where: { modelId, inputHash: nodeEntry.inputHash },
-      data: {
-        errorMessage:
-          typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
-      },
-    });
+    // const typedError = e as { message?: string; error?: { message: string } };
+    // await prisma.newFineTuneTestingEntry.updateMany({
+    //   where: { modelId, inputHash: nodeEntry.inputHash },
+    //   data: {
+    //     errorMessage:
+    //       typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
+    //   },
+    // });
+    if (e instanceof RateLimitError) {
+      await prisma.newFineTuneTestingEntry.update({
+        where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },
+        data: {
+          errorMessage: "Pending",
+        },
+      });
+    } else {
+      const typedError = e as { message?: string; error?: { message: string } };
+      await prisma.newFineTuneTestingEntry.update({
+        where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },
+        data: {
+          errorMessage:
+            typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
+        },
+      });
+    }
     throw e;
   }
 };

@@ -4,7 +4,7 @@ import React from "react";
 export default function Logo() {
   return (
     <Section>
-      <Img src="https://app.openpipe.ai/email-logo.png" alt="OpenPipe" />
+      <Img width="170px" src="https://app.openpipe.ai/email-logo.png" alt="OpenPipe" />
     </Section>
   );
 }

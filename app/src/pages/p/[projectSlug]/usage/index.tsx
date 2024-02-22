@@ -24,6 +24,8 @@ import {
   TabPanel,
   IconButton,
   Skeleton,
+  useBreakpointValue,
+  Stack,
 } from "@chakra-ui/react";
 import { ChevronRightIcon, ChevronLeftIcon, DollarSign, Hash } from "lucide-react";
 import { StringParam, withDefault, useQueryParams } from "use-query-params";
@@ -88,12 +90,13 @@ export default function Usage() {
   const handlePrevMonthChange = () => {
     updateMonth("subtract");
   };
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   return (
     <AppShell title="Usage" requireAuth>
       <VStack px={8} py={8} alignItems="flex-start">
         <Tabs w="full">
-          <HStack justifyContent="space-between" marginX={0}>
+          <HStack justifyContent="space-between" marginX={0} wrap={isMobile ? "wrap" : "nowrap"}>
             <TabList>
               <Tab>
                 <Heading size="md">Cost</Heading>
@@ -130,8 +133,8 @@ export default function Usage() {
           </HStack>
           <TabPanels>
             <TabPanel paddingX={0}>
-              <HStack gap={4} align="start">
-                <Card flex={1}>
+              <Stack direction={isMobile ? "column" : "row"} gap={4} align="start">
+                <Card flex={1} width="100%">
                   <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
                     <CardBody>
                       <CostGraph startDate={query.start} endDate={query.end} />
@@ -139,7 +142,7 @@ export default function Usage() {
                   </Skeleton>
                 </Card>
 
-                <VStack spacing="4" width="300px" align="stretch">
+                <VStack spacing="4" width={isMobile ? "100%" : "300px"} align="stretch">
                   <Card>
                     <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
                       <CardBody>
@@ -176,7 +179,7 @@ export default function Usage() {
                             <StatLabel flex={1}>Total spend</StatLabel>
                             <Icon as={DollarSign} boxSize={4} color="gray.500" />
                           </HStack>
-                          <StatNumber>${Number(totalSpent.toFixed(2)).toLocaleString()}</StatNumber>
+                          <StatNumber>${Number(totalSpent).toFixed(2).toLocaleString()}</StatNumber>
                         </Stat>
                       </CardBody>
                     </Skeleton>
@@ -191,9 +194,9 @@ export default function Usage() {
                           </HStack>
                           <StatNumber color="gray.600" fontSize={"xl"}>
                             $
-                            {Number(
-                              numberWithDefault(totalInferenceSpend).toFixed(2),
-                            ).toLocaleString()}
+                            {Number(totalInferenceSpend ?? 0)
+                              .toFixed(2)
+                              .toLocaleString()}
                           </StatNumber>
                         </Stat>
                         <Stat>
@@ -203,25 +206,25 @@ export default function Usage() {
                           </HStack>
                           <StatNumber color="gray.600" fontSize={"xl"}>
                             $
-                            {Number(
-                              numberWithDefault(totalTrainingSpend).toFixed(2),
-                            ).toLocaleString()}
+                            {Number(totalTrainingSpend ?? 0)
+                              .toFixed(2)
+                              .toLocaleString()}
                           </StatNumber>
                         </Stat>
                       </CardBody>
                     </Skeleton>
                   </Card>
                 </VStack>
-              </HStack>
+              </Stack>
             </TabPanel>
             <TabPanel paddingX={0}>
-              <HStack gap={4} align="start">
-                <Card flex={1}>
+              <Stack direction={isMobile ? "column" : "row"} gap={4} align="start">
+                <Card flex={1} width="100%">
                   <CardBody>
                     <UsageGraph startDate={query.start} endDate={query.end} />
                   </CardBody>
                 </Card>
-                <VStack spacing="4" width="300px" align="stretch">
+                <VStack spacing="4" width={isMobile ? "100%" : "300px"} align="stretch">
                   <Card>
                     <CardBody>
                       <Stat>
@@ -265,7 +268,7 @@ export default function Usage() {
                     </CardBody>
                   </Card>
                 </VStack>
-              </HStack>
+              </Stack>
             </TabPanel>
           </TabPanels>
         </Tabs>
@@ -274,7 +277,7 @@ export default function Usage() {
           <Heading size="md" mt={4}>
             Models
           </Heading>
-          <Card>
+          <Card width="100%" overflowX="auto">
             <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!stats.isLoading}>
               <Table>
                 <Thead>
@@ -313,10 +316,10 @@ export default function Usage() {
                           {modelInfo(model).name}
                         </Text>
                       </Td>
-                      <Td isNumeric>{numberWithDefault(model.numQueries).toLocaleString()}</Td>
-                      <Td isNumeric>{numberWithDefault(model.inputTokens).toLocaleString()}</Td>
-                      <Td isNumeric>{numberWithDefault(model.outputTokens).toLocaleString()}</Td>
-                      <Td isNumeric>{numberWithDefault(model.cost).toFixed(2)}</Td>
+                      <Td isNumeric>{Number(model.numQueries ?? 0).toLocaleString()}</Td>
+                      <Td isNumeric>{Number(model.inputTokens ?? 0).toLocaleString()}</Td>
+                      <Td isNumeric>{Number(model.outputTokens ?? 0).toLocaleString()}</Td>
+                      <Td isNumeric>{Number(model.cost ?? 0).toFixed(2)}</Td>
                     </Tr>
                   )) ?? <Tr />}
                 </Tbody>

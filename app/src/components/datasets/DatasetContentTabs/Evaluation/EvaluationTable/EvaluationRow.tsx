@@ -255,6 +255,9 @@ const FormattedOutputGridItem = ({
 
 export const FormattedOutput = ({ entry, preferJson }: { entry: FTEntry; preferJson: boolean }) => {
   if (entry.errorMessage) {
+    if (entry.errorMessage === "Pending") {
+      return <Text color="gray.500">Pending</Text>;
+    }
     return <Text color="red.500">{entry.errorMessage}</Text>;
   }
 
