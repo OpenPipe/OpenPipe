@@ -531,7 +531,7 @@ test("base sdk defaults to not recording for fine-tuned models", async () => {
   }
 }, 10000);
 
-test.skip("mistral ft streaming", async () => {
+test("mistral ft streaming", async () => {
   const completion = await baseClient.chat.completions.create({
     model: "openpipe:test-content-mistral-p3",
     messages: [{ role: "system", content: "count to 3" }],

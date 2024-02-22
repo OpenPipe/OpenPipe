@@ -13,7 +13,7 @@ python = "^3.8"
 httpx = "^0.24.1"
 attrs = "^23.1.0"
 python-dateutil = "^2.8.2"
-openai = "~1.7.0"
+openai = ">= 1.7, <= 1.12"
 
 [tool.poetry.dev-dependencies]
 
