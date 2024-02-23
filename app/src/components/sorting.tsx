@@ -1,4 +1,4 @@
-import { Icon, VStack } from "@chakra-ui/react";
+import { HStack, Icon, Th, VStack, Text } from "@chakra-ui/react";
 import { useCallback, useMemo } from "react";
 import { BiSolidDownArrow, BiSolidUpArrow } from "react-icons/bi";
 import { DelimitedArrayParam, useQueryParam } from "use-query-params";
@@ -64,5 +64,21 @@ export const SortArrows = <Fields extends SortableFields>(props: { field: Fields
         strokeWidth={2}
       />
     </VStack>
+  );
+};
+
+export const SortableHeader = <T extends string>(props: {
+  title: string;
+  field: T;
+  isNumeric?: boolean;
+}) => {
+  const sortOrder = useSortOrder<T>();
+
+  return (
+    <Th onClick={() => sortOrder.toggle(props.field)} cursor="pointer">
+      <HStack justify={props.isNumeric ? "end" : undefined}>
+        <Text>{props.title}</Text> <SortArrows<T> field={props.field} />
+      </HStack>
+    </Th>
   );
 };
