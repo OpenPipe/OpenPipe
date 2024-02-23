@@ -5,7 +5,7 @@ config:
     secure: AAABAEkqA8a0Jud/Z2yjQXsRXwvmh54DwFWbDJarnNS3ZlhLpZdFO6pTwCW1EDlpY8nVSooHlmJZSZi5Y8tzwqpudYSt6lYYc8a4
   openpipe:ANYSCALE_INFERENCE_BASE_URL: https://inference-stage-c6qyl.cld-tskg84t9kb3cr8ud.s.anyscaleuserdata.com/v1
   openpipe:AUTHENTICATED_SYSTEM_KEY:
-    secure: AAABAIF/+V67LPOdOL1TJ6vYspfsshXqklCatXW4iwT9xkQiS5iQpIexXPiFAp2tFWwSi8w63gPExslbwltxbg==
+    secure: AAABAPpWXKBTAW3Yu9/cYfEmkfomZvwR5DFQr7LvsUlkfvo3vUP9PDmPwtCB2mLm08cLtXDG1g==
   openpipe:AZURE_OPENAI_API_KEY_AUSTRALIAEAST:
     secure: AAABAJNkPfCB/CmMRgGaHoTh809jrr3UzmTNyGi6oMMveatw0mlSUdWEOCHWF3a3FIU9/fo+UEDX7hAgmJF4jw==
   openpipe:AZURE_OPENAI_API_KEY_CANADAEAST:
