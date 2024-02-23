@@ -54,7 +54,7 @@ model Dataset {
     datasetEvals DatasetEval[]
 
     nodeId String? @db.Uuid
-    node   Node?   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+    node   Node?   @relation(fields: [nodeId], references: [id], onDelete: SetNull)
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

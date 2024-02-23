@@ -1,4 +1,4 @@
-import { Box, Td, Tr, Thead, Th, Tooltip, HStack, Text, Button, Badge } from "@chakra-ui/react";
+import { Box, Td, Tr, Thead, Tooltip, HStack, Text, Button, Badge } from "@chakra-ui/react";
 import { DatasetEntrySplit } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
@@ -12,7 +12,7 @@ import { ProjectLink } from "~/components/ProjectLink";
 type DatasetEntry = RouterOutputs["nodeEntries"]["list"]["entries"][0];
 type SortableField = NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>["field"];
 
-export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColumn: boolean }) => {
+export const TableHeader = () => {
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
 
@@ -20,7 +20,6 @@ export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColu
     <Thead>
       <Tr>
         <SortableHeader<SortableField> title="Updated At" field="createdAt" />
-        {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
         <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />
         <SortableHeader<SortableField> isNumeric title="Split" field="split" />
