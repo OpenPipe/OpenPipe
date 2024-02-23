@@ -116,6 +116,30 @@ export const usePageParams = () => {
   return { page, pageSize, setPageParams };
 };
 
+export const useSearchQuery = () => {
+  const router = useRouter();
+
+  const searchQuery = (router.query.search as string) || "";
+
+  const setSearchQueryParam = (newSearchQuery: { search?: string }) => {
+    const updatedQuery = {
+      ...router.query,
+      ...newSearchQuery,
+    };
+
+    void router.push(
+      {
+        pathname: router.pathname,
+        query: updatedQuery as Query,
+      },
+      undefined,
+      { shallow: true },
+    );
+  };
+
+  return { searchQuery, setSearchQueryParam };
+};
+
 export const useProjectList = api.projects.list.useQuery;
 
 export const useSelectedProject = () => {
@@ -443,3 +467,17 @@ export const usePaymentMethods = (refetchInterval?: number) => {
 
 export const useIsClientInitialized = () =>
   useAppStore((state) => state.isRehydrated && state.isMounted);
+
+export const useAdminProjects = (refetchInterval = 0) => {
+  const { page, pageSize } = usePageParams();
+  const { searchQuery } = useSearchQuery();
+  const sortOrder =
+    useSortOrder<NonNullable<RouterInputs["adminProjects"]["list"]["sortOrder"]>["field"]>().params;
+
+  const result = api.adminProjects.list.useQuery(
+    { page, pageSize, sortOrder, searchQuery },
+    { refetchInterval },
+  );
+
+  return useStableData(result);
+};

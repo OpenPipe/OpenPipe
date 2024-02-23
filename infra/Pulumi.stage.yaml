@@ -5,7 +5,7 @@ config:
     secure: AAABAEkqA8a0Jud/Z2yjQXsRXwvmh54DwFWbDJarnNS3ZlhLpZdFO6pTwCW1EDlpY8nVSooHlmJZSZi5Y8tzwqpudYSt6lYYc8a4
   openpipe:ANYSCALE_INFERENCE_BASE_URL: https://inference-stage-c6qyl.cld-tskg84t9kb3cr8ud.s.anyscaleuserdata.com/v1
   openpipe:AUTHENTICATED_SYSTEM_KEY:
-    secure: AAABAIF/+V67LPOdOL1TJ6vYspfsshXqklCatXW4iwT9xkQiS5iQpIexXPiFAp2tFWwSi8w63gPExslbwltxbg==
+    secure: AAABAFrCdr79QdOkf6u7Z+uCmTyrgig0MxN9hEAgIbxkuQ5wgY2Yion7MmHHq/xKQonZ7hjrEQ==
   openpipe:AZURE_OPENAI_API_KEY_AUSTRALIAEAST:
     secure: AAABAJNkPfCB/CmMRgGaHoTh809jrr3UzmTNyGi6oMMveatw0mlSUdWEOCHWF3a3FIU9/fo+UEDX7hAgmJF4jw==
   openpipe:AZURE_OPENAI_API_KEY_CANADAEAST:
@@ -36,7 +36,7 @@ config:
     secure: AAABAJm9aaD9Lun17P1sC8iLXyO2T/qcKxVvURkyNVuqgn5yZ1C/qfRsod2yMkDRNiLzNQ==
   openpipe:GITHUB_CLIENT_SECRET:
     secure: AAABABlrDVTEPwFbH+lRBsVfYvJZplScryCWJr6VxG+aL8/x9CUQIlle2ttg8ElILmHk4LmI/wW+99vKwtw1N2EiBgT7B0qb
-  openpipe:MODAL_ENVIRONMENT: prod
+  openpipe:MODAL_ENVIRONMENT: dev
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048

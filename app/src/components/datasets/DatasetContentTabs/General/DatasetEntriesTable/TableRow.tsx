@@ -6,36 +6,24 @@ import { type RouterInputs, type RouterOutputs } from "~/utils/api";
 import { useAppStore } from "~/state/store";
 import { useDataset, useIsClientInitialized, useNodeEntries } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
-import { useSortOrder, SortArrows } from "~/components/sorting";
+import { SortableHeader } from "~/components/sorting";
 import { ProjectLink } from "~/components/ProjectLink";
 
 type DatasetEntry = RouterOutputs["nodeEntries"]["list"]["entries"][0];
-
 type SortableField = NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>["field"];
 
-const SortableHeader = (props: { title: string; field: SortableField; isNumeric?: boolean }) => {
-  const sortOrder = useSortOrder<SortableField>();
-
-  return (
-    <Th onClick={() => sortOrder.toggle(props.field)} cursor="pointer">
-      <HStack justify={props.isNumeric ? "end" : undefined}>
-        <Text>{props.title}</Text> <SortArrows<SortableField> field={props.field} />
-      </HStack>
-    </Th>
-  );
-};
-
-export const TableHeader = () => {
+export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColumn: boolean }) => {
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
 
   return (
     <Thead>
       <Tr>
-        <SortableHeader title="Created At" field="createdAt" />
-        <SortableHeader isNumeric title="Input Tokens" field="inputTokens" />
-        <SortableHeader isNumeric title="Output Tokens" field="outputTokens" />
-        <SortableHeader isNumeric title="Split" field="split" />
+        <SortableHeader<SortableField> title="Updated At" field="createdAt" />
+        {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
+        <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
+        <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />
+        <SortableHeader<SortableField> isNumeric title="Split" field="split" />
       </Tr>
     </Thead>
   );
