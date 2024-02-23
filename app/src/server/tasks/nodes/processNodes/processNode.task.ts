@@ -25,8 +25,6 @@ export type ProcessNodeJob = {
 export const processNode = defineTask<ProcessNodeJob>({
   id: "processNode",
   handler: async (task) => {
-    console.log(task);
-
     const { nodeId } = task;
 
     const node = await prisma.node
@@ -36,6 +34,8 @@ export const processNode = defineTask<ProcessNodeJob>({
       .then((n) => (n ? typedNode(n) : null));
 
     if (!node) return;
+
+    console.log({ nodeId, type: node.type });
 
     if (node.stale) {
       await invalidateNodeEntries(nodeId);
@@ -208,7 +208,7 @@ export const enqueueProcessNode = async (
       data: { stale: true },
     });
   }
-  await processNode.enqueue(job, { ...spec, queueName: job.nodeId });
+  await processNode.enqueue(job, { ...spec, queueName: job.nodeId, jobKey: job.nodeId });
 };
 
 export const processNodeProperties: Record<NodeType, NodeProperties> = {
