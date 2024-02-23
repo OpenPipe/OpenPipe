@@ -26,10 +26,7 @@ import {
 } from "~/types/shared.types";
 import { recordLoggedCall, recordUsage } from "~/utils/recordRequest";
 import { openApiProtectedProc } from "../../openApiTrpc";
-import {
-  recordOngoingRequestEnd,
-  recordOngoingRequestStart,
-} from "~/utils/rateLimit/concurrencyRateLimits";
+import { recordOngoingRequestStart } from "~/utils/rateLimit/concurrencyRateLimits";
 
 export const createChatCompletion = openApiProtectedProc
   .meta({
@@ -211,9 +208,9 @@ export const createChatCompletion = openApiProtectedProc
           logRequest,
           fineTune,
           tags,
+          ongoingRequestId,
         }).catch((e) => captureException(e));
 
-        void recordOngoingRequestEnd(ongoingRequestId);
         return outputStream.toReadableStream();
       } else {
         void recordUsage({
@@ -226,6 +223,7 @@ export const createChatCompletion = openApiProtectedProc
           logRequest,
           fineTune,
           tags,
+          ongoingRequestId,
         }).catch((e) => captureException(e));
         if (useCache && !cachedCompletion) {
           void kysely
@@ -245,7 +243,6 @@ export const createChatCompletion = openApiProtectedProc
             .catch((e) => captureException(e));
         }
 
-        void recordOngoingRequestEnd(ongoingRequestId);
         return completion;
       }
     } catch (error: unknown) {
