@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fireworksTestSetLimit, rateLimit } from "./rateLimits";
+import { fireworksTestSetLimit, rateLimit } from "./rateLimit/rateLimits";
 import { sleep } from "~/server/utils/sleep";
 
 const rateLimitConfig = {
