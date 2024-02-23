@@ -15,7 +15,7 @@ import {
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
+import { BsFillKeyFill, BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
 import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
 import { FaBalanceScale, FaReadme } from "react-icons/fa";
@@ -29,6 +29,7 @@ import IconLink from "./IconLink";
 import { BetaModal } from "../BetaModal";
 import { useIsMissingBetaAccess, useSelectedProject } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
+import { useAccessCheck } from "../ConditionallyEnable";
 
 const Divider = (props: BoxProps) => <Box h="1px" bgColor="gray.300" w="full" {...props} />;
 
@@ -38,6 +39,8 @@ const NavSidebar = () => {
 
   const sidebarExpanded = useAppStore((state) => state.sidebarExpanded);
   const setSidebarExpanded = useAppStore((state) => state.setSidebarExpanded);
+
+  const isAdmin = useAccessCheck("requireIsAdmin").access;
 
   return (
     <VStack
@@ -135,6 +138,15 @@ const NavSidebar = () => {
         align="center"
         justify="center"
       >
+        {isAdmin && (
+          <Link
+            href={{
+              pathname: `/admin`,
+            }}
+          >
+            <Icon color="gray.500" as={BsFillKeyFill} boxSize={8} mr={2} />
+          </Link>
+        )}
         <ChakraLink
           href="https://github.com/openpipe/openpipe"
           target="_blank"

@@ -19,24 +19,11 @@ import { useAppStore } from "~/state/store";
 import { useIsClientInitialized, useDatasetEntries } from "~/utils/hooks";
 import { useMemo } from "react";
 import { useFilters } from "~/components/Filters/useFilters";
-import { useSortOrder, SortArrows } from "~/components/sorting";
+import { SortableHeader } from "~/components/sorting";
 import { ProjectLink } from "~/components/ProjectLink";
 
 type DatasetEntry = RouterOutputs["datasetEntries"]["list"]["entries"][0];
-
 type SortableField = NonNullable<RouterInputs["datasetEntries"]["list"]["sortOrder"]>["field"];
-
-const SortableHeader = (props: { title: string; field: SortableField; isNumeric?: boolean }) => {
-  const sortOrder = useSortOrder<SortableField>();
-
-  return (
-    <Th onClick={() => sortOrder.toggle(props.field)} cursor="pointer">
-      <HStack justify={props.isNumeric ? "end" : undefined}>
-        <Text>{props.title}</Text> <SortArrows<SortableField> field={props.field} />
-      </HStack>
-    </Th>
-  );
-};
 
 export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColumn: boolean }) => {
   const matchingDatasetEntryIds = useDatasetEntries().data?.matchingEntryIds;
@@ -71,11 +58,11 @@ export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColu
             </Text>
           </HStack>
         </Th>
-        <SortableHeader title="Updated At" field="createdAt" />
+        <SortableHeader<SortableField> title="Updated At" field="createdAt" />
         {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
-        <SortableHeader isNumeric title="Input Tokens" field="inputTokens" />
-        <SortableHeader isNumeric title="Output Tokens" field="outputTokens" />
-        <SortableHeader isNumeric title="Split" field="split" />
+        <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
+        <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />
+        <SortableHeader<SortableField> isNumeric title="Split" field="split" />
       </Tr>
     </Thead>
   );
