@@ -220,7 +220,9 @@ export const recordLoggedCall = async ({
     throw new Error(`Failed to create logged call: ${(e as Error).message}`);
   }
 
-  await createTags(projectId, newLoggedCallId, tags);
+  if (Object.keys(tags).length > 0) {
+    await createTags(projectId, newLoggedCallId, tags);
+  }
 };
 
 async function createTags(projectId: string, loggedCallId: string, tags: Record<string, string>) {
