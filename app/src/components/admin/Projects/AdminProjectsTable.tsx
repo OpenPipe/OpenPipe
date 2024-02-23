@@ -23,32 +23,13 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { BiLogInCircle } from "react-icons/bi";
 import { AddCredits } from "~/components/admin/Actions/AddCredits";
-import { SortArrows, useSortOrder } from "~/components/sorting";
+import { SortableHeader } from "~/components/sorting";
 import { type RouterOutputs, api, RouterInputs } from "~/utils/api";
 import { useAdminProjects, useHandledAsyncCallback, useSearchQuery } from "~/utils/hooks";
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
 import AdminProjectsPaginator from "./adminProjectsPaginator";
 
 type SortableField = NonNullable<RouterInputs["adminProjects"]["list"]["sortOrder"]>["field"];
-
-const SortableHeader = ({
-  title,
-  field,
-  isNumeric,
-}: {
-  title: string;
-  field: SortableField;
-  isNumeric?: boolean;
-}) => {
-  const sortOrder = useSortOrder<SortableField>();
-  return (
-    <Th onClick={() => sortOrder.toggle(field)} cursor="pointer">
-      <HStack justify={isNumeric ? "end" : undefined}>
-        <Text>{title}</Text> <SortArrows<SortableField> field={field} />
-      </HStack>
-    </Th>
-  );
-};
 
 export default function AdminProjectsTable() {
   const { setSearchQueryParam } = useSearchQuery();
@@ -64,13 +45,13 @@ export default function AdminProjectsTable() {
       <Table w="100%">
         <Thead>
           <Tr>
-            <SortableHeader title="Name" field="name" />
-            <SortableHeader isNumeric title="Created At" field="createdAt" />
-            <SortableHeader title="Slug" field="slug" />
+            <SortableHeader<SortableField> title="Name" field="name" />
+            <SortableHeader<SortableField> isNumeric title="Created At" field="createdAt" />
+            <SortableHeader<SortableField> title="Slug" field="slug" />
             <Th>
               <Text>Members</Text>
             </Th>
-            <SortableHeader isNumeric title="Models" field="fineTunesCount" />
+            <SortableHeader<SortableField> isNumeric title="Models" field="fineTunesCount" />
             <Th isNumeric minW="150px">
               <Text>Last usage</Text>
             </Th>
@@ -158,7 +139,7 @@ const ExtendableArea: React.FC<ExtendableAreaProps> = ({ expandedRow, project })
         <Collapse in={expandedRow === project.id} unmountOnExit={true}>
           <HStack px={6} pt={2} pb={4} spacing={4}>
             <Text as="b">ID:</Text>
-            <Text cursor="pointer" size="sm" onClick={() => copyToClipboard(project.id)}>
+            <Text cursor="pointer" size="sm" onClick={() => void copyToClipboard(project.id)}>
               {project.id}
             </Text>
             <Text size="sm">
@@ -178,7 +159,7 @@ const ExtendableArea: React.FC<ExtendableAreaProps> = ({ expandedRow, project })
                 {project.projectUsers.map((user) => (
                   <HStack key={user.email}>
                     <Text as="b">{user.name}</Text>
-                    <Text cursor="pointer" onClick={() => copyToClipboard(user.email!)}>
+                    <Text cursor="pointer" onClick={() => void copyToClipboard(user.email!)}>
                       ({user.email})
                     </Text>
                     <Text>{user.role}</Text>

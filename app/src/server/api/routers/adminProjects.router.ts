@@ -65,8 +65,9 @@ export const adminProjectsRouter = createTRPCRouter({
               .orderBy("ul.createdAt", "desc")
               .limit(1),
           ).as("lastUsageLog"),
-        ])
-        .where(
+        ]);
+      if (searchQuery) {
+        baseQuery = baseQuery.where(
           sql`"p"."name" ILIKE ${"%" + searchQuery + "%"} OR "p"."slug" ILIKE ${
             "%" + searchQuery + "%"
           } OR "u"."name" ILIKE ${"%" + searchQuery + "%"} OR "u"."email" ILIKE ${
@@ -74,10 +75,8 @@ export const adminProjectsRouter = createTRPCRouter({
           } OR "ft"."slug" ILIKE ${"%" + searchQuery + "%"} OR "ft"."baseModel" ILIKE ${
             "%" + searchQuery + "%"
           }`,
-        )
-        .groupBy("p.id")
-        .limit(pageSize)
-        .offset((page - 1) * pageSize);
+        );
+      }
 
       if (sortOrder) {
         if (sortOrder.field === "fineTunesCount") {
@@ -89,6 +88,10 @@ export const adminProjectsRouter = createTRPCRouter({
         baseQuery = baseQuery.orderBy("p.createdAt", "desc");
       }
 
-      return await baseQuery.execute();
+      return await baseQuery
+        .groupBy("p.id")
+        .limit(pageSize)
+        .offset((page - 1) * pageSize)
+        .execute();
     }),
 });

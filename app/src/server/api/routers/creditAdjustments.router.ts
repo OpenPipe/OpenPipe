@@ -1,9 +1,7 @@
-import { sql } from "kysely";
-import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { kysely, prisma } from "~/server/db";
+import { prisma } from "~/server/db";
 import { requireIsAdmin } from "~/utils/accessControl";
 import { success } from "~/utils/errorHandling/standardResponses";
 
@@ -35,7 +33,9 @@ export const creditAdjustmentsRouter = createTRPCRouter({
       });
 
       return success(
-        "Credits added! Total available credits for this project: $" + credits._sum.amount,
+        `Credits added! Total available credits for this project: $${Number(
+          credits._sum.amount ?? 0,
+        ).toFixed(2)}`,
       );
     }),
 });
