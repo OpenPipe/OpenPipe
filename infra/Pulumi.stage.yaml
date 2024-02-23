@@ -36,7 +36,7 @@ config:
     secure: AAABAJm9aaD9Lun17P1sC8iLXyO2T/qcKxVvURkyNVuqgn5yZ1C/qfRsod2yMkDRNiLzNQ==
   openpipe:GITHUB_CLIENT_SECRET:
     secure: AAABABlrDVTEPwFbH+lRBsVfYvJZplScryCWJr6VxG+aL8/x9CUQIlle2ttg8ElILmHk4LmI/wW+99vKwtw1N2EiBgT7B0qb
-  openpipe:MODAL_ENVIRONMENT: prod
+  openpipe:MODAL_ENVIRONMENT: dev
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
