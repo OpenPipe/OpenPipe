@@ -3,8 +3,9 @@ import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { kysely } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { requireIsAdmin } from "~/utils/accessControl";
+import { success } from "~/utils/errorHandling/standardResponses";
 
 export const adminProjectsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -36,6 +37,7 @@ export const adminProjectsRouter = createTRPCRouter({
           "p.slug",
           "p.createdAt",
           "p.name",
+          "p.rateLimit",
           sql<number>`(SELECT COUNT(DISTINCT ft.id) FROM "FineTune" as ft WHERE ft."projectId" = p.id)`.as(
             `fineTunesCount`,
           ),
@@ -93,5 +95,25 @@ export const adminProjectsRouter = createTRPCRouter({
         .limit(pageSize)
         .offset((page - 1) * pageSize)
         .execute();
+    }),
+  update: protectedProcedure
+    .input(z.object({ id: z.string(), rateLimit: z.number().optional() }))
+    .mutation(async ({ input, ctx }) => {
+      await requireIsAdmin(ctx);
+
+      const { id, rateLimit } = input;
+
+      const project = await prisma.project.findUniqueOrThrow({
+        where: { id },
+      });
+
+      await prisma.project.update({
+        where: { id },
+        data: {
+          rateLimit: rateLimit || project.rateLimit,
+        },
+      });
+
+      return success("Project updated!");
     }),
 });

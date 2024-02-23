@@ -10,7 +10,7 @@ UPDATE "Project" SET "rateLimit" = 1000;
 -- CreateTable
 CREATE TABLE "OngoingRequest" (
     "id" UUID NOT NULL,
-    "projectId" TEXT NOT NULL,
+    "projectId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "OngoingRequest_pkey" PRIMARY KEY ("id")

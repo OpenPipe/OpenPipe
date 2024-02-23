@@ -87,8 +87,8 @@ export const createChatCompletion = openApiProtectedProc
 
     const isFineTune = inputPayload.model.startsWith("openpipe:");
 
-    const requestId = await recordOngoingRequestStart(key.projectId, isFineTune);
-    console.log(requestId);
+    const ongoingRequestId = await recordOngoingRequestStart(key.projectId, isFineTune);
+
     // Default to true if not using a fine-tuned model
     const logRequest =
       (ctx.headers["op-log-request"] === "true" || !isFineTune) &&
@@ -212,6 +212,8 @@ export const createChatCompletion = openApiProtectedProc
           fineTune,
           tags,
         }).catch((e) => captureException(e));
+
+        void recordOngoingRequestEnd(ongoingRequestId);
         return outputStream.toReadableStream();
       } else {
         void recordUsage({
@@ -243,10 +245,7 @@ export const createChatCompletion = openApiProtectedProc
             .catch((e) => captureException(e));
         }
 
-        if (isFineTune) {
-          recordOngoingRequestEnd(key.projectId);
-        }
-
+        void recordOngoingRequestEnd(ongoingRequestId);
         return completion;
       }
     } catch (error: unknown) {

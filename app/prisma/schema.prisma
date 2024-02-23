@@ -738,7 +738,7 @@ model RateLimit {
 
 model OngoingRequest {
     id        String @id @default(uuid()) @db.Uuid
-    projectId String
+    projectId String @db.Uuid
 
     createdAt DateTime @default(now())
 

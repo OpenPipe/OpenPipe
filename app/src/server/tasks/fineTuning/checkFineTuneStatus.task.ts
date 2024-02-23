@@ -86,18 +86,25 @@ export const checkFineTuneStatus = defineTask({
             });
 
             // Notify the owner that the model has been trained
-            const project = await prisma.project.findUniqueOrThrow({
-              where: { id: typedFT.projectId },
-            });
-            await sendToOwner(typedFT.projectId, (email: string) =>
-              sendFineTuneModelTrained(
-                typedFT.id,
-                "openpipe:" + typedFT.slug,
-                modelInfo(typedFT).name,
-                project.slug,
-                email,
-              ),
-            );
+            if (typedFT.userId) {
+              const project = await prisma.project.findUniqueOrThrow({
+                where: { id: typedFT.projectId },
+              });
+
+              const creator = await prisma.user.findUniqueOrThrow({
+                where: { id: typedFT.userId },
+              });
+
+              if (creator.email) {
+                await sendFineTuneModelTrained(
+                  typedFT.id,
+                  "openpipe:" + typedFT.slug,
+                  modelInfo(typedFT).name,
+                  project.slug,
+                  creator.email,
+                );
+              }
+            }
 
             captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
 
