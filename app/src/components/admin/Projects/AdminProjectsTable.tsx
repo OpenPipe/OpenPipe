@@ -27,7 +27,7 @@ import { SortableHeader } from "~/components/sorting";
 import { type RouterOutputs, api, RouterInputs } from "~/utils/api";
 import { useAdminProjects, useHandledAsyncCallback, useSearchQuery } from "~/utils/hooks";
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
-import AdminProjectsPaginator from "./adminProjectsPaginator";
+import AdminProjectsPaginator from "./AdminProjectsPaginator";
 
 type SortableField = NonNullable<RouterInputs["adminProjects"]["list"]["sortOrder"]>["field"];
 
