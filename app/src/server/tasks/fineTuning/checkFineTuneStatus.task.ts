@@ -15,7 +15,6 @@ import {
 } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
 import { captureException } from "@sentry/node";
-import { sendToOwner } from "~/server/emails/sendToOwner";
 import { sendFineTuneModelTrained } from "~/server/emails/sendFineTuneModelTrained";
 
 const MAX_AUTO_RETRIES = 2;

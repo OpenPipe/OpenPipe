@@ -21,7 +21,7 @@ export const recordOngoingRequestStart = async (projectId: string, proceed = tru
 };
 
 export const recordOngoingRequestEnd = (id: string | undefined) => {
-  if (id) kysely.deleteFrom("OngoingRequest").where("id", "=", id).execute();
+  if (id) void kysely.deleteFrom("OngoingRequest").where("id", "=", id).execute();
 };
 
 const checkRateLimitHit = async (projectId: string) => {

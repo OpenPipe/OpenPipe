@@ -11,7 +11,6 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
   VStack,
-  Text,
   Box,
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
