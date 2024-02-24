@@ -29,7 +29,6 @@ import {
   typedNode,
   DEFAULT_MAX_OUTPUT_SIZE,
   typedNodeEntry,
-  ManualRelabelOutput,
 } from "~/server/utils/nodes/node.types";
 import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
@@ -41,6 +40,7 @@ import {
 } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
+import { ManualRelabelOutput } from "~/server/utils/nodes/nodeProperties/manualRelabelProperties";
 
 export const nodeEntriesRouter = createTRPCRouter({
   list: protectedProcedure

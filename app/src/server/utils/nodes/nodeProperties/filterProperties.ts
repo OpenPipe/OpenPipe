@@ -1,15 +1,21 @@
-import { FilterOutput, type NodeProperties } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
+import { NodeProperties } from "./nodeProperties.types";
+import { filterNodeSchema } from "../node.types";
 
-export const filterProperties: NodeProperties = {
+export enum FilterOutput {
+  Passed = "passed",
+  Failed = "failed",
+}
+
+export const filterProperties: NodeProperties<"Filter"> = {
+  schema: filterNodeSchema,
   cacheMatchFields: ["incomingInputHash", "incomingOutputHash"],
   cacheWriteFields: ["filterOutcome", "explanation"],
   readBatchSize: 10000,
+  outputs: [{ label: FilterOutput.Passed }, { label: FilterOutput.Failed }],
   getConcurrency: () => 2,
   beforeAll: async (node) => {
-    if (node.type !== "Filter") throw new Error("Node type is not Filter");
-
     const { filters } = node.config;
 
     await prisma.nodeEntry.updateMany({
@@ -69,5 +75,4 @@ export const filterProperties: NodeProperties = {
       data: { status: "PROCESSED" },
     });
   },
-  outputs: [{ label: FilterOutput.Passed }, { label: FilterOutput.Failed }],
 };

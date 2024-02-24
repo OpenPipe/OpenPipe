@@ -1,20 +1,27 @@
 import { NodeEntryStatus } from "@prisma/client";
 import { APIError } from "openai";
+import { z } from "zod";
 
 import { prisma } from "~/server/db";
-import {
-  LLMRelabelOutput,
-  RelabelOption,
-  type NodeProperties,
-} from "~/server/utils/nodes/node.types";
 import { getOpenaiCompletion } from "~/server/utils/openai";
+import { NodeProperties } from "./nodeProperties.types";
+import { RelabelOption, llmRelabelNodeSchema } from "../node.types";
 
-export const llmRelabelProperties: NodeProperties = {
+export enum LLMRelabelOutput {
+  Relabeled = "relabeled",
+}
+
+export const llmRelabelProperties: NodeProperties<"LLMRelabel"> = {
+  schema: llmRelabelNodeSchema,
   cacheMatchFields: ["incomingInputHash"],
   cacheWriteFields: ["outgoingOutputHash"],
   readBatchSize: 50,
+  outputs: [{ label: LLMRelabelOutput.Relabeled }],
+  hashableFields: (node) => ({ relabelLLM: node.config.relabelLLM }),
+  getConcurrency: (node) => {
+    return node.config.maxLLMConcurrency;
+  },
   beforeAll: async (node) => {
-    if (node.type !== "LLMRelabel") throw new Error("Node type is not LLMRelabel");
     if (node.config.relabelLLM === RelabelOption.SkipRelabel) {
       await prisma.nodeEntry.updateMany({
         where: { nodeId: node.id, status: "PENDING" },
@@ -22,13 +29,7 @@ export const llmRelabelProperties: NodeProperties = {
       });
     }
   },
-  getConcurrency: (node) => {
-    if (node.type !== "LLMRelabel") throw new Error("Node type is not LLMRelabel");
-    return node.config.maxLLMConcurrency;
-  },
   processEntry: async ({ node, entry }) => {
-    if (node.type !== "LLMRelabel") throw new Error("Node type is not LLMRelabel");
-
     const { tool_choice, tools, messages, response_format } = entry;
 
     try {
@@ -67,5 +68,4 @@ export const llmRelabelProperties: NodeProperties = {
       }
     }
   },
-  outputs: [{ label: LLMRelabelOutput.Relabeled }],
 };

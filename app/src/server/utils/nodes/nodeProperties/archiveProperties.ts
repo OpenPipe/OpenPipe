@@ -1,8 +1,15 @@
 import { kysely } from "~/server/db";
-import { ArchiveOutput, type NodeProperties } from "~/server/utils/nodes/node.types";
 import { importDatasetEntries } from "~/server/utils/nodes/importDatasetEntries";
+import { NodeProperties } from "./nodeProperties.types";
+import { archiveNodeSchema } from "../node.types";
 
-export const archiveProperties: NodeProperties = {
+export enum ArchiveOutput {
+  Entries = "entries",
+}
+
+export const archiveProperties: NodeProperties<"Archive"> = {
+  schema: archiveNodeSchema,
+  outputs: [{ label: ArchiveOutput.Entries }],
   beforeAll: async (node) => {
     const inputDataChannel = await kysely
       .selectFrom("DataChannel")
@@ -17,7 +24,7 @@ export const archiveProperties: NodeProperties = {
       .select(["id"])
       .execute();
 
-    if (node?.type !== "Archive" || !inputDataChannel) return;
+    if (!inputDataChannel) return;
     const { maxOutputSize } = node.config;
 
     for (const upload of pendingDatasetFileUploads) {
@@ -30,5 +37,4 @@ export const archiveProperties: NodeProperties = {
       });
     }
   },
-  outputs: [{ label: ArchiveOutput.Entries }],
 };

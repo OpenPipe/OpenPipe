@@ -5,18 +5,20 @@ import { from, lastValueFrom } from "rxjs";
 import { mergeMap, tap } from "rxjs/operators";
 
 import defineTask from "../../defineTask";
-import { monitorProperties } from "./processMonitor";
-import { llmRelabelProperties } from "./processLLMRelabel";
+import { monitorProperties } from "../../../utils/nodes/nodeProperties/monitorProperties";
+import { llmRelabelProperties } from "../../../utils/nodes/nodeProperties/llmRelabelProperties";
 import { invalidateNodeEntries } from "./invalidateNodeEntries";
-import { archiveProperties } from "./processArchive";
-import { datasetProperties } from "./processDataset";
+import { archiveProperties } from "../../../utils/nodes/nodeProperties/archiveProperties";
+import { datasetProperties } from "../../../utils/nodes/nodeProperties/datasetProperties";
 import { enqueueDescendants } from "./enqueueDescendants";
-import { manualRelabelProperties } from "./processManualRelabel";
-import { type NodeProperties, typedNode, typedNodeEntry } from "~/server/utils/nodes/node.types";
+import { manualRelabelProperties } from "../../../utils/nodes/nodeProperties/manualRelabelProperties";
+import { typedNode, typedNodeEntry } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
 import { forwardNodeEntries } from "./forwardNodeEntries";
 import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
 import { updateCached } from "./updateCached";
+import { NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
+import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
 
 export type ProcessNodeJob = {
   nodeId: string;
@@ -45,7 +47,7 @@ export const processNode = defineTask<ProcessNodeJob>({
       });
     }
 
-    const nodeProperties = processNodeProperties[node.type];
+    const nodeProperties = nodePropertiesByType[node.type] as NodeProperties<NodeType>;
 
     // ensure that all "PROCESSING" entries are reset to "PENDING" after job restart
     await kysely
@@ -211,10 +213,10 @@ export const enqueueProcessNode = async (
   await processNode.enqueue(job, { ...spec, queueName: job.nodeId, jobKey: job.nodeId });
 };
 
-export const processNodeProperties: Record<NodeType, NodeProperties> = {
+export const nodePropertiesByType = {
   Monitor: monitorProperties,
   Archive: archiveProperties,
-  Filter: llmRelabelProperties,
+  Filter: filterProperties,
   LLMRelabel: llmRelabelProperties,
   ManualRelabel: manualRelabelProperties,
   Dataset: datasetProperties,

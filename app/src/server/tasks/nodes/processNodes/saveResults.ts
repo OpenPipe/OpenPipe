@@ -3,7 +3,7 @@ import type { Node, Prisma } from "@prisma/client";
 import {
   ErrorProcessEntryResult,
   SuccessProcessEntryResult,
-  processNodeProperties,
+  nodePropertiesByType,
 } from "./processNode.task";
 import { hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";
 import { countDatasetEntryTokens } from "../../fineTuning/countDatasetEntryTokens.task";
@@ -31,7 +31,7 @@ export const saveResults = async ({
   const cachedProcessedEntriesToCreate: Prisma.CachedProcessedEntryCreateManyInput[] = [];
   const nodeEntriesToUpdate: Prisma.NodeEntryUpdateArgs[] = [];
 
-  const nodeProperties = processNodeProperties[node.type];
+  const nodeProperties = nodePropertiesByType[node.type];
 
   for (const result of resultsToProcess) {
     if (result.status === "PROCESSED") {

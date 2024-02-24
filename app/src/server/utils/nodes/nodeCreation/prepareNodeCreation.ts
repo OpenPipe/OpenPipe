@@ -1,16 +1,14 @@
 import { type Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
-import {
-  type InferNodeConfig,
-  DatasetOutput,
-  LLMRelabelOutput,
-  ArchiveOutput,
-  MonitorOutput,
-  ManualRelabelOutput,
-} from "../node.types";
+import { type InferNodeConfig } from "../node.types";
 import { checkNodeInput } from "../checkNodeInput";
 import { prisma } from "~/server/db";
+import { ArchiveOutput } from "../nodeProperties/archiveProperties";
+import { MonitorOutput } from "../nodeProperties/monitorProperties";
+import { DatasetOutput } from "../nodeProperties/datasetProperties";
+import { ManualRelabelOutput } from "../nodeProperties/manualRelabelProperties";
+import { LLMRelabelOutput } from "../nodeProperties/llmRelabelProperties";
 
 export const prepareArchiveCreation = ({
   nodeParams,

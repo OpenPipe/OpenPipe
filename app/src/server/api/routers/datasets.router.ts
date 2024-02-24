@@ -13,7 +13,11 @@ import { env } from "~/env.mjs";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
-import { DEFAULT_MAX_OUTPUT_SIZE, typedNode } from "~/server/utils/nodes/node.types";
+import {
+  DEFAULT_MAX_OUTPUT_SIZE,
+  relabelOptions,
+  typedNode,
+} from "~/server/utils/nodes/node.types";
 import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
@@ -22,7 +26,6 @@ import { getUpstreamSources } from "~/server/utils/nodes/relationalQueries";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
-import { relabelOptions } from "~/server/utils/nodes/node.types";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 
 export const datasetsRouter = createTRPCRouter({
@@ -119,9 +122,9 @@ export const datasetsRouter = createTRPCRouter({
 
     const archives = await getUpstreamSources({ llmRelabelNodeId: tNode.config.llmRelabelNodeId })
       .where("sourceNode.type", "=", "Archive")
-      .innerJoin("DatasetFileUpload as dfu", (join) => join
-        .onRef("dfu.nodeId", "=", "sourceNode.id")
-        .on("dfu.errorMessage", "is", null))
+      .innerJoin("DatasetFileUpload as dfu", (join) =>
+        join.onRef("dfu.nodeId", "=", "sourceNode.id").on("dfu.errorMessage", "is", null),
+      )
       .leftJoin("NodeEntry as nd", "sourceNode.id", "nd.nodeId")
       .groupBy("sourceNode.id")
       .distinctOn("sourceNode.createdAt")

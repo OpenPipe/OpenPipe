@@ -1,5 +1,6 @@
 import { kysely } from "~/server/db";
-import { LLMRelabelOutput, MonitorOutput } from "~/server/utils/nodes/node.types";
+import { MonitorOutput } from "./nodeProperties/monitorProperties";
+import { LLMRelabelOutput } from "./nodeProperties/llmRelabelProperties";
 
 export const getDownstreamDatasets = (filterNodeId: string) => {
   return kysely

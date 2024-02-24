@@ -6,7 +6,7 @@ import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { TRPCError } from "@trpc/server";
 import { filtersSchema } from "~/types/shared.types";
-import { FilterOutput, typedNode } from "~/server/utils/nodes/node.types";
+import { typedNode } from "~/server/utils/nodes/node.types";
 import { success } from "~/utils/errorHandling/standardResponses";
 import { getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
@@ -14,6 +14,7 @@ import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNod
 import { prepareIntegratedMonitorCeation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { convertCache } from "~/server/utils/nodes/convertCache";
 import { invalidateNodeEntries } from "~/server/tasks/nodes/processNodes/invalidateNodeEntries";
+import { FilterOutput } from "~/server/utils/nodes/nodeProperties/filterProperties";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -129,6 +130,7 @@ export const monitorsRouter = createTRPCRouter({
       const { hash: updatedMonitorHash } = await prisma.node.update({
         where: { id },
         data: checkNodeInput({
+          id,
           projectId: monitor.projectId,
           name,
           type: "Monitor",
@@ -145,6 +147,7 @@ export const monitorsRouter = createTRPCRouter({
         await prisma.node.update({
           where: { id },
           data: checkNodeInput({
+            id,
             projectId: monitor.projectId,
             type: "Monitor",
             config: {
@@ -158,6 +161,7 @@ export const monitorsRouter = createTRPCRouter({
       const { hash: updatedFilterHash } = await prisma.node.update({
         where: { id: tMonitor.config.filterNodeId },
         data: checkNodeInput({
+          id,
           projectId: monitor.projectId,
           type: "Filter",
           config: {

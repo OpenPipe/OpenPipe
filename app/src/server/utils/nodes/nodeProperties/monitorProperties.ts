@@ -2,18 +2,24 @@ import { sql } from "kysely";
 
 import { kysely, prisma } from "~/server/db";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
-import { MonitorOutput, type NodeProperties } from "~/server/utils/nodes/node.types";
 import dayjs from "~/utils/dayjs";
 import { typedLoggedCall } from "~/types/dbColumns.types";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { truthyFilter } from "~/utils/utils";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { generatePersistentId } from "~/server/utils/nodes/utils";
+import { NodeProperties } from "./nodeProperties.types";
+import { monitorNodeSchema } from "../node.types";
 
-export const monitorProperties: NodeProperties = {
+export enum MonitorOutput {
+  MatchedLogs = "Matched Logs",
+}
+
+export const monitorProperties: NodeProperties<"Monitor"> = {
+  schema: monitorNodeSchema,
+  outputs: [{ label: MonitorOutput.MatchedLogs }],
+  hashableFields: (node) => ({ filters: node.config.initialFilters }),
   beforeAll: async (node) => {
-    if (node.type !== "Monitor") throw new Error("Invalid node type");
-
     const { initialFilters, lastLoggedCallUpdatedAt, maxOutputSize, sampleRate } = node.config;
 
     const numExistingEntries = await kysely
@@ -101,7 +107,6 @@ export const monitorProperties: NodeProperties = {
       }),
     ]);
   },
-  outputs: [{ label: MonitorOutput.MatchedLogs }],
 };
 
 const calculateSampleRateHash = (sampleRate: number) => {

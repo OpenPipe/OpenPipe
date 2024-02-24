@@ -93,9 +93,7 @@ export const prepareIntegratedDatasetCreation = ({
     nodeParams: {
       name: "Dataset Manual Relabel",
       projectId,
-      config: {
-        nodeId: preparedLLMRelabelCreation.relabelNodeId,
-      },
+      config: {},
     },
   });
 

@@ -4,35 +4,25 @@ import { type z } from "zod";
 import hashObject from "../hashObject";
 import { type nodeSchema, type InferNodeConfig, typedNode } from "./node.types";
 import { kysely } from "~/server/db";
+import { nodePropertiesByType } from "~/server/tasks/nodes/processNodes/processNode.task";
+import { NodeType } from "@prisma/client";
+import { NodeProperties } from "./nodeProperties/nodeProperties.types";
 
-export const hashNode = <T extends z.infer<typeof nodeSchema>["type"]>({
-  projectId,
-  node,
-}: {
+export const hashNode = <T extends NodeType>(node: {
+  id: string;
   projectId: string;
-  node: {
-    type: T;
-    config: InferNodeConfig<T>;
-  };
+  type: T;
+  config: InferNodeConfig<T>;
 }) => {
-  let hashableConfig = {};
-  const tNode = typedNode(node);
-  if (node.type === "Monitor") {
-    hashableConfig = {
-      filters: tNode.config.checkFilters,
-    };
+  let hashableFields = {};
+
+  const nodeProperties = nodePropertiesByType[node.type] as NodeProperties<T>;
+
+  if (nodeProperties.hashableFields) {
+    hashableFields = nodeProperties.hashableFields(node);
   }
-  if (tNode.type === "LLMRelabel") {
-    hashableConfig = {
-      filters: tNode.config.relabelLLM,
-    };
-  }
-  if (tNode.type === "ManualRelabel") {
-    hashableConfig = {
-      nodeId: tNode.config.nodeId,
-    };
-  }
-  return hashObject({ projectId, type: tNode.type, hashableConfig });
+
+  return hashObject({ projectId: node.projectId, type: node.type, hashableFields });
 };
 
 export const hashDatasetEntryInput = ({

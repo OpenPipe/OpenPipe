@@ -18,9 +18,11 @@ export const RelabelingIndicator = () => {
   if (!dataset?.numRelabelingEntries) return null;
 
   const entriesText = pluralize("entry", dataset.numRelabelingEntries, true);
-  
+
   const processingText =
-    dataset.relabelLLM !== RelabelOption.SkipRelabel ? `relabeling ${entriesText} with ${dataset.relabelLLM}` : `importing ${entriesText}`;
+    dataset.relabelLLM !== RelabelOption.SkipRelabel
+      ? `relabeling ${entriesText} with ${dataset.relabelLLM}`
+      : `importing ${entriesText}`;
 
   return (
     <HStack
@@ -36,9 +38,7 @@ export const RelabelingIndicator = () => {
       spacing={1}
     >
       <Icon as={RiInformationFill} color="orange.300" boxSize={4} />{" "}
-      <Text>
-        Processing: {processingText}
-      </Text>
+      <Text>Processing: {processingText}</Text>
     </HStack>
   );
 };

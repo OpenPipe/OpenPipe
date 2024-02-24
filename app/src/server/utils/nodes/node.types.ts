@@ -1,73 +1,10 @@
-import type {
-  DatasetEntryInput,
-  DatasetEntryOutput,
-  Node,
-  NodeEntry,
-  Prisma,
-} from "@prisma/client";
+import type { DatasetEntryInput, DatasetEntryOutput, Node, NodeType, Prisma } from "@prisma/client";
 import { z } from "zod";
-import { ForwardEntriesSelectionExpression } from "~/server/tasks/nodes/processNodes/forwardNodeEntries";
-import { ProcessEntryResult } from "~/server/tasks/nodes/processNodes/processNode.task";
 
 import { chatInputs } from "~/types/dbColumns.types";
-import { AtLeastOne, chatCompletionMessage, filtersSchema } from "~/types/shared.types";
+import { chatCompletionMessage, filtersSchema } from "~/types/shared.types";
 
 export const DEFAULT_MAX_OUTPUT_SIZE = 50000;
-
-type CacheMatchField = "nodeEntryPersistentId" | "incomingInputHash" | "incomingOutputHash";
-type CacheWriteField =
-  | "outgoingInputHash"
-  | "outgoingOutputHash"
-  | "outgoingSplit"
-  | "filterOutcome"
-  | "explanation";
-
-export type NodeProperties = {
-  cacheMatchFields?: AtLeastOne<CacheMatchField>;
-  cacheWriteFields?: AtLeastOne<CacheWriteField>;
-  readBatchSize?: number;
-  getConcurrency?: (node: ReturnType<typeof typedNode>) => number;
-  processEntry?: ({
-    node,
-    entry,
-  }: {
-    node: ReturnType<typeof typedNode> & Pick<Node, "projectId" | "hash">;
-    entry: ReturnType<typeof typedNodeEntry> & Pick<NodeEntry, "id" | "outputHash">;
-  }) => Promise<ProcessEntryResult>;
-  beforeAll?: (
-    node: ReturnType<typeof typedNode> & Pick<Node, "id" | "projectId" | "hash">,
-  ) => Promise<void>;
-  afterAll?: (node: ReturnType<typeof typedNode> & Pick<Node, "id" | "hash">) => Promise<void>;
-  outputs: {
-    label: string;
-    selectionExpression?: ForwardEntriesSelectionExpression;
-  }[];
-};
-
-export enum ArchiveOutput {
-  Entries = "entries",
-}
-
-export enum MonitorOutput {
-  MatchedLogs = "Matched Logs",
-}
-
-export enum FilterOutput {
-  Passed = "passed",
-  Failed = "failed",
-}
-
-export enum LLMRelabelOutput {
-  Relabeled = "relabeled",
-}
-
-export enum ManualRelabelOutput {
-  Relabeled = "relabeled",
-}
-
-export enum DatasetOutput {
-  Entries = "entries",
-}
 
 export enum RelabelOption {
   GPT351106 = "gpt-3.5-turbo-1106",
@@ -83,43 +20,46 @@ export const relabelOptions = [
   RelabelOption.SkipRelabel,
 ] as const;
 
-export const nodeSchema = z.discriminatedUnion("type", [
-  z
-    .object({
-      type: z.literal("Archive"),
-      config: z
-        .object({
-          maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
-        })
-        .passthrough(),
-    })
-    .passthrough(),
-  z
-    .object({
-      type: z.literal("Monitor"),
-      config: z
-        .object({
-          initialFilters: filtersSchema,
-          lastLoggedCallUpdatedAt: z.date().default(new Date(0)),
-          maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
-          sampleRate: z.number().default(1),
-          filterNodeId: z.string(),
-        })
-        .passthrough(),
-    })
-    .passthrough(),
-  z
-    .object({
-      type: z.literal("Filter"),
-      config: z
-        .object({
-          filters: filtersSchema,
-          maxLLMConcurrency: z.number().default(2),
-        })
-        .passthrough(),
-    })
-    .passthrough(),
-  z.object({
+export const archiveNodeSchema = z
+  .object({
+    type: z.literal("Archive"),
+    config: z
+      .object({
+        maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+
+export const monitorNodeSchema = z
+  .object({
+    type: z.literal("Monitor"),
+    config: z
+      .object({
+        initialFilters: filtersSchema,
+        lastLoggedCallUpdatedAt: z.date().default(new Date(0)),
+        maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
+        sampleRate: z.number().default(1),
+        filterNodeId: z.string(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+
+export const filterNodeSchema = z
+  .object({
+    type: z.literal("Filter"),
+    config: z
+      .object({
+        filters: filtersSchema,
+        maxLLMConcurrency: z.number().default(2),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+
+export const llmRelabelNodeSchema = z
+  .object({
     type: z.literal("LLMRelabel"),
     config: z
       .object({
@@ -127,28 +67,35 @@ export const nodeSchema = z.discriminatedUnion("type", [
         maxLLMConcurrency: z.number().default(2),
       })
       .passthrough(),
-  }),
-  z
-    .object({
-      type: z.literal("ManualRelabel"),
-      config: z
-        .object({
-          nodeId: z.string(),
-        })
-        .passthrough(),
-    })
-    .passthrough(),
-  z
-    .object({
-      type: z.literal("Dataset"),
-      config: z
-        .object({
-          llmRelabelNodeId: z.string(),
-          manualRelabelNodeId: z.string(),
-        })
-        .passthrough(),
-    })
-    .passthrough(),
+  })
+  .passthrough();
+
+export const manualRelabelNodeSchema = z
+  .object({
+    type: z.literal("ManualRelabel"),
+    config: z.object({}).passthrough(),
+  })
+  .passthrough();
+
+export const datasetNodeSchema = z
+  .object({
+    type: z.literal("Dataset"),
+    config: z
+      .object({
+        llmRelabelNodeId: z.string(),
+        manualRelabelNodeId: z.string(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+
+export const nodeSchema = z.discriminatedUnion("type", [
+  archiveNodeSchema,
+  monitorNodeSchema,
+  filterNodeSchema,
+  llmRelabelNodeSchema,
+  manualRelabelNodeSchema,
+  datasetNodeSchema,
 ]);
 
 export type InferNodeConfig<T extends z.infer<typeof nodeSchema>["type"]> = Extract<
