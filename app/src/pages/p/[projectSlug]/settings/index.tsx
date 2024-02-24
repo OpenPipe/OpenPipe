@@ -28,6 +28,7 @@ import { InviteProjectUserModal } from "~/components/projectSettings/InviteProje
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
 import InfoCircle from "~/components/InfoCircle";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { ProjectLink } from "~/components/ProjectLink";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -186,12 +187,31 @@ export default function Settings() {
               <HStack>
                 <Text color="gray.500">Concurrent requests:</Text>
                 <Text fontWeight="bold">{selectedProject?.rateLimit}</Text>
-                <InfoCircle tooltipText="The limits are based by the number of concurrent requests. There is no limit on the total number of requests you can send, but rather on how many you can send at the same time." />
               </HStack>
-              <Text fontSize="sm">
-                If your use case requires a higher limit, please contact us at{" "}
-                <ChakraLink href="mailto:founders@openpipe.ai">founders@openpipe.ai</ChakraLink>.
-              </Text>
+              {selectedProject?.rateLimit === 3 ? (
+                <Text fontSize="sm">
+                  Your rate limit represents the number of concurrent requests you can send to our
+                  servers without getting a <Text as="i">429 "Too Many Requests"</Text> error.{" "}
+                  <ProjectLink
+                    href={{ pathname: "/billing/[tab]", query: { tab: "payment-methods" } }}
+                  >
+                    <Text as="b" color="gray.900">
+                      Add a payment method
+                    </Text>
+                  </ProjectLink>{" "}
+                  to increase your rate limit to 20 concurrent requests automatically.
+                </Text>
+              ) : (
+                <Text fontSize="sm">
+                  Your rate limit represents the number of concurrent requests you can send to our
+                  servers without getting a <Text as="i">429 "Too Many Requests"</Text> error. To
+                  increase your rate limit, email us at{" "}
+                  <ChakraLink as="b" href="mailto:support@openipe.ai">
+                    support@openipe.ai
+                  </ChakraLink>
+                  .
+                </Text>
+              )}
             </VStack>
             <Divider />
             {selectedProject?.personalProjectUserId ? (

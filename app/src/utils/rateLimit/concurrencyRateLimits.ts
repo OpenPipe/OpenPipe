@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { kysely } from "~/server/db";
 import { v4 as uuidv4 } from "uuid";
 import { RateLimitError } from "openai";
+import { env } from "~/env.mjs";
 
 export const recordOngoingRequestStart = async (projectId: string, proceed = true) => {
   if (!proceed) return;
@@ -27,26 +28,30 @@ export const recordOngoingRequestEnd = (id: string | undefined) => {
 const checkRateLimitHit = async (projectId: string) => {
   const result = await kysely
     .selectFrom("Project as p")
-    .leftJoin("OngoingRequest as req", (join) =>
-      join
-        .on("p.id", "=", sql`req."projectId"::uuid`)
-        .on("req.createdAt", ">", sql`NOW() - INTERVAL '10 minutes'`),
-    )
     .where("p.id", "=", projectId)
-    .groupBy("p.id")
-    .select(
-      sql<boolean>`CASE WHEN COUNT(req.id) >= p."rateLimit" THEN FALSE ELSE TRUE END`.as(
+    .select([
+      sql<boolean>`(SELECT COUNT(req.id) FROM "OngoingRequest" as req WHERE req."projectId" = p.id AND req."createdAt" > NOW() - INTERVAL '10 minutes') < p."rateLimit"`.as(
         "canProceed",
       ),
-    )
+      "p.rateLimit",
+      "p.slug",
+    ])
     .executeTakeFirst();
 
   if (!result?.canProceed) {
-    throw new RateLimitError(
-      429,
-      { error: "Completion rate limit exceeded" },
-      "Completion rate limit exceeded",
-      {},
-    );
+    if (result?.rateLimit === 3) {
+      const message = `Your project has a rate limit of 3 concurrent requests. Add a payment method to automatically increase your rate limit to 20 concurrent requests. ${env.NEXT_PUBLIC_HOST}/p/${result?.slug}/billing/payment-methods`;
+      throw new RateLimitError(
+        429,
+        {
+          error: message,
+        },
+        message,
+        {},
+      );
+    } else {
+      const message = `Your project has a rate limit of ${result?.rateLimit} concurrent requests. Contact us at support@openpipe.ai to increase your rate limit further.`;
+      throw new RateLimitError(429, { error: message }, message, {});
+    }
   }
 };

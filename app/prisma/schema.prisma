@@ -177,7 +177,7 @@ model Project {
     stripeCustomerId String?
     billable         Boolean  @default(true)
     tagNames         String[] @default([]) // cached list of tag names for the project
-    rateLimit        Int      @default(5)
+    rateLimit        Int      @default(3)
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
 
@@ -440,7 +440,7 @@ model FineTune {
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     userId    String?  @db.Uuid
-    user      User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user      User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

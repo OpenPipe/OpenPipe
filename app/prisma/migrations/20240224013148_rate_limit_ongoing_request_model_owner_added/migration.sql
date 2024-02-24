@@ -2,7 +2,7 @@
 ALTER TABLE "FineTune" ADD COLUMN     "userId" UUID;
 
 -- AlterTable
-ALTER TABLE "Project" ADD COLUMN     "rateLimit" INTEGER NOT NULL DEFAULT 5;
+ALTER TABLE "Project" ADD COLUMN     "rateLimit" INTEGER NOT NULL DEFAULT 3;
 
 -- Update existing projects to have a rateLimit of 1000
 UPDATE "Project" SET "rateLimit" = 1000;
@@ -20,4 +20,4 @@ CREATE TABLE "OngoingRequest" (
 CREATE INDEX "OngoingRequest_projectId_createdAt_idx" ON "OngoingRequest"("projectId", "createdAt");
 
 -- AddForeignKey
-ALTER TABLE "FineTune" ADD CONSTRAINT "FineTune_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "FineTune" ADD CONSTRAINT "FineTune_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -26,7 +26,10 @@ import {
 } from "~/types/shared.types";
 import { recordLoggedCall, recordUsage } from "~/utils/recordRequest";
 import { openApiProtectedProc } from "../../openApiTrpc";
-import { recordOngoingRequestStart } from "~/utils/rateLimit/concurrencyRateLimits";
+import {
+  recordOngoingRequestEnd,
+  recordOngoingRequestStart,
+} from "~/utils/rateLimit/concurrencyRateLimits";
 
 export const createChatCompletion = openApiProtectedProc
   .meta({
@@ -246,6 +249,8 @@ export const createChatCompletion = openApiProtectedProc
         return completion;
       }
     } catch (error: unknown) {
+      void recordOngoingRequestEnd(ongoingRequestId);
+
       if (error instanceof TRPCError) {
         const statusCode = statusCodeFromTrpcCode(error.code);
         if (logRequest) {
