@@ -242,7 +242,13 @@ const UploadDataModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) =>
                     </>
                   ) : (
                     <>
-                      <Text maxW="80%" noOfLines={2} fontSize={24} color="gray.500" fontWeight="bold">
+                      <Text
+                        maxW="80%"
+                        noOfLines={2}
+                        fontSize={24}
+                        color="gray.500"
+                        fontWeight="bold"
+                      >
                         {file.name}
                       </Text>
                       <Text color="gray.500">{formatFileSize(file.size)}</Text>
