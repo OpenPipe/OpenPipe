@@ -79,7 +79,7 @@ export const monitorProperties: NodeProperties = {
     if (!inputDataChannel) return;
 
     const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
-      prepareDatasetEntriesForImport({
+      await prepareDatasetEntriesForImport({
         projectId: node.projectId,
         nodeId: node.id,
         dataChannelId: inputDataChannel.id,

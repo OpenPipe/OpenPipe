@@ -82,7 +82,7 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
     }));
 
     const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
-      prepareDatasetEntriesForImport({
+      await prepareDatasetEntriesForImport({
         projectId: ctx.key.projectId,
         nodeId: archive.id,
         dataChannelId: archive.inputDataChannelId,

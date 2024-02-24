@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { HStack, Text, Icon } from "@chakra-ui/react";
 import { RiInformationFill } from "react-icons/ri";
+import pluralize from "pluralize";
 
 import { useDataset } from "~/utils/hooks";
 import { RelabelOption } from "~/server/utils/nodes/node.types";
@@ -16,8 +17,10 @@ export const RelabelingIndicator = () => {
 
   if (!dataset?.numRelabelingEntries) return null;
 
-  const relabelingText =
-    dataset.relabelLLM !== RelabelOption.SkipRelabel ? `relabeling by ${dataset.relabelLLM}` : "";
+  const entriesText = pluralize("entry", dataset.numRelabelingEntries, true);
+  
+  const processingText =
+    dataset.relabelLLM !== RelabelOption.SkipRelabel ? `relabeling ${entriesText} with ${dataset.relabelLLM}` : `importing ${entriesText}`;
 
   return (
     <HStack
@@ -34,8 +37,7 @@ export const RelabelingIndicator = () => {
     >
       <Icon as={RiInformationFill} color="orange.300" boxSize={4} />{" "}
       <Text>
-        Processing: {dataset.numRelabelingEntries.toLocaleString()} dataset{" "}
-        {dataset.numRelabelingEntries === 1 ? "entry is" : "entries are"} pending {relabelingText}
+        Processing: {processingText}
       </Text>
     </HStack>
   );

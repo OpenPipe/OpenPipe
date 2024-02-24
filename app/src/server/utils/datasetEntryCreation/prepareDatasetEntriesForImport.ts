@@ -12,31 +12,39 @@ import {
 import { hashDatasetEntryInput, hashDatasetEntryOutput } from "../nodes/hashNode";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 
-export const prepareDatasetEntriesForImport = ({
+export const prepareDatasetEntriesForImport = async ({
   projectId,
   nodeId,
   dataChannelId,
   entriesToImport,
+  onProgress,
 }: {
   projectId: string;
   nodeId: string;
   dataChannelId: string;
   entriesToImport: (RowToImport & { persistentId: string; loggedCallId?: string })[];
-}): {
+  onProgress?: (progress: number) => Promise<void>;
+}): Promise<{
   datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[];
   datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[];
   nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[];
-} => {
+}> => {
   const datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[] = [];
   const datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[] = [];
-  const nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[] = [];
+  let nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[] = [];
 
+  let i = 0;
   for (const row of entriesToImport) {
     const tool_choice =
       row.input.tool_choice || convertFunctionCallToToolChoice(row.input.function_call);
     const tools = row.input.tools?.length
       ? row.input.tools
       : convertFunctionsToTools(row.input.functions);
+
+    // Update progress every 100 rows
+    if (onProgress && i++ % 100 === 0) {
+      await onProgress(i / entriesToImport.length);
+    }
 
     const inputHash = hashDatasetEntryInput({
       ...row.input,
@@ -88,7 +96,7 @@ export const prepareDatasetEntriesForImport = ({
   }
 
   // TODO: intelligently update split
-  shuffle(nodeEntriesToCreate);
+  nodeEntriesToCreate = shuffle(nodeEntriesToCreate);
   // set first 20% to TEST split
   nodeEntriesToCreate
     .slice(0, Math.floor(nodeEntriesToCreate.length * 0.2))

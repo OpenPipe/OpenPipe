@@ -119,6 +119,9 @@ export const datasetsRouter = createTRPCRouter({
 
     const archives = await getUpstreamSources({ llmRelabelNodeId: tNode.config.llmRelabelNodeId })
       .where("sourceNode.type", "=", "Archive")
+      .innerJoin("DatasetFileUpload as dfu", (join) => join
+        .onRef("dfu.nodeId", "=", "sourceNode.id")
+        .on("dfu.errorMessage", "is", null))
       .leftJoin("NodeEntry as nd", "sourceNode.id", "nd.nodeId")
       .groupBy("sourceNode.id")
       .distinctOn("sourceNode.createdAt")

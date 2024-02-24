@@ -314,7 +314,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         .filter(truthyFilter);
 
       const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
-        prepareDatasetEntriesForImport({
+        await prepareDatasetEntriesForImport({
           projectId,
           nodeId: preparedArchiveCreation.archiveNodeId,
           dataChannelId: preparedArchiveCreation.inputChannelId,

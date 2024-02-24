@@ -48,7 +48,7 @@ export const importDatasetEntries = async ({
 
   const onBlobDownloadProgress = async (progress: number) => {
     await updateDatasetFileUpload({
-      progress: 5 + Math.floor((progress / datasetFileUpload.fileSize) * 60),
+      progress: 5 + Math.floor((progress / datasetFileUpload.fileSize) * 25),
     });
   };
 
@@ -79,7 +79,7 @@ export const importDatasetEntries = async ({
 
   await updateDatasetFileUpload({
     status: "PROCESSING",
-    progress: 60,
+    progress: 30,
   });
 
   const importTime = new Date();
@@ -98,11 +98,14 @@ export const importDatasetEntries = async ({
   let nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[];
   try {
     ({ datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
-      prepareDatasetEntriesForImport({
+      await prepareDatasetEntriesForImport({
         projectId,
         nodeId,
         dataChannelId,
         entriesToImport,
+        onProgress: async (progress) => {
+          await updateDatasetFileUpload({ progress: 30 + Math.floor(45 * progress) });
+        },
       }));
   } catch (e: unknown) {
     await updateDatasetFileUpload({
@@ -115,7 +118,7 @@ export const importDatasetEntries = async ({
 
   await updateDatasetFileUpload({
     status: "SAVING",
-    progress: 70,
+    progress: 75,
   });
 
   // save datasetEntryInputs in batches of 1000
@@ -126,7 +129,7 @@ export const importDatasetEntries = async ({
       skipDuplicates: true,
     });
     await updateDatasetFileUpload({
-      progress: 70 + Math.floor(10 * (i / datasetEntryInputsToCreate.length)),
+      progress: 75 + Math.floor(10 * (i / datasetEntryInputsToCreate.length)),
     });
   }
 
@@ -138,7 +141,7 @@ export const importDatasetEntries = async ({
       skipDuplicates: true,
     });
     await updateDatasetFileUpload({
-      progress: 80 + Math.floor(10 * (i / datasetEntryOutputsToCreate.length)),
+      progress: 85 + Math.floor(10 * (i / datasetEntryOutputsToCreate.length)),
     });
   }
 
@@ -150,11 +153,9 @@ export const importDatasetEntries = async ({
       skipDuplicates: true,
     });
     await updateDatasetFileUpload({
-      progress: 90 + Math.floor(5 * (i / nodeEntriesToCreate.length)),
+      progress: 95 + Math.floor(4 * (i / nodeEntriesToCreate.length)),
     });
   }
-
-  await updateDatasetFileUpload({ progress: 95 });
 
   await updateDatasetFileUpload({ progress: 99 });
 
