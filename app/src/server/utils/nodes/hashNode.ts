@@ -1,12 +1,11 @@
+import type { NodeType } from "@prisma/client";
 import type { JsonValue } from "type-fest";
-import { type z } from "zod";
 
 import hashObject from "../hashObject";
-import { type nodeSchema, type InferNodeConfig, typedNode } from "./node.types";
+import { type InferNodeConfig } from "./node.types";
 import { kysely } from "~/server/db";
 import { nodePropertiesByType } from "~/server/tasks/nodes/processNodes/processNode.task";
-import { NodeType } from "@prisma/client";
-import { NodeProperties } from "./nodeProperties/nodeProperties.types";
+import { type NodeProperties } from "./nodeProperties/nodeProperties.types";
 
 export const hashNode = <T extends NodeType>(node: {
   id: string;

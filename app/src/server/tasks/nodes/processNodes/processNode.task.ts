@@ -17,7 +17,7 @@ import { kysely, prisma } from "~/server/db";
 import { forwardNodeEntries } from "./forwardNodeEntries";
 import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
 import { updateCached } from "./updateCached";
-import { NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
+import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
 
 export type ProcessNodeJob = {

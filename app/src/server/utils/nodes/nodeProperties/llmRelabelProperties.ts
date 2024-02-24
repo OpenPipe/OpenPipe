@@ -1,10 +1,9 @@
 import { NodeEntryStatus } from "@prisma/client";
 import { APIError } from "openai";
-import { z } from "zod";
 
 import { prisma } from "~/server/db";
 import { getOpenaiCompletion } from "~/server/utils/openai";
-import { NodeProperties } from "./nodeProperties.types";
+import { type NodeProperties } from "./nodeProperties.types";
 import { RelabelOption, llmRelabelNodeSchema } from "../node.types";
 
 export enum LLMRelabelOutput {

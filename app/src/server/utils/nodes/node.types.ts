@@ -1,4 +1,4 @@
-import type { DatasetEntryInput, DatasetEntryOutput, Node, NodeType, Prisma } from "@prisma/client";
+import type { DatasetEntryInput, DatasetEntryOutput, Node, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { chatInputs } from "~/types/dbColumns.types";

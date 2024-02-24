@@ -8,7 +8,7 @@ import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { truthyFilter } from "~/utils/utils";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { generatePersistentId } from "~/server/utils/nodes/utils";
-import { NodeProperties } from "./nodeProperties.types";
+import { type NodeProperties } from "./nodeProperties.types";
 import { monitorNodeSchema } from "../node.types";
 
 export enum MonitorOutput {

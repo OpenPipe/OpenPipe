@@ -1,6 +1,6 @@
 import { kysely, prisma } from "~/server/db";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
-import { NodeProperties } from "./nodeProperties.types";
+import { type NodeProperties } from "./nodeProperties.types";
 import { filterNodeSchema } from "../node.types";
 
 export enum FilterOutput {

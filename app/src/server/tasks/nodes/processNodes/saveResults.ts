@@ -1,8 +1,8 @@
 import type { Node, Prisma } from "@prisma/client";
 
 import {
-  ErrorProcessEntryResult,
-  SuccessProcessEntryResult,
+  type ErrorProcessEntryResult,
+  type SuccessProcessEntryResult,
   nodePropertiesByType,
 } from "./processNode.task";
 import { hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";

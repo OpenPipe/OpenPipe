@@ -1,4 +1,4 @@
-import { NodeProperties } from "./nodeProperties.types";
+import { type NodeProperties } from "./nodeProperties.types";
 import { manualRelabelNodeSchema } from "../node.types";
 
 export enum ManualRelabelOutput {

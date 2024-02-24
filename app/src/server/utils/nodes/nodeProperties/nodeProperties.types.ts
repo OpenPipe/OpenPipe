@@ -1,10 +1,10 @@
-import { NodeEntry, Node, NodeType } from "@prisma/client";
-import { z } from "zod";
+import type { NodeEntry, Node, NodeType } from "@prisma/client";
+import { type z } from "zod";
 
-import { ForwardEntriesSelectionExpression } from "~/server/tasks/nodes/processNodes/forwardNodeEntries";
-import { ProcessEntryResult } from "~/server/tasks/nodes/processNodes/processNode.task";
-import { AtLeastOne } from "~/types/shared.types";
-import { InferNodeConfig, typedNodeEntry } from "../node.types";
+import { type ForwardEntriesSelectionExpression } from "~/server/tasks/nodes/processNodes/forwardNodeEntries";
+import { type ProcessEntryResult } from "~/server/tasks/nodes/processNodes/processNode.task";
+import { type AtLeastOne } from "~/types/shared.types";
+import type { InferNodeConfig, typedNodeEntry } from "../node.types";
 
 type CacheMatchField = "nodeEntryPersistentId" | "incomingInputHash" | "incomingOutputHash";
 type CacheWriteField =
@@ -19,10 +19,10 @@ export type NodeProperties<T extends NodeType> = {
     {
       type: z.ZodLiteral<T>;
       config: z.ZodObject<
-        {},
+        NonNullable<unknown>,
         "passthrough",
         z.ZodTypeAny,
-        z.objectOutputType<{}, z.ZodTypeAny, "passthrough">
+        z.objectOutputType<NonNullable<unknown>, z.ZodTypeAny, "passthrough">
       >;
     },
     "passthrough",
