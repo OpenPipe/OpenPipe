@@ -38,9 +38,9 @@ const checkRateLimitHit = async (projectId: string) => {
     ])
     .executeTakeFirst();
 
-  if (!result?.canProceed) {
-    if (result?.rateLimit === 3) {
-      const message = `Your project has a rate limit of 3 concurrent requests. Add a payment method to automatically increase your rate limit to 20 concurrent requests. ${env.NEXT_PUBLIC_HOST}/p/${result?.slug}/billing/payment-methods`;
+  if (result && !result.canProceed) {
+    if (result.rateLimit === 3) {
+      const message = `Your project has a rate limit of 3 concurrent requests. Add a payment method to automatically increase your rate limit to 20 concurrent requests. ${env.NEXT_PUBLIC_HOST}/p/${result.slug}/billing/payment-methods`;
       throw new RateLimitError(
         429,
         {
@@ -50,7 +50,7 @@ const checkRateLimitHit = async (projectId: string) => {
         {},
       );
     } else {
-      const message = `Your project has a rate limit of ${result?.rateLimit} concurrent requests. Contact us at support@openpipe.ai to increase your rate limit further.`;
+      const message = `Your project has a rate limit of ${result.rateLimit} concurrent requests. Contact us at support@openpipe.ai to increase your rate limit further.`;
       throw new RateLimitError(429, { error: message }, message, {});
     }
   }
