@@ -78,12 +78,6 @@ for (let i = 0; i < datasets.length; i++) {
     prisma.dataset.delete({
       where: { id: integratedDatasetCreation.datasetId },
     }),
-    prisma.dataset.update({
-      where: { id: dataset.id },
-      data: {
-        nodeId: integratedDatasetCreation.datasetNodeId,
-      },
-    }),
     ...archiveCreation.prismaCreations,
     prisma.dataChannel.create({
       data: {
@@ -300,6 +294,13 @@ for (let i = 0; i < datasets.length; i++) {
     offset += entries.length;
     console.log(`migrated ${offset}/${entriesInDataset} entries`);
   }
+
+  await prisma.dataset.update({
+    where: { id: dataset.id },
+    data: {
+      nodeId: integratedDatasetCreation.datasetNodeId,
+    },
+  });
 
   // migrate dataset file uploads
   await kysely
