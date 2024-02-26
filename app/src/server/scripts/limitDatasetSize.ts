@@ -22,6 +22,7 @@ console.log(`Found ${datasets.length} datasets`);
 
 // limit the size of each dataset to 10,000 dataset entries
 for (const dataset of datasets) {
+  console.log(`Checking dataset ${dataset.name}`);
   const totalEntries = await kysely
     .selectFrom("DatasetEntry")
     .where("datasetId", "=", dataset.id)
@@ -50,7 +51,11 @@ for (const dataset of datasets) {
       throw new Error("Could not find 10,000th entry");
     }
 
-    await kysely.deleteFrom("DatasetEntry").where("id", ">", cutoffId.id).execute();
+    await kysely
+      .deleteFrom("DatasetEntry")
+      .where("datasetId", "=", dataset.id)
+      .where("id", ">", cutoffId.id)
+      .execute();
 
     console.log(
       `Reduced dataset ${dataset.id} to 10,000 entries by deleting ${entriesToDelete} entries.`,

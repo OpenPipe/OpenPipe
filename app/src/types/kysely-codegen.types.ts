@@ -459,6 +459,12 @@ export interface NodeOutput {
   updatedAt: Timestamp;
 }
 
+export interface OngoingRequest {
+  id: string;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
+}
+
 export interface Project {
   id: string;
   createdAt: Generated<Timestamp>;
@@ -611,6 +617,7 @@ export interface DB {
   Node: Node;
   NodeEntry: NodeEntry;
   NodeOutput: NodeOutput;
+  OngoingRequest: OngoingRequest;
   Project: Project;
   ProjectUser: ProjectUser;
   PruningRule: PruningRule;
