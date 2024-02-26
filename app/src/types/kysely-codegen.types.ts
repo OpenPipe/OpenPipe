@@ -212,6 +212,7 @@ export interface FineTune {
   numTrainingAutoretries: Generated<number>;
   gpt4FallbackEnabled: Generated<boolean>;
   forceA10: Generated<boolean>;
+  userId: string | null;
 }
 
 export interface FineTuneTestingEntry {
@@ -319,6 +320,12 @@ export interface LoggedCallTag {
   projectId: string;
 }
 
+export interface OngoingRequest {
+  id: string;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
+}
+
 export interface Project {
   id: string;
   createdAt: Generated<Timestamp>;
@@ -331,6 +338,7 @@ export interface Project {
   billable: Generated<boolean>;
   stripeCustomerId: string | null;
   tagNames: Generated<string[] | null>;
+  rateLimit: Generated<number>;
 }
 
 export interface ProjectUser {
@@ -361,6 +369,7 @@ export interface PruningRuleMatch {
 export interface RateLimit {
   key: string;
   tokens: number;
+  allowed: boolean;
   lastUpdated: Timestamp;
 }
 
@@ -452,6 +461,7 @@ export interface DB {
   Invoice: Invoice;
   LoggedCall: LoggedCall;
   LoggedCallTag: LoggedCallTag;
+  OngoingRequest: OngoingRequest;
   Project: Project;
   ProjectUser: ProjectUser;
   PruningRule: PruningRule;

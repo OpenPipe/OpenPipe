@@ -52,6 +52,7 @@ export const createFineTune = async (
       datasetId: input.dataset.id,
       pipelineVersion: CURRENT_PIPELINE_VERSION,
       trainingConfigOverrides: input.trainingConfigOverrides,
+      userId: input.userId,
     },
     include: {
       project: {

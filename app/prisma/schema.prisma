@@ -177,7 +177,7 @@ model Project {
     stripeCustomerId String?
     billable         Boolean  @default(true)
     tagNames         String[] @default([]) // cached list of tag names for the project
-
+    rateLimit        Int      @default(3)
     personalProjectUserId String? @unique @db.Uuid
     personalProjectUser   User?   @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
 
@@ -364,6 +364,7 @@ model User {
     projects               Project[]
     sentUserInvitations    UserInvitation[]
     authoredDatasetEntries DatasetEntry[]
+    fineTunes              FineTune[]
 
     createdAt             DateTime               @default(now())
     updatedAt             DateTime               @default(now()) @updatedAt
@@ -437,6 +438,9 @@ model FineTune {
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    userId    String?  @db.Uuid
+    user      User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -730,4 +734,13 @@ model RateLimit {
     // Whether the current request is allowed. Has to be a separate variable to track state.
     allowed     Boolean
     lastUpdated DateTime @db.Timestamptz
+}
+
+model OngoingRequest {
+    id        String @id @default(uuid()) @db.Uuid
+    projectId String @db.Uuid
+
+    createdAt DateTime @default(now())
+
+    @@index([projectId, createdAt])
 }

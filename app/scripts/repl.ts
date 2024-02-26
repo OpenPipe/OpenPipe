@@ -8,7 +8,7 @@ import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
 
 import crypto from "crypto";
 import { startTestJobs } from "~/server/utils/startTestJobs";
-import { fireworksTestSetLimit } from "~/utils/rateLimits";
+import { fireworksTestSetLimit } from "~/utils/rateLimit/rateLimits";
 
 const model = await prisma.fineTune.findUniqueOrThrow({
   where: {

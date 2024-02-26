@@ -37,10 +37,14 @@ export const usageRouter = createTRPCRouter({
                 .sum(sql<number>`case when ul.type != 'TRAINING' then 1 else 0 end`)
                 .as("numQueries"),
               fn
-                .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
+                .sum(
+                  sql<number>`case when ul.type != 'TRAINING' AND ul.type != 'CACHE_HIT' then ul."inputTokens" else 0 end`,
+                )
                 .as("inputTokens"),
               fn
-                .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
+                .sum(
+                  sql<number>`case when ul.type != 'TRAINING' AND ul.type != 'CACHE_HIT' then ul."outputTokens" else 0 end`,
+                )
                 .as("outputTokens"),
               fn.sum(sql<number>`ul."cost"`).as("cost"),
             ])
@@ -140,10 +144,14 @@ export function getStats(
         .sum(sql<number>`case when ul.type != 'TRAINING' then ul.cost else 0 end`)
         .as("totalInferenceSpend"),
       fn
-        .sum(sql<number>`case when ul.type != 'TRAINING' then ul."inputTokens" else 0 end`)
+        .sum(
+          sql<number>`case when ul.type != 'TRAINING' AND ul.type != 'CACHE_HIT' then ul."inputTokens" else 0 end`,
+        )
         .as("totalInputTokens"),
       fn
-        .sum(sql<number>`case when ul.type != 'TRAINING' then ul."outputTokens" else 0 end`)
+        .sum(
+          sql<number>`case when ul.type != 'TRAINING' AND ul.type != 'CACHE_HIT' then ul."outputTokens" else 0 end`,
+        )
         .as("totalOutputTokens"),
       fn
         .sum(

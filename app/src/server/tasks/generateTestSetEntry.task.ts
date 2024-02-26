@@ -21,7 +21,7 @@ import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { queueHeadToHeadEvalJobsForTestingEntry } from "./evaluateTestSetEntries.task";
 import { RateLimitError } from "openai";
-import { fireworksTestSetLimit } from "~/utils/rateLimits";
+import { fireworksTestSetLimit } from "~/utils/rateLimit/rateLimits";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
