@@ -29,6 +29,7 @@ import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDispla
 import InfoCircle from "~/components/InfoCircle";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { ProjectLink } from "~/components/ProjectLink";
+import { CONCURRENCY_RATE_LIMITS } from "~/utils/rateLimit/const";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -188,7 +189,7 @@ export default function Settings() {
                 <Text color="gray.500">Concurrent requests:</Text>
                 <Text fontWeight="bold">{selectedProject?.rateLimit}</Text>
               </HStack>
-              {selectedProject?.rateLimit === 3 ? (
+              {selectedProject?.rateLimit === CONCURRENCY_RATE_LIMITS.BASE_LIMIT ? (
                 <Text fontSize="sm">
                   Your rate limit represents the number of concurrent requests you can send to our
                   servers without getting a <Text as="i">429 "Too Many Requests"</Text> error.{" "}
@@ -199,7 +200,8 @@ export default function Settings() {
                       Add a payment method
                     </Text>
                   </ProjectLink>{" "}
-                  to increase your rate limit to 20 concurrent requests automatically.
+                  to increase your rate limit to {CONCURRENCY_RATE_LIMITS.INCREASED_LIMIT}{" "}
+                  concurrent requests automatically.
                 </Text>
               ) : (
                 <Text fontSize="sm">

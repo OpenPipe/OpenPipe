@@ -3,6 +3,7 @@ import { kysely } from "~/server/db";
 import { v4 as uuidv4 } from "uuid";
 import { RateLimitError } from "openai";
 import { env } from "~/env.mjs";
+import { CONCURRENCY_RATE_LIMITS } from "./const";
 
 export const recordOngoingRequestStart = async (projectId: string, proceed = true) => {
   if (!proceed) return;
@@ -39,8 +40,8 @@ const checkRateLimitHit = async (projectId: string) => {
     .executeTakeFirst();
 
   if (result && !result.canProceed) {
-    if (result.rateLimit === 3) {
-      const message = `Your project has a rate limit of 3 concurrent requests. Add a payment method to automatically increase your rate limit to 20 concurrent requests. ${env.NEXT_PUBLIC_HOST}/p/${result.slug}/billing/payment-methods`;
+    if (result.rateLimit === CONCURRENCY_RATE_LIMITS.BASE_LIMIT) {
+      const message = `Your project has a rate limit of ${CONCURRENCY_RATE_LIMITS.BASE_LIMIT} concurrent requests. Add a payment method to automatically increase your rate limit to ${CONCURRENCY_RATE_LIMITS.INCREASED_LIMIT} concurrent requests. ${env.NEXT_PUBLIC_HOST}/p/${result.slug}/billing/payment-methods`;
       throw new RateLimitError(
         429,
         {
