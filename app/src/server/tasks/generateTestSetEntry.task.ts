@@ -22,7 +22,7 @@ import defineTask from "./defineTask";
 import { hashAndSaveDatasetEntryOutput } from "../utils/nodes/hashNode";
 import { typedNodeEntry } from "../utils/nodes/node.types";
 import { chatCompletionMessage } from "~/types/shared.types";
-import { fireworksTestSetLimit } from "~/utils/rateLimits";
+import { fireworksTestSetLimit } from "~/utils/rateLimit/rateLimits";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;

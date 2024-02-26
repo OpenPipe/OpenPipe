@@ -28,6 +28,7 @@ import { type RouterOutputs, api, RouterInputs } from "~/utils/api";
 import { useAdminProjects, useHandledAsyncCallback, useSearchQuery } from "~/utils/hooks";
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
 import AdminProjectsPaginator from "./AdminProjectsPaginator";
+import { ChangeRateLimit } from "../Actions/ChangeRateLimit";
 
 type SortableField = NonNullable<RouterInputs["adminProjects"]["list"]["sortOrder"]>["field"];
 
@@ -150,6 +151,14 @@ const ExtendableArea: React.FC<ExtendableAreaProps> = ({ expandedRow, project })
                 Add credits
               </Button>
             </AddCredits>
+            <Text size="sm">
+              <strong>Rate Limit:</strong> {project.rateLimit}
+            </Text>
+            <ChangeRateLimit projectId={project.id}>
+              <Button variant="ghost" colorScheme="orange" minW={24}>
+                Change
+              </Button>
+            </ChangeRateLimit>
           </HStack>
 
           <HStack align="stretch" px={6} pt={2} pb={4} spacing={4}>

@@ -37,8 +37,8 @@ const InvoiceNotification = ({
         total={amount}
       />
       <Text>
-        Please visit your account to see more details and update a payment method. This will ensure
-        we avoid any interruption of service!
+        Visit your account to see more details. Make sure your payment methods are up to date to
+        avoid any interruptions in service.
       </Text>
       <Button href={invoicesLink}>{Number(amount) > 1 ? "Pay Now" : "Details"}</Button>
     </EmailLayout>

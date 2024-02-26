@@ -21,7 +21,7 @@ const FineTuneModelTrained = ({ fineTuneModelName, baseModel, fineTuneModelLink 
           Base model: <strong>{baseModel}</strong>
         </Text>
       </Highlight>
-      <Text>You can start using your fine-tuned model now.</Text>
+      <Text>Your fine-tuned model is ready for inference.</Text>
 
       <Button href={fineTuneModelLink}>Details</Button>
     </EmailLayout>

@@ -14,6 +14,8 @@ import {
   deletePaymentMethod,
 } from "~/server/utils/stripe";
 import { chargeInvoice } from "~/server/tasks/chargeInvoices.task";
+import { prisma } from "~/server/db";
+import { CONCURRENCY_RATE_LIMITS } from "~/utils/rateLimit/const";
 
 export const paymentsRouter = createTRPCRouter({
   createStripeIntent: protectedProcedure
@@ -91,6 +93,20 @@ export const paymentsRouter = createTRPCRouter({
         if (!defaultPaymentMethodId && availablePaymentMethodId) {
           await setDefaultPaymentMethod(stripeCustomerId, availablePaymentMethodId);
           defaultPaymentMethodId = availablePaymentMethodId;
+        }
+
+        // Update Rate Limit after a payment method is added
+        if (paymentMethods.data.length) {
+          const project = await prisma.project.findUniqueOrThrow({
+            where: { id: input.projectId },
+          });
+
+          if (project.rateLimit === CONCURRENCY_RATE_LIMITS.BASE_LIMIT) {
+            await prisma.project.update({
+              where: { id: input.projectId },
+              data: { rateLimit: CONCURRENCY_RATE_LIMITS.INCREASED_LIMIT },
+            });
+          }
         }
 
         return { data: paymentMethods.data, defaultPaymentMethodId };

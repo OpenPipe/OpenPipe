@@ -264,6 +264,7 @@ export interface FineTune {
   numTrainingAutoretries: Generated<number>;
   gpt4FallbackEnabled: Generated<boolean>;
   forceA10: Generated<boolean>;
+  userId: string | null;
 }
 
 export interface FineTuneTestingEntry {
@@ -470,6 +471,7 @@ export interface Project {
   billable: Generated<boolean>;
   stripeCustomerId: string | null;
   tagNames: Generated<string[] | null>;
+  rateLimit: Generated<number>;
 }
 
 export interface ProjectUser {

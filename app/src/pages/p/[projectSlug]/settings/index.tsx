@@ -10,6 +10,7 @@ import {
   Icon,
   useDisclosure,
   Box,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { BsPlus, BsTrash } from "react-icons/bs";
@@ -27,6 +28,8 @@ import { InviteProjectUserModal } from "~/components/projectSettings/InviteProje
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
 import InfoCircle from "~/components/InfoCircle";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { ProjectLink } from "~/components/ProjectLink";
+import { CONCURRENCY_RATE_LIMITS } from "~/utils/rateLimit/const";
 
 export default function Settings() {
   const utils = api.useContext();
@@ -179,6 +182,39 @@ export default function Settings() {
               </Text>
             </VStack>
             <OpenaiApiKeyDisplay />
+            <Divider />
+            <VStack alignItems="flex-start">
+              <Subtitle>Rate Limit</Subtitle>
+              <HStack>
+                <Text color="gray.500">Concurrent requests:</Text>
+                <Text fontWeight="bold">{selectedProject?.rateLimit}</Text>
+              </HStack>
+              {selectedProject?.rateLimit === CONCURRENCY_RATE_LIMITS.BASE_LIMIT ? (
+                <Text fontSize="sm">
+                  Your rate limit represents the number of concurrent requests you can send to our
+                  servers without getting a <Text as="i">429 "Too Many Requests"</Text> error.{" "}
+                  <ProjectLink
+                    href={{ pathname: "/billing/[tab]", query: { tab: "payment-methods" } }}
+                  >
+                    <Text as="b" color="gray.900">
+                      Add a payment method
+                    </Text>
+                  </ProjectLink>{" "}
+                  to increase your rate limit to {CONCURRENCY_RATE_LIMITS.INCREASED_LIMIT}{" "}
+                  concurrent requests automatically.
+                </Text>
+              ) : (
+                <Text fontSize="sm">
+                  Your rate limit represents the number of concurrent requests you can send to our
+                  servers without getting a <Text as="i">429 "Too Many Requests"</Text> error. To
+                  increase your rate limit, email us at{" "}
+                  <ChakraLink as="b" href="mailto:support@openipe.ai">
+                    support@openipe.ai
+                  </ChakraLink>
+                  .
+                </Text>
+              )}
+            </VStack>
             <Divider />
             {selectedProject?.personalProjectUserId ? (
               <VStack alignItems="flex-start">

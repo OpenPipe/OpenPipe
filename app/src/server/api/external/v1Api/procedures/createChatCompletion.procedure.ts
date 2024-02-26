@@ -26,6 +26,10 @@ import {
 } from "~/types/shared.types";
 import { recordLoggedCall, recordUsage } from "~/utils/recordRequest";
 import { openApiProtectedProc } from "../../openApiTrpc";
+import {
+  recordOngoingRequestEnd,
+  recordOngoingRequestStart,
+} from "~/utils/rateLimit/concurrencyRateLimits";
 
 export const createChatCompletion = openApiProtectedProc
   .meta({
@@ -82,6 +86,8 @@ export const createChatCompletion = openApiProtectedProc
     const requestedAt = Date.now();
 
     const isFineTune = inputPayload.model.startsWith("openpipe:");
+
+    const ongoingRequestId = await recordOngoingRequestStart(key.projectId, isFineTune);
 
     // Default to true if not using a fine-tuned model
     const logRequest =
@@ -205,7 +211,9 @@ export const createChatCompletion = openApiProtectedProc
           logRequest,
           fineTune,
           tags,
+          ongoingRequestId,
         }).catch((e) => captureException(e));
+
         return outputStream.toReadableStream();
       } else {
         void recordUsage({
@@ -218,6 +226,7 @@ export const createChatCompletion = openApiProtectedProc
           logRequest,
           fineTune,
           tags,
+          ongoingRequestId,
         }).catch((e) => captureException(e));
         if (useCache && !cachedCompletion) {
           void kysely
@@ -236,9 +245,12 @@ export const createChatCompletion = openApiProtectedProc
             .execute()
             .catch((e) => captureException(e));
         }
+
         return completion;
       }
     } catch (error: unknown) {
+      void recordOngoingRequestEnd(ongoingRequestId);
+
       if (error instanceof TRPCError) {
         const statusCode = statusCodeFromTrpcCode(error.code);
         if (logRequest) {
