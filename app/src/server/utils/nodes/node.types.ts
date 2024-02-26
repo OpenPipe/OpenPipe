@@ -26,6 +26,7 @@ export const archiveNodeSchema = z
     config: z
       .object({
         maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
+        relabelNodeId: z.string(),
       })
       .passthrough(),
   })
@@ -41,6 +42,7 @@ export const monitorNodeSchema = z
         maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
         sampleRate: z.number().default(1),
         filterNodeId: z.string(),
+        relabelNodeId: z.string(),
       })
       .passthrough(),
   })
@@ -82,7 +84,6 @@ export const datasetNodeSchema = z
     type: z.literal("Dataset"),
     config: z
       .object({
-        llmRelabelNodeId: z.string(),
         manualRelabelNodeId: z.string(),
       })
       .passthrough(),

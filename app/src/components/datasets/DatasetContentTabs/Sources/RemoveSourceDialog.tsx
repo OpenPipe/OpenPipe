@@ -12,17 +12,17 @@ import {
 } from "@chakra-ui/react";
 import pluralize from "pluralize";
 
-import { type RouterOutputs, api } from "~/utils/api";
+import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-
-export type Source = RouterOutputs["datasets"]["get"]["archives"][number];
+import { type DatasetArchive } from "./RelabelArchiveDialog";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 export const RemoveSourceDialog = ({
   source,
   onClose,
 }: {
-  source: Source | null;
+  source: DatasetArchive | null;
   onClose: () => void;
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -38,10 +38,11 @@ export const RemoveSourceDialog = ({
     if (!selectedProject || !dataset?.id || !source?.id) return;
     const resp = await removeMutation.mutateAsync({
       datasetId: dataset.id,
-      sourceNodeId: source.id,
+      sourceLLMRelabelNodeId: source.llmRelabelNodeId,
     });
     if (maybeReportError(resp)) return;
     await utils.nodeEntries.list.invalidate();
+    await utils.archives.listForDataset.invalidate();
     await utils.datasets.get.invalidate();
 
     onClose();
@@ -74,14 +75,16 @@ export const RemoveSourceDialog = ({
             <Button ref={cancelRef} isDisabled={removalInProgress} onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              colorScheme="red"
-              ml={3}
-              isLoading={removalInProgress}
-              onClick={onRemoveConfirm}
-            >
-              Confirm
-            </Button>
+            <ConditionallyEnable accessRequired="requireCanModifyProject">
+              <Button
+                colorScheme="red"
+                ml={3}
+                isLoading={removalInProgress}
+                onClick={onRemoveConfirm}
+              >
+                Confirm
+              </Button>
+            </ConditionallyEnable>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogOverlay>

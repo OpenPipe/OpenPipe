@@ -12,7 +12,7 @@ import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 import { toUTC } from "./dayjs";
 import { useDateFilter } from "~/components/Filters/useDateFilter";
-import { ProviderWithModel } from "~/server/fineTuningProviders/types";
+import { type ProviderWithModel } from "~/server/fineTuningProviders/types";
 import { splitProvider } from "~/server/fineTuningProviders/supportedModels";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
@@ -189,6 +189,17 @@ export const useNodeEntries = (refetchInterval = 0) => {
   return useStableData(result);
 };
 
+export const useNodeEntry = (persistentId: string | null) => {
+  const dataset = useDataset().data;
+
+  const result = api.nodeEntries.get.useQuery(
+    { persistentId: persistentId as string, datasetId: dataset?.id ?? "" },
+    { enabled: !!persistentId && !!dataset?.id },
+  );
+
+  return useStableData(result);
+};
+
 export const useDatasetTrainingCost = (
   selectedBaseModel: ProviderWithModel,
   pruningRuleIds: string[],
@@ -199,7 +210,7 @@ export const useDatasetTrainingCost = (
 
   const filters = useFilters().filters;
 
-  const stats = api.datasets.getTrainingCosts.useQuery(
+  return api.datasets.getTrainingCosts.useQuery(
     {
       datasetId: dataset?.id || "",
       baseModel: splitProvider(selectedBaseModel),
@@ -209,8 +220,15 @@ export const useDatasetTrainingCost = (
     },
     { enabled: !!dataset, refetchInterval },
   );
+};
 
-  return stats;
+export const useDatasetArchives = () => {
+  const dataset = useDataset().data;
+
+  return api.archives.listForDataset.useQuery(
+    { datasetId: dataset?.id ?? "" },
+    { enabled: !!dataset?.id },
+  );
 };
 
 // Prevent annoying flashes while loading from the server
@@ -225,17 +243,6 @@ const useStableData = <TData, TError>(result: UseQueryResult<TData, TError>) => 
   }, [data, isFetching]);
 
   return { ...result, data: stableData };
-};
-
-export const useDatasetNodeEntry = (persistentId: string | null) => {
-  const dataset = useDataset().data;
-
-  const result = api.nodeEntries.get.useQuery(
-    { persistentId: persistentId as string, datasetId: dataset?.id ?? "" },
-    { enabled: !!persistentId && !!dataset?.id },
-  );
-
-  return useStableData(result);
 };
 
 export const useTrainingEntries = () => {

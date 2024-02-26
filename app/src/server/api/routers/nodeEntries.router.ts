@@ -29,9 +29,12 @@ import {
   typedNode,
   DEFAULT_MAX_OUTPUT_SIZE,
   typedNodeEntry,
+  RelabelOption,
 } from "~/server/utils/nodes/node.types";
-import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
-import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
+import {
+  prepareIntegratedArchiveCreation,
+  prepareIntegratedDatasetCreation,
+} from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { generatePersistentId, creationTimeFromPersistentId } from "~/server/utils/nodes/utils";
 import { hashDatasetEntryInput, hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";
 import {
@@ -196,7 +199,7 @@ export const nodeEntriesRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       let datasetId;
-      let llmRelabelNodeId;
+      let manualRelabelNodeId;
       let projectId;
       const prismaCreations: Prisma.PrismaPromise<unknown>[] = [];
 
@@ -215,7 +218,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         if (tDatasetNode.type !== "Dataset") return error("Dataset node incorrectly typed");
 
         projectId = datasetNode.projectId;
-        llmRelabelNodeId = tDatasetNode.config.llmRelabelNodeId;
+        manualRelabelNodeId = tDatasetNode.config.manualRelabelNodeId;
       } else if (input.newDatasetParams) {
         projectId = input.newDatasetParams.projectId;
 
@@ -225,7 +228,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         });
 
         datasetId = preparedIntegratedDatasetCreation.datasetId;
-        llmRelabelNodeId = preparedIntegratedDatasetCreation.llmRelabelNodeId;
+        manualRelabelNodeId = preparedIntegratedDatasetCreation.manualRelabelNodeId;
 
         prismaCreations.push(...preparedIntegratedDatasetCreation.prismaCreations);
       } else {
@@ -245,22 +248,19 @@ export const nodeEntriesRouter = createTRPCRouter({
         ? parseInt(latestRequestLogsImport.name.split("#")[1] as string)
         : 0;
 
-      const preparedArchiveCreation = prepareArchiveCreation({
-        nodeParams: {
-          projectId,
-          name: `Request Logs Import #${latestRequestLogsImportIndex + 1}`,
-          config: {
-            maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
-          },
-        },
+      const preparedArchiveCreation = prepareIntegratedArchiveCreation({
+        projectId,
+        name: `Request Logs Import #${latestRequestLogsImportIndex + 1}`,
+        maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
+        relabelLLM: RelabelOption.SkipRelabel,
       });
 
       prismaCreations.push(
         ...preparedArchiveCreation.prismaCreations,
         prisma.dataChannel.create({
           data: {
-            originId: preparedArchiveCreation.entriesOutputId,
-            destinationId: llmRelabelNodeId,
+            originId: preparedArchiveCreation.relabeledOutputId,
+            destinationId: manualRelabelNodeId,
           },
         }),
       );
@@ -317,7 +317,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         await prepareDatasetEntriesForImport({
           projectId,
           nodeId: preparedArchiveCreation.archiveNodeId,
-          dataChannelId: preparedArchiveCreation.inputChannelId,
+          dataChannelId: preparedArchiveCreation.archiveInputChannelId,
           entriesToImport: rowsToConvert,
         });
 

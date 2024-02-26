@@ -13,20 +13,17 @@ import { env } from "~/env.mjs";
 import { comparisonModels } from "~/utils/comparisonModels";
 import { filtersSchema } from "~/types/shared.types";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
-import {
-  DEFAULT_MAX_OUTPUT_SIZE,
-  relabelOptions,
-  typedNode,
-} from "~/server/utils/nodes/node.types";
+import { DEFAULT_MAX_OUTPUT_SIZE, RelabelOption, typedNode } from "~/server/utils/nodes/node.types";
 import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
-import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
+import {
+  prepareIntegratedArchiveCreation,
+  prepareIntegratedDatasetCreation,
+} from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
-import { prepareArchiveCreation } from "~/server/utils/nodes/nodeCreation/prepareNodeCreation";
-import { getUpstreamSources } from "~/server/utils/nodes/relationalQueries";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
-import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
+import { getArchives, getSourceLLMRelabelNodes } from "~/server/utils/nodes/relationalQueries";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -88,59 +85,52 @@ export const datasetsRouter = createTRPCRouter({
     if (tNode.type !== "Dataset")
       throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
 
-    const llmRelabelNode = await kysely
-      .selectFrom("Node as n")
-      .where("n.id", "=", tNode.config.llmRelabelNodeId)
-      .selectAll("n")
+    const relabelNodeStats = await getSourceLLMRelabelNodes({
+      datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
+    })
+      .groupBy("llmRelabelNode.id")
       .select((eb) => [
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "n.id")
+          .whereRef("ne.nodeId", "=", "llmRelabelNode.id")
           .where("ne.status", "!=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numUnprocessedEntries"),
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "n.id")
+          .whereRef("ne.nodeId", "=", "llmRelabelNode.id")
           .where("ne.status", "=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numProcessedEntries"),
       ])
-      .executeTakeFirst();
+      .execute()
+      .then((statGroups) =>
+        statGroups.reduce(
+          (acc, nodeStats) => {
+            acc.totalNumUnprocessedEntries += nodeStats.numUnprocessedEntries ?? 0;
+            acc.totalNumProcessedEntries += nodeStats.numProcessedEntries ?? 0;
+            return acc;
+          },
+          {
+            totalNumUnprocessedEntries: 0,
+            totalNumProcessedEntries: 0,
+          },
+        ),
+      );
 
-    if (!llmRelabelNode)
-      throw new TRPCError({ message: "LLM relabeling model not found", code: "NOT_FOUND" });
-
-    const tLlmRelabelNode = typedNode(llmRelabelNode);
-
-    if (tLlmRelabelNode.type !== "LLMRelabel")
-      throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
+    if (!relabelNodeStats)
+      throw new TRPCError({ message: "LLM relabeling nodes not found", code: "NOT_FOUND" });
 
     const numRelabelingEntries =
-      (tLlmRelabelNode.numUnprocessedEntries ?? 0) +
-      Math.max(0, (tLlmRelabelNode.numProcessedEntries ?? 0) - (dataset.numProcessedEntries ?? 0));
-
-    const archives = await getUpstreamSources({ llmRelabelNodeId: tNode.config.llmRelabelNodeId })
-      .where("sourceNode.type", "=", "Archive")
-      .innerJoin("DatasetFileUpload as dfu", (join) =>
-        join.onRef("dfu.nodeId", "=", "sourceNode.id").on("dfu.errorMessage", "is", null),
-      )
-      .leftJoin("NodeEntry as nd", "sourceNode.id", "nd.nodeId")
-      .groupBy("sourceNode.id")
-      .distinctOn("sourceNode.createdAt")
-      .selectAll("sourceNode")
-      .select([
-        sql<number>`SUM(CASE WHEN nd.split = 'TRAIN' THEN 1 ELSE 0 END)::int`.as("numTrainEntries"),
-        sql<number>`SUM(CASE WHEN nd.split = 'TEST' THEN 1 ELSE 0 END)::int`.as("numTestEntries"),
-      ])
-      .orderBy("sourceNode.createdAt", "desc")
-      .execute();
+      (relabelNodeStats.totalNumUnprocessedEntries ?? 0) +
+      Math.max(
+        0,
+        (relabelNodeStats.totalNumProcessedEntries ?? 0) - (dataset.numProcessedEntries ?? 0),
+      );
 
     return {
       ...dataset,
-      relabelLLM: tLlmRelabelNode.config.relabelLLM,
       numRelabelingEntries,
-      archives,
     };
   }),
   getTrainingCosts: protectedProcedure
@@ -301,66 +291,6 @@ export const datasetsRouter = createTRPCRouter({
       return success("Dataset updated");
     }),
 
-  updateRelabelingModel: protectedProcedure
-    .input(
-      z.object({
-        datasetId: z.string(),
-        relabelOption: z.enum(relabelOptions),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
-        where: { id: input.datasetId },
-      });
-      await requireCanModifyProject(projectId, ctx);
-
-      const datasetNode = await kysely
-        .selectFrom("Dataset as d")
-        .where("d.id", "=", input.datasetId)
-        .innerJoin("Node as n", "n.id", "d.nodeId")
-        .selectAll("n")
-        .executeTakeFirst();
-
-      if (!datasetNode) return error("Dataset not found");
-
-      const tDatasetNode = typedNode(datasetNode);
-
-      if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
-
-      const llmRelabelNode = await kysely
-        .selectFrom("Node as n")
-        .where("n.id", "=", tDatasetNode.config.llmRelabelNodeId)
-        .selectAll("n")
-        .executeTakeFirst();
-
-      if (!llmRelabelNode) return error("Relabeling model not found");
-
-      const tLlmRelabelNode = typedNode(llmRelabelNode);
-
-      if (tLlmRelabelNode.type !== "LLMRelabel") return error("Node incorrect type");
-
-      if (tLlmRelabelNode.config.relabelLLM === input.relabelOption)
-        return success("Dataset relabeling model already set to this option");
-
-      await prisma.node.update({
-        where: { id: tLlmRelabelNode.id },
-        data: checkNodeInput({
-          ...tLlmRelabelNode,
-          config: {
-            ...tLlmRelabelNode.config,
-            relabelLLM: input.relabelOption,
-          },
-        }),
-      });
-
-      await enqueueProcessNode({
-        nodeId: tLlmRelabelNode.id,
-        invalidateData: true,
-      });
-
-      return success("Dataset relabeling model updated");
-    }),
-
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
@@ -388,9 +318,6 @@ export const datasetsRouter = createTRPCRouter({
         }),
         prisma.node.delete({
           where: { id: tNode.id },
-        }),
-        prisma.node.delete({
-          where: { id: tNode.config.llmRelabelNodeId },
         }),
         prisma.node.delete({
           where: { id: tNode.config.manualRelabelNodeId },
@@ -450,22 +377,20 @@ export const datasetsRouter = createTRPCRouter({
         ? parseInt(latestUpload.name.split("#")[1] as string)
         : 0;
 
-      const { prismaCreations, archiveNodeId, entriesOutputId } = prepareArchiveCreation({
-        nodeParams: {
+      const { prismaCreations, archiveNodeId, relabeledOutputId } =
+        prepareIntegratedArchiveCreation({
           projectId,
           name: `Upload #${latestUploadIndex + 1}`,
-          config: {
-            maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
-          },
-        },
-      });
+          maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
+          relabelLLM: RelabelOption.SkipRelabel,
+        });
 
       await prisma.$transaction([
         ...prismaCreations,
         prisma.dataChannel.create({
           data: {
-            originId: entriesOutputId,
-            destinationId: tDatasetNode.config.llmRelabelNodeId,
+            originId: relabeledOutputId,
+            destinationId: tDatasetNode.config.manualRelabelNodeId,
           },
         }),
         prisma.datasetFileUpload.create({
@@ -503,11 +428,10 @@ export const datasetsRouter = createTRPCRouter({
         throw new Error("Node is not a Dataset");
       }
 
-      const { llmRelabelNodeId } = tNode.config;
-
-      const archives = await getUpstreamSources({ llmRelabelNodeId })
-        .where("sourceNode.type", "=", "Archive")
-        .select(["sourceNode.id as sourceNodeId"])
+      const archives = await getArchives({
+        datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
+      })
+        .select(["archiveNode.id as archiveNodeId"])
         .execute();
 
       if (!archives.length) return [];
@@ -515,7 +439,7 @@ export const datasetsRouter = createTRPCRouter({
       return await prisma.datasetFileUpload.findMany({
         where: {
           nodeId: {
-            in: archives.map((a) => a.sourceNodeId),
+            in: archives.map((a) => a.archiveNodeId),
           },
           visible: true,
         },
@@ -556,7 +480,12 @@ export const datasetsRouter = createTRPCRouter({
     }),
 
   removeSource: protectedProcedure
-    .input(z.object({ datasetId: z.string(), sourceNodeId: z.string() }))
+    .input(
+      z.object({
+        datasetId: z.string(),
+        sourceLLMRelabelNodeId: z.string(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       const { projectId } = await prisma.dataset.findUniqueOrThrow({
         where: { id: input.datasetId },
@@ -576,19 +505,19 @@ export const datasetsRouter = createTRPCRouter({
 
       if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
 
-      const sourceNode = await kysely
+      const sourceLLMRelabelNode = await kysely
         .selectFrom("Node as n")
-        .where("n.id", "=", input.sourceNodeId)
+        .where("n.id", "=", input.sourceLLMRelabelNodeId)
         .innerJoin("NodeOutput as no", "n.id", "no.nodeId")
         .select(["no.id as nodeOutputId"])
         .executeTakeFirst();
 
-      if (!sourceNode) return error("Source node not found");
+      if (!sourceLLMRelabelNode) return error("Source node not found");
 
       await kysely
         .deleteFrom("DataChannel")
-        .where("originId", "=", sourceNode.nodeOutputId)
-        .where("destinationId", "=", tDatasetNode.config.llmRelabelNodeId)
+        .where("originId", "=", sourceLLMRelabelNode.nodeOutputId)
+        .where("destinationId", "=", tDatasetNode.config.manualRelabelNodeId)
         .execute();
 
       return success("Source removed");

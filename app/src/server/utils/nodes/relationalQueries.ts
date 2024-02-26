@@ -37,12 +37,48 @@ export const getDownstreamDatasets = (filterNodeId: string) => {
     .distinctOn("datasetNode.id");
 };
 
-export const getUpstreamSources = ({ llmRelabelNodeId }: { llmRelabelNodeId: string }) => {
-  return kysely
-    .selectFrom("Node as datasetLLMRelabelNode")
-    .where("datasetLLMRelabelNode.id", "=", llmRelabelNodeId)
-    .innerJoin("DataChannel as dc1", "dc1.destinationId", "datasetLLMRelabelNode.id")
-    .innerJoin("NodeOutput as sourceNodeOutput", "sourceNodeOutput.id", "dc1.originId")
-    .innerJoin("Node as sourceNode", "sourceNode.id", "sourceNodeOutput.nodeId")
-    .distinctOn("sourceNode.id");
-};
+export const getSourceLLMRelabelNodes = ({
+  datasetManualRelabelNodeId,
+}: {
+  datasetManualRelabelNodeId: string;
+}) =>
+  kysely
+    .selectFrom("Node as datasetManualRelabelNode")
+    .where("datasetManualRelabelNode.id", "=", datasetManualRelabelNodeId)
+    .innerJoin(
+      "DataChannel as llmManualDC",
+      "llmManualDC.destinationId",
+      "datasetManualRelabelNode.id",
+    )
+    .innerJoin("NodeOutput as llmRelabelNo", "llmRelabelNo.id", "llmManualDC.originId")
+    .innerJoin("Node as llmRelabelNode", "llmRelabelNode.id", "llmRelabelNo.nodeId")
+    .distinctOn("llmRelabelNode.id");
+
+export const getArchives = ({
+  datasetManualRelabelNodeId,
+}: {
+  datasetManualRelabelNodeId: string;
+}) =>
+  getSourceLLMRelabelNodes({ datasetManualRelabelNodeId })
+    .innerJoin("DataChannel as archiveLlmDC", "archiveLlmDC.destinationId", "llmRelabelNode.id")
+    .innerJoin("NodeOutput as archiveNodeOutput", "archiveNodeOutput.id", "archiveLlmDC.originId")
+    .innerJoin("Node as archiveNode", "archiveNode.id", "archiveNodeOutput.nodeId")
+    .distinctOn("archiveNode.id");
+
+export const getMonitors = ({
+  datasetManualRelabelNodeId,
+}: {
+  datasetManualRelabelNodeId: string;
+}) =>
+  getSourceLLMRelabelNodes({ datasetManualRelabelNodeId })
+    .innerJoin("DataChannel as filterLlmDC", "filterLlmDC.destinationId", "llmRelabelNode.id")
+    .innerJoin("NodeOutput as filterNodeOutput", "filterNodeOutput.id", "filterLlmDC.originId")
+    .innerJoin("Node as filterNode", "filterNode.id", "filterNodeOutput.nodeId")
+    .innerJoin("DataChannel as monitorFilterDC", "monitorFilterDC.destinationId", "filterNode.id")
+    .innerJoin(
+      "NodeOutput as monitorNodeOutput",
+      "monitorNodeOutput.id",
+      "monitorFilterDC.originId",
+    )
+    .innerJoin("Node as monitorNode", "monitorNode.id", "monitorNodeOutput.nodeId")
+    .distinctOn("monitorNode.id");

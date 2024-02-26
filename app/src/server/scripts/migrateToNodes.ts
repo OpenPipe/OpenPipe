@@ -1,4 +1,4 @@
-import { JsonValue } from "type-fest";
+import { type JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { sql } from "kysely";
 import yargs from "yargs";
@@ -8,12 +8,15 @@ import {
   hashAndSaveDatasetEntryInput,
   hashAndSaveDatasetEntryOutput,
 } from "../utils/nodes/hashNode";
-import { prepareIntegratedDatasetCreation } from "../utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
-import { prepareArchiveCreation } from "../utils/nodes/nodeCreation/prepareNodeCreation";
+import {
+  prepareIntegratedDatasetCreation,
+  prepareIntegratedArchiveCreation,
+} from "../utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { generatePersistentId } from "../utils/nodes/utils";
 import { enqueueProcessNode } from "../tasks/nodes/processNodes/processNode.task";
 import { hideBin } from "yargs/helpers";
 import { countDatasetEntryTokens } from "../tasks/fineTuning/countDatasetEntryTokens.task";
+import { RelabelOption } from "../utils/nodes/node.types";
 
 const argv = await yargs(hideBin(process.argv))
   .option("projectId", {
@@ -63,14 +66,11 @@ for (let i = 0; i < datasets.length; i++) {
     where: { datasetId: dataset.id },
   });
 
-  const archiveCreation = prepareArchiveCreation({
-    nodeParams: {
-      projectId: dataset.projectId,
-      name: `Migrated entries for ${dataset.name}`,
-      config: {
-        maxOutputSize: entriesInDataset,
-      },
-    },
+  const archiveCreation = prepareIntegratedArchiveCreation({
+    projectId: dataset.projectId,
+    name: `Migrated entries for ${dataset.name}`,
+    maxOutputSize: entriesInDataset,
+    relabelLLM: RelabelOption.SkipRelabel,
   });
 
   await prisma.$transaction([
@@ -87,8 +87,8 @@ for (let i = 0; i < datasets.length; i++) {
     ...archiveCreation.prismaCreations,
     prisma.dataChannel.create({
       data: {
-        originId: archiveCreation.entriesOutputId,
-        destinationId: integratedDatasetCreation.llmRelabelNodeId,
+        originId: archiveCreation.relabeledOutputId,
+        destinationId: integratedDatasetCreation.manualRelabelNodeId,
       },
     }),
   ]);
@@ -135,7 +135,7 @@ for (let i = 0; i < datasets.length; i++) {
           .values({
             id: uuidv4(),
             nodeId: archiveCreation.archiveNodeId,
-            dataChannelId: archiveCreation.inputChannelId,
+            dataChannelId: archiveCreation.archiveInputChannelId,
             persistentId,
             loggedCallId: entry.loggedCallId,
             inputHash,

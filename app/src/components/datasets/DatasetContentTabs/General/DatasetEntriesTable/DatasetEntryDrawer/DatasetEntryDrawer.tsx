@@ -18,7 +18,7 @@ import { type DatasetEntrySplit } from "@prisma/client";
 import { isEqual } from "lodash-es";
 
 import { api } from "~/utils/api";
-import { useDatasetNodeEntry, useHandledAsyncCallback } from "~/utils/hooks";
+import { useNodeEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EntrySplitDropdown from "./EntrySplitDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import dayjs from "~/utils/dayjs";
@@ -40,7 +40,7 @@ function DatasetEntryDrawer({
 }) {
   const utils = api.useContext();
 
-  const { data: nodeEntry, isLoading } = useDatasetNodeEntry(nodeEntryPersistentId);
+  const { data: nodeEntry, isLoading } = useNodeEntry(nodeEntryPersistentId);
 
   const savedInputMessages = useMemo(() => nodeEntry?.messages, [nodeEntry]);
   const savedTools = useMemo(() => nodeEntry?.tools, [nodeEntry]);

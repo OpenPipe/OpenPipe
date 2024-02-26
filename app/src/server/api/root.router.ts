@@ -13,6 +13,7 @@ import { invoicesRouter } from "./routers/invoices.router";
 import { paymentsRouter } from "./routers/payments.router";
 import { monitorsRouter } from "./routers/monitors.router";
 import { nodeEntriesRouter } from "./routers/nodeEntries.router";
+import { archivesRouter } from "./routers/archives.router";
 import { adminProjectsRouter } from "./routers/adminProjects.router";
 import { creditAdjustmentsRouter } from "./routers/creditAdjustments.router";
 
@@ -37,6 +38,7 @@ export const appRouter = createTRPCRouter({
   payments: paymentsRouter,
   monitors: monitorsRouter,
   nodeEntries: nodeEntriesRouter,
+  archives: archivesRouter,
   creditAdjustments: creditAdjustmentsRouter,
 });
 

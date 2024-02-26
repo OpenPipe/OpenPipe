@@ -4,9 +4,8 @@ import { RiInformationFill } from "react-icons/ri";
 import pluralize from "pluralize";
 
 import { useDataset } from "~/utils/hooks";
-import { RelabelOption } from "~/server/utils/nodes/node.types";
 
-export const RelabelingIndicator = () => {
+export const ProcessingIndicator = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
 
   const dataset = useDataset({ refetchInterval }).data;
@@ -16,13 +15,6 @@ export const RelabelingIndicator = () => {
   }, [dataset?.numRelabelingEntries, setRefetchInterval]);
 
   if (!dataset?.numRelabelingEntries) return null;
-
-  const entriesText = pluralize("entry", dataset.numRelabelingEntries, true);
-
-  const processingText =
-    dataset.relabelLLM !== RelabelOption.SkipRelabel
-      ? `relabeling ${entriesText} with ${dataset.relabelLLM}`
-      : `importing ${entriesText}`;
 
   return (
     <HStack
@@ -38,7 +30,7 @@ export const RelabelingIndicator = () => {
       spacing={1}
     >
       <Icon as={RiInformationFill} color="orange.300" boxSize={4} />{" "}
-      <Text>Processing: {processingText}</Text>
+      <Text>Processing {pluralize("entry", dataset.numRelabelingEntries, true)}</Text>
     </HStack>
   );
 };

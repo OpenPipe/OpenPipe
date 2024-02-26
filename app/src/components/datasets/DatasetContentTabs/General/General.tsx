@@ -6,7 +6,6 @@ import DatasetEntryTable from "./DatasetEntriesTable/DatasetEntryTable";
 import DatasetEntryPaginator from "./DatasetEntryPaginator";
 import GeneralFilters from "./GeneralFilters";
 import { useFilters } from "~/components/Filters/useFilters";
-import RelabelButton from "./RelabelButton";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 import { useNodeEntries } from "~/utils/hooks";
 
@@ -22,7 +21,6 @@ const General = () => {
         <FineTuneButton />
         <UploadDataButton />
         <ToggleFiltersButton />
-        <RelabelButton />
       </HStack>
       {filtersShown && <GeneralFilters pb={8} />}
       <Text fontWeight="bold" fontSize="lg">

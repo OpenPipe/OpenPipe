@@ -12,79 +12,71 @@ import {
   Stack,
   RadioGroup,
   Radio,
-  useDisclosure,
-  type UseDisclosureReturn,
 } from "@chakra-ui/react";
-import { AiOutlineEdit } from "react-icons/ai";
 import { useRef, useState, useEffect } from "react";
 
-import { api } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 import { type RelabelOption, relabelOptions } from "~/server/utils/nodes/node.types";
-import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
-import ActionButton from "~/components/ActionButton";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { ProjectLink } from "~/components/ProjectLink";
 
-const RelabelButton = () => {
-  const disclosure = useDisclosure();
+export type DatasetArchive = RouterOutputs["archives"]["listForDataset"][number];
 
-  return (
-    <>
-      <ActionButton onClick={disclosure.onOpen} label="Relabel" icon={AiOutlineEdit} />
-      <RelabelDatasetEntriesDialog disclosure={disclosure} />
-    </>
-  );
-};
-
-export default RelabelButton;
-
-const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
+const RelabelArchiveDialog = ({
+  onClose,
+  archive,
+}: {
+  onClose: () => void;
+  archive: DatasetArchive | null;
+}) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
 
-  const dataset = useDataset().data;
+  const mutation = api.archives.updateRelabelingModel.useMutation();
+  const utils = api.useUtils();
 
-  const mutation = api.datasets.updateRelabelingModel.useMutation();
-  const utils = api.useContext();
+  const [relabelOption, setRelabelOption] = useState(archive?.relabelOption);
 
-  const [relabelOption, setRelabelOption] = useState(dataset?.relabelLLM);
-
-  useEffect(() => {
-    setRelabelOption(dataset?.relabelLLM);
-  }, [dataset?.relabelLLM, setRelabelOption]);
+  useEffect(
+    () => setRelabelOption(archive?.relabelOption),
+    [archive?.relabelOption, setRelabelOption],
+  );
 
   const [onRelabelConfirm, confirmingRelabelInProgress] = useHandledAsyncCallback(async () => {
-    if (!dataset || !relabelOption || relabelOption === dataset.relabelLLM) return;
+    if (!archive || !relabelOption || relabelOption === archive.relabelOption) return;
     const resp = await mutation.mutateAsync({
-      datasetId: dataset.id,
+      archiveLLMRelabelNodeId: archive.llmRelabelNodeId,
       relabelOption,
     });
     if (maybeReportError(resp)) return;
 
-    await utils.datasets.get.invalidate();
     await utils.nodeEntries.list.invalidate();
+    await utils.archives.listForDataset.invalidate();
+    await utils.datasets.get.invalidate();
 
-    disclosure.onClose();
-  }, [mutation, relabelOption, disclosure.onClose]);
+    onClose();
+  }, [mutation, relabelOption, onClose]);
 
-  if (!dataset) return null;
+  const numEntries = archive ? archive.numTrainEntries + archive.numTestEntries : 0;
 
   return (
-    <AlertDialog leastDestructiveRef={cancelRef} {...disclosure}>
+    <AlertDialog leastDestructiveRef={cancelRef} isOpen={!!archive} onClose={onClose}>
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Relabel {dataset.name}
+            Relabel Archive
           </AlertDialogHeader>
 
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
-                Choose a model to relabel all current and future entries in <b>{dataset.name}</b>.
-                This project's OpenAI API key will be used for the API calls.
+                Choose a model to relabel the <b>{numEntries.toLocaleString()}</b> entries in{" "}
+                <b>{archive?.name}</b>. This project's OpenAI API key will be used for the API
+                calls.
               </Text>
 
               {needsMissingOpenaiKey ? (
@@ -116,16 +108,15 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
           </AlertDialogBody>
 
           <AlertDialogFooter>
-            <Button
-              ref={cancelRef}
-              isDisabled={confirmingRelabelInProgress}
-              onClick={disclosure.onClose}
-            >
+            <Button ref={cancelRef} isDisabled={confirmingRelabelInProgress} onClick={onClose}>
               Cancel
             </Button>
             <ConditionallyEnable
               accessRequired="requireCanModifyProject"
-              checks={[[!needsMissingOpenaiKey, "OpenAI Key is required to relabel"]]}
+              checks={[
+                [!needsMissingOpenaiKey, "OpenAI Key is required to relabel"],
+                [relabelOption !== archive?.relabelOption, "Choose a new relabeling option"],
+              ]}
             >
               <Button
                 colorScheme="orange"
@@ -142,3 +133,5 @@ const RelabelDatasetEntriesDialog = ({ disclosure }: { disclosure: UseDisclosure
     </AlertDialog>
   );
 };
+
+export default RelabelArchiveDialog;
