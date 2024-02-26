@@ -261,7 +261,7 @@ importers:
         specifier: 1.12.2
         version: 1.12.2
       trpc-openapi:
-        specifier: github:OpenPipe/trpc-openapi#extended-trpc-build
+        specifier: github:OpenPipe/trpc-openapi#83a91ece2e9bd2fc0a60d928eeedf390a73fbaf1
         version: github.com/OpenPipe/trpc-openapi/83a91ece2e9bd2fc0a60d928eeedf390a73fbaf1(@trpc/server@10.45.0)(zod@3.22.4)
       tsx:
         specifier: ^3.12.7
@@ -9017,7 +9017,7 @@ packages:
     resolution: {integrity: sha512-ok6z3qlYyCDS4ZEU27HaU6x/xZa9Whf8jD4ptH5UZTQYZVYeb9bnZ3ojVhiJNLiXK1Hfc0GNbLXcmZ5plLDDBg==}
     engines: {node: '>=14'}
     dependencies:
-      mlly: 1.6.0
+      mlly: 1.5.0
       pkg-types: 1.0.3
     dev: true
 
@@ -9380,8 +9380,8 @@ packages:
     hasBin: true
     dev: false
 
-  /mlly@1.6.0:
-    resolution: {integrity: sha512-YOvg9hfYQmnaB56Yb+KrJE2u0Yzz5zR+sLejEvF4fzwzV1Al6hkf2vyHTwqCRyv0hCi9rVCqVoXpyYevQIRwLQ==}
+  /mlly@1.5.0:
+    resolution: {integrity: sha512-NPVQvAY1xr1QoVeG0cy8yUYC7FQcOx6evl/RjT1wL5FvzPnzOysoqB/jmx/DhssT2dYa8nxECLAaFI/+gVLhDQ==}
     dependencies:
       acorn: 8.11.3
       pathe: 1.1.2
@@ -10181,7 +10181,7 @@ packages:
     resolution: {integrity: sha512-nN7pYi0AQqJnoLPC9eHFQ8AcyaixBUOwvqc5TDnIKCMEE6I0y8P7OKA7fPexsXGCGxQDl/cmrLAp26LhcwxZ4A==}
     dependencies:
       jsonc-parser: 3.2.1
-      mlly: 1.6.0
+      mlly: 1.5.0
       pathe: 1.1.2
     dev: true
 
