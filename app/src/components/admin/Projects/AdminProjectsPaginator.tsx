@@ -8,7 +8,7 @@ const AdminProjectsPaginator = (props: StackProps) => {
 
   if (!data) return null;
 
-  return <Paginator count={data.length + 1} {...props} />;
+  return <Paginator count={data.count} {...props} />;
 };
 
 export default AdminProjectsPaginator;

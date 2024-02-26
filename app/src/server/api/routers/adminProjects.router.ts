@@ -90,11 +90,15 @@ export const adminProjectsRouter = createTRPCRouter({
         baseQuery = baseQuery.orderBy("p.createdAt", "desc");
       }
 
-      return await baseQuery
+      const projects = await baseQuery
         .groupBy("p.id")
         .limit(pageSize)
         .offset((page - 1) * pageSize)
         .execute();
+
+      const count = await prisma.project.count();
+
+      return { projects, count };
     }),
   update: protectedProcedure
     .input(z.object({ id: z.string(), rateLimit: z.number().optional() }))

@@ -34,7 +34,7 @@ type SortableField = NonNullable<RouterInputs["adminProjects"]["list"]["sortOrde
 
 export default function AdminProjectsTable() {
   const { setSearchQueryParam } = useSearchQuery();
-  const projects = useAdminProjects().data;
+  const projects = useAdminProjects().data?.projects;
 
   return (
     <Card p={4} w="100%">
