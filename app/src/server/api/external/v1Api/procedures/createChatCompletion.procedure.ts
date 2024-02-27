@@ -304,10 +304,11 @@ function extractErrorDetails(error: unknown): {
     const err = error as any; // Cast to 'any' to access properties
     if ("status" in err && typeof err.status === "number") {
       status = err.status;
+      code = trpcCodeFromHttpStatus(status);
+      message = err.message;
+    } else {
+      throw error;
     }
-
-    code = trpcCodeFromHttpStatus(status);
-    message = err.message;
   }
 
   return { status, code, message };
