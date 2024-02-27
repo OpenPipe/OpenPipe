@@ -296,13 +296,15 @@ function extractErrorDetails(error: unknown): {
   let code: TRPC_ERROR_CODE_KEY = "BAD_REQUEST";
   let message = "Error processing request";
 
+  const expectedErrors = [429];
+
   if (error instanceof TRPCError) {
     status = statusCodeFromTrpcCode(error.code);
     code = error.code;
     message = error.message;
   } else if (error instanceof Error) {
-    const err = error as any; // Cast to 'any' to access properties
-    if ("status" in err && typeof err.status === "number") {
+    const err = error as any;
+    if ("status" in err && expectedErrors.includes(err.status)) {
       status = err.status;
       code = trpcCodeFromHttpStatus(status);
       message = err.message;
