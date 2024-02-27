@@ -20,7 +20,7 @@ const datasets = await kysely
 
 console.log(`Found ${datasets.length} datasets`);
 
-// limit the size of each dataset to 10,000 dataset entries
+// limit the size of each dataset to 20,000 dataset entries
 for (const dataset of datasets) {
   console.log(`Checking dataset ${dataset.name}`);
   const totalEntries = await kysely
@@ -48,7 +48,7 @@ for (const dataset of datasets) {
       .executeTakeFirst();
 
     if (!cutoffId) {
-      throw new Error("Could not find 10,000th entry");
+      throw new Error("Could not find 20,000th entry");
     }
 
     await kysely
@@ -58,7 +58,7 @@ for (const dataset of datasets) {
       .execute();
 
     console.log(
-      `Reduced dataset ${dataset.id} to 10,000 entries by deleting ${entriesToDelete} entries.`,
+      `Reduced dataset ${dataset.id} to 20,000 entries by deleting ${entriesToDelete} entries.`,
     );
   } else {
     console.log(`Dataset ${dataset.id} has ${total} entries, no need to delete.`);
