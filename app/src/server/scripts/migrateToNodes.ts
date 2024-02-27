@@ -18,11 +18,26 @@ import { hideBin } from "yargs/helpers";
 import { enqueueCountDatasetEntryTokens } from "../tasks/fineTuning/countDatasetEntryTokens.task";
 import { RelabelOption } from "../utils/nodes/node.types";
 
+const validateDate = (dateStr: string) => {
+  const regex = /^\d{4}-\d{2}-\d{2}$/;
+  return regex.test(dateStr);
+};
+
 const argv = await yargs(hideBin(process.argv))
   .option("projectId", {
     type: "string",
     description: "The id of the project to migrate",
     demandOption: true,
+  })
+  .option("startDate", {
+    type: "string",
+    description: "The starting date for the migration (format YYYY-MM-DD)",
+    demandOption: false,
+  })
+  .option("endDate", {
+    type: "string",
+    description: "The ending date for the migration (format YYYY-MM-DD)",
+    demandOption: false,
   })
   .option("skipProjectIds", {
     type: "string",
@@ -32,6 +47,16 @@ const argv = await yargs(hideBin(process.argv))
 
 const projectId = argv.projectId;
 const skipProjectIds = argv.skipProjectIds.split(",");
+const startDate = argv.startDate;
+const endDate = argv.endDate;
+
+if (startDate && !validateDate(startDate)) {
+  throw new Error("Invalid startDate format. Please use YYYY-MM-DD.");
+}
+
+if (endDate && !validateDate(endDate)) {
+  throw new Error("Invalid endDate format. Please use YYYY-MM-DD.");
+}
 
 let datasetsQuery = kysely
   .selectFrom("Dataset")
@@ -47,13 +72,21 @@ if (skipProjectIds[0]) {
   datasetsQuery = datasetsQuery.where("projectId", "not in", skipProjectIds);
 }
 
+if (startDate) {
+  datasetsQuery = datasetsQuery.where("createdAt", ">=", new Date(startDate));
+}
+
+if (endDate) {
+  datasetsQuery = datasetsQuery.where("createdAt", "<", new Date(endDate));
+}
+
 const datasets = await datasetsQuery.execute();
 
 console.log("found datasets", datasets.length);
 
-const creationTime = new Date();
-
 for (let i = 0; i < datasets.length; i++) {
+  const creationTime = new Date();
+
   const dataset = datasets[i]!;
   console.log(`migrating dataset ${i + 1}/${datasets.length}: ${dataset.name}`);
 
@@ -89,6 +122,12 @@ for (let i = 0; i < datasets.length; i++) {
 
   let offset = 0;
   while (true) {
+    const startTime = Date.now();
+    let hashingTime = 0;
+    let pruningRulesTime = 0;
+    let fineTuneTrainingEntriesTime = 0;
+    let fineTuneTestingEntriesTime = 0;
+    let savingResultsTime = 0;
     const entries = await kysely
       .selectFrom("DatasetEntry as de")
       .where("de.datasetId", "=", dataset.id)
@@ -99,11 +138,15 @@ for (let i = 0; i < datasets.length; i++) {
       .selectAll("de")
       .execute();
 
+    console.log(`fetched ${entries.length} entries in ${Date.now() - startTime}ms`);
+
     if (entries.length === 0) break;
 
     await kysely.transaction().execute(async (trx) => {
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i]!;
+
+        const hashStartTime = Date.now();
 
         const inputHash = await hashAndSaveDatasetEntryInput({
           projectId: dataset.projectId,
@@ -119,6 +162,8 @@ for (let i = 0; i < datasets.length; i++) {
           output: entry.output as object,
           trx,
         });
+
+        hashingTime += Date.now() - hashStartTime;
 
         const persistentId = generatePersistentId({
           creationTime,
@@ -142,6 +187,8 @@ for (let i = 0; i < datasets.length; i++) {
           })
           .execute();
 
+        const pruningRulesStartTime = Date.now();
+
         await trx
           .insertInto("NewPruningRuleMatch")
           .columns(["id", "pruningRuleId", "inputHash"])
@@ -157,6 +204,10 @@ for (let i = 0; i < datasets.length; i++) {
           )
           .onConflict((oc) => oc.columns(["pruningRuleId", "inputHash"]).doNothing())
           .execute();
+
+        pruningRulesTime += Date.now() - pruningRulesStartTime;
+
+        const fineTuneTrainingEntriesStartTime = Date.now();
 
         await trx
           .insertInto("NewFineTuneTrainingEntry")
@@ -186,6 +237,10 @@ for (let i = 0; i < datasets.length; i++) {
               ]),
           )
           .execute();
+
+        fineTuneTrainingEntriesTime += Date.now() - fineTuneTrainingEntriesStartTime;
+
+        const fineTuneTestingEntriesStartTime = Date.now();
 
         const fineTuneTestingEntries = await trx
           .selectFrom("FineTuneTestingEntry")
@@ -217,6 +272,8 @@ for (let i = 0; i < datasets.length; i++) {
             .execute();
         }
 
+        fineTuneTestingEntriesTime += Date.now() - fineTuneTestingEntriesStartTime;
+
         const datasetEvalDatasetEntries = await trx
           .selectFrom("DatasetEvalDatasetEntry")
           .where("datasetEntryId", "=", entry.id)
@@ -236,6 +293,8 @@ for (let i = 0; i < datasets.length; i++) {
               updatedAt: new Date(),
             })
             .execute();
+
+          const savingResultsStartTime = Date.now();
 
           await trx
             .insertInto("NewDatasetEvalResult")
@@ -257,22 +316,24 @@ for (let i = 0; i < datasets.length; i++) {
             ])
             .expression((eb) =>
               eb
-                .selectFrom("DatasetEvalResult")
+                .selectFrom("DatasetEvalResult as der")
                 .where("datasetEvalDatasetEntryId", "=", datasetEvalDatasetEntry.id)
+                .leftJoin("NewDatasetEvalResult as existingResult", "existingResult.id", "der.id")
+                .where("existingResult.id", "is", null)
                 .select((eb) => [
-                  "id",
-                  "score",
-                  "explanation",
-                  "errorMessage",
-                  "status",
-                  "judge",
+                  "der.id",
+                  "der.score",
+                  "der.explanation",
+                  "der.errorMessage",
+                  "der.status",
+                  "der.judge",
                   eb.val(inputHash).as("nodeEntryInputHash"),
                   eb.val(outputHash).as("nodeEntryOutputHash"),
-                  "wasFirst",
-                  "comparisonResultId",
-                  "comparisonOutputSourceId",
+                  "der.wasFirst",
+                  "der.comparisonResultId",
+                  "der.comparisonOutputSourceId",
                   eb.val(datasetEvalNodeEntryId).as("datasetEvalNodeEntryId"),
-                  "datasetEvalOutputSourceId",
+                  "der.datasetEvalOutputSourceId",
                   sql`now()`.as("updatedAt"),
                 ]),
             )
@@ -287,6 +348,8 @@ for (let i = 0; i < datasets.length; i++) {
                 .doNothing(),
             )
             .execute();
+
+          savingResultsTime += Date.now() - savingResultsStartTime;
         }
       }
     });
@@ -294,7 +357,14 @@ for (let i = 0; i < datasets.length; i++) {
     await enqueueCountDatasetEntryTokens();
 
     offset += entries.length;
-    console.log(`migrated ${offset}/${entriesInDataset} entries`);
+    console.log();
+    console.log(`migrated ${offset}/${entriesInDataset} entries in ${Date.now() - startTime}ms`);
+    console.log(`hashing took ${hashingTime}ms`);
+    console.log(`pruning rules took ${pruningRulesTime}ms`);
+    console.log(`fine tune training entries took ${fineTuneTrainingEntriesTime}ms`);
+    console.log(`fine tune testing entries took ${fineTuneTestingEntriesTime}ms`);
+    console.log(`saving results took ${savingResultsTime}ms`);
+    console.log();
   }
 
   await prisma.dataset.update({

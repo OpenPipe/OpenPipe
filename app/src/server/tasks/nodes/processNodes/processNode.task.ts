@@ -49,12 +49,12 @@ export const processNode = defineTask<ProcessNodeJob>({
 
     const nodeProperties = nodePropertiesByType[node.type] as NodeProperties<NodeType>;
 
-    // ensure that all "PROCESSING" entries are reset to "PENDING" after job restart
+    // ensure that all "PROCESSING" and "ERROR" entries are reset to "PENDING" after job restart
     await kysely
       .updateTable("NodeEntry as ne")
       .set({ status: "PENDING" })
       .where("ne.nodeId", "=", node.id)
-      .where("ne.status", "=", "PROCESSING")
+      .where((eb) => eb.or([eb("ne.status", "=", "PROCESSING"), eb("ne.status", "=", "ERROR")]))
       .execute();
 
     await updateCached({ node });
@@ -86,7 +86,7 @@ export const processNode = defineTask<ProcessNodeJob>({
         const entriesBatch = await kysely
           .selectFrom("NodeEntry as ne")
           .where("nodeId", "=", node.id)
-          .where((eb) => eb.or([eb("ne.status", "=", "PENDING"), eb("ne.status", "=", "ERROR")]))
+          .where("ne.status", "=", "PENDING")
           .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
           .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
           .select([

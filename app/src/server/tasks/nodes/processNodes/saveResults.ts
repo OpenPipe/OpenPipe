@@ -1,4 +1,4 @@
-import type { Node, Prisma } from "@prisma/client";
+import type { Node, NodeEntryStatus, Prisma } from "@prisma/client";
 
 import {
   type ErrorProcessEntryResult,
@@ -6,9 +6,9 @@ import {
   nodePropertiesByType,
 } from "./processNode.task";
 import { hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";
-import { countDatasetEntryTokens } from "../../fineTuning/countDatasetEntryTokens.task";
+import { enqueueCountDatasetEntryTokens } from "../../fineTuning/countDatasetEntryTokens.task";
 import { type typedNode } from "~/server/utils/nodes/node.types";
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 
 export type SaveableProcessEntryResult =
   | (SuccessProcessEntryResult & {
@@ -29,7 +29,15 @@ export const saveResults = async ({
 }) => {
   const outputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[] = [];
   const cachedProcessedEntriesToCreate: Prisma.CachedProcessedEntryCreateManyInput[] = [];
-  const nodeEntriesToUpdate: Prisma.NodeEntryUpdateArgs[] = [];
+  const nodeEntriesToUpdate: {
+    id: string;
+    data: {
+      status: NodeEntryStatus;
+      outputHash?: string;
+      originalOutputHash?: string;
+      error?: string;
+    };
+  }[] = [];
 
   const nodeProperties = nodePropertiesByType[node.type];
 
@@ -48,7 +56,7 @@ export const saveResults = async ({
       }
 
       nodeEntriesToUpdate.push({
-        where: { id: result.nodeEntryId },
+        id: result.nodeEntryId,
         data: {
           status: "PROCESSED",
           outputHash: outputHash ? outputHash : undefined,
@@ -80,16 +88,16 @@ export const saveResults = async ({
     }
     if (result.status === "PENDING" || result.status === "ERROR") {
       nodeEntriesToUpdate.push({
-        where: { id: result.nodeEntryId },
+        id: result.nodeEntryId,
         data: { status: result.status, error: result.error },
       });
     }
   }
 
-  const transactionArgs = [];
+  const prismaTransactionArgs = [];
 
   if (outputsToCreate.length) {
-    transactionArgs.push(
+    prismaTransactionArgs.push(
       prisma.datasetEntryOutput.createMany({
         data: outputsToCreate,
         skipDuplicates: true,
@@ -97,7 +105,7 @@ export const saveResults = async ({
     );
   }
   if (cachedProcessedEntriesToCreate.length) {
-    transactionArgs.push(
+    prismaTransactionArgs.push(
       prisma.cachedProcessedEntry.createMany({
         data: cachedProcessedEntriesToCreate,
         skipDuplicates: true,
@@ -105,10 +113,25 @@ export const saveResults = async ({
     );
   }
 
-  await prisma.$transaction([
-    ...transactionArgs,
-    ...nodeEntriesToUpdate.map((updateArgs) => prisma.nodeEntry.update(updateArgs)),
-  ]);
+  await prisma.$transaction([...prismaTransactionArgs]);
 
-  await countDatasetEntryTokens.enqueue({});
+  for (const nodeEntryUpdate of nodeEntriesToUpdate) {
+    // ensure nodeEntry still exists before updating
+    await kysely.transaction().execute(async (trx) => {
+      const existingEntry = await trx
+        .selectFrom("NodeEntry")
+        .where("id", "=", nodeEntryUpdate.id)
+        .executeTakeFirst();
+
+      if (existingEntry) {
+        await trx
+          .updateTable("NodeEntry")
+          .set(nodeEntryUpdate.data)
+          .where("id", "=", nodeEntryUpdate.id)
+          .execute();
+      }
+    });
+  }
+
+  await enqueueCountDatasetEntryTokens();
 };

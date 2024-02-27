@@ -48,7 +48,7 @@ export function calculateQueryDelay(
 export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
   id: "generateTestSetEntry",
   handler: async (task) => {
-    const { modelId, nodeEntryId, numPreviousTries } = task;
+    const { nodeEntryId, numPreviousTries } = task;
 
     const nodeEntry = await prisma.nodeEntry.findFirst({
       where: { id: nodeEntryId },
@@ -60,7 +60,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
       await generateEntry(task);
     } catch (e) {
       console.error("error in generateTestSetEntry", e);
-      if (task.numPreviousTries < MAX_TRIES) {
+      if (task.numPreviousTries < MAX_TRIES && e instanceof RateLimitError) {
         await generateTestSetEntry.enqueue(
           {
             ...task,
@@ -68,14 +68,6 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
           },
           { runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries)), priority: 3 },
         );
-      } else {
-        await prisma.newFineTuneTestingEntry.updateMany({
-          where: { modelId, inputHash: nodeEntry.inputHash },
-          data: {
-            outputHash: null,
-            errorMessage: "Unable to evaluate input",
-          },
-        });
       }
     }
   },
@@ -250,14 +242,6 @@ export const generateEntry = async ({
       fineTuneTestingEntryOutput: completionMessage,
     });
   } catch (e: unknown) {
-    // const typedError = e as { message?: string; error?: { message: string } };
-    // await prisma.newFineTuneTestingEntry.updateMany({
-    //   where: { modelId, inputHash: nodeEntry.inputHash },
-    //   data: {
-    //     errorMessage:
-    //       typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
-    //   },
-    // });
     if (e instanceof RateLimitError) {
       await prisma.newFineTuneTestingEntry.update({
         where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },

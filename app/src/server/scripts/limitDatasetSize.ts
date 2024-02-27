@@ -54,7 +54,7 @@ for (const dataset of datasets) {
     await kysely
       .deleteFrom("DatasetEntry")
       .where("datasetId", "=", dataset.id)
-      .where("id", ">", cutoffId.id)
+      .where("id", ">=", cutoffId.id)
       .execute();
 
     console.log(

@@ -6,6 +6,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import type { JsonObject } from "type-fest";
 import type { TaskSpec } from "graphile-worker";
 import { isEqual } from "lodash-es";
+import { RateLimitError } from "openai";
 
 import { kysely, prisma } from "~/server/db";
 import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
@@ -55,14 +56,21 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
 
     if (!nodeEntry || !firstOutputSource || !secondOutputSource) return;
 
-    // generate the outputs if they don't exist
-    const [firstOutputHash, secondOutputHash] = await getOutputHashes({
-      nodeEntry,
-      modelId1: firstOutputSource.modelId,
-      modelId2: secondOutputSource.modelId,
-    });
+    let firstOutputHash, secondOutputHash;
+    try {
+      // generate the outputs if they don't exist
+      [firstOutputHash, secondOutputHash] = await getOutputHashes({
+        nodeEntry,
+        modelId1: firstOutputSource.modelId,
+        modelId2: secondOutputSource.modelId,
+      });
 
-    if (!firstOutputHash || !secondOutputHash) return;
+      if (!firstOutputHash || !secondOutputHash) return;
+    } catch (e) {
+      // only retry if the error is a rate limit error
+      if (e instanceof RateLimitError) throw e;
+      return;
+    }
 
     const findResult = async ({
       outputSourceId,
@@ -349,19 +357,24 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       } catch (e) {
         console.error("error getting judgement", args, e);
         captureException(e, { extra: { args } });
-        await prisma.newDatasetEvalResult.updateMany({
-          where: {
-            id: {
-              in: [firstResult.id, secondResult.id],
+
+        if (e instanceof RateLimitError) {
+          await prisma.newDatasetEvalResult.updateMany({
+            where: {
+              id: {
+                in: [firstResult.id, secondResult.id],
+              },
             },
-          },
-          data: {
-            status: "ERROR",
-            errorMessage: "Error getting judgement",
-            judge: judgementInput?.model,
-          },
-        });
-        throw e;
+            data: {
+              status: "ERROR",
+              errorMessage: "Error getting judgement",
+              judge: judgementInput?.model,
+            },
+          });
+
+          throw e;
+        }
+        return;
       }
 
       explanation = explanation
