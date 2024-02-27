@@ -31,15 +31,21 @@ const checkRateLimitHit = async (projectId: string) => {
     .selectFrom("Project as p")
     .where("p.id", "=", projectId)
     .select([
-      sql<boolean>`(SELECT COUNT(req.id) FROM "OngoingRequest" as req WHERE req."projectId" = p.id AND req."createdAt" > NOW() - INTERVAL '10 minutes') < p."rateLimit"`.as(
-        "canProceed",
+      sql<number>`(SELECT COUNT(req.id) FROM "OngoingRequest" as req WHERE req."projectId" = p.id AND req."createdAt" > NOW() - INTERVAL '10 minutes')`.as(
+        "currentRequests",
       ),
       "p.rateLimit",
       "p.slug",
     ])
     .executeTakeFirst();
 
-  if (result && !result.canProceed) {
+  if ((result?.currentRequests ?? 0) > 500) {
+    console.log(
+      `[${new Date().toISOString()}] over 500 concurrent requests ${JSON.stringify(result)}`,
+    );
+  }
+
+  if (result && result.currentRequests >= result.rateLimit) {
     if (result.rateLimit === CONCURRENCY_RATE_LIMITS.BASE_LIMIT) {
       const message = `Your project has a rate limit of ${CONCURRENCY_RATE_LIMITS.BASE_LIMIT} concurrent requests. Add a payment method to automatically increase your rate limit to ${CONCURRENCY_RATE_LIMITS.INCREASED_LIMIT} concurrent requests. ${env.NEXT_PUBLIC_HOST}/p/${result.slug}/billing/payment-methods`;
       throw new RateLimitError(
