@@ -8,7 +8,7 @@ import {
   parseRowsToImport,
 } from "~/components/datasets/parseRowsToImport";
 import { prepareDatasetEntriesForImport } from "../datasetEntryCreation/prepareDatasetEntriesForImport";
-import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
+import { enqueueCountDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 import { generatePersistentId } from "./utils";
 
 export const importDatasetEntries = async ({
@@ -159,7 +159,7 @@ export const importDatasetEntries = async ({
 
   await updateDatasetFileUpload({ progress: 99 });
 
-  await countDatasetEntryTokens.enqueue({});
+  await enqueueCountDatasetEntryTokens();
 
   await updateDatasetFileUpload({
     status: "COMPLETE",

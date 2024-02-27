@@ -3,13 +3,9 @@ import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countToke
 import defineTask from "../defineTask";
 import { typedDatasetEntryInput, typedDatasetEntryOutput } from "~/server/utils/nodes/node.types";
 
-type TaskData = {
-  nodeId?: string;
-};
-
-export const countDatasetEntryTokens = defineTask<TaskData>({
+export const countDatasetEntryTokens = defineTask({
   id: "countDatasetEntryTokens",
-  handler: async (taskData) => {
+  handler: async () => {
     while (true) {
       const inputBatch = await prisma.datasetEntryInput.findMany({
         select: {
@@ -95,3 +91,10 @@ export const countDatasetEntryTokens = defineTask<TaskData>({
     jobKey: "countDatasetEntryTokens",
   },
 });
+
+export const enqueueCountDatasetEntryTokens = async () => {
+  await countDatasetEntryTokens.enqueue(
+    {},
+    { queueName: "countDatasetEntryTokens", jobKey: "countDatasetEntryTokens" },
+  );
+};

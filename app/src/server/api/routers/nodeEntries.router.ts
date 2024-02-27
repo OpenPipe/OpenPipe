@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
-import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
+import { enqueueCountDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
 import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
@@ -338,7 +338,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         }),
       ]);
 
-      await countDatasetEntryTokens.enqueue({});
+      await enqueueCountDatasetEntryTokens();
 
       await processNode.runNow({
         nodeId: preparedArchiveCreation.archiveNodeId,
@@ -564,7 +564,7 @@ export const nodeEntriesRouter = createTRPCRouter({
             })
             .execute();
 
-          await countDatasetEntryTokens.enqueue({});
+          await enqueueCountDatasetEntryTokens();
 
           await updateDatasetPruningRuleMatches({
             nodeHash: tNode.hash,

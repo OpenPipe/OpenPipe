@@ -10,7 +10,7 @@ import { kysely, prisma } from "~/server/db";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { openApiProtectedProc } from "../../openApiTrpc";
 import { requireWriteKey } from "../helpers";
-import { countDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
+import { enqueueCountDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 import { generatePersistentId } from "~/server/utils/nodes/utils";
 import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
 
@@ -108,7 +108,7 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
       nodeId: archive.id,
     });
 
-    await countDatasetEntryTokens.runNow({});
+    await enqueueCountDatasetEntryTokens();
     return {
       createdEntries: nodeEntriesToCreate.length,
       errors,

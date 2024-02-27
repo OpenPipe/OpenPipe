@@ -15,7 +15,7 @@ import {
 import { generatePersistentId } from "../utils/nodes/utils";
 import { enqueueProcessNode } from "../tasks/nodes/processNodes/processNode.task";
 import { hideBin } from "yargs/helpers";
-import { countDatasetEntryTokens } from "../tasks/fineTuning/countDatasetEntryTokens.task";
+import { enqueueCountDatasetEntryTokens } from "../tasks/fineTuning/countDatasetEntryTokens.task";
 import { RelabelOption } from "../utils/nodes/node.types";
 
 const argv = await yargs(hideBin(process.argv))
@@ -93,6 +93,8 @@ for (let i = 0; i < datasets.length; i++) {
       .selectFrom("DatasetEntry as de")
       .where("de.datasetId", "=", dataset.id)
       .limit(1000)
+      .leftJoin("LoggedCall as lc", "lc.id", "de.loggedCallId")
+      .where((eb) => eb.or([eb("lc.id", "is not", null), eb("de.loggedCallId", "is", null)]))
       .offset(offset)
       .selectAll("de")
       .execute();
@@ -289,7 +291,7 @@ for (let i = 0; i < datasets.length; i++) {
       }
     });
 
-    await countDatasetEntryTokens.enqueue({});
+    await enqueueCountDatasetEntryTokens();
 
     offset += entries.length;
     console.log(`migrated ${offset}/${entriesInDataset} entries`);
