@@ -30,6 +30,8 @@ import { BetaModal } from "../BetaModal";
 import { useIsMissingBetaAccess, useSelectedProject } from "~/utils/hooks";
 import { useAppStore } from "~/state/store";
 import { useAccessCheck } from "../ConditionallyEnable";
+import { env } from "~/env.mjs";
+import MaintenanceBanner from "../MaintenanceBanner";
 
 const Divider = (props: BoxProps) => <Box h="1px" bgColor="gray.300" w="full" {...props} />;
 
@@ -223,8 +225,18 @@ export default function AppShell({
         <Head>
           <title>{title ? `${title} | OpenPipe` : "OpenPipe"}</title>
         </Head>
+
         <NavSidebar />
-        <Box h="100%" flex={1} overflowY="auto" bgColor="gray.50" {...containerProps}>
+        <Box
+          position="relative"
+          h="100%"
+          flex={1}
+          overflowY="auto"
+          bgColor="gray.50"
+          {...containerProps}
+        >
+          {env.NEXT_PUBLIC_MAINTENANCE_MODE && <MaintenanceBanner />}
+
           {children}
         </Box>
       </Flex>
