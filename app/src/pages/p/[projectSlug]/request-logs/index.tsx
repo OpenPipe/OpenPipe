@@ -29,7 +29,7 @@ export default function LoggedCalls() {
 
   return (
     <AppShell title="Request Logs" requireAuth>
-      <Box h="100vh" overflowY="scroll">
+      <Box>
         <VStack px={8} py={8} alignItems="flex-start" spacing={4} w="full">
           <HStack>
             <Text fontSize="2xl" fontWeight="bold">
