@@ -304,7 +304,11 @@ function extractErrorDetails(error: unknown): {
     message = error.message;
   } else if (error instanceof Error) {
     const err = error as any;
-    if ("status" in err && expectedErrors.includes(err.status)) {
+    if (
+      "status" in err &&
+      typeof err.status === "number" &&
+      expectedErrors.includes(err.status as number)
+    ) {
       status = err.status;
       code = trpcCodeFromHttpStatus(status);
       message = err.message;
