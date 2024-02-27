@@ -77,8 +77,12 @@ export const paymentsRouter = createTRPCRouter({
 
       const stripeCustomerId = await getStripeCustomerId({
         projectId: input.projectId,
-        required: true,
+        required: false,
       });
+
+      if (!stripeCustomerId) {
+        return null;
+      }
 
       try {
         const paymentMethods = await getPaymentMethods(stripeCustomerId);

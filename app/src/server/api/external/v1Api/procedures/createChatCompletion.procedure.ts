@@ -30,6 +30,7 @@ import {
   recordOngoingRequestEnd,
   recordOngoingRequestStart,
 } from "~/utils/rateLimit/concurrencyRateLimits";
+import { TRPC_ERROR_CODE_KEY } from "@trpc/server/rpc";
 
 export const createChatCompletion = openApiProtectedProc
   .meta({
@@ -67,37 +68,38 @@ export const createChatCompletion = openApiProtectedProc
   .output(z.union([chatCompletionOutput.nullable(), z.any()]))
   .mutation(async ({ input, ctx }): Promise<ChatCompletion | ReadableStream> => {
     const { key } = ctx;
+    let ongoingRequestId: string | undefined = undefined;
+    let tags: Record<string, string> = {};
+    let logRequest = true;
+
+    const requestedAt = Date.now();
 
     const inputPayload =
       "reqPayload" in input
         ? chatCompletionInputReqPayload.parse(input.reqPayload)
         : chatCompletionInputReqPayload.parse(input);
 
-    if ("reqPayload" in input) {
-      captureException(
-        new Error(
-          `reqPayload should not be present in input. model: ${input.model ?? ""} project: ${
-            key.projectId
-          }`,
-        ),
-      );
-    }
-
-    const requestedAt = Date.now();
-
-    const isFineTune = inputPayload.model.startsWith("openpipe:");
-
-    const ongoingRequestId = await recordOngoingRequestStart(key.projectId, isFineTune);
-
-    // Default to true if not using a fine-tuned model
-    const logRequest =
-      (ctx.headers["op-log-request"] === "true" || !isFineTune) &&
-      ctx.headers["op-log-request"] !== "false" &&
-      !ctx.key.readOnly;
-
-    let tags: Record<string, string> = {};
-
     try {
+      if ("reqPayload" in input) {
+        captureException(
+          new Error(
+            `reqPayload should not be present in input. model: ${input.model ?? ""} project: ${
+              key.projectId
+            }`,
+          ),
+        );
+      }
+
+      const isFineTune = inputPayload.model.startsWith("openpipe:");
+
+      // Default to true if not using a fine-tuned model
+      logRequest =
+        (ctx.headers["op-log-request"] === "true" || !isFineTune) &&
+        ctx.headers["op-log-request"] !== "false" &&
+        !ctx.key.readOnly;
+
+      ongoingRequestId = await recordOngoingRequestStart(key.projectId, isFineTune);
+
       if (ctx.headers["op-tags"]) {
         try {
           const jsonTags = JSON.parse(ctx.headers["op-tags"] as string);
@@ -251,37 +253,69 @@ export const createChatCompletion = openApiProtectedProc
     } catch (error: unknown) {
       void recordOngoingRequestEnd(ongoingRequestId);
 
-      if (error instanceof TRPCError) {
-        const statusCode = statusCodeFromTrpcCode(error.code);
-        if (logRequest) {
-          // record error in request log
-          void recordLoggedCall({
-            projectId: key.projectId,
-            requestedAt,
-            receivedAt: Date.now(),
-            cacheHit: false,
-            reqPayload: inputPayload,
-            respPayload: {
-              code: error.code,
-              message: error.message,
-            },
-            statusCode,
-            errorMessage: error.message,
-            tags,
-          });
-        }
-        throw new ExtendedTRPCError({
-          code: error.code,
-          message: error.message,
-          extraFields: {
-            // Add error field for compatibility with the OpenAI TypeScript client
-            error: {
-              code: statusCode,
-              message: error.message,
-            },
+      const { status, code, message } = extractErrorDetails(error);
+
+      if (logRequest) {
+        // record error in request log
+        void recordLoggedCall({
+          projectId: key.projectId,
+          requestedAt,
+          receivedAt: Date.now(),
+          cacheHit: false,
+          reqPayload: inputPayload,
+          respPayload: {
+            code,
+            message,
           },
+          statusCode: status,
+          errorMessage: message,
+          tags,
         });
       }
-      throw error;
+
+      throw new ExtendedTRPCError({
+        code,
+        message,
+        extraFields: {
+          // Add error field for compatibility with the OpenAI TypeScript client
+          error: {
+            code,
+            message,
+          },
+        },
+      });
     }
   });
+
+function extractErrorDetails(error: unknown): {
+  status: number;
+  code: TRPC_ERROR_CODE_KEY;
+  message: string;
+} {
+  let status = 500;
+  let code: TRPC_ERROR_CODE_KEY = "BAD_REQUEST";
+  let message = "Error processing request";
+
+  const expectedErrors = [429];
+
+  if (error instanceof TRPCError) {
+    status = statusCodeFromTrpcCode(error.code);
+    code = error.code;
+    message = error.message;
+  } else if (error instanceof Error) {
+    const err = error as any;
+    if (
+      "status" in err &&
+      typeof err.status === "number" &&
+      expectedErrors.includes(err.status as number)
+    ) {
+      status = err.status;
+      code = trpcCodeFromHttpStatus(status);
+      message = err.message;
+    } else {
+      throw error;
+    }
+  }
+
+  return { status, code, message };
+}
