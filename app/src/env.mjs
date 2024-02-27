@@ -75,8 +75,10 @@ export const env = createEnv({
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_DEPLOY_ENV: z.string().default("development"),
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
-    NEXT_PUBLIC_MAINTENANCE_MODE: z.string().optional()
-    .transform((val) => val?.toLowerCase() === "true"),
+    NEXT_PUBLIC_MAINTENANCE_MODE: z
+      .string()
+      .optional()
+      .transform((val) => val?.toLowerCase() === "true"),
   },
 
   /**
