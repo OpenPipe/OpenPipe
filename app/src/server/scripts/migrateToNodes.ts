@@ -19,13 +19,24 @@ import { hideBin } from "yargs/helpers";
 import { enqueueCountDatasetEntryTokens } from "../tasks/fineTuning/countDatasetEntryTokens.task";
 import { RelabelOption } from "../utils/nodes/node.types";
 
-const argv = await yargs(hideBin(process.argv)).option("projectId", {
-  type: "string",
-  description: "The id of a specific project to migrate",
-  demandOption: false,
-}).argv;
+const argv = await yargs(hideBin(process.argv))
+  .option("projectId", {
+    type: "string",
+    description: "The id of a specific project to migrate",
+    demandOption: false,
+  })
+  .option("resetKeys", {
+    type: "boolean",
+    description: "Whether to reset migration keys. Set true after all workers have stopped.",
+    demandOption: false,
+  }).argv;
 
 const projectId = argv.projectId;
+
+if (argv.resetKeys) {
+  // allow us to reprocess projects that we didn't complete
+  await kysely.updateTable("Project").set({ migrationKey: null }).execute();
+}
 
 // random string
 const processKey = Math.random().toString(36).substring(7);
@@ -39,6 +50,9 @@ while (true) {
       .innerJoin("Dataset as d", (join) =>
         join.onRef("d.projectId", "=", "p.id").on("d.nodeId", "is", null),
       )
+      // order by number of datasets
+      .groupBy("p.id")
+      .orderBy(sql`count(d.id)`, "desc")
       .where("p.migrationKey", "is", null)
       .selectAll("p");
 

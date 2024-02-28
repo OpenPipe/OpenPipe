@@ -10,7 +10,6 @@ import {
   convertFunctionMessagesToToolCall,
 } from "../convertFunctionCalls";
 import { hashDatasetEntryInput, hashDatasetEntryOutput } from "../nodes/hashNode";
-import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 
 export const prepareDatasetEntriesForImport = async ({
   projectId,
@@ -60,11 +59,6 @@ export const prepareDatasetEntriesForImport = async ({
       messages: messages as object[],
       tool_choice: tool_choice as object,
       tools: tools as object[],
-      inputTokens: countLlamaInputTokens({
-        messages,
-        tool_choice,
-        tools,
-      }),
       hash: inputHash,
     });
 
@@ -81,7 +75,6 @@ export const prepareDatasetEntriesForImport = async ({
     datasetEntryOutputsToCreate.push({
       projectId,
       output: output as unknown as Prisma.InputJsonValue,
-      outputTokens: countLlamaOutputTokens(output),
       hash: outputHash,
     });
 
