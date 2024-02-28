@@ -11,9 +11,9 @@ ray_serve_config:
         multiplex_models:
           - deployment_config:
               autoscaling_config:
-                min_replicas: 8
-                initial_replicas: 8
-                max_replicas: 8
+                min_replicas: 16
+                initial_replicas: 16
+                max_replicas: 16
                 target_num_ongoing_requests_per_replica: 24
                 metrics_interval_s: 10
                 look_back_period_s: 60
