@@ -1,42 +1,35 @@
-import { prisma } from "../db";
+import { kysely, prisma } from "../db";
 
 // delete all PruningRulesChecked
-await prisma.pruningRulesChecked.deleteMany();
-
+await kysely.deleteFrom("PruningRulesChecked").execute();
 console.log("Deleted all PruningRulesChecked");
 
 // delete all NodeEntries
-await prisma.nodeEntry.deleteMany();
-
+await kysely.deleteFrom("NodeEntry").execute();
 console.log("Deleted all NodeEntries");
 
 // delete all Nodes
-await prisma.node.deleteMany();
-
+await kysely.deleteFrom("Node").execute();
 console.log("Deleted all Nodes");
 
 // delete previously invalid uploads
-await prisma.datasetFileUpload.deleteMany({
-  where: {
-    datasetId: null,
-  },
-});
-
+await kysely.deleteFrom("DatasetFileUpload").where("datasetId", "is", null).execute();
 console.log("Deleted previously invalid uploads");
+
+// delete all CachedProcessedNodeEntries
+await kysely.deleteFrom("CachedProcessedEntry").execute();
+console.log("Deleted all CachedProcessedNodeEntries");
+
+// delete all CachedProcessedNodeEntries
+await kysely.deleteFrom("NewFineTuneTestingEntry").execute();
+console.log("Deleted all NewFineTuneTestingEntries");
 
 // Slower commands
 
 // // delete all DatasetEntryInputs
-// await prisma.datasetEntryInput.deleteMany();
-
+// await kysely.deleteFrom("DatasetEntryInput").execute();
 // console.log("Deleted all DatasetEntryInputs");
 
 // // delete all DatasetEntryOutputs
-// await prisma.datasetEntryOutput.deleteMany();
-
+// await kysely.deleteFrom("DatasetEntryOutput").execute();
 // console.log("Deleted all DatasetEntryOutputs");
-
-// // delete all CachedProcessedNodeEntries
-// await prisma.cachedProcessedEntry.deleteMany();
-
-// console.log("Deleted all CachedProcessedNodeEntries");

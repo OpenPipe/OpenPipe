@@ -150,6 +150,7 @@ export const generateEntry = async ({
       .insertInto("NewFineTuneTestingEntry")
       .values({
         id: uuidv4(),
+        projectId: tNodeEntry.projectId,
         modelId,
         fineTuneId: fineTune?.id,
         inputHash: tNodeEntry.inputHash,

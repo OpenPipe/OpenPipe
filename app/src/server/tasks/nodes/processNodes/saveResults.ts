@@ -68,6 +68,7 @@ export const saveResults = async ({
       const cachedProcessedEntryToCreate: Prisma.CachedProcessedEntryCreateManyInput = {
         nodeHash: node.hash,
         incomingInputHash: result.incomingInputHash,
+        projectId: node.projectId,
       };
       if (nodeProperties.cacheMatchFields?.includes("incomingOutputHash")) {
         if (!result.incomingOutputHash) throw new Error("incomingOutputHash is required");

@@ -88,6 +88,17 @@ for (let i = 0; i < datasets.length; i++) {
   const creationTime = new Date();
 
   const dataset = datasets[i]!;
+
+  const updatedDataset = await prisma.dataset.findUnique({
+    where: { id: dataset.id },
+    select: { nodeId: true },
+  });
+
+  if (!updatedDataset || updatedDataset.nodeId) {
+    console.log(`skipping dataset ${i + 1}/${datasets.length}: ${dataset.name}`);
+    continue;
+  }
+
   console.log(`migrating dataset ${i + 1}/${datasets.length}: ${dataset.name}`);
 
   const integratedDatasetCreation = prepareIntegratedDatasetCreation({
@@ -267,6 +278,7 @@ for (let i = 0; i < datasets.length; i++) {
               inputHash,
               outputHash: ftteOutputHash,
               updatedAt: new Date(),
+              projectId: dataset.projectId,
             })
             .onConflict((oc) => oc.columns(["modelId", "inputHash"]).doNothing())
             .execute();

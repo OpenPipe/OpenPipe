@@ -74,6 +74,7 @@ export interface CachedProcessedEntry {
   explanation: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  projectId: string;
 }
 
 export interface CachedResponse {
@@ -150,7 +151,7 @@ export interface DatasetEntryInput {
   inputTokens: number | null;
   hash: string;
   createdAt: Generated<Timestamp>;
-  projectId: string | null;
+  projectId: string;
 }
 
 export interface DatasetEntryOutput {
@@ -158,7 +159,7 @@ export interface DatasetEntryOutput {
   hash: string;
   outputTokens: number | null;
   createdAt: Generated<Timestamp>;
-  projectId: string | null;
+  projectId: string;
 }
 
 export interface DatasetEval {
@@ -429,6 +430,7 @@ export interface NewFineTuneTestingEntry {
   outputHash: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  projectId: string;
 }
 
 export interface NewFineTuneTrainingEntry {

@@ -15,8 +15,8 @@ const MaintenanceBanner = () => (
   >
     <Icon as={FaWrench} color="orange.400" />
     <Text fontWeight="500">
-      Some features are currently disabled for scheduled maintenance. Inference requests to your
-      fine-tuned models will not be affected.
+      Some features are temporarily unavailable due to scheduled maintenance. Inference requests to
+      your fine-tuned models will not be affected.
     </Text>
     <Icon as={FaWrench} color="orange.400" />
   </HStack>

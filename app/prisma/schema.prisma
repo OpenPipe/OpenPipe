@@ -118,6 +118,7 @@ model DatasetEntry {
 
     @@index([datasetId, outdated, sortKey])
     @@index([datasetId, outdated, split])
+    @@index([datasetId])
     @@index([importId])
     @@index([persistentId, createdAt])
     @@index([loggedCallId])
@@ -208,8 +209,8 @@ model Project {
     personalProjectUserId String?  @unique @db.Uuid
     personalProjectUser   User?    @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
 
-    createdAt              DateTime             @default(now())
-    updatedAt              DateTime             @updatedAt
+    createdAt              DateTime                  @default(now())
+    updatedAt              DateTime                  @updatedAt
     projectUsers           ProjectUser[]
     projectUserInvitations UserInvitation[]
     datasets               Dataset[]
@@ -221,8 +222,10 @@ model Project {
     invoices               Invoice[]
     credits                CreditAdjustment[]
     nodes                  Node[]
-    DatasetEntryInput      DatasetEntryInput[]
-    DatasetEntryOutput     DatasetEntryOutput[]
+    datasetEntryInputs     DatasetEntryInput[]
+    datasetEntryOutputs    DatasetEntryOutput[]
+    cachedProcessedEntries CachedProcessedEntry[]
+    fineTuneTestingEntries NewFineTuneTestingEntry[]
 }
 
 enum ProjectUserRole {
@@ -598,11 +601,15 @@ model NewFineTuneTestingEntry {
     outputHash   String?
     cachedOutput DatasetEntryOutput? @relation(fields: [outputHash], references: [hash], onDelete: Cascade)
 
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@unique([inputHash, modelId])
     @@index([fineTuneId])
+    @@index([projectId])
 }
 
 enum DatasetEvalType {
@@ -920,6 +927,8 @@ model Node {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@index([projectId])
 }
 
 model NodeOutput {
@@ -990,6 +999,7 @@ model NodeEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([parentNodeEntryId, dataChannelId])
+    @@index([nodeId])
     @@index([nodeId, persistentId])
     @@index([nodeId, inputHash, persistentId])
     @@index([loggedCallId, dataChannelId])
@@ -1005,8 +1015,8 @@ model DatasetEntryInput {
     inputTokens     Int?
     hash            String
 
-    projectId String?  @db.Uuid
-    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     matchedRules NewPruningRuleMatch[]
 
@@ -1028,8 +1038,8 @@ model DatasetEntryOutput {
     hash         String
     outputTokens Int?
 
-    projectId String?  @db.Uuid
-    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     nodeEntries             NodeEntry[]                @relation("output")
     originalNodeEntry       NodeEntry[]                @relation("originalOutput")
@@ -1054,6 +1064,9 @@ model CachedProcessedEntry {
     nodeId String? @db.Uuid
     node   Node?   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
 
+    projectId String  @db.Uuid
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
     incomingInputHash  String
     incomingInput      DatasetEntryInput   @relation("incoming", fields: [incomingInputHash], references: [hash], onDelete: Cascade)
     incomingOutputHash String?
@@ -1073,4 +1086,5 @@ model CachedProcessedEntry {
     @@unique([nodeEntryPersistentId, incomingInputHash, nodeHash, incomingOutputHash])
     @@index([incomingInputHash, nodeHash])
     @@index([incomingInputHash, nodeId])
+    @@index([projectId])
 }
