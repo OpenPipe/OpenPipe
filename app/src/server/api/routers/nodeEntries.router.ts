@@ -451,6 +451,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           await kysely
             .insertInto("DatasetEntryInput")
             .values({
+              projectId: tNode.projectId,
               tool_choice: JSON.stringify(tNodeEntry.tool_choice),
               tools: JSON.stringify(tNodeEntry.tools),
               messages: JSON.stringify(tNodeEntry.messages),
@@ -470,6 +471,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           await kysely
             .insertInto("DatasetEntryOutput")
             .values({
+              projectId: tNode.projectId,
               output: JSON.stringify(tNodeEntry.output),
               hash: updatedOutputHash,
             })

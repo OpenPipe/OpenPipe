@@ -185,6 +185,7 @@ export const insertTrainingDataPruningRuleMatches = async (fineTuneId: string) =
             "ftte.inputHash as inputHash",
           ]),
       )
+      .onConflict((oc) => oc.columns(["pruningRuleId", "inputHash"]).doNothing())
       .execute();
   }
 };

@@ -208,8 +208,8 @@ model Project {
     personalProjectUserId String?  @unique @db.Uuid
     personalProjectUser   User?    @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
 
-    createdAt              DateTime           @default(now())
-    updatedAt              DateTime           @updatedAt
+    createdAt              DateTime             @default(now())
+    updatedAt              DateTime             @updatedAt
     projectUsers           ProjectUser[]
     projectUserInvitations UserInvitation[]
     datasets               Dataset[]
@@ -221,6 +221,8 @@ model Project {
     invoices               Invoice[]
     credits                CreditAdjustment[]
     nodes                  Node[]
+    datasetEntryInputs     DatasetEntryInput[]
+    datasetEntryOutputs    DatasetEntryOutput[]
 }
 
 enum ProjectUserRole {
@@ -997,13 +999,16 @@ model NodeEntry {
 
 model DatasetEntryInput {
     tool_choice     Json?
-    tools           Json  @default("[]")
-    messages        Json  @default("[]")
+    tools           Json   @default("[]")
+    messages        Json   @default("[]")
     response_format Json?
     inputTokens     Int?
+    hash            String
+
+    projectId String?  @db.Uuid
+    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     matchedRules NewPruningRuleMatch[]
-    hash         String
 
     nodeEntries             NodeEntry[]
     fineTuneTrainingEntries NewFineTuneTrainingEntry[]
@@ -1021,6 +1026,9 @@ model DatasetEntryOutput {
     output       Json
     hash         String
     outputTokens Int?
+
+    projectId String?  @db.Uuid
+    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     nodeEntries             NodeEntry[]                @relation("output")
     originalNodeEntry       NodeEntry[]                @relation("originalOutput")

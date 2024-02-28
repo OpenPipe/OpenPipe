@@ -73,6 +73,7 @@ export const hashAndSaveDatasetEntryInput = async ({
   await trx
     .insertInto("DatasetEntryInput")
     .values({
+      projectId,
       hash: inputHash,
       tool_choice: tool_choice ? JSON.stringify(tool_choice) : undefined,
       tools: tools ? JSON.stringify(tools) : undefined,
@@ -112,6 +113,7 @@ export const hashAndSaveDatasetEntryOutput = async ({
   await trx
     .insertInto("DatasetEntryOutput")
     .values({
+      projectId,
       hash: outputHash,
       output: JSON.stringify(output),
     })

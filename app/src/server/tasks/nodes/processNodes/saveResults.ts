@@ -50,6 +50,7 @@ export const saveResults = async ({
           output: result.output,
         });
         outputsToCreate.push({
+          projectId: node.projectId,
           hash: outputHash,
           output: result.output as unknown as Prisma.InputJsonValue,
         });

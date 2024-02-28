@@ -56,6 +56,7 @@ export const prepareDatasetEntriesForImport = async ({
     const messages = convertFunctionMessagesToToolCall(row.input.messages);
 
     datasetEntryInputsToCreate.push({
+      projectId,
       messages: messages as object[],
       tool_choice: tool_choice as object,
       tools: tools as object[],
@@ -78,6 +79,7 @@ export const prepareDatasetEntriesForImport = async ({
     };
 
     datasetEntryOutputsToCreate.push({
+      projectId,
       output: output as unknown as Prisma.InputJsonValue,
       outputTokens: countLlamaOutputTokens(output),
       hash: outputHash,

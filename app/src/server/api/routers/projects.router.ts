@@ -306,4 +306,43 @@ export const projectsRouter = createTRPCRouter({
         },
       });
     }),
+  listProjectNodes: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewProject(input.projectId, ctx);
+      const nodes = await kysely
+        .selectFrom("Node as n")
+        .where("n.projectId", "=", input.projectId)
+        .selectAll("n")
+        .select((eb) => [
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.status", "=", "PENDING")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numPendingEntries"),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.status", "=", "PROCESSING")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numProcessingEntries"),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.status", "=", "ERROR")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numErrorEntries"),
+
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.status", "=", "PROCESSED")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numProcessedEntries"),
+        ])
+        .orderBy("n.createdAt", "desc")
+        .execute();
+      return nodes;
+    }),
 });
