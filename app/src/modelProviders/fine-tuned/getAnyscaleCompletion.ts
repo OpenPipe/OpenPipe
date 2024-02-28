@@ -124,6 +124,7 @@ function transformStream(
 
   async function* iterator() {
     for await (const chunk of originalStream) {
+      console.log(chunk.choices[0].delta);
       yield transformChunk(chunk, model);
     }
   }
@@ -153,6 +154,8 @@ function transformStreamToolCall(
     let inArguments = false;
 
     for await (const chunk of originalStream) {
+      console.log(chunk.choices[0]);
+
       const transformedChunk = transformChunkToolCall(chunk, buffer, inArguments);
 
       buffer = transformedChunk.buffer;
@@ -160,7 +163,7 @@ function transformStreamToolCall(
 
       if (transformedChunk.toolCall || chunk.usage) {
         yield {
-          id: "chunk.id",
+          id: chunk.id,
           object: "chat.completion.chunk",
           created: chunk.created,
           model,
@@ -168,7 +171,7 @@ function transformStreamToolCall(
             {
               delta: { tool_calls: [transformedChunk.toolCall] },
               index: 0,
-              finish_reason: "stop",
+              finish_reason: chunk.usage ? "tool_calls" : null,
               logprobs: null,
             },
           ],
@@ -186,7 +189,6 @@ const FUNCTION_ARGS_TAG = "<arguments>";
 
 function transformChunkToolCall(chunk: any, buffer: string, inArguments: boolean) {
   buffer += chunk.choices[0]?.delta.content ?? "";
-  console.log(buffer);
   let functionNameToYield: string = "";
   let argumentsToYeld: string = "";
 
