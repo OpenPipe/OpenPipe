@@ -3,9 +3,13 @@ import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countToke
 import defineTask from "../defineTask";
 import { typedDatasetEntryInput, typedDatasetEntryOutput } from "~/server/utils/nodes/node.types";
 
-export const countDatasetEntryTokens = defineTask({
+type CountDatasetEntryTokensJob = {
+  projectId: string;
+};
+
+export const countDatasetEntryTokens = defineTask<CountDatasetEntryTokensJob>({
   id: "countDatasetEntryTokens",
-  handler: async () => {
+  handler: async ({ projectId }) => {
     while (true) {
       const inputBatch = await prisma.datasetEntryInput.findMany({
         select: {
@@ -16,7 +20,7 @@ export const countDatasetEntryTokens = defineTask({
           response_format: true,
         },
         orderBy: { createdAt: "desc" },
-        where: { inputTokens: null },
+        where: { projectId, inputTokens: null },
         take: 1000,
       });
       const outputBatch = await prisma.datasetEntryOutput.findMany({
@@ -24,7 +28,7 @@ export const countDatasetEntryTokens = defineTask({
           hash: true,
           output: true,
         },
-        where: { outputTokens: null },
+        where: { projectId, outputTokens: null },
         take: 1000,
       });
 
@@ -92,9 +96,9 @@ export const countDatasetEntryTokens = defineTask({
   },
 });
 
-export const enqueueCountDatasetEntryTokens = async () => {
-  await countDatasetEntryTokens.enqueue(
-    {},
-    { queueName: "countDatasetEntryTokens", jobKey: "countDatasetEntryTokens" },
-  );
+export const enqueueCountDatasetEntryTokens = async (job: CountDatasetEntryTokensJob) => {
+  await countDatasetEntryTokens.enqueue(job, {
+    queueName: "countDatasetEntryTokens",
+    jobKey: "countDatasetEntryTokens",
+  });
 };

@@ -108,7 +108,7 @@ export const unstableDatasetEntryCreate = openApiProtectedProc
       nodeId: archive.id,
     });
 
-    await enqueueCountDatasetEntryTokens();
+    await enqueueCountDatasetEntryTokens({ projectId: ctx.key.projectId });
     return {
       createdEntries: nodeEntriesToCreate.length,
       errors,

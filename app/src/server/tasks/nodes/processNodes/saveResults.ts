@@ -134,5 +134,5 @@ export const saveResults = async ({
     });
   }
 
-  await enqueueCountDatasetEntryTokens();
+  await enqueueCountDatasetEntryTokens({ projectId: node.projectId });
 };

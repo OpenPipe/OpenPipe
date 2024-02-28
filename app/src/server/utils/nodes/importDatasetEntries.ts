@@ -159,7 +159,7 @@ export const importDatasetEntries = async ({
 
   await updateDatasetFileUpload({ progress: 99 });
 
-  await enqueueCountDatasetEntryTokens();
+  await enqueueCountDatasetEntryTokens({ projectId });
 
   await updateDatasetFileUpload({
     status: "COMPLETE",

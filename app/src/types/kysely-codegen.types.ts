@@ -150,6 +150,7 @@ export interface DatasetEntryInput {
   inputTokens: number | null;
   hash: string;
   createdAt: Generated<Timestamp>;
+  projectId: string | null;
 }
 
 export interface DatasetEntryOutput {
@@ -157,6 +158,7 @@ export interface DatasetEntryOutput {
   hash: string;
   outputTokens: number | null;
   createdAt: Generated<Timestamp>;
+  projectId: string | null;
 }
 
 export interface DatasetEval {
@@ -293,17 +295,42 @@ export interface FineTuneTrainingEntry {
   prunedInputTokens: number | null;
 }
 
-export interface GraphileWorkerJobQueues {
-  queue_name: string;
-  job_count: number;
+export interface GraphileWorkerJobs {
+  id: Int8 | null;
+  queue_name: string | null;
+  task_identifier: string | null;
+  priority: number | null;
+  run_at: Timestamp | null;
+  attempts: number | null;
+  max_attempts: number | null;
+  last_error: string | null;
+  created_at: Timestamp | null;
+  updated_at: Timestamp | null;
+  key: string | null;
   locked_at: Timestamp | null;
   locked_by: string | null;
+  revision: number | null;
+  flags: Json | null;
 }
 
-export interface GraphileWorkerJobs {
-  id: Generated<Int8>;
-  queue_name: string | null;
-  task_identifier: string;
+export interface GraphileWorkerMigrations {
+  id: number;
+  ts: Generated<Timestamp>;
+  breaking: Generated<boolean>;
+}
+
+export interface GraphileWorkerPrivateJobQueues {
+  id: number;
+  queue_name: string;
+  locked_at: Timestamp | null;
+  locked_by: string | null;
+  is_available: Generated<boolean>;
+}
+
+export interface GraphileWorkerPrivateJobs {
+  id: Int8;
+  job_queue_id: number | null;
+  task_id: number;
   payload: Generated<Json>;
   priority: Generated<number>;
   run_at: Generated<Timestamp>;
@@ -317,17 +344,18 @@ export interface GraphileWorkerJobs {
   locked_by: string | null;
   revision: Generated<number>;
   flags: Json | null;
+  is_available: Generated<boolean>;
 }
 
-export interface GraphileWorkerKnownCrontabs {
+export interface GraphileWorkerPrivateKnownCrontabs {
   identifier: string;
   known_since: Timestamp;
   last_execution: Timestamp | null;
 }
 
-export interface GraphileWorkerMigrations {
+export interface GraphileWorkerPrivateTasks {
   id: number;
-  ts: Generated<Timestamp>;
+  identifier: string;
 }
 
 export interface Invoice {
@@ -603,9 +631,11 @@ export interface DB {
   FineTune: FineTune;
   FineTuneTestingEntry: FineTuneTestingEntry;
   FineTuneTrainingEntry: FineTuneTrainingEntry;
-  "graphile_worker.job_queues": GraphileWorkerJobQueues;
+  "graphile_worker._private_job_queues": GraphileWorkerPrivateJobQueues;
+  "graphile_worker._private_jobs": GraphileWorkerPrivateJobs;
+  "graphile_worker._private_known_crontabs": GraphileWorkerPrivateKnownCrontabs;
+  "graphile_worker._private_tasks": GraphileWorkerPrivateTasks;
   "graphile_worker.jobs": GraphileWorkerJobs;
-  "graphile_worker.known_crontabs": GraphileWorkerKnownCrontabs;
   "graphile_worker.migrations": GraphileWorkerMigrations;
   Invoice: Invoice;
   LoggedCall: LoggedCall;

@@ -354,7 +354,7 @@ for (let i = 0; i < datasets.length; i++) {
       }
     });
 
-    await enqueueCountDatasetEntryTokens();
+    await enqueueCountDatasetEntryTokens({ projectId: dataset.projectId });
 
     offset += entries.length;
     console.log();
