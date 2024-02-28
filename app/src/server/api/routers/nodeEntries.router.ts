@@ -823,12 +823,6 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       let updatedPerformanceQuery = baseQuery;
 
-      const irStartTime = new Date();
-
-      const initialResult = await updatedPerformanceQuery.execute();
-      console.log("initialResult", initialResult);
-      console.log("initialResultTime", new Date().getTime() - irStartTime.getTime());
-
       let i = 0;
       // Add average score for each dataset eval
       for (const datasetEval of dataset?.datasetEvals ?? []) {
@@ -894,16 +888,11 @@ export const nodeEntriesRouter = createTRPCRouter({
           ]) as unknown as typeof baseQuery;
       }
 
-      const arStartTime = new Date();
-
       const performance = await updatedPerformanceQuery
         .select("ne.nodeId")
         .groupBy("ne.nodeId")
         .executeTakeFirst()
         .then((result) => result as typeof result & Record<string, number>);
-
-      console.log("performance", performance);
-      console.log("performanceTime", new Date().getTime() - arStartTime.getTime());
 
       const evalPerformances: Record<
         string,

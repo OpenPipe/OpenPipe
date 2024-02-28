@@ -65,6 +65,7 @@ export interface CachedProcessedEntry {
   nodeHash: string | null;
   nodeEntryPersistentId: string | null;
   nodeId: string | null;
+  projectId: string;
   incomingInputHash: string;
   incomingOutputHash: string | null;
   outgoingInputHash: string | null;
@@ -74,7 +75,6 @@ export interface CachedProcessedEntry {
   explanation: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  projectId: string;
 }
 
 export interface CachedResponse {
@@ -150,16 +150,16 @@ export interface DatasetEntryInput {
   response_format: Json | null;
   inputTokens: number | null;
   hash: string;
-  createdAt: Generated<Timestamp>;
   projectId: string;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface DatasetEntryOutput {
   output: Json;
   hash: string;
   outputTokens: number | null;
-  createdAt: Generated<Timestamp>;
   projectId: string;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface DatasetEval {
@@ -428,9 +428,9 @@ export interface NewFineTuneTestingEntry {
   fineTuneId: string | null;
   inputHash: string;
   outputHash: string | null;
+  projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  projectId: string;
 }
 
 export interface NewFineTuneTrainingEntry {
@@ -508,6 +508,7 @@ export interface Project {
   stripeCustomerId: string | null;
   tagNames: Generated<string[] | null>;
   rateLimit: Generated<number>;
+  migrationKey: string | null;
 }
 
 export interface ProjectUser {

@@ -208,6 +208,7 @@ model Project {
     rateLimit             Int      @default(3)
     personalProjectUserId String?  @unique @db.Uuid
     personalProjectUser   User?    @relation(fields: [personalProjectUserId], references: [id], onDelete: Cascade)
+    migrationKey          String?
 
     createdAt              DateTime                  @default(now())
     updatedAt              DateTime                  @updatedAt
@@ -1005,6 +1006,7 @@ model NodeEntry {
     @@index([loggedCallId, dataChannelId])
     @@index([parentNodeEntryId, dataChannelId])
     @@index([nodeId, status, updatedAt])
+    @@index([persistentId, nodeId])
 }
 
 model DatasetEntryInput {

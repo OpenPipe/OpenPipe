@@ -183,8 +183,6 @@ export const calculateToolCallScore = (
   originalFunctionCall: ChatCompletionMessage["function_call"],
   generatedFunctionCall: ChatCompletionMessage["function_call"],
 ) => {
-  console.log("originalFunctionCall", originalFunctionCall);
-  console.log("generatedFunctionCall", generatedFunctionCall);
   // If function names don't match, return 0
   if (!originalFunctionCall || !generatedFunctionCall) return 0;
   // If neither have args, then congrats, we matched them.

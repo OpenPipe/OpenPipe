@@ -11,6 +11,8 @@ const MaintenanceBanner = () => (
     borderColor="gray.300"
     justifyContent="space-between"
     position="sticky"
+    left={0}
+    right={0}
     zIndex={10}
   >
     <Icon as={FaWrench} color="orange.400" />

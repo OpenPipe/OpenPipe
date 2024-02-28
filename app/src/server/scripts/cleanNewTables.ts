@@ -1,4 +1,4 @@
-import { kysely, prisma } from "../db";
+import { kysely } from "../db";
 
 // delete all PruningRulesChecked
 await kysely.deleteFrom("PruningRulesChecked").execute();
