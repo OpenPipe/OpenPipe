@@ -54,7 +54,7 @@ const runner = await run({
     {
       task: checkFineTuneStatus.task.identifier,
       // run once a minute for now
-      pattern: "* * * * *",
+      match: "* * * * *",
       identifier: checkFineTuneStatus.task.identifier,
       options: {
         backfillPeriod: 1000 * 60,
@@ -63,7 +63,7 @@ const runner = await run({
     {
       task: checkOpenaiFineTuneStatus.task.identifier,
       // run once a minute for now
-      pattern: "* * * * *",
+      match: "* * * * *",
       identifier: checkOpenaiFineTuneStatus.task.identifier,
       options: {
         backfillPeriod: 1000 * 60,
@@ -72,7 +72,7 @@ const runner = await run({
     {
       task: generateInvoices.task.identifier,
       // run at 2 AM UTC on the first day of each month
-      pattern: "* 2 1 * *",
+      match: "* 2 1 * *",
       identifier: generateInvoices.task.identifier,
     },
 
@@ -80,7 +80,7 @@ const runner = await run({
     {
       task: chargeInvoices.task.identifier,
       // run at 8 AM UTC, on the second day of each month
-      pattern: "0 8 2 * *",
+      match: "0 8 2 * *",
       identifier: chargeInvoices.task.identifier,
     },
   ]),
