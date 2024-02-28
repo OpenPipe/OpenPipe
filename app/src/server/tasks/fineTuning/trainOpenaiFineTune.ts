@@ -6,36 +6,38 @@ import { filter, map } from "ix/asynciterable/operators";
 import { prisma } from "~/server/db";
 import { truthyFilter } from "~/utils/utils";
 import { convertToolCallMessagesToFunction } from "~/server/utils/convertFunctionCalls";
-import { typedDatasetEntry } from "~/types/dbColumns.types";
+import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { iterateTrainingRows } from "./trainFineTune.task";
 
 export const trainOpenaiFineTune = async (fineTuneId: string) => {
-  const fineTune = await prisma.fineTune.findUnique({
-    where: { id: fineTuneId },
-    include: {
-      trainingEntries: {
-        select: {
-          id: true,
-          datasetEntry: {
-            select: {
-              messages: true,
-              output: true,
-              tool_choice: true,
-              tools: true,
+  const fineTune = await prisma.fineTune
+    .findUnique({
+      where: { id: fineTuneId },
+      include: {
+        trainingEntries: {
+          select: {
+            id: true,
+            datasetEntry: {
+              select: {
+                messages: true,
+                output: true,
+                tool_choice: true,
+                tools: true,
+              },
             },
           },
         },
-      },
-      project: {
-        select: {
-          apiKeys: true,
+        project: {
+          select: {
+            apiKeys: true,
+          },
         },
       },
-    },
-  });
+    })
+    .then((ft) => (ft ? typedFineTune(ft) : null));
   if (!fineTune) return;
 
   const openaiApiKey = fineTune.project.apiKeys.find((key) => key.provider === "OPENAI")?.apiKey;
@@ -121,7 +123,7 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
 
     const fineTuneJob = await openai.fineTuning.jobs.create({
       training_file: trainingFile.id,
-      model: "gpt-3.5-turbo-1106",
+      model: fineTune.baseModel,
     });
 
     await prisma.fineTune.update({
