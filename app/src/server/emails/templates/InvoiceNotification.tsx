@@ -27,8 +27,13 @@ const InvoiceNotification = ({
       <Header>{previewText}</Header>
 
       <Text>
-        This is your monthly <Link href={invoicesLink}>invoice</Link> for OpenPipe project{" "}
-        <Link href={projectLink}>{projectName}</Link>:
+        This invoice covers your OpenPipe usage through the end of <b>January 2024</b> for project{" "}
+        <Link href={projectLink}>{projectName}</Link>. (We apologize for the one-month delay in
+        sending this out!)
+      </Text>
+      <Text>
+        If you've used your project in February as well you'll receive another email in a few days
+        with a new invoice covering February's usage.
       </Text>
 
       <InvoiceDescription
