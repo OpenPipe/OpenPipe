@@ -10,7 +10,7 @@ export enum ArchiveOutput {
 export const archiveProperties: NodeProperties<"Archive"> = {
   schema: archiveNodeSchema,
   outputs: [{ label: ArchiveOutput.Entries }],
-  beforeAll: async (node) => {
+  beforeProcessing: async (node) => {
     const inputDataChannel = await kysely
       .selectFrom("DataChannel")
       .where("destinationId", "=", node.id)
@@ -36,5 +36,17 @@ export const archiveProperties: NodeProperties<"Archive"> = {
         maxEntriesToImport: maxOutputSize,
       });
     }
+  },
+  afterAll: async (node) => {
+    await kysely
+      .updateTable("DatasetFileUpload")
+      .where("status", "=", "SAVING")
+      .where("nodeId", "=", node.id)
+      .set({
+        status: "COMPLETE",
+        progress: 100,
+        visible: true,
+      })
+      .execute();
   },
 };

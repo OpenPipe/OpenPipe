@@ -11,7 +11,7 @@ export enum DatasetOutput {
 export const datasetProperties: NodeProperties<"Dataset"> = {
   schema: datasetNodeSchema,
   outputs: [{ label: DatasetOutput.Entries }],
-  afterAll: async (node) => {
+  afterProcessing: async (node) => {
     const dataset = await kysely
       .selectFrom("Dataset as d")
       .where("d.nodeId", "=", node.id)

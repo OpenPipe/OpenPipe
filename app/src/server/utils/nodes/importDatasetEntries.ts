@@ -43,12 +43,12 @@ export const importDatasetEntries = async ({
   }
   await updateDatasetFileUpload({
     status: "DOWNLOADING",
-    progress: 5,
+    progress: 15,
   });
 
   const onBlobDownloadProgress = async (progress: number) => {
     await updateDatasetFileUpload({
-      progress: 5 + Math.floor((progress / datasetFileUpload.fileSize) * 25),
+      progress: 15 + Math.floor((progress / datasetFileUpload.fileSize) * 55),
     });
   };
 
@@ -79,7 +79,7 @@ export const importDatasetEntries = async ({
 
   await updateDatasetFileUpload({
     status: "PROCESSING",
-    progress: 30,
+    progress: 70,
   });
 
   const importTime = new Date();
@@ -104,7 +104,7 @@ export const importDatasetEntries = async ({
         dataChannelId,
         entriesToImport,
         onProgress: async (progress) => {
-          await updateDatasetFileUpload({ progress: 30 + Math.floor(45 * progress) });
+          await updateDatasetFileUpload({ progress: 70 + Math.floor(10 * progress) });
         },
       }));
   } catch (e: unknown) {
@@ -118,7 +118,7 @@ export const importDatasetEntries = async ({
 
   await updateDatasetFileUpload({
     status: "SAVING",
-    progress: 75,
+    progress: 80,
   });
 
   // save datasetEntryInputs in batches of 1000
@@ -129,7 +129,7 @@ export const importDatasetEntries = async ({
       skipDuplicates: true,
     });
     await updateDatasetFileUpload({
-      progress: 75 + Math.floor(10 * (i / datasetEntryInputsToCreate.length)),
+      progress: 80 + Math.floor(10 * (i / datasetEntryInputsToCreate.length)),
     });
   }
 
@@ -141,7 +141,7 @@ export const importDatasetEntries = async ({
       skipDuplicates: true,
     });
     await updateDatasetFileUpload({
-      progress: 85 + Math.floor(10 * (i / datasetEntryOutputsToCreate.length)),
+      progress: 90 + Math.floor(5 * (i / datasetEntryOutputsToCreate.length)),
     });
   }
 
@@ -160,10 +160,4 @@ export const importDatasetEntries = async ({
   await updateDatasetFileUpload({ progress: 99 });
 
   await enqueueCountDatasetEntryTokens({ projectId });
-
-  await updateDatasetFileUpload({
-    status: "COMPLETE",
-    progress: 100,
-    visible: true,
-  });
 };

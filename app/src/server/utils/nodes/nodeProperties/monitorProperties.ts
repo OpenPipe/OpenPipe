@@ -19,7 +19,7 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
   schema: monitorNodeSchema,
   outputs: [{ label: MonitorOutput.MatchedLogs }],
   hashableFields: (node) => ({ filters: node.config.initialFilters }),
-  beforeAll: async (node) => {
+  beforeProcessing: async (node) => {
     const { initialFilters, lastLoggedCallUpdatedAt, maxOutputSize, sampleRate } = node.config;
 
     const numExistingEntries = await kysely

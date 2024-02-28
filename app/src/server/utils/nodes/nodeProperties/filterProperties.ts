@@ -15,7 +15,7 @@ export const filterProperties: NodeProperties<"Filter"> = {
   readBatchSize: 10000,
   outputs: [{ label: FilterOutput.Passed }, { label: FilterOutput.Failed }],
   getConcurrency: () => 2,
-  beforeAll: async (node) => {
+  beforeProcessing: async (node) => {
     const { filters } = node.config;
 
     await prisma.nodeEntry.updateMany({

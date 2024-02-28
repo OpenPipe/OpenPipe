@@ -59,8 +59,8 @@ export const processNode = defineTask<ProcessNodeJob>({
 
     await updateCached({ node });
 
-    if (nodeProperties.beforeAll) {
-      await nodeProperties.beforeAll(node);
+    if (nodeProperties.beforeProcessing) {
+      await nodeProperties.beforeProcessing(node);
     }
 
     const forwardAllOutputs = async () => {
@@ -192,11 +192,15 @@ export const processNode = defineTask<ProcessNodeJob>({
       await updateQuery.execute();
     }
 
-    if (nodeProperties.afterAll) {
-      await nodeProperties.afterAll(node);
+    if (nodeProperties.afterProcessing) {
+      await nodeProperties.afterProcessing(node);
     }
 
     await forwardAllOutputs();
+
+    if (nodeProperties.afterAll) {
+      await nodeProperties.afterAll(node);
+    }
   },
 });
 

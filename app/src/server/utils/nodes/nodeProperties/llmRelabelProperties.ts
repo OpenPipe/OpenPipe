@@ -20,7 +20,7 @@ export const llmRelabelProperties: NodeProperties<"LLMRelabel"> = {
   getConcurrency: (node) => {
     return node.config.maxLLMConcurrency;
   },
-  beforeAll: async (node) => {
+  beforeProcessing: async (node) => {
     if (node.config.relabelLLM === RelabelOption.SkipRelabel) {
       await prisma.nodeEntry.updateMany({
         where: { nodeId: node.id, status: "PENDING" },
