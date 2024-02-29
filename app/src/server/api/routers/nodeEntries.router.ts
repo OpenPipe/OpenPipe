@@ -711,7 +711,7 @@ export const nodeEntriesRouter = createTRPCRouter({
             eb
               .selectFrom("NewFineTuneTestingEntry as ftte")
               .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
-              .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
+              .leftJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
               .select([
                 "ftte.id",
                 "ftte.modelId",

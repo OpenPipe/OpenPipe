@@ -167,12 +167,14 @@ while (true) {
             tools: entry.tools as object[],
             messages: entry.messages as JsonValue,
             response_format: entry.response_format as JsonValue,
+            inputTokens: entry.inputTokens ?? undefined,
             trx,
           });
 
           const outputHash = await hashAndSaveDatasetEntryOutput({
             projectId: dataset.projectId,
             output: entry.output as object,
+            outputTokens: entry.outputTokens ?? undefined,
             trx,
           });
 

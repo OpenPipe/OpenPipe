@@ -30,7 +30,6 @@ export const datasetEvalsRouter = createTRPCRouter({
       .selectFrom("DatasetEval as eval")
       .where("eval.id", "=", input.id)
       .leftJoin("Dataset as d", "d.id", "eval.datasetId")
-
       .select((eb) => [
         "eval.id",
         "eval.name",

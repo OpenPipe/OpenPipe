@@ -53,6 +53,7 @@ export const hashAndSaveDatasetEntryInput = async ({
   tools,
   messages,
   response_format,
+  inputTokens,
   trx = kysely,
 }: {
   projectId: string;
@@ -60,6 +61,7 @@ export const hashAndSaveDatasetEntryInput = async ({
   tools?: object[] | null;
   messages: JsonValue;
   response_format?: JsonValue;
+  inputTokens?: number;
   trx?: typeof kysely;
 }) => {
   const inputHash = hashDatasetEntryInput({
@@ -79,6 +81,7 @@ export const hashAndSaveDatasetEntryInput = async ({
       tools: tools ? JSON.stringify(tools) : undefined,
       messages: JSON.stringify(messages),
       response_format: response_format ? JSON.stringify(response_format) : undefined,
+      inputTokens,
     })
     .onConflict((oc) => oc.columns(["hash"]).doNothing())
     .execute();
@@ -102,10 +105,12 @@ export const hashDatasetEntryOutput = ({
 export const hashAndSaveDatasetEntryOutput = async ({
   projectId,
   output,
+  outputTokens,
   trx = kysely,
 }: {
   projectId: string;
   output: object;
+  outputTokens?: number;
   trx?: typeof kysely;
 }) => {
   const outputHash = hashDatasetEntryOutput({ projectId, output });
@@ -116,6 +121,7 @@ export const hashAndSaveDatasetEntryOutput = async ({
       projectId,
       hash: outputHash,
       output: JSON.stringify(output),
+      outputTokens,
     })
     .onConflict((oc) => oc.columns(["hash"]).doNothing())
     .execute();

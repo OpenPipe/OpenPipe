@@ -90,15 +90,11 @@ export const countDatasetEntryTokens = defineTask<CountDatasetEntryTokensJob>({
       );
     }
   },
-  specDefaults: {
-    // Ensure only one of these tasks runs at a time
-    jobKey: "countDatasetEntryTokens",
-  },
 });
 
 export const enqueueCountDatasetEntryTokens = async (job: CountDatasetEntryTokensJob) => {
   await countDatasetEntryTokens.enqueue(job, {
-    queueName: "countDatasetEntryTokens",
-    jobKey: "countDatasetEntryTokens",
+    queueName: `countDatasetEntryTokens-${job.projectId}`,
+    jobKey: `countDatasetEntryTokens-${job.projectId}`,
   });
 };
