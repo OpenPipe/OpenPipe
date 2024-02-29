@@ -6,7 +6,6 @@ import type {
   ChatCompletionCreateParamsNonStreaming,
   ChatCompletionCreateParamsStreaming,
 } from "openai/resources/chat";
-import { OpenAIStream, StreamingTextResponse } from "ai";
 
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
@@ -74,24 +73,16 @@ export async function getFireworksCompletion(
   let resp: Completion;
 
   if (input.stream) {
-    // const stream = OpenAIStream(response);
-    // for await (const chunk of stream) {
-    //   console.log(chunk); // Process each chunk
-    // }
-
     const controller = new AbortController();
     const reader = response.body.getReader();
 
     async function* iterator() {
-      for await (const chunk of yieldChunks(reader)) {
-        // console.log(chunk);
-        yield transformChunk(chunk, input.model);
-        // yield chunk;
+      for await (const chunk of readableStreamToAsyncGenerator(reader)) {
+        yield transformFireworksChunkToOpenAI(chunk, input.model);
       }
     }
-    return transformStreamToOpenAIFormat(new Stream(iterator, controller), input);
 
-    // return new Stream(iterator, controller);
+    return transformStreamToOpenAIFormat(new Stream(iterator, controller), input);
   } else {
     resp = await response.json();
   }
@@ -116,7 +107,7 @@ export async function getFireworksCompletion(
   };
 }
 
-async function* yieldChunks(
+async function* readableStreamToAsyncGenerator(
   reader: ReadableStreamDefaultReader,
 ): AsyncGenerator<ChatCompletionChunk> {
   let leftover = "";
@@ -164,7 +155,7 @@ async function* yieldChunks(
     yield JSON.parse(leftover.slice(5).trim()) as ChatCompletionChunk;
   }
 }
-function transformChunk(chunk: any, model: string) {
+function transformFireworksChunkToOpenAI(chunk: any, model: string) {
   return {
     id: chunk.id,
     object: "chat.completion.chunk",

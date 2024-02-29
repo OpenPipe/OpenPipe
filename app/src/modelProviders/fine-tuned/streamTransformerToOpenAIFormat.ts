@@ -1,41 +1,11 @@
-import { v4 as uuidv4 } from "uuid";
-import type {
-  ChatCompletion,
-  ChatCompletionChunk,
-  ChatCompletionCreateParams,
-  ChatCompletionCreateParamsNonStreaming,
-  ChatCompletionCreateParamsStreaming,
-} from "openai/resources/chat";
+import type { ChatCompletionChunk, ChatCompletionCreateParams } from "openai/resources/chat";
 import { Stream } from "openai/streaming";
-import OpenAI from "openai";
-
-import { type TypedFineTune } from "~/types/dbColumns.types";
-import { deserializeChatOutput, serializeChatInput } from "./serializers";
-import { env } from "~/env.mjs";
 import { CompletionUsage } from "openai/resources";
 
 const FUNCTION_CALL_TAG = "<function>";
 const FUNCTION_ARGS_TAG = "<arguments>";
 
 export type ChatCompletionChunkWithUsage = ChatCompletionChunk & { usage?: CompletionUsage };
-
-// export function transformChunk(chunk: any, input: ChatCompletionCreateParams) {
-//   const transformedChunk = {
-//     id: chunk.id,
-//     object: "chat.completion.chunk",
-//     created: chunk.created,
-//     model: input.model,
-//     choices: chunk.choices,
-//     usage: chunk.usage,
-//   } as ChatCompletionChunk;
-
-//   // OpenAI returns a "tool_calls" finish_reason when we pass tools in the input, even if the response was a regular content.
-//   if (transformedChunk.choices?.[0]?.finish_reason === "stop" && input.tools?.length) {
-//     transformedChunk.choices[0].finish_reason = "tool_calls";
-//   }
-
-//   return transformedChunk;
-// }
 
 export function transformStreamToOpenAIFormat(
   originalStream: Stream<any>,
@@ -49,10 +19,9 @@ export function transformStreamToOpenAIFormat(
     let inArguments = false;
     let functionIndex = 0; // The index of the function in the tool_calls array
     let functionId = generateOpenAiFunctionCallId(); // The index of the function in the tool_calls array
-    let role: null | string = null;
+    let role: null | string = "assistant";
 
     for await (const chunk of originalStream) {
-      console.log(chunk);
       if (chunk.choices[0].delta.role) {
         role = chunk.choices[0].delta.role;
       }
@@ -68,36 +37,32 @@ export function transformStreamToOpenAIFormat(
         if (call === "CONTENT") {
           // Yield role as the first chunk
           if (role) {
-            yield {
-              id: chunk.id,
-              object: "chat.completion.chunk",
-              created: chunk.created,
-              model: input.model,
-              choices: [
-                {
+            yield constructOpenAIChunk(
+              {
+                ...chunk,
+                choices: chunk.choices.map(() => ({
                   delta: { role, content: "" },
                   index: 0,
                   finish_reason: null,
                   logprobs: null,
-                },
-              ],
-              usage: null,
-            } as ChatCompletionChunk;
+                })),
+              },
+              input,
+            );
             role = null;
           }
           // Yield the accumulated buffer as a first chunk after a role
           yield constructOpenAIChunk(
             {
               ...chunk,
-              choices: [
-                {
-                  ...chunk.choices[0],
-                  delta: { ...chunk.choices[0].delta, content: buffer },
-                },
-              ],
+              choices: chunk.choices.map((choice: any) => ({
+                ...choice,
+                delta: { ...choice.delta, content: buffer },
+              })),
             },
             input,
           );
+
           buffer = "";
         }
       }
@@ -117,15 +82,6 @@ export function transformStreamToOpenAIFormat(
 
         if (transformedChunk.toolCall || chunk.usage) {
           if (role) {
-            yield constructOpenAIChunk(
-              {
-                ...chunk,
-                choices: constructOpenAITollCallChoices(chunk, {
-                  ...(role && { role, content: "" }),
-                }),
-              },
-              input,
-            );
             yield constructOpenAIChunk(
               {
                 ...chunk,
@@ -169,20 +125,36 @@ export function deserealizeToolCallSteamToOpenAIFormat(
   let argumentsToYeld: string = "";
 
   if (!inArguments && buffer.includes(FUNCTION_CALL_TAG)) {
-    // Getting a function name by waits untill the buffer has a values like: <function>get_current_weather<arguments>
     const startIndex = buffer.lastIndexOf(FUNCTION_CALL_TAG) + FUNCTION_CALL_TAG.length;
     const endIndex = buffer.indexOf(FUNCTION_ARGS_TAG, startIndex);
     if (endIndex !== -1) {
       functionNameToYield = buffer.substring(startIndex, endIndex).trim();
       buffer = buffer.substring(endIndex + FUNCTION_ARGS_TAG.length);
-      inArguments = true; // The next iteration will not check for function names, just yield the arguments
+      inArguments = true;
     }
   } else if (inArguments) {
-    if (buffer.startsWith("<")) {
-      // New function call detected, reset
-      inArguments = false;
-      functionIndex++;
-      functionId = generateOpenAiFunctionCallId();
+    const functionTagIndex = buffer.indexOf("<");
+    if (functionTagIndex !== -1) {
+      // Check if the tag is a <function> tag, or just another tag that we should stream.
+      const potentialFunctionTag = buffer.substring(
+        functionTagIndex,
+        functionTagIndex + FUNCTION_CALL_TAG.length,
+      );
+      if (potentialFunctionTag === FUNCTION_CALL_TAG) {
+        // New function call detected, reset
+        inArguments = false;
+        functionIndex++;
+        functionId = generateOpenAiFunctionCallId();
+        // Yield the arguments before the <function tag
+        if (functionTagIndex > 0) {
+          argumentsToYeld = buffer.substring(0, functionTagIndex);
+        }
+        buffer = buffer.substring(functionTagIndex); // Keep the <function tag in the buffer for the next iteration
+      } else if (buffer.length >= functionTagIndex + FUNCTION_CALL_TAG.length) {
+        // If it's not a <function> tag, yield all the content
+        argumentsToYeld = buffer;
+        buffer = ""; // Clear the buffer
+      }
     } else {
       argumentsToYeld = buffer;
       buffer = "";
@@ -214,13 +186,13 @@ export function deserealizeToolCallSteamToOpenAIFormat(
   return { buffer, inArguments, functionIndex, functionId, toolCall };
 }
 
-export function constructOpenAIChunk(chunk: any, input: ChatCompletionCreateParams, choices?: any) {
+export function constructOpenAIChunk(chunk: any, input: ChatCompletionCreateParams) {
   const transformedChunk = {
     id: chunk.id,
     object: "chat.completion.chunk",
     created: chunk.created,
     model: input.model,
-    choices: choices ?? chunk.choices,
+    choices: chunk.choices,
     usage: chunk.usage ?? null,
   } as ChatCompletionChunk;
 
@@ -233,14 +205,12 @@ export function constructOpenAIChunk(chunk: any, input: ChatCompletionCreatePara
 }
 
 export function constructOpenAITollCallChoices(chunk: any, delta: any) {
-  return [
-    {
-      delta,
-      index: 0,
-      finish_reason: chunk.usage ? "tool_calls" : null,
-      logprobs: null,
-    },
-  ];
+  return chunk.choices.map((choice: any) => ({
+    delta,
+    index: 0,
+    finish_reason: chunk.usage ? "tool_calls" : null,
+    logprobs: null,
+  }));
 }
 
 export function generateOpenAiFunctionCallId(): string {
