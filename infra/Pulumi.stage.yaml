@@ -52,10 +52,10 @@ config:
   openpipe:SENDER_EMAIL: noreply@email.openpipe.ai
   openpipe:SENTRY_AUTH_TOKEN:
     secure: AAABAPbMI/z2KEIz3utl0SaDBjiSUWWyrrHghP4qEfYQgwx7g9Oj55dPoag8zfOEjJ+qrCIW0dAmRNgNKsPgkxEbrC5WKMQBWc3VVxW0nBdxkLHasS/8d3UC+D7bzurjEVOJAvaqSyjvBt70Bs9A+T2XvGtQt/mpCSV7pdoa1dM1stdBvcBkDmnkdfNST916KWfGvg3i2x2HZgSDTo3wsNtqcT7O479yQZHGpIfRSa5NYcXaqKa4+AVhOQvmIPGiUSJFlLolwuUMmq3oK6Zk6tLKEBtDzCYEO1D3KnaNoA==
-  openpipe:SMTP_HOST: smtp-relay.brevo.com
-  openpipe:SMTP_LOGIN: founders@openpipe.ai
+  openpipe:SMTP_HOST: sandbox.smtp.mailtrap.io
+  openpipe:SMTP_LOGIN: d8de19315c0e36
   openpipe:SMTP_PASSWORD:
-    secure: AAABAOEiU4VL50BHLBNMrsyuNZPI/YDtxrDQr73KU3fVUPp09Z+Cd0tFPs+KloUu
+    secure: AAABAHhcqTfJS2AS89G4UUyULywa2zY8Q9DQFlHglLBo92C2K0emr91Q26eZTA==
   openpipe:STRIPE_SECRET_KEY:
     secure: AAABAAh63+NEQ44atnTz7N1w1pg/3oICESNTlCeckpKEmdOjvY9DwV+1H3X8KT1krQ4uxxsACS2ag6vd7aHe4019ToQxz5cmWoKsHszuWREUuTqbm26cziP1+TmDnY0dB9QRpCv15NZer4oFZUQiBLKcEKQkm8eV+6pUL7gakZIUytFyeWSJn5SGXw==
   openpipe:STRIPE_WEBHOOK_SECRET:

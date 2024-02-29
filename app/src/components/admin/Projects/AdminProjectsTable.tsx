@@ -31,10 +31,11 @@ import AdminProjectsPaginator from "./AdminProjectsPaginator";
 import { ChangeRateLimit } from "../Actions/ChangeRateLimit";
 
 type SortableField = NonNullable<RouterInputs["adminProjects"]["list"]["sortOrder"]>["field"];
+type AdminProjectType = RouterOutputs["adminProjects"]["list"]["projects"][0];
 
 export default function AdminProjectsTable() {
   const { setSearchQueryParam } = useSearchQuery();
-  const projects = useAdminProjects().data;
+  const projects = useAdminProjects().data?.projects;
 
   return (
     <Card p={4} w="100%">
@@ -68,7 +69,7 @@ export default function AdminProjectsTable() {
   );
 }
 
-const TableRow = ({ project }: { project: RouterOutputs["adminProjects"]["list"][0] }) => {
+const TableRow = ({ project }: { project: AdminProjectType }) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   return (
@@ -118,7 +119,7 @@ const TableRow = ({ project }: { project: RouterOutputs["adminProjects"]["list"]
 
 interface ExtendableAreaProps {
   expandedRow: string | null;
-  project: RouterOutputs["adminProjects"]["list"][0];
+  project: AdminProjectType;
 }
 
 const ExtendableArea: React.FC<ExtendableAreaProps> = ({ expandedRow, project }) => {
