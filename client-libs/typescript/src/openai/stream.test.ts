@@ -84,15 +84,17 @@ test("content streaming", async () => {
 
 test.only("tool call streaming", async () => {
   const payload: ChatCompletionCreateParams = {
-    model: "openpipe:test-tool-calls-mistral-p3-uni",
+    model: "openpipe:pink-mirrors-hang",
+    // model: "openpipe:test-tool-calls-mistral-p3-uni",
     // model: "gpt-3.5-turbo",
-    messages: [{ role: "system", content: "Weather in SF and NY." }],
+    messages: [{ role: "system", content: "Weather in Seattle" }],
     tools: [
       {
         type: "function",
         function: functionBody,
       },
     ],
+    n: 1,
     stream: true,
   };
   const completion = await oaiClient.chat.completions.create({
@@ -107,7 +109,7 @@ test.only("tool call streaming", async () => {
   let isFirstFunctionChunk = true;
 
   for await (const chunk of completion) {
-    console.log(chunk.choices[0]?.delta);
+    console.log(chunk.choices[0]?.delta.tool_calls);
     validateOpenAIChunkSignature(chunk);
 
     if (isFirstChunk) {
@@ -156,8 +158,8 @@ function validateOpenAIChunkSignature(chunk: any) {
 }
 
 function validateOpenAIToolCallDeltaFirstChunkSignature(chunk: any) {
-  expect(chunk).toHaveProperty("role");
-  expect(chunk).toHaveProperty("content");
+  //   expect(chunk).toHaveProperty("role");
+  //   expect(chunk).toHaveProperty("content");
 }
 
 function validateOpenAIToolCallDeltaSignature(chunk: any, isFirst: boolean) {

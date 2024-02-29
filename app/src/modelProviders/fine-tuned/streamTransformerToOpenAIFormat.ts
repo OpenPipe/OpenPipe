@@ -19,24 +19,23 @@ const FUNCTION_ARGS_TAG = "<arguments>";
 
 export type ChatCompletionChunkWithUsage = ChatCompletionChunk & { usage?: CompletionUsage };
 
-export function transformChunk(chunk: any, input: ChatCompletionCreateParams) {
-  // console.log(chunk);
-  const transformedChunk = {
-    id: chunk.id,
-    object: "chat.completion.chunk",
-    created: chunk.created,
-    model: input.model,
-    choices: chunk.choices,
-    usage: chunk.usage,
-  } as ChatCompletionChunk;
+// export function transformChunk(chunk: any, input: ChatCompletionCreateParams) {
+//   const transformedChunk = {
+//     id: chunk.id,
+//     object: "chat.completion.chunk",
+//     created: chunk.created,
+//     model: input.model,
+//     choices: chunk.choices,
+//     usage: chunk.usage,
+//   } as ChatCompletionChunk;
 
-  // OpenAI returns a "tool_calls" finish_reason when we pass tools in the input, even if the response was a regular content.
-  if (transformedChunk.choices?.[0]?.finish_reason === "stop" && input.tools?.length) {
-    transformedChunk.choices[0].finish_reason = "tool_calls";
-  }
+//   // OpenAI returns a "tool_calls" finish_reason when we pass tools in the input, even if the response was a regular content.
+//   if (transformedChunk.choices?.[0]?.finish_reason === "stop" && input.tools?.length) {
+//     transformedChunk.choices[0].finish_reason = "tool_calls";
+//   }
 
-  return transformedChunk;
-}
+//   return transformedChunk;
+// }
 
 export function transformStreamToOpenAIFormat(
   originalStream: Stream<any>,
@@ -53,6 +52,7 @@ export function transformStreamToOpenAIFormat(
     let role: null | string = null;
 
     for await (const chunk of originalStream) {
+      console.log(chunk);
       if (chunk.choices[0].delta.role) {
         role = chunk.choices[0].delta.role;
       }
@@ -86,7 +86,7 @@ export function transformStreamToOpenAIFormat(
             role = null;
           }
           // Yield the accumulated buffer as a first chunk after a role
-          yield transformChunk(
+          yield constructOpenAIChunk(
             {
               ...chunk,
               choices: [
@@ -117,18 +117,39 @@ export function transformStreamToOpenAIFormat(
 
         if (transformedChunk.toolCall || chunk.usage) {
           if (role) {
-            yield constructOpenAITollCallChunk(chunk, input, {
-              ...(role && { role, content: "" }),
-            });
+            yield constructOpenAIChunk(
+              {
+                ...chunk,
+                choices: constructOpenAITollCallChoices(chunk, {
+                  ...(role && { role, content: "" }),
+                }),
+              },
+              input,
+            );
+            yield constructOpenAIChunk(
+              {
+                ...chunk,
+                choices: constructOpenAITollCallChoices(chunk, {
+                  ...(role && { role, content: "" }),
+                }),
+              },
+              input,
+            );
             role = null;
           }
 
-          yield constructOpenAITollCallChunk(chunk, input, {
-            ...(transformedChunk.toolCall && { tool_calls: [transformedChunk.toolCall] }),
-          });
+          yield constructOpenAIChunk(
+            {
+              ...chunk,
+              choices: constructOpenAITollCallChoices(chunk, {
+                ...(transformedChunk.toolCall && { tool_calls: [transformedChunk.toolCall] }),
+              }),
+            },
+            input,
+          );
         }
       } else if (call === "CONTENT") {
-        yield transformChunk(chunk, input);
+        yield constructOpenAIChunk(chunk, input);
       }
     }
   }
@@ -193,30 +214,33 @@ export function deserealizeToolCallSteamToOpenAIFormat(
   return { buffer, inArguments, functionIndex, functionId, toolCall };
 }
 
-export function constructOpenAIChunk(chunk: any, model: string, choices: any) {
-  return {
+export function constructOpenAIChunk(chunk: any, input: ChatCompletionCreateParams, choices?: any) {
+  const transformedChunk = {
     id: chunk.id,
     object: "chat.completion.chunk",
     created: chunk.created,
-    model,
-    choices,
+    model: input.model,
+    choices: choices ?? chunk.choices,
     usage: chunk.usage ?? null,
   } as ChatCompletionChunk;
+
+  // OpenAI returns the "tool_calls" finish_reason when we pass tools in the input, even if the response was a regular content.
+  if (transformedChunk.choices?.[0]?.finish_reason === "stop" && input.tools?.length) {
+    transformedChunk.choices[0].finish_reason = "tool_calls";
+  }
+
+  return transformedChunk;
 }
 
-export function constructOpenAITollCallChunk(
-  chunk: any,
-  input: ChatCompletionCreateParams,
-  delta: any,
-) {
-  return constructOpenAIChunk(chunk, input.model, [
+export function constructOpenAITollCallChoices(chunk: any, delta: any) {
+  return [
     {
       delta,
       index: 0,
       finish_reason: chunk.usage ? "tool_calls" : null,
       logprobs: null,
     },
-  ]);
+  ];
 }
 
 export function generateOpenAiFunctionCallId(): string {

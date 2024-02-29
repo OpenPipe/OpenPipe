@@ -6,12 +6,14 @@ import type {
   ChatCompletionCreateParamsNonStreaming,
   ChatCompletionCreateParamsStreaming,
 } from "openai/resources/chat";
+import { OpenAIStream, StreamingTextResponse } from "ai";
 
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
 import { type Completion } from "openai/resources";
 import { Stream } from "openai/streaming";
+import { transformStreamToOpenAIFormat } from "./streamTransformerToOpenAIFormat";
 
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
@@ -72,16 +74,24 @@ export async function getFireworksCompletion(
   let resp: Completion;
 
   if (input.stream) {
+    // const stream = OpenAIStream(response);
+    // for await (const chunk of stream) {
+    //   console.log(chunk); // Process each chunk
+    // }
+
     const controller = new AbortController();
     const reader = response.body.getReader();
 
     async function* iterator() {
       for await (const chunk of yieldChunks(reader)) {
+        // console.log(chunk);
         yield transformChunk(chunk, input.model);
+        // yield chunk;
       }
     }
+    return transformStreamToOpenAIFormat(new Stream(iterator, controller), input);
 
-    return new Stream(iterator, controller);
+    // return new Stream(iterator, controller);
   } else {
     resp = await response.json();
   }
