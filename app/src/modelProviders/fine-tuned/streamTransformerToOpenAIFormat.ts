@@ -7,6 +7,11 @@ const FUNCTION_ARGS_TAG = "<arguments>";
 
 export type ChatCompletionChunkWithUsage = ChatCompletionChunk & { usage?: CompletionUsage };
 
+/**
+ * This function checks the stream, defines if it is a regular text response or tool call, and returns the correct OpenAI compatable stream.
+ * We need this custom logic because Fine-tuned models return tool calls as a regular text completion.
+ * In this case we need to deserialize the content transforming "<function>func_name<arguments>args" into a tool_calls object.
+ */
 export function transformStreamToOpenAIFormat(
   originalStream: Stream<any>,
   input: ChatCompletionCreateParams,
@@ -205,7 +210,7 @@ export function constructOpenAIChunk(chunk: any, input: ChatCompletionCreatePara
 }
 
 export function constructOpenAITollCallChoices(chunk: any, delta: any) {
-  return chunk.choices.map((choice: any) => ({
+  return chunk.choices.map(() => ({
     delta,
     index: 0,
     finish_reason: chunk.usage ? "tool_calls" : null,

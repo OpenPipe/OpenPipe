@@ -12,7 +12,10 @@ import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
 import { type Completion } from "openai/resources";
 import { Stream } from "openai/streaming";
-import { transformStreamToOpenAIFormat } from "./streamTransformerToOpenAIFormat";
+import {
+  constructOpenAIChunk,
+  transformStreamToOpenAIFormat,
+} from "./streamTransformerToOpenAIFormat";
 
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
@@ -77,12 +80,45 @@ export async function getFireworksCompletion(
     const reader = response.body.getReader();
 
     async function* iterator() {
+      let role: string | null = "assistant";
       for await (const chunk of readableStreamToAsyncGenerator(reader)) {
-        yield transformFireworksChunkToOpenAI(chunk, input.model);
+        // Yield role before the first chunk
+        if (role) {
+          yield constructOpenAIChunk(
+            {
+              ...chunk,
+              choices: chunk.choices.map((choice: any) => ({
+                index: choice.index,
+                logprobs: choice.logprobs,
+                finish_reason: choice.finish_reason,
+                delta: { role, content: "" },
+              })),
+            },
+            input,
+          );
+          role = null;
+        }
+
+        //Transform Fireworks chunk to OpenAI ChatCompletionChunk
+        yield constructOpenAIChunk(
+          {
+            ...chunk,
+            choices: chunk.choices.map((choice: any) => ({
+              index: choice.index,
+              logprobs: choice.logprobs,
+              finish_reason: choice.finish_reason,
+              delta: { content: choice.text },
+            })),
+          },
+          input,
+        );
       }
     }
-
-    return transformStreamToOpenAIFormat(new Stream(iterator, controller), input);
+    if (input.tools) {
+      return transformStreamToOpenAIFormat(new Stream(iterator, controller), input);
+    } else {
+      return new Stream(iterator, controller);
+    }
   } else {
     resp = await response.json();
   }
@@ -154,20 +190,4 @@ async function* readableStreamToAsyncGenerator(
     // Handle any final data chunk that didn't end with a newline
     yield JSON.parse(leftover.slice(5).trim()) as ChatCompletionChunk;
   }
-}
-function transformFireworksChunkToOpenAI(chunk: any, model: string) {
-  return {
-    id: chunk.id,
-    object: "chat.completion.chunk",
-    created: chunk.created,
-    model,
-    system_fingerprint: undefined,
-    choices: chunk.choices.map(
-      (choice: { index: any; text: any; logprobs: any; finish_reason: any }) => ({
-        ...choice,
-        delta: { content: choice.text },
-      }),
-    ),
-    usage: chunk.usage,
-  } as ChatCompletionChunk;
 }

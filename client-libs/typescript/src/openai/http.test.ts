@@ -103,25 +103,3 @@ test("bad tags", async () => {
   const error = await response.json();
   expect(error.message).toMatch(/Failed to parse tags/);
 });
-
-function validateOpenAIChunkSignature(chunk: any) {
-  expect(chunk).toHaveProperty("id");
-  expect(chunk.object).toEqual("chat.completion.chunk");
-  expect(chunk).toHaveProperty("created");
-  expect(chunk).toHaveProperty("model");
-  expect(chunk).toHaveProperty("choices");
-  expect(Array.isArray(chunk.choices)).toBeTruthy();
-  chunk.choices.forEach((choice: Record<string, any>) => {
-    expect(choice).toHaveProperty("index");
-    expect(choice).toHaveProperty("delta");
-    expect(choice).toHaveProperty("logprobs");
-    expect([
-      "stop",
-      "length",
-      "tool_calls",
-      "content_filter",
-      "function_call",
-      null,
-    ]).toContainEqual(choice.finish_reason);
-  });
-}

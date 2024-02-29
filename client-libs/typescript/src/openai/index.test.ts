@@ -691,60 +691,118 @@ test("ft content call unusual tags", async () => {
   }
 }, 100000);
 
-test.only("ft tool call streaming", async () => {
-  const payload: ChatCompletionCreateParams = {
-    // model: "openpipe:test-tool-calls-mixtral-p3",
-    model: "openpipe:test-tool-calls-mistral-p3",
-    // model: "gpt-3.5-turbo",
-    messages: [{ role: "system", content: "What is the weather in Seattle?" }],
-    tools: [
-      {
-        type: "function",
-        function: functionBody,
+test.only("ft content call streaming compatibility", async () => {
+  const models = [
+    "openpipe:test-tool-calls-mixtral-p3",
+    // "openpipe:test-tool-calls-mistral-p3",
+    // "gpt-3.5-turbo",
+  ];
+
+  for (const model of models) {
+    const payload: ChatCompletionCreateParams = {
+      model,
+      messages: [{ role: "system", content: "Conut to 10" }],
+      n: 1,
+      stream: true,
+    };
+    const completion = await oaiClient.chat.completions.create({
+      ...payload,
+      openpipe: {
+        tags: { promptId: "content call streaming" },
       },
-    ],
-    n: 1,
-    stream: true,
-  };
-  const completion = await oaiClient.chat.completions.create({
-    ...payload,
-    openpipe: {
-      tags: { promptId: "tool call streaming" },
-    },
-  });
+    });
 
-  let merged: ChatCompletion | null = null;
-  let isFirstChunk = true;
-  let isFirstFunctionChunk = true;
+    let merged: ChatCompletion | null = null;
+    let isFirstChunk = true;
+    let isFirstFunctionChunk = true;
 
-  for await (const chunk of completion) {
-    console.log(chunk.choices[0]?.delta.tool_calls);
-    validateOpenAIChunkSignature(chunk);
+    for await (const chunk of completion) {
+      console.log(chunk.choices[0]?.delta);
+      validateOpenAIChunkSignature(chunk);
 
-    if (isFirstChunk) {
-      validateOpenAIToolCallDeltaFirstChunkSignature(chunk.choices[0]?.delta);
-      isFirstChunk = false;
+      // if (isFirstChunk) {
+      //   validateOpenAIToolCallDeltaFirstChunkSignature(chunk.choices[0]?.delta);
+      //   isFirstChunk = false;
+      // }
+
+      // if (chunk.choices[0]?.delta?.tool_calls) {
+      //   validateOpenAIToolCallDeltaSignature(chunk.choices[0]?.delta, isFirstFunctionChunk);
+      //   isFirstFunctionChunk = false;
+      // }
+
+      merged = mergeChunks(merged, chunk);
     }
 
-    if (chunk.choices[0]?.delta?.tool_calls) {
-      validateOpenAIToolCallDeltaSignature(chunk.choices[0]?.delta, isFirstFunctionChunk);
-      isFirstFunctionChunk = false;
+    await completion.openpipe?.reportingFinished;
+
+    await sleep(100);
+    if (TEST_LAST_LOGGED) {
+      const lastLogged = await lastLoggedCall();
+      expect(merged).toMatchObject(lastLogged?.respPayload);
+      expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+    }
+  }
+}, 30000);
+
+test("ft tool call streaming compatibility", async () => {
+  const models = [
+    "openpipe:test-tool-calls-mixtral-p3",
+    "openpipe:test-tool-calls-mistral-p3",
+    "gpt-3.5-turbo",
+  ];
+
+  for (const model of models) {
+    const payload: ChatCompletionCreateParams = {
+      model,
+      messages: [{ role: "system", content: "What is the weather in Seattle?" }],
+      tools: [
+        {
+          type: "function",
+          function: functionBody,
+        },
+      ],
+      n: 1,
+      stream: true,
+    };
+    const completion = await oaiClient.chat.completions.create({
+      ...payload,
+      openpipe: {
+        tags: { promptId: "tool call streaming" },
+      },
+    });
+
+    let merged: ChatCompletion | null = null;
+    let isFirstChunk = true;
+    let isFirstFunctionChunk = true;
+
+    for await (const chunk of completion) {
+      validateOpenAIChunkSignature(chunk);
+
+      if (isFirstChunk) {
+        validateOpenAIToolCallDeltaFirstChunkSignature(chunk.choices[0]?.delta);
+        isFirstChunk = false;
+      }
+
+      if (chunk.choices[0]?.delta?.tool_calls) {
+        validateOpenAIToolCallDeltaSignature(chunk.choices[0]?.delta, isFirstFunctionChunk);
+        isFirstFunctionChunk = false;
+      }
+
+      merged = mergeChunks(merged, chunk);
     }
 
-    merged = mergeChunks(merged, chunk);
+    await completion.openpipe?.reportingFinished;
+
+    await sleep(100);
+    if (TEST_LAST_LOGGED) {
+      const lastLogged = await lastLoggedCall();
+      expect(merged).toMatchObject(lastLogged?.respPayload);
+      expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+    }
   }
+}, 30000);
 
-  await completion.openpipe?.reportingFinished;
-
-  await sleep(100);
-  if (TEST_LAST_LOGGED) {
-    const lastLogged = await lastLoggedCall();
-    expect(merged).toMatchObject(lastLogged?.respPayload);
-    expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
-  }
-}, 200000);
-
-function validateOpenAIChunkSignature(chunk: any) {
+export function validateOpenAIChunkSignature(chunk: any) {
   expect(chunk).toHaveProperty("id");
   expect(chunk.object).toEqual("chat.completion.chunk");
   expect(chunk).toHaveProperty("created");

@@ -12,7 +12,10 @@ import OpenAI from "openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
-import { transformStreamToOpenAIFormat } from "./streamTransformerToOpenAIFormat";
+import {
+  constructOpenAIChunk,
+  transformStreamToOpenAIFormat,
+} from "./streamTransformerToOpenAIFormat";
 
 const deployments = ["a100", "a10"] as const;
 
@@ -83,7 +86,19 @@ export async function getAnyscaleCompletion(
   });
 
   if (resp instanceof Stream) {
-    return transformStreamToOpenAIFormat(resp, input);
+    if (input.tools) {
+      return transformStreamToOpenAIFormat(resp, input);
+    } else {
+      const controller = new AbortController();
+
+      async function* iterator() {
+        for await (const chunk of resp as Stream<ChatCompletionChunk>) {
+          yield constructOpenAIChunk(chunk, input);
+        }
+      }
+
+      return new Stream(iterator, controller);
+    }
   }
 
   const convertToFunctions = (input.functions?.length ?? 0) > 0;
