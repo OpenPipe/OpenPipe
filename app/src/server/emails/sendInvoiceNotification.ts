@@ -2,7 +2,7 @@ import { env } from "~/env.mjs";
 import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
 import { typedInvoice } from "~/types/dbColumns.types";
-import { JsonValue } from "~/types/kysely-codegen.types";
+import { type JsonValue } from "~/types/kysely-codegen.types";
 import InvoiceNotification from "./templates/InvoiceNotification";
 
 export const sendInvoiceNotification = async (
@@ -15,7 +15,6 @@ export const sendInvoiceNotification = async (
   recipientEmail: string,
 ) => {
   const projectLink = `${env.NEXT_PUBLIC_HOST}/p/${projectSlug}`;
-  const invoicesLink = `${projectLink}/billing/invoices/${invoiceId}`;
 
   let parsedDescription;
   try {
@@ -28,7 +27,7 @@ export const sendInvoiceNotification = async (
     InvoiceNotification({
       projectName,
       amount: Number(amount).toFixed(2).toLocaleString(),
-      invoicesLink,
+      invoiceId,
       projectLink,
       billingPeriod: billingPeriod || "",
       description: parsedDescription,
