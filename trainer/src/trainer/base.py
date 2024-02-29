@@ -8,9 +8,7 @@ def cache_model_weights():
     # all our base model weights to the image to make training faster.
     snapshot_download("OpenPipe/mistral-ft-optimized-1227")
     snapshot_download("mistralai/Mixtral-8x7B-Instruct-v0.1")
-
-    # This one is rarely used and quite large so just skip
-    # snapshot_download("meta-llama/Llama-2-13b-hf")
+    snapshot_download("meta-llama/Llama-2-13b-hf")
 
     print("Model weights cached")
 
@@ -48,6 +46,7 @@ image = (
         "gunzip firectl.gz",
         "install -o root -g root -m 0755 firectl /usr/local/bin/firectl",
     )
+    .env({"HF_HUB_OFFLINE": "1"})
 )
 
 
