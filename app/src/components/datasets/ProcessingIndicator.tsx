@@ -11,10 +11,10 @@ export const ProcessingIndicator = () => {
   const dataset = useDataset({ refetchInterval }).data;
 
   useEffect(() => {
-    setRefetchInterval(dataset?.numRelabelingEntries ? 2000 : 0);
-  }, [dataset?.numRelabelingEntries, setRefetchInterval]);
+    setRefetchInterval(dataset?.numIncomingEntries ? 2000 : 0);
+  }, [dataset?.numIncomingEntries, setRefetchInterval]);
 
-  if (!dataset?.numRelabelingEntries) return null;
+  if (!dataset?.numIncomingEntries) return null;
 
   return (
     <HStack
@@ -30,7 +30,7 @@ export const ProcessingIndicator = () => {
       spacing={1}
     >
       <Icon as={RiInformationFill} color="orange.300" boxSize={4} />{" "}
-      <Text>Processing {pluralize("entry", dataset.numRelabelingEntries, true)}</Text>
+      <Text>Processing {pluralize("entry", dataset.numIncomingEntries, true)}</Text>
     </HStack>
   );
 };

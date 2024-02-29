@@ -6,20 +6,20 @@ import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
 import DatasetEntryDrawer from "./DatasetEntryDrawer/DatasetEntryDrawer";
 import { api } from "~/utils/api";
 
-export default function DatasetEntryTable() {
+export default function DatasetEntriesTable() {
   const [expandedNodeEntryPersistentId, setExpandedNodeEntryPersistentId] = useState<string | null>(
     null,
   );
   const [refetchInterval, setRefetchInterval] = useState(0);
   const nodeEntries = useNodeEntries(refetchInterval).data?.entries;
-  const numRelabelingEntries = useDataset().data?.numRelabelingEntries;
+  const numIncomingEntries = useDataset().data?.numIncomingEntries;
 
   const countingIncomplete = useMemo(
     () => !!nodeEntries?.some((entry) => entry.inputTokens === null),
     [nodeEntries],
   );
 
-  const awaitingRelabeling = !!numRelabelingEntries;
+  const awaitingRelabeling = !!numIncomingEntries;
 
   const utils = api.useUtils();
 

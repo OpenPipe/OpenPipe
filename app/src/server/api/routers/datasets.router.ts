@@ -121,7 +121,7 @@ export const datasetsRouter = createTRPCRouter({
     if (!relabelNodeStats)
       throw new TRPCError({ message: "LLM relabeling nodes not found", code: "NOT_FOUND" });
 
-    const numRelabelingEntries =
+    const numIncomingEntries =
       (relabelNodeStats.totalNumUnprocessedEntries ?? 0) +
       Math.max(
         0,
@@ -130,7 +130,7 @@ export const datasetsRouter = createTRPCRouter({
 
     return {
       ...dataset,
-      numRelabelingEntries,
+      numIncomingEntries,
     };
   }),
   getTrainingCosts: protectedProcedure

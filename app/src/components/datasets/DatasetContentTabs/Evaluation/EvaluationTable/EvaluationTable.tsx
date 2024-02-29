@@ -11,7 +11,7 @@ const EvaluationTable = () => {
   const entries = useTestingEntries(refetchInterval).data;
   const dataset = useDataset().data;
 
-  const dataIncomplete = entries?.pageIncomplete || dataset?.numRelabelingEntries;
+  const dataIncomplete = entries?.pageIncomplete || dataset?.numIncomingEntries;
 
   const utils = api.useUtils();
 

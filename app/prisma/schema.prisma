@@ -118,7 +118,6 @@ model DatasetEntry {
 
     @@index([datasetId, outdated, sortKey])
     @@index([datasetId, outdated, split])
-    @@index([datasetId])
     @@index([importId])
     @@index([persistentId, createdAt])
     @@index([loggedCallId])

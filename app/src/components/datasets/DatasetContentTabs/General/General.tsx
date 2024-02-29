@@ -2,7 +2,7 @@ import { VStack, HStack, Text } from "@chakra-ui/react";
 
 import FineTuneButton from "./FineTuneButton";
 import UploadDataButton from "./UploadDataButton";
-import DatasetEntryTable from "./DatasetEntriesTable/DatasetEntryTable";
+import DatasetEntriesTable from "./DatasetEntriesTable/DatasetEntriesTable";
 import DatasetEntryPaginator from "./DatasetEntryPaginator";
 import GeneralFilters from "./GeneralFilters";
 import { useFilters } from "~/components/Filters/useFilters";
@@ -27,7 +27,7 @@ const General = () => {
         {filtersApplied && "Matching "}Dataset Entries{" "}
         {matchingCount ? `(${matchingCount.toLocaleString()})` : ""}
       </Text>
-      <DatasetEntryTable />
+      <DatasetEntriesTable />
       <DatasetEntryPaginator />
     </VStack>
   );

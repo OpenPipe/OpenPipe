@@ -95,7 +95,7 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
   const filters = useFilters().filters;
   const { isLoading } = useNodeEntries();
 
-  const numRelabelingEntries = useDataset().data?.numRelabelingEntries;
+  const numIncomingEntries = useDataset().data?.numIncomingEntries;
 
   if (isLoading) return null;
 
@@ -111,8 +111,8 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
     );
   }
 
-  const initialText = numRelabelingEntries
-    ? `This dataset has ${numRelabelingEntries} entries pending LLM relabeling.`
+  const initialText = numIncomingEntries
+    ? `This dataset has ${numIncomingEntries} entries pending LLM relabeling.`
     : "This dataset has no entries.";
 
   return (
