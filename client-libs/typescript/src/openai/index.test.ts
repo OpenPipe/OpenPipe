@@ -694,8 +694,8 @@ test("ft content call unusual tags", async () => {
 test.only("ft content call streaming compatibility", async () => {
   const models = [
     "openpipe:test-tool-calls-mixtral-p3",
-    // "openpipe:test-tool-calls-mistral-p3",
-    // "gpt-3.5-turbo",
+    "openpipe:test-tool-calls-mistral-p3",
+    "gpt-3.5-turbo",
   ];
 
   for (const model of models) {
@@ -714,21 +714,15 @@ test.only("ft content call streaming compatibility", async () => {
 
     let merged: ChatCompletion | null = null;
     let isFirstChunk = true;
-    let isFirstFunctionChunk = true;
 
     for await (const chunk of completion) {
       console.log(chunk.choices[0]?.delta);
       validateOpenAIChunkSignature(chunk);
 
-      // if (isFirstChunk) {
-      //   validateOpenAIToolCallDeltaFirstChunkSignature(chunk.choices[0]?.delta);
-      //   isFirstChunk = false;
-      // }
-
-      // if (chunk.choices[0]?.delta?.tool_calls) {
-      //   validateOpenAIToolCallDeltaSignature(chunk.choices[0]?.delta, isFirstFunctionChunk);
-      //   isFirstFunctionChunk = false;
-      // }
+      if (isFirstChunk) {
+        validateRoleInFirstChunk(chunk.choices[0]?.delta);
+        isFirstChunk = false;
+      }
 
       merged = mergeChunks(merged, chunk);
     }
@@ -779,7 +773,7 @@ test("ft tool call streaming compatibility", async () => {
       validateOpenAIChunkSignature(chunk);
 
       if (isFirstChunk) {
-        validateOpenAIToolCallDeltaFirstChunkSignature(chunk.choices[0]?.delta);
+        validateRoleInFirstChunk(chunk.choices[0]?.delta);
         isFirstChunk = false;
       }
 
@@ -824,11 +818,6 @@ export function validateOpenAIChunkSignature(chunk: any) {
   });
 }
 
-function validateOpenAIToolCallDeltaFirstChunkSignature(chunk: any) {
-  expect(chunk).toHaveProperty("role");
-  expect(chunk).toHaveProperty("content");
-}
-
 function validateOpenAIToolCallDeltaSignature(chunk: any, isFirst: boolean) {
   expect(chunk).toHaveProperty("tool_calls");
   if (isFirst) {
@@ -851,4 +840,8 @@ function validateOpenAIToolCallDeltaSignature(chunk: any, isFirst: boolean) {
       expect(typeof call.function.arguments).toBe("string");
     });
   }
+}
+
+function validateRoleInFirstChunk(chunk: any) {
+  expect(chunk).toHaveProperty("role");
 }

@@ -14,7 +14,7 @@ import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
 import {
   constructOpenAIChunk,
-  transformStreamToOpenAIFormat,
+  transformToolCallStreamToOpenAIFormat,
 } from "./streamTransformerToOpenAIFormat";
 
 const deployments = ["a100", "a10"] as const;
@@ -87,7 +87,7 @@ export async function getAnyscaleCompletion(
 
   if (resp instanceof Stream) {
     if (input.tools) {
-      return transformStreamToOpenAIFormat(resp, input);
+      return transformToolCallStreamToOpenAIFormat(resp, input);
     } else {
       const controller = new AbortController();
 

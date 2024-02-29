@@ -14,7 +14,7 @@ import { type Completion } from "openai/resources";
 import { Stream } from "openai/streaming";
 import {
   constructOpenAIChunk,
-  transformStreamToOpenAIFormat,
+  transformToolCallStreamToOpenAIFormat,
 } from "./streamTransformerToOpenAIFormat";
 
 export async function getFireworksCompletion(
@@ -87,12 +87,15 @@ export async function getFireworksCompletion(
           yield constructOpenAIChunk(
             {
               ...chunk,
-              choices: chunk.choices.map((choice: any) => ({
-                index: choice.index,
-                logprobs: choice.logprobs,
-                finish_reason: choice.finish_reason,
-                delta: { role, content: "" },
-              })),
+              choices: fireworksChoicesToOpenAIChoices(chunk.choices, true),
+            },
+            input,
+          );
+
+          yield constructOpenAIChunk(
+            {
+              ...chunk,
+              choices: fireworksChoicesToOpenAIChoices(chunk.choices),
             },
             input,
           );
@@ -103,19 +106,14 @@ export async function getFireworksCompletion(
         yield constructOpenAIChunk(
           {
             ...chunk,
-            choices: chunk.choices.map((choice: any) => ({
-              index: choice.index,
-              logprobs: choice.logprobs,
-              finish_reason: choice.finish_reason,
-              delta: { content: choice.text },
-            })),
+            choices: fireworksChoicesToOpenAIChoices(chunk.choices),
           },
           input,
         );
       }
     }
     if (input.tools) {
-      return transformStreamToOpenAIFormat(new Stream(iterator, controller), input);
+      return transformToolCallStreamToOpenAIFormat(new Stream(iterator, controller), input);
     } else {
       return new Stream(iterator, controller);
     }
@@ -190,4 +188,14 @@ async function* readableStreamToAsyncGenerator(
     // Handle any final data chunk that didn't end with a newline
     yield JSON.parse(leftover.slice(5).trim()) as ChatCompletionChunk;
   }
+}
+
+function fireworksChoicesToOpenAIChoices(choices: any[], isInitial = false) {
+  return choices.map((choice: any) => ({
+    index: choice.index,
+    logprobs: choice.logprobs,
+    finish_reason: choice.finish_reason,
+    delta: { content: choice.text },
+    ...(isInitial && { delta: { role: "assistant", content: "" } }),
+  }));
 }
