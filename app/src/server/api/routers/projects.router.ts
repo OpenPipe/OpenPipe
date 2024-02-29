@@ -283,19 +283,22 @@ export const projectsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireIsProjectAdmin(input.id, ctx);
 
-      // delete all associated datasets
-      await prisma.dataset.deleteMany({
-        where: {
-          projectId: input.id,
-        },
-      });
+      await kysely.deleteFrom("Dataset").where("projectId", "=", input.id).execute();
 
-      // delete all associated request logs
-      await prisma.loggedCall.deleteMany({
-        where: {
-          projectId: input.id,
-        },
-      });
+      await kysely.deleteFrom("LoggedCall").where("projectId", "=", input.id).execute();
+
+      await kysely
+        .deleteFrom("NewFineTuneTestingEntry")
+        .where("projectId", "=", input.id)
+        .execute();
+
+      await kysely.deleteFrom("Node").where("projectId", "=", input.id).execute();
+
+      await kysely.deleteFrom("DatasetEntryInput").where("projectId", "=", input.id).execute();
+
+      await kysely.deleteFrom("DatasetEntryOutput").where("projectId", "=", input.id).execute();
+
+      await kysely.deleteFrom("CachedProcessedEntry").where("projectId", "=", input.id).execute();
 
       return await prisma.project.update({
         where: {
