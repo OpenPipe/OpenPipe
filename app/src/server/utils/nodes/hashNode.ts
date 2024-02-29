@@ -6,6 +6,7 @@ import { type InferNodeConfig } from "./node.types";
 import { kysely } from "~/server/db";
 import { nodePropertiesByType } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { type NodeProperties } from "./nodeProperties/nodeProperties.types";
+import type { ChatCompletionCreateParams, ChatCompletionMessage } from "openai/resources";
 
 export const hashNode = <T extends NodeType>(node: {
   id: string;
@@ -32,18 +33,14 @@ export const hashDatasetEntryInput = ({
   response_format,
 }: {
   projectId: string;
-  tool_choice?: string | object | null;
-  tools?: object[] | null;
-  messages: JsonValue;
-  response_format?: JsonValue;
-}) => {
+} & Pick<ChatCompletionCreateParams, "tool_choice" | "tools" | "messages" | "response_format">) => {
   return hashObject({
     projectId,
     tool_choice: (tool_choice ?? null) as JsonValue,
     // default tools to empty array to match db
-    tools: (tools ?? []) as JsonValue,
-    messages,
-    response_format: response_format ?? null,
+    tools: (tools ?? []) as unknown as JsonValue,
+    messages: messages as unknown as JsonValue[],
+    response_format: (response_format as JsonValue) ?? null,
   });
 };
 
@@ -57,13 +54,9 @@ export const hashAndSaveDatasetEntryInput = async ({
   trx = kysely,
 }: {
   projectId: string;
-  tool_choice?: string | object | null;
-  tools?: object[] | null;
-  messages: JsonValue;
-  response_format?: JsonValue;
   inputTokens?: number;
   trx?: typeof kysely;
-}) => {
+} & Pick<ChatCompletionCreateParams, "tool_choice" | "tools" | "messages" | "response_format">) => {
   const inputHash = hashDatasetEntryInput({
     projectId,
     tool_choice,
@@ -94,11 +87,11 @@ export const hashDatasetEntryOutput = ({
   output,
 }: {
   projectId: string;
-  output: object;
+  output: ChatCompletionMessage;
 }) => {
   return hashObject({
     projectId,
-    output: output as JsonValue,
+    output: output as unknown as JsonValue,
   });
 };
 
@@ -109,7 +102,7 @@ export const hashAndSaveDatasetEntryOutput = async ({
   trx = kysely,
 }: {
   projectId: string;
-  output: object;
+  output: ChatCompletionMessage;
   outputTokens?: number;
   trx?: typeof kysely;
 }) => {

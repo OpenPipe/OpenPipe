@@ -444,6 +444,9 @@ export const nodeEntriesRouter = createTRPCRouter({
 
         const updatedInputHash = hashDatasetEntryInput({
           ...tNodeEntry,
+          tool_choice: tNodeEntry.tool_choice ?? undefined,
+          tools: tNodeEntry.tools ?? undefined,
+          response_format: tNodeEntry.response_format ?? undefined,
           projectId: tNode.projectId,
         });
         const inputUpdated = updatedInputHash !== tNodeEntry.inputHash;

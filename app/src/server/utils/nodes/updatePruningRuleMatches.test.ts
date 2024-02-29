@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type DatasetEntrySplit } from "@prisma/client";
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
-import { type JsonValue } from "type-fest";
 
 import { kysely, prisma } from "~/server/db";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
@@ -82,12 +81,15 @@ const createNodeEntry = async ({
 }) => {
   const inputHash = await hashAndSaveDatasetEntryInput({
     projectId,
-    messages: messages as unknown as JsonValue,
+    messages,
   });
 
   const outputHash = await hashAndSaveDatasetEntryOutput({
     projectId,
-    output: {},
+    output: {
+      role: "assistant",
+      content: "This is the output",
+    },
   });
 
   return await prisma.nodeEntry.create({

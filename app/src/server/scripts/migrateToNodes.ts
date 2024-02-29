@@ -1,4 +1,3 @@
-import { type JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { sql } from "kysely";
 import yargs from "yargs";
@@ -17,7 +16,8 @@ import { generatePersistentId } from "../utils/nodes/utils";
 import { enqueueProcessNode } from "../tasks/nodes/processNodes/processNode.task";
 import { hideBin } from "yargs/helpers";
 import { enqueueCountDatasetEntryTokens } from "../tasks/fineTuning/countDatasetEntryTokens.task";
-import { RelabelOption } from "../utils/nodes/node.types";
+import { RelabelOption, typedDatasetEntryOutput } from "../utils/nodes/node.types";
+import { typedDatasetEntry } from "~/types/dbColumns.types";
 
 const argv = await yargs(hideBin(process.argv))
   .option("projectId", {
@@ -159,22 +159,24 @@ while (true) {
         for (let i = 0; i < entries.length; i++) {
           const entry = entries[i]!;
 
+          const tEntry = typedDatasetEntry(entry);
+
           const hashStartTime = Date.now();
 
           const inputHash = await hashAndSaveDatasetEntryInput({
             projectId: dataset.projectId,
-            tool_choice: entry.tool_choice as string,
-            tools: entry.tools as object[],
-            messages: entry.messages as JsonValue,
-            response_format: entry.response_format as JsonValue,
-            inputTokens: entry.inputTokens ?? undefined,
+            tool_choice: tEntry.tool_choice ?? undefined,
+            tools: tEntry.tools ?? undefined,
+            messages: tEntry.messages,
+            response_format: tEntry.response_format ?? undefined,
+            inputTokens: tEntry.inputTokens ?? undefined,
             trx,
           });
 
           const outputHash = await hashAndSaveDatasetEntryOutput({
             projectId: dataset.projectId,
-            output: entry.output as object,
-            outputTokens: entry.outputTokens ?? undefined,
+            output: tEntry.output,
+            outputTokens: tEntry.outputTokens ?? undefined,
             trx,
           });
 
@@ -260,15 +262,21 @@ while (true) {
           const fineTuneTestingEntries = await trx
             .selectFrom("FineTuneTestingEntry")
             .where("datasetEntryId", "=", entry.id)
+            .where("output", "is not", null)
             .selectAll("FineTuneTestingEntry")
             .execute();
 
           for (const fineTuneTestingEntry of fineTuneTestingEntries) {
-            const ftteOutputHash = await hashAndSaveDatasetEntryOutput({
-              projectId: dataset.projectId,
-              output: fineTuneTestingEntry.output as object,
-              trx,
-            });
+            let ftteOutputHash;
+            if (fineTuneTestingEntry.output) {
+              const tFineTuneTestingEntry = typedDatasetEntryOutput(fineTuneTestingEntry);
+
+              ftteOutputHash = await hashAndSaveDatasetEntryOutput({
+                projectId: dataset.projectId,
+                output: tFineTuneTestingEntry.output,
+                trx,
+              });
+            }
 
             await trx
               .insertInto("NewFineTuneTestingEntry")

@@ -48,7 +48,7 @@ export const prepareDatasetEntriesForImport = async ({
     const inputHash = hashDatasetEntryInput({
       ...row.input,
       projectId,
-      tool_choice,
+      tool_choice: tool_choice ?? undefined,
       tools,
     });
 
