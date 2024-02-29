@@ -36,9 +36,9 @@ export async function getFireworksCompletion(
     throw new Error("FIREWORKS_API_KEY is required for Fireworks completions");
   }
 
-  if ((input.functions || input.tools) && input.stream) {
+  if (input.functions && input.stream) {
     throw new Error(
-      `We don't currently support streaming for function calls. Please open an issue if you need this functionality! https://github.com/openpipe/openpipe`,
+      `Use tool calls instead of functions for streaming completions. Received ${input.functions.length} functions.`,
     );
   }
 
@@ -76,8 +76,8 @@ export async function getFireworksCompletion(
     const reader = response.body.getReader();
 
     async function* iterator() {
-      for await (const chunk of yieldChunks(reader, input.model)) {
-        yield chunk;
+      for await (const chunk of yieldChunks(reader)) {
+        yield transformChunk(chunk, input.model);
       }
     }
 
@@ -108,7 +108,6 @@ export async function getFireworksCompletion(
 
 async function* yieldChunks(
   reader: ReadableStreamDefaultReader,
-  model: string,
 ): AsyncGenerator<ChatCompletionChunk> {
   let leftover = "";
   try {
@@ -137,9 +136,8 @@ async function* yieldChunks(
               data += "\n" + line.slice(5).trim();
             }
           }
-          const transformedChunk = transformChunk(data, model);
 
-          yield transformedChunk;
+          yield JSON.parse(data);
         }
         start = end + 1;
         end = chunk.indexOf("\n", start);
@@ -156,20 +154,19 @@ async function* yieldChunks(
     yield JSON.parse(leftover.slice(5).trim()) as ChatCompletionChunk;
   }
 }
-function transformChunk(chunk: string, model: string) {
-  const jsonData = JSON.parse(chunk);
+function transformChunk(chunk: any, model: string) {
   return {
-    id: jsonData.id,
+    id: chunk.id,
     object: "chat.completion.chunk",
-    created: jsonData.created,
+    created: chunk.created,
     model,
     system_fingerprint: undefined,
-    choices: jsonData.choices.map(
+    choices: chunk.choices.map(
       (choice: { index: any; text: any; logprobs: any; finish_reason: any }) => ({
         ...choice,
         delta: { content: choice.text },
       }),
     ),
-    usage: jsonData.usage,
+    usage: chunk.usage,
   } as ChatCompletionChunk;
 }

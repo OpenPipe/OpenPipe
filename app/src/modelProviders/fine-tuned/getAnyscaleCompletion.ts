@@ -12,10 +12,7 @@ import OpenAI from "openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
-import {
-  generateOpenAiFunctionCallId,
-  transformStreamToolCallToOpenAIFormat,
-} from "./streamTransformerToOpenAIFormat";
+import { transformStreamToOpenAIFormat } from "./streamTransformerToOpenAIFormat";
 
 const deployments = ["a100", "a10"] as const;
 
@@ -67,6 +64,12 @@ export async function getAnyscaleCompletion(
     );
   }
 
+  if (input.functions && input.stream) {
+    throw new Error(
+      `Use tool calls instead of functions for streaming completions. Received ${input.functions.length} functions.`,
+    );
+  }
+
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
@@ -80,11 +83,7 @@ export async function getAnyscaleCompletion(
   });
 
   if (resp instanceof Stream) {
-    // for await (const chunk of resp) {
-    //   console.log(chunk.choices);
-    // }
-
-    return transformStreamToolCallToOpenAIFormat(resp, input);
+    return transformStreamToOpenAIFormat(resp, input);
   }
 
   const convertToFunctions = (input.functions?.length ?? 0) > 0;
