@@ -537,7 +537,7 @@ model NewFineTuneTrainingEntry {
 
     @@unique([persistentId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
-    @@index([fineTuneId])
+    @@index([inputHash])
 }
 
 enum ComparisonModel {
@@ -610,6 +610,7 @@ model NewFineTuneTestingEntry {
     @@unique([inputHash, modelId])
     @@index([fineTuneId])
     @@index([projectId])
+    @@index([inputHash])
 }
 
 enum DatasetEvalType {
@@ -999,7 +1000,7 @@ model NodeEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([parentNodeEntryId, dataChannelId])
-    @@index([nodeId])
+    @@index([dataChannelId])
     @@index([nodeId, persistentId])
     @@index([nodeId, inputHash, persistentId])
     @@index([loggedCallId, dataChannelId])
@@ -1087,5 +1088,8 @@ model CachedProcessedEntry {
     @@unique([nodeEntryPersistentId, incomingInputHash, nodeHash, incomingOutputHash])
     @@index([incomingInputHash, nodeHash])
     @@index([incomingInputHash, nodeId])
+    @@index([incomingOutputHash])
+    @@index([outgoingOutputHash])
+    @@index([outgoingInputHash])
     @@index([projectId])
 }

@@ -358,23 +358,20 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
         console.error("error getting judgement", args, e);
         captureException(e, { extra: { args } });
 
-        if (e instanceof RateLimitError) {
-          await prisma.newDatasetEvalResult.updateMany({
-            where: {
-              id: {
-                in: [firstResult.id, secondResult.id],
-              },
+        await prisma.newDatasetEvalResult.updateMany({
+          where: {
+            id: {
+              in: [firstResult.id, secondResult.id],
             },
-            data: {
-              status: "ERROR",
-              errorMessage: "Error getting judgement",
-              judge: judgementInput?.model,
-            },
-          });
+          },
+          data: {
+            status: "ERROR",
+            errorMessage: "Error getting judgement",
+            judge: judgementInput?.model,
+          },
+        });
 
-          throw e;
-        }
-        return;
+        throw e;
       }
 
       explanation = explanation

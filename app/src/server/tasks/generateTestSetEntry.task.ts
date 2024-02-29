@@ -60,7 +60,7 @@ export const generateTestSetEntry = defineTask<GenerateTestSetEntryJob>({
       await generateEntry(task);
     } catch (e) {
       console.error("error in generateTestSetEntry", e);
-      if (task.numPreviousTries < MAX_TRIES && e instanceof RateLimitError) {
+      if (task.numPreviousTries < MAX_TRIES) {
         await generateTestSetEntry.enqueue(
           {
             ...task,
@@ -251,12 +251,19 @@ export const generateEntry = async ({
         },
       });
     } else {
-      const typedError = e as { message?: string; error?: { message: string } };
+      const typedError = e as { message?: string; status?: number; error?: { message: string } };
+      let errorMessage;
+      if (typedError.status === 404) {
+        errorMessage = "Model training incomplete";
+      } else {
+        errorMessage =
+          typedError.message ?? typedError.error?.message ?? "Error retrieving completion";
+      }
+
       await prisma.newFineTuneTestingEntry.update({
         where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },
         data: {
-          errorMessage:
-            typedError.message ?? typedError.error?.message ?? "Error retrieving completion",
+          errorMessage,
         },
       });
     }
