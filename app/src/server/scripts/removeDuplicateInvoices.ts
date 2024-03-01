@@ -17,6 +17,7 @@ for (const invoice of invoices) {
     where: {
       projectId: invoice.projectId,
       billingPeriod: invoice.billingPeriod,
+      status: "CANCELLED",
       id: {
         not: invoice.id,
       },
@@ -24,7 +25,6 @@ for (const invoice of invoices) {
   });
 
   for (const duplicateInvoice of duplicateInvoices) {
-    console.log(`Deleting duplicate invoice ${duplicateInvoice.id}`);
     await prisma.invoice.delete({
       where: {
         id: duplicateInvoice.id,

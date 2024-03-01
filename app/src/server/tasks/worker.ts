@@ -78,7 +78,7 @@ const runner = await run({
       identifier: generateInvoices.task.identifier,
       options: {
         backfillPeriod: 1000 * 60 * 60 * 24 * 7,
-        queueName: "process-invoices",
+        queueName: "charge-invoices",
       },
     },
 
