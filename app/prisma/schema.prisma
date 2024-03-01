@@ -181,7 +181,6 @@ model NewPruningRuleMatch {
     pruningRule   PruningRule @relation(fields: [pruningRuleId], references: [id], onDelete: Cascade)
 
     inputHash String
-    input     DatasetEntryInput @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
 
     @@unique([inputHash, pruningRuleId])
     @@index([pruningRuleId])
@@ -525,9 +524,7 @@ model NewFineTuneTrainingEntry {
     nodeEntryPersistentId String
 
     inputHash  String
-    input      DatasetEntryInput  @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
     outputHash String
-    output     DatasetEntryOutput @relation(fields: [outputHash], references: [hash], onDelete: Cascade)
 
     fineTuneId String   @db.Uuid
     fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
@@ -537,7 +534,6 @@ model NewFineTuneTrainingEntry {
 
     @@unique([nodeEntryPersistentId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
-    @@index([inputHash])
 }
 
 enum ComparisonModel {
@@ -596,10 +592,8 @@ model NewFineTuneTestingEntry {
     fineTune   FineTune? @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)
 
     inputHash    String
-    input        DatasetEntryInput   @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
     // for the modelId and inputHash, we cache the produced output
     outputHash   String?
-    cachedOutput DatasetEntryOutput? @relation(fields: [outputHash], references: [hash], onDelete: Cascade)
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -610,7 +604,6 @@ model NewFineTuneTestingEntry {
     @@unique([inputHash, modelId])
     @@index([fineTuneId])
     @@index([projectId])
-    @@index([inputHash])
 }
 
 enum DatasetEvalType {
@@ -979,11 +972,8 @@ model NodeEntry {
     loggedCall   LoggedCall? @relation(fields: [loggedCallId], references: [id], onDelete: SetNull)
 
     inputHash          String
-    input              DatasetEntryInput  @relation(fields: [inputHash], references: [hash])
     outputHash         String
-    output             DatasetEntryOutput @relation("output", fields: [outputHash], references: [hash])
     originalOutputHash String
-    originalOutput     DatasetEntryOutput @relation("originalOutput", fields: [originalOutputHash], references: [hash])
 
     nodeId String @db.Uuid
     node   Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
@@ -1020,15 +1010,6 @@ model DatasetEntryInput {
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    matchedRules NewPruningRuleMatch[]
-
-    nodeEntries             NodeEntry[]
-    fineTuneTrainingEntries NewFineTuneTrainingEntry[]
-    fineTuneTestingEntries  NewFineTuneTestingEntry[]
-
-    incomingCachedEntries CachedProcessedEntry[] @relation("incoming")
-    outgoingCachedEntries CachedProcessedEntry[] @relation("outgoing")
-
     createdAt DateTime @default(now())
 
     @@unique([hash])
@@ -1042,14 +1023,6 @@ model DatasetEntryOutput {
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-    nodeEntries             NodeEntry[]                @relation("output")
-    originalNodeEntry       NodeEntry[]                @relation("originalOutput")
-    fineTuneTrainingEntries NewFineTuneTrainingEntry[]
-    fineTuneTestingEntries  NewFineTuneTestingEntry[]
-
-    incomingCachedEntries CachedProcessedEntry[] @relation("incoming")
-    outgoingCachedEntries CachedProcessedEntry[] @relation("outgoing")
 
     createdAt DateTime @default(now())
 
@@ -1070,13 +1043,9 @@ model CachedProcessedEntry {
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     incomingInputHash  String
-    incomingInput      DatasetEntryInput   @relation("incoming", fields: [incomingInputHash], references: [hash], onDelete: Cascade)
     incomingOutputHash String?
-    incomingOutput     DatasetEntryOutput? @relation("incoming", fields: [incomingOutputHash], references: [hash], onDelete: Cascade)
     outgoingInputHash  String?
-    outgoingInput      DatasetEntryInput?  @relation("outgoing", fields: [outgoingInputHash], references: [hash], onDelete: Cascade)
     outgoingOutputHash String?
-    outgoingOutput     DatasetEntryOutput? @relation("outgoing", fields: [outgoingOutputHash], references: [hash], onDelete: Cascade)
     outgoingSplit      DatasetEntrySplit?
 
     filterOutcome String?
@@ -1088,8 +1057,5 @@ model CachedProcessedEntry {
     @@unique([nodeEntryPersistentId, incomingInputHash, nodeHash, incomingOutputHash])
     @@index([incomingInputHash, nodeHash])
     @@index([incomingInputHash, nodeId])
-    @@index([incomingOutputHash])
-    @@index([outgoingOutputHash])
-    @@index([outgoingInputHash])
     @@index([projectId])
 }
