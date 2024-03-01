@@ -10,7 +10,7 @@
         "@pulumi/docker": "^4.5.1",
         "@pulumi/eks": "^2.2.1",
         "@pulumi/kubernetes": "^4.7.1",
-        "@pulumi/pulumi": "^3.104.2",
+        "@pulumi/pulumi": "^3.108.0",
         "@pulumi/random": "^4.15.1",
         "dotenv": "^16.3.1",
         "execa": "^8.0.1",
