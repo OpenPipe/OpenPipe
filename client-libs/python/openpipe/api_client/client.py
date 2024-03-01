@@ -317,20 +317,20 @@ class OpenPipeApi:
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
     def unstable_dataset_entry_create(
-        self, *, dataset_id: str, entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem]
+        self, *, archive_id: str, entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem]
     ) -> UnstableDatasetEntryCreateResponse:
         """
         Add new dataset entries. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
 
         Parameters:
-            - dataset_id: str.
+            - archive_id: str.
 
             - entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem].
         """
         _response = self._client_wrapper.httpx_client.request(
             "POST",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/dataset-entry/create"),
-            json=jsonable_encoder({"datasetId": dataset_id, "entries": entries}),
+            json=jsonable_encoder({"archiveId": archive_id, "entries": entries}),
             headers=self._client_wrapper.get_headers(),
             timeout=240,
         )
@@ -670,20 +670,20 @@ class AsyncOpenPipeApi:
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
     async def unstable_dataset_entry_create(
-        self, *, dataset_id: str, entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem]
+        self, *, archive_id: str, entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem]
     ) -> UnstableDatasetEntryCreateResponse:
         """
         Add new dataset entries. Note, this endpoint is unstable and may change without notice. Do not use without consulting the OpenPipe team.
 
         Parameters:
-            - dataset_id: str.
+            - archive_id: str.
 
             - entries: typing.List[UnstableDatasetEntryCreateRequestEntriesItem].
         """
         _response = await self._client_wrapper.httpx_client.request(
             "POST",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "unstable/dataset-entry/create"),
-            json=jsonable_encoder({"datasetId": dataset_id, "entries": entries}),
+            json=jsonable_encoder({"archiveId": archive_id, "entries": entries}),
             headers=self._client_wrapper.get_headers(),
             timeout=240,
         )
