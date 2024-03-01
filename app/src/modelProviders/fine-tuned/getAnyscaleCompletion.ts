@@ -12,6 +12,10 @@ import OpenAI from "openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
+import {
+  constructOpenAIChunk,
+  transformToolCallStreamToOpenAIFormat,
+} from "./streamTransformerToOpenAIFormat";
 
 const deployments = ["a100", "a10"] as const;
 
@@ -63,9 +67,9 @@ export async function getAnyscaleCompletion(
     );
   }
 
-  if ((input.functions || input.tools) && input.stream) {
+  if (input.functions && input.stream) {
     throw new Error(
-      `We don't currently support streaming for function calls. Please open an issue if you need this functionality! https://github.com/openpipe/openpipe`,
+      `Use tool calls instead of functions for streaming completions. Received ${input.functions.length} functions.`,
     );
   }
 
@@ -82,7 +86,19 @@ export async function getAnyscaleCompletion(
   });
 
   if (resp instanceof Stream) {
-    return transformStream(resp, input.model);
+    if (input.tools) {
+      return transformToolCallStreamToOpenAIFormat(resp, input);
+    } else {
+      const controller = new AbortController();
+
+      async function* iterator() {
+        for await (const chunk of resp as Stream<ChatCompletionChunk>) {
+          yield constructOpenAIChunk(chunk, input);
+        }
+      }
+
+      return new Stream(iterator, controller);
+    }
   }
 
   const convertToFunctions = (input.functions?.length ?? 0) > 0;
@@ -104,30 +120,4 @@ export async function getAnyscaleCompletion(
     choices,
     usage: resp.usage,
   };
-}
-
-function transformStream(
-  originalStream: Stream<ChatCompletionChunk>,
-  model: string,
-): Stream<ChatCompletionChunk> {
-  const controller = new AbortController();
-
-  async function* iterator() {
-    for await (const chunk of originalStream) {
-      yield transformChunk(chunk, model);
-    }
-  }
-
-  return new Stream(iterator, controller);
-}
-
-function transformChunk(chunk: any, model: string) {
-  return {
-    id: chunk.id,
-    object: "chat.completion.chunk",
-    created: chunk.created,
-    model,
-    choices: chunk.choices,
-    usage: chunk.usage,
-  } as ChatCompletionChunk;
 }

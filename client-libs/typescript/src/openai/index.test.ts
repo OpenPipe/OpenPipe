@@ -690,3 +690,158 @@ test("ft content call unusual tags", async () => {
     expect(lastLogged?.tags).toMatchObject(expectedTags);
   }
 }, 100000);
+
+test.only("ft content call streaming compatibility", async () => {
+  const models = [
+    "openpipe:test-tool-calls-mixtral-p3",
+    "openpipe:test-tool-calls-mistral-p3",
+    "gpt-3.5-turbo",
+  ];
+
+  for (const model of models) {
+    const payload: ChatCompletionCreateParams = {
+      model,
+      messages: [{ role: "system", content: "Conut to 10" }],
+      n: 1,
+      stream: true,
+    };
+    const completion = await oaiClient.chat.completions.create({
+      ...payload,
+      openpipe: {
+        tags: { promptId: "content call streaming" },
+      },
+    });
+
+    let merged: ChatCompletion | null = null;
+    let isFirstChunk = true;
+
+    for await (const chunk of completion) {
+      console.log(chunk.choices[0]?.delta);
+      validateOpenAIChunkSignature(chunk);
+
+      if (isFirstChunk) {
+        validateRoleInFirstChunk(chunk.choices[0]?.delta);
+        isFirstChunk = false;
+      }
+
+      merged = mergeChunks(merged, chunk);
+    }
+
+    await completion.openpipe?.reportingFinished;
+
+    await sleep(100);
+    if (TEST_LAST_LOGGED) {
+      const lastLogged = await lastLoggedCall();
+      expect(merged).toMatchObject(lastLogged?.respPayload);
+      expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+    }
+  }
+}, 30000);
+
+test("ft tool call streaming compatibility", async () => {
+  const models = [
+    "openpipe:test-tool-calls-mixtral-p3",
+    "openpipe:test-tool-calls-mistral-p3",
+    "gpt-3.5-turbo",
+  ];
+
+  for (const model of models) {
+    const payload: ChatCompletionCreateParams = {
+      model,
+      messages: [{ role: "system", content: "What is the weather in Seattle?" }],
+      tools: [
+        {
+          type: "function",
+          function: functionBody,
+        },
+      ],
+      n: 1,
+      stream: true,
+    };
+    const completion = await oaiClient.chat.completions.create({
+      ...payload,
+      openpipe: {
+        tags: { promptId: "tool call streaming" },
+      },
+    });
+
+    let merged: ChatCompletion | null = null;
+    let isFirstChunk = true;
+    let isFirstFunctionChunk = true;
+
+    for await (const chunk of completion) {
+      validateOpenAIChunkSignature(chunk);
+
+      if (isFirstChunk) {
+        validateRoleInFirstChunk(chunk.choices[0]?.delta);
+        isFirstChunk = false;
+      }
+
+      if (chunk.choices[0]?.delta?.tool_calls) {
+        validateOpenAIToolCallDeltaSignature(chunk.choices[0]?.delta, isFirstFunctionChunk);
+        isFirstFunctionChunk = false;
+      }
+
+      merged = mergeChunks(merged, chunk);
+    }
+
+    await completion.openpipe?.reportingFinished;
+
+    await sleep(100);
+    if (TEST_LAST_LOGGED) {
+      const lastLogged = await lastLoggedCall();
+      expect(merged).toMatchObject(lastLogged?.respPayload);
+      expect(lastLogged?.reqPayload.messages).toMatchObject(payload.messages);
+    }
+  }
+}, 30000);
+
+export function validateOpenAIChunkSignature(chunk: any) {
+  expect(chunk).toHaveProperty("id");
+  expect(chunk.object).toEqual("chat.completion.chunk");
+  expect(chunk).toHaveProperty("created");
+  expect(chunk).toHaveProperty("model");
+  expect(chunk).toHaveProperty("choices");
+  expect(Array.isArray(chunk.choices)).toBeTruthy();
+  chunk.choices.forEach((choice: Record<string, any>) => {
+    expect(choice).toHaveProperty("index");
+    expect(choice).toHaveProperty("delta");
+    expect(choice).toHaveProperty("logprobs");
+    expect([
+      "stop",
+      "length",
+      "tool_calls",
+      "content_filter",
+      "function_call",
+      null,
+    ]).toContainEqual(choice.finish_reason);
+  });
+}
+
+function validateOpenAIToolCallDeltaSignature(chunk: any, isFirst: boolean) {
+  expect(chunk).toHaveProperty("tool_calls");
+  if (isFirst) {
+    expect(Array.isArray(chunk.tool_calls)).toBe(true);
+    chunk.tool_calls.forEach((call: any) => {
+      expect(call).toHaveProperty("index");
+      expect(call).toHaveProperty("id");
+      expect(typeof call.id).toBe("string");
+      expect(call).toHaveProperty("type");
+      expect(call.type).toBe("function");
+      expect(call).toHaveProperty("function");
+      expect(typeof call.function).toBe("object");
+    });
+  } else {
+    chunk.tool_calls.forEach((call: any) => {
+      expect(call).toHaveProperty("index");
+      expect(call).toHaveProperty("function");
+      expect(typeof call.function).toBe("object");
+      expect(call.function).toHaveProperty("arguments");
+      expect(typeof call.function.arguments).toBe("string");
+    });
+  }
+}
+
+function validateRoleInFirstChunk(chunk: any) {
+  expect(chunk).toHaveProperty("role");
+}
