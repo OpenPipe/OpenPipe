@@ -4,7 +4,6 @@ import {
   BreadcrumbItem,
   Button,
   Card,
-  Center,
   Flex,
   HStack,
   Icon,
@@ -22,7 +21,7 @@ import {
 import { useRouter } from "next/router";
 import { FaPrint } from "react-icons/fa";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
-import { ProjectLink } from "~/components/ProjectLink";
+import { ProjectLink, useProjectLink } from "~/components/ProjectLink";
 
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
@@ -43,14 +42,18 @@ export default function Invoice() {
   const query = useInvoice(id);
   const invoice = query.data;
 
+  const invoicesLink = useProjectLink({ pathname: "/billing/[tab]", query: { tab: "invoices" } });
+
   if (!query.isLoading && !invoice) {
-    return (
-      <AppShell title="Invoice not found" requireAuth>
-        <Center h="100%">
-          <Text>Invoice not found 😕</Text>
-        </Center>
-      </AppShell>
-    );
+    router.push(invoicesLink).catch(console.error);
+    return null;
+    // return (
+    // <AppShell title="Invoice not found" requireAuth>
+    //   <Center h="100%">
+    //     <Text>Invoice not found 😕</Text>
+    //   </Center>
+    // </AppShell>
+    // );
   }
 
   if (!invoice) {

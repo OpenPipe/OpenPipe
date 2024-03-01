@@ -1,4 +1,4 @@
-import { type Ref, forwardRef } from "react";
+import { type Ref, forwardRef, useMemo } from "react";
 import Link, { type LinkProps } from "next/link";
 import type { Route, DynamicRoute } from "nextjs-routes";
 import { Box } from "@chakra-ui/react";
@@ -11,28 +11,38 @@ type ExtractSlugRoutes<T> = T extends DynamicRoute<`/p/[projectSlug]${infer Rest
 
 export type ProjectRoute = ExtractSlugRoutes<Route>;
 
+export type ProjectLinkHref<T extends ProjectRoute> =
+  | T["path"]
+  | { pathname: T["path"]; query: T["query"] };
+
 export type ProjectLinkProps<T extends ProjectRoute> = {
-  href: T["path"] | { pathname: T["path"]; query: T["query"] };
+  href: ProjectLinkHref<T>;
 } & Omit<LinkProps, "href">;
 
-const ProjectLink = forwardRef(
-  <T extends ProjectRoute>(
-    { href, children, ...rest }: ProjectLinkProps<T>,
-    ref: Ref<HTMLSpanElement>,
-  ) => {
-    const selectedProject = useSelectedProject().data;
+export function useProjectLink<T extends ProjectRoute>(href: ProjectLinkHref<T>) {
+  const selectedProject = useSelectedProject().data;
 
+  return useMemo(() => {
     const pathname = typeof href === "string" ? href : href.pathname;
     const query = typeof href === "string" ? {} : href.query;
 
+    return {
+      pathname: `/p/[projectSlug]${pathname}`,
+      query: { projectSlug: selectedProject?.slug, ...query },
+    };
+  }, [selectedProject?.slug, href]);
+}
+
+export const ProjectLink = forwardRef(
+  <T extends ProjectRoute>(
+    props: ProjectLinkProps<T> & Omit<LinkProps, "href">,
+    ref: Ref<HTMLSpanElement>,
+  ) => {
+    const { href, children, ...rest } = props;
+    const link = useProjectLink(href);
+
     return (
-      <Link
-        href={{
-          pathname: `/p/[projectSlug]${pathname}`,
-          query: { projectSlug: selectedProject?.slug, ...query },
-        }}
-        {...rest}
-      >
+      <Link href={link} {...rest}>
         <Box ref={ref} as="span">
           {children}
         </Box>
@@ -42,5 +52,3 @@ const ProjectLink = forwardRef(
 );
 
 ProjectLink.displayName = "ProjectLink";
-
-export { ProjectLink };
