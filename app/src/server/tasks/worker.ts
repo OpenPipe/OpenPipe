@@ -58,6 +58,7 @@ const runner = await run({
       identifier: checkFineTuneStatus.task.identifier,
       options: {
         backfillPeriod: 1000 * 60,
+        queueName: "check-fine-tune-status",
       },
     },
     {
@@ -67,21 +68,30 @@ const runner = await run({
       identifier: checkOpenaiFineTuneStatus.task.identifier,
       options: {
         backfillPeriod: 1000 * 60,
+        queueName: "check-openai-fine-tune-status",
       },
     },
     {
       task: generateInvoices.task.identifier,
-      // run at 2 AM UTC on the first day of each month
-      match: "* 2 1 * *",
+      // run at 2:10 AM UTC, on the first day of each month
+      match: "10 2 1 * *",
       identifier: generateInvoices.task.identifier,
+      options: {
+        backfillPeriod: 1000 * 60 * 60 * 24 * 7,
+        queueName: "process-invoices",
+      },
     },
 
     // If an invoice payment failed, it will retry on the next day
     {
       task: chargeInvoices.task.identifier,
-      // run at 8 AM UTC, on the second day of each month
-      match: "0 8 2 * *",
+      // run at 2:10 AM UTC, on the second day of each month
+      match: "10 2 2 * *",
       identifier: chargeInvoices.task.identifier,
+      options: {
+        backfillPeriod: 1000 * 60 * 60 * 24 * 7,
+        queueName: "process-invoices",
+      },
     },
   ]),
 });
