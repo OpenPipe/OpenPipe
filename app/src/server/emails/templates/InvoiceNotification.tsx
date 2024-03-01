@@ -6,34 +6,32 @@ import { demoDescription } from "./layout/DemoData";
 interface Props {
   projectName: string;
   amount: string;
-  invoicesLink: string;
   projectLink: string;
   billingPeriod: string;
   description?: Record<string, string>[];
+  invoiceId: string;
 }
 
 const InvoiceNotification = ({
   projectName,
   amount,
-  invoicesLink,
   projectLink,
   billingPeriod,
   description,
+  invoiceId,
 }: Props) => {
   const previewText = `OpenPipe Invoice ${billingPeriod}`;
+  const invoicesLink = `${projectLink}/billing/invoices/${invoiceId}`;
+  const usageLink = `${projectLink}/usage`;
+  const paymentMethodsLink = `${projectLink}/billing/payment-methods`;
 
   return (
     <EmailLayout previewText={previewText}>
       <Header>{previewText}</Header>
 
       <Text>
-        This invoice covers your OpenPipe usage through the end of <b>January 2024</b> for project{" "}
-        <Link href={projectLink}>{projectName}</Link>. (We apologize for the one-month delay in
-        sending this out!)
-      </Text>
-      <Text>
-        If you've used your project in February as well you'll receive another email in a few days
-        with a new invoice covering February's usage.
+        This invoice covers your OpenPipe usage for <b>{billingPeriod}</b> for project{" "}
+        <Link href={projectLink}>{projectName}</Link>.
       </Text>
 
       <InvoiceDescription
@@ -42,10 +40,11 @@ const InvoiceNotification = ({
         total={amount}
       />
       <Text>
-        Visit your account to see more details. Make sure your payment methods are up to date to
-        avoid any interruptions in service.
+        Visit your <Link href={usageLink}>usage page</Link> to see more details on a model-by-model
+        basis. Make sure your <Link href={paymentMethodsLink}>payment methods</Link> are up to date
+        to avoid any interruptions in service.
       </Text>
-      <Button href={invoicesLink}>{Number(amount) > 1 ? "Pay Now" : "Details"}</Button>
+      <Button href={invoicesLink}>{Number(amount) > 1 ? "Pay Now" : "Invoice Details"}</Button>
     </EmailLayout>
   );
 };
@@ -54,8 +53,8 @@ InvoiceNotification.PreviewProps = {
   subject: "OpenPipe Invoice Feb 2024. Payment Required",
   projectName: "My Project",
   amount: "0.00",
-  invoicesLink: "#",
-  projectLink: "#",
+  projectLink: "http://localhost:3000/p/my-project",
+  invoiceId: "123",
   billingPeriod: "Feb 2024",
   description: demoDescription,
 } as Props;
