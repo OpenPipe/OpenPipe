@@ -114,9 +114,9 @@ export const typedNode = <T extends Pick<Node, "type"> & { config: Prisma.JsonVa
 const datasetEntryInput = z
   .object({
     messages: chatInputs.messages,
-    tool_choice: chatInputs.tool_choice.nullable(),
-    tools: chatInputs.tools.nullable(),
-    response_format: chatInputs.response_format.nullable(),
+    tool_choice: chatInputs.tool_choice.optional().nullable(),
+    tools: chatInputs.tools.optional().nullable(),
+    response_format: chatInputs.response_format.optional().nullable(),
   })
   .passthrough();
 

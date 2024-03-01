@@ -100,8 +100,6 @@ while (true) {
   );
 
   for (let i = 0; i < datasets.length; i++) {
-    const creationTime = new Date();
-
     const dataset = datasets[i]!;
 
     const updatedDataset = await prisma.dataset.findUnique({
@@ -194,7 +192,7 @@ while (true) {
           } catch (e) {
             console.log("error parsing entry", entry);
             console.error(e);
-            throw e;
+            continue;
           }
 
           const hashStartTime = Date.now();
@@ -219,7 +217,7 @@ while (true) {
           hashingTime += Date.now() - hashStartTime;
 
           const persistentId = generatePersistentId({
-            creationTime,
+            creationTime: tEntry.createdAt,
             key: (offset + i).toString(),
             nodeId: archiveCreation.archiveNodeId,
           });

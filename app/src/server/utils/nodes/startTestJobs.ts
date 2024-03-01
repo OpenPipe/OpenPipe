@@ -5,10 +5,7 @@ import type { ComparisonModel, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { kysely, prisma } from "~/server/db";
-import {
-  type EvalKey,
-  enqueueEvaluateTestSetEntries,
-} from "~/server/tasks/evaluateTestSetEntries.task";
+import { type EvalKey, evaluateTestSetEntries } from "~/server/tasks/evaluateTestSetEntries.task";
 import { generateTestSetEntry } from "~/server/tasks/generateTestSetEntry.task";
 import type { DB, NodeEntry } from "~/types/kysely-codegen.types";
 
@@ -151,7 +148,7 @@ export const startTestJobsForEval = async ({
   });
 
   for (const evalKey of shuffledEvalsToRun) {
-    await enqueueEvaluateTestSetEntries(evalKey);
+    await evaluateTestSetEntries.enqueue(evalKey);
   }
 };
 

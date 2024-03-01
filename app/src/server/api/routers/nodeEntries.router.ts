@@ -55,7 +55,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         pageSize: z.number(),
         sortOrder: z
           .object({
-            field: z.enum(["createdAt", "split", "inputTokens", "outputTokens"]),
+            field: z.enum(["persistentId", "split", "inputTokens", "outputTokens"]),
             order: z.enum(["asc", "desc"]),
           })
           .optional(),
@@ -91,9 +91,9 @@ export const nodeEntriesRouter = createTRPCRouter({
         .offset((page - 1) * pageSize);
 
       if (input.sortOrder) {
-        let orderByField: "ne.createdAt" | "ne.split" | "dei.inputTokens" | "deo.outputTokens";
-        if (input.sortOrder.field === "createdAt") {
-          orderByField = "ne.createdAt";
+        let orderByField: "ne.persistentId" | "ne.split" | "dei.inputTokens" | "deo.outputTokens";
+        if (input.sortOrder.field === "persistentId") {
+          orderByField = "ne.persistentId";
         } else if (input.sortOrder.field === "split") {
           orderByField = "ne.split";
         } else if (input.sortOrder.field === "inputTokens") {

@@ -142,7 +142,7 @@ function DatasetEntryDrawer({
               >
                 <Text>
                   <Text as="span" fontWeight="bold">
-                    Last Updated:
+                    Last Processed:
                   </Text>{" "}
                   {dayjs(nodeEntry.updatedAt).format("MMMM D h:mm A")}
                 </Text>

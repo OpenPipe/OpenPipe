@@ -19,7 +19,7 @@ export const TableHeader = () => {
   return (
     <Thead>
       <Tr>
-        <SortableHeader<SortableField> title="Updated At" field="createdAt" />
+        <SortableHeader<SortableField> title="Created At" field="persistentId" />
         <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />
         <SortableHeader<SortableField> isNumeric title="Split" field="split" />
