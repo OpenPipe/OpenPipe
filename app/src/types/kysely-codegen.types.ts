@@ -437,12 +437,12 @@ export interface NewFineTuneTrainingEntry {
   id: string;
   prunedInputTokens: number | null;
   outputTokens: number | null;
-  persistentId: string;
   inputHash: string;
   outputHash: string;
   fineTuneId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  nodeEntryPersistentId: string;
 }
 
 export interface NewPruningRuleMatch {

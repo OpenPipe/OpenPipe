@@ -20,16 +20,18 @@ console.log("Deleted previously invalid uploads");
 await kysely.deleteFrom("CachedProcessedEntry").execute();
 console.log("Deleted all CachedProcessedNodeEntries");
 
-// delete all CachedProcessedNodeEntries
 await kysely.deleteFrom("NewFineTuneTestingEntry").execute();
 console.log("Deleted all NewFineTuneTestingEntries");
 
+await kysely.deleteFrom("NewFineTuneTrainingEntry").execute();
+console.log("Deleted all NewFineTuneTrainingEntries");
+
 // Slower commands
 
-// // delete all DatasetEntryInputs
-// await kysely.deleteFrom("DatasetEntryInput").execute();
-// console.log("Deleted all DatasetEntryInputs");
+// delete all DatasetEntryInputs
+await kysely.deleteFrom("DatasetEntryInput").execute();
+console.log("Deleted all DatasetEntryInputs");
 
-// // delete all DatasetEntryOutputs
-// await kysely.deleteFrom("DatasetEntryOutput").execute();
-// console.log("Deleted all DatasetEntryOutputs");
+// delete all DatasetEntryOutputs
+await kysely.deleteFrom("DatasetEntryOutput").execute();
+console.log("Deleted all DatasetEntryOutputs");

@@ -321,6 +321,18 @@ export const projectsRouter = createTRPCRouter({
           eb
             .selectFrom("NodeEntry as ne")
             .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.split", "=", "TRAIN")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numTrainingEntries"),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.split", "=", "TEST")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numTestingEntries"),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
             .where("ne.status", "=", "PENDING")
             .select(sql<number>`count(*)::int`.as("count"))
             .as("numPendingEntries"),

@@ -522,7 +522,7 @@ model NewFineTuneTrainingEntry {
     prunedInputTokens Int?
     outputTokens      Int?
 
-    persistentId String
+    nodeEntryPersistentId String
 
     inputHash  String
     input      DatasetEntryInput  @relation(fields: [inputHash], references: [hash], onDelete: Cascade)
@@ -535,7 +535,7 @@ model NewFineTuneTrainingEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([persistentId, fineTuneId])
+    @@unique([nodeEntryPersistentId, fineTuneId])
     @@index([fineTuneId, createdAt, id])
     @@index([inputHash])
 }

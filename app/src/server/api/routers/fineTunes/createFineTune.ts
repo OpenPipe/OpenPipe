@@ -79,7 +79,7 @@ export const createFineTune = async (
 
   await kysely
     .insertInto("NewFineTuneTrainingEntry")
-    .columns(["id", "persistentId", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
+    .columns(["id", "nodeEntryPersistentId", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
     .expression(() =>
       constructNodeEntryFiltersQuery({
         filters: input.filters,

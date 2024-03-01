@@ -131,19 +131,19 @@ const createFineTune = async (projectId: string, datasetId: string) => {
 
 const createFineTuneTrainingEntry = async ({
   fineTuneId,
-  persistentId,
+  nodeEntryPersistentId,
   inputHash,
   outputHash,
 }: {
   fineTuneId: string;
-  persistentId: string;
+  nodeEntryPersistentId: string;
   inputHash: string;
   outputHash: string;
 }) => {
   return await prisma.newFineTuneTrainingEntry.create({
     data: {
       fineTuneId,
-      persistentId,
+      nodeEntryPersistentId,
       inputHash,
       outputHash,
     },
@@ -264,7 +264,7 @@ describe("fine tune pruning rules", () => {
 
     await createFineTuneTrainingEntry({
       fineTuneId: fineTune.id,
-      persistentId: "_",
+      nodeEntryPersistentId: "_",
       inputHash: nodeEntry.inputHash,
       outputHash: nodeEntry.outputHash,
     });
@@ -315,7 +315,7 @@ describe("fine tune pruning rules", () => {
 
     await createFineTuneTrainingEntry({
       fineTuneId: fineTune.id,
-      persistentId: "_",
+      nodeEntryPersistentId: "_",
       inputHash: nodeEntry.inputHash,
       outputHash: nodeEntry.outputHash,
     });

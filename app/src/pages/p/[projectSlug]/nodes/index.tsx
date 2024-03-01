@@ -42,6 +42,8 @@ const Nodes = () => {
               <Th>Type</Th>
               <Th>Id</Th>
               <Th>Created At</Th>
+              <Th>Train</Th>
+              <Th>Test</Th>
               <Th>Pending</Th>
               <Th>Processing</Th>
               <Th>Processed</Th>
@@ -56,6 +58,8 @@ const Nodes = () => {
                 {node.id}
               </Td>
               <Td>{dayjs(node.createdAt).format("MM-D h:mm A")}</Td>
+              <Td>{node.numTrainingEntries}</Td>
+              <Td>{node.numTestingEntries}</Td>
               <Td>{node.numPendingEntries}</Td>
               <Td>{node.numProcessingEntries}</Td>
               <Td>{node.numProcessedEntries}</Td>

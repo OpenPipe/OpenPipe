@@ -86,6 +86,19 @@ while (true) {
 
   console.log("found datasets", datasets.length);
 
+  const updatedProject = await prisma.project.findUniqueOrThrow({
+    where: { id: project.id },
+  });
+
+  if (updatedProject.migrationKey !== processKey) {
+    console.log("project already being processed");
+    continue;
+  }
+
+  console.log(
+    `migrating project ${updatedProject.name} (slug:${updatedProject.slug}) with ${datasets.length} datasets`,
+  );
+
   for (let i = 0; i < datasets.length; i++) {
     const creationTime = new Date();
 
@@ -108,9 +121,16 @@ while (true) {
       datasetName: dataset.name,
     });
 
-    const entriesInDataset = await prisma.datasetEntry.count({
-      where: { datasetId: dataset.id },
-    });
+    const datasetEntriesQuery = kysely
+      .selectFrom("DatasetEntry as de")
+      .where("de.datasetId", "=", dataset.id)
+      .leftJoin("LoggedCall as lc", "lc.id", "de.loggedCallId")
+      .where((eb) => eb.or([eb("lc.id", "is not", null), eb("de.loggedCallId", "is", null)]));
+
+    const entriesInDataset = await datasetEntriesQuery
+      .select(sql<number>`count(de.id)::int`.as("count"))
+      .executeTakeFirst()
+      .then((r) => r?.count ?? 0);
 
     const archiveCreation = prepareIntegratedArchiveCreation({
       projectId: dataset.projectId,
@@ -133,6 +153,18 @@ while (true) {
       }),
     ]);
 
+    await kysely
+      .deleteFrom("NewFineTuneTrainingEntry")
+      .using(
+        kysely
+          .selectFrom("FineTune as ft")
+          .where("ft.datasetId", "=", dataset.id)
+          .select("ft.id")
+          .as("ft"),
+      )
+      .whereRef("NewFineTuneTrainingEntry.fineTuneId", "=", "ft.id")
+      .execute();
+
     let offset = 0;
     while (true) {
       const startTime = Date.now();
@@ -141,12 +173,9 @@ while (true) {
       let fineTuneTrainingEntriesTime = 0;
       let fineTuneTestingEntriesTime = 0;
       let savingResultsTime = 0;
-      const entries = await kysely
-        .selectFrom("DatasetEntry as de")
-        .where("de.datasetId", "=", dataset.id)
+      const entries = await datasetEntriesQuery
+        .orderBy("de.sortKey", "asc")
         .limit(1000)
-        .leftJoin("LoggedCall as lc", "lc.id", "de.loggedCallId")
-        .where((eb) => eb.or([eb("lc.id", "is not", null), eb("de.loggedCallId", "is", null)]))
         .offset(offset)
         .selectAll("de")
         .execute();
@@ -159,7 +188,14 @@ while (true) {
         for (let i = 0; i < entries.length; i++) {
           const entry = entries[i]!;
 
-          const tEntry = typedDatasetEntry(entry);
+          let tEntry;
+          try {
+            tEntry = typedDatasetEntry(entry);
+          } catch (e) {
+            console.log("error parsing entry", entry);
+            console.error(e);
+            throw e;
+          }
 
           const hashStartTime = Date.now();
 
@@ -187,6 +223,41 @@ while (true) {
             key: (offset + i).toString(),
             nodeId: archiveCreation.archiveNodeId,
           });
+
+          const fineTuneTrainingEntriesStartTime = Date.now();
+
+          await trx
+            .insertInto("NewFineTuneTrainingEntry")
+            .columns([
+              "id",
+              "prunedInputTokens",
+              "outputTokens",
+              "nodeEntryPersistentId",
+              "inputHash",
+              "outputHash",
+              "fineTuneId",
+              "updatedAt",
+            ])
+            .expression((eb) =>
+              eb
+                .selectFrom("FineTuneTrainingEntry")
+                .where("datasetEntryId", "=", entry.id)
+                .select((eb) => [
+                  sql`uuid_generate_v4()`.as("id"),
+                  "prunedInputTokens",
+                  "outputTokens",
+                  eb.val(persistentId).as("nodeEntryPersistentId"),
+                  eb.val(inputHash).as("inputHash"),
+                  eb.val(outputHash).as("outputHash"),
+                  "fineTuneId",
+                  sql`now()`.as("updatedAt"),
+                ]),
+            )
+            .execute();
+
+          fineTuneTrainingEntriesTime += Date.now() - fineTuneTrainingEntriesStartTime;
+
+          if (entry.outdated) continue;
 
           await trx
             .insertInto("NodeEntry")
@@ -223,39 +294,6 @@ while (true) {
             .execute();
 
           pruningRulesTime += Date.now() - pruningRulesStartTime;
-
-          const fineTuneTrainingEntriesStartTime = Date.now();
-
-          await trx
-            .insertInto("NewFineTuneTrainingEntry")
-            .columns([
-              "id",
-              "prunedInputTokens",
-              "outputTokens",
-              "persistentId",
-              "inputHash",
-              "outputHash",
-              "fineTuneId",
-              "updatedAt",
-            ])
-            .expression((eb) =>
-              eb
-                .selectFrom("FineTuneTrainingEntry")
-                .where("datasetEntryId", "=", entry.id)
-                .select((eb) => [
-                  sql`uuid_generate_v4()`.as("id"),
-                  "prunedInputTokens",
-                  "outputTokens",
-                  eb.val(persistentId).as("persistentId"),
-                  eb.val(inputHash).as("inputHash"),
-                  eb.val(outputHash).as("outputHash"),
-                  "fineTuneId",
-                  sql`now()`.as("updatedAt"),
-                ]),
-            )
-            .execute();
-
-          fineTuneTrainingEntriesTime += Date.now() - fineTuneTrainingEntriesStartTime;
 
           const fineTuneTestingEntriesStartTime = Date.now();
 
@@ -360,16 +398,6 @@ while (true) {
                     "der.datasetEvalOutputSourceId",
                     sql`now()`.as("updatedAt"),
                   ]),
-              )
-              .onConflict((oc) =>
-                oc
-                  .columns([
-                    "datasetEvalNodeEntryId",
-                    "nodeEntryInputHash",
-                    "datasetEvalOutputSourceId",
-                    "comparisonOutputSourceId",
-                  ])
-                  .doNothing(),
               )
               .execute();
 
