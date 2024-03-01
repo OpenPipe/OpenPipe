@@ -4,44 +4,30 @@ import { captureException } from "@sentry/node";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { JsonObject } from "type-fest";
-import type { TaskSpec } from "graphile-worker";
 import { isEqual } from "lodash-es";
 import { RateLimitError } from "openai";
 
 import { kysely, prisma } from "~/server/db";
-import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
+import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonModels";
 import { chatCompletionMessage } from "~/types/shared.types";
-import { calculateQueryDelay } from "./generateTestSetEntry.task";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { generateEntry } from "./generateTestSetEntry.task";
+import { typedDatasetEntryInput } from "../utils/nodes/node.types";
 
+// Accept result criteria instead of ids to recover from duplicate result creation attempts
 export type EvalKey = {
   nodeEntryId: string;
   firstOutputSourceId: string;
   secondOutputSourceId: string;
 };
 
-// Accept result criteria instead of ids to recover from duplicate result creation attempts
-export type EvaluateTestSetEntriesJob = EvalKey & {
-  numPreviousTries?: number;
-};
-
-const MAX_TRIES = 50;
-
-export const enqueueEvaluateTestSetEntries = async (
-  job: EvaluateTestSetEntriesJob,
-  spec?: TaskSpec,
-) => {
-  await evaluateTestSetEntries.enqueue(job, { ...spec, queueName: "evaluate" });
-};
-
-export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
+export const evaluateTestSetEntries = defineTask<EvalKey>({
   id: "evaluateTestSetEntries",
   handler: async (task) => {
-    let { nodeEntryId, firstOutputSourceId, secondOutputSourceId, numPreviousTries = 0 } = task;
+    let { nodeEntryId, firstOutputSourceId, secondOutputSourceId } = task;
 
     // randomize the order of the output sources to avoid bias
     if (Math.random() > 0.5) {
@@ -420,39 +406,24 @@ export const evaluateTestSetEntries = defineTask<EvaluateTestSetEntriesJob>({
       });
     } catch (e) {
       console.error("error in evaluateTestSetEntries", e);
-      if (numPreviousTries < MAX_TRIES) {
-        // await evaluateTestSetEntries.enqueue(
-        //   {
-        //     ...task,
-        //     numPreviousTries: numPreviousTries + 1,
-        //   },
-        //   { runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries)), priority: 3 },
-        // );
-        await enqueueEvaluateTestSetEntries(
-          {
-            ...task,
-            numPreviousTries: numPreviousTries + 1,
+
+      await prisma.newDatasetEvalResult.updateMany({
+        where: {
+          id: {
+            in: [firstResult.id, secondResult.id],
           },
-          { runAt: new Date(Date.now() + calculateQueryDelay(numPreviousTries)), priority: 3 },
-        );
-      } else {
-        await prisma.newDatasetEvalResult.updateMany({
-          where: {
-            id: {
-              in: [firstResult.id, secondResult.id],
-            },
-          },
-          data: {
-            status: "ERROR",
-            errorMessage: "Unable to evaluate test set entries",
-          },
-        });
-      }
-      return;
+        },
+        data: {
+          status: "ERROR",
+          errorMessage: "Unable to evaluate test set entries",
+        },
+      });
+      throw e;
     }
   },
   specDefaults: {
     priority: 5,
+    maxAttempts: 50,
   },
 });
 
@@ -553,7 +524,7 @@ const outputsAreEqual = (
 };
 
 const formatDatasetEntryInputInstructions = (datasetEntryInput: DatasetEntryInput) => {
-  const { messages, tool_choice, tools } = typedDatasetEntry(datasetEntryInput);
+  const { messages, tool_choice, tools } = typedDatasetEntryInput(datasetEntryInput);
   let instructions = "Here is the task that each chatbot was given:\n\nTASK START:\n";
   instructions += JSON.stringify(messages);
   if (tools?.length) {
