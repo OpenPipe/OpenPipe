@@ -448,7 +448,7 @@ export const useInvoice = (id: string, refetchInterval?: number) => {
 
   return api.invoices.get.useQuery(
     { invoiceId: id },
-    { enabled: !!selectedProjectId, refetchInterval },
+    { enabled: !!selectedProjectId, refetchInterval, retry: false },
   );
 };
 
