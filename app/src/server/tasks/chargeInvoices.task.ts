@@ -1,13 +1,21 @@
+// import defineTask from "./defineTask";
+// import { prisma } from "~/server/db";
+// import { error, success } from "~/utils/errorHandling/standardResponses";
+// import {
+//   createStripePaymentIntent,
+//   getDefaultPaymentMethodId,
+//   getPaymentMethods,
+//   usdToCents,
+// } from "../utils/stripe";
+// import { env } from "~/env.mjs";
+// import dayjs from "dayjs";
+// import { sendToOwner } from "../emails/sendToOwner";
+// import { sendInvoiceNotification } from "../emails/sendInvoiceNotification";
+
 import defineTask from "./defineTask";
 import { prisma } from "~/server/db";
-import { error, success } from "~/utils/errorHandling/standardResponses";
-import {
-  createStripePaymentIntent,
-  getDefaultPaymentMethodId,
-  getPaymentMethods,
-  usdToCents,
-} from "../utils/stripe";
-import { env } from "~/env.mjs";
+import { error } from "~/utils/errorHandling/standardResponses";
+import { getDefaultPaymentMethodId, getPaymentMethods } from "../utils/stripe";
 import dayjs from "dayjs";
 import { sendToOwner } from "../emails/sendToOwner";
 import { sendInvoiceNotification } from "../emails/sendInvoiceNotification";
@@ -78,39 +86,39 @@ export async function chargeInvoice(invoiceId: string) {
       return error("Add a payment method.");
     }
   }
+  return error("Billing is under maintenance. Please try again later.");
+  // try {
+  //   const paymentIntent = await createStripePaymentIntent({
+  //     amount: usdToCents(invoice.amount),
+  //     invoiceId: invoiceId,
+  //     stripeCustomerId: project.stripeCustomerId,
+  //     paymentMethodId: paymentMethodToUse,
+  //     returnUrl: `${env.NEXT_PUBLIC_HOST}/p/${project?.slug}/billing/invoices`,
+  //   });
 
-  try {
-    const paymentIntent = await createStripePaymentIntent({
-      amount: usdToCents(invoice.amount),
-      invoiceId: invoiceId,
-      stripeCustomerId: project.stripeCustomerId,
-      paymentMethodId: paymentMethodToUse,
-      returnUrl: `${env.NEXT_PUBLIC_HOST}/p/${project?.slug}/billing/invoices`,
-    });
+  //   // Sometimes it will not work because processing may take some time.
+  //   // In this case we will handle it using webhooks (see app/src/pages/api/stripe/webhook.ts)
+  //   if (paymentIntent.status === "succeeded") {
+  //     await prisma.invoice.update({
+  //       where: {
+  //         id: invoiceId,
+  //       },
+  //       data: {
+  //         paidAt: new Date(),
+  //         status: "PAID",
+  //         paymentId: paymentIntent.id,
+  //       },
+  //     });
 
-    // Sometimes it will not work because processing may take some time.
-    // In this case we will handle it using webhooks (see app/src/pages/api/stripe/webhook.ts)
-    if (paymentIntent.status === "succeeded") {
-      await prisma.invoice.update({
-        where: {
-          id: invoiceId,
-        },
-        data: {
-          paidAt: new Date(),
-          status: "PAID",
-          paymentId: paymentIntent.id,
-        },
-      });
+  //     return success("The invoice has been successfully paid!");
+  //   }
 
-      return success("The invoice has been successfully paid!");
-    }
-
-    if (paymentIntent.status === "processing") {
-      return success("Payment is processing.");
-    } else {
-      return error("Payment requires additional verification.");
-    }
-  } catch {
-    return error("Failed to make a payment.");
-  }
+  //   if (paymentIntent.status === "processing") {
+  //     return success("Payment is processing.");
+  //   } else {
+  //     return error("Payment requires additional verification.");
+  //   }
+  // } catch {
+  //   return error("Failed to make a payment.");
+  // }
 }
