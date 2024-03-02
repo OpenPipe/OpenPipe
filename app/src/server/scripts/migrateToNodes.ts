@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { sql } from "kysely";
 import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 import { type Project } from "@prisma/client";
 
 import { kysely, prisma } from "../db";
@@ -14,7 +15,6 @@ import {
 } from "../utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { generatePersistentId } from "../utils/nodes/utils";
 import { enqueueProcessNode } from "../tasks/nodes/processNodes/processNode.task";
-import { hideBin } from "yargs/helpers";
 import { enqueueCountDatasetEntryTokens } from "../tasks/fineTuning/countDatasetEntryTokens.task";
 import { RelabelOption, typedDatasetEntryOutput } from "../utils/nodes/node.types";
 import { typedDatasetEntry } from "~/types/dbColumns.types";

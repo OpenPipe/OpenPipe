@@ -94,15 +94,8 @@ async function copyTable(tableName: string, whereCondition: string, joins: JoinC
   const rowCount = countResult.rows[0].count as number;
   console.log(`Copying ${rowCount} rows from table ${tableName}.`);
 
-  // TODO: Remove the "nodeId" and "migrationKey" columns from the SELECT clause once migration is complete
-  let selectColumns;
-  if (tableName === "Dataset") {
-    selectColumns = `"${tableName}".*, NULL AS "nodeId"`;
-  } else if (tableName === "Project") {
-    selectColumns = `"${tableName}".*, NULL AS "migrationKey"`;
-  } else {
-    selectColumns = `"${tableName}".*`;
-  }
+  const selectColumns = `"${tableName}".*`;
+
   const copyFromQuery = `COPY (SELECT ${selectColumns} FROM "${tableName}" ${joinClause} WHERE ${whereCondition}) TO STDOUT`;
   const copyToQuery = `COPY "${tableName}" FROM STDIN`;
 
