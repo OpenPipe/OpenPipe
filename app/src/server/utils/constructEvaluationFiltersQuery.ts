@@ -63,7 +63,7 @@ export const constructEvaluationFiltersQuery = ({
 
     const tableAlias = `te${i}`;
     updatedBaseQuery = updatedBaseQuery
-      .leftJoin(`NewFineTuneTestingEntry as ${tableAlias}`, (join) =>
+      .innerJoin(`NewFineTuneTestingEntry as ${tableAlias}`, (join) =>
         join
           .onRef("ne.inputHash", "=", `${tableAlias}.inputHash`)
           .on(`${tableAlias}.modelId`, "=", filter.field),
