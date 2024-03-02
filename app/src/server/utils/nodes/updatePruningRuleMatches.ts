@@ -99,14 +99,10 @@ export const updateDatasetPruningRuleMatches = async ({
       .insertInto("PruningRulesChecked")
       .columns(["nodeHash", "incomingInputHash"])
       .expression(() =>
-        nodeEntryBaseQuery
-          .select([sql`${nodeHash}`.as("nodeHash"), "ne.inputHash as incomingInputHash"])
-          .leftJoin("PruningRulesChecked as prc", (join) =>
-            join
-              .onRef("prc.incomingInputHash", "=", "ne.inputHash")
-              .on("prc.nodeHash", "=", nodeHash),
-          )
-          .where("prc.nodeHash", "is", null),
+        nodeEntryBaseQuery.select([
+          sql`${nodeHash}`.as("nodeHash"),
+          "ne.inputHash as incomingInputHash",
+        ]),
       )
       .onConflict((oc) => oc.columns(["nodeHash", "incomingInputHash"]).doNothing())
       .execute();
