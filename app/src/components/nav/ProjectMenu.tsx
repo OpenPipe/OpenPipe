@@ -141,6 +141,7 @@ export default function ProjectMenu({ displayProjectName }: { displayProjectName
                 w="full"
                 borderRadius={4}
                 spacing={0}
+                minH={10}
               >
                 <Text>Add project</Text>
                 <Icon as={isLoading ? Spinner : BsPlus} boxSize={4} strokeWidth={0.5} />
