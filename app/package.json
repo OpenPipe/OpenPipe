@@ -10,10 +10,10 @@
   },
   "scripts": {
     "build": "next build",
-    "dev:next": "NODE_OPTIONS='--no-node-snapshot' TZ=UTC next dev",
+    "dev:next": "NODE_OPTIONS='--no-node-snapshot' next dev",
     "dev:worker": "NODE_OPTIONS='--no-node-snapshot' tsx --tsconfig tsconfig.server.json --watch src/server/tasks/worker.ts",
     "worker": "tsx --tsconfig tsconfig.server.json src/server/tasks/worker.ts",
-    "dev": "tsx scripts/run-dev.ts",
+    "dev": "TZ=UTC tsx scripts/run-dev.ts",
     "dev:tunnel": "tsx scripts/dev-tunnel.ts",
     "postinstall": "prisma generate",
     "lint": "next lint",

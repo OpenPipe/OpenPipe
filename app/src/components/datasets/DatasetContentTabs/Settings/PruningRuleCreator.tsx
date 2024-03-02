@@ -22,7 +22,7 @@ const PruningRuleCreator = ({ index }: { index: number }) => {
       textToMatch: editedTextToMatch,
     });
 
-    await utils.datasetEntries.list.invalidate({ datasetId: dataset?.id });
+    await utils.nodeEntries.list.invalidate({ datasetId: dataset?.id });
     await utils.pruningRules.list.invalidate({ datasetId: dataset.id });
     setShowEditor(false);
   }, [createRuleMutation, editedTextToMatch, dataset?.id, utils]);

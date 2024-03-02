@@ -123,7 +123,7 @@ const runEvals = async (args: Awaited<ReturnType<typeof createFineTunes>>) => {
       name: experimentName,
       instructions: "Which model’s output better matches the prompt?",
       modelIds: [],
-      numDatasetEntries: Math.min(numTestEntries, 50),
+      numRows: Math.min(numTestEntries, 50),
     });
     if (newEval.status === "error") {
       throw new Error(newEval.message);

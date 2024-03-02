@@ -1598,7 +1598,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "datasetId": {
+                  "archiveId": {
                     "type": "string"
                   },
                   "entries": {
@@ -2044,7 +2044,7 @@
                   }
                 },
                 "required": [
-                  "datasetId",
+                  "archiveId",
                   "entries"
                 ],
                 "additionalProperties": false

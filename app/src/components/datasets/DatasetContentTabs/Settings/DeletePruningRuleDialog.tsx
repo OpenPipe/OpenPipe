@@ -31,7 +31,7 @@ const DeletePruningRuleDialog = ({
     if (!rule) return;
     await mutation.mutateAsync({ id: rule.id });
 
-    await utils.datasetEntries.list.invalidate({ datasetId: dataset?.id });
+    await utils.nodeEntries.list.invalidate({ datasetId: dataset?.id });
     await utils.pruningRules.list.invalidate();
 
     disclosure.onClose();

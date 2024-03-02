@@ -29,7 +29,7 @@ config:
   openpipe:AZURE_STORAGE_ACCOUNT_NAME: openpipestorage
   openpipe:AZURE_STORAGE_CONTAINER_NAME: uploadedtrainingdata
   openpipe:DATABASE_URL:
-    secure: AAABAAwzXuqjPr+HSDt3fQ23k5QIu1MK9rPJeh0c9t+jPg8s3QFswtobBIcm3A6u5/eDd+HIH1SasZK4ntm1/deL97OeqlEpMpaIMGQo0CiZTaciFAFXQroLcrWYk2dQSJ6RCQijDmeBS4TcviWghmHW3nbQgoiFA9jQrY199ynUjno8jgPS5qpJfagtKKgvJXo8rzNvWpeM4yJgJSjENYA=
+    secure: AAABAKNlTgvrVfD8QyDNSg2w9UbkauOFLwuf6rGjBeEUDSj6KYgc+9GNpajP2LOCZEoXyon3mh/1URWflYuN+D/xuR4koqaJ3V0lrA7iM9BRXB7QVhKqGn6XD4bxiLEX3+Ghy+53dR8TShvqlUpEQ9n6DE+GyUXjkT5SVEjZgfLdO/Rq8MN2uxb+JnTcaPdHAYweuqFyh9RjUd+vJAJ2L1U=
   openpipe:FIREWORKS_API_KEY:
     secure: AAABAPeSTk9LgtWfOpq55ICMCOSvKZo8OaLRotWRZGaebj3AtSW6NT4W1JBWeTAl9G9eVDDsRiSyPvlPfLdXZXTCW+XgnbBrpOspgX0LcHg=
   openpipe:GITHUB_CLIENT_ID:
@@ -38,6 +38,7 @@ config:
     secure: AAABABlrDVTEPwFbH+lRBsVfYvJZplScryCWJr6VxG+aL8/x9CUQIlle2ttg8ElILmHk4LmI/wW+99vKwtw1N2EiBgT7B0qb
   openpipe:MODAL_ENVIRONMENT: dev
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
+  openpipe:NEXT_PUBLIC_MAINTENANCE_MODE: "true"
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
   openpipe:NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_51OcEiyIpUtvR6wbgpoMtjp7GzrWoNcjM2kLSeYlEAcP9BevVtv69TeUvhndrg87A4zigWNXYfTjeHyDqX4dt3Pm100pZ8BTBtu

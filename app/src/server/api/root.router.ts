@@ -3,7 +3,6 @@ import { projectsRouter } from "./routers/projects.router";
 import { usageRouter } from "./routers/usage.router";
 import { loggedCallsRouter } from "./routers/loggedCalls.router";
 import { datasetsRouter } from "./routers/datasets.router";
-import { datasetEntriesRouter } from "./routers/datasetEntries.router";
 import { datasetEvalsRouter } from "./routers/datasetEvals.router";
 import { pruningRulesRouter } from "./routers/pruningRules.router";
 import { usersRouter } from "./routers/users.router";
@@ -12,6 +11,9 @@ import { adminUsersRouter } from "./routers/adminUsers.router";
 import { fineTunesRouter } from "./routers/fineTunes/fineTunes.router";
 import { invoicesRouter } from "./routers/invoices.router";
 import { paymentsRouter } from "./routers/payments.router";
+import { monitorsRouter } from "./routers/monitors.router";
+import { nodeEntriesRouter } from "./routers/nodeEntries.router";
+import { archivesRouter } from "./routers/archives.router";
 import { adminProjectsRouter } from "./routers/adminProjects.router";
 import { creditAdjustmentsRouter } from "./routers/creditAdjustments.router";
 
@@ -25,7 +27,6 @@ export const appRouter = createTRPCRouter({
   usage: usageRouter,
   loggedCalls: loggedCallsRouter,
   datasets: datasetsRouter,
-  datasetEntries: datasetEntriesRouter,
   datasetEvals: datasetEvalsRouter,
   pruningRules: pruningRulesRouter,
   fineTunes: fineTunesRouter,
@@ -35,6 +36,9 @@ export const appRouter = createTRPCRouter({
   adminProjects: adminProjectsRouter,
   invoices: invoicesRouter,
   payments: paymentsRouter,
+  monitors: monitorsRouter,
+  nodeEntries: nodeEntriesRouter,
+  archives: archivesRouter,
   creditAdjustments: creditAdjustmentsRouter,
 });
 

@@ -4,9 +4,11 @@
 import "dotenv/config";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { env } from "~/env.mjs";
-import { getPool, prisma } from "~/server/db";
 import copyStreams from "pg-copy-streams";
+import { v4 as uuidv4 } from "uuid";
+
+import { env } from "~/env.mjs";
+import { getPool, kysely, prisma } from "~/server/db";
 
 const argv = await yargs(hideBin(process.argv))
   .option("slug", {
@@ -17,6 +19,11 @@ const argv = await yargs(hideBin(process.argv))
   .option("overwrite", {
     type: "boolean",
     description: "Overwrite the existing project if it exists",
+    default: false,
+  })
+  .option("addKey", {
+    type: "boolean",
+    description: "Add local OpenAI API key to the project",
     default: false,
   })
   .option("include", {
@@ -69,14 +76,34 @@ console.log("Copying project data...");
 const remoteClient = await remotePool.connect();
 const localClient = await localPool.connect();
 
-async function copyTable(tableName: string, whereCondition: string) {
+type JoinCondition = {
+  type?: "LEFT JOIN" | "INNER JOIN";
+  table: string;
+  condition: string;
+};
+
+async function copyTable(tableName: string, whereCondition: string, joins: JoinCondition[] = []) {
+  let joinClause = "";
+  for (const join of joins) {
+    const joinType = join.type || "INNER JOIN";
+    joinClause += ` ${joinType} "${join.table}" ON ${join.condition}`;
+  }
   // Step 1: Log the number of rows that match the WHERE clause in the remote database
-  const countQuery = `SELECT COUNT(*) FROM "${tableName}" WHERE ${whereCondition}`;
+  const countQuery = `SELECT COUNT(*) FROM "${tableName}" ${joinClause} WHERE ${whereCondition}`;
   const countResult = await remoteClient.query(countQuery);
   const rowCount = countResult.rows[0].count as number;
   console.log(`Copying ${rowCount} rows from table ${tableName}.`);
 
-  const copyFromQuery = `COPY (SELECT * FROM "${tableName}" WHERE ${whereCondition}) TO STDOUT`;
+  // TODO: Remove the "nodeId" and "migrationKey" columns from the SELECT clause once migration is complete
+  let selectColumns;
+  if (tableName === "Dataset") {
+    selectColumns = `"${tableName}".*, NULL AS "nodeId"`;
+  } else if (tableName === "Project") {
+    selectColumns = `"${tableName}".*, NULL AS "migrationKey"`;
+  } else {
+    selectColumns = `"${tableName}".*`;
+  }
+  const copyFromQuery = `COPY (SELECT ${selectColumns} FROM "${tableName}" ${joinClause} WHERE ${whereCondition}) TO STDOUT`;
   const copyToQuery = `COPY "${tableName}" FROM STDIN`;
 
   const remoteStream = remoteClient.query(copyStreams.to(copyFromQuery));
@@ -98,17 +125,53 @@ await Promise.all([
   copyTable("FineTune", `"projectId" = '${projectId}'`),
   copyTable("Dataset", `"projectId" = '${projectId}'`),
   copyTable(
+    "DatasetEval",
+    `"DatasetEval"."datasetId" IN (SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}')`,
+  ),
+  copyTable(
+    "DatasetEvalDatasetEntry",
+    `"DatasetEvalDatasetEntry"."datasetEvalId" IN (
+      SELECT id FROM "DatasetEval" WHERE "datasetId" IN (
+        SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}'
+      )
+    )`,
+  ),
+  copyTable(
+    "DatasetEvalOutputSource",
+    `"datasetEvalId" IN (SELECT id FROM "DatasetEval" WHERE "datasetId" IN (
+      SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}'
+    ))`,
+  ),
+  copyTable(
+    "DatasetEvalResult",
+    `"DatasetEvalResult"."datasetEvalOutputSourceId" IN (
+      SELECT id FROM "DatasetEvalOutputSource" WHERE "datasetEvalId" IN (
+        SELECT id FROM "DatasetEval" WHERE "datasetId" IN (
+          SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}'
+        )
+      )
+    )`,
+  ),
+  copyTable(
     "DatasetEntry",
     `"datasetId" IN (SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}')`,
   ),
-  copyTable(
-    "FineTuneTestingEntry",
-    `"fineTuneId" IN (SELECT id FROM "FineTune" WHERE "projectId" = '${projectId}')`,
-  ),
+  copyTable("FineTuneTestingEntry", `"Dataset"."projectId" = '${projectId}'`, [
+    {
+      table: "DatasetEntry",
+      condition: `"FineTuneTestingEntry"."datasetEntryId" = "DatasetEntry"."id"`,
+    },
+    {
+      table: "Dataset",
+      condition: `"DatasetEntry"."datasetId" = "Dataset"."id"`,
+    },
+  ]),
   copyTable(
     "FineTuneTrainingEntry",
     `"fineTuneId" IN (SELECT id FROM "FineTune" WHERE "projectId" = '${projectId}')`,
   ),
+  // only copy OpenPipe API keys
+  copyTable("ApiKey", `"projectId" = '${projectId}' AND "provider" = 'OPENPIPE'`),
   ...(argv.include.includes("usage")
     ? [copyTable("UsageLog", `"projectId" = '${projectId}'`)]
     : []),
@@ -119,6 +182,22 @@ await Promise.all([
       ]
     : []),
 ]);
+
+if (argv.addKey) {
+  await kysely
+    .insertInto("ApiKey")
+    .values({
+      id: uuidv4(),
+      name: "_",
+      projectId,
+      provider: "OPENAI",
+      apiKey: env.OPENAI_API_KEY,
+      updatedAt: new Date(),
+    })
+    .execute();
+
+  console.log("Added OpenAI API key to the project");
+}
 
 console.log("Project data copied");
 await localPool.query("SET session_replication_role = DEFAULT;");

@@ -28,7 +28,7 @@ export const fineTunesRouter = createTRPCRouter({
         .selectAll("ft")
         .select(() => [
           "d.name as datasetName",
-          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
         ])
@@ -65,14 +65,15 @@ export const fineTunesRouter = createTRPCRouter({
       await requireCanViewProject(dataset?.projectId, ctx);
 
       const fineTunes = await kysely
-        .selectFrom("FineTune as ft")
-        .where("datasetId", "=", datasetId)
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", datasetId)
+        .innerJoin("FineTune as ft", "ft.datasetId", "d.id")
         .selectAll()
         .select(() => [
-          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "split" = 'TEST' and not outdated)::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
             "numTestingEntries",
           ),
           sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
@@ -94,14 +95,14 @@ export const fineTunesRouter = createTRPCRouter({
       const fineTune = await kysely
         .selectFrom("FineTune as ft")
         .where("ft.id", "=", input.id)
-        .leftJoin("Dataset as d", "ft.datasetId", "d.id")
+        .innerJoin("Dataset as d", "ft.datasetId", "d.id")
         .select("d.name as datasetName")
         .selectAll("ft")
         .select((eb) => [
-          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "DatasetEntry" where "datasetId" = ft."datasetId" and "split" = 'TEST' and not outdated)::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
             "numTestingEntries",
           ),
           jsonArrayFrom(
@@ -228,44 +229,36 @@ export const fineTunesRouter = createTRPCRouter({
       if (!fineTune) throw new TRPCError({ message: "Fine tune not found", code: "NOT_FOUND" });
       await requireCanViewProject(fineTune.projectId, ctx);
 
-      const [entries, count] = await prisma.$transaction([
-        prisma.fineTuneTrainingEntry.findMany({
-          where: {
-            fineTuneId: fineTuneId,
-          },
-          include: {
-            datasetEntry: {
-              select: {
-                messages: true,
-                function_call: true,
-                functions: true,
-                tool_choice: true,
-                tools: true,
-                output: true,
-                inputTokens: true,
-                outputTokens: true,
-              },
-            },
-          },
-          orderBy: {
-            datasetEntry: {
-              sortKey: "desc",
-            },
-          },
-          skip: (page - 1) * pageSize,
-          take: pageSize,
-        }),
-        prisma.fineTuneTrainingEntry.count({
-          where: {
-            fineTuneId: fineTuneId,
-          },
-        }),
-      ]);
+      const entries = await kysely
+        .selectFrom("NewFineTuneTrainingEntry as ftte")
+        .where("ftte.fineTuneId", "=", fineTuneId)
+        .innerJoin("DatasetEntryInput as dei", "ftte.inputHash", "dei.hash")
+        .innerJoin("DatasetEntryOutput as deo", "ftte.outputHash", "deo.hash")
+        .selectAll("ftte")
+        .select([
+          "ftte.id",
+          "ftte.inputHash",
+          "ftte.outputHash",
+          "ftte.createdAt",
+          "dei.messages",
+          "dei.tool_choice",
+          "dei.tools",
+          "dei.inputTokens",
+          "deo.output",
+          "deo.outputTokens",
+        ])
+        .orderBy("ftte.createdAt", "desc")
+        .limit(pageSize)
+        .offset((page - 1) * pageSize)
+        .execute();
 
-      const typedEntries = entries.map((entry) => ({
-        ...entry,
-        datasetEntry: typedDatasetEntry(entry.datasetEntry),
-      }));
+      const count = await prisma.newFineTuneTrainingEntry.count({
+        where: {
+          fineTuneId: fineTuneId,
+        },
+      });
+
+      const typedEntries = entries.map((entry) => typedDatasetEntry(entry));
 
       return {
         entries: typedEntries,

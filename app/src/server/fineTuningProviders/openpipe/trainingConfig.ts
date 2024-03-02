@@ -47,7 +47,7 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
   });
 
   const trainingEntries = await kysely
-    .selectFrom("FineTuneTrainingEntry as ftte")
+    .selectFrom("NewFineTuneTrainingEntry as ftte")
     .where("ftte.fineTuneId", "=", fineTune.id)
     .select(({ fn }) => [
       fn.count<string>("ftte.id").as("count"),

@@ -237,19 +237,22 @@ export enum LoggedCallsFiltersDefaultFields {
   CompletionId = "completionId",
 }
 
+export enum MonitorCheckFiltersExtendedFields {
+  CustomLLMFilter = "custom LLM filter",
+}
+
 export enum GeneralFiltersDefaultFields {
   Input = "Input",
   Output = "Output",
   Split = "Split",
-  ImportId = "Import ID",
-  RelabelBatchId = "Relabel Batch ID",
+  Source = "Source",
 }
 
 export enum EvaluationFiltersDefaultFields {
   Input = "Input",
   DatasetOutput = "Dataset Output",
-  ImportId = "Import ID",
   EvalApplied = "Eval Applied",
+  Source = "Source",
 }
 
 export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";

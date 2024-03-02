@@ -1,5 +1,5 @@
 import { Text, VStack } from "@chakra-ui/react";
-import type { DatasetEntry } from "@prisma/client";
+import type { DatasetEntryOutput } from "@prisma/client";
 import type { ChatCompletionMessage } from "openai/resources/chat";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
@@ -7,7 +7,7 @@ export const PotentiallyPendingFormattedMessage = ({
   output,
   preferJson = false,
 }: {
-  output: DatasetEntry["output"];
+  output: DatasetEntryOutput["output"];
   preferJson?: boolean;
 }) => {
   if (output) {

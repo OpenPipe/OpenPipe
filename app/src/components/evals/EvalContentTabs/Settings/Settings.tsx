@@ -23,14 +23,14 @@ const Settings = () => {
   const saveMutation = api.datasetEvals.update.useMutation();
 
   const datasetEval = useDatasetEval().data;
-  const dataset = useDataset(datasetEval?.datasetId).data;
+  const dataset = useDataset({ datasetId: datasetEval?.datasetId }).data;
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
 
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
-  const [numDatasetEntries, setNumDatasetEntries] = useState(0);
+  const [numRows, setNumRows] = useState(0);
   const [includedModelIds, setIncludedModelIds] = useState<string[]>([]);
 
   const addFilter = useFilters().addFilter;
@@ -43,7 +43,7 @@ const Settings = () => {
       !datasetEval?.id ||
       !name ||
       !instructions ||
-      !numDatasetEntries ||
+      !numRows ||
       includedModelIds.length < 2
     )
       return;
@@ -52,13 +52,13 @@ const Settings = () => {
       updates: {
         name,
         instructions,
-        numDatasetEntries,
+        numRows,
         modelIds: includedModelIds,
       },
     });
     if (maybeReportError(resp)) return;
-    await utils.datasetEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
-    await utils.datasetEntries.testingStats.invalidate({ datasetId: dataset.id });
+    await utils.nodeEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
+    await utils.nodeEntries.testingStats.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
     await utils.datasetEvals.get.invalidate({ id: datasetEval.id });
 
@@ -76,7 +76,7 @@ const Settings = () => {
   const hasChanged =
     name !== datasetEval?.name ||
     instructions !== datasetEval?.instructions ||
-    numDatasetEntries !== datasetEval?.numDatasetEntries ||
+    numRows !== datasetEval?.numRows ||
     !isEqual(
       includedModelIds.sort(),
       datasetEval?.outputSources.map((source) => source.modelId).sort(),
@@ -89,10 +89,10 @@ const Settings = () => {
 
     // If the instructions have changed, we need to re-evaluate all comparisons
     if (instructions !== datasetEval.instructions) {
-      return numRowFinalComparisons * numDatasetEntries;
+      return numRowFinalComparisons * numRows;
     }
 
-    const numPersistedRows = Math.min(datasetEval.numDatasetEntries, numDatasetEntries || 0);
+    const numPersistedRows = Math.min(datasetEval.numRows, numRows || 0);
 
     const numNewModelIds = includedModelIds.filter(
       (id) => !datasetEval?.outputSources.some((source) => source.modelId === id),
@@ -105,14 +105,14 @@ const Settings = () => {
     const newComparisonsFromAddedModels =
       numPersistedRows * (numRowFinalComparisons - numPersistedRowPersistedComparisons);
 
-    const numNewRows = Math.max(numDatasetEntries - datasetEval.numDatasetEntries, 0);
+    const numNewRows = Math.max(numRows - datasetEval.numRows, 0);
 
     const newComparisonsFromAddedRows = numNewRows * numRowFinalComparisons;
 
     return newComparisonsFromAddedModels + newComparisonsFromAddedRows;
   }, [
-    datasetEval?.numDatasetEntries,
-    numDatasetEntries,
+    datasetEval?.numRows,
+    numRows,
     datasetEval?.outputSources,
     includedModelIds,
     datasetEval?.instructions,
@@ -144,10 +144,10 @@ const Settings = () => {
     if (datasetEval) {
       setName(datasetEval.name);
       setInstructions(datasetEval.instructions ?? "");
-      setNumDatasetEntries(datasetEval.numDatasetEntries);
+      setNumRows(datasetEval.numRows);
       setIncludedModelIds(datasetEval.outputSources.map((source) => source.modelId));
     }
-  }, [datasetEval, setName, setInstructions, setNumDatasetEntries, setIncludedModelIds]);
+  }, [datasetEval, setName, setInstructions, setNumRows, setIncludedModelIds]);
 
   useEffect(() => reset(), [datasetEval, reset]);
 
@@ -211,11 +211,9 @@ const Settings = () => {
                 <InfoCircle tooltipText="The number of randomly selected dataset entries to apply this eval to." />
               </HStack>
               <Input
-                value={numDatasetEntries}
+                value={numRows}
                 type="number"
-                onChange={(e) =>
-                  setNumDatasetEntries(parseInt(e.target.value.match(/\d+/g)?.[0] ?? ""))
-                }
+                onChange={(e) => setNumRows(parseInt(e.target.value.match(/\d+/g)?.[0] ?? ""))}
                 placeholder="100"
                 w="full"
               />
@@ -259,7 +257,7 @@ const Settings = () => {
                 checks={[
                   [!!name, "Eval name is required"],
                   [!!instructions, "Instructions are required"],
-                  [!!numDatasetEntries, "Include one or more dataset entries"],
+                  [!!numRows, "Include one or more dataset entries"],
                   [includedModelIds.length >= 2, "At least two models must be included"],
                   [hasChanged, ""],
                 ]}

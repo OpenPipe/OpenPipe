@@ -10,15 +10,15 @@ import { useAppStore } from "~/state/store";
 import { isNumber } from "lodash-es";
 
 type DatasetEvalResults =
-  RouterOutputs["datasetEntries"]["listTestingEntries"]["entries"][number]["datasetEvalResults"];
+  RouterOutputs["nodeEntries"]["listTestingEntries"]["entries"][number]["datasetEvalResults"];
 
 const EvalResults = ({
   modelId,
-  datasetEntryId,
+  nodeEntryId,
   results,
 }: {
   modelId?: string;
-  datasetEntryId?: string;
+  nodeEntryId?: string;
   results: DatasetEvalResults;
 }) => {
   const datasetEvals = useDataset().data?.datasetEvals;
@@ -92,10 +92,10 @@ const EvalResults = ({
             h={6}
             px={2}
             onClick={() => {
-              if (modelId && datasetEntryId)
+              if (modelId && nodeEntryId)
                 setComparisonCriteria({
                   modelId,
-                  datasetEntryId,
+                  nodeEntryId,
                   datasetEvalId: evalWithScore.id,
                   type: evalWithScore.type,
                 });

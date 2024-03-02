@@ -1,9 +1,9 @@
 import { VStack, Text } from "@chakra-ui/react";
-import type { DatasetEntry } from "@prisma/client";
+import type { DatasetEntryInput } from "@prisma/client";
 import type { ChatCompletionMessage } from "openai/resources/chat";
 import FormattedMessage from "./FormattedMessage";
 
-const FormattedDatasetEntryInput = ({ messages }: { messages: DatasetEntry["messages"] }) => {
+const FormattedDatasetEntryInput = ({ messages }: Pick<DatasetEntryInput, "messages">) => {
   return (
     <VStack spacing={8} maxW="full">
       {(messages as unknown as ChatCompletionMessage[]).map((message, index) => (

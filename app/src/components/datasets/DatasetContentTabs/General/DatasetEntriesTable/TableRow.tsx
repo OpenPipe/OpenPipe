@@ -1,65 +1,25 @@
-import {
-  Box,
-  Td,
-  Tr,
-  Thead,
-  Th,
-  Tooltip,
-  HStack,
-  Text,
-  Checkbox,
-  Button,
-  Badge,
-} from "@chakra-ui/react";
-import { DatasetEntrySplit, RelabelRequestStatus } from "@prisma/client";
+import { Box, Td, Tr, Thead, Tooltip, HStack, Text, Button, Badge } from "@chakra-ui/react";
+import { DatasetEntrySplit } from "@prisma/client";
 
 import dayjs from "~/utils/dayjs";
 import { type RouterInputs, type RouterOutputs } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import { useIsClientInitialized, useDatasetEntries } from "~/utils/hooks";
-import { useMemo } from "react";
+import { useDataset, useIsClientInitialized, useNodeEntries } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import { SortableHeader } from "~/components/sorting";
 import { ProjectLink } from "~/components/ProjectLink";
 
-type DatasetEntry = RouterOutputs["datasetEntries"]["list"]["entries"][0];
-type SortableField = NonNullable<RouterInputs["datasetEntries"]["list"]["sortOrder"]>["field"];
+type DatasetEntry = RouterOutputs["nodeEntries"]["list"]["entries"][0];
+type SortableField = NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>["field"];
 
-export const TableHeader = ({ showRelabelStatusColumn }: { showRelabelStatusColumn: boolean }) => {
-  const matchingDatasetEntryIds = useDatasetEntries().data?.matchingEntryIds;
-  const selectedDatasetEntryIds = useAppStore((s) => s.selectedDatasetEntries.selectedIds);
-  const addSelectedIds = useAppStore((s) => s.selectedDatasetEntries.addSelectedIds);
-  const clearSelectedIds = useAppStore((s) => s.selectedDatasetEntries.clearSelectedIds);
-  const allSelected = useMemo(() => {
-    if (!matchingDatasetEntryIds || !matchingDatasetEntryIds.length) return false;
-    return matchingDatasetEntryIds.every((id) => selectedDatasetEntryIds.has(id));
-  }, [matchingDatasetEntryIds, selectedDatasetEntryIds]);
+export const TableHeader = () => {
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
 
   return (
     <Thead>
       <Tr>
-        <Th pr={0}>
-          <HStack minW={16}>
-            <Checkbox
-              isChecked={allSelected}
-              onChange={() => {
-                allSelected ? clearSelectedIds() : addSelectedIds(matchingDatasetEntryIds || []);
-              }}
-              _hover={{ borderColor: "gray.300" }}
-            />
-            <Text>
-              (
-              {selectedDatasetEntryIds.size
-                ? `${selectedDatasetEntryIds.size.toLocaleString()}/`
-                : ""}
-              {(matchingDatasetEntryIds?.length || 0).toLocaleString()})
-            </Text>
-          </HStack>
-        </Th>
-        <SortableHeader<SortableField> title="Updated At" field="createdAt" />
-        {showRelabelStatusColumn && <Th>Relabeling Status</Th>}
+        <SortableHeader<SortableField> title="Created At" field="persistentId" />
         <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />
         <SortableHeader<SortableField> isNumeric title="Split" field="split" />
@@ -72,20 +32,13 @@ export const TableRow = ({
   datasetEntry,
   isExpanded,
   toggleExpanded,
-  showOptions,
-  showRelabelStatusColumn,
 }: {
   datasetEntry: DatasetEntry;
   isExpanded: boolean;
   toggleExpanded: (persistentId: string) => void;
-  showOptions?: boolean;
-  showRelabelStatusColumn?: boolean;
 }) => {
-  const createdAt = dayjs(datasetEntry.createdAt).format("MMMM D h:mm A");
-  const fullTime = dayjs(datasetEntry.createdAt).toString();
-
-  const isChecked = useAppStore((s) => s.selectedDatasetEntries.selectedIds.has(datasetEntry.id));
-  const toggleChecked = useAppStore((s) => s.selectedDatasetEntries.toggleSelectedId);
+  const createdAt = dayjs(datasetEntry.creationTime).format("MMMM D h:mm A");
+  const fullTime = dayjs(datasetEntry.creationTime).toString();
 
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
@@ -99,27 +52,13 @@ export const TableRow = ({
       transition="background-color 1.2s"
       fontSize="sm"
     >
-      {showOptions && (
-        <Td>
-          <Checkbox
-            isChecked={isChecked}
-            onChange={() => toggleChecked(datasetEntry.id)}
-            _hover={{ borderColor: "gray.300" }}
-          />
-        </Td>
-      )}
       <Td>
-        <Tooltip label={fullTime} placement="top">
+        <Tooltip label={fullTime} placement="top-start">
           <Box whiteSpace="nowrap" minW="120px">
             {createdAt}
           </Box>
         </Tooltip>
       </Td>
-      {showRelabelStatusColumn && (
-        <Td>
-          <RelabelingStatus status={datasetEntry.relabelStatuses?.[0]?.status} />
-        </Td>
-      )}
       <Td isNumeric>
         {datasetEntry.inputTokens?.toLocaleString() ?? <Text color="gray.500">counting</Text>}
       </Td>
@@ -151,44 +90,12 @@ const EntrySplit = ({ split }: { split: string }) => {
   );
 };
 
-const RelabelingStatus = ({ status }: { status?: RelabelRequestStatus }) => {
-  if (!status) return null;
-
-  let color;
-  let text;
-
-  switch (status) {
-    case RelabelRequestStatus.ERROR:
-      color = "red.500";
-      text = "Failed";
-      break;
-    case RelabelRequestStatus.IN_PROGRESS:
-      color = "blue.500";
-      text = "In Progress";
-      break;
-    case RelabelRequestStatus.PENDING:
-      color = "gray.500";
-      text = "Pending";
-      break;
-    case RelabelRequestStatus.COMPLETE:
-      color = "green.500";
-      text = "Complete";
-      break;
-    default:
-      return null;
-  }
-
-  return (
-    <Text fontWeight="bold" color={color}>
-      {text}
-    </Text>
-  );
-};
-
 export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: boolean }) => {
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
   const filters = useFilters().filters;
-  const { isLoading } = useDatasetEntries();
+  const { isLoading } = useNodeEntries();
+
+  const numIncomingEntries = useDataset().data?.numIncomingEntries;
 
   if (isLoading) return null;
 
@@ -204,11 +111,15 @@ export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: bool
     );
   }
 
+  const initialText = numIncomingEntries
+    ? `This dataset has ${numIncomingEntries} entries pending LLM relabeling.`
+    : "This dataset has no entries.";
+
   return (
     <Tr>
       <Td w="full" colSpan={visibleColumns.size + 1}>
         <Text color="gray.500" textAlign="center" w="full" p={4}>
-          This dataset has no entries. Import logs from the{" "}
+          {initialText} You can add entries from the{" "}
           <Button variant="link" as={ProjectLink} href="/request-logs">
             <Text as="span" color="blue.600">
               Request Logs

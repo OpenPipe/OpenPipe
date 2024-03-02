@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, Fragment } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Drawer,
   DrawerBody,
@@ -12,20 +12,16 @@ import {
   HStack,
   Button,
   Text,
-  Icon,
-  Collapse,
 } from "@chakra-ui/react";
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
-import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { type DatasetEntrySplit } from "@prisma/client";
 import { isEqual } from "lodash-es";
 
 import { api } from "~/utils/api";
-import { useDatasetEntry, useHandledAsyncCallback } from "~/utils/hooks";
+import { useNodeEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EntrySplitDropdown from "./EntrySplitDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import dayjs from "~/utils/dayjs";
-import DatasetEntryHistoryRow from "../DatasetEntryHistoryRow";
 import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
 import InputEditor from "./InputEditor";
 import ToolsEditor from "./ToolsEditor";
@@ -36,26 +32,25 @@ const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
 
 function DatasetEntryDrawer({
-  datasetEntryPersistentId,
-  setDatasetEntryPersistentId,
+  nodeEntryPersistentId,
+  setNodeEntryPersistentId,
 }: {
-  datasetEntryPersistentId: string | null;
-  setDatasetEntryPersistentId: (id: string | null) => void;
+  nodeEntryPersistentId: string | null;
+  setNodeEntryPersistentId: (id: string | null) => void;
 }) {
   const utils = api.useContext();
 
-  const { data: datasetEntry, isLoading } = useDatasetEntry(datasetEntryPersistentId);
+  const { data: nodeEntry, isLoading } = useNodeEntry(nodeEntryPersistentId);
 
-  const savedInputMessages = useMemo(() => datasetEntry?.messages, [datasetEntry]);
-  const savedTools = useMemo(() => datasetEntry?.tools, [datasetEntry]);
-  const savedOutputMessage = useMemo(() => datasetEntry?.output, [datasetEntry]);
+  const savedInputMessages = useMemo(() => nodeEntry?.messages, [nodeEntry]);
+  const savedTools = useMemo(() => nodeEntry?.tools, [nodeEntry]);
+  const savedOutputMessage = useMemo(() => nodeEntry?.output, [nodeEntry]);
 
   const [inputMessagesToSave, setInputMessagesToSave] = useState<ChatCompletionMessageParam[]>([]);
   const [toolsToSave, setToolsToSave] = useState<string>(JSON.stringify([]));
   const [outputMessageToSave, setOutputMessageToSave] = useState<ChatCompletionMessageParam | null>(
     null,
   );
-  const [historyVisible, setHistoryVisible] = useState(false);
 
   useEffect(() => {
     if (savedInputMessages && savedOutputMessage) {
@@ -67,17 +62,17 @@ function DatasetEntryDrawer({
 
   const hasUpdates = useMemo(
     () =>
-      !isEqual(datasetEntry?.messages, inputMessagesToSave) ||
-      !isEqual(JSON.stringify(datasetEntry?.tools || []), toolsToSave) ||
-      !isEqual(datasetEntry?.output, outputMessageToSave),
-    [datasetEntry, inputMessagesToSave, toolsToSave, outputMessageToSave],
+      !isEqual(nodeEntry?.messages, inputMessagesToSave) ||
+      !isEqual(JSON.stringify(nodeEntry?.tools || []), toolsToSave) ||
+      !isEqual(nodeEntry?.output, outputMessageToSave),
+    [nodeEntry, inputMessagesToSave, toolsToSave, outputMessageToSave],
   );
 
-  const updateMutation = api.datasetEntries.update.useMutation();
+  const updateMutation = api.nodeEntries.update.useMutation();
   const [onSave, savingInProgress] = useHandledAsyncCallback(async () => {
-    if (!datasetEntry?.id || !inputMessagesToSave) return;
+    if (!nodeEntry?.id || !inputMessagesToSave) return;
     const resp = await updateMutation.mutateAsync({
-      id: datasetEntry?.id,
+      id: nodeEntry?.id,
       updates: {
         messages: JSON.stringify(inputMessagesToSave),
         tools: toolsToSave,
@@ -85,39 +80,32 @@ function DatasetEntryDrawer({
       },
     });
     if (maybeReportError(resp)) return;
-    await utils.datasetEntries.list.invalidate();
-    await utils.datasetEntries.get.invalidate();
-  }, [
-    updateMutation,
-    datasetEntry?.id,
-    inputMessagesToSave,
-    toolsToSave,
-    outputMessageToSave,
-    utils,
-  ]);
+    await utils.nodeEntries.list.invalidate();
+    await utils.nodeEntries.get.invalidate();
+  }, [updateMutation, nodeEntry?.id, inputMessagesToSave, toolsToSave, outputMessageToSave, utils]);
 
   const [onUpdateSplit] = useHandledAsyncCallback(
     async (split: DatasetEntrySplit) => {
-      if (!datasetEntry?.id) return;
+      if (!nodeEntry?.id) return;
       const resp = await updateMutation.mutateAsync({
-        id: datasetEntry?.id,
+        id: nodeEntry?.id,
         updates: {
           split,
         },
       });
       if (maybeReportError(resp)) return;
-      await utils.datasetEntries.list.invalidate();
-      await utils.datasetEntries.get.invalidate();
+      await utils.nodeEntries.list.invalidate();
+      await utils.nodeEntries.get.invalidate();
     },
-    [updateMutation, datasetEntry?.id, utils],
+    [updateMutation, nodeEntry?.id, utils],
   );
 
   useKeepScrollAtBottom(CONTAINER_ID, CONTENT_ID);
 
   return (
     <Drawer
-      isOpen={!!datasetEntryPersistentId}
-      onClose={() => setDatasetEntryPersistentId(null)}
+      isOpen={!!nodeEntryPersistentId}
+      onClose={() => setNodeEntryPersistentId(null)}
       placement="right"
       size="xl"
     >
@@ -128,12 +116,12 @@ function DatasetEntryDrawer({
           <VStack w="full" alignItems="flex-start">
             <HStack w="full" justifyContent="space-between" pr={12}>
               <Heading size="md">Dataset Entry</Heading>
-              {datasetEntry && (
+              {nodeEntry && (
                 <ConditionallyEnable
                   accessRequired="requireCanModifyProject"
                   accessDeniedText="Only project members can modify the training split of a dataset entry"
                 >
-                  <EntrySplitDropdown split={datasetEntry.split} onChange={onUpdateSplit} />
+                  <EntrySplitDropdown split={nodeEntry.split} onChange={onUpdateSplit} />
                 </ConditionallyEnable>
               )}
             </HStack>
@@ -141,7 +129,7 @@ function DatasetEntryDrawer({
         </DrawerHeader>
         <DrawerBody h="full" pb={4} bgColor="gray.100" id={CONTAINER_ID}>
           <VStack w="full" spacing={4} pb={4} id={CONTENT_ID}>
-            {datasetEntry && (
+            {nodeEntry && (
               <VStack
                 w="full"
                 alignItems="flex-start"
@@ -152,52 +140,18 @@ function DatasetEntryDrawer({
                 borderColor="gray.200"
                 p={4}
               >
-                {datasetEntry?.importId && (
-                  <>
-                    <Text>
-                      <Text as="span" fontWeight="bold">
-                        Import ID:
-                      </Text>{" "}
-                      {datasetEntry.importId}
-                    </Text>
-                  </>
-                )}
                 <Text>
                   <Text as="span" fontWeight="bold">
-                    Last Updated:
+                    Last Processed:
                   </Text>{" "}
-                  {dayjs(datasetEntry.createdAt).format("MMMM D h:mm A")}
+                  {dayjs(nodeEntry.updatedAt).format("MMMM D h:mm A")}
                 </Text>
-                <VStack w="full" alignItems="flex-start" spacing={0} pt={4}>
-                  <HStack
-                    _hover={{ textDecoration: "underline" }}
-                    onClick={() => setHistoryVisible(!historyVisible)}
-                    cursor="pointer"
-                    fontWeight="bold"
-                    spacing={0.5}
-                  >
-                    <Text>Version History</Text>
-                    <Icon
-                      as={historyVisible ? FiChevronUp : FiChevronDown}
-                      strokeWidth={3}
-                      boxSize={3.5}
-                      pt={0.5}
-                    />
-                  </HStack>
-                  <Collapse in={historyVisible} unmountOnExit={true}>
-                    <VStack align="stretch" spacing={0} pt={2}>
-                      {datasetEntry?.history.map((entry, i) => (
-                        <DatasetEntryHistoryRow key={entry.id} entry={entry} isFirst={i === 0} />
-                      ))}
-                    </VStack>
-                  </Collapse>
-                </VStack>
               </VStack>
             )}
             <InputEditor
               inputMessagesToSave={inputMessagesToSave}
               setInputMessagesToSave={setInputMessagesToSave}
-              matchedRules={datasetEntry?.matchedRules}
+              matchedRules={nodeEntry?.matchedRules}
             />
             <ToolsEditor toolsToSave={toolsToSave} setToolsToSave={setToolsToSave} />
             <OutputEditor

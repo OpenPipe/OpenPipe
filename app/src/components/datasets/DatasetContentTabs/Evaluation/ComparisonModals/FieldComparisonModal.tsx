@@ -37,7 +37,7 @@ const FieldComparisonModal = () => {
   const { data } = api.datasetEvals.getFieldComparisonDetails.useQuery(
     {
       datasetEvalId: comparisonCriteria?.datasetEvalId ?? "",
-      datasetEntryId: comparisonCriteria?.datasetEntryId ?? "",
+      nodeEntryId: comparisonCriteria?.nodeEntryId ?? "",
       modelId: comparisonCriteria?.modelId ?? "",
     },
     {
@@ -46,8 +46,6 @@ const FieldComparisonModal = () => {
   );
 
   if (!data?.entry || !comparisonCriteria) return null;
-
-  console.log("data", data);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xl", md: "5xl" }}>

@@ -3,19 +3,18 @@ import "dotenv/config";
 import "../../../sentry.server.config";
 
 import { env } from "~/env.mjs";
-import { importDatasetEntries } from "./importDatasetEntries.task";
 import { trainFineTune } from "./fineTuning/trainFineTune.task";
 import { checkFineTuneStatus } from "./fineTuning/checkFineTuneStatus.task";
 import { checkOpenaiFineTuneStatus } from "./fineTuning/checkOpenaiFineTuneStatus.task";
 import { generateTestSetEntry } from "./generateTestSetEntry.task";
 import { evaluateTestSetEntries } from "./evaluateTestSetEntries.task";
 import { countDatasetEntryTokens } from "./fineTuning/countDatasetEntryTokens.task";
-import { relabelDatasetEntry } from "./relabelDatasetEntry.task";
-import { relabelLoggedCall } from "./relabelLoggedCall.task";
 import type defineTask from "./defineTask";
 import { pgPool } from "../db";
 import { generateInvoices } from "./generateInvoices.task";
 import { chargeInvoices } from "./chargeInvoices.task";
+import { processNode } from "./nodes/processNodes/processNode.task";
+import { feedMonitors } from "./nodes/feedMonitors.task";
 
 console.log("Starting worker...");
 
@@ -24,17 +23,16 @@ console.log("Starting worker...");
 process.env.NO_LOG_SUCCESS = "true";
 
 const registeredTasks: ReturnType<typeof defineTask<any>>[] = [
-  importDatasetEntries,
   trainFineTune,
   checkFineTuneStatus,
   checkOpenaiFineTuneStatus,
   generateTestSetEntry,
   evaluateTestSetEntries,
   countDatasetEntryTokens,
-  relabelDatasetEntry,
-  relabelLoggedCall,
   generateInvoices,
   chargeInvoices,
+  processNode,
+  feedMonitors,
 ];
 
 const taskList = registeredTasks.reduce((acc, task) => {

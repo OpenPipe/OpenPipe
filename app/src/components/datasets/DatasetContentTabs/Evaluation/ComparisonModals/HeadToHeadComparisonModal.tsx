@@ -48,7 +48,7 @@ const HeadToHeadComparisonModal = () => {
   const { data } = api.datasetEvals.getHeadToHeadComparisonDetails.useQuery(
     {
       datasetEvalId: comparisonCriteria?.datasetEvalId ?? "",
-      datasetEntryId: comparisonCriteria?.datasetEntryId ?? "",
+      nodeEntryId: comparisonCriteria?.nodeEntryId ?? "",
       modelId: comparisonCriteria?.modelId ?? "",
       visibleModelIds,
     },
@@ -70,7 +70,7 @@ const HeadToHeadComparisonModal = () => {
         <ModalHeader>
           <HStack>
             <Icon as={FaBalanceScale} />
-            <Text>{data.datasetEval.name} - Head To Head Comparison</Text>
+            <Text>{data.entry.datasetEvalName} - Head To Head Comparison</Text>
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
@@ -86,7 +86,7 @@ const HeadToHeadComparisonModal = () => {
               borderColor="gray.300"
             >
               <Text fontWeight="bold">Evaluation Criteria</Text>
-              <Text>{data.datasetEval.instructions}</Text>
+              <Text>{data.entry.datasetEvalInstructions}</Text>
             </VStack>
             <Grid
               display="grid"
@@ -186,7 +186,7 @@ const ComparisonsHeader = () => (
 type ComparisonResult =
   RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"]["comparisonResults"][number];
 
-const VERTICAL_PADDING = 32;
+const VERTICAL_PADDING = 64;
 const MIN_EXPANDABLE_HEIGHT = 200;
 
 const ComparisonRow = ({
@@ -324,7 +324,7 @@ const SelectedComparisonTable = ({
   const expandable = maxHeight > MIN_HEIGHT;
 
   const contentProps = {
-    maxH: !expandable ? maxHeight : expanded ? maxHeight + 160 : MIN_HEIGHT,
+    maxH: !expandable ? maxHeight + 32 : expanded ? maxHeight + 160 : MIN_HEIGHT,
     overflow: "hidden",
     transition: "max-height 0.5s ease-in-out",
   };
@@ -347,12 +347,12 @@ const SelectedComparisonTable = ({
         }}
       >
         <GridItem>
-          <Text fontWeight="bold" color="gray.500">
+          <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
             Input
           </Text>
         </GridItem>
         <GridItem {...leftBorderProps}>
-          <Text fontWeight="bold" color="gray.500">
+          <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
             {selectedOutputTitle}
           </Text>
         </GridItem>

@@ -1,6 +1,5 @@
 import { kysely, prisma } from "~/server/db";
 import defineTask from "../defineTask";
-import { startTestJobs } from "~/server/utils/startTestJobs";
 import { trainerv1 } from "~/server/modal-rpc/clients";
 import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 
@@ -14,6 +13,7 @@ import {
   getNumEpochsFromConfig,
 } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
+import { startTestJobsForModel } from "~/server/utils/nodes/startTestJobs";
 import { captureException } from "@sentry/node";
 import { sendFineTuneModelTrained } from "~/server/emails/sendFineTuneModelTrained";
 
@@ -47,7 +47,7 @@ export const checkFineTuneStatus = defineTask({
             const typedFT = typedFineTune(currentFineTune);
 
             const trainingStats = await kysely
-              .selectFrom("FineTuneTrainingEntry as ftte")
+              .selectFrom("NewFineTuneTrainingEntry as ftte")
               .where("ftte.fineTuneId", "=", typedFT.id)
               .select(() => [
                 sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
@@ -107,7 +107,19 @@ export const checkFineTuneStatus = defineTask({
 
             captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
 
-            await startTestJobs(currentFineTune.datasetId, currentFineTune.id);
+            const dataset = await prisma.dataset.findUnique({
+              where: { id: typedFT.datasetId },
+            });
+
+            if (dataset?.nodeId) {
+              await startTestJobsForModel({
+                modelId: currentFineTune.id,
+                nodeEntryBaseQuery: kysely
+                  .selectFrom("NodeEntry as ne")
+                  .where("ne.nodeId", "=", dataset.nodeId)
+                  .where("ne.status", "=", "PROCESSED"),
+              });
+            }
           } else if (resp.status === "error") {
             if (ft.numTrainingAutoretries < MAX_AUTO_RETRIES) {
               // Sometimes training jobs fail for no reason, so we'll retry them a few times

@@ -8,8 +8,8 @@ import { kysely, prisma } from "~/server/db";
 import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
-import { constructDatasetEntryFiltersQuery } from "~/server/utils/constructDatasetEntryFiltersQuery";
-import { copyPruningRulesForFineTune } from "~/server/utils/updatePruningRuleMatches";
+import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
+import { copyPruningRulesForFineTune } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { CURRENT_PIPELINE_VERSION, filtersSchema } from "~/types/shared.types";
 import { requireCanModifyProject } from "~/utils/accessControl";
 import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
@@ -78,24 +78,25 @@ export const createFineTune = async (
   });
 
   await kysely
-    .insertInto("FineTuneTrainingEntry")
-    .columns(["id", "datasetEntryId", "fineTuneId", "updatedAt"])
-    .expression((eb) =>
-      constructDatasetEntryFiltersQuery({
+    .insertInto("NewFineTuneTrainingEntry")
+    .columns(["id", "nodeEntryPersistentId", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
+    .expression(() =>
+      constructNodeEntryFiltersQuery({
         filters: input.filters,
-        datasetId: fineTune.datasetId,
-        ftteEB: eb,
+        // TODO: remove type assertion once nodeId is required
+        datasetNodeId: input.dataset.nodeId as string,
       })
         .where("split", "=", "TRAIN")
-        .where("output", "is not", null)
+        .where("status", "=", "PROCESSED")
         .select([
           sql`uuid_generate_v4()`.as("id"),
-          "id as datasetEntryId",
+          "persistentId",
+          "inputHash",
+          "outputHash",
           sql`${fineTune.id}`.as("fineTuneId"),
           sql`now()`.as("updatedAt"),
         ]),
     )
-    .onConflict((oc) => oc.columns(["datasetEntryId", "fineTuneId"]).doNothing())
     .execute();
 
   await trainFineTune.enqueue({ fineTuneId: fineTune.id });

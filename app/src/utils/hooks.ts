@@ -12,7 +12,7 @@ import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 import { toUTC } from "./dayjs";
 import { useDateFilter } from "~/components/Filters/useDateFilter";
-import { ProviderWithModel } from "~/server/fineTuningProviders/types";
+import { type ProviderWithModel } from "~/server/fineTuningProviders/types";
 import { splitProvider } from "~/server/fineTuningProviders/supportedModels";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
@@ -158,18 +158,20 @@ export const useDatasets = () => {
   );
 };
 
-export const useDataset = (datasetId?: string) => {
+export const useDataset = (options?: { datasetId?: string; refetchInterval?: number }) => {
   const router = useRouter();
 
-  if (!datasetId) {
-    datasetId = router.query.id as string;
-  }
-  const dataset = api.datasets.get.useQuery({ id: datasetId }, { enabled: !!datasetId });
+  const datasetId = options?.datasetId ?? (router.query.id as string);
+
+  const dataset = api.datasets.get.useQuery(
+    { id: datasetId },
+    { enabled: !!datasetId, refetchInterval: options?.refetchInterval },
+  );
 
   return dataset;
 };
 
-export const useDatasetEntries = (refetchInterval = 0) => {
+export const useNodeEntries = (refetchInterval = 0) => {
   const dataset = useDataset().data;
 
   const filters = useFilters().filters;
@@ -177,12 +179,22 @@ export const useDatasetEntries = (refetchInterval = 0) => {
   const { page, pageSize } = usePageParams();
 
   const sort =
-    useSortOrder<NonNullable<RouterInputs["datasetEntries"]["list"]["sortOrder"]>["field"]>()
-      .params;
+    useSortOrder<NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>["field"]>().params;
 
-  const result = api.datasetEntries.list.useQuery(
+  const result = api.nodeEntries.list.useQuery(
     { datasetId: dataset?.id ?? "", filters, page, pageSize, sortOrder: sort },
     { enabled: !!dataset?.id, refetchInterval },
+  );
+
+  return useStableData(result);
+};
+
+export const useNodeEntry = (persistentId: string | null) => {
+  const dataset = useDataset().data;
+
+  const result = api.nodeEntries.get.useQuery(
+    { persistentId: persistentId as string, datasetId: dataset?.id ?? "" },
+    { enabled: !!persistentId && !!dataset?.id },
   );
 
   return useStableData(result);
@@ -198,7 +210,7 @@ export const useDatasetTrainingCost = (
 
   const filters = useFilters().filters;
 
-  const stats = api.datasets.getTrainingCosts.useQuery(
+  return api.datasets.getTrainingCosts.useQuery(
     {
       datasetId: dataset?.id || "",
       baseModel: splitProvider(selectedBaseModel),
@@ -208,8 +220,15 @@ export const useDatasetTrainingCost = (
     },
     { enabled: !!dataset, refetchInterval },
   );
+};
 
-  return stats;
+export const useDatasetArchives = () => {
+  const dataset = useDataset().data;
+
+  return api.archives.listForDataset.useQuery(
+    { datasetId: dataset?.id ?? "" },
+    { enabled: !!dataset?.id },
+  );
 };
 
 // Prevent annoying flashes while loading from the server
@@ -224,14 +243,6 @@ const useStableData = <TData, TError>(result: UseQueryResult<TData, TError>) => 
   }, [data, isFetching]);
 
   return { ...result, data: stableData };
-};
-
-export const useDatasetEntry = (persistentId: string | null) => {
-  const result = api.datasetEntries.get.useQuery(
-    { persistentId: persistentId as string },
-    { enabled: !!persistentId },
-  );
-  return useStableData(result);
 };
 
 export const useTrainingEntries = () => {
@@ -257,7 +268,7 @@ export const useTestingEntries = (refetchInterval?: number) => {
 
   const { testEntrySortOrder } = useTestEntrySortOrder();
 
-  const result = api.datasetEntries.listTestingEntries.useQuery(
+  const result = api.nodeEntries.listTestingEntries.useQuery(
     {
       datasetId: dataset?.id || "",
       filters,
@@ -303,7 +314,7 @@ export const useModelTestingStats = (
   const filters = useMappedModelIdFilters();
   const visibleModelIds = useVisibleModelIds().visibleModelIds;
 
-  const result = api.datasetEntries.testingStats.useQuery(
+  const result = api.nodeEntries.testingStats.useQuery(
     { datasetId: datasetId ?? "", filters, modelId: modelId ?? "", visibleModelIds },
     { enabled: !!datasetId && !!modelId, refetchInterval },
   );

@@ -1,8 +1,10 @@
 import ContentTabs from "~/components/ContentTabs";
 import General from "./General/General";
-import Evaluation from "./Evaluation/Evaluation";
 import Models from "./Models/Models";
+import Sources from "./Sources/Sources";
+import Evaluation from "./Evaluation/Evaluation";
 import Settings from "./Settings/Settings";
+import { ProcessingIndicator } from "../ProcessingIndicator";
 
 export const DATASET_GENERAL_TAB_KEY = "general";
 export const DATASET_EVALUATION_TAB_KEY = "evaluate";
@@ -20,6 +22,11 @@ const tabs = [
     component: <Models />,
   },
   {
+    key: "sources",
+    title: "Sources",
+    component: <Sources />,
+  },
+  {
     key: DATASET_EVALUATION_TAB_KEY,
     title: "Evaluate",
     component: <Evaluation />,
@@ -32,7 +39,11 @@ const tabs = [
 ];
 
 const DatasetContentTabs = () => (
-  <ContentTabs tabs={tabs} headerProps={{ px: 8, position: "sticky", left: 0, right: 0, pt: 2 }} />
+  <ContentTabs
+    tabs={tabs}
+    headerProps={{ px: 8, position: "sticky", left: 0, right: 0, pt: 2 }}
+    rightHeader={<ProcessingIndicator />}
+  />
 );
 
 export default DatasetContentTabs;

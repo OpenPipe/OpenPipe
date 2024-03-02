@@ -1,123 +1,173 @@
 import { isEqual, mean } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources/chat";
-import { type typedFineTuneTestingEntry, type typedDatasetEntry } from "~/types/dbColumns.types";
-import { prisma } from "../db";
+import { v4 as uuidv4 } from "uuid";
+
+import { type typedNodeEntry } from "./nodes/node.types";
+import { kysely } from "../db";
 
 export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 
-export const saveFieldComparisonScore = async (
-  datasetId: string,
-  datasetEntryId: string,
-  score: number,
-  modelId: string,
-) => {
-  let datasetEval;
-  let numDatasetEvalTries = 0;
-  while (!datasetEval && numDatasetEvalTries < 2) {
-    try {
-      datasetEval = await prisma.datasetEval.upsert({
-        where: {
-          datasetId_name: { datasetId: datasetId, name: FIELD_COMPARISON_EVAL_NAME },
-        },
-        create: {
+export const saveFieldComparisonScore = async ({
+  datasetId,
+  persistentId,
+  nodeEntryInputHash,
+  score,
+  modelId,
+}: {
+  datasetId: string;
+  persistentId: string;
+  nodeEntryInputHash: string;
+  score: number;
+  modelId: string;
+}) => {
+  let datasetEvalId = "";
+
+  await kysely.transaction().execute(async (tx) => {
+    const datasetEval = await tx
+      .selectFrom("DatasetEval")
+      .where("datasetId", "=", datasetId)
+      .where("name", "=", FIELD_COMPARISON_EVAL_NAME)
+      .select(["id"])
+      .executeTakeFirst();
+
+    if (datasetEval) {
+      datasetEvalId = datasetEval.id;
+    } else {
+      datasetEvalId = uuidv4();
+      await tx
+        .insertInto("DatasetEval")
+        .values({
+          id: datasetEvalId,
           datasetId,
           name: FIELD_COMPARISON_EVAL_NAME,
           type: "FIELD_COMPARISON",
-        },
-        update: {},
-      });
-    } catch (e) {
-      // If we attempt to create the same eval from multiple processes at the same time, we may get a unique constraint error.
-      numDatasetEvalTries++;
+          updatedAt: new Date(),
+        })
+        .onConflict((oc) => oc.columns(["datasetId", "name"]).doNothing())
+        .execute();
     }
-  }
-
-  if (!datasetEval) throw new Error("Error retrieving dataset eval");
-
-  const datasetEvalDatasetEntry = await prisma.datasetEvalDatasetEntry.upsert({
-    where: {
-      datasetEvalId_datasetEntryId: { datasetEvalId: datasetEval.id, datasetEntryId },
-    },
-    create: {
-      datasetEvalId: datasetEval.id,
-      datasetEntryId,
-    },
-    update: {},
   });
 
-  let datasetEvalOutputSource;
-  let numDatatsetEvalOutputSourceTries = 0;
-  while (!datasetEvalOutputSource && numDatatsetEvalOutputSourceTries < 2) {
-    try {
-      datasetEvalOutputSource = await prisma.datasetEvalOutputSource.upsert({
-        where: {
-          datasetEvalId_modelId: { datasetEvalId: datasetEval.id, modelId },
-        },
-        create: {
-          datasetEvalId: datasetEval.id,
+  let datasetEvalNodeEntryId = "";
+
+  await kysely.transaction().execute(async (tx) => {
+    const datasetEvalNodeEntry = await tx
+      .selectFrom("DatasetEvalNodeEntry")
+      .where("datasetEvalId", "=", datasetEvalId)
+      .where("nodeEntryPersistentId", "=", persistentId)
+      .select(["id"])
+      .executeTakeFirst();
+
+    if (datasetEvalNodeEntry) {
+      datasetEvalNodeEntryId = datasetEvalNodeEntry.id;
+    } else {
+      datasetEvalNodeEntryId = uuidv4();
+      await tx
+        .insertInto("DatasetEvalNodeEntry")
+        .values({
+          id: datasetEvalNodeEntryId,
+          datasetEvalId: datasetEvalId,
+          nodeEntryPersistentId: persistentId,
+          updatedAt: new Date(),
+        })
+        .onConflict((oc) => oc.columns(["datasetEvalId", "nodeEntryPersistentId"]).doNothing())
+        .execute();
+    }
+  });
+
+  let datasetEvalOutputSourceId = "";
+
+  await kysely.transaction().execute(async (tx) => {
+    const datasetEvalOutputSource = await tx
+      .selectFrom("DatasetEvalOutputSource")
+      .where("datasetEvalId", "=", datasetEvalId)
+      .where("modelId", "=", modelId)
+      .select(["id"])
+      .executeTakeFirst();
+
+    if (datasetEvalOutputSource) {
+      datasetEvalOutputSourceId = datasetEvalOutputSource.id;
+    } else {
+      datasetEvalOutputSourceId = uuidv4();
+      await tx
+        .insertInto("DatasetEvalOutputSource")
+        .values({
+          id: datasetEvalOutputSourceId,
+          datasetEvalId,
           modelId,
-        },
-        update: {},
-      });
-    } catch (e) {
-      numDatatsetEvalOutputSourceTries++;
+          updatedAt: new Date(),
+        })
+        .onConflict((oc) => oc.columns(["datasetEvalId", "modelId"]).doNothing())
+        .execute();
     }
-  }
-
-  if (!datasetEvalOutputSource) throw new Error("Error retrieving dataset eval details");
-
-  const datasetEvalResult = await prisma.datasetEvalResult.findFirst({
-    where: {
-      datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-      datasetEvalOutputSourceId: datasetEvalOutputSource.id,
-    },
   });
 
-  // Prisma doesn't support upserting for records with a foreign key that contains a nullable value
-  if (datasetEvalResult) {
-    await prisma.datasetEvalResult.update({
-      where: { id: datasetEvalResult.id },
-      data: {
-        score,
-        status: "COMPLETE",
-      },
-    });
-  } else {
-    await prisma.datasetEvalResult.create({
-      data: {
-        datasetEvalDatasetEntryId: datasetEvalDatasetEntry.id,
-        datasetEvalOutputSourceId: datasetEvalOutputSource.id,
-        score,
-        status: "COMPLETE",
-      },
-    });
-  }
+  await kysely.transaction().execute(async (tx) => {
+    const datasetEvalResult = await tx
+      .selectFrom("NewDatasetEvalResult")
+      .where("datasetEvalNodeEntryId", "=", datasetEvalNodeEntryId)
+      .where("datasetEvalOutputSourceId", "=", datasetEvalOutputSourceId)
+      .select(["id"])
+      .executeTakeFirst();
+
+    if (datasetEvalResult) {
+      await tx
+        .updateTable("NewDatasetEvalResult")
+        .set({
+          nodeEntryInputHash,
+          score,
+          status: "COMPLETE",
+          updatedAt: new Date(),
+        })
+        .where("id", "=", datasetEvalResult.id)
+        .execute();
+    } else {
+      await kysely
+        .insertInto("NewDatasetEvalResult")
+        .values({
+          id: uuidv4(),
+          datasetEvalNodeEntryId: datasetEvalNodeEntryId,
+          datasetEvalOutputSourceId: datasetEvalOutputSourceId,
+          nodeEntryInputHash,
+          score,
+          status: "COMPLETE",
+          updatedAt: new Date(),
+        })
+        .execute();
+    }
+  });
 };
 
 export const calculateFieldComparisonScore = (
-  datasetEntry: ReturnType<typeof typedDatasetEntry>,
-  fineTuneTestingEntry: ReturnType<typeof typedFineTuneTestingEntry>,
+  nodeEntry: ReturnType<typeof typedNodeEntry>,
+  fineTuneTestingEntryOutput: ChatCompletionMessage,
 ) => {
-  if (datasetEntry.response_format?.type === "json_object" && !datasetEntry.output?.tool_calls) {
+  if (nodeEntry.response_format?.type === "json_object" && !nodeEntry.output?.tool_calls) {
     return calculateToolCallScore(
-      { name: "content", arguments: datasetEntry.output?.content ?? "" },
-      { name: "content", arguments: fineTuneTestingEntry.output?.content ?? "" },
+      { name: "content", arguments: nodeEntry.output?.content ?? "" },
+      { name: "content", arguments: fineTuneTestingEntryOutput?.content ?? "" },
     );
-  } else if (datasetEntry.output?.tool_calls) {
-    const generatedToolCalls = Object.fromEntries(
-      fineTuneTestingEntry.output?.tool_calls?.map((toolCall) => [
-        toolCall.function.name,
-        toolCall.function.arguments,
-      ]) ?? [],
-    );
+  } else if (nodeEntry.output?.tool_calls) {
+    const generatedToolCalls: Record<string, string[]> = {};
 
-    const scores = datasetEntry.output?.tool_calls.map((toolCall) => {
-      const generatedToolCall = generatedToolCalls[toolCall.function.name];
-      if (!generatedToolCall) return 0;
-      return calculateToolCallScore(toolCall.function, {
-        name: toolCall.function.name,
-        arguments: generatedToolCall,
-      });
+    for (const toolCall of fineTuneTestingEntryOutput?.tool_calls ?? []) {
+      const argumentsList = generatedToolCalls[toolCall.function.name] ?? [];
+      argumentsList.push(toolCall.function.arguments);
+      generatedToolCalls[toolCall.function.name] = argumentsList;
+    }
+
+    const scores = nodeEntry.output?.tool_calls.map((toolCall) => {
+      const argumentsList = generatedToolCalls[toolCall.function.name];
+      if (!argumentsList) return 0;
+      // return max score of all generated tool calls with the same name
+      return Math.max(
+        ...argumentsList.map((args) =>
+          calculateToolCallScore(toolCall.function, {
+            name: toolCall.function.name,
+            arguments: args,
+          }),
+        ),
+      );
     });
 
     return mean(scores);

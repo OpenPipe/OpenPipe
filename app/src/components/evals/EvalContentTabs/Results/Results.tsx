@@ -68,10 +68,10 @@ const Results = () => {
             </Thead>
             <Tbody>
               {datasetEval.results.leaderboard.map((model) => {
-                const title = getOutputTitle(model.modelId1, model.slug1);
+                const title = getOutputTitle(model.modelId, model.slug);
                 const titleElement = title?.startsWith("openpipe:") ? (
                   <ProjectLink
-                    href={{ pathname: "/fine-tunes/[id]", query: { id: model.modelId1 } }}
+                    href={{ pathname: "/fine-tunes/[id]", query: { id: model.modelId } }}
                   >
                     <Text as="span" _hover={{ textDecoration: "underline" }}>
                       {title.replace("openpipe:", "")}
@@ -84,7 +84,7 @@ const Results = () => {
                   title
                 );
                 return (
-                  <Tr key={model.modelId1} h={12}>
+                  <Tr key={model.modelId} h={12}>
                     <Td fontWeight="bold">{titleElement}</Td>
                     <Td isNumeric>
                       <ColoredPercent value={model.winRate} />
@@ -132,7 +132,7 @@ const Heatmap = (props: { results: RouterOutputs["datasetEvals"]["get"]["results
 
   const labels = props.results.leaderboard.map((model) => ({
     ...model,
-    name: getOutputTitle(model.modelId1, model.slug1)?.replace("openpipe:", ""),
+    name: getOutputTitle(model.modelId, model.slug)?.replace("openpipe:", ""),
   }));
 
   const [boxSize, setBoxSize] = useState("0px");
@@ -180,16 +180,16 @@ const Heatmap = (props: { results: RouterOutputs["datasetEvals"]["get"]["results
         </Text>
       ))}
       {labels.map((model1) => (
-        <React.Fragment key={model1.modelId1}>
+        <React.Fragment key={model1.modelId}>
           <Text textAlign="right" pr={2} fontSize="sm">
             {model1.name}
           </Text>
           {labels.map((model2) => {
-            const result = headToHead[model1.modelId1]?.[model2.modelId1];
-            if (!result) return <Box key={model2.modelId1} boxSize={boxSize} bgColor="gray.50" />;
+            const result = headToHead[model1.modelId]?.[model2.modelId];
+            if (!result) return <Box key={model2.modelId} boxSize={boxSize} bgColor="gray.50" />;
             return (
               <Box
-                key={model2.modelId1}
+                key={model2.modelId}
                 bg={colorScale(result.winRate).hex()}
                 boxSize={boxSize}
                 textAlign="center"

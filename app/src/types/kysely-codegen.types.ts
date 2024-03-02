@@ -60,6 +60,23 @@ export interface ApiKey {
   readOnly: Generated<boolean>;
 }
 
+export interface CachedProcessedEntry {
+  id: string;
+  nodeHash: string | null;
+  nodeEntryPersistentId: string | null;
+  nodeId: string | null;
+  projectId: string;
+  incomingInputHash: string;
+  incomingOutputHash: string | null;
+  outgoingInputHash: string | null;
+  outgoingOutputHash: string | null;
+  outgoingSplit: "TEST" | "TRAIN" | null;
+  filterOutcome: string | null;
+  explanation: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
 export interface CachedResponse {
   id: string;
   cacheKey: string;
@@ -82,6 +99,15 @@ export interface CreditAdjustment {
   createdAt: Generated<Timestamp>;
 }
 
+export interface DataChannel {
+  id: string;
+  lastProcessedAt: Generated<Timestamp>;
+  originId: string | null;
+  destinationId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
 export interface Dataset {
   id: string;
   name: string;
@@ -90,6 +116,7 @@ export interface Dataset {
   updatedAt: Timestamp;
   trainingRatio: Generated<number>;
   enabledComparisonModels: Generated<string[] | null>;
+  nodeId: string | null;
 }
 
 export interface DatasetEntry {
@@ -116,6 +143,25 @@ export interface DatasetEntry {
   response_format: Json | null;
 }
 
+export interface DatasetEntryInput {
+  tool_choice: Json | null;
+  tools: Generated<Json>;
+  messages: Generated<Json>;
+  response_format: Json | null;
+  inputTokens: number | null;
+  hash: string;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
+}
+
+export interface DatasetEntryOutput {
+  output: Json;
+  hash: string;
+  outputTokens: number | null;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
+}
+
 export interface DatasetEval {
   id: string;
   name: string;
@@ -130,6 +176,14 @@ export interface DatasetEvalDatasetEntry {
   id: string;
   datasetEvalId: string;
   datasetEntryId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface DatasetEvalNodeEntry {
+  id: string;
+  datasetEvalId: string;
+  nodeEntryPersistentId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
 }
@@ -160,7 +214,7 @@ export interface DatasetEvalResult {
 
 export interface DatasetFileUpload {
   id: string;
-  datasetId: string;
+  datasetId: string | null;
   blobName: string;
   fileName: string;
   fileSize: number;
@@ -171,6 +225,7 @@ export interface DatasetFileUpload {
   errorMessage: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  nodeId: string | null;
 }
 
 export interface ExportWeightsRequest {
@@ -241,17 +296,42 @@ export interface FineTuneTrainingEntry {
   prunedInputTokens: number | null;
 }
 
-export interface GraphileWorkerJobQueues {
-  queue_name: string;
-  job_count: number;
+export interface GraphileWorkerJobs {
+  id: Int8 | null;
+  queue_name: string | null;
+  task_identifier: string | null;
+  priority: number | null;
+  run_at: Timestamp | null;
+  attempts: number | null;
+  max_attempts: number | null;
+  last_error: string | null;
+  created_at: Timestamp | null;
+  updated_at: Timestamp | null;
+  key: string | null;
   locked_at: Timestamp | null;
   locked_by: string | null;
+  revision: number | null;
+  flags: Json | null;
 }
 
-export interface GraphileWorkerJobs {
-  id: Generated<Int8>;
-  queue_name: string | null;
-  task_identifier: string;
+export interface GraphileWorkerMigrations {
+  id: number;
+  ts: Generated<Timestamp>;
+  breaking: Generated<boolean>;
+}
+
+export interface GraphileWorkerPrivateJobQueues {
+  id: number;
+  queue_name: string;
+  locked_at: Timestamp | null;
+  locked_by: string | null;
+  is_available: Generated<boolean>;
+}
+
+export interface GraphileWorkerPrivateJobs {
+  id: Int8;
+  job_queue_id: number | null;
+  task_id: number;
   payload: Generated<Json>;
   priority: Generated<number>;
   run_at: Generated<Timestamp>;
@@ -265,17 +345,18 @@ export interface GraphileWorkerJobs {
   locked_by: string | null;
   revision: Generated<number>;
   flags: Json | null;
+  is_available: Generated<boolean>;
 }
 
-export interface GraphileWorkerKnownCrontabs {
+export interface GraphileWorkerPrivateKnownCrontabs {
   identifier: string;
   known_since: Timestamp;
   last_execution: Timestamp | null;
 }
 
-export interface GraphileWorkerMigrations {
+export interface GraphileWorkerPrivateTasks {
   id: number;
-  ts: Generated<Timestamp>;
+  identifier: string;
 }
 
 export interface Invoice {
@@ -320,6 +401,94 @@ export interface LoggedCallTag {
   projectId: string;
 }
 
+export interface NewDatasetEvalResult {
+  id: string;
+  score: number | null;
+  explanation: string | null;
+  errorMessage: string | null;
+  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  judge: string | null;
+  nodeEntryInputHash: string;
+  nodeEntryOutputHash: string | null;
+  wasFirst: boolean | null;
+  comparisonResultId: string | null;
+  comparisonOutputSourceId: string | null;
+  datasetEvalNodeEntryId: string;
+  datasetEvalOutputSourceId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NewFineTuneTestingEntry {
+  id: string;
+  prunedInputTokens: number | null;
+  finishReason: string | null;
+  errorMessage: string | null;
+  modelId: string;
+  fineTuneId: string | null;
+  inputHash: string;
+  outputHash: string | null;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NewFineTuneTrainingEntry {
+  id: string;
+  prunedInputTokens: number | null;
+  outputTokens: number | null;
+  inputHash: string;
+  outputHash: string;
+  fineTuneId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+  nodeEntryPersistentId: string;
+}
+
+export interface NewPruningRuleMatch {
+  id: string;
+  pruningRuleId: string;
+  inputHash: string;
+}
+
+export interface Node {
+  id: string;
+  type: "Archive" | "Dataset" | "Filter" | "LLMRelabel" | "ManualRelabel" | "Monitor";
+  name: string;
+  config: Json;
+  hash: string;
+  stale: Generated<boolean>;
+  projectId: string;
+  creatorId: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NodeEntry {
+  id: string;
+  persistentId: string;
+  status: Generated<"ERROR" | "PENDING" | "PROCESSED" | "PROCESSING">;
+  error: string | null;
+  split: "TEST" | "TRAIN";
+  loggedCallId: string | null;
+  inputHash: string;
+  outputHash: string;
+  originalOutputHash: string;
+  nodeId: string;
+  dataChannelId: string;
+  parentNodeEntryId: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
+export interface NodeOutput {
+  id: string;
+  label: string;
+  nodeId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
+}
+
 export interface OngoingRequest {
   id: string;
   projectId: string;
@@ -339,6 +508,7 @@ export interface Project {
   stripeCustomerId: string | null;
   tagNames: Generated<string[] | null>;
   rateLimit: Generated<number>;
+  migrationKey: string | null;
 }
 
 export interface ProjectUser {
@@ -364,6 +534,11 @@ export interface PruningRuleMatch {
   id: string;
   pruningRuleId: string;
   datasetEntryId: string;
+}
+
+export interface PruningRulesChecked {
+  nodeHash: string;
+  incomingInputHash: string;
 }
 
 export interface RateLimit {
@@ -441,12 +616,17 @@ export interface DB {
   _prisma_migrations: _PrismaMigrations;
   Account: Account;
   ApiKey: ApiKey;
+  CachedProcessedEntry: CachedProcessedEntry;
   CachedResponse: CachedResponse;
   CreditAdjustment: CreditAdjustment;
+  DataChannel: DataChannel;
   Dataset: Dataset;
   DatasetEntry: DatasetEntry;
+  DatasetEntryInput: DatasetEntryInput;
+  DatasetEntryOutput: DatasetEntryOutput;
   DatasetEval: DatasetEval;
   DatasetEvalDatasetEntry: DatasetEvalDatasetEntry;
+  DatasetEvalNodeEntry: DatasetEvalNodeEntry;
   DatasetEvalOutputSource: DatasetEvalOutputSource;
   DatasetEvalResult: DatasetEvalResult;
   DatasetFileUpload: DatasetFileUpload;
@@ -454,18 +634,28 @@ export interface DB {
   FineTune: FineTune;
   FineTuneTestingEntry: FineTuneTestingEntry;
   FineTuneTrainingEntry: FineTuneTrainingEntry;
-  "graphile_worker.job_queues": GraphileWorkerJobQueues;
+  "graphile_worker._private_job_queues": GraphileWorkerPrivateJobQueues;
+  "graphile_worker._private_jobs": GraphileWorkerPrivateJobs;
+  "graphile_worker._private_known_crontabs": GraphileWorkerPrivateKnownCrontabs;
+  "graphile_worker._private_tasks": GraphileWorkerPrivateTasks;
   "graphile_worker.jobs": GraphileWorkerJobs;
-  "graphile_worker.known_crontabs": GraphileWorkerKnownCrontabs;
   "graphile_worker.migrations": GraphileWorkerMigrations;
   Invoice: Invoice;
   LoggedCall: LoggedCall;
   LoggedCallTag: LoggedCallTag;
+  NewDatasetEvalResult: NewDatasetEvalResult;
+  NewFineTuneTestingEntry: NewFineTuneTestingEntry;
+  NewFineTuneTrainingEntry: NewFineTuneTrainingEntry;
+  NewPruningRuleMatch: NewPruningRuleMatch;
+  Node: Node;
+  NodeEntry: NodeEntry;
+  NodeOutput: NodeOutput;
   OngoingRequest: OngoingRequest;
   Project: Project;
   ProjectUser: ProjectUser;
   PruningRule: PruningRule;
   PruningRuleMatch: PruningRuleMatch;
+  PruningRulesChecked: PruningRulesChecked;
   RateLimit: RateLimit;
   RelabelRequest: RelabelRequest;
   Session: Session;

@@ -10,7 +10,7 @@ import {
 } from "./shared.types";
 import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
-const chatInputs = chatCompletionInputReqPayload.shape;
+export const chatInputs = chatCompletionInputReqPayload.shape;
 
 export const datasetEntrySchema = z
   .object({
@@ -20,7 +20,7 @@ export const datasetEntrySchema = z
     tool_choice: chatInputs.tool_choice.nullable(),
     tools: chatInputs.tools.nullable(),
     response_format: chatInputs.response_format.nullable(),
-    output: chatCompletionMessage.optional().nullable(),
+    output: chatCompletionMessage,
   })
   .passthrough();
 
