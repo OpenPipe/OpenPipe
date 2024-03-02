@@ -1,4 +1,4 @@
-import { Text, VStack, HStack, Box, IconButton, Icon, keyframes } from "@chakra-ui/react";
+import { Flex, Text, VStack, HStack, Box, IconButton, Icon, keyframes } from "@chakra-ui/react";
 import { BiRefresh } from "react-icons/bi";
 
 import AppShell from "~/components/nav/AppShell";
@@ -23,7 +23,7 @@ const spin = keyframes`
 export default function LoggedCalls() {
   const filtersShown = useFilters(true).filtersShown;
 
-  const utils = api.useContext();
+  const utils = api.useUtils();
 
   const { isFetching, isLoading } = useLoggedCalls();
 
@@ -53,11 +53,11 @@ export default function LoggedCalls() {
               }}
             />
           </HStack>
-          <HStack w="full" justifyContent="space-between">
+          <Flex flexDir={{ base: "column", md: "row" }} w="full" justifyContent="space-between">
             <HStack>
               <DateFilter />
             </HStack>
-            <HStack>
+            <HStack pt={{ base: 4, md: 0 }}>
               <ConditionallyEnable accessRequired="requireCanModifyProject">
                 <AddToDatasetButton />
               </ConditionallyEnable>
@@ -65,7 +65,7 @@ export default function LoggedCalls() {
               <ColumnVisibilityDropdown />
               <ToggleFiltersButton defaultShown />
             </HStack>
-          </HStack>
+          </Flex>
           {filtersShown && <LogFilters />}
           <LoggedCallTable />
           <LoggedCallsPaginator />

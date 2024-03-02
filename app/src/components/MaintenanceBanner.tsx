@@ -13,7 +13,6 @@ const MaintenanceBanner = () => (
     position="sticky"
     left={0}
     right={0}
-    zIndex={10}
   >
     <Icon as={FaWrench} color="orange.400" />
     <Text fontWeight="500">

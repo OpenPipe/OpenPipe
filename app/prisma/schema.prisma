@@ -991,10 +991,8 @@ model NodeEntry {
 
     @@unique([parentNodeEntryId, dataChannelId])
     @@index([dataChannelId])
-    @@index([nodeId, persistentId])
     @@index([nodeId, inputHash, persistentId])
     @@index([loggedCallId, dataChannelId])
-    @@index([parentNodeEntryId, dataChannelId])
     @@index([nodeId, status, updatedAt])
     @@index([persistentId, nodeId])
 }
@@ -1055,6 +1053,8 @@ model CachedProcessedEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([nodeEntryPersistentId, incomingInputHash, nodeHash, incomingOutputHash])
+    @@index([nodeHash])
+    @@index([nodeId])
     @@index([incomingInputHash, nodeHash])
     @@index([incomingInputHash, nodeId])
     @@index([projectId])
