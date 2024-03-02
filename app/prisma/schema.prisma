@@ -991,9 +991,9 @@ model NodeEntry {
 
     @@unique([parentNodeEntryId, dataChannelId])
     @@index([dataChannelId])
-    @@index([nodeId, inputHash, persistentId])
+    @@index([nodeId, persistentId])
     @@index([loggedCallId, dataChannelId])
-    @@index([nodeId, status, updatedAt])
+    @@index([nodeId, status, inputHash])
     @@index([persistentId, nodeId])
 }
 

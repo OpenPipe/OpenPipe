@@ -147,11 +147,11 @@ export const nodeEntriesRouter = createTRPCRouter({
     .input(z.object({ persistentId: z.string(), datasetId: z.string() }))
     .query(async ({ input, ctx }) => {
       const nodeEntry = await kysely
-        .selectFrom("NodeEntry as ne")
-        .where("ne.persistentId", "=", input.persistentId)
-        .innerJoin("Node as n", "n.id", "ne.nodeId")
-        .innerJoin("Dataset as d", (join) =>
-          join.onRef("d.nodeId", "=", "n.id").on("d.id", "=", input.datasetId),
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .innerJoin("NodeEntry as ne", (join) =>
+          join.onRef("ne.nodeId", "=", "n.id").on("ne.persistentId", "=", input.persistentId),
         )
         .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
         .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")

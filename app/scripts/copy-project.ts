@@ -117,13 +117,23 @@ await Promise.all([
   copyTable("Project", `id = '${projectId}'`),
   copyTable("FineTune", `"projectId" = '${projectId}'`),
   copyTable("Dataset", `"projectId" = '${projectId}'`),
+  copyTable("Node", `"projectId" = '${projectId}'`),
+  copyTable("NodeOutput", `"nodeId" IN (SELECT id FROM "Node" WHERE "projectId" = '${projectId}')`),
+  copyTable(
+    "DataChannel",
+    `"destinationId" IN (SELECT id FROM "Node" WHERE "projectId" = '${projectId}')`,
+  ),
+  copyTable("NodeEntry", `"nodeId" IN (SELECT id FROM "Node" WHERE "projectId" = '${projectId}')`),
+  copyTable("DatasetEntryInput", `"projectId" = '${projectId}'`),
+  copyTable("DatasetEntryOutput", `"projectId" = '${projectId}'`),
+  copyTable("CachedProcessedEntry", `"projectId" = '${projectId}'`),
   copyTable(
     "DatasetEval",
     `"DatasetEval"."datasetId" IN (SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}')`,
   ),
   copyTable(
-    "DatasetEvalDatasetEntry",
-    `"DatasetEvalDatasetEntry"."datasetEvalId" IN (
+    "DatasetEvalNodeEntry",
+    `"DatasetEvalNodeEntry"."datasetEvalId" IN (
       SELECT id FROM "DatasetEval" WHERE "datasetId" IN (
         SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}'
       )
@@ -145,22 +155,9 @@ await Promise.all([
       )
     )`,
   ),
+  copyTable("NewFineTuneTestingEntry", `"projectId" = '${projectId}'`),
   copyTable(
-    "DatasetEntry",
-    `"datasetId" IN (SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}')`,
-  ),
-  copyTable("FineTuneTestingEntry", `"Dataset"."projectId" = '${projectId}'`, [
-    {
-      table: "DatasetEntry",
-      condition: `"FineTuneTestingEntry"."datasetEntryId" = "DatasetEntry"."id"`,
-    },
-    {
-      table: "Dataset",
-      condition: `"DatasetEntry"."datasetId" = "Dataset"."id"`,
-    },
-  ]),
-  copyTable(
-    "FineTuneTrainingEntry",
+    "NewFineTuneTrainingEntry",
     `"fineTuneId" IN (SELECT id FROM "FineTune" WHERE "projectId" = '${projectId}')`,
   ),
   // only copy OpenPipe API keys
