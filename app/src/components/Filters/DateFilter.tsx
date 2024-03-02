@@ -1,7 +1,7 @@
 import {
   Button,
   ButtonGroup,
-  HStack,
+  Flex,
   Icon,
   Input,
   Popover,
@@ -12,7 +12,7 @@ import {
   Portal,
 } from "@chakra-ui/react";
 import { useCallback, useState } from "react";
-import { FilterData } from "./types";
+import { type FilterData } from "./types";
 import { formatDateForPicker } from "~/utils/dayjs";
 import { BsDash } from "react-icons/bs";
 import { debounce } from "lodash-es";
@@ -104,9 +104,9 @@ const DateRange = ({ filter, close }: { filter?: FilterData; close: () => void }
 
   return (
     <Portal>
-      <PopoverContent w={500} shadow={"md"} p={4}>
+      <PopoverContent w="fit-content" shadow={"md"} p={4}>
         <PopoverBody>
-          <HStack>
+          <Flex flexDir={{ base: "column", md: "row" }} alignItems="center">
             <Input
               type="datetime-local"
               w={240}
@@ -123,7 +123,7 @@ const DateRange = ({ filter, close }: { filter?: FilterData; close: () => void }
               onChange={(e) => updateDate(e.target.value, true)}
               value={formatDateForPicker(secondDate)}
             />
-          </HStack>
+          </Flex>
           <ButtonGroup display="flex" justifyContent="flex-end" pt={4}>
             <Button variant="outline" onClick={close}>
               Cancel
