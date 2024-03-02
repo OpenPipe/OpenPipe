@@ -4,9 +4,11 @@
 import "dotenv/config";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { env } from "~/env.mjs";
-import { getPool, prisma } from "~/server/db";
 import copyStreams from "pg-copy-streams";
+import { v4 as uuidv4 } from "uuid";
+
+import { env } from "~/env.mjs";
+import { getPool, kysely, prisma } from "~/server/db";
 
 const argv = await yargs(hideBin(process.argv))
   .option("slug", {
@@ -17,6 +19,11 @@ const argv = await yargs(hideBin(process.argv))
   .option("overwrite", {
     type: "boolean",
     description: "Overwrite the existing project if it exists",
+    default: false,
+  })
+  .option("addKey", {
+    type: "boolean",
+    description: "Add local OpenAI API key to the project",
     default: false,
   })
   .option("include", {
@@ -118,6 +125,34 @@ await Promise.all([
   copyTable("FineTune", `"projectId" = '${projectId}'`),
   copyTable("Dataset", `"projectId" = '${projectId}'`),
   copyTable(
+    "DatasetEval",
+    `"DatasetEval"."datasetId" IN (SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}')`,
+  ),
+  copyTable(
+    "DatasetEvalDatasetEntry",
+    `"DatasetEvalDatasetEntry"."datasetEvalId" IN (
+      SELECT id FROM "DatasetEval" WHERE "datasetId" IN (
+        SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}'
+      )
+    )`,
+  ),
+  copyTable(
+    "DatasetEvalOutputSource",
+    `"datasetEvalId" IN (SELECT id FROM "DatasetEval" WHERE "datasetId" IN (
+      SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}'
+    ))`,
+  ),
+  copyTable(
+    "DatasetEvalResult",
+    `"DatasetEvalResult"."datasetEvalOutputSourceId" IN (
+      SELECT id FROM "DatasetEvalOutputSource" WHERE "datasetEvalId" IN (
+        SELECT id FROM "DatasetEval" WHERE "datasetId" IN (
+          SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}'
+        )
+      )
+    )`,
+  ),
+  copyTable(
     "DatasetEntry",
     `"datasetId" IN (SELECT id FROM "Dataset" WHERE "projectId" = '${projectId}')`,
   ),
@@ -147,6 +182,22 @@ await Promise.all([
       ]
     : []),
 ]);
+
+if (argv.addKey) {
+  await kysely
+    .insertInto("ApiKey")
+    .values({
+      id: uuidv4(),
+      name: "_",
+      projectId,
+      provider: "OPENAI",
+      apiKey: env.OPENAI_API_KEY,
+      updatedAt: new Date(),
+    })
+    .execute();
+
+  console.log("Added OpenAI API key to the project");
+}
 
 console.log("Project data copied");
 await localPool.query("SET session_replication_role = DEFAULT;");

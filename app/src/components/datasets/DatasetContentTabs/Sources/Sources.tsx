@@ -88,8 +88,8 @@ const Sources = () => {
       >
         {archives.map((archive, index) => (
           <>
-            {!!index && <Divider color="gray.300" my={1} />}
-            <VStack key={archive.id} w="full" spacing={2} alignItems="flex-start" py={5} px={4}>
+            {!!index && <Divider key={`${archive.id}-divider`} color="gray.300" my={1} />}
+            <VStack key={archive.id} w="full" spacing={2} alignItems="flex-start" p={4}>
               <HStack w="full" justifyContent="space-between" alignItems="flex-start">
                 <VStack alignItems="flex-start" spacing={1} pb={4}>
                   <Text fontWeight="bold">{archive.name}</Text>

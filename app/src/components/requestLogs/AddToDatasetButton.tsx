@@ -201,6 +201,8 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
                     onSelect={(option) => setSelectedDatasetOption(option)}
                     inputGroupProps={{ w: 48 }}
                     isDisabled={createNewDataset}
+                    maxPopoverContentHeight={400}
+                    minItemHeight={10}
                   />
                   <Checkbox
                     isChecked={createNewDataset}
