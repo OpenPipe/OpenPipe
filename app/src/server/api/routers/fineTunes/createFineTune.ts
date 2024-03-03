@@ -83,8 +83,7 @@ export const createFineTune = async (
     .expression(() =>
       constructNodeEntryFiltersQuery({
         filters: input.filters,
-        // TODO: remove type assertion once nodeId is required
-        datasetNodeId: input.dataset.nodeId as string,
+        datasetNodeId: input.dataset.nodeId,
       })
         .where("split", "=", "TRAIN")
         .where("status", "=", "PROCESSED")
