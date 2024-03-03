@@ -1,6 +1,19 @@
-import { PrismaClient, DatasetEntrySplit } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import yargs from "yargs/yargs";
 import { hideBin } from "yargs/helpers";
+import {
+  prepareIntegratedArchiveCreation,
+  prepareIntegratedDatasetCreation,
+} from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
+import { RelabelOption } from "~/server/utils/nodes/node.types";
+import {
+  type EntryToImport,
+  prepareDatasetEntriesForImport,
+} from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
+import { generatePersistentId } from "~/server/utils/nodes/utils";
+import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
+
+const ARCHIVE_NAME = "Synthetic Archive";
 
 const prisma = new PrismaClient();
 
@@ -26,36 +39,59 @@ if (!project) {
   throw new Error(`Project ${projectName} does not exist`);
 }
 
-const existingDataset = await prisma.dataset.findFirst({
+const existingArchive = await prisma.node.findFirst({
   where: {
-    name: "Synthetic Dataset",
+    name: ARCHIVE_NAME,
     projectId: project.id,
+  },
+  include: {
+    inputDataChannels: true,
   },
 });
 
-let datasetId: string;
+let archiveNodeId: string;
+let archiveDataChannelId: string;
 
-if (existingDataset) {
+if (existingArchive && existingArchive.inputDataChannels[0]) {
   // Delete existing entries
-  const count = await prisma.datasetEntry.deleteMany({
+  const count = await prisma.nodeEntry.deleteMany({
     where: {
-      datasetId: existingDataset.id,
+      nodeId: existingArchive.id,
     },
   });
 
   console.log("Deleted existing entries", count);
 
-  datasetId = existingDataset.id; // Preserve the ID
+  archiveNodeId = existingArchive.id;
+  archiveDataChannelId = existingArchive.inputDataChannels[0].id;
 } else {
   // Create new dataset
-  const dataset = await prisma.dataset.create({
-    data: {
-      name: "Synthetic Dataset",
-      projectId: project.id,
-    },
+  const preparedDatasetCreation = prepareIntegratedDatasetCreation({
+    projectId: project.id,
+    datasetName: "Synthetic Dataset",
   });
 
-  datasetId = dataset.id;
+  // Create new archive
+  const preparedArchiveCreation = prepareIntegratedArchiveCreation({
+    projectId: project.id,
+    name: ARCHIVE_NAME,
+    maxOutputSize: 50000,
+    relabelLLM: RelabelOption.SkipRelabel,
+  });
+
+  await prisma.$transaction([
+    ...preparedDatasetCreation.prismaCreations,
+    ...preparedArchiveCreation.prismaCreations,
+    prisma.dataChannel.create({
+      data: {
+        originId: preparedArchiveCreation.relabeledOutputId,
+        destinationId: preparedDatasetCreation.manualRelabelNodeId,
+      },
+    }),
+  ]);
+
+  archiveNodeId = preparedArchiveCreation.archiveNodeId;
+  archiveDataChannelId = preparedArchiveCreation.archiveInputChannelId;
 }
 
 const words =
@@ -65,30 +101,45 @@ const words =
 
 const shuffledWords = words.sort(() => Math.random() - 0.5);
 
-// Create entries in parallel
-await Promise.all(
-  shuffledWords.map((word, index) => {
-    const entrySplit = Math.random() < 0.9 ? DatasetEntrySplit.TRAIN : DatasetEntrySplit.TEST;
+const creationTime = new Date();
 
-    const messages = [{ role: "system", content: `the first letter of '${word}' is` }];
-    const output = {
-      role: "assistant",
-      content: null,
-      function_call: { name: "extract", arguments: JSON.stringify({ letter: word[0] }) },
-    };
-
-    return prisma.datasetEntry.create({
-      data: {
-        messages,
-        output,
-        inputTokens: 0,
-        outputTokens: 0,
-        split: entrySplit,
-        datasetId,
-        sortKey: index.toString(),
-        importId: "synthetic-dataset",
-        provenance: "UPLOAD",
-      },
-    });
+const entriesToImport: EntryToImport[] = shuffledWords.map((word, index) => ({
+  input: {
+    messages: [{ role: "system", content: `the first letter of '${word}' is` }],
+  },
+  output: {
+    role: "assistant",
+    content: null,
+    function_call: { name: "extract", arguments: JSON.stringify({ letter: word[0] }) },
+  },
+  persistentId: generatePersistentId({
+    creationTime,
+    key: index.toString(),
+    nodeId: archiveNodeId,
   }),
-);
+}));
+
+const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
+  await prepareDatasetEntriesForImport({
+    projectId: project.id,
+    nodeId: archiveNodeId,
+    dataChannelId: archiveDataChannelId,
+    entriesToImport,
+  });
+
+await prisma.$transaction([
+  prisma.datasetEntryInput.createMany({
+    data: datasetEntryInputsToCreate,
+    skipDuplicates: true,
+  }),
+  prisma.datasetEntryOutput.createMany({
+    data: datasetEntryOutputsToCreate,
+    skipDuplicates: true,
+  }),
+  prisma.nodeEntry.createMany({
+    data: nodeEntriesToCreate,
+    skipDuplicates: true,
+  }),
+]);
+
+await enqueueProcessNode({ nodeId: archiveNodeId });

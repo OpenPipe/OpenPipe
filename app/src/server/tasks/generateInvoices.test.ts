@@ -3,6 +3,7 @@ import { createInvoice } from "./generateInvoices.task";
 import { prisma } from "../db";
 import { v4 as uuidv4 } from "uuid";
 import { getPreviousMonthPeriodUTC } from "~/utils/dayjs";
+import { prepareIntegratedDatasetCreation } from "../utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 
 describe("Invoice generator", () => {
   it("Creates a pending invoice and calculates amount", async () => {
@@ -161,49 +162,12 @@ async function setupTestDb() {
     data: { id: uuidv4() },
   });
 
-  const dataset = await prisma.dataset.create({
-    data: {
-      name: "test-dataset",
-      project: {
-        connect: {
-          id: project.id,
-        },
-      },
-    },
+  const preparedDataset = prepareIntegratedDatasetCreation({
+    projectId: project.id,
+    datasetName: "test-dataset",
   });
 
-  await prisma.datasetEntry.create({
-    data: {
-      datasetId: dataset.id,
-      messages: [
-        { role: "system", content: "You are a helpful assistant" },
-        { role: "user", content: "What is the capitol of Tasmania?" },
-      ],
-      inputTokens: 10,
-      output: { role: "assistant", content: "Hobart" },
-      outputTokens: 1,
-      split: "TRAIN",
-      sortKey: "1",
-      importId: "test-import-id",
-      provenance: "UPLOAD",
-    },
-  });
-  await prisma.datasetEntry.create({
-    data: {
-      datasetId: dataset.id,
-      messages: [
-        { role: "system", content: "You are a helpful assistant" },
-        { role: "user", content: "What is the capitol of Latvia?" },
-      ],
-      inputTokens: 10,
-      output: { role: "assistant", content: "Riga" },
-      outputTokens: 1,
-      split: "TRAIN",
-      sortKey: "1",
-      importId: "test-import-id",
-      provenance: "UPLOAD",
-    },
-  });
+  await prisma.$transaction(preparedDataset.prismaCreations);
 
   const fineTune = await prisma.fineTune.create({
     data: {
@@ -213,7 +177,7 @@ async function setupTestDb() {
       baseModel: "meta-llama/Llama-2-7b-hf",
       status: "PENDING",
       projectId: project.id,
-      datasetId: dataset.id,
+      datasetId: preparedDataset.datasetId,
       pipelineVersion: 1,
     },
   });

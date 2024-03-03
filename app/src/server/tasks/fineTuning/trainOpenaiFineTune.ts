@@ -6,7 +6,7 @@ import { filter, map } from "ix/asynciterable/operators";
 import { prisma } from "~/server/db";
 import { truthyFilter } from "~/utils/utils";
 import { convertToolCallMessagesToFunction } from "~/server/utils/convertFunctionCalls";
-import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
+import { typedNodeEntry, typedFineTune } from "~/types/dbColumns.types";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
@@ -45,13 +45,10 @@ export const trainOpenaiFineTune = async (fineTuneId: string) => {
   const formattedRows = from(iterateTrainingRows(fineTune.id)).pipe(
     map(async (row) => {
       const outputMessage = chatCompletionMessage.parse(row.output);
-      const prunedInputMessages = pruneInputMessages(
-        typedDatasetEntry(row).messages,
-        stringsToPrune,
-      );
+      const prunedInputMessages = pruneInputMessages(typedNodeEntry(row).messages, stringsToPrune);
       const prunedInputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", prunedInputMessages);
       const outputTokens = countOpenAIChatTokens("gpt-3.5-turbo-0613", [outputMessage]);
-      await prisma.newFineTuneTrainingEntry.update({
+      await prisma.fineTuneTrainingEntry.update({
         where: { id: row.id },
         data: { prunedInputTokens, outputTokens },
       });

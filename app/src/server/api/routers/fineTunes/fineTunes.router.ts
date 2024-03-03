@@ -6,7 +6,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { trainFineTune } from "~/server/tasks/fineTuning/trainFineTune.task";
-import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
+import { typedNodeEntry, typedFineTune } from "~/types/dbColumns.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { isComparisonModelName } from "~/utils/comparisonModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
@@ -28,7 +28,7 @@ export const fineTunesRouter = createTRPCRouter({
         .selectAll("ft")
         .select(() => [
           "d.name as datasetName",
-          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
         ])
@@ -70,7 +70,7 @@ export const fineTunesRouter = createTRPCRouter({
         .innerJoin("FineTune as ft", "ft.datasetId", "d.id")
         .selectAll()
         .select(() => [
-          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
           sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
@@ -99,7 +99,7 @@ export const fineTunesRouter = createTRPCRouter({
         .select("d.name as datasetName")
         .selectAll("ft")
         .select((eb) => [
-          sql<number>`(select count(*) from "NewFineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
+          sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
           sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
@@ -230,7 +230,7 @@ export const fineTunesRouter = createTRPCRouter({
       await requireCanViewProject(fineTune.projectId, ctx);
 
       const entries = await kysely
-        .selectFrom("NewFineTuneTrainingEntry as ftte")
+        .selectFrom("FineTuneTrainingEntry as ftte")
         .where("ftte.fineTuneId", "=", fineTuneId)
         .innerJoin("DatasetEntryInput as dei", "ftte.inputHash", "dei.hash")
         .innerJoin("DatasetEntryOutput as deo", "ftte.outputHash", "deo.hash")
@@ -252,13 +252,13 @@ export const fineTunesRouter = createTRPCRouter({
         .offset((page - 1) * pageSize)
         .execute();
 
-      const count = await prisma.newFineTuneTrainingEntry.count({
+      const count = await prisma.fineTuneTrainingEntry.count({
         where: {
           fineTuneId: fineTuneId,
         },
       });
 
-      const typedEntries = entries.map((entry) => typedDatasetEntry(entry));
+      const typedEntries = entries.map((entry) => typedNodeEntry(entry));
 
       return {
         entries: typedEntries,

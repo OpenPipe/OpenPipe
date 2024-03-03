@@ -16,7 +16,7 @@ import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 import { type RouterOutputs } from "~/utils/api";
 import ModelHeader from "./ModelHeader";
-import { ORIGINAL_MODEL_ID, typedDatasetEntry } from "~/types/dbColumns.types";
+import { ORIGINAL_MODEL_ID, typedDatasetEntryInput } from "~/types/dbColumns.types";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import EvalResults from "./EvalResults";
 import FormattedMessage from "../FormattedMessage";
@@ -79,7 +79,7 @@ const EvaluationRow = ({ entry }: { entry: TestingEntry }) => {
     }
   });
 
-  const preferJson = typedDatasetEntry(entry).response_format?.type === "json_object";
+  const preferJson = typedDatasetEntryInput(entry).response_format?.type === "json_object";
 
   const [maxOutputHeight, setMaxOutputHeight] = useState(0);
   const onHeightUpdated = useCallback(

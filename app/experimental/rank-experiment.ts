@@ -101,9 +101,9 @@ async function createFineTunes(datasetId: string) {
 
 const runEvals = async (args: Awaited<ReturnType<typeof createFineTunes>>) => {
   const { dataset, fineTunes } = args;
-  const numTestEntries = await prisma.datasetEntry.count({
+  const numTestEntries = await prisma.nodeEntry.count({
     where: {
-      datasetId: dataset.id,
+      nodeId: dataset.nodeId,
       split: "TEST",
     },
   });

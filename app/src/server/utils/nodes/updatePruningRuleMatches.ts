@@ -40,7 +40,7 @@ export const updateDatasetPruningRuleMatches = async ({
       await trx.deleteFrom("PruningRulesChecked").where("nodeHash", "=", nodeHash).execute();
       if (pruningRulesToUpdate.length > 0) {
         await trx
-          .deleteFrom("NewPruningRuleMatch as prm")
+          .deleteFrom("PruningRuleMatch as prm")
           .where(
             "prm.pruningRuleId",
             "in",
@@ -67,7 +67,7 @@ export const updateDatasetPruningRuleMatches = async ({
 
       // Insert PruningRuleMatch entries
       await trx
-        .insertInto("NewPruningRuleMatch")
+        .insertInto("PruningRuleMatch")
         .columns(["id", "pruningRuleId", "inputHash"])
         .expression(() =>
           nodeEntryBaseQuery
@@ -147,7 +147,7 @@ export const insertTrainingDataPruningRuleMatches = async (fineTuneId: string) =
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
 
-  await prisma.newPruningRuleMatch.deleteMany({
+  await prisma.pruningRuleMatch.deleteMany({
     where: {
       pruningRuleId: {
         in: pruningRules.map((pr) => pr.id),
@@ -167,11 +167,11 @@ export const insertTrainingDataPruningRuleMatches = async (fineTuneId: string) =
 
     // Insert PruningRuleMatch entries
     await kysely
-      .insertInto("NewPruningRuleMatch")
+      .insertInto("PruningRuleMatch")
       .columns(["id", "pruningRuleId", "inputHash"])
       .expression((eb) =>
         eb
-          .selectFrom("NewFineTuneTrainingEntry as ftte")
+          .selectFrom("FineTuneTrainingEntry as ftte")
           .where("ftte.fineTuneId", "=", fineTuneId)
           .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
           .where(sql`${prunedInput} LIKE ${"%" + ruleTextToMatch + "%"}`)

@@ -32,7 +32,7 @@ import {
   parseRowsToImport,
   isRowToImport,
   isParseError,
-} from "../../parseRowsToImport";
+} from "../../../../server/utils/datasetEntryCreation/parseRowsToImport";
 
 const UploadDataButton = () => {
   const disclosure = useDisclosure();

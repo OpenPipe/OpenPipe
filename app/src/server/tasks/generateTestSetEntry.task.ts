@@ -10,7 +10,7 @@ import { RateLimitError } from "openai";
 
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { kysely, prisma } from "~/server/db";
-import { typedFineTune } from "~/types/dbColumns.types";
+import { typedFineTune, typedNodeEntry } from "~/types/dbColumns.types";
 import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/comparisonModels";
 import { calculateCost } from "../fineTuningProviders/supportedModels";
 import {
@@ -20,7 +20,6 @@ import {
 import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { hashAndSaveDatasetEntryOutput } from "../utils/nodes/hashNode";
-import { typedNodeEntry } from "../utils/nodes/node.types";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { fireworksTestSetLimit } from "~/utils/rateLimit/rateLimits";
 
@@ -123,7 +122,7 @@ export const generateEntry = async ({
   const tNodeEntry = typedNodeEntry(nodeEntry);
 
   const existingTestEntry = await kysely
-    .selectFrom("NewFineTuneTestingEntry as ftte")
+    .selectFrom("FineTuneTestingEntry as ftte")
     .where("ftte.modelId", "=", modelId)
     .where("ftte.inputHash", "=", nodeEntry.inputHash)
     .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
@@ -147,7 +146,7 @@ export const generateEntry = async ({
 
   if (!existingTestEntry) {
     await kysely
-      .insertInto("NewFineTuneTestingEntry")
+      .insertInto("FineTuneTestingEntry")
       .values({
         id: uuidv4(),
         projectId: tNodeEntry.projectId,
@@ -189,7 +188,7 @@ export const generateEntry = async ({
       }
       completion = await getCompletion(fineTune, input);
     } else {
-      await prisma.newFineTuneTestingEntry.updateMany({
+      await prisma.fineTuneTestingEntry.updateMany({
         where: { modelId, inputHash: tNodeEntry.inputHash },
         data: {
           errorMessage: "The model is not set up for inference",
@@ -225,7 +224,7 @@ export const generateEntry = async ({
       output: completionMessage,
     });
 
-    await prisma.newFineTuneTestingEntry.update({
+    await prisma.fineTuneTestingEntry.update({
       where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },
       data: {
         outputHash,
@@ -244,7 +243,7 @@ export const generateEntry = async ({
     });
   } catch (e: unknown) {
     if (e instanceof RateLimitError) {
-      await prisma.newFineTuneTestingEntry.update({
+      await prisma.fineTuneTestingEntry.update({
         where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },
         data: {
           errorMessage: "Pending",
@@ -260,7 +259,7 @@ export const generateEntry = async ({
           typedError.message ?? typedError.error?.message ?? "Error retrieving completion";
       }
 
-      await prisma.newFineTuneTestingEntry.update({
+      await prisma.fineTuneTestingEntry.update({
         where: { inputHash_modelId: { modelId, inputHash: nodeEntry.inputHash } },
         data: {
           errorMessage,

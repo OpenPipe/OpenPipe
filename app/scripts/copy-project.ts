@@ -155,9 +155,9 @@ await Promise.all([
       )
     )`,
   ),
-  copyTable("NewFineTuneTestingEntry", `"projectId" = '${projectId}'`),
+  copyTable("FineTuneTestingEntry", `"projectId" = '${projectId}'`),
   copyTable(
-    "NewFineTuneTrainingEntry",
+    "FineTuneTrainingEntry",
     `"fineTuneId" IN (SELECT id FROM "FineTune" WHERE "projectId" = '${projectId}')`,
   ),
   // only copy OpenPipe API keys

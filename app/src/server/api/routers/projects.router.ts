@@ -287,10 +287,7 @@ export const projectsRouter = createTRPCRouter({
 
       await kysely.deleteFrom("LoggedCall").where("projectId", "=", input.id).execute();
 
-      await kysely
-        .deleteFrom("NewFineTuneTestingEntry")
-        .where("projectId", "=", input.id)
-        .execute();
+      await kysely.deleteFrom("FineTuneTestingEntry").where("projectId", "=", input.id).execute();
 
       await kysely.deleteFrom("Node").where("projectId", "=", input.id).execute();
 

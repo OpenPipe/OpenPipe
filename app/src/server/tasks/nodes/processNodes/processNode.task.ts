@@ -12,13 +12,14 @@ import { archiveProperties } from "../../../utils/nodes/nodeProperties/archivePr
 import { datasetProperties } from "../../../utils/nodes/nodeProperties/datasetProperties";
 import { enqueueDescendants } from "./enqueueDescendants";
 import { manualRelabelProperties } from "../../../utils/nodes/nodeProperties/manualRelabelProperties";
-import { typedNode, typedNodeEntry } from "~/server/utils/nodes/node.types";
+import { typedNode } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
 import { forwardNodeEntries } from "./forwardNodeEntries";
 import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
 import { updateCached } from "./updateCached";
 import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
+import { typedNodeEntry } from "~/types/dbColumns.types";
 
 export type ProcessNodeJob = {
   nodeId: string;

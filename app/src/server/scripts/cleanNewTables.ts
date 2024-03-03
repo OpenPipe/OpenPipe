@@ -52,7 +52,7 @@ console.log("Deleted all Nodes");
 await kysely.deleteFrom("CachedProcessedEntry").execute();
 console.log("Deleted all CachedProcessedNodeEntries");
 
-let testingEntryDeletionQuery = kysely.deleteFrom("NewFineTuneTestingEntry");
+let testingEntryDeletionQuery = kysely.deleteFrom("FineTuneTestingEntry");
 if (projectId) {
   testingEntryDeletionQuery = testingEntryDeletionQuery.where("projectId", "=", projectId);
 }

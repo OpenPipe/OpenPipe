@@ -25,7 +25,7 @@ export const pruningRulesRouter = createTRPCRouter({
         .selectFrom("Dataset as d")
         .where("d.id", "=", input.datasetId)
         .innerJoin("PruningRule as pr", "pr.datasetId", "d.id")
-        .leftJoin("NewPruningRuleMatch as prm", "prm.pruningRuleId", "pr.id")
+        .leftJoin("PruningRuleMatch as prm", "prm.pruningRuleId", "pr.id")
         .leftJoin("NodeEntry as ne", (join) =>
           join
             .onRef("ne.nodeId", "=", "d.nodeId")

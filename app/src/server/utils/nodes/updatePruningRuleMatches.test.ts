@@ -140,7 +140,7 @@ const createFineTuneTrainingEntry = async ({
   inputHash: string;
   outputHash: string;
 }) => {
-  return await prisma.newFineTuneTrainingEntry.create({
+  return await prisma.fineTuneTrainingEntry.create({
     data: {
       fineTuneId,
       nodeEntryPersistentId,
@@ -178,7 +178,7 @@ it("matches basic string", async () => {
 
   // Make sure there are a total of 4 scenarios for exp2
   expect(
-    await prisma.newPruningRuleMatch.count({
+    await prisma.pruningRuleMatch.count({
       where: {
         pruningRuleId: rule.id,
       },
@@ -215,7 +215,7 @@ it("matches string with newline", async () => {
 
   // Make sure there are a total of 4 scenarios for exp2
   expect(
-    await prisma.newPruningRuleMatch.count({
+    await prisma.pruningRuleMatch.count({
       where: {
         pruningRuleId: rule.id,
       },
@@ -273,7 +273,7 @@ describe("fine tune pruning rules", () => {
 
     // Make sure there are a total of 4 scenarios for exp2
     expect(
-      await prisma.newPruningRuleMatch.count({
+      await prisma.pruningRuleMatch.count({
         where: {
           pruningRule: {
             fineTuneId: fineTune.id,

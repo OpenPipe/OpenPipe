@@ -184,7 +184,7 @@ export const datasetsRouter = createTRPCRouter({
 
       if (pruningRuleIds.length > 0) {
         totalMatchTokens = await baseQuery
-          .innerJoin("NewPruningRuleMatch as prm", (join) =>
+          .innerJoin("PruningRuleMatch as prm", (join) =>
             join
               .onRef("prm.inputHash", "=", "ne.inputHash")
               .on("prm.pruningRuleId", "in", pruningRuleIds),

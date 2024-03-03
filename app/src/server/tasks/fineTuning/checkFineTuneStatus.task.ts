@@ -47,7 +47,7 @@ export const checkFineTuneStatus = defineTask({
             const typedFT = typedFineTune(currentFineTune);
 
             const trainingStats = await kysely
-              .selectFrom("NewFineTuneTrainingEntry as ftte")
+              .selectFrom("FineTuneTrainingEntry as ftte")
               .where("ftte.fineTuneId", "=", typedFT.id)
               .select(() => [
                 sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),

@@ -1,4 +1,9 @@
-import type { DatasetEntry, DatasetEntryInput, NodeEntry, ComparisonModel } from "@prisma/client";
+import type {
+  DatasetEntryInput,
+  NodeEntry,
+  ComparisonModel,
+  DatasetEntryOutput,
+} from "@prisma/client";
 import type { ChatCompletionCreateParams, FunctionParameters } from "openai/resources";
 import { captureException } from "@sentry/node";
 import { z } from "zod";
@@ -15,7 +20,7 @@ import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonMod
 import { chatCompletionMessage } from "~/types/shared.types";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { generateEntry } from "./generateTestSetEntry.task";
-import { typedDatasetEntryInput } from "../utils/nodes/node.types";
+import { typedDatasetEntryInput } from "~/types/dbColumns.types";
 
 // Accept result criteria instead of ids to recover from duplicate result creation attempts
 export type EvalKey = {
@@ -68,7 +73,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       kysely
         .selectFrom("NodeEntry as ne")
         .innerJoin("DatasetEvalNodeEntry as dene", "dene.nodeEntryPersistentId", "ne.persistentId")
-        .innerJoin("NewDatasetEvalResult as der", (join) =>
+        .innerJoin("DatasetEvalResult as der", (join) =>
           join
             .onRef("der.nodeEntryInputHash", "=", "ne.inputHash")
             .on("der.datasetEvalOutputSourceId", "=", outputSourceId)
@@ -108,7 +113,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
 
     if (firstResultHandled && secondResultHandled) return;
 
-    await prisma.newDatasetEvalResult.updateMany({
+    await prisma.datasetEvalResult.updateMany({
       where: {
         id: {
           in: [firstResult.id, secondResult.id],
@@ -131,13 +136,13 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       .innerJoin("DatasetEvalOutputSource as comparisonDeos", (join) =>
         join.on("comparisonDeos.id", "=", secondOutputSourceId),
       )
-      .innerJoin("NewDatasetEvalResult as der", (join) =>
+      .innerJoin("DatasetEvalResult as der", (join) =>
         join
           .onRef("der.nodeEntryInputHash", "=", "ne.inputHash")
           .on("der.datasetEvalOutputSourceId", "=", firstOutputSourceId)
           .on("der.status", "=", "COMPLETE"),
       )
-      .innerJoin("NewDatasetEvalResult as comparisonDer", (join) =>
+      .innerJoin("DatasetEvalResult as comparisonDer", (join) =>
         join
           .onRef("comparisonDer.nodeEntryInputHash", "=", "ne.inputHash")
           .on("comparisonDer.nodeEntryOutputHash", "=", nodeEntry.outputHash)
@@ -168,7 +173,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       .executeTakeFirst();
 
     if (completeCombinedResult) {
-      await prisma.newDatasetEvalResult.update({
+      await prisma.datasetEvalResult.update({
         where: { id: firstResult.id },
         data: {
           score: completeCombinedResult.firstResultScore,
@@ -180,7 +185,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
           errorMessage: null,
         },
       });
-      await prisma.newDatasetEvalResult.update({
+      await prisma.datasetEvalResult.update({
         where: { id: secondResult.id },
         data: {
           score: completeCombinedResult.secondResultScore,
@@ -201,7 +206,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       });
 
       if (!input) {
-        await prisma.newDatasetEvalResult.updateMany({
+        await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -222,7 +227,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
         try {
           if (result.modelId !== ORIGINAL_MODEL_ID) {
             const entry = await kysely
-              .selectFrom("NewFineTuneTestingEntry as ftte")
+              .selectFrom("FineTuneTestingEntry as ftte")
               .where("ftte.modelId", "=", result.modelId)
               .where("ftte.inputHash", "=", nodeEntry.inputHash)
               .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")
@@ -256,7 +261,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
           }
         } catch (e) {
           console.error("error getting entry for result", result, e);
-          await prisma.newDatasetEvalResult.updateMany({
+          await prisma.datasetEvalResult.updateMany({
             where: {
               id: {
                 in: [firstResult.id, secondResult.id],
@@ -274,7 +279,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       const [firstOutput, secondOutput] = outputs;
       const [firstEntryId, secondEntryId] = entryIds;
       if (!firstOutput || !secondOutput || !firstEntryId || !secondEntryId) {
-        await prisma.newDatasetEvalResult.updateMany({
+        await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -289,7 +294,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       }
 
       if (outputsAreEqual(firstOutput, secondOutput)) {
-        await prisma.newDatasetEvalResult.updateMany({
+        await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -344,7 +349,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
         console.error("error getting judgement", args, e);
         captureException(e, { extra: { args } });
 
-        await prisma.newDatasetEvalResult.updateMany({
+        await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
               in: [firstResult.id, secondResult.id],
@@ -383,7 +388,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
           break;
       }
 
-      await prisma.newDatasetEvalResult.update({
+      await prisma.datasetEvalResult.update({
         where: { id: firstResult.id },
         data: {
           status: "COMPLETE",
@@ -394,7 +399,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
         },
       });
 
-      await prisma.newDatasetEvalResult.update({
+      await prisma.datasetEvalResult.update({
         where: { id: secondResult.id },
         data: {
           status: "COMPLETE",
@@ -407,7 +412,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
     } catch (e) {
       console.error("error in evaluateTestSetEntries", e);
 
-      await prisma.newDatasetEvalResult.updateMany({
+      await prisma.datasetEvalResult.updateMany({
         where: {
           id: {
             in: [firstResult.id, secondResult.id],
@@ -497,8 +502,8 @@ const constructJudgementInput = (
 };
 
 const outputsAreEqual = (
-  firstOutput: DatasetEntry["output"],
-  secondOutput: DatasetEntry["output"],
+  firstOutput: DatasetEntryOutput["output"],
+  secondOutput: DatasetEntryOutput["output"],
 ) => {
   try {
     const typedFirstOutput = chatCompletionMessage.parse(firstOutput);
@@ -550,7 +555,7 @@ const getOutputHashes = async ({
   const getOutputHash = async ({ modelId }: { modelId: string }) => {
     if (modelId !== ORIGINAL_MODEL_ID) {
       return kysely
-        .selectFrom("NewFineTuneTestingEntry as ftte")
+        .selectFrom("FineTuneTestingEntry as ftte")
         .where("ftte.modelId", "=", modelId)
         .where("ftte.inputHash", "=", nodeEntry.inputHash)
         .leftJoin("FineTune as ft", "ft.id", "ftte.fineTuneId")

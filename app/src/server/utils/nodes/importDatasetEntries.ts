@@ -6,7 +6,7 @@ import {
   isParseError,
   isRowToImport,
   parseRowsToImport,
-} from "~/components/datasets/parseRowsToImport";
+} from "~/server/utils/datasetEntryCreation/parseRowsToImport";
 import { prepareDatasetEntriesForImport } from "../datasetEntryCreation/prepareDatasetEntriesForImport";
 import { enqueueCountDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 import { generatePersistentId } from "./utils";

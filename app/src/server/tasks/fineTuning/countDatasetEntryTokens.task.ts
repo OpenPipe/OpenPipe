@@ -1,7 +1,7 @@
 import { prisma } from "~/server/db";
 import { countLlamaInputTokens, countLlamaOutputTokens } from "~/utils/countTokens";
 import defineTask from "../defineTask";
-import { typedDatasetEntryInput, typedDatasetEntryOutput } from "~/server/utils/nodes/node.types";
+import { typedDatasetEntryInput, typedDatasetEntryOutput } from "~/types/dbColumns.types";
 
 type CountDatasetEntryTokensJob = {
   projectId: string;

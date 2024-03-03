@@ -6,7 +6,7 @@ import { z } from "zod";
 import { type ComparisonModel, type Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
-import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
+import { validateRowToImport } from "~/server/utils/datasetEntryCreation/parseRowsToImport";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { enqueueCountDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
@@ -16,7 +16,7 @@ import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedC
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import {
   ORIGINAL_MODEL_ID,
-  typedDatasetEntry,
+  typedNodeEntry,
   typedFineTune,
   typedLoggedCall,
 } from "~/types/dbColumns.types";
@@ -25,12 +25,7 @@ import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessCo
 import { isComparisonModel } from "~/utils/comparisonModels";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
-import {
-  typedNode,
-  DEFAULT_MAX_OUTPUT_SIZE,
-  typedNodeEntry,
-  RelabelOption,
-} from "~/server/utils/nodes/node.types";
+import { typedNode, DEFAULT_MAX_OUTPUT_SIZE, RelabelOption } from "~/server/utils/nodes/node.types";
 import {
   prepareIntegratedArchiveCreation,
   prepareIntegratedDatasetCreation,
@@ -168,7 +163,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           "deo.outputTokens as outputTokens",
           jsonArrayFrom(
             eb
-              .selectFrom("NewPruningRuleMatch as prm")
+              .selectFrom("PruningRuleMatch as prm")
               .whereRef("prm.inputHash", "=", "ne.inputHash")
               .innerJoin("PruningRule as pr", "pr.id", "prm.pruningRuleId")
               .where("pr.datasetId", "=", input.datasetId)
@@ -183,7 +178,7 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       await requireCanViewProject(nodeEntry.projectId, ctx);
 
-      return typedDatasetEntry(nodeEntry);
+      return typedNodeEntry(nodeEntry);
     }),
   createFromLoggedCalls: protectedProcedure
     .input(
@@ -662,7 +657,7 @@ export const nodeEntriesRouter = createTRPCRouter({
                 .leftJoin(
                   (eb) =>
                     eb
-                      .selectFrom("NewDatasetEvalResult as der")
+                      .selectFrom("DatasetEvalResult as der")
                       .leftJoin("DatasetEvalOutputSource as comparisonDeos", (join) =>
                         join
                           .onRef("comparisonDeos.id", "=", "der.comparisonOutputSourceId")
@@ -712,7 +707,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           "deo.output as output",
           jsonArrayFrom(
             eb
-              .selectFrom("NewFineTuneTestingEntry as ftte")
+              .selectFrom("FineTuneTestingEntry as ftte")
               .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
               .leftJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
               .select([
@@ -729,7 +724,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           ).as("fineTuneTestDatasetEntries"),
           jsonArrayFrom(
             eb
-              .selectFrom("NewDatasetEvalResult as der")
+              .selectFrom("DatasetEvalResult as der")
               .whereRef("der.nodeEntryInputHash", "=", "ne.inputHash")
               .innerJoin("DatasetEvalNodeEntry as dene", (join) =>
                 join
@@ -812,7 +807,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         .selectFrom("NodeEntry as ne")
         .where("ne.nodeId", "=", dataset.nodeId)
         .where("ne.split", "=", "TEST")
-        .innerJoin("NewFineTuneTestingEntry as ftte", (join) =>
+        .innerJoin("FineTuneTestingEntry as ftte", (join) =>
           join
             .onRef("ftte.inputHash", "=", "ne.inputHash")
             .on("ftte.modelId", "=", modelId)
@@ -839,7 +834,7 @@ export const nodeEntriesRouter = createTRPCRouter({
                 .innerJoin("Dataset as d", "d.id", "de.datasetId")
                 .innerJoin("DatasetEvalNodeEntry as dene", "dene.datasetEvalId", "de.id")
                 .innerJoin("NodeEntry as ne", "ne.persistentId", "dene.nodeEntryPersistentId")
-                .leftJoin("NewDatasetEvalResult as der", (join) =>
+                .leftJoin("DatasetEvalResult as der", (join) =>
                   join
                     .onRef("der.datasetEvalNodeEntryId", "=", "dene.id")
                     .onRef("der.nodeEntryInputHash", "=", "ne.inputHash"),

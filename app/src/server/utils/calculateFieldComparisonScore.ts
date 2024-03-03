@@ -2,8 +2,8 @@ import { isEqual, mean } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
-import { type typedNodeEntry } from "./nodes/node.types";
 import { kysely } from "../db";
+import { type typedNodeEntry } from "~/types/dbColumns.types";
 
 export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 
@@ -104,7 +104,7 @@ export const saveFieldComparisonScore = async ({
 
   await kysely.transaction().execute(async (tx) => {
     const datasetEvalResult = await tx
-      .selectFrom("NewDatasetEvalResult")
+      .selectFrom("DatasetEvalResult")
       .where("datasetEvalNodeEntryId", "=", datasetEvalNodeEntryId)
       .where("datasetEvalOutputSourceId", "=", datasetEvalOutputSourceId)
       .select(["id"])
@@ -112,7 +112,7 @@ export const saveFieldComparisonScore = async ({
 
     if (datasetEvalResult) {
       await tx
-        .updateTable("NewDatasetEvalResult")
+        .updateTable("DatasetEvalResult")
         .set({
           nodeEntryInputHash,
           score,
@@ -123,7 +123,7 @@ export const saveFieldComparisonScore = async ({
         .execute();
     } else {
       await kysely
-        .insertInto("NewDatasetEvalResult")
+        .insertInto("DatasetEvalResult")
         .values({
           id: uuidv4(),
           datasetEvalNodeEntryId: datasetEvalNodeEntryId,

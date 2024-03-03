@@ -5,7 +5,7 @@ import {
   isRowToImport,
   openAIRowSchema,
   parseRowsToImport,
-} from "~/components/datasets/parseRowsToImport";
+} from "~/server/utils/datasetEntryCreation/parseRowsToImport";
 import { kysely, prisma } from "~/server/db";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { openApiProtectedProc } from "../../openApiTrpc";
