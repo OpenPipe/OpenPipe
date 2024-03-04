@@ -64,6 +64,7 @@
     "archiver": "^6.0.0",
     "chroma-js": "^2.4.2",
     "concurrently": "^8.2.0",
+    "cookies-next": "^4.1.1",
     "crypto-random-string": "^5.0.0",
     "dayjs": "^1.11.8",
     "dedent": "^1.0.1",

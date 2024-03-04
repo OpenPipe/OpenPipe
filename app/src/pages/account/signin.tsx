@@ -11,7 +11,7 @@ export default function SignIn() {
     if (session) {
       router.push("/").catch(console.error);
     } else if (session === null) {
-      signIn("github").catch(console.error);
+      signIn().catch(console.error);
     }
   }, [session, router]);
 
