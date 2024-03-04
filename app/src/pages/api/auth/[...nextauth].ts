@@ -9,6 +9,7 @@ import { ensureDefaultExport } from "~/utils/utils";
 import { env } from "~/env.mjs";
 import { getCookie, setCookie } from "cookies-next";
 import { randomUUID } from "crypto";
+import { type Provider } from "next-auth/providers";
 
 const GitHubProvider = ensureDefaultExport(GitHubModule);
 
@@ -17,74 +18,81 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
     req.query?.nextauth?.includes("callback") &&
     req.query.nextauth?.includes("credentials") &&
     req?.method === "POST";
+  const providers: Provider[] = [
+    GitHubProvider({
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
+      profile(profile: GithubProfile) {
+        return {
+          id: profile.id.toString(),
+          name: profile.name ?? profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+          gitHubUsername: profile.login,
+        };
+      },
+    }),
+  ];
 
+  // Conditionally add CredentialsProvider in development environment
+  if (process.env.NODE_ENV === "development") {
+    providers.push(
+      CredentialsProvider({
+        credentials: {
+          email: { label: "email", type: "text" },
+          password: { label: "Password", type: "password", required: false },
+        },
+        authorize: async (credentials) => {
+          // Authorization logic remains the same
+          const { email } = credentials || {};
+          if (!email) {
+            throw new Error("Email and password are required");
+          }
+          try {
+            const { email } = credentials as { email: string; password?: string };
+
+            let user = await prisma.user.findUnique({
+              where: {
+                email,
+              },
+            });
+
+            if (!user) {
+              user = await prisma.user.create({
+                data: {
+                  email,
+                },
+              });
+
+              await prisma.account.create({
+                data: {
+                  userId: user.id,
+                  provider: "credentials",
+                  type: "credentials",
+                  providerAccountId: user.id,
+                },
+              });
+            }
+
+            return {
+              id: user.id,
+              email: user.email,
+              image: user.image,
+              name: user.name,
+            };
+          } catch (error) {
+            throw error;
+          }
+        },
+      }),
+    );
+  }
   return [
     req,
     res,
     {
       adapter: PrismaAdapter(prisma),
-      providers: [
-        GitHubProvider({
-          clientId: env.GITHUB_CLIENT_ID,
-          clientSecret: env.GITHUB_CLIENT_SECRET,
-          profile(profile: GithubProfile) {
-            return {
-              id: profile.id.toString(),
-              name: profile.name ?? profile.login,
-              email: profile.email,
-              image: profile.avatar_url,
-              gitHubUsername: profile.login,
-            };
-          },
-        }),
-        CredentialsProvider({
-          credentials: {
-            email: { label: "email", type: "text" },
-            password: { label: "Password", type: "password", required: false },
-          },
-          authorize: async (credentials) => {
-            const { email } = credentials || {};
-            if (!email) {
-              throw new Error("Email and password are required");
-            }
-            try {
-              const { email } = credentials as { email: string; password?: string };
-
-              let user = await prisma.user.findUnique({
-                where: {
-                  email,
-                },
-              });
-
-              if (!user) {
-                user = await prisma.user.create({
-                  data: {
-                    email,
-                  },
-                });
-
-                await prisma.account.create({
-                  data: {
-                    userId: user.id,
-                    provider: "credentials",
-                    type: "credentials",
-                    providerAccountId: user.id,
-                  },
-                });
-              }
-
-              return {
-                id: user.id,
-                email: user.email,
-                image: user.image,
-                name: user.name,
-              };
-            } catch (error) {
-              throw error;
-            }
-          },
-        }),
-      ],
+      providers: providers,
       callbacks: {
         async signIn({ user }) {
           if (isCredentialsCallback) {
