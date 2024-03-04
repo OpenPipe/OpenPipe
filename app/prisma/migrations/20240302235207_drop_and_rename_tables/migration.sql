@@ -123,3 +123,35 @@ ALTER TABLE "Dataset" DROP CONSTRAINT "Dataset_nodeId_fkey";
 ALTER TABLE "Dataset" ALTER COLUMN "nodeId" SET NOT NULL;
 ALTER TABLE "Dataset" ADD CONSTRAINT "Dataset_nodeId_fkey" FOREIGN KEY ("nodeId") REFERENCES "Node"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+
+/* Drop nodeId from NodeEntry table */
+
+-- DropForeignKey
+ALTER TABLE "NodeEntry" DROP CONSTRAINT "NodeEntry_nodeId_fkey";
+
+-- DropIndex
+DROP INDEX "NodeEntry_dataChannelId_idx";
+
+-- DropIndex
+DROP INDEX "NodeEntry_nodeId_persistentId_idx";
+
+-- DropIndex
+DROP INDEX "NodeEntry_nodeId_status_inputHash_idx";
+
+-- DropIndex
+DROP INDEX "NodeEntry_persistentId_nodeId_idx";
+
+-- AlterTable
+ALTER TABLE "NodeEntry" DROP COLUMN "nodeId";
+
+-- CreateIndex
+CREATE INDEX "NodeEntry_dataChannelId_persistentId_idx" ON "NodeEntry"("dataChannelId", "persistentId");
+
+-- CreateIndex
+CREATE INDEX "NodeEntry_dataChannelId_status_inputHash_idx" ON "NodeEntry"("dataChannelId", "status", "inputHash");
+
+-- CreateIndex
+CREATE INDEX "NodeEntry_persistentId_dataChannelId_idx" ON "NodeEntry"("persistentId", "dataChannelId");
+
+-- CreateIndex
+CREATE INDEX "DataChannel_destinationId_id_idx" ON "DataChannel"("destinationId", "id");

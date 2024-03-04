@@ -62,13 +62,17 @@ export const datasetsRouter = createTRPCRouter({
         ).as("deployedFineTunes"),
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "d.nodeId")
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").onRef("dc.destinationId", "=", "d.nodeId"),
+          )
           .where("ne.split", "=", "TEST")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numTestEntries"),
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "d.nodeId")
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").onRef("dc.destinationId", "=", "d.nodeId"),
+          )
           .where("ne.status", "=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numProcessedEntries"),
@@ -92,13 +96,21 @@ export const datasetsRouter = createTRPCRouter({
       .select((eb) => [
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "llmRelabelNode.id")
+          .innerJoin("DataChannel as dc", (join) =>
+            join
+              .onRef("dc.id", "=", "ne.dataChannelId")
+              .onRef("dc.destinationId", "=", "llmRelabelNode.id"),
+          )
           .where("ne.status", "!=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numUnprocessedEntries"),
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "llmRelabelNode.id")
+          .innerJoin("DataChannel as dc", (join) =>
+            join
+              .onRef("dc.id", "=", "ne.dataChannelId")
+              .onRef("dc.destinationId", "=", "llmRelabelNode.id"),
+          )
           .where("ne.status", "=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numProcessedEntries"),
@@ -163,7 +175,7 @@ export const datasetsRouter = createTRPCRouter({
         .where((eb) =>
           eb.or([eb("dei.inputTokens", "is", null), eb("deo.outputTokens", "is", null)]),
         )
-        .select("id")
+        .select("ne.id")
         .executeTakeFirst();
 
       if (datasetCalculationInProgress) {
@@ -216,9 +228,10 @@ export const datasetsRouter = createTRPCRouter({
         .selectFrom("Dataset as d")
         .where("projectId", "=", projectId)
         .where("nodeId", "is not", null)
-        .selectAll()
+        .leftJoin("DataChannel as dc", "dc.destinationId", "d.nodeId")
+        .selectAll("d")
         .select(() => [
-          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "status" = 'PROCESSED')::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "dataChannelId" = dc."id" and "status" = 'PROCESSED')::int`.as(
             "datasetEntryCount",
           ),
           sql<number>`(select count(*) from "FineTune" where "datasetId" = d.id)::int`.as(
@@ -282,7 +295,9 @@ export const datasetsRouter = createTRPCRouter({
           datasetId: input.id,
           nodeEntryBaseQuery: kysely
             .selectFrom("NodeEntry as ne")
-            .where("ne.nodeId", "=", nodeId)
+            .innerJoin("DataChannel as dc", (join) =>
+              join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", nodeId),
+            )
             .where("ne.split", "=", "TEST")
             .where("ne.status", "=", "PROCESSED"),
         });

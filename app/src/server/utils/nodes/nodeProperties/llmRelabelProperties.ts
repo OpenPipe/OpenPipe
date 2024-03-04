@@ -1,7 +1,7 @@
 import { NodeEntryStatus } from "@prisma/client";
 import { APIError } from "openai";
 
-import { prisma } from "~/server/db";
+import { kysely } from "~/server/db";
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { type NodeProperties } from "./nodeProperties.types";
 import { RelabelOption, llmRelabelNodeSchema } from "../node.types";
@@ -22,10 +22,14 @@ export const llmRelabelProperties: NodeProperties<"LLMRelabel"> = {
   },
   beforeProcessing: async (node) => {
     if (node.config.relabelLLM === RelabelOption.SkipRelabel) {
-      await prisma.nodeEntry.updateMany({
-        where: { nodeId: node.id, status: "PENDING" },
-        data: { status: "PROCESSED" },
-      });
+      await kysely
+        .updateTable("NodeEntry as ne")
+        .set({ status: "PROCESSED" })
+        .from("DataChannel as dc")
+        .whereRef("dc.id", "=", "ne.dataChannelId")
+        .where("dc.destinationId", "=", node.id)
+        .where("ne.status", "=", "PENDING")
+        .execute();
     }
   },
   processEntry: async ({ node, entry }) => {

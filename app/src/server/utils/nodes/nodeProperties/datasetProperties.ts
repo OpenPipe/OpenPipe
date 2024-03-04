@@ -26,7 +26,9 @@ export const datasetProperties: NodeProperties<"Dataset"> = {
       datasetId: dataset.id,
       nodeEntryBaseQuery: kysely
         .selectFrom("NodeEntry as ne")
-        .where("ne.nodeId", "=", node.id)
+        .innerJoin("DataChannel as dc", (join) =>
+          join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", node.id),
+        )
         .where("ne.status", "=", "PROCESSED"),
     });
 
@@ -35,7 +37,9 @@ export const datasetProperties: NodeProperties<"Dataset"> = {
       datasetId: dataset.id,
       nodeEntryBaseQuery: kysely
         .selectFrom("NodeEntry as ne")
-        .where("ne.nodeId", "=", node.id)
+        .innerJoin("DataChannel as dc", (join) =>
+          join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", node.id),
+        )
         .where("ne.status", "=", "PROCESSED"),
     });
   },

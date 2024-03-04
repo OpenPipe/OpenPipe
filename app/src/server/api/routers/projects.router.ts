@@ -313,42 +313,43 @@ export const projectsRouter = createTRPCRouter({
       const nodes = await kysely
         .selectFrom("Node as n")
         .where("n.projectId", "=", input.projectId)
+        .innerJoin("DataChannel as dc", "dc.destinationId", "n.id")
         .selectAll("n")
         .select((eb) => [
           eb
             .selectFrom("NodeEntry as ne")
-            .whereRef("ne.nodeId", "=", "n.id")
+            .whereRef("ne.dataChannelId", "=", "dc.id")
             .where("ne.split", "=", "TRAIN")
             .select(sql<number>`count(*)::int`.as("count"))
             .as("numTrainingEntries"),
           eb
             .selectFrom("NodeEntry as ne")
-            .whereRef("ne.nodeId", "=", "n.id")
+            .whereRef("ne.dataChannelId", "=", "dc.id")
             .where("ne.split", "=", "TEST")
             .select(sql<number>`count(*)::int`.as("count"))
             .as("numTestingEntries"),
           eb
             .selectFrom("NodeEntry as ne")
-            .whereRef("ne.nodeId", "=", "n.id")
+            .whereRef("ne.dataChannelId", "=", "dc.id")
             .where("ne.status", "=", "PENDING")
             .select(sql<number>`count(*)::int`.as("count"))
             .as("numPendingEntries"),
           eb
             .selectFrom("NodeEntry as ne")
-            .whereRef("ne.nodeId", "=", "n.id")
+            .whereRef("ne.dataChannelId", "=", "dc.id")
             .where("ne.status", "=", "PROCESSING")
             .select(sql<number>`count(*)::int`.as("count"))
             .as("numProcessingEntries"),
           eb
             .selectFrom("NodeEntry as ne")
-            .whereRef("ne.nodeId", "=", "n.id")
+            .whereRef("ne.dataChannelId", "=", "dc.id")
             .where("ne.status", "=", "ERROR")
             .select(sql<number>`count(*)::int`.as("count"))
             .as("numErrorEntries"),
 
           eb
             .selectFrom("NodeEntry as ne")
-            .whereRef("ne.nodeId", "=", "n.id")
+            .whereRef("ne.dataChannelId", "=", "dc.id")
             .where("ne.status", "=", "PROCESSED")
             .select(sql<number>`count(*)::int`.as("count"))
             .as("numProcessedEntries"),

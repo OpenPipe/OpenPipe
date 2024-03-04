@@ -16,13 +16,11 @@ export type EntryToImport = RowToImport & { persistentId: string; loggedCallId?:
 
 export const prepareDatasetEntriesForImport = async ({
   projectId,
-  nodeId,
   dataChannelId,
   entriesToImport,
   onProgress,
 }: {
   projectId: string;
-  nodeId: string;
   dataChannelId: string;
   entriesToImport: EntryToImport[];
   onProgress?: (progress: number) => Promise<void>;
@@ -84,7 +82,6 @@ export const prepareDatasetEntriesForImport = async ({
 
     const nodeEntryData = {
       persistentId: row.persistentId,
-      nodeId,
       dataChannelId,
       inputHash,
       outputHash,

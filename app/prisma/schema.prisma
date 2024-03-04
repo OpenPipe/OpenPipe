@@ -715,7 +715,6 @@ model Node {
     hash   String
     stale  Boolean  @default(false)
 
-    nodeEntries            NodeEntry[]
     inputDataChannels      DataChannel[]
     outputs                NodeOutput[]
     datasetFileUploads     DatasetFileUpload[]
@@ -761,6 +760,8 @@ model DataChannel {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@index([destinationId, id])
 }
 
 enum NodeEntryStatus {
@@ -784,9 +785,6 @@ model NodeEntry {
     outputHash         String
     originalOutputHash String
 
-    nodeId String @db.Uuid
-    node   Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-
     dataChannelId String      @db.Uuid
     dataChannel   DataChannel @relation(fields: [dataChannelId], references: [id], onDelete: Cascade)
 
@@ -799,11 +797,10 @@ model NodeEntry {
     updatedAt DateTime @updatedAt
 
     @@unique([parentNodeEntryId, dataChannelId])
-    @@index([dataChannelId])
-    @@index([nodeId, persistentId])
+    @@index([dataChannelId, persistentId])
     @@index([loggedCallId, dataChannelId])
-    @@index([nodeId, status, inputHash])
-    @@index([persistentId, nodeId])
+    @@index([dataChannelId, status, inputHash])
+    @@index([persistentId, dataChannelId])
 }
 
 model DatasetEntryInput {

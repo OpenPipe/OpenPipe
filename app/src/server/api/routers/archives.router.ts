@@ -40,17 +40,18 @@ export const archivesRouter = createTRPCRouter({
       })
         .leftJoin("DatasetFileUpload as dfu", "dfu.nodeId", "archiveNode.id")
         .where("dfu.errorMessage", "is", null)
-        .leftJoin("NodeEntry as nd", "archiveNode.id", "nd.nodeId")
+        .innerJoin("DataChannel as dc", "dc.destinationId", "archiveNode.id")
+        .leftJoin("NodeEntry as ne", "dc.id", "ne.dataChannelId")
         .groupBy(["archiveNode.id", "llmRelabelNode.id"])
         .distinctOn("archiveNode.createdAt")
         .selectAll("archiveNode")
         .select([
           "llmRelabelNode.id as llmRelabelNodeId",
           "llmRelabelNode.config as llmRelabelNodeConfig",
-          sql<number>`SUM(CASE WHEN nd.split = 'TRAIN' THEN 1 ELSE 0 END)::int`.as(
+          sql<number>`SUM(CASE WHEN ne.split = 'TRAIN' THEN 1 ELSE 0 END)::int`.as(
             "numTrainEntries",
           ),
-          sql<number>`SUM(CASE WHEN nd.split = 'TEST' THEN 1 ELSE 0 END)::int`.as("numTestEntries"),
+          sql<number>`SUM(CASE WHEN ne.split = 'TEST' THEN 1 ELSE 0 END)::int`.as("numTestEntries"),
         ])
         .orderBy("archiveNode.createdAt", "desc")
         .execute()

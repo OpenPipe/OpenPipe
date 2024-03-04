@@ -28,7 +28,7 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   dbName,
   instanceClass: "db.m7g.2xlarge",
   allocatedStorage: 1000,
-  maxAllocatedStorage: 1000,
+  maxAllocatedStorage: 2000,
   storageType: "io1",
   iops: 12000,
   engine: "postgres",
@@ -42,7 +42,7 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   performanceInsightsEnabled: true,
   multiAz: isProd,
   skipFinalSnapshot: !isProd,
-  snapshotIdentifier: isProd ? undefined : "rds:app-pl-prod2de906e-2024-03-02-08-43",
+  snapshotIdentifier: isProd ? undefined : "rds:app-pl-prod2de906e-2024-03-03-05-27",
   finalSnapshotIdentifier: nm("app-db-final-snapshot"),
 });
 

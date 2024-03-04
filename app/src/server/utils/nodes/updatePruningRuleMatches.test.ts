@@ -68,13 +68,11 @@ const initializeProject = async () => {
 
 const createNodeEntry = async ({
   projectId,
-  nodeId,
   dataChannelId,
   messages,
   split = "TRAIN",
 }: {
   projectId: string;
-  nodeId: string;
   dataChannelId: string;
   messages: ChatCompletionMessageParam[];
   split?: DatasetEntrySplit;
@@ -95,7 +93,6 @@ const createNodeEntry = async ({
   return await prisma.nodeEntry.create({
     data: {
       dataChannelId,
-      nodeId,
       persistentId: "_",
       inputHash,
       originalOutputHash: outputHash,
@@ -156,7 +153,6 @@ it("matches basic string", async () => {
   const [_, rule] = await Promise.all([
     createNodeEntry({
       projectId: creationParams.projectId,
-      nodeId: creationParams.datasetNodeId,
       dataChannelId: creationParams.inputChannelId,
       messages: input1,
     }),
@@ -171,7 +167,11 @@ it("matches basic string", async () => {
     datasetId: creationParams.datasetId,
     nodeEntryBaseQuery: kysely
       .selectFrom("NodeEntry as ne")
-      .where("ne.nodeId", "=", creationParams.datasetNodeId)
+      .innerJoin("DataChannel as dc", (join) =>
+        join
+          .onRef("dc.id", "=", "ne.dataChannelId")
+          .on("dc.destinationId", "=", creationParams.datasetNodeId),
+      )
       .where("ne.status", "=", "PROCESSED"),
     pruningRuleCutoffDate: new Date(0),
   });
@@ -193,7 +193,6 @@ it("matches string with newline", async () => {
   const [_, rule] = await Promise.all([
     createNodeEntry({
       projectId: creationParams.projectId,
-      nodeId: creationParams.datasetNodeId,
       dataChannelId: creationParams.inputChannelId,
       messages: input1,
     }),
@@ -208,7 +207,11 @@ it("matches string with newline", async () => {
     datasetId: creationParams.datasetId,
     nodeEntryBaseQuery: kysely
       .selectFrom("NodeEntry as ne")
-      .where("ne.nodeId", "=", creationParams.datasetNodeId)
+      .innerJoin("DataChannel as dc", (join) =>
+        join
+          .onRef("dc.id", "=", "ne.dataChannelId")
+          .on("dc.destinationId", "=", creationParams.datasetNodeId),
+      )
       .where("ne.status", "=", "PROCESSED"),
     pruningRuleCutoffDate: new Date(0),
   });
@@ -230,7 +233,6 @@ describe("fine tune pruning rules", () => {
     const [nodeEntry, rule] = await Promise.all([
       createNodeEntry({
         projectId: creationParams.projectId,
-        nodeId: creationParams.datasetNodeId,
         dataChannelId: creationParams.inputChannelId,
         messages: input1,
       }),
@@ -245,7 +247,11 @@ describe("fine tune pruning rules", () => {
       datasetId: creationParams.datasetId,
       nodeEntryBaseQuery: kysely
         .selectFrom("NodeEntry as ne")
-        .where("ne.nodeId", "=", creationParams.datasetNodeId)
+        .innerJoin("DataChannel as dc", (join) =>
+          join
+            .onRef("dc.id", "=", "ne.dataChannelId")
+            .on("dc.destinationId", "=", creationParams.datasetNodeId),
+        )
         .where("ne.status", "=", "PROCESSED"),
       pruningRuleCutoffDate: new Date(0),
     });
@@ -289,7 +295,6 @@ describe("fine tune pruning rules", () => {
     const [nodeEntry, rule] = await Promise.all([
       createNodeEntry({
         projectId: creationParams.projectId,
-        nodeId: creationParams.datasetNodeId,
         dataChannelId: creationParams.inputChannelId,
         messages: input1,
       }),
@@ -304,7 +309,11 @@ describe("fine tune pruning rules", () => {
       datasetId: creationParams.datasetId,
       nodeEntryBaseQuery: kysely
         .selectFrom("NodeEntry as ne")
-        .where("ne.nodeId", "=", creationParams.datasetNodeId)
+        .innerJoin("DataChannel as dc", (join) =>
+          join
+            .onRef("dc.id", "=", "ne.dataChannelId")
+            .on("dc.destinationId", "=", creationParams.datasetNodeId),
+        )
         .where("ne.status", "=", "PROCESSED"),
       pruningRuleCutoffDate: new Date(0),
     });

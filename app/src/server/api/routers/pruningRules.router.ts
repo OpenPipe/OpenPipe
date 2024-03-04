@@ -26,9 +26,10 @@ export const pruningRulesRouter = createTRPCRouter({
         .where("d.id", "=", input.datasetId)
         .innerJoin("PruningRule as pr", "pr.datasetId", "d.id")
         .leftJoin("PruningRuleMatch as prm", "prm.pruningRuleId", "pr.id")
+        .innerJoin("DataChannel as dc", "dc.destinationId", "d.nodeId")
         .leftJoin("NodeEntry as ne", (join) =>
           join
-            .onRef("ne.nodeId", "=", "d.nodeId")
+            .onRef("ne.dataChannelId", "=", "dc.id")
             .onRef("ne.inputHash", "=", "prm.inputHash")
             .on("ne.status", "=", "PROCESSED"),
         )
@@ -73,7 +74,11 @@ export const pruningRulesRouter = createTRPCRouter({
         datasetId: datasetNode.datasetId,
         nodeEntryBaseQuery: kysely
           .selectFrom("NodeEntry as ne")
-          .where("ne.nodeId", "=", datasetNode.id)
+          .innerJoin("DataChannel as dc", (join) =>
+            join
+              .onRef("dc.id", "=", "ne.dataChannelId")
+              .on("dc.destinationId", "=", datasetNode.id),
+          )
           .where("ne.status", "=", "PROCESSED"),
         pruningRuleCutoffDate: createdAt,
         deleteMatches: true,
@@ -109,7 +114,11 @@ export const pruningRulesRouter = createTRPCRouter({
         datasetId: datasetNode.datasetId,
         nodeEntryBaseQuery: kysely
           .selectFrom("NodeEntry as ne")
-          .where("ne.nodeId", "=", datasetNode.id)
+          .innerJoin("DataChannel as dc", (join) =>
+            join
+              .onRef("dc.id", "=", "ne.dataChannelId")
+              .on("dc.destinationId", "=", datasetNode.id),
+          )
           .where("ne.status", "=", "PROCESSED"),
         pruningRuleCutoffDate: createdAt,
         deleteMatches: true,
@@ -144,7 +153,11 @@ export const pruningRulesRouter = createTRPCRouter({
         datasetId: datasetNode.datasetId,
         nodeEntryBaseQuery: kysely
           .selectFrom("NodeEntry as ne")
-          .where("ne.nodeId", "=", datasetNode.id)
+          .innerJoin("DataChannel as dc", (join) =>
+            join
+              .onRef("dc.id", "=", "ne.dataChannelId")
+              .on("dc.destinationId", "=", datasetNode.id),
+          )
           .where("ne.status", "=", "PROCESSED"),
         pruningRuleCutoffDate: createdAt,
         deleteMatches: true,

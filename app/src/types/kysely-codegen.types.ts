@@ -394,7 +394,6 @@ export interface NodeEntry {
   inputHash: string;
   outputHash: string;
   originalOutputHash: string;
-  nodeId: string;
   dataChannelId: string;
   parentNodeEntryId: string | null;
   createdAt: Generated<Timestamp>;

@@ -87,7 +87,8 @@ export const generateEntry = async ({
   const nodeEntry = await kysely
     .selectFrom("NodeEntry as ne")
     .where("ne.id", "=", nodeEntryId)
-    .innerJoin("Node as n", "n.id", "ne.nodeId")
+    .innerJoin("DataChannel as dc", "dc.id", "ne.dataChannelId")
+    .innerJoin("Node as n", "n.id", "dc.destinationId")
     .innerJoin("Dataset as d", "d.nodeId", "n.id")
     .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
     .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")

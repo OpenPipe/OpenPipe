@@ -68,7 +68,7 @@ export const fineTunesRouter = createTRPCRouter({
         .selectFrom("Dataset as d")
         .where("d.id", "=", datasetId)
         .innerJoin("FineTune as ft", "ft.datasetId", "d.id")
-        .selectAll()
+        .selectAll("ft")
         .select(() => [
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",

@@ -38,8 +38,6 @@ export const processNode = defineTask<ProcessNodeJob>({
 
     if (!node) return;
 
-    console.log({ nodeId, type: node.type });
-
     if (node.stale) {
       await invalidateNodeEntries(nodeId);
       await prisma.node.update({
@@ -54,7 +52,9 @@ export const processNode = defineTask<ProcessNodeJob>({
     await kysely
       .updateTable("NodeEntry as ne")
       .set({ status: "PENDING" })
-      .where("ne.nodeId", "=", node.id)
+      .from("DataChannel as dc")
+      .whereRef("dc.id", "=", "ne.dataChannelId")
+      .where("dc.destinationId", "=", node.id)
       .where((eb) => eb.or([eb("ne.status", "=", "PROCESSING"), eb("ne.status", "=", "ERROR")]))
       .execute();
 
@@ -84,9 +84,12 @@ export const processNode = defineTask<ProcessNodeJob>({
 
       while (true) {
         await updateCached({ node });
+
         const entriesBatch = await kysely
           .selectFrom("NodeEntry as ne")
-          .where("nodeId", "=", node.id)
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", node.id),
+          )
           .where("ne.status", "=", "PENDING")
           .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
           .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
@@ -161,7 +164,9 @@ export const processNode = defineTask<ProcessNodeJob>({
       let updateQuery = kysely
         .updateTable("NodeEntry as ne")
         .set({ status: "PROCESSED" })
-        .where("ne.nodeId", "=", node.id)
+        .from("DataChannel as dc")
+        .whereRef("dc.id", "=", "ne.dataChannelId")
+        .where("dc.destinationId", "=", node.id)
         .where("ne.status", "=", "PENDING");
 
       if (nodeProperties.cacheMatchFields) {

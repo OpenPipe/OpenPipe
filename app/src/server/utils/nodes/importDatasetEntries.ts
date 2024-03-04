@@ -100,7 +100,6 @@ export const importDatasetEntries = async ({
     ({ datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
       await prepareDatasetEntriesForImport({
         projectId,
-        nodeId,
         dataChannelId,
         entriesToImport,
         onProgress: async (progress) => {

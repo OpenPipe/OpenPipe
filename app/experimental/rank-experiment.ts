@@ -1,8 +1,10 @@
 import { from, lastValueFrom, toArray } from "rxjs";
 import { map, mergeAll, mergeMap } from "rxjs/operators";
 import { noop } from "lodash-es";
+import { sql } from "kysely";
+
 import { createAppRouterCaller } from "~/server/api/root.router";
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { type RouterInputs } from "~/utils/api";
 import { table } from "table";
 import { env } from "~/env.mjs";
@@ -101,12 +103,16 @@ async function createFineTunes(datasetId: string) {
 
 const runEvals = async (args: Awaited<ReturnType<typeof createFineTunes>>) => {
   const { dataset, fineTunes } = args;
-  const numTestEntries = await prisma.nodeEntry.count({
-    where: {
-      nodeId: dataset.nodeId,
-      split: "TEST",
-    },
-  });
+
+  const numTestEntries = await kysely
+    .selectFrom("NodeEntry as ne")
+    .innerJoin("DataChannel as dc", (join) =>
+      join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", dataset.nodeId),
+    )
+    .where("ne.split", "=", "TEST")
+    .select(sql<number>`count(*)::int`.as("count"))
+    .executeTakeFirst()
+    .then((r) => r?.count ?? 0);
 
   let evalId = (
     await prisma.datasetEval.findFirst({

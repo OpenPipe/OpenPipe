@@ -116,7 +116,11 @@ export const checkFineTuneStatus = defineTask({
                 modelId: currentFineTune.id,
                 nodeEntryBaseQuery: kysely
                   .selectFrom("NodeEntry as ne")
-                  .where("ne.nodeId", "=", dataset.nodeId)
+                  .innerJoin("DataChannel as dc", (join) =>
+                    join
+                      .onRef("dc.id", "=", "ne.dataChannelId")
+                      .on("dc.destinationId", "=", dataset.nodeId),
+                  )
                   .where("ne.status", "=", "PROCESSED"),
               });
             }

@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import yargs from "yargs/yargs";
 import { hideBin } from "yargs/helpers";
+import { sql } from "kysely";
+
 import {
   prepareIntegratedArchiveCreation,
   prepareIntegratedDatasetCreation,
@@ -12,6 +14,7 @@ import {
 } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { generatePersistentId } from "~/server/utils/nodes/utils";
 import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
+import { kysely } from "~/server/db";
 
 const ARCHIVE_NAME = "Synthetic Archive";
 
@@ -54,11 +57,19 @@ let archiveDataChannelId: string;
 
 if (existingArchive && existingArchive.inputDataChannels[0]) {
   // Delete existing entries
-  const count = await prisma.nodeEntry.deleteMany({
-    where: {
-      nodeId: existingArchive.id,
-    },
-  });
+  const count = await kysely
+    .deleteFrom("NodeEntry as ne")
+    .using((eb) =>
+      eb
+        .selectFrom("DataChannel as dc")
+        .where("dc.destinationId", "=", existingArchive.id)
+        .select("dc.id")
+        .as("dc"),
+    )
+    .whereRef("ne.dataChannelId", "=", "dc.id")
+    .returning(sql<number>`count(*)::int`.as("count"))
+    .executeTakeFirst()
+    .then((r) => r?.count ?? 0);
 
   console.log("Deleted existing entries", count);
 
@@ -122,7 +133,6 @@ const entriesToImport: EntryToImport[] = shuffledWords.map((word, index) => ({
 const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
   await prepareDatasetEntriesForImport({
     projectId: project.id,
-    nodeId: archiveNodeId,
     dataChannelId: archiveDataChannelId,
     entriesToImport,
   });
