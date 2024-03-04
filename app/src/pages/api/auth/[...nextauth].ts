@@ -40,7 +40,6 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
       CredentialsProvider({
         credentials: {
           email: { label: "email", type: "text" },
-          password: { label: "Password", type: "password", required: false },
         },
         authorize: async (credentials) => {
           // Authorization logic remains the same
