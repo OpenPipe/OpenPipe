@@ -102,37 +102,34 @@ export const nodeEntriesRouter = createTRPCRouter({
         entriesQuery = entriesQuery.orderBy("ne.persistentId", "desc");
       }
 
-      const entries = await entriesQuery
-        .orderBy("inputHash")
-        .execute()
-        .then((res) =>
-          res.map((entry) => ({
-            ...entry,
-            creationTime: creationTimeFromPersistentId(entry.persistentId),
-          })),
-        );
-
-      // console.log("entries", entries);
-      console.log("getting entries");
-
-      const matchingCounts = await baseQuery
-        .select([
-          sql<number>`count(case when ne.split = 'TRAIN' then 1 end)::int`.as(
-            "matchingTrainingCount",
+      const [entries, matchingCounts, totalTestingCount] = await Promise.all([
+        entriesQuery
+          .orderBy("inputHash")
+          .execute()
+          .then((res) =>
+            res.map((entry) => ({
+              ...entry,
+              creationTime: creationTimeFromPersistentId(entry.persistentId),
+            })),
           ),
-          sql<number>`count(*)::int`.as("matchingCount"),
-        ])
-        .executeTakeFirst();
-
-      const totalTestingCount = await kysely
-        .selectFrom("NodeEntry as ne")
-        .innerJoin("DataChannel as dc", (join) =>
-          join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", nodeId),
-        )
-        .where("ne.split", "=", "TEST")
-        .select(sql<number>`count(*)::int`.as("totalTestingCount"))
-        .executeTakeFirst()
-        .then((r) => r?.totalTestingCount ?? 0);
+        baseQuery
+          .select([
+            sql<number>`count(case when ne.split = 'TRAIN' then 1 end)::int`.as(
+              "matchingTrainingCount",
+            ),
+            sql<number>`count(*)::int`.as("matchingCount"),
+          ])
+          .executeTakeFirst(),
+        kysely
+          .selectFrom("NodeEntry as ne")
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", nodeId),
+          )
+          .where("ne.split", "=", "TEST")
+          .select(sql<number>`count(*)::int`.as("totalTestingCount"))
+          .executeTakeFirst()
+          .then((r) => r?.totalTestingCount ?? 0),
+      ]);
 
       return {
         entries,
@@ -706,67 +703,68 @@ export const nodeEntriesRouter = createTRPCRouter({
           .orderBy(`averageScoreForEval.score`, sortOrder.order);
       }
 
-      const entries = await updatedQuery
-        .select((eb) => [
-          "ne.id as id",
-          "dei.messages as messages",
-          "dei.response_format as response_format",
-          "deo.output as output",
-          jsonArrayFrom(
-            eb
-              .selectFrom("FineTuneTestingEntry as ftte")
-              .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
-              .leftJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
-              .select([
-                "ftte.id",
-                "ftte.modelId",
-                "ftte.errorMessage",
-                "ftte.finishReason",
-                "dei.inputTokens",
-                "deo.output",
-                "deo.outputTokens",
-              ])
-              .whereRef("ftte.inputHash", "=", "ne.inputHash")
-              .where("ftte.modelId", "in", visibleModelIds),
-          ).as("fineTuneTestDatasetEntries"),
-          jsonArrayFrom(
-            eb
-              .selectFrom("DatasetEvalResult as der")
-              .whereRef("der.nodeEntryInputHash", "=", "ne.inputHash")
-              .innerJoin("DatasetEvalNodeEntry as dene", (join) =>
-                join
-                  .onRef("dene.nodeEntryPersistentId", "=", "ne.persistentId")
-                  .onRef("der.datasetEvalNodeEntryId", "=", "dene.id"),
-              )
-              .leftJoin(
-                "DatasetEvalOutputSource as deos",
-                "deos.id",
-                "der.datasetEvalOutputSourceId",
-              )
-              .leftJoin(
-                "DatasetEvalOutputSource as comparisonDeos",
-                "comparisonDeos.id",
-                "der.comparisonOutputSourceId",
-              )
-              .select(["der.score", "der.status", "deos.datasetEvalId", "deos.modelId"])
-              .where((eb) =>
-                eb.or([
-                  eb("der.comparisonOutputSourceId", "is", null),
-                  eb("comparisonDeos.modelId", "in", visibleModelIds),
-                ]),
-              ),
-          ).as("datasetEvalResults"),
-        ])
-        .orderBy("ne.persistentId", "desc")
-        .orderBy("ne.inputHash", "desc")
-        .offset((page - 1) * pageSize)
-        .limit(pageSize)
-        .execute();
-
-      const count = await baseQuery
-        .select([sql<number>`count(*)::int`.as("count")])
-        .executeTakeFirst()
-        .then((res) => res?.count ?? 0);
+      const [entries, count] = await Promise.all([
+        updatedQuery
+          .select((eb) => [
+            "ne.id as id",
+            "dei.messages as messages",
+            "dei.response_format as response_format",
+            "deo.output as output",
+            jsonArrayFrom(
+              eb
+                .selectFrom("FineTuneTestingEntry as ftte")
+                .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
+                .leftJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
+                .select([
+                  "ftte.id",
+                  "ftte.modelId",
+                  "ftte.errorMessage",
+                  "ftte.finishReason",
+                  "dei.inputTokens",
+                  "deo.output",
+                  "deo.outputTokens",
+                ])
+                .whereRef("ftte.inputHash", "=", "ne.inputHash")
+                .where("ftte.modelId", "in", visibleModelIds),
+            ).as("fineTuneTestDatasetEntries"),
+            jsonArrayFrom(
+              eb
+                .selectFrom("DatasetEvalResult as der")
+                .whereRef("der.nodeEntryInputHash", "=", "ne.inputHash")
+                .innerJoin("DatasetEvalNodeEntry as dene", (join) =>
+                  join
+                    .onRef("dene.nodeEntryPersistentId", "=", "ne.persistentId")
+                    .onRef("der.datasetEvalNodeEntryId", "=", "dene.id"),
+                )
+                .leftJoin(
+                  "DatasetEvalOutputSource as deos",
+                  "deos.id",
+                  "der.datasetEvalOutputSourceId",
+                )
+                .leftJoin(
+                  "DatasetEvalOutputSource as comparisonDeos",
+                  "comparisonDeos.id",
+                  "der.comparisonOutputSourceId",
+                )
+                .select(["der.score", "der.status", "deos.datasetEvalId", "deos.modelId"])
+                .where((eb) =>
+                  eb.or([
+                    eb("der.comparisonOutputSourceId", "is", null),
+                    eb("comparisonDeos.modelId", "in", visibleModelIds),
+                  ]),
+                ),
+            ).as("datasetEvalResults"),
+          ])
+          .orderBy("ne.persistentId", "desc")
+          .orderBy("ne.inputHash", "desc")
+          .offset((page - 1) * pageSize)
+          .limit(pageSize)
+          .execute(),
+        baseQuery
+          .select([sql<number>`count(*)::int`.as("count")])
+          .executeTakeFirst()
+          .then((res) => res?.count ?? 0),
+      ]);
 
       const generatedOutputsPerRow =
         dataset.enabledComparisonModels.length + dataset.numDeployedModels;

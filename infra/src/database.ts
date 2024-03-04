@@ -27,7 +27,7 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   password: password.result,
   dbName,
   instanceClass: "db.m7g.2xlarge",
-  allocatedStorage: 1000,
+  allocatedStorage: 2000,
   maxAllocatedStorage: 2000,
   storageType: "io1",
   iops: 12000,
