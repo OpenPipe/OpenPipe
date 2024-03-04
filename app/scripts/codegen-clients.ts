@@ -28,10 +28,9 @@ await generate({
   httpClient: "node",
 });
 
-execSync(`cp ${docsSchemaPath} ${clientLibsPath}/fern/openapi/openapi.json`);
+execSync(`cp ${docsSchemaPath} ${clientLibsPath}/fern/openapi/openapi.json`, { stdio: "inherit" });
 
 console.log("Generating Python client");
-
-execSync(`cd ${clientLibsPath} && pnpm fern generate`);
+execSync(`cd ${clientLibsPath} && pnpm fern generate`, { stdio: "inherit" });
 
 console.log("Done!");

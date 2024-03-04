@@ -5,7 +5,7 @@ config:
     secure: AAABAEkqA8a0Jud/Z2yjQXsRXwvmh54DwFWbDJarnNS3ZlhLpZdFO6pTwCW1EDlpY8nVSooHlmJZSZi5Y8tzwqpudYSt6lYYc8a4
   openpipe:ANYSCALE_INFERENCE_BASE_URL: https://inference-stage-c6qyl.cld-tskg84t9kb3cr8ud.s.anyscaleuserdata.com/v1
   openpipe:AUTHENTICATED_SYSTEM_KEY:
-    secure: AAABAIF/+V67LPOdOL1TJ6vYspfsshXqklCatXW4iwT9xkQiS5iQpIexXPiFAp2tFWwSi8w63gPExslbwltxbg==
+    secure: AAABAFrCdr79QdOkf6u7Z+uCmTyrgig0MxN9hEAgIbxkuQ5wgY2Yion7MmHHq/xKQonZ7hjrEQ==
   openpipe:AZURE_OPENAI_API_KEY_AUSTRALIAEAST:
     secure: AAABAJNkPfCB/CmMRgGaHoTh809jrr3UzmTNyGi6oMMveatw0mlSUdWEOCHWF3a3FIU9/fo+UEDX7hAgmJF4jw==
   openpipe:AZURE_OPENAI_API_KEY_CANADAEAST:
@@ -29,15 +29,16 @@ config:
   openpipe:AZURE_STORAGE_ACCOUNT_NAME: openpipestorage
   openpipe:AZURE_STORAGE_CONTAINER_NAME: uploadedtrainingdata
   openpipe:DATABASE_URL:
-    secure: AAABAAwzXuqjPr+HSDt3fQ23k5QIu1MK9rPJeh0c9t+jPg8s3QFswtobBIcm3A6u5/eDd+HIH1SasZK4ntm1/deL97OeqlEpMpaIMGQo0CiZTaciFAFXQroLcrWYk2dQSJ6RCQijDmeBS4TcviWghmHW3nbQgoiFA9jQrY199ynUjno8jgPS5qpJfagtKKgvJXo8rzNvWpeM4yJgJSjENYA=
+    secure: AAABAKNlTgvrVfD8QyDNSg2w9UbkauOFLwuf6rGjBeEUDSj6KYgc+9GNpajP2LOCZEoXyon3mh/1URWflYuN+D/xuR4koqaJ3V0lrA7iM9BRXB7QVhKqGn6XD4bxiLEX3+Ghy+53dR8TShvqlUpEQ9n6DE+GyUXjkT5SVEjZgfLdO/Rq8MN2uxb+JnTcaPdHAYweuqFyh9RjUd+vJAJ2L1U=
   openpipe:FIREWORKS_API_KEY:
     secure: AAABAPeSTk9LgtWfOpq55ICMCOSvKZo8OaLRotWRZGaebj3AtSW6NT4W1JBWeTAl9G9eVDDsRiSyPvlPfLdXZXTCW+XgnbBrpOspgX0LcHg=
   openpipe:GITHUB_CLIENT_ID:
     secure: AAABAJm9aaD9Lun17P1sC8iLXyO2T/qcKxVvURkyNVuqgn5yZ1C/qfRsod2yMkDRNiLzNQ==
   openpipe:GITHUB_CLIENT_SECRET:
     secure: AAABABlrDVTEPwFbH+lRBsVfYvJZplScryCWJr6VxG+aL8/x9CUQIlle2ttg8ElILmHk4LmI/wW+99vKwtw1N2EiBgT7B0qb
-  openpipe:MODAL_ENVIRONMENT: prod
+  openpipe:MODAL_ENVIRONMENT: dev
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
+  openpipe:NEXT_PUBLIC_MAINTENANCE_MODE: "true"
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
   openpipe:NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_51OcEiyIpUtvR6wbgpoMtjp7GzrWoNcjM2kLSeYlEAcP9BevVtv69TeUvhndrg87A4zigWNXYfTjeHyDqX4dt3Pm100pZ8BTBtu
@@ -52,10 +53,10 @@ config:
   openpipe:SENDER_EMAIL: noreply@email.openpipe.ai
   openpipe:SENTRY_AUTH_TOKEN:
     secure: AAABAPbMI/z2KEIz3utl0SaDBjiSUWWyrrHghP4qEfYQgwx7g9Oj55dPoag8zfOEjJ+qrCIW0dAmRNgNKsPgkxEbrC5WKMQBWc3VVxW0nBdxkLHasS/8d3UC+D7bzurjEVOJAvaqSyjvBt70Bs9A+T2XvGtQt/mpCSV7pdoa1dM1stdBvcBkDmnkdfNST916KWfGvg3i2x2HZgSDTo3wsNtqcT7O479yQZHGpIfRSa5NYcXaqKa4+AVhOQvmIPGiUSJFlLolwuUMmq3oK6Zk6tLKEBtDzCYEO1D3KnaNoA==
-  openpipe:SMTP_HOST: smtp-relay.brevo.com
-  openpipe:SMTP_LOGIN: founders@openpipe.ai
+  openpipe:SMTP_HOST: sandbox.smtp.mailtrap.io
+  openpipe:SMTP_LOGIN: d8de19315c0e36
   openpipe:SMTP_PASSWORD:
-    secure: AAABAOEiU4VL50BHLBNMrsyuNZPI/YDtxrDQr73KU3fVUPp09Z+Cd0tFPs+KloUu
+    secure: AAABAHhcqTfJS2AS89G4UUyULywa2zY8Q9DQFlHglLBo92C2K0emr91Q26eZTA==
   openpipe:STRIPE_SECRET_KEY:
     secure: AAABAAh63+NEQ44atnTz7N1w1pg/3oICESNTlCeckpKEmdOjvY9DwV+1H3X8KT1krQ4uxxsACS2ag6vd7aHe4019ToQxz5cmWoKsHszuWREUuTqbm26cziP1+TmDnY0dB9QRpCv15NZer4oFZUQiBLKcEKQkm8eV+6pUL7gakZIUytFyeWSJn5SGXw==
   openpipe:STRIPE_WEBHOOK_SECRET:

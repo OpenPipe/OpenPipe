@@ -23,7 +23,7 @@ const FileUploadsCard = () => {
     }
   }, [fileUploads]);
 
-  const utils = api.useContext();
+  const utils = api.useUtils();
 
   const hideFileUploadsMutation = api.datasets.hideFileUploads.useMutation();
   const [hideAllFileUploads] = useHandledAsyncCallback(async () => {
@@ -33,6 +33,15 @@ const FileUploadsCard = () => {
     });
     await utils.datasets.listFileUploads.invalidate();
   }, [hideFileUploadsMutation, fileUploads.data, utils]);
+
+  const numSuccessfulUploads = fileUploads.data?.filter((fu) => fu.status === "COMPLETE").length;
+
+  useEffect(() => {
+    if (numSuccessfulUploads) {
+      void utils.nodeEntries.list.invalidate().catch(console.error);
+      void utils.datasets.get.invalidate().catch(console.error);
+    }
+  }, [numSuccessfulUploads]);
 
   if (!fileUploads.data?.length) return null;
 
@@ -87,7 +96,7 @@ const FileUploadRow = ({ fileUpload }: { fileUpload: FileUpload }) => {
 
   useEffect(() => {
     // Invalidate dataset entries list when upload is processed
-    if (status === "COMPLETE") void utils.datasetEntries.list.invalidate();
+    if (status === "COMPLETE") void utils.nodeEntries.list.invalidate();
   }, [status, utils]);
 
   return (

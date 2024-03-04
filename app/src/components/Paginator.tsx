@@ -108,48 +108,52 @@ const Paginator = ({ count, ...props }: { count: number } & StackProps) => {
         </>
       )}
 
-      <HStack>
-        <IconButton
-          variant="outline"
-          size="sm"
-          onClick={goToFirstPage}
-          isDisabled={page === 1}
-          aria-label="Go to first page"
-          icon={<Icon as={FiChevronsLeft} boxSize={5} strokeWidth={1.5} />}
-          bgColor="white"
-        />
-        <IconButton
-          variant="outline"
-          size="sm"
-          onClick={prevPage}
-          isDisabled={page === 1}
-          aria-label="Previous page"
-          icon={<Icon as={FiChevronLeft} boxSize={5} strokeWidth={1.5} />}
-          bgColor="white"
-        />
+      <HStack w={isMobile ? "full" : undefined} justifyContent="space-between">
+        <HStack>
+          <IconButton
+            variant="outline"
+            size="sm"
+            onClick={goToFirstPage}
+            isDisabled={page === 1}
+            aria-label="Go to first page"
+            icon={<Icon as={FiChevronsLeft} boxSize={5} strokeWidth={1.5} />}
+            bgColor="white"
+          />
+          <IconButton
+            variant="outline"
+            size="sm"
+            onClick={prevPage}
+            isDisabled={page === 1}
+            aria-label="Previous page"
+            icon={<Icon as={FiChevronLeft} boxSize={5} strokeWidth={1.5} />}
+            bgColor="white"
+          />
+        </HStack>
         {isMobile && (
           <Text>
-            Page {page} of {lastPage}
+            {page} / {lastPage}
           </Text>
         )}
-        <IconButton
-          variant="outline"
-          size="sm"
-          onClick={nextPage}
-          isDisabled={page === lastPage}
-          aria-label="Next page"
-          icon={<Icon as={FiChevronRight} boxSize={5} strokeWidth={1.5} />}
-          bgColor="white"
-        />
-        <IconButton
-          variant="outline"
-          size="sm"
-          onClick={goToLastPage}
-          isDisabled={page === lastPage}
-          aria-label="Go to last page"
-          icon={<Icon as={FiChevronsRight} boxSize={5} strokeWidth={1.5} />}
-          bgColor="white"
-        />
+        <HStack>
+          <IconButton
+            variant="outline"
+            size="sm"
+            onClick={nextPage}
+            isDisabled={page === lastPage}
+            aria-label="Next page"
+            icon={<Icon as={FiChevronRight} boxSize={5} strokeWidth={1.5} />}
+            bgColor="white"
+          />
+          <IconButton
+            variant="outline"
+            size="sm"
+            onClick={goToLastPage}
+            isDisabled={page === lastPage}
+            aria-label="Go to last page"
+            icon={<Icon as={FiChevronsRight} boxSize={5} strokeWidth={1.5} />}
+            bgColor="white"
+          />
+        </HStack>
       </HStack>
     </HStack>
   );

@@ -59,7 +59,7 @@ export const TableHeader = () => {
   );
 };
 
-type TestingEntry = RouterOutputs["datasetEntries"]["listTestingEntries"]["entries"][number];
+type TestingEntry = RouterOutputs["nodeEntries"]["listTestingEntries"]["entries"][number];
 
 const EvaluationRow = ({ entry }: { entry: TestingEntry }) => {
   const visibleModelIds = useVisibleModelIds().visibleModelIds;
@@ -244,7 +244,7 @@ const FormattedOutputGridItem = ({
       <VStack ref={ref} w="full" alignItems="flex-start" justifyContent="space-between" h="full">
         <FormattedOutput entry={entry} preferJson={preferJson} />
         <EvalResults
-          datasetEntryId={datasetEntryId}
+          nodeEntryId={datasetEntryId}
           modelId={entry.modelId}
           results={applicableResults}
         />
@@ -255,6 +255,9 @@ const FormattedOutputGridItem = ({
 
 export const FormattedOutput = ({ entry, preferJson }: { entry: FTEntry; preferJson: boolean }) => {
   if (entry.errorMessage) {
+    if (entry.errorMessage === "Pending") {
+      return <Text color="gray.500">Pending</Text>;
+    }
     return <Text color="red.500">{entry.errorMessage}</Text>;
   }
 

@@ -27,7 +27,7 @@ export default function FineTune() {
 
   return (
     <AppShell title={`openpipe:${slug}`}>
-      <VStack h="full" overflowY="scroll">
+      <VStack>
         <PageHeaderContainer>
           <Breadcrumb>
             <BreadcrumbItem>

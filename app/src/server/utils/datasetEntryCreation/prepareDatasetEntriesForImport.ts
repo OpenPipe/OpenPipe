@@ -1,87 +1,107 @@
-import { type DatasetEntryProvenance, type Prisma } from "@prisma/client";
+import { type Prisma } from "@prisma/client";
 import { shuffle } from "lodash-es";
-import { v4 as uuidv4 } from "uuid";
-import { type RowToImport } from "~/components/datasets/parseRowsToImport";
+import { type ChatCompletionMessage } from "openai/resources";
 
-import { prisma } from "~/server/db";
+import { type RowToImport } from "~/components/datasets/parseRowsToImport";
 import {
   convertFunctionCallToToolChoice,
   convertFunctionsToTools,
   convertFunctionMessageToToolCall,
   convertFunctionMessagesToToolCall,
 } from "../convertFunctionCalls";
+import { hashDatasetEntryInput, hashDatasetEntryOutput } from "../nodes/hashNode";
 
-export const prepareDatasetEntriesForImport = async (
-  datasetId: string,
-  entriesToImport: RowToImport[],
-  provenance: DatasetEntryProvenance,
-  importId: string,
-  authoringUserId: string | null,
-): Promise<(Prisma.DatasetEntryCreateManyInput & { id: string })[]> => {
-  const [dataset, existingTrainingCount, existingCount] = await prisma.$transaction([
-    prisma.dataset.findUnique({ where: { id: datasetId } }),
-    prisma.datasetEntry.count({
-      where: {
-        datasetId,
-        split: "TRAIN",
-      },
-    }),
-    prisma.datasetEntry.count({
-      where: {
-        datasetId,
-      },
-    }),
-  ]);
+export const prepareDatasetEntriesForImport = async ({
+  projectId,
+  nodeId,
+  dataChannelId,
+  entriesToImport,
+  onProgress,
+}: {
+  projectId: string;
+  nodeId: string;
+  dataChannelId: string;
+  entriesToImport: (RowToImport & { persistentId: string; loggedCallId?: string })[];
+  onProgress?: (progress: number) => Promise<void>;
+}): Promise<{
+  datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[];
+  datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[];
+  nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[];
+}> => {
+  const datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[] = [];
+  const datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[] = [];
+  let nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[] = [];
 
-  const trainingRatio = dataset?.trainingRatio ?? 0.8;
+  let i = 0;
+  for (const row of entriesToImport) {
+    const tool_choice =
+      row.input.tool_choice || convertFunctionCallToToolChoice(row.input.function_call);
+    const tools = row.input.tools?.length
+      ? row.input.tools
+      : convertFunctionsToTools(row.input.functions);
 
-  const newTotalEntries = existingCount + entriesToImport.length;
-  const numTrainingToAdd = Math.floor(trainingRatio * newTotalEntries) - existingTrainingCount;
-
-  let numTrainingAdded = entriesToImport.filter((row) => row.split === "TRAIN").length;
-  const entriesWithSplit = shuffle(entriesToImport).map((row) => {
-    let split = row.split;
-    if (!split) {
-      if (numTrainingAdded < numTrainingToAdd) {
-        split = "TRAIN";
-        numTrainingAdded++;
-      } else {
-        split = "TEST";
-      }
+    // Update progress every 100 rows
+    if (onProgress && i++ % 100 === 0) {
+      await onProgress(i / entriesToImport.length);
     }
-    return { ...row, split };
-  });
 
-  const batchDate = Date.now();
+    const inputHash = hashDatasetEntryInput({
+      ...row.input,
+      projectId,
+      tool_choice: tool_choice ?? undefined,
+      tools,
+    });
 
-  return shuffle(entriesWithSplit).map((row) => {
-    const persistentId = uuidv4();
+    const messages = convertFunctionMessagesToToolCall(row.input.messages);
 
-    return {
-      id: uuidv4(),
-      datasetId: datasetId,
-      messages: convertFunctionMessagesToToolCall(row.input.messages) as object[],
-      function_call: row.input.function_call,
-      functions: row.input.functions as object[],
-      tool_choice:
-        row.input.tool_choice ||
-        (convertFunctionCallToToolChoice(row.input.function_call) as object),
-      tools: row.input.tools?.length
-        ? row.input.tools
-        : (convertFunctionsToTools(row.input.functions) as object[]),
-      response_format: row.input.response_format,
-      output: (convertFunctionMessageToToolCall(
-        row.output,
-      ) as unknown as Prisma.InputJsonValue) ?? {
-        role: "assistant",
-        content: "",
-      },
-      authoringUserId,
-      provenance,
-      split: row.split,
-      sortKey: `${batchDate}-${persistentId}`,
-      importId,
-      persistentId,
+    datasetEntryInputsToCreate.push({
+      projectId,
+      messages: messages as object[],
+      tool_choice: tool_choice as object,
+      tools: tools as object[],
+      hash: inputHash,
+    });
+
+    const outputHash = hashDatasetEntryOutput({
+      projectId,
+      output: row.output,
+    });
+
+    const output = (convertFunctionMessageToToolCall(row.output) as ChatCompletionMessage) ?? {
+      role: "assistant",
+      content: "",
     };
-  });
+
+    datasetEntryOutputsToCreate.push({
+      projectId,
+      output: output as unknown as Prisma.InputJsonValue,
+      hash: outputHash,
+    });
+
+    nodeEntriesToCreate.push({
+      persistentId: row.persistentId,
+      nodeId,
+      dataChannelId,
+      inputHash,
+      outputHash,
+      originalOutputHash: outputHash,
+      split: "TRAIN",
+      loggedCallId: row.loggedCallId,
+    });
+  }
+
+  // TODO: intelligently update split
+  nodeEntriesToCreate = shuffle(nodeEntriesToCreate);
+  // set first 20% to TEST split
+  nodeEntriesToCreate
+    .slice(0, Math.floor(nodeEntriesToCreate.length * 0.2))
+    .forEach((nodeEntry) => {
+      nodeEntry.split = "TEST";
+    });
+
+  return {
+    datasetEntryInputsToCreate,
+    datasetEntryOutputsToCreate,
+    nodeEntriesToCreate: shuffle(nodeEntriesToCreate),
+  };
 };

@@ -91,6 +91,7 @@ export async function createInvoice(projectId: string, startDate: Date, endDate:
       .where("projectId", "=", projectId)
       .where("createdAt", ">=", startDate)
       .where("createdAt", "<=", endDate)
+      .where("invoiceId", "is", null)
       .execute();
 
     // 3. Calculate usage stats

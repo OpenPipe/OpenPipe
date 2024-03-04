@@ -46,8 +46,8 @@ import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
   useDataset,
-  useDatasetEntries,
   useDatasetTrainingCost,
+  useNodeEntries,
   useHandledAsyncCallback,
   useIsMissingBetaAccess,
   usePruningRules,
@@ -60,12 +60,10 @@ import TrainingEntryMeter from "./TrainingEntryMeter";
 import { useFilters } from "~/components/Filters/useFilters";
 import { ProjectLink } from "~/components/ProjectLink";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
-import { AxolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
+import { type AxolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 const FineTuneButton = () => {
-  const datasetEntries = useDatasetEntries().data;
-
-  const numEntries = datasetEntries?.matchingEntryIds.length || 0;
+  const datasetEntries = useNodeEntries().data;
 
   const disclosure = useDisclosure();
 
@@ -75,7 +73,7 @@ const FineTuneButton = () => {
         onClick={disclosure.onOpen}
         label="Fine Tune"
         icon={AiTwotoneThunderbolt}
-        isDisabled={numEntries === 0}
+        isDisabled={!datasetEntries?.matchingTrainingCount}
       />
       <FineTuneModal disclosure={disclosure} />
     </>
@@ -90,7 +88,7 @@ const visibleModels = getEntries(supportedModels)
 
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
-  const datasetEntries = useDatasetEntries().data;
+  const datasetEntries = useNodeEntries().data;
   const selectedProject = useSelectedProject().data;
   const pruningRules = usePruningRules().data;
 

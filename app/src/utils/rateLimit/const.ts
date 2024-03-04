@@ -1,0 +1,4 @@
+export const CONCURRENCY_RATE_LIMITS = {
+  BASE_LIMIT: 3,
+  INCREASED_LIMIT: 20,
+};

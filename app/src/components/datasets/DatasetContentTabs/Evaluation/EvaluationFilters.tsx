@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Box } from "@chakra-ui/react";
 
-import { useDataset } from "~/utils/hooks";
+import { useDataset, useDatasetArchives } from "~/utils/hooks";
 import Filters from "~/components/Filters/Filters";
 import {
   EVALUATION_FILTERS_OUTPUT_APPENDIX,
@@ -16,6 +16,7 @@ import type {
 
 const EvaluationFilters = () => {
   const dataset = useDataset().data;
+  const archives = useDatasetArchives().data;
 
   const filterOptions = useMemo(() => {
     const initialStaticOptions: FilterOption[] = [
@@ -46,9 +47,18 @@ const EvaluationFilters = () => {
           },
         ]
       : [];
-    const finalStaticOptions: FilterOption[] = [
-      { type: "text", field: EvaluationFiltersDefaultFields.ImportId },
-    ];
+    const finalStaticOptions: FilterOption[] = [];
+    if (archives?.length) {
+      finalStaticOptions.push({
+        type: "select",
+        field: EvaluationFiltersDefaultFields.Source,
+        options: archives.map((archive) => ({
+          value: archive.id,
+          label: archive.name,
+        })),
+      });
+    }
+
     return [
       ...initialStaticOptions,
       ...comparisonModelOutputOptions,
@@ -56,7 +66,12 @@ const EvaluationFilters = () => {
       ...datasetEvalOptions,
       ...finalStaticOptions,
     ];
-  }, [dataset?.enabledComparisonModels, dataset?.deployedFineTunes, dataset?.datasetEvals]);
+  }, [
+    dataset?.enabledComparisonModels,
+    dataset?.deployedFineTunes,
+    dataset?.datasetEvals,
+    archives,
+  ]);
 
   return (
     <Box w="full" pt={1}>

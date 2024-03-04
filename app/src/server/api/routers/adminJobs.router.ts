@@ -9,7 +9,7 @@ export const adminJobsRouter = createTRPCRouter({
     await requireIsAdmin(ctx);
 
     return await kysely
-      .selectFrom("graphile_worker.jobs")
+      .selectFrom("graphile_worker._private_jobs")
       .limit(100)
       .selectAll()
       .orderBy("created_at", "desc")

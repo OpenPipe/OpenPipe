@@ -5,7 +5,7 @@ import { type SliceCreator } from "./store";
 type ComparisonCriteria = {
   type: DatasetEvalType;
   modelId: string;
-  datasetEntryId: string;
+  nodeEntryId: string;
   datasetEvalId: string;
 };
 

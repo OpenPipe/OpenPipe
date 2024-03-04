@@ -60,7 +60,10 @@ export async function getOpenaiCompletion(
 
   const openai = new OriginalOpenAI({ apiKey: openaiApiKey });
 
-  return await openai.chat.completions.create(input);
+  return await openai.chat.completions.create({
+    ...input,
+    tools: input.tools?.length ? input.tools : undefined,
+  });
 }
 
 // Fall back to our own Azure instance for long-running requests

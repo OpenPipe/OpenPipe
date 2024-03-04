@@ -78,7 +78,7 @@ console.log(completion?.choices[0]?.message);
 const templateTabs = (
   apiKey: string,
   modelSlug: string,
-  entry?: RouterOutputs["fineTunes"]["listTrainingEntries"]["entries"][number]["datasetEntry"],
+  entry?: RouterOutputs["fineTunes"]["listTrainingEntries"]["entries"][number],
 ): CodeTab[] => {
   let formattedMessages = "";
 
@@ -139,7 +139,7 @@ const InferenceCodeTabs = () => {
   const templatedTabs = useMemo(() => {
     const entry = datasetEntries?.entries[0];
 
-    return templateTabs(apiKey, fineTune?.slug || "", entry?.datasetEntry);
+    return templateTabs(apiKey, fineTune?.slug || "", entry);
   }, [apiKey, fineTune?.slug, datasetEntries?.entries]);
 
   return <CopiableCodeTabs tabs={templatedTabs} />;

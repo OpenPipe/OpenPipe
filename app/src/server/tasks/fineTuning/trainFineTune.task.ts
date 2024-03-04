@@ -4,7 +4,7 @@ import { filter, map } from "ix/asynciterable/operators";
 import { toNodeStream } from "ix/asynciterable/tonodestream";
 
 import { env } from "~/env.mjs";
-import { prisma } from "~/server/db";
+import { kysely, prisma } from "~/server/db";
 import { callbackBaseUrl, trainerv1 } from "~/server/modal-rpc/clients";
 import { uploadJsonl } from "~/utils/azure/server";
 import defineTask from "../defineTask";
@@ -14,7 +14,7 @@ import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-t
 import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
-import { insertTrainingDataPruningRuleMatches } from "~/server/utils/updatePruningRuleMatches";
+import { insertTrainingDataPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { trainingConfig } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { countLlamaInputTokens } from "~/utils/countTokens";
 
@@ -46,24 +46,24 @@ export const trainFineTune = defineTask<TrainFineTuneJob>({
 export async function* iterateTrainingRows(fineTuneId: string) {
   let offset = 0;
   while (true) {
-    const rows = await prisma.fineTuneTrainingEntry.findMany({
-      where: { fineTuneId },
-      include: {
-        datasetEntry: {
-          select: {
-            messages: true,
-            tool_choice: true,
-            tools: true,
-            output: true,
-            outputTokens: true,
-            inputTokens: true,
-          },
-        },
-      },
-      take: 1000,
-      orderBy: { id: "asc" },
-      skip: offset,
-    });
+    const rows = await kysely
+      .selectFrom("NewFineTuneTrainingEntry as ftte")
+      .where("ftte.fineTuneId", "=", fineTuneId)
+      .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
+      .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
+      .select([
+        "ftte.id",
+        "dei.messages",
+        "dei.tool_choice",
+        "dei.tools",
+        "dei.inputTokens",
+        "deo.output",
+        "deo.outputTokens",
+      ])
+      .orderBy("ftte.id", "asc")
+      .limit(1000)
+      .offset(offset)
+      .execute();
     if (rows.length === 0) break;
 
     offset += rows.length;
@@ -101,24 +101,24 @@ const trainModalFineTune = async (fineTuneId: string) => {
 
   const formattedRows = from(iterateTrainingRows(fineTune.id)).pipe(
     map(async (row) => {
-      const dsEntry = typedDatasetEntry(row.datasetEntry);
-      if (!dsEntry.output) return null;
-      const prunedInputMessages = pruneInputMessages(dsEntry.messages, stringsToPrune);
+      const tEntry = typedDatasetEntry(row);
+      if (!tEntry.output) return null;
+      const prunedInputMessages = pruneInputMessages(tEntry.messages, stringsToPrune);
       const input = {
         messages: prunedInputMessages,
-        tool_choice: dsEntry.tool_choice ?? undefined,
-        tools: dsEntry.tools ?? undefined,
+        tool_choice: tEntry.tool_choice ?? undefined,
+        tools: tEntry.tools ?? undefined,
       };
       const prunedInputTokens = stringsToPrune?.length
         ? countLlamaInputTokens(input)
-        : dsEntry.inputTokens;
-      await prisma.fineTuneTrainingEntry.update({
+        : tEntry.inputTokens;
+      await prisma.newFineTuneTrainingEntry.update({
         where: { id: row.id },
-        data: { prunedInputTokens, outputTokens: dsEntry.outputTokens },
+        data: { prunedInputTokens, outputTokens: tEntry.outputTokens },
       });
       return {
         instruction: serializeChatInput(input, { pipelineVersion: CURRENT_PIPELINE_VERSION }),
-        output: serializeChatOutput(dsEntry.output),
+        output: serializeChatOutput(tEntry.output),
       };
     }),
     filter(truthyFilter),

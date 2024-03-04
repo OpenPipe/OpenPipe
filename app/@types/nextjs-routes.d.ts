@@ -13,6 +13,7 @@ declare module "nextjs-routes" {
   export type Route =
     | StaticRoute<"/account/signin">
     | StaticRoute<"/admin/impersonate">
+    | StaticRoute<"/admin">
     | StaticRoute<"/admin/jobs">
     | DynamicRoute<"/api/auth/[...nextauth]", { "nextauth": string[] }>
     | StaticRoute<"/api/experiments/og-image">
@@ -37,6 +38,7 @@ declare module "nextjs-routes" {
     | DynamicRoute<"/p/[projectSlug]/fine-tunes/[id]/[tab]", { "projectSlug": string; "id": string; "tab": string }>
     | DynamicRoute<"/p/[projectSlug]/fine-tunes/[id]", { "projectSlug": string; "id": string }>
     | DynamicRoute<"/p/[projectSlug]/fine-tunes", { "projectSlug": string }>
+    | DynamicRoute<"/p/[projectSlug]/nodes", { "projectSlug": string }>
     | DynamicRoute<"/p/[projectSlug]/request-logs", { "projectSlug": string }>
     | DynamicRoute<"/p/[projectSlug]/settings", { "projectSlug": string }>
     | DynamicRoute<"/p/[projectSlug]/usage", { "projectSlug": string }>

@@ -8,38 +8,39 @@ import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
 export const constructEvaluationFiltersQuery = ({
   filters,
-  datasetId,
+  nodeId,
 }: {
   filters: z.infer<typeof filtersSchema>;
-  datasetId: string;
+  nodeId: string;
 }) => {
-  const baseQuery = kysely.selectFrom("DatasetEntry as de").where((eb) => {
-    const wheres: Expression<SqlBool>[] = [
-      eb("de.datasetId", "=", datasetId),
-      eb("de.outdated", "=", false),
-      eb("de.split", "=", "TEST"),
-    ];
+  const baseQuery = kysely
+    .selectFrom("NodeEntry as ne")
+    .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
+    .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
+    .where((eb) => {
+      const wheres: Expression<SqlBool>[] = [
+        eb("ne.nodeId", "=", nodeId),
+        eb("ne.status", "=", "PROCESSED"),
+        eb("ne.split", "=", "TEST"),
+      ];
 
-    for (const filter of filters) {
-      if (!filter.value) continue;
-      const filterExpression = textComparatorToSqlExpression(
-        filter.comparator,
-        filter.value as string,
-      );
+      for (const filter of filters) {
+        if (!filter.value) continue;
+        const filterExpression = textComparatorToSqlExpression(
+          filter.comparator,
+          filter.value as string,
+        );
 
-      if (filter.field === EvaluationFiltersDefaultFields.Input) {
-        wheres.push(filterExpression(sql.raw(`de."messages"::text`)));
+        if (filter.field === EvaluationFiltersDefaultFields.Input) {
+          wheres.push(filterExpression(sql.raw(`dei."messages"::text`)));
+        }
+        if (filter.field === EvaluationFiltersDefaultFields.DatasetOutput) {
+          wheres.push(filterExpression(sql.raw(`deo."output"::text`)));
+        }
       }
-      if (filter.field === EvaluationFiltersDefaultFields.DatasetOutput) {
-        wheres.push(filterExpression(sql.raw(`de."output"::text`)));
-      }
-      if (filter.field === EvaluationFiltersDefaultFields.ImportId) {
-        wheres.push(filterExpression(sql.raw(`de."importId"`)));
-      }
-    }
 
-    return eb.and(wheres);
-  });
+      return eb.and(wheres);
+    });
 
   const modelOutputFilters = filters
     .filter((filter) => filter.field.endsWith(EVALUATION_FILTERS_OUTPUT_APPENDIX))
@@ -62,9 +63,9 @@ export const constructEvaluationFiltersQuery = ({
 
     const tableAlias = `te${i}`;
     updatedBaseQuery = updatedBaseQuery
-      .leftJoin(`FineTuneTestingEntry as ${tableAlias}`, (join) =>
+      .innerJoin(`NewFineTuneTestingEntry as ${tableAlias}`, (join) =>
         join
-          .onRef("de.id", "=", `${tableAlias}.datasetEntryId`)
+          .onRef("ne.inputHash", "=", `${tableAlias}.inputHash`)
           .on(`${tableAlias}.modelId`, "=", filter.field),
       )
       .where(
@@ -73,12 +74,12 @@ export const constructEvaluationFiltersQuery = ({
   }
 
   // Add select filters
-  const selectFilters = filters.filter(
+  const evalAppliedFilters = filters.filter(
     (filter) => filter.field === EvaluationFiltersDefaultFields.EvalApplied,
   );
 
-  for (let i = 0; i < selectFilters.length; i++) {
-    const filter = selectFilters[i];
+  for (let i = 0; i < evalAppliedFilters.length; i++) {
+    const filter = evalAppliedFilters[i];
     if (!filter?.value) continue;
 
     updatedBaseQuery = updatedBaseQuery.where((eb) => {
@@ -87,9 +88,9 @@ export const constructEvaluationFiltersQuery = ({
       if (filter.field === EvaluationFiltersDefaultFields.EvalApplied) {
         const existsClause = eb.exists(
           eb
-            .selectFrom("DatasetEvalDatasetEntry as dede")
-            .whereRef("de.id", "=", "dede.datasetEntryId")
-            .innerJoin("DatasetEval as eval", "eval.id", "dede.datasetEvalId")
+            .selectFrom("DatasetEvalNodeEntry as dene")
+            .whereRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
+            .innerJoin("DatasetEval as eval", "eval.id", "dene.datasetEvalId")
             .where("eval.id", "=", filter.value as string),
         );
         wheres.push(filter.comparator === "=" ? existsClause : eb.not(existsClause));
@@ -97,6 +98,21 @@ export const constructEvaluationFiltersQuery = ({
 
       return eb.and(wheres);
     }) as unknown as typeof baseQuery;
+  }
+
+  const importFilters = filters.filter(
+    (filter) => filter.field === EvaluationFiltersDefaultFields.Source,
+  );
+
+  for (let i = 0; i < importFilters.length; i++) {
+    const filter = importFilters[i];
+    if (!filter?.value) continue;
+    const filterExpression = textComparatorToSqlExpression(
+      filter.comparator === "=" ? "CONTAINS" : "NOT_CONTAINS",
+      filter.value as string,
+    );
+
+    updatedBaseQuery = updatedBaseQuery.where(filterExpression(sql`ne."persistentId"`));
   }
 
   return updatedBaseQuery;

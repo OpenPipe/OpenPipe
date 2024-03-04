@@ -4,7 +4,6 @@ import { z } from "zod";
 import { sql } from "kysely";
 
 import { kysely } from "~/server/db";
-import { queueRelabelLoggedCalls } from "~/server/tasks/relabelLoggedCall.task";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import { parseTags } from "~/server/utils/parseTags";
 import { type filtersSchema } from "~/types/shared.types";
@@ -77,6 +76,22 @@ export const updateLogTags = openApiProtectedProc
       .select(sql<number>`count(*)::int`.as("count"))
       .executeTakeFirst();
 
+    await kysely
+      .updateTable("LoggedCall as updatedLoggedCall")
+      .set({ updatedAt: new Date() })
+      .where((eb) =>
+        eb.exists(
+          constructLoggedCallFiltersQuery({
+            filters,
+            projectId: ctx.key.projectId,
+            baseQuery: eb.selectFrom("LoggedCall as lc"),
+          })
+            // @ts-expect-error baseQuery type is not propagated correctly
+            .whereRef("lc.id", "=", "updatedLoggedCall.id"),
+        ),
+      )
+      .execute();
+
     if (tagNamesToDelete.length > 0) {
       await kysely
         .deleteFrom("LoggedCallTag")
@@ -84,7 +99,7 @@ export const updateLogTags = openApiProtectedProc
           constructLoggedCallFiltersQuery({
             filters,
             projectId: ctx.key.projectId,
-            lctEB: eb,
+            baseQuery: eb.selectFrom("LoggedCall as lc"),
           })
             .select("lc.id")
             .as("lc"),
@@ -140,13 +155,6 @@ export const updateLogTags = openApiProtectedProc
         ctx.key.projectId,
         tagsToUpsert.map(([name]) => name),
       );
-    }
-
-    if (tags["relabel"] === "true" && tags["add_to_dataset"] === "original_model_dataset") {
-      await queueRelabelLoggedCalls({
-        projectId: ctx.key.projectId,
-        loggedCallIds,
-      });
     }
 
     return { matchedLogs: matchedLogs?.count ?? 0 };

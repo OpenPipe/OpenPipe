@@ -30,11 +30,8 @@ const PaymentFailed = ({
       <Text style={{ fontWeight: "bold" }}>OpenPipe Invoice {billingPeriod} </Text>
 
       <Text>
-        We were unable to process the payment for your invoice. Please update your payment
-        information.
-      </Text>
-      <Text>
-        Your monthly <Link href={invoicesLink}>invoice</Link> for OpenPipe project{" "}
+        We were unable to process the payment of your monthly{" "}
+        <Link href={invoicesLink}>invoice</Link> for OpenPipe project{" "}
         <Link href={projectLink}>{projectName}</Link>:
       </Text>
 
@@ -44,7 +41,7 @@ const PaymentFailed = ({
         total={amount}
       />
 
-      <Text>Avoid service interruptions by updating your payment method.</Text>
+      <Text>Keep your billing information up to date to avoid service interruptions.</Text>
       <Button href={paymentMethodsLink}>Update Payment Method</Button>
     </EmailLayout>
   );

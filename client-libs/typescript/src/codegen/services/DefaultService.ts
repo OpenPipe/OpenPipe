@@ -367,7 +367,7 @@ export class DefaultService {
      */
     public unstableDatasetEntryCreate(
         requestBody: {
-            datasetId: string;
+            archiveId: string;
             entries: Array<{
                 messages: Array<({
                     role: 'system';

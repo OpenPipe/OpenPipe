@@ -26,6 +26,8 @@ type InputDropdownProps<T> = {
   inputGroupProps?: InputGroupProps;
   getDisplayLabel?: (option: T) => string;
   isDisabled?: boolean;
+  maxPopoverContentHeight?: number;
+  minItemHeight?: number;
 };
 
 const InputDropdown = <T,>({
@@ -35,6 +37,8 @@ const InputDropdown = <T,>({
   inputGroupProps,
   getDisplayLabel = (option) => option as string,
   isDisabled,
+  maxPopoverContentHeight,
+  minItemHeight,
 }: InputDropdownProps<T>) => {
   const { onOpen, ...popover } = useDisclosure();
 
@@ -67,7 +71,7 @@ const InputDropdown = <T,>({
         </InputGroup>
       </PopoverTrigger>
       <PopoverContent boxShadow="0 0 40px 4px rgba(0, 0, 0, 0.1);" minW={0} w="auto">
-        <VStack spacing={0}>
+        <VStack spacing={0} maxH={maxPopoverContentHeight} overflow="auto">
           {options?.map((option, index) => (
             <HStack
               key={index}
@@ -85,6 +89,7 @@ const InputDropdown = <T,>({
               color="black"
               fontSize="sm"
               borderBottomWidth={1}
+              minH={minItemHeight}
             >
               <Text mr={16}>{getDisplayLabel(option)}</Text>
               {isEqual(option, selectedOption) && (

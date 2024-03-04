@@ -12,6 +12,10 @@ import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
 import { type Completion } from "openai/resources";
 import { Stream } from "openai/streaming";
+import {
+  constructOpenAIChunk,
+  transformToolCallStreamToOpenAIFormat,
+} from "./streamTransformerToOpenAIFormat";
 
 export async function getFireworksCompletion(
   fineTune: TypedFineTune,
@@ -36,9 +40,9 @@ export async function getFireworksCompletion(
     throw new Error("FIREWORKS_API_KEY is required for Fireworks completions");
   }
 
-  if ((input.functions || input.tools) && input.stream) {
+  if (input.functions && input.stream) {
     throw new Error(
-      `We don't currently support streaming for function calls. Please open an issue if you need this functionality! https://github.com/openpipe/openpipe`,
+      `Use tool calls instead of functions for streaming completions. Received ${input.functions.length} functions.`,
     );
   }
 
@@ -76,12 +80,43 @@ export async function getFireworksCompletion(
     const reader = response.body.getReader();
 
     async function* iterator() {
-      for await (const chunk of yieldChunks(reader, input.model)) {
-        yield chunk;
+      let role: string | null = "assistant";
+      for await (const chunk of readableStreamToAsyncGenerator(reader)) {
+        // Yield role before the first chunk
+        if (role) {
+          yield constructOpenAIChunk(
+            {
+              ...chunk,
+              choices: fireworksChoicesToOpenAIChoices(chunk.choices, true),
+            },
+            input,
+          );
+
+          yield constructOpenAIChunk(
+            {
+              ...chunk,
+              choices: fireworksChoicesToOpenAIChoices(chunk.choices),
+            },
+            input,
+          );
+          role = null;
+        }
+
+        //Transform Fireworks chunk to OpenAI ChatCompletionChunk
+        yield constructOpenAIChunk(
+          {
+            ...chunk,
+            choices: fireworksChoicesToOpenAIChoices(chunk.choices),
+          },
+          input,
+        );
       }
     }
-
-    return new Stream(iterator, controller);
+    if (input.tools) {
+      return transformToolCallStreamToOpenAIFormat(new Stream(iterator, controller), input);
+    } else {
+      return new Stream(iterator, controller);
+    }
   } else {
     resp = await response.json();
   }
@@ -106,9 +141,8 @@ export async function getFireworksCompletion(
   };
 }
 
-async function* yieldChunks(
+async function* readableStreamToAsyncGenerator(
   reader: ReadableStreamDefaultReader,
-  model: string,
 ): AsyncGenerator<ChatCompletionChunk> {
   let leftover = "";
   try {
@@ -137,9 +171,8 @@ async function* yieldChunks(
               data += "\n" + line.slice(5).trim();
             }
           }
-          const transformedChunk = transformChunk(data, model);
 
-          yield transformedChunk;
+          yield JSON.parse(data);
         }
         start = end + 1;
         end = chunk.indexOf("\n", start);
@@ -156,20 +189,13 @@ async function* yieldChunks(
     yield JSON.parse(leftover.slice(5).trim()) as ChatCompletionChunk;
   }
 }
-function transformChunk(chunk: string, model: string) {
-  const jsonData = JSON.parse(chunk);
-  return {
-    id: jsonData.id,
-    object: "chat.completion.chunk",
-    created: jsonData.created,
-    model,
-    system_fingerprint: undefined,
-    choices: jsonData.choices.map(
-      (choice: { index: any; text: any; logprobs: any; finish_reason: any }) => ({
-        ...choice,
-        delta: { content: choice.text },
-      }),
-    ),
-    usage: jsonData.usage,
-  } as ChatCompletionChunk;
+
+function fireworksChoicesToOpenAIChoices(choices: any[], isInitial = false) {
+  return choices.map((choice: any) => ({
+    index: choice.index,
+    logprobs: choice.logprobs,
+    finish_reason: choice.finish_reason,
+    delta: { content: choice.text },
+    ...(isInitial && { delta: { role: "assistant", content: "" } }),
+  }));
 }

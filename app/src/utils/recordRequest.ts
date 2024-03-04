@@ -17,6 +17,7 @@ import {
 } from "./countTokens";
 import { default as openAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { type BaseModel } from "~/server/fineTuningProviders/types";
+import { recordOngoingRequestEnd } from "./rateLimit/concurrencyRateLimits";
 
 export const recordUsage = async ({
   projectId,
@@ -28,6 +29,7 @@ export const recordUsage = async ({
   logRequest,
   fineTune,
   tags,
+  ongoingRequestId,
 }: {
   projectId: string;
   requestedAt: number;
@@ -38,6 +40,7 @@ export const recordUsage = async ({
   logRequest?: boolean;
   fineTune?: FineTune;
   tags?: Record<string, string>;
+  ongoingRequestId?: string;
 }) => {
   if (completion instanceof Stream) {
     let merged: ChatCompletion | null = null;
@@ -46,6 +49,9 @@ export const recordUsage = async ({
     }
     completion = merged;
   }
+
+  void recordOngoingRequestEnd(ongoingRequestId);
+
   const parsedCompletion = chatCompletionOutput.safeParse(completion);
   const usage = parsedCompletion.success
     ? calculateUsage({
@@ -220,7 +226,9 @@ export const recordLoggedCall = async ({
     throw new Error(`Failed to create logged call: ${(e as Error).message}`);
   }
 
-  await createTags(projectId, newLoggedCallId, tags);
+  if (Object.keys(tags).length > 0) {
+    await createTags(projectId, newLoggedCallId, tags);
+  }
 };
 
 async function createTags(projectId: string, loggedCallId: string, tags: Record<string, string>) {

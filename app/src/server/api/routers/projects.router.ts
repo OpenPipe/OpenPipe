@@ -283,19 +283,22 @@ export const projectsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await requireIsProjectAdmin(input.id, ctx);
 
-      // delete all associated datasets
-      await prisma.dataset.deleteMany({
-        where: {
-          projectId: input.id,
-        },
-      });
+      await kysely.deleteFrom("Dataset").where("projectId", "=", input.id).execute();
 
-      // delete all associated request logs
-      await prisma.loggedCall.deleteMany({
-        where: {
-          projectId: input.id,
-        },
-      });
+      await kysely.deleteFrom("LoggedCall").where("projectId", "=", input.id).execute();
+
+      await kysely
+        .deleteFrom("NewFineTuneTestingEntry")
+        .where("projectId", "=", input.id)
+        .execute();
+
+      await kysely.deleteFrom("Node").where("projectId", "=", input.id).execute();
+
+      await kysely.deleteFrom("DatasetEntryInput").where("projectId", "=", input.id).execute();
+
+      await kysely.deleteFrom("DatasetEntryOutput").where("projectId", "=", input.id).execute();
+
+      await kysely.deleteFrom("CachedProcessedEntry").where("projectId", "=", input.id).execute();
 
       return await prisma.project.update({
         where: {
@@ -305,5 +308,56 @@ export const projectsRouter = createTRPCRouter({
           isHidden: true,
         },
       });
+    }),
+  listProjectNodes: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      await requireCanViewProject(input.projectId, ctx);
+      const nodes = await kysely
+        .selectFrom("Node as n")
+        .where("n.projectId", "=", input.projectId)
+        .selectAll("n")
+        .select((eb) => [
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.split", "=", "TRAIN")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numTrainingEntries"),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.split", "=", "TEST")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numTestingEntries"),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.status", "=", "PENDING")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numPendingEntries"),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.status", "=", "PROCESSING")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numProcessingEntries"),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.status", "=", "ERROR")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numErrorEntries"),
+
+          eb
+            .selectFrom("NodeEntry as ne")
+            .whereRef("ne.nodeId", "=", "n.id")
+            .where("ne.status", "=", "PROCESSED")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numProcessedEntries"),
+        ])
+        .orderBy("n.createdAt", "desc")
+        .execute();
+      return nodes;
     }),
 });

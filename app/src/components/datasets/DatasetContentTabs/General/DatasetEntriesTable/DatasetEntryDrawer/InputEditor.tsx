@@ -14,7 +14,7 @@ const InputEditor = ({
 }: {
   inputMessagesToSave: ChatCompletionMessageParam[];
   setInputMessagesToSave: (inputMessagesToSave: ChatCompletionMessageParam[]) => void;
-  matchedRules?: RouterOutputs["datasetEntries"]["get"]["matchedRules"];
+  matchedRules?: RouterOutputs["nodeEntries"]["get"]["matchedRules"];
 }) => {
   const [expanded, setExpanded] = useState(true);
 

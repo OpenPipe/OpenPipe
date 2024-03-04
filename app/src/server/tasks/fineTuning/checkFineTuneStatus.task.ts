@@ -1,6 +1,5 @@
 import { kysely, prisma } from "~/server/db";
 import defineTask from "../defineTask";
-import { startTestJobs } from "~/server/utils/startTestJobs";
 import { trainerv1 } from "~/server/modal-rpc/clients";
 import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 
@@ -8,13 +7,15 @@ import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalyti
 import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
-import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { calculateCost, modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import {
   calculateNumEpochs,
   getNumEpochsFromConfig,
 } from "~/server/fineTuningProviders/openpipe/trainingConfig";
 import { trainFineTune } from "./trainFineTune.task";
+import { startTestJobsForModel } from "~/server/utils/nodes/startTestJobs";
 import { captureException } from "@sentry/node";
+import { sendFineTuneModelTrained } from "~/server/emails/sendFineTuneModelTrained";
 
 const MAX_AUTO_RETRIES = 2;
 
@@ -46,7 +47,7 @@ export const checkFineTuneStatus = defineTask({
             const typedFT = typedFineTune(currentFineTune);
 
             const trainingStats = await kysely
-              .selectFrom("FineTuneTrainingEntry as ftte")
+              .selectFrom("NewFineTuneTrainingEntry as ftte")
               .where("ftte.fineTuneId", "=", typedFT.id)
               .select(() => [
                 sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
@@ -83,9 +84,42 @@ export const checkFineTuneStatus = defineTask({
               },
             });
 
+            // Notify the owner that the model has been trained
+            if (typedFT.userId) {
+              const project = await prisma.project.findUniqueOrThrow({
+                where: { id: typedFT.projectId },
+              });
+
+              const creator = await prisma.user.findUniqueOrThrow({
+                where: { id: typedFT.userId },
+              });
+
+              if (creator.email) {
+                await sendFineTuneModelTrained(
+                  typedFT.id,
+                  "openpipe:" + typedFT.slug,
+                  modelInfo(typedFT).name,
+                  project.slug,
+                  creator.email,
+                );
+              }
+            }
+
             captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
 
-            await startTestJobs(currentFineTune.datasetId, currentFineTune.id);
+            const dataset = await prisma.dataset.findUnique({
+              where: { id: typedFT.datasetId },
+            });
+
+            if (dataset?.nodeId) {
+              await startTestJobsForModel({
+                modelId: currentFineTune.id,
+                nodeEntryBaseQuery: kysely
+                  .selectFrom("NodeEntry as ne")
+                  .where("ne.nodeId", "=", dataset.nodeId)
+                  .where("ne.status", "=", "PROCESSED"),
+              });
+            }
           } else if (resp.status === "error") {
             if (ft.numTrainingAutoretries < MAX_AUTO_RETRIES) {
               // Sometimes training jobs fail for no reason, so we'll retry them a few times

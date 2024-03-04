@@ -32,9 +32,9 @@ import ActionButton from "../ActionButton";
 import InputDropdown from "../InputDropdown";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import { useRouter } from "next/router";
-import { constructFiltersQueryParams, useFilters } from "../Filters/useFilters";
-import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { useFilters, constructFiltersQueryParams } from "../Filters/useFilters";
 import { DATASET_GENERAL_TAB_KEY } from "../datasets/DatasetContentTabs/DatasetContentTabs";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 
 const AddToDatasetButton = () => {
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -93,7 +93,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
     }
   }, [disclosure.isOpen, existingDatasetOptions, maxSampleSize]);
 
-  const createDatasetEntriesMutation = api.datasetEntries.createFromLoggedCalls.useMutation();
+  const createDatasetEntriesMutation = api.nodeEntries.createFromLoggedCalls.useMutation();
 
   const [addToDataset, addingInProgress] = useHandledAsyncCallback(async () => {
     if (
@@ -116,14 +116,14 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
 
     if (maybeReportError(response)) return;
 
-    const { datasetId, importId } = response.payload;
+    const { datasetId, archiveNodeId } = response.payload;
 
     const filtersQueryParams = constructFiltersQueryParams([
       {
         id: Date.now().toString(),
-        field: GeneralFiltersDefaultFields.ImportId,
+        field: GeneralFiltersDefaultFields.Source,
         comparator: "=",
-        value: importId,
+        value: archiveNodeId,
       },
     ]);
 
@@ -201,6 +201,8 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
                     onSelect={(option) => setSelectedDatasetOption(option)}
                     inputGroupProps={{ w: 48 }}
                     isDisabled={createNewDataset}
+                    maxPopoverContentHeight={400}
+                    minItemHeight={10}
                   />
                   <Checkbox
                     isChecked={createNewDataset}

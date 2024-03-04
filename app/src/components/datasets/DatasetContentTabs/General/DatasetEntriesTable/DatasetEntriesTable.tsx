@@ -1,63 +1,62 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, Table, Tbody } from "@chakra-ui/react";
 
-import { useDatasetEntries } from "~/utils/hooks";
-import { useFilters } from "~/components/Filters/useFilters";
+import { useDataset, useNodeEntries } from "~/utils/hooks";
 import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
 import DatasetEntryDrawer from "./DatasetEntryDrawer/DatasetEntryDrawer";
-import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { api } from "~/utils/api";
 
 export default function DatasetEntriesTable() {
-  const [expandedDatasetEntryPersistentId, setExpandedDatasetEntryPersistentId] = useState<
-    string | null
-  >(null);
-  const [refetchInterval, setRefetchInterval] = useState(0);
-  const datasetEntries = useDatasetEntries(refetchInterval).data?.entries;
-
-  const filters = useFilters().filters;
-
-  const relabelingVisible = useMemo(
-    () => filters.some((filter) => filter.field === GeneralFiltersDefaultFields.RelabelBatchId),
-    [filters],
+  const [expandedNodeEntryPersistentId, setExpandedNodeEntryPersistentId] = useState<string | null>(
+    null,
   );
+  const [refetchInterval, setRefetchInterval] = useState(0);
+  const nodeEntries = useNodeEntries(refetchInterval).data?.entries;
+  const numIncomingEntries = useDataset().data?.numIncomingEntries;
 
   const countingIncomplete = useMemo(
-    () => !!datasetEntries?.some((entry) => entry.inputTokens === null),
-    [datasetEntries],
+    () => !!nodeEntries?.some((entry) => entry.inputTokens === null),
+    [nodeEntries],
   );
 
+  const awaitingRelabeling = !!numIncomingEntries;
+
+  const utils = api.useUtils();
+
+  useEffect(() => {
+    void utils.nodeEntries.list.invalidate();
+  }, [awaitingRelabeling]);
+
   useEffect(
-    () => setRefetchInterval(relabelingVisible || countingIncomplete ? 5000 : 0),
-    [relabelingVisible, countingIncomplete, setRefetchInterval],
+    () => setRefetchInterval(countingIncomplete || awaitingRelabeling ? 5000 : 0),
+    [countingIncomplete, awaitingRelabeling, setRefetchInterval],
   );
 
   const toggleExpanded = useCallback(
     (datasetEntryPersistentId: string) => {
-      if (datasetEntryPersistentId === expandedDatasetEntryPersistentId) {
-        setExpandedDatasetEntryPersistentId(null);
+      if (datasetEntryPersistentId === expandedNodeEntryPersistentId) {
+        setExpandedNodeEntryPersistentId(null);
       } else {
-        setExpandedDatasetEntryPersistentId(datasetEntryPersistentId);
+        setExpandedNodeEntryPersistentId(datasetEntryPersistentId);
       }
     },
-    [expandedDatasetEntryPersistentId, setExpandedDatasetEntryPersistentId],
+    [expandedNodeEntryPersistentId, setExpandedNodeEntryPersistentId],
   );
 
   return (
     <>
       <Card width="100%" overflowX="auto">
         <Table>
-          <TableHeader showRelabelStatusColumn={relabelingVisible} />
+          <TableHeader />
           <Tbody>
-            {datasetEntries?.length ? (
-              datasetEntries?.map((entry) => {
+            {nodeEntries?.length ? (
+              nodeEntries?.map((entry) => {
                 return (
                   <TableRow
                     key={entry.persistentId}
                     datasetEntry={entry}
-                    isExpanded={entry.persistentId === expandedDatasetEntryPersistentId}
+                    isExpanded={entry.persistentId === expandedNodeEntryPersistentId}
                     toggleExpanded={toggleExpanded}
-                    showOptions
-                    showRelabelStatusColumn={relabelingVisible}
                   />
                 );
               })
@@ -68,8 +67,8 @@ export default function DatasetEntriesTable() {
         </Table>
       </Card>
       <DatasetEntryDrawer
-        datasetEntryPersistentId={expandedDatasetEntryPersistentId}
-        setDatasetEntryPersistentId={setExpandedDatasetEntryPersistentId}
+        nodeEntryPersistentId={expandedNodeEntryPersistentId}
+        setNodeEntryPersistentId={setExpandedNodeEntryPersistentId}
       />
     </>
   );

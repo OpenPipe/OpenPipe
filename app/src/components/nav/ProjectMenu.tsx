@@ -118,7 +118,7 @@ export default function ProjectMenu({ displayProjectName }: { displayProjectName
             <Text alignSelf="flex-start" fontWeight="bold" px={3} pt={2}>
               Your Projects
             </Text>
-            <VStack spacing={0} w="full" px={1}>
+            <VStack spacing={0} w="full" px={1} maxH="50vh" overflow="auto">
               {projectList?.projects?.map((proj) => (
                 <ProjectOption
                   key={proj.id}
@@ -141,6 +141,7 @@ export default function ProjectMenu({ displayProjectName }: { displayProjectName
                 w="full"
                 borderRadius={4}
                 spacing={0}
+                minH={10}
               >
                 <Text>Add project</Text>
                 <Icon as={isLoading ? Spinner : BsPlus} boxSize={4} strokeWidth={0.5} />
