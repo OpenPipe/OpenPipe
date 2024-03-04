@@ -46,7 +46,7 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
           // Authorization logic remains the same
           const { email } = credentials || {};
           if (!email) {
-            throw new Error("Email and password are required");
+            throw new Error("Email is required");
           }
           try {
             const { email } = credentials as { email: string; password?: string };
