@@ -80,10 +80,10 @@ export async function getFireworksCompletion(
     const reader = response.body.getReader();
 
     async function* iterator() {
-      let role: string | null = "assistant";
+      let isInitialChunkSent = false;
       for await (const chunk of readableStreamToAsyncGenerator(reader)) {
         // Yield role before the first chunk
-        if (role) {
+        if (!isInitialChunkSent) {
           yield constructOpenAIChunk(
             {
               ...chunk,
@@ -91,15 +91,7 @@ export async function getFireworksCompletion(
             },
             input,
           );
-
-          yield constructOpenAIChunk(
-            {
-              ...chunk,
-              choices: fireworksChoicesToOpenAIChoices(chunk.choices),
-            },
-            input,
-          );
-          role = null;
+          isInitialChunkSent = true;
         }
 
         //Transform Fireworks chunk to OpenAI ChatCompletionChunk
