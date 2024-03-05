@@ -18,8 +18,8 @@ export const invalidateNodeEntries = async (nodeId: string) => {
   await kysely
     .updateTable("NodeEntry as ne")
     .from("DataChannel as dc")
-    .whereRef("dc.id", "=", "ne.dataChannelId")
     .where("dc.destinationId", "=", nodeId)
+    .whereRef("ne.dataChannelId", "=", "dc.id")
     .set({ status: "PENDING" })
     .execute();
 };

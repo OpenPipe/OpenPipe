@@ -26,8 +26,8 @@ export const llmRelabelProperties: NodeProperties<"LLMRelabel"> = {
         .updateTable("NodeEntry as ne")
         .set({ status: "PROCESSED" })
         .from("DataChannel as dc")
-        .whereRef("dc.id", "=", "ne.dataChannelId")
         .where("dc.destinationId", "=", node.id)
+        .whereRef("ne.dataChannelId", "=", "dc.id")
         .where("ne.status", "=", "PENDING")
         .execute();
     }

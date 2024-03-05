@@ -545,8 +545,8 @@ export const nodeEntriesRouter = createTRPCRouter({
           await kysely
             .updateTable("NodeEntry as ne")
             .from("DataChannel as dc")
-            .whereRef("dc.id", "=", "ne.dataChannelId")
             .where("dc.destinationId", "=", manualRelabelNode.id)
+            .whereRef("ne.dataChannelId", "=", "dc.id")
             .where("ne.persistentId", "=", tNodeEntry.persistentId)
             .set({
               status: "PENDING",

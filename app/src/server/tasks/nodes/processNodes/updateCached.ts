@@ -19,8 +19,8 @@ export const updateCached = async ({
       .from("CachedProcessedEntry as cpne")
       .where((eb) => eb.or([eb("cpne.nodeHash", "=", node.hash), eb("cpne.nodeId", "=", node.id)]))
       .from("DataChannel as dc")
-      .whereRef("dc.id", "=", "ne.dataChannelId")
       .where("dc.destinationId", "=", node.id)
+      .whereRef("ne.dataChannelId", "=", "dc.id")
       .where("ne.status", "=", "PENDING");
 
     if (nodeProperties.cacheWriteFields.includes("outgoingInputHash")) {
