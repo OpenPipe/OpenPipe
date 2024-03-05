@@ -42,7 +42,7 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   performanceInsightsEnabled: true,
   multiAz: isProd,
   skipFinalSnapshot: !isProd,
-  snapshotIdentifier: isProd ? undefined : "rds:app-pl-prod2de906e-2024-03-03-05-27",
+  snapshotIdentifier: isProd ? undefined : "rds:app-pl-prod2de906e-2024-03-04-08-32",
   finalSnapshotIdentifier: nm("app-db-final-snapshot"),
 });
 

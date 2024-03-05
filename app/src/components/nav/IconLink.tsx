@@ -7,17 +7,17 @@ const IconLink = <T extends ProjectRoute>({
   icon,
   label,
   href,
-  color,
+  color = "gray.500",
   beta,
   ...props
 }: { label?: string; icon: IconType; href: string; beta?: boolean } & ProjectLinkProps<T> &
   BoxProps) => {
   return (
-    <ProjectLink href={href} style={{ width: "100%" }}>
+    <ProjectLink href={href} style={{ width: "100%" }} color={color}>
       <NavSidebarOption activeHrefPattern={href}>
-        <HStack w="full" justifyContent="space-between" p={2} color={color} {...props}>
+        <HStack w="full" justifyContent="space-between" p={2} {...props}>
           <HStack w="full" justifyContent="start">
-            <Icon as={icon} boxSize={6} mr={2} />
+            <Icon as={icon} boxSize={5} mr={1} />
             <Text fontSize="sm" display={{ base: "none", md: "block" }} whiteSpace="nowrap">
               {label}
             </Text>

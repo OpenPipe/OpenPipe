@@ -11,13 +11,18 @@ const NavSidebarOption = forwardRef<
     <Box
       w="full"
       fontWeight={isActive ? "bold" : "500"}
-      bgColor={isActive ? "gray.200" : "transparent"}
-      _hover={disableHoverEffect ? undefined : { bgColor: "gray.200", textDecoration: "none" }}
+      bgColor={isActive ? "blue.50" : "transparent"}
+      _hover={
+        disableHoverEffect
+          ? undefined
+          : { bgColor: isActive ? undefined : "gray.100", textDecoration: "none" }
+      }
       justifyContent="start"
       cursor="pointer"
       borderRadius={4}
       {...props}
       ref={ref}
+      color={isActive ? "blue.600" : "gray.600"}
     >
       {props.children}
     </Box>

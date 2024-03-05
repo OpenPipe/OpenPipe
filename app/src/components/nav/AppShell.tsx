@@ -57,7 +57,7 @@ const NavSidebar = () => {
       px={2}
       pb={0}
       height="100%"
-      w={{ base: "56px", md: sidebarExpanded ? "240px" : "56px" }}
+      w={{ base: "56px", md: sidebarExpanded ? "220px" : "56px" }}
       transition="width 0.2s ease-in-out"
       overflow="hidden"
       borderRightWidth={1}
@@ -113,9 +113,11 @@ const NavSidebar = () => {
                     as={sidebarExpanded ? FiChevronsLeft : FiChevronsRight}
                     boxSize={6}
                     strokeWidth={1.5}
+                    color="gray.600"
                   />
                 }
-                boxSize={10}
+                boxSize={8}
+                ml={0.5}
                 display={{ base: "none", md: "flex" }}
               />
             </VStack>
