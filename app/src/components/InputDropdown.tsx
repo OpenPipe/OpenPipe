@@ -43,7 +43,7 @@ const InputDropdown = <T,>({
   const { onOpen, ...popover } = useDisclosure();
 
   return (
-    <Popover placement="bottom-start" onOpen={isDisabled ? undefined : onOpen} {...popover}>
+    <Popover placement="auto" onOpen={isDisabled ? undefined : onOpen} {...popover}>
       <PopoverTrigger>
         <InputGroup
           cursor="pointer"

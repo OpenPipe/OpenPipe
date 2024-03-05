@@ -1,6 +1,6 @@
 import { type GetServerSideProps, type NextPage } from "next";
 
-import { MONITOR_FILTERS_KEY } from "~/components/monitors/MonitorsContentTabs/MonitorsContentTabs";
+import { MONITOR_GENERAL_KEY } from "~/components/monitors/MonitorsContentTabs/MonitorsContentTabs";
 
 const MonitorDefaultTab: NextPage = () => null;
 
@@ -17,7 +17,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     redirect: {
-      destination: `/p/${projectSlug}/monitors/${id}/${MONITOR_FILTERS_KEY}`,
+      destination: `/p/${projectSlug}/monitors/${id}/${MONITOR_GENERAL_KEY}`,
       permanent: true,
     },
   };

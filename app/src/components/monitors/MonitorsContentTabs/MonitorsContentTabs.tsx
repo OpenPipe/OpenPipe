@@ -1,14 +1,14 @@
 import ContentTabs from "~/components/ContentTabs";
-import MonitorFilters from "./Filters/Filters";
+import General from "./General/General";
 import Results from "./Results/Results";
 
-export const MONITOR_FILTERS_KEY = "filters";
+export const MONITOR_GENERAL_KEY = "general";
 
 const tabs = [
   {
-    key: MONITOR_FILTERS_KEY,
-    title: "Filters",
-    component: <MonitorFilters />,
+    key: MONITOR_GENERAL_KEY,
+    title: "General",
+    component: <General />,
   },
   {
     key: "results",

@@ -17,12 +17,13 @@ import InputDropdown from "~/components/InputDropdown";
 const SelectFilter = ({
   filterOptions,
   filter,
+  urlKey,
 }: {
   filterOptions: AtLeastOne<FilterOption>;
   filter: FilterData;
+  urlKey?: string;
 }) => {
-  const updateFilter = useFilters().updateFilter;
-  const removeFilter = useFilters().removeFilter;
+  const { updateFilter, removeFilter } = useFilters({ urlKey });
 
   const filterOption = useMemo(() => {
     return filterOptions.find(
@@ -56,8 +57,8 @@ const SelectFilter = ({
 
   return (
     <HStack>
-      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} />
-      <SelectComparatorDropdown filter={filter} filterType="select" />
+      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} urlKey={urlKey} />
+      <SelectComparatorDropdown filter={filter} filterType="select" urlKey={urlKey} />
       <InputDropdown
         options={filterOption.options}
         getDisplayLabel={(option) => option.label ?? option.value}

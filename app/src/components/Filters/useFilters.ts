@@ -2,10 +2,10 @@ import { useQueryParam, JsonParam, withDefault, encodeQueryParams } from "use-qu
 
 import { type FilterData } from "./types";
 
-export const useFilters = (defaultShown?: boolean) => {
+export const useFilters = (options?: { defaultShown?: boolean; urlKey?: string }) => {
   const [filterData, setFilterData] = useQueryParam<{ shown: boolean; filters: FilterData[] }>(
-    "filterData",
-    withDefault(JsonParam, { shown: !!defaultShown, filters: [] }),
+    options?.urlKey ?? "filterData",
+    withDefault(JsonParam, { shown: !!options?.defaultShown, filters: [] }),
   );
 
   const setFiltersShown = (shown: boolean) => setFilterData({ ...filterData, shown });
@@ -22,6 +22,8 @@ export const useFilters = (defaultShown?: boolean) => {
   const removeFilter = (filter: FilterData) =>
     setFilterData({ ...filterData, filters: filterData.filters.filter((f) => f.id !== filter.id) });
 
+  const setFilters = (filters: FilterData[]) => setFilterData({ shown: true, filters });
+
   return {
     filters: filterData.filters,
     filtersShown: filterData.shown,
@@ -29,6 +31,7 @@ export const useFilters = (defaultShown?: boolean) => {
     updateFilter,
     removeFilter,
     setFiltersShown,
+    setFilters,
   };
 };
 

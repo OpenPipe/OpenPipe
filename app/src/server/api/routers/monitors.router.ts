@@ -38,7 +38,7 @@ export const monitorsRouter = createTRPCRouter({
       .select(["datasetNode.id as datasetNodeId", "d.id as datasetId", "d.name as datasetName"])
       .execute();
 
-    return { ...monitor, datasets };
+    return { ...tMonitor, datasets };
   }),
   list: protectedProcedure
     .input(

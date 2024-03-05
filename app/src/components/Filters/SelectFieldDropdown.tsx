@@ -8,11 +8,13 @@ import { type AtLeastOne } from "~/types/shared.types";
 const SelectFieldDropdown = ({
   filterOptions,
   filter,
+  urlKey,
 }: {
   filterOptions: AtLeastOne<FilterOption>;
   filter: FilterData;
+  urlKey?: string;
 }) => {
-  const updateFilter = useFilters().updateFilter;
+  const updateFilter = useFilters({ urlKey }).updateFilter;
 
   const { field } = filter;
 

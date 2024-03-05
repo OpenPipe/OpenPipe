@@ -4,8 +4,14 @@ import { useFilters } from "./useFilters";
 import { type AtLeastOne, comparators } from "~/types/shared.types";
 import { type FilterOption } from "./types";
 
-const AddFilterButton = ({ filterOptions }: { filterOptions: AtLeastOne<FilterOption> }) => {
-  const addFilter = useFilters().addFilter;
+const AddFilterButton = ({
+  filterOptions,
+  urlKey,
+}: {
+  filterOptions: AtLeastOne<FilterOption>;
+  urlKey?: string;
+}) => {
+  const addFilter = useFilters({ urlKey }).addFilter;
 
   return (
     <HStack

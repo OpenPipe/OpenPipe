@@ -13,12 +13,13 @@ import { type AtLeastOne } from "~/types/shared.types";
 const DateFilter = ({
   filterOptions,
   filter,
+  urlKey,
 }: {
   filterOptions: AtLeastOne<FilterOption>;
   filter: FilterData;
+  urlKey?: string;
 }) => {
-  const updateFilter = useFilters().updateFilter;
-  const removeFilter = useFilters().removeFilter;
+  const { updateFilter, removeFilter } = useFilters({ urlKey });
 
   const isArray = Array.isArray(filter.value);
 
@@ -65,8 +66,8 @@ const DateFilter = ({
 
   return (
     <HStack>
-      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} />
-      <SelectComparatorDropdown filter={filter} filterType="date" />
+      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} urlKey={urlKey} />
+      <SelectComparatorDropdown filter={filter} filterType="date" urlKey={urlKey} />
       <HStack>
         {!["LAST 15M", "LAST 24H", "LAST 7D"].includes(filter.comparator) && (
           <Input

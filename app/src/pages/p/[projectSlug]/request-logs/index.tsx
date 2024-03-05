@@ -21,7 +21,7 @@ const spin = keyframes`
 `;
 
 export default function LoggedCalls() {
-  const filtersShown = useFilters(true).filtersShown;
+  const filtersShown = useFilters({ defaultShown: true }).filtersShown;
 
   const utils = api.useUtils();
 
