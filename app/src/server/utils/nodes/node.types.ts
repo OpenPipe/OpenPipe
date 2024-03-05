@@ -1,4 +1,4 @@
-import type { Node, Prisma } from "@prisma/client";
+import type { NodeType, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { filtersSchema } from "~/types/shared.types";
@@ -37,7 +37,10 @@ export const monitorNodeSchema = z
     config: z
       .object({
         initialFilters: filtersSchema,
-        lastLoggedCallUpdatedAt: z.date().default(new Date(0)),
+        lastLoggedCallUpdatedAt: z
+          .string()
+          .transform((arg) => new Date(arg))
+          .default(new Date(0).toISOString()),
         maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
         sampleRate: z.number().default(1),
         filterNodeId: z.string(),
@@ -103,9 +106,13 @@ export type InferNodeConfig<T extends z.infer<typeof nodeSchema>["type"]> = Extr
   { type: T }
 >["config"];
 
-export const typedNode = <T extends Pick<Node, "type"> & { config: Prisma.JsonValue | object }>(
-  input: T,
-): Omit<T, "type" | "config"> & z.infer<typeof nodeSchema> => ({
+export const typedNode = <
+  T extends NodeType,
+  U extends { config: Prisma.JsonValue | object },
+  C extends InferNodeConfig<T>,
+>(
+  input: U & { type: T },
+): Omit<U, "config"> & { config: C } => ({
   ...input,
-  ...nodeSchema.parse(input),
+  config: nodeSchema.parse(input).config as C,
 });

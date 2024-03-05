@@ -1,29 +1,29 @@
 import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, Text, VStack } from "@chakra-ui/react";
-import { FaBalanceScale } from "react-icons/fa";
+import { BsClipboard2Data } from "react-icons/bs";
 
 import AppShell from "~/components/nav/AppShell";
-import { useDatasetEval } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import EvalContentTabs from "~/components/evals/EvalContentTabs/EvalContentTabs";
 import { ProjectLink } from "~/components/ProjectLink";
+import { useMonitor } from "~/components/monitors/useMonitor";
+import MonitorContentTabs from "~/components/monitors/MonitorsContentTabs/MonitorsContentTabs";
 
-export default function Eval() {
-  const datasetEval = useDatasetEval();
+export default function Monitor() {
+  const monitor = useMonitor();
 
-  if (!datasetEval.isLoading && !datasetEval.data) {
+  if (!monitor.isLoading && !monitor.data) {
     return (
       <AppShell title="Eval not found">
         <Center h="100%">
-          <div>Eval not found 😕</div>
+          <div>Monitor not found 😕</div>
         </Center>
       </AppShell>
     );
   }
 
-  if (!datasetEval.data) return null;
+  if (!monitor.data) return null;
 
-  const { name } = datasetEval.data;
+  const { name } = monitor.data;
 
   return (
     <AppShell title={name}>
@@ -34,9 +34,9 @@ export default function Eval() {
               <ProjectBreadcrumbContents />
             </BreadcrumbItem>
             <BreadcrumbItem>
-              <ProjectLink href="/evals">
+              <ProjectLink href="/monitors">
                 <Flex alignItems="center" _hover={{ textDecoration: "underline" }}>
-                  <Icon as={FaBalanceScale} boxSize={4} mr={1.5} mt={0.5} /> Evals
+                  <Icon as={BsClipboard2Data} boxSize={4} mr={1.5} mt={0.5} /> Monitors
                 </Flex>
               </ProjectLink>
             </BreadcrumbItem>
@@ -46,7 +46,7 @@ export default function Eval() {
           </Breadcrumb>
         </PageHeaderContainer>
         <VStack w="full" h="full" px={8} alignItems="flex-start" spacing={4}>
-          <EvalContentTabs />
+          <MonitorContentTabs />
         </VStack>
       </VStack>
     </AppShell>

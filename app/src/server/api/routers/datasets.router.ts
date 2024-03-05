@@ -84,10 +84,7 @@ export const datasetsRouter = createTRPCRouter({
 
     await requireCanViewProject(dataset.projectId, ctx);
 
-    const tNode = typedNode(dataset.node);
-
-    if (tNode.type !== "Dataset")
-      throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
+    const tNode = typedNode({ ...dataset.node, type: "Dataset" });
 
     const relabelNodeStats = await getSourceLLMRelabelNodes({
       datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
@@ -323,9 +320,7 @@ export const datasetsRouter = createTRPCRouter({
 
       if (!datasetNode) return error("Dataset not found");
 
-      const tNode = typedNode(datasetNode);
-
-      if (tNode.type !== "Dataset") return error("Node incorrect type");
+      const tNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       await prisma.$transaction([
         prisma.dataset.delete({
@@ -375,9 +370,7 @@ export const datasetsRouter = createTRPCRouter({
 
       if (!datasetNode) return error("Dataset not found");
 
-      const tDatasetNode = typedNode(datasetNode);
-
-      if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
+      const tDatasetNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       const latestUpload = await prisma.node.findFirst({
         where: {
@@ -438,10 +431,7 @@ export const datasetsRouter = createTRPCRouter({
 
       await requireCanViewProject(datasetNode.projectId, ctx);
 
-      const tNode = typedNode(datasetNode);
-      if (tNode.type !== "Dataset") {
-        throw new Error("Node is not a Dataset");
-      }
+      const tNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       const archives = await getArchives({
         datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
@@ -516,9 +506,7 @@ export const datasetsRouter = createTRPCRouter({
 
       if (!datasetNode) return error("Dataset not found");
 
-      const tDatasetNode = typedNode(datasetNode);
-
-      if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
+      const tDatasetNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       const sourceLLMRelabelNode = await kysely
         .selectFrom("Node as n")

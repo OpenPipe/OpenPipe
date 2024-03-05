@@ -212,8 +212,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           .executeTakeFirst();
         if (!datasetNode) return error("Dataset node not found");
 
-        const tDatasetNode = typedNode(datasetNode);
-        if (tDatasetNode.type !== "Dataset") return error("Dataset node incorrectly typed");
+        const tDatasetNode = typedNode({ ...datasetNode, type: "Dataset" });
 
         projectId = datasetNode.projectId;
         manualRelabelNodeId = tDatasetNode.config.manualRelabelNodeId;
@@ -390,8 +389,7 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       if (!nodeEntry?.node) return error("NodeEntry not found");
 
-      const tNode = typedNode(nodeEntry.node);
-      if (tNode.type !== "Dataset") return error("Dataset node not found");
+      const tNode = typedNode({ ...nodeEntry.node, type: "Dataset" });
 
       await requireCanModifyProject(tNode.projectId, ctx);
 

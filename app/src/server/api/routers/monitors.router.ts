@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { sql } from "kysely";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
@@ -27,13 +28,17 @@ export const monitorsRouter = createTRPCRouter({
 
     if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
 
+    const tMonitor = typedNode({ ...monitor, type: "Monitor" });
+
     await requireCanViewProject(monitor.projectId, ctx);
 
-    const datasets = await getDownstreamDatasets(monitor.id)
+    const datasets = await getDownstreamDatasets({
+      monitorFilterNodeId: tMonitor.config.filterNodeId,
+    })
       .select(["datasetNode.id as datasetNodeId", "d.id as datasetId", "d.name as datasetName"])
       .execute();
 
-    return { monitor, datasets };
+    return { ...monitor, datasets };
   }),
   list: protectedProcedure
     .input(
@@ -49,10 +54,31 @@ export const monitorsRouter = createTRPCRouter({
         .where("n.projectId", "=", input.projectId)
         .where("n.type", "=", "Monitor")
         .selectAll("n")
+        .select((eb) => [
+          eb
+            .selectFrom("DataChannel as dc")
+            .whereRef("dc.destinationId", "=", "n.id")
+            .innerJoin("NodeEntry as ne", "ne.dataChannelId", "dc.id")
+            .select(sql<number>`count(*)::int`.as("numEntries"))
+            .as("numEntries"),
+        ])
         .orderBy("n.createdAt", "desc")
-        .execute();
+        .execute()
+        .then((monitors) => monitors.map((monitor) => typedNode({ ...monitor, type: "Monitor" })));
 
-      return monitors;
+      const numDatasets = await Promise.all(
+        monitors.map((monitor) =>
+          getDownstreamDatasets({ monitorFilterNodeId: monitor.config.filterNodeId })
+            .groupBy(["filterNode.id", "datasetNode.id"])
+            .select(sql<number>`count("datasetNode".id)::int`.as("count"))
+            .executeTakeFirst(),
+        ),
+      );
+
+      return monitors.map((monitor, i) => ({
+        ...monitor,
+        numDatasets: numDatasets[i]?.count ?? 0,
+      }));
     }),
   create: protectedProcedure
     .input(
@@ -73,7 +99,7 @@ export const monitorsRouter = createTRPCRouter({
 
       await prisma.$transaction(preparedIntegratedMonitorCreation.prismaCreations);
 
-      return preparedIntegratedMonitorCreation.monitorNodeId;
+      return success(preparedIntegratedMonitorCreation.monitorNodeId);
     }),
   update: protectedProcedure
     .input(
@@ -104,7 +130,7 @@ export const monitorsRouter = createTRPCRouter({
 
       if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const tMonitor = typedNode(monitor);
+      const tMonitor = typedNode({ ...monitor, type: "Monitor" });
 
       if (tMonitor.type !== "Monitor") throw new TRPCError({ code: "BAD_REQUEST" });
 
@@ -119,9 +145,7 @@ export const monitorsRouter = createTRPCRouter({
 
       if (!filter) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const tFilter = typedNode(filter);
-
-      if (tFilter.type !== "Filter") throw new TRPCError({ code: "BAD_REQUEST" });
+      const tFilter = typedNode({ ...filter, type: "Filter" });
 
       await requireCanModifyProject(tMonitor.projectId, ctx);
 
@@ -185,7 +209,9 @@ export const monitorsRouter = createTRPCRouter({
       }
 
       if (datasetLLMRelabelNodeIds) {
-        const existingDatasetLLMRelabelNodeIds = await getDownstreamDatasets(tFilter.id)
+        const existingDatasetLLMRelabelNodeIds = await getDownstreamDatasets({
+          monitorFilterNodeId: tFilter.id,
+        })
           .select(["datasetLLMRelabelNode.id"])
           .execute()
           .then((nodes) => nodes.map((node) => node.id));
@@ -238,9 +264,7 @@ export const monitorsRouter = createTRPCRouter({
 
       if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const tMonitor = typedNode(monitor);
-
-      if (tMonitor.type !== "Monitor") throw new TRPCError({ code: "BAD_REQUEST" });
+      const tMonitor = typedNode({ ...monitor, type: "Monitor" });
 
       await requireCanModifyProject(monitor.projectId, ctx);
 

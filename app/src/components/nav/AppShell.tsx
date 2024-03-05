@@ -15,7 +15,13 @@ import {
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { BsFillKeyFill, BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
+import {
+  BsFillKeyFill,
+  BsGearFill,
+  BsGithub,
+  BsPersonCircle,
+  BsClipboard2Data,
+} from "react-icons/bs";
 import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
 import { FaBalanceScale, FaReadme } from "react-icons/fa";
@@ -79,6 +85,7 @@ const NavSidebar = () => {
             <IconLink icon={AiOutlineDatabase} label="Datasets" href="/datasets" />
             <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" />
             <IconLink icon={FaBalanceScale} label="Evals" href="/evals" />
+            {isAdmin && <IconLink icon={BsClipboard2Data} label="Monitors" href="/monitors" />}
             <VStack w="full" alignItems="flex-start" spacing={1} pt={8}>
               <Text
                 pl={2}

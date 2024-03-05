@@ -30,10 +30,7 @@ export const archivesRouter = createTRPCRouter({
 
       await requireCanViewProject(datasetNode.projectId, ctx);
 
-      const tNode = typedNode(datasetNode);
-
-      if (tNode.type !== "Dataset")
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid node type" });
+      const tNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       const archives = await getArchives({
         datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
@@ -56,22 +53,13 @@ export const archivesRouter = createTRPCRouter({
         .orderBy("archiveNode.createdAt", "desc")
         .execute()
         .then((archives) =>
-          archives.map((archive) => {
-            const typedLLMRelabelNode = typedNode({
+          archives.map((archive) => ({
+            ...archive,
+            relabelOption: typedNode({
               type: "LLMRelabel",
               config: archive.llmRelabelNodeConfig,
-            });
-            if (typedLLMRelabelNode.type !== "LLMRelabel")
-              throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Invalid relabel node configuration",
-              });
-
-            return {
-              ...archive,
-              relabelOption: typedLLMRelabelNode.config.relabelLLM,
-            };
-          }),
+            }).config.relabelLLM,
+          })),
         );
 
       return archives;
@@ -94,9 +82,7 @@ export const archivesRouter = createTRPCRouter({
 
       await requireCanModifyProject(llmRelabelNode.projectId, ctx);
 
-      const tLlmRelabelNode = typedNode(llmRelabelNode);
-
-      if (tLlmRelabelNode.type !== "LLMRelabel") return error("Node incorrect type");
+      const tLlmRelabelNode = typedNode({ ...llmRelabelNode, type: "LLMRelabel" });
 
       if (tLlmRelabelNode.config.relabelLLM === input.relabelOption)
         return success("Archive relabeling model already set to this option");

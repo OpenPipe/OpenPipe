@@ -1,12 +1,11 @@
-import { type Node } from "@prisma/client";
-import { type z } from "zod";
+import { type Node, type NodeType } from "@prisma/client";
 
-import { type nodeSchema, type InferNodeConfig } from "./node.types";
+import { type InferNodeConfig } from "./node.types";
 import { hashNode } from "./hashNode";
 
 // This function signature ensures the config matches the type
 export const checkNodeInput = <
-  T extends z.infer<typeof nodeSchema>["type"],
+  T extends NodeType,
   U extends Pick<Node, "projectId"> & Record<string, unknown>,
 >(
   input: U & {

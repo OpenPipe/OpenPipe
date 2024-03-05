@@ -2,13 +2,12 @@ import { type Node } from "@prisma/client";
 import { sql } from "kysely";
 
 import { kysely } from "~/server/db";
-import { type typedNode } from "~/server/utils/nodes/node.types";
 import { nodePropertiesByType } from "./processNode.task";
 
 export const updateCached = async ({
   node,
 }: {
-  node: ReturnType<typeof typedNode> & Pick<Node, "id" | "projectId" | "hash">;
+  node: Pick<Node, "id" | "projectId" | "hash" | "type">;
 }) => {
   const nodeProperties = nodePropertiesByType[node.type];
 
