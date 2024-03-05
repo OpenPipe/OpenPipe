@@ -22,9 +22,11 @@ export const creationTimeFromPersistentId = (persistentId: string) => {
 
 export const printNodeEntries = async (nodeId: string) => {
   const nodeEntries = await kysely
-    .selectFrom("NodeEntry")
-    .where("nodeId", "=", nodeId)
-    .selectAll("NodeEntry")
+    .selectFrom("NodeEntry as ne")
+    .innerJoin("DataChannel as dc", (join) =>
+      join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", nodeId),
+    )
+    .selectAll("ne")
     .execute();
   console.log(nodeEntries);
 };

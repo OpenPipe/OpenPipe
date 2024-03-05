@@ -103,7 +103,7 @@ export const startTestJobsForEval = async ({
   if (!datasetEval) return;
 
   const evalsToRun: EvalKey[] = [];
-  const datasetEvalResultsToCreate: Prisma.NewDatasetEvalResultCreateManyInput[] = [];
+  const datasetEvalResultsToCreate: Prisma.DatasetEvalResultCreateManyInput[] = [];
 
   for (const datasetEvalNodeEntry of datasetEval.datasetEvalDatasetEntries) {
     for (let i = 0; i < datasetEval.outputSources.length; i++) {
@@ -142,7 +142,7 @@ export const startTestJobsForEval = async ({
   // Shuffle so all models get results run at roughly the same rate
   const shuffledEvalsToRun = shuffle(evalsToRun);
 
-  await prisma.newDatasetEvalResult.createMany({
+  await prisma.datasetEvalResult.createMany({
     data: datasetEvalResultsToCreate,
     skipDuplicates: true,
   });
@@ -161,7 +161,7 @@ export const startTestJobsForModel = async ({
 }) => {
   const nodeEntryToRun = await nodeEntryBaseQuery
     .where("ne.split", "=", "TEST")
-    .leftJoin("NewFineTuneTestingEntry as ftte", (join) =>
+    .leftJoin("FineTuneTestingEntry as ftte", (join) =>
       join.onRef("ftte.inputHash", "=", "ne.inputHash").on("ftte.modelId", "=", modelId),
     )
     .where("ftte.id", "is", null)

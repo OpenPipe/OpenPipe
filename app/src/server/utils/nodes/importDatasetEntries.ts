@@ -6,7 +6,7 @@ import {
   isParseError,
   isRowToImport,
   parseRowsToImport,
-} from "~/components/datasets/parseRowsToImport";
+} from "~/server/utils/datasetEntryCreation/parseRowsToImport";
 import { prepareDatasetEntriesForImport } from "../datasetEntryCreation/prepareDatasetEntriesForImport";
 import { enqueueCountDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 import { generatePersistentId } from "./utils";
@@ -100,7 +100,6 @@ export const importDatasetEntries = async ({
     ({ datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
       await prepareDatasetEntriesForImport({
         projectId,
-        nodeId,
         dataChannelId,
         entriesToImport,
         onProgress: async (progress) => {

@@ -1,32 +1,27 @@
 import { type z } from "zod";
-import { type Expression, type SqlBool, sql, type WhereInterface } from "kysely";
+import { type Expression, type SqlBool, sql } from "kysely";
 
 import { kysely } from "~/server/db";
-import type { NodeEntry, DB } from "~/types/kysely-codegen.types";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
-
-const BASE_QUERY = kysely.selectFrom("NodeEntry as ne");
 
 export const constructNodeEntryFiltersQuery = ({
   filters,
   datasetNodeId,
-  baseQuery = BASE_QUERY,
 }: {
   filters: z.infer<typeof filtersSchema>;
   datasetNodeId: string;
-  baseQuery?: WhereInterface<
-    DB & {
-      ne: NodeEntry;
-    },
-    "ne"
-  >;
 }) => {
-  let updatedBaseQuery = (baseQuery as typeof BASE_QUERY)
+  let updatedBaseQuery = kysely
+    .with("dc", (eb) =>
+      eb.selectFrom("DataChannel").where("destinationId", "=", datasetNodeId).select("id"),
+    )
+    .selectFrom("dc")
+    .innerJoin("NodeEntry as ne", (join) => join.onRef("ne.dataChannelId", "=", "dc.id"))
     .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
     .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
     .where((eb) => {
-      const wheres: Expression<SqlBool>[] = [eb("ne.nodeId", "=", datasetNodeId)];
+      const wheres: Expression<SqlBool>[] = [];
 
       for (const filter of filters) {
         if (!filter.value) continue;

@@ -2,7 +2,7 @@ import { type Prisma } from "@prisma/client";
 import { shuffle } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources";
 
-import { type RowToImport } from "~/components/datasets/parseRowsToImport";
+import { type RowToImport } from "~/server/utils/datasetEntryCreation/parseRowsToImport";
 import {
   convertFunctionCallToToolChoice,
   convertFunctionsToTools,
@@ -11,17 +11,18 @@ import {
 } from "../convertFunctionCalls";
 import { hashDatasetEntryInput, hashDatasetEntryOutput } from "../nodes/hashNode";
 
+type IndexedNodeEntryCreateManyInput = Prisma.NodeEntryCreateManyInput & { index: number };
+export type EntryToImport = RowToImport & { persistentId: string; loggedCallId?: string };
+
 export const prepareDatasetEntriesForImport = async ({
   projectId,
-  nodeId,
   dataChannelId,
   entriesToImport,
   onProgress,
 }: {
   projectId: string;
-  nodeId: string;
   dataChannelId: string;
-  entriesToImport: (RowToImport & { persistentId: string; loggedCallId?: string })[];
+  entriesToImport: EntryToImport[];
   onProgress?: (progress: number) => Promise<void>;
 }): Promise<{
   datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[];
@@ -30,7 +31,8 @@ export const prepareDatasetEntriesForImport = async ({
 }> => {
   const datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[] = [];
   const datasetEntryOutputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[] = [];
-  let nodeEntriesToCreate: Prisma.NodeEntryCreateManyInput[] = [];
+  const originallySplitNodeEntriesToCreate: IndexedNodeEntryCreateManyInput[] = [];
+  let randomlySplitNodeEntriesToCreate: IndexedNodeEntryCreateManyInput[] = [];
 
   let i = 0;
   for (const row of entriesToImport) {
@@ -78,23 +80,35 @@ export const prepareDatasetEntriesForImport = async ({
       hash: outputHash,
     });
 
-    nodeEntriesToCreate.push({
+    const nodeEntryData = {
       persistentId: row.persistentId,
-      nodeId,
       dataChannelId,
       inputHash,
       outputHash,
       originalOutputHash: outputHash,
-      split: "TRAIN",
       loggedCallId: row.loggedCallId,
-    });
+    };
+
+    if (row.split) {
+      originallySplitNodeEntriesToCreate.push({
+        ...nodeEntryData,
+        split: row.split,
+        index: i,
+      });
+    } else {
+      randomlySplitNodeEntriesToCreate.push({
+        ...nodeEntryData,
+        split: "TRAIN",
+        index: i,
+      });
+    }
   }
 
   // TODO: intelligently update split
-  nodeEntriesToCreate = shuffle(nodeEntriesToCreate);
+  randomlySplitNodeEntriesToCreate = shuffle(randomlySplitNodeEntriesToCreate);
   // set first 20% to TEST split
-  nodeEntriesToCreate
-    .slice(0, Math.floor(nodeEntriesToCreate.length * 0.2))
+  randomlySplitNodeEntriesToCreate
+    .slice(0, Math.floor(randomlySplitNodeEntriesToCreate.length * 0.2))
     .forEach((nodeEntry) => {
       nodeEntry.split = "TEST";
     });
@@ -102,6 +116,11 @@ export const prepareDatasetEntriesForImport = async ({
   return {
     datasetEntryInputsToCreate,
     datasetEntryOutputsToCreate,
-    nodeEntriesToCreate: shuffle(nodeEntriesToCreate),
+    nodeEntriesToCreate: [
+      ...originallySplitNodeEntriesToCreate,
+      ...randomlySplitNodeEntriesToCreate,
+    ]
+      .sort((a, b) => a.index - b.index)
+      .map(({ index: _, ...rest }) => rest),
   };
 };

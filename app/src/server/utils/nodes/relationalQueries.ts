@@ -2,10 +2,10 @@ import { kysely } from "~/server/db";
 import { MonitorOutput } from "./nodeProperties/monitorProperties";
 import { LLMRelabelOutput } from "./nodeProperties/llmRelabelProperties";
 
-export const getDownstreamDatasets = (filterNodeId: string) => {
+export const getDownstreamDatasets = ({ monitorFilterNodeId }: { monitorFilterNodeId: string }) => {
   return kysely
     .selectFrom("Node as filterNode")
-    .where("filterNode.id", "=", filterNodeId)
+    .where("filterNode.id", "=", monitorFilterNodeId)
     .innerJoin("NodeOutput as filterNodeOutput", "filterNodeOutput.nodeId", "filterNode.id")
     .where("filterNodeOutput.label", "=", MonitorOutput.MatchedLogs)
     .innerJoin("DataChannel as dc", "dc.originId", "filterNodeOutput.id")

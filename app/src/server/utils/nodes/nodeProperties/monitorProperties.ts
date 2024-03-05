@@ -4,7 +4,7 @@ import { kysely, prisma } from "~/server/db";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import dayjs from "~/utils/dayjs";
 import { typedLoggedCall } from "~/types/dbColumns.types";
-import { validateRowToImport } from "~/components/datasets/parseRowsToImport";
+import { validateRowToImport } from "~/server/utils/datasetEntryCreation/parseRowsToImport";
 import { truthyFilter } from "~/utils/utils";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { generatePersistentId } from "~/server/utils/nodes/utils";
@@ -22,10 +22,19 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
   beforeProcessing: async (node) => {
     const { initialFilters, lastLoggedCallUpdatedAt, maxOutputSize, sampleRate } = node.config;
 
+    const inputDataChannelId = await kysely
+      .selectFrom("DataChannel")
+      .where("destinationId", "=", node.id)
+      .select(["id"])
+      .executeTakeFirst()
+      .then((dc) => (dc ? dc.id : null));
+
+    if (!inputDataChannelId) throw new Error(`DataChannel not found for monitor ${node.id}`);
+
     const numExistingEntries = await kysely
       .selectFrom("NodeEntry as ne")
-      .where("ne.nodeId", "=", node.id)
-      .groupBy("ne.nodeId")
+      .where("ne.dataChannelId", "=", inputDataChannelId)
+      .groupBy("ne.dataChannelId")
       .select(sql<number>`count(*)::int`.as("count"))
       .executeTakeFirst();
 
@@ -42,7 +51,9 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
         .where("lc.updatedAt", ">=", dayjs(lastLoggedCallUpdatedAt).toDate()),
     })
       .leftJoin("NodeEntry as existingNe", (eb) =>
-        eb.onRef("existingNe.loggedCallId", "=", "lc.id").on("existingNe.nodeId", "=", node.id),
+        eb
+          .onRef("existingNe.loggedCallId", "=", "lc.id")
+          .on("existingNe.dataChannelId", "=", inputDataChannelId),
       )
       .where("existingNe.id", "is", null)
       // hash lc.id and nodeId to compare against a sampleRate hash
@@ -87,7 +98,6 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
     const { datasetEntryInputsToCreate, datasetEntryOutputsToCreate, nodeEntriesToCreate } =
       await prepareDatasetEntriesForImport({
         projectId: node.projectId,
-        nodeId: node.id,
         dataChannelId: inputDataChannel.id,
         entriesToImport,
       });

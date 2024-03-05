@@ -12,13 +12,14 @@ import { archiveProperties } from "../../../utils/nodes/nodeProperties/archivePr
 import { datasetProperties } from "../../../utils/nodes/nodeProperties/datasetProperties";
 import { enqueueDescendants } from "./enqueueDescendants";
 import { manualRelabelProperties } from "../../../utils/nodes/nodeProperties/manualRelabelProperties";
-import { typedNode, typedNodeEntry } from "~/server/utils/nodes/node.types";
+import { typedNode } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
 import { forwardNodeEntries } from "./forwardNodeEntries";
 import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
 import { updateCached } from "./updateCached";
 import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
+import { typedNodeEntry } from "~/types/dbColumns.types";
 
 export type ProcessNodeJob = {
   nodeId: string;
@@ -37,8 +38,6 @@ export const processNode = defineTask<ProcessNodeJob>({
 
     if (!node) return;
 
-    console.log({ nodeId, type: node.type });
-
     if (node.stale) {
       await invalidateNodeEntries(nodeId);
       await prisma.node.update({
@@ -47,13 +46,17 @@ export const processNode = defineTask<ProcessNodeJob>({
       });
     }
 
+    console.log({ nodeId, type: node.type });
+
     const nodeProperties = nodePropertiesByType[node.type] as NodeProperties<NodeType>;
 
     // ensure that all "PROCESSING" and "ERROR" entries are reset to "PENDING" after job restart
     await kysely
       .updateTable("NodeEntry as ne")
       .set({ status: "PENDING" })
-      .where("ne.nodeId", "=", node.id)
+      .from("DataChannel as dc")
+      .where("dc.destinationId", "=", node.id)
+      .whereRef("ne.dataChannelId", "=", "dc.id")
       .where((eb) => eb.or([eb("ne.status", "=", "PROCESSING"), eb("ne.status", "=", "ERROR")]))
       .execute();
 
@@ -83,9 +86,12 @@ export const processNode = defineTask<ProcessNodeJob>({
 
       while (true) {
         await updateCached({ node });
+
         const entriesBatch = await kysely
           .selectFrom("NodeEntry as ne")
-          .where("nodeId", "=", node.id)
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", node.id),
+          )
           .where("ne.status", "=", "PENDING")
           .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
           .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
@@ -160,7 +166,9 @@ export const processNode = defineTask<ProcessNodeJob>({
       let updateQuery = kysely
         .updateTable("NodeEntry as ne")
         .set({ status: "PROCESSED" })
-        .where("ne.nodeId", "=", node.id)
+        .from("DataChannel as dc")
+        .where("dc.destinationId", "=", node.id)
+        .whereRef("ne.dataChannelId", "=", "dc.id")
         .where("ne.status", "=", "PENDING");
 
       if (nodeProperties.cacheMatchFields) {

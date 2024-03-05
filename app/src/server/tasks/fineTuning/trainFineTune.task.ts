@@ -11,7 +11,7 @@ import defineTask from "../defineTask";
 import { trainOpenaiFineTune } from "./trainOpenaiFineTune";
 import { CURRENT_PIPELINE_VERSION } from "~/types/shared.types";
 import { serializeChatInput, serializeChatOutput } from "~/modelProviders/fine-tuned/serializers";
-import { typedDatasetEntry, typedFineTune } from "~/types/dbColumns.types";
+import { typedFineTune, typedNodeEntry } from "~/types/dbColumns.types";
 import { truthyFilter } from "~/utils/utils";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { insertTrainingDataPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
@@ -47,7 +47,7 @@ export async function* iterateTrainingRows(fineTuneId: string) {
   let offset = 0;
   while (true) {
     const rows = await kysely
-      .selectFrom("NewFineTuneTrainingEntry as ftte")
+      .selectFrom("FineTuneTrainingEntry as ftte")
       .where("ftte.fineTuneId", "=", fineTuneId)
       .innerJoin("DatasetEntryInput as dei", "dei.hash", "ftte.inputHash")
       .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ftte.outputHash")
@@ -101,7 +101,7 @@ const trainModalFineTune = async (fineTuneId: string) => {
 
   const formattedRows = from(iterateTrainingRows(fineTune.id)).pipe(
     map(async (row) => {
-      const tEntry = typedDatasetEntry(row);
+      const tEntry = typedNodeEntry(row);
       if (!tEntry.output) return null;
       const prunedInputMessages = pruneInputMessages(tEntry.messages, stringsToPrune);
       const input = {
@@ -112,7 +112,7 @@ const trainModalFineTune = async (fineTuneId: string) => {
       const prunedInputTokens = stringsToPrune?.length
         ? countLlamaInputTokens(input)
         : tEntry.inputTokens;
-      await prisma.newFineTuneTrainingEntry.update({
+      await prisma.fineTuneTrainingEntry.update({
         where: { id: row.id },
         data: { prunedInputTokens, outputTokens: tEntry.outputTokens },
       });

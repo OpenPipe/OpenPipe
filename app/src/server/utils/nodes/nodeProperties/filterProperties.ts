@@ -1,4 +1,4 @@
-import { kysely, prisma } from "~/server/db";
+import { kysely } from "~/server/db";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
 import { type NodeProperties } from "./nodeProperties.types";
 import { filterNodeSchema } from "../node.types";
@@ -18,24 +18,29 @@ export const filterProperties: NodeProperties<"Filter"> = {
   beforeProcessing: async (node) => {
     const { filters } = node.config;
 
-    await prisma.nodeEntry.updateMany({
-      where: { nodeId: node.id, status: "PENDING" },
-      data: { status: "PROCESSING" },
-    });
+    await kysely
+      .updateTable("NodeEntry as ne")
+      .set({ status: "PROCESSING" })
+      .from("DataChannel as dc")
+      .where("dc.destinationId", "=", node.id)
+      .whereRef("ne.dataChannelId", "=", "dc.id")
+      .where("ne.status", "=", "PENDING")
+      .execute();
 
     await kysely
       .insertInto("CachedProcessedEntry")
       .columns(["incomingInputHash", "incomingOutputHash", "filterOutcome"])
-      .expression((eb) =>
+      .expression(() =>
         constructNodeEntryFiltersQuery({
           filters,
           datasetNodeId: node.id,
-          baseQuery: eb.selectFrom("NodeEntry as ne").where("ne.status", "=", "PROCESSING"),
-        }).select((eb) => [
-          "ne.inputHash",
-          "ne.outputHash",
-          eb.val(FilterOutput.Passed).as("filterOutcome"),
-        ]),
+        })
+          .where("ne.status", "=", "PROCESSING")
+          .select((eb) => [
+            "ne.inputHash",
+            "ne.outputHash",
+            eb.val(FilterOutput.Passed).as("filterOutcome"),
+          ]),
       )
       .execute();
 
@@ -45,9 +50,11 @@ export const filterProperties: NodeProperties<"Filter"> = {
       .expression((eb) =>
         eb
           .selectFrom("NodeEntry as ne")
-          .where("ne.nodeId", "=", node.id)
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", node.id),
+          )
           .where("ne.status", "=", "PROCESSING")
-          .innerJoin("Node as n", "n.id", "ne.nodeId")
+          .innerJoin("Node as n", "n.id", "dc.destinationId")
           .leftJoin("CachedProcessedEntry as cpe1", (join) =>
             join
               .onRef("cpe1.nodeHash", "=", "n.hash")
@@ -57,7 +64,7 @@ export const filterProperties: NodeProperties<"Filter"> = {
           .where("cpe1.incomingInputHash", "is", null)
           .leftJoin("CachedProcessedEntry as cpe2", (join) =>
             join
-              .onRef("cpe2.nodeId", "=", "ne.nodeId")
+              .on("cpe2.nodeId", "=", node.id)
               .onRef("cpe2.incomingInputHash", "=", "ne.inputHash")
               .onRef("cpe2.incomingOutputHash", "=", "ne.outputHash"),
           )
@@ -70,9 +77,13 @@ export const filterProperties: NodeProperties<"Filter"> = {
       )
       .execute();
 
-    await prisma.nodeEntry.updateMany({
-      where: { nodeId: node.id, status: "PROCESSING" },
-      data: { status: "PROCESSED" },
-    });
+    await kysely
+      .updateTable("NodeEntry as ne")
+      .set({ status: "PROCESSED" })
+      .from("DataChannel as dc")
+      .where("dc.destinationId", "=", node.id)
+      .whereRef("ne.dataChannelId", "=", "dc.id")
+      .where("ne.status", "=", "PROCESSING")
+      .execute();
   },
 };

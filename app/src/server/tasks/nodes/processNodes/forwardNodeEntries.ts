@@ -19,19 +19,13 @@ export const forwardNodeEntries = async ({
     .where("no.label", "=", nodeOutputLabel)
     .innerJoin("DataChannel as dc", "dc.originId", "no.id")
     .innerJoin("Node as destinationNode", "destinationNode.id", "dc.destinationId")
-    .select([
-      "originNode.hash as originNodeHash",
-      "dc.id as channelId",
-      "dc.lastProcessedAt as lastProcessedAt",
-      "destinationNode.id as destinationNodeId",
-      "no.label as label",
-    ])
+    .select(["originNode.hash as originNodeHash", "dc.id as channelId", "no.label as label"])
     .execute();
 
   for (const outputDataChannel of outputDataChannels) {
     const processingStartTime = new Date();
 
-    const { channelId, destinationNodeId, lastProcessedAt } = outputDataChannel;
+    const { channelId } = outputDataChannel;
 
     await kysely
       .insertInto("NodeEntry")
@@ -41,7 +35,6 @@ export const forwardNodeEntries = async ({
         "outputHash",
         "id",
         "persistentId",
-        "nodeId",
         "dataChannelId",
         "parentNodeEntryId",
         "loggedCallId",
@@ -50,7 +43,8 @@ export const forwardNodeEntries = async ({
       ])
       .expression(
         selectionExpression()
-          .where("ne.nodeId", "=", nodeId)
+          .innerJoin("DataChannel as dc", (join) => join.onRef("dc.id", "=", "ne.dataChannelId"))
+          .where("dc.destinationId", "=", nodeId)
           .leftJoin("NodeEntry as existingEntry", (join) =>
             join
               .onRef("existingEntry.parentNodeEntryId", "=", "ne.id")
@@ -63,7 +57,6 @@ export const forwardNodeEntries = async ({
             "ne.outputHash",
             sql`uuid_generate_v4()`.as("id"),
             "ne.persistentId",
-            eb.val(destinationNodeId).as("nodeId"),
             eb.val(channelId).as("dataChannelId"),
             "ne.id",
             "ne.loggedCallId",

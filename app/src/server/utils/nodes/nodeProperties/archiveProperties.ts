@@ -24,7 +24,7 @@ export const archiveProperties: NodeProperties<"Archive"> = {
       .select(["id"])
       .execute();
 
-    if (!inputDataChannel) return;
+    if (!inputDataChannel) throw new Error(`DataChannel not found for archive ${node.id}`);
     const { maxOutputSize } = node.config;
 
     for (const upload of pendingDatasetFileUploads) {

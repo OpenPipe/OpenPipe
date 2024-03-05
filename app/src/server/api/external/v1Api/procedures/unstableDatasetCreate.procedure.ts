@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "~/server/db";
 import { openApiProtectedProc } from "../../openApiTrpc";
 import { requireWriteKey } from "../helpers";
+import { prepareIntegratedDatasetCreation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 
 export const unstableDatasetCreate = openApiProtectedProc
   .meta({
@@ -15,16 +16,16 @@ export const unstableDatasetCreate = openApiProtectedProc
     },
   })
   .input(z.object({ name: z.string() }))
-  .output(z.object({ id: z.string() }))
+  .output(z.object({ datasetId: z.string() }))
   .mutation(async ({ input, ctx }) => {
     await requireWriteKey(ctx);
 
-    const dataset = await prisma.dataset.create({
-      data: {
-        projectId: ctx.key.projectId,
-        name: input.name,
-      },
+    const preparedDatasetCreation = prepareIntegratedDatasetCreation({
+      projectId: ctx.key.projectId,
+      datasetName: input.name,
     });
 
-    return { id: dataset.id };
+    await prisma.$transaction(preparedDatasetCreation.prismaCreations);
+
+    return { datasetId: preparedDatasetCreation.datasetId };
   });

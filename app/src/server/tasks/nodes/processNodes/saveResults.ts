@@ -7,7 +7,6 @@ import {
 } from "./processNode.task";
 import { hashDatasetEntryOutput } from "~/server/utils/nodes/hashNode";
 import { enqueueCountDatasetEntryTokens } from "../../fineTuning/countDatasetEntryTokens.task";
-import { type typedNode } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
 
 export type SaveableProcessEntryResult =
@@ -24,7 +23,7 @@ export const saveResults = async ({
   node,
   resultsToProcess,
 }: {
-  node: ReturnType<typeof typedNode> & Pick<Node, "projectId" | "hash">;
+  node: Pick<Node, "projectId" | "hash" | "type">;
   resultsToProcess: SaveableProcessEntryResult[];
 }) => {
   const outputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[] = [];

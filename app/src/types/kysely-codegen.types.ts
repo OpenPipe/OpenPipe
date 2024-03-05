@@ -116,31 +116,7 @@ export interface Dataset {
   updatedAt: Timestamp;
   trainingRatio: Generated<number>;
   enabledComparisonModels: Generated<string[] | null>;
-  nodeId: string | null;
-}
-
-export interface DatasetEntry {
-  id: string;
-  datasetId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  loggedCallId: string | null;
-  messages: Generated<Json>;
-  inputTokens: number | null;
-  output: Json | null;
-  outputTokens: number | null;
-  split: "TEST" | "TRAIN";
-  authoringUserId: string | null;
-  outdated: Generated<boolean>;
-  sortKey: string;
-  persistentId: string;
-  function_call: Json | null;
-  functions: Json | null;
-  importId: string;
-  provenance: "RELABELED_BY_HUMAN" | "RELABELED_BY_MODEL" | "REQUEST_LOG" | "UPLOAD";
-  tool_choice: Json | null;
-  tools: Json | null;
-  response_format: Json | null;
+  nodeId: string;
 }
 
 export interface DatasetEntryInput {
@@ -172,14 +148,6 @@ export interface DatasetEval {
   updatedAt: Timestamp;
 }
 
-export interface DatasetEvalDatasetEntry {
-  id: string;
-  datasetEvalId: string;
-  datasetEntryId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-}
-
 export interface DatasetEvalNodeEntry {
   id: string;
   datasetEvalId: string;
@@ -202,14 +170,16 @@ export interface DatasetEvalResult {
   explanation: string | null;
   errorMessage: string | null;
   status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
+  judge: string | null;
+  nodeEntryInputHash: string;
+  nodeEntryOutputHash: string | null;
+  wasFirst: boolean | null;
   comparisonResultId: string | null;
   comparisonOutputSourceId: string | null;
-  datasetEvalDatasetEntryId: string;
+  datasetEvalNodeEntryId: string;
   datasetEvalOutputSourceId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  wasFirst: boolean | null;
-  judge: string | null;
 }
 
 export interface DatasetFileUpload {
@@ -272,28 +242,28 @@ export interface FineTune {
 
 export interface FineTuneTestingEntry {
   id: string;
-  cacheKey: string | null;
   prunedInputTokens: number | null;
-  outputTokens: number | null;
-  output: Json | null;
+  finishReason: string | null;
   errorMessage: string | null;
+  modelId: string;
   fineTuneId: string | null;
-  datasetEntryId: string;
+  inputHash: string;
+  outputHash: string | null;
+  projectId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  score: number | null;
-  modelId: string;
-  finishReason: string | null;
 }
 
 export interface FineTuneTrainingEntry {
   id: string;
-  datasetEntryId: string;
+  prunedInputTokens: number | null;
+  outputTokens: number | null;
+  nodeEntryPersistentId: string;
+  inputHash: string;
+  outputHash: string;
   fineTuneId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  outputTokens: number | null;
-  prunedInputTokens: number | null;
 }
 
 export interface GraphileWorkerJobs {
@@ -401,56 +371,6 @@ export interface LoggedCallTag {
   projectId: string;
 }
 
-export interface NewDatasetEvalResult {
-  id: string;
-  score: number | null;
-  explanation: string | null;
-  errorMessage: string | null;
-  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
-  judge: string | null;
-  nodeEntryInputHash: string;
-  nodeEntryOutputHash: string | null;
-  wasFirst: boolean | null;
-  comparisonResultId: string | null;
-  comparisonOutputSourceId: string | null;
-  datasetEvalNodeEntryId: string;
-  datasetEvalOutputSourceId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-}
-
-export interface NewFineTuneTestingEntry {
-  id: string;
-  prunedInputTokens: number | null;
-  finishReason: string | null;
-  errorMessage: string | null;
-  modelId: string;
-  fineTuneId: string | null;
-  inputHash: string;
-  outputHash: string | null;
-  projectId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-}
-
-export interface NewFineTuneTrainingEntry {
-  id: string;
-  prunedInputTokens: number | null;
-  outputTokens: number | null;
-  inputHash: string;
-  outputHash: string;
-  fineTuneId: string;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
-  nodeEntryPersistentId: string;
-}
-
-export interface NewPruningRuleMatch {
-  id: string;
-  pruningRuleId: string;
-  inputHash: string;
-}
-
 export interface Node {
   id: string;
   type: "Archive" | "Dataset" | "Filter" | "LLMRelabel" | "ManualRelabel" | "Monitor";
@@ -474,7 +394,6 @@ export interface NodeEntry {
   inputHash: string;
   outputHash: string;
   originalOutputHash: string;
-  nodeId: string;
   dataChannelId: string;
   parentNodeEntryId: string | null;
   createdAt: Generated<Timestamp>;
@@ -533,7 +452,7 @@ export interface PruningRule {
 export interface PruningRuleMatch {
   id: string;
   pruningRuleId: string;
-  datasetEntryId: string;
+  inputHash: string;
 }
 
 export interface PruningRulesChecked {
@@ -546,16 +465,6 @@ export interface RateLimit {
   tokens: number;
   allowed: boolean;
   lastUpdated: Timestamp;
-}
-
-export interface RelabelRequest {
-  id: string;
-  batchId: string;
-  datasetEntryPersistentId: string;
-  status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
-  errorMessage: string | null;
-  createdAt: Generated<Timestamp>;
-  updatedAt: Timestamp;
 }
 
 export interface Session {
@@ -621,11 +530,9 @@ export interface DB {
   CreditAdjustment: CreditAdjustment;
   DataChannel: DataChannel;
   Dataset: Dataset;
-  DatasetEntry: DatasetEntry;
   DatasetEntryInput: DatasetEntryInput;
   DatasetEntryOutput: DatasetEntryOutput;
   DatasetEval: DatasetEval;
-  DatasetEvalDatasetEntry: DatasetEvalDatasetEntry;
   DatasetEvalNodeEntry: DatasetEvalNodeEntry;
   DatasetEvalOutputSource: DatasetEvalOutputSource;
   DatasetEvalResult: DatasetEvalResult;
@@ -643,10 +550,6 @@ export interface DB {
   Invoice: Invoice;
   LoggedCall: LoggedCall;
   LoggedCallTag: LoggedCallTag;
-  NewDatasetEvalResult: NewDatasetEvalResult;
-  NewFineTuneTestingEntry: NewFineTuneTestingEntry;
-  NewFineTuneTrainingEntry: NewFineTuneTrainingEntry;
-  NewPruningRuleMatch: NewPruningRuleMatch;
   Node: Node;
   NodeEntry: NodeEntry;
   NodeOutput: NodeOutput;
@@ -657,7 +560,6 @@ export interface DB {
   PruningRuleMatch: PruningRuleMatch;
   PruningRulesChecked: PruningRulesChecked;
   RateLimit: RateLimit;
-  RelabelRequest: RelabelRequest;
   Session: Session;
   UsageLog: UsageLog;
   User: User;

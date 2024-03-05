@@ -47,7 +47,7 @@ export const checkFineTuneStatus = defineTask({
             const typedFT = typedFineTune(currentFineTune);
 
             const trainingStats = await kysely
-              .selectFrom("NewFineTuneTrainingEntry as ftte")
+              .selectFrom("FineTuneTrainingEntry as ftte")
               .where("ftte.fineTuneId", "=", typedFT.id)
               .select(() => [
                 sql<number>`count(ftte.id)::int`.as("numTrainingEntries"),
@@ -116,7 +116,11 @@ export const checkFineTuneStatus = defineTask({
                 modelId: currentFineTune.id,
                 nodeEntryBaseQuery: kysely
                   .selectFrom("NodeEntry as ne")
-                  .where("ne.nodeId", "=", dataset.nodeId)
+                  .innerJoin("DataChannel as dc", (join) =>
+                    join
+                      .onRef("dc.id", "=", "ne.dataChannelId")
+                      .on("dc.destinationId", "=", dataset.nodeId),
+                  )
                   .where("ne.status", "=", "PROCESSED"),
               });
             }

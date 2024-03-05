@@ -15,7 +15,7 @@ import {
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { BsFillKeyFill, BsGearFill, BsGithub, BsPersonCircle } from "react-icons/bs";
+import { BsFillKeyFill, BsGear, BsGithub, BsPersonCircle, BsClipboard2Data } from "react-icons/bs";
 import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
 import { FaBalanceScale, FaReadme } from "react-icons/fa";
@@ -48,11 +48,11 @@ const NavSidebar = () => {
     <VStack
       align="stretch"
       py={2}
-      px={2}
       pb={0}
       height="100%"
-      w={{ base: "56px", md: sidebarExpanded ? "240px" : "56px" }}
-      transition="width 0.2s ease-in-out"
+      px={{ base: 2, md: sidebarExpanded ? 3 : 2 }}
+      w={{ base: "56px", md: sidebarExpanded ? "220px" : "56px" }}
+      transition="width 0.2s ease-in-out; padding 0.2s ease-in-out;"
       overflow="hidden"
       borderRightWidth={1}
       borderColor="gray.300"
@@ -79,6 +79,7 @@ const NavSidebar = () => {
             <IconLink icon={AiOutlineDatabase} label="Datasets" href="/datasets" />
             <IconLink icon={AiOutlineThunderbolt} label="Fine Tunes" href="/fine-tunes" />
             <IconLink icon={FaBalanceScale} label="Evals" href="/evals" />
+            {isAdmin && <IconLink icon={BsClipboard2Data} label="Monitors" href="/monitors" />}
             <VStack w="full" alignItems="flex-start" spacing={1} pt={8}>
               <Text
                 pl={2}
@@ -91,7 +92,7 @@ const NavSidebar = () => {
               >
                 {sidebarExpanded ? "CONFIGURATION" : ""}
               </Text>
-              <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
+              <IconLink icon={BsGear} label="Project Settings" href="/settings" />
               <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
               {project?.billable && (
                 <IconLink icon={LiaFileInvoiceDollarSolid} label="Billing" href="/billing" />
@@ -106,9 +107,11 @@ const NavSidebar = () => {
                     as={sidebarExpanded ? FiChevronsLeft : FiChevronsRight}
                     boxSize={6}
                     strokeWidth={1.5}
+                    color="gray.600"
                   />
                 }
-                boxSize={10}
+                boxSize={8}
+                ml={0.5}
                 display={{ base: "none", md: "flex" }}
               />
             </VStack>
