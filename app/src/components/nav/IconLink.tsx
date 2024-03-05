@@ -17,7 +17,7 @@ const IconLink = <T extends ProjectRoute>({
       <NavSidebarOption activeHrefPattern={href}>
         <HStack w="full" justifyContent="space-between" p={2} {...props}>
           <HStack w="full" justifyContent="start">
-            <Icon as={icon} boxSize={5} mr={1} />
+            <Icon as={icon} boxSize={21} mr={1} />
             <Text fontSize="sm" display={{ base: "none", md: "block" }} whiteSpace="nowrap">
               {label}
             </Text>

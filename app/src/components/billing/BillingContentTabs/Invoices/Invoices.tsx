@@ -30,12 +30,12 @@ const Invoices = () => {
 
       {!unpaidInvoices?.length && !historyInvoices?.length && !query.isLoading && (
         <Card width="100%" overflowX="auto">
-          <VStack py={8}>
+          <VStack py={8} color="gray.500">
             <Icon as={FaTable} boxSize={16} color="gray.300" />
             <Text fontWeight="bold" fontSize="md">
               No invoices yet
             </Text>
-            <Text color="gray.500" textAlign="center" w="full" p={4}>
+            <Text textAlign="center" w="full" p={4}>
               An invoice will be created at the end of each calendar month.
             </Text>
           </VStack>

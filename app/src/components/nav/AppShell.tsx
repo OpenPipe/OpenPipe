@@ -15,13 +15,7 @@ import {
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import {
-  BsFillKeyFill,
-  BsGearFill,
-  BsGithub,
-  BsPersonCircle,
-  BsClipboard2Data,
-} from "react-icons/bs";
+import { BsFillKeyFill, BsGear, BsGithub, BsPersonCircle, BsClipboard2Data } from "react-icons/bs";
 import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
 import { FaBalanceScale, FaReadme } from "react-icons/fa";
@@ -98,7 +92,7 @@ const NavSidebar = () => {
               >
                 {sidebarExpanded ? "CONFIGURATION" : ""}
               </Text>
-              <IconLink icon={BsGearFill} label="Project Settings" href="/settings" />
+              <IconLink icon={BsGear} label="Project Settings" href="/settings" />
               <IconLink icon={IoSpeedometerOutline} label="Usage" href="/usage" />
               {project?.billable && (
                 <IconLink icon={LiaFileInvoiceDollarSolid} label="Billing" href="/billing" />
