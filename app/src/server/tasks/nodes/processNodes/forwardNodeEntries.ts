@@ -43,9 +43,8 @@ export const forwardNodeEntries = async ({
       ])
       .expression(
         selectionExpression()
-          .innerJoin("DataChannel as dc", (join) =>
-            join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", nodeId),
-          )
+          .innerJoin("DataChannel as dc", (join) => join.onRef("dc.id", "=", "ne.dataChannelId"))
+          .where("dc.destinationId", "=", nodeId)
           .leftJoin("NodeEntry as existingEntry", (join) =>
             join
               .onRef("existingEntry.parentNodeEntryId", "=", "ne.id")

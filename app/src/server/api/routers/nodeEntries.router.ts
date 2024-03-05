@@ -275,7 +275,8 @@ export const nodeEntriesRouter = createTRPCRouter({
       })
         .select(["lc.id", "lc.reqPayload", "lc.respPayload", "lc.inputTokens", "lc.outputTokens"])
         .orderBy(sql`random()`)
-        .limit(input.sampleSize)
+        // Account for 1% incorrectly formatted logs
+        .limit(input.sampleSize * 1.01)
         .execute();
 
       if (!loggedCalls.length) {
@@ -315,7 +316,7 @@ export const nodeEntriesRouter = createTRPCRouter({
         await prepareDatasetEntriesForImport({
           projectId,
           dataChannelId: preparedArchiveCreation.archiveInputChannelId,
-          entriesToImport: rowsToConvert,
+          entriesToImport: rowsToConvert.slice(0, input.sampleSize),
         });
 
       // Ensure dataset and dataset entries are created atomically

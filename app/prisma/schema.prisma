@@ -799,7 +799,7 @@ model NodeEntry {
     @@unique([parentNodeEntryId, dataChannelId])
     @@index([dataChannelId, persistentId])
     @@index([loggedCallId, dataChannelId])
-    @@index([dataChannelId, status, inputHash])
+    @@index([dataChannelId, inputHash])
 }
 
 model DatasetEntryInput {

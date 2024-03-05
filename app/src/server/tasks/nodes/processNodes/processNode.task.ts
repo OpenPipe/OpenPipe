@@ -46,6 +46,8 @@ export const processNode = defineTask<ProcessNodeJob>({
       });
     }
 
+    console.log({ nodeId, type: node.type });
+
     const nodeProperties = nodePropertiesByType[node.type] as NodeProperties<NodeType>;
 
     // ensure that all "PROCESSING" and "ERROR" entries are reset to "PENDING" after job restart

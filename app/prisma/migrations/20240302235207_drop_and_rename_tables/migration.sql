@@ -148,13 +148,7 @@ ALTER TABLE "NodeEntry" DROP COLUMN "nodeId";
 CREATE INDEX "NodeEntry_dataChannelId_persistentId_idx" ON "NodeEntry"("dataChannelId", "persistentId");
 
 -- CreateIndex
-CREATE INDEX "NodeEntry_dataChannelId_status_inputHash_idx" ON "NodeEntry"("dataChannelId", "status", "inputHash");
-
--- CreateIndex
-CREATE INDEX "NodeEntry_persistentId_dataChannelId_idx" ON "NodeEntry"("persistentId", "dataChannelId");
+CREATE INDEX "NodeEntry_dataChannelId_inputHash_idx" ON "NodeEntry"("dataChannelId", "inputHash");
 
 -- CreateIndex
 CREATE INDEX "DataChannel_destinationId_id_idx" ON "DataChannel"("destinationId", "id");
-
--- DropIndex
-DROP INDEX "NodeEntry_persistentId_dataChannelId_idx";
