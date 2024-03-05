@@ -800,7 +800,6 @@ model NodeEntry {
     @@index([dataChannelId, persistentId])
     @@index([loggedCallId, dataChannelId])
     @@index([dataChannelId, status, inputHash])
-    @@index([persistentId, dataChannelId])
 }
 
 model DatasetEntryInput {

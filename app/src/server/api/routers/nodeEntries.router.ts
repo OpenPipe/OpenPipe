@@ -839,8 +839,13 @@ export const nodeEntriesRouter = createTRPCRouter({
                 .selectFrom(`DatasetEval as de`)
                 .where("de.id", "=", datasetEval.id)
                 .innerJoin("Dataset as d", "d.id", "de.datasetId")
+                .innerJoin("DataChannel as dc", "dc.destinationId", "d.nodeId")
                 .innerJoin("DatasetEvalNodeEntry as dene", "dene.datasetEvalId", "de.id")
-                .innerJoin("NodeEntry as ne", "ne.persistentId", "dene.nodeEntryPersistentId")
+                .innerJoin("NodeEntry as ne", (join) =>
+                  join
+                    .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
+                    .onRef("ne.dataChannelId", "=", "dc.id"),
+                )
                 .leftJoin("DatasetEvalResult as der", (join) =>
                   join
                     .onRef("der.datasetEvalNodeEntryId", "=", "dene.id")

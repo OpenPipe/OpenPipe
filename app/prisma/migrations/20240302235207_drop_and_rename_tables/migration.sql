@@ -155,3 +155,6 @@ CREATE INDEX "NodeEntry_persistentId_dataChannelId_idx" ON "NodeEntry"("persiste
 
 -- CreateIndex
 CREATE INDEX "DataChannel_destinationId_id_idx" ON "DataChannel"("destinationId", "id");
+
+-- DropIndex
+DROP INDEX "NodeEntry_persistentId_dataChannelId_idx";

@@ -30,16 +30,17 @@ export const filterProperties: NodeProperties<"Filter"> = {
     await kysely
       .insertInto("CachedProcessedEntry")
       .columns(["incomingInputHash", "incomingOutputHash", "filterOutcome"])
-      .expression((eb) =>
+      .expression(() =>
         constructNodeEntryFiltersQuery({
           filters,
           datasetNodeId: node.id,
-          baseQuery: eb.selectFrom("NodeEntry as ne").where("ne.status", "=", "PROCESSING"),
-        }).select((eb) => [
-          "ne.inputHash",
-          "ne.outputHash",
-          eb.val(FilterOutput.Passed).as("filterOutcome"),
-        ]),
+        })
+          .where("ne.status", "=", "PROCESSING")
+          .select((eb) => [
+            "ne.inputHash",
+            "ne.outputHash",
+            eb.val(FilterOutput.Passed).as("filterOutcome"),
+          ]),
       )
       .execute();
 
