@@ -48,11 +48,11 @@ const NavSidebar = () => {
     <VStack
       align="stretch"
       py={2}
-      px={2}
       pb={0}
       height="100%"
+      px={{ base: 2, md: sidebarExpanded ? 3 : 2 }}
       w={{ base: "56px", md: sidebarExpanded ? "220px" : "56px" }}
-      transition="width 0.2s ease-in-out"
+      transition="width 0.2s ease-in-out; padding 0.2s ease-in-out;"
       overflow="hidden"
       borderRightWidth={1}
       borderColor="gray.300"

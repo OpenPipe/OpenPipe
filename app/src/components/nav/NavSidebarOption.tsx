@@ -15,7 +15,11 @@ const NavSidebarOption = forwardRef<
       _hover={
         disableHoverEffect
           ? undefined
-          : { bgColor: isActive ? undefined : "gray.100", textDecoration: "none" }
+          : {
+              bgColor: isActive ? undefined : "gray.100",
+              color: isActive ? undefined : "gray.900",
+              textDecoration: "none",
+            }
       }
       justifyContent="start"
       cursor="pointer"
