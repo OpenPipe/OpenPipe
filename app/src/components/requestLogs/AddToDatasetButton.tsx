@@ -35,6 +35,7 @@ import { useRouter } from "next/router";
 import { useFilters, constructFiltersQueryParams } from "../Filters/useFilters";
 import { DATASET_GENERAL_TAB_KEY } from "../datasets/DatasetContentTabs/DatasetContentTabs";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { useDateFilter } from "../Filters/useDateFilter";
 
 const AddToDatasetButton = () => {
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -62,6 +63,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
   const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const resetLogSelection = useAppStore((s) => s.selectedLogs.resetLogSelection);
+  const dateFilters = useDateFilter().filters;
   const filters = useFilters().filters;
 
   const totalNumLogsSelected = useTotalNumLogsSelected();
@@ -110,7 +112,7 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
       deselectedLogIds: Array.from(deselectedLogIds),
       defaultToSelected,
       sampleSize,
-      filters,
+      filters: [...dateFilters, ...filters],
       ...datasetParams,
     });
 
