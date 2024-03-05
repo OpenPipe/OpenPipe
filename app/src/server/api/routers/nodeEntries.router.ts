@@ -843,6 +843,7 @@ export const nodeEntriesRouter = createTRPCRouter({
                 .innerJoin("NodeEntry as ne", (join) =>
                   join
                     .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
+                    // include dataChannelId to make use of the [dataChannelId, persistentId] index
                     .onRef("ne.dataChannelId", "=", "dc.id"),
                 )
                 .leftJoin("DatasetEvalResult as der", (join) =>
