@@ -16,6 +16,7 @@ import { prepareIntegratedMonitorCeation } from "~/server/utils/nodes/nodeCreati
 import { convertCache } from "~/server/utils/nodes/convertCache";
 import { invalidateNodeEntries } from "~/server/tasks/nodes/processNodes/invalidateNodeEntries";
 import { FilterOutput } from "~/server/utils/nodes/nodeProperties/filterProperties";
+import { hashNode } from "~/server/utils/nodes/hashNode";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -108,23 +109,31 @@ export const monitorsRouter = createTRPCRouter({
         updates: z.object({
           name: z.string().optional(),
           initialFilters: filtersSchema.optional(),
+          sampleRate: z.number().optional(),
+          maxOutputSize: z.number().optional(),
           checkFilters: filtersSchema.optional(),
           datasetLLMRelabelNodeIds: z.array(z.string()).optional(),
         }),
-        preserveCache: z.boolean(),
+        preserveCache: z.boolean().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const {
         id,
-        updates: { name, initialFilters, checkFilters, datasetLLMRelabelNodeIds },
+        updates: {
+          name,
+          initialFilters,
+          sampleRate,
+          maxOutputSize,
+          checkFilters,
+          datasetLLMRelabelNodeIds,
+        },
         preserveCache,
       } = input;
 
       const monitor = await kysely
         .selectFrom("Node as n")
         .where("n.id", "=", id)
-
         .selectAll("n")
         .executeTakeFirst();
 
@@ -151,41 +160,36 @@ export const monitorsRouter = createTRPCRouter({
 
       const initialMonitorHash = tMonitor.hash;
 
-      const { hash: updatedMonitorHash } = await prisma.node.update({
-        where: { id },
-        data: checkNodeInput({
-          id,
-          projectId: monitor.projectId,
-          name,
-          type: "Monitor",
-          config: {
-            ...tMonitor.config,
-            initialFilters: initialFilters ?? tMonitor.config.initialFilters,
-          },
-        }),
-      });
+      const updatedMonitorData = {
+        id,
+        projectId: monitor.projectId,
+        name,
+        type: "Monitor" as const,
+        config: {
+          ...tMonitor.config,
+          initialFilters: initialFilters ?? tMonitor.config.initialFilters,
+          sampleRate: sampleRate ?? tMonitor.config.sampleRate,
+          maxOutputSize: maxOutputSize ?? tMonitor.config.maxOutputSize,
+        },
+      };
 
-      const invalidateMonitor = initialMonitorHash !== updatedMonitorHash && !preserveCache;
+      const updatedHash = hashNode(updatedMonitorData);
+
+      const invalidateMonitor = initialMonitorHash !== updatedHash && !preserveCache;
 
       if (invalidateMonitor) {
-        await prisma.node.update({
-          where: { id },
-          data: checkNodeInput({
-            id,
-            projectId: monitor.projectId,
-            type: "Monitor",
-            config: {
-              ...tMonitor.config,
-              lastLoggedCallUpdatedAt: new Date(0),
-            },
-          }),
-        });
+        updatedMonitorData.config.lastLoggedCallUpdatedAt = new Date(0);
       }
+
+      await prisma.node.update({
+        where: { id },
+        data: checkNodeInput(updatedMonitorData),
+      });
 
       const { hash: updatedFilterHash } = await prisma.node.update({
         where: { id: tMonitor.config.filterNodeId },
         data: checkNodeInput({
-          id,
+          id: tMonitor.config.filterNodeId,
           projectId: monitor.projectId,
           type: "Filter",
           config: {

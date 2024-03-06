@@ -49,3 +49,23 @@ export const constructFiltersQueryParams = (filters: FilterData[]): Record<strin
     Object.entries(encodedParams).map(([key, value]) => [key, value?.toString()]),
   );
 };
+
+type SimpleFilterData = Omit<FilterData, "id">;
+
+export const filtersAreEqual = (a: SimpleFilterData[], b: SimpleFilterData[]): boolean => {
+  a = a.filter((f) => !!f.value);
+  b = b.filter((f) => !!f.value);
+
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    if (a[i]?.field !== b[i]?.field) return false;
+    if (a[i]?.comparator !== b[i]?.comparator) return false;
+    if (a[i]?.value !== b[i]?.value) return false;
+  }
+
+  return true;
+};
+
+export const addFilterIds = (filters: SimpleFilterData[]): FilterData[] =>
+  filters.map((filter, index) => ({ ...filter, id: index.toString() }));

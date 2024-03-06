@@ -18,7 +18,11 @@ export enum MonitorOutput {
 export const monitorProperties: NodeProperties<"Monitor"> = {
   schema: monitorNodeSchema,
   outputs: [{ label: MonitorOutput.MatchedLogs }],
-  hashableFields: (node) => ({ filters: node.config.initialFilters }),
+  hashableFields: (node) => ({
+    filters: node.config.initialFilters,
+    sampleRate: node.config.sampleRate,
+    maxOutputSize: node.config.maxOutputSize,
+  }),
   beforeProcessing: async (node) => {
     const { initialFilters, lastLoggedCallUpdatedAt, maxOutputSize, sampleRate } = node.config;
 

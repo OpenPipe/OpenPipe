@@ -1,11 +1,11 @@
 import { VStack, Heading } from "@chakra-ui/react";
-import PreliminaryFilters from "./PreliminaryFilters";
+import PrimaryFilters from "./PrimaryFilters";
 
 const General = () => {
   return (
     <VStack w="full" alignItems="flex-start">
-      <Heading size="md">Preliminary Filters</Heading>
-      <PreliminaryFilters />
+      <Heading size="md">Initial Filters</Heading>
+      <PrimaryFilters />
     </VStack>
   );
 };
