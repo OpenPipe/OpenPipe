@@ -22,6 +22,32 @@ let config = {
     defaultLocale: "en",
   },
 
+  // TODO: Move headers setup to a load balancer
+  headers: async () => [
+    {
+      source: "/:path*",
+      headers: [
+        {
+          key: "X-Frame-Options",
+          value: "DENY",
+        },
+        {
+          key: "Content-Security-Policy",
+          value:
+            "default-src *; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src *; font-src *; media-src *; worker-src * blob:;",
+        },
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=31536000; includeSubDomains; preload",
+        },
+        {
+          key: "X-Content-Type-Options",
+          value: "nosniff",
+        },
+      ],
+    },
+  ],
+
   rewrites: async () => [
     {
       source: "/ingest/:path*",
