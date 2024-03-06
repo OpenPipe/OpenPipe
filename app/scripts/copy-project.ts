@@ -123,7 +123,14 @@ await Promise.all([
     "DataChannel",
     `"destinationId" IN (SELECT id FROM "Node" WHERE "projectId" = '${projectId}')`,
   ),
-  copyTable("NodeEntry", `"nodeId" IN (SELECT id FROM "Node" WHERE "projectId" = '${projectId}')`),
+  copyTable(
+    "NodeEntry",
+    `"NodeEntry"."dataChannelId" IN (
+      SELECT id FROM "DataChannel" WHERE "destinationId" IN (
+        SELECT id FROM "Node" WHERE "projectId" = '${projectId}'
+      )
+    )`,
+  ),
   copyTable("DatasetEntryInput", `"projectId" = '${projectId}'`),
   copyTable("DatasetEntryOutput", `"projectId" = '${projectId}'`),
   copyTable("CachedProcessedEntry", `"projectId" = '${projectId}'`),
