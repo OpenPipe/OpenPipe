@@ -58,7 +58,7 @@ const Settings = () => {
     });
     if (maybeReportError(resp)) return;
     await utils.nodeEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
-    await utils.nodeEntries.testingStats.invalidate({ datasetId: dataset.id });
+    await utils.datasetEvals.testingStats.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
     await utils.datasetEvals.get.invalidate({ id: datasetEval.id });
 

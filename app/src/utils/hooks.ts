@@ -314,7 +314,7 @@ export const useModelTestingStats = (
   const filters = useMappedModelIdFilters();
   const visibleModelIds = useVisibleModelIds().visibleModelIds;
 
-  const result = api.nodeEntries.testingStats.useQuery(
+  const result = api.datasetEvals.testingStats.useQuery(
     { datasetId: datasetId ?? "", filters, modelId: modelId ?? "", visibleModelIds },
     { enabled: !!datasetId && !!modelId, refetchInterval },
   );
