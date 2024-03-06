@@ -32,11 +32,6 @@ let config = {
           value: "DENY",
         },
         {
-          key: "Content-Security-Policy",
-          value:
-            "default-src *; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src *; font-src *; media-src *; worker-src * blob:;",
-        },
-        {
           key: "Strict-Transport-Security",
           value: "max-age=31536000; includeSubDomains; preload",
         },
