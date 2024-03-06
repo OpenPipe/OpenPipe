@@ -12,8 +12,6 @@ import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 import { toUTC } from "./dayjs";
 import { useDateFilter } from "~/components/Filters/useDateFilter";
-import { type ProviderWithModel } from "~/server/fineTuningProviders/types";
-import { splitProvider } from "~/server/fineTuningProviders/supportedModels";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
