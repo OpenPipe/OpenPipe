@@ -93,9 +93,7 @@ export const nodeEntriesRouter = createTRPCRouter({
       entryIdsQuery = entryIdsQuery.orderBy("ne.persistentId", "desc");
       entriesQuery = entriesQuery.orderBy("ne.persistentId", "desc");
 
-      console.time("entryIdsQuery");
       const entryIds = await entryIdsQuery.execute();
-      console.timeEnd("entryIdsQuery");
 
       if (entryIds.length) {
         entriesQuery = entriesQuery.where(
@@ -107,7 +105,6 @@ export const nodeEntriesRouter = createTRPCRouter({
         entriesQuery = entriesQuery.where(sql`false`);
       }
 
-      console.time("entriesQuery - select and map");
       const entries = await entriesQuery
         .select([
           "ne.id as id",
@@ -129,9 +126,7 @@ export const nodeEntriesRouter = createTRPCRouter({
             creationTime: creationTimeFromPersistentId(entry.persistentId),
           })),
         );
-      console.timeEnd("entriesQuery - select and map");
 
-      console.time("matchingCountsQuery");
       const matchingCounts = await baseQuery
         .select([
           sql<number>`count(case when ne.split = 'TRAIN' then 1 end)::int`.as(
@@ -140,9 +135,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           sql<number>`count(*)::int`.as("matchingCount"),
         ])
         .executeTakeFirst();
-      console.timeEnd("matchingCountsQuery");
 
-      console.time("totalTestingCountQuery");
       const totalTestingCount = await kysely
         .selectFrom("NodeEntry as ne")
         .innerJoin("DataChannel as dc", (join) =>
@@ -152,7 +145,6 @@ export const nodeEntriesRouter = createTRPCRouter({
         .select(sql<number>`count(*)::int`.as("totalTestingCount"))
         .executeTakeFirst()
         .then((r) => r?.totalTestingCount ?? 0);
-      console.timeEnd("totalTestingCountQuery");
 
       return {
         entries,
