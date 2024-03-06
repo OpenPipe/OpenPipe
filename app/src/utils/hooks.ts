@@ -200,28 +200,6 @@ export const useNodeEntry = (persistentId: string | null) => {
   return useStableData(result);
 };
 
-export const useDatasetTrainingCost = (
-  selectedBaseModel: ProviderWithModel,
-  pruningRuleIds: string[],
-  selectedNumberOfEpochs: number | undefined,
-  refetchInterval?: number,
-) => {
-  const dataset = useDataset().data;
-
-  const filters = useFilters().filters;
-
-  return api.datasets.getTrainingCosts.useQuery(
-    {
-      datasetId: dataset?.id || "",
-      baseModel: splitProvider(selectedBaseModel),
-      filters,
-      pruningRuleIds,
-      selectedNumberOfEpochs,
-    },
-    { enabled: !!dataset, refetchInterval },
-  );
-};
-
 export const useDatasetArchives = () => {
   const dataset = useDataset().data;
 
