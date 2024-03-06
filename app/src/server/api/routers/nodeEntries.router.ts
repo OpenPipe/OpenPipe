@@ -62,22 +62,16 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       const baseQuery = constructNodeEntryFiltersQuery({ filters, datasetNodeId: nodeId });
 
-      let entriesQuery = baseQuery
-        .select([
-          "ne.id as id",
-          "ne.split as split",
-          "ne.persistentId as persistentId",
-          "ne.createdAt as createdAt",
-          "ne.updatedAt as updatedAt",
-          "ne.parentNodeEntryId",
-          "ne.dataChannelId",
-          "dei.messages as messages",
-          "dei.inputTokens as inputTokens",
-          "deo.output as output",
-          "deo.outputTokens as outputTokens",
-        ])
+      // Get the IDs separately to avoid unnecessary joins
+      let entryIdsQuery = baseQuery
+        .select(["ne.id as id"])
         .limit(pageSize)
         .offset((page - 1) * pageSize);
+
+      let entriesQuery = kysely
+        .selectFrom("NodeEntry as ne")
+        .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
+        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash");
 
       if (input.sortOrder) {
         let orderByField: "ne.persistentId" | "ne.split" | "dei.inputTokens" | "deo.outputTokens";
@@ -91,39 +85,74 @@ export const nodeEntriesRouter = createTRPCRouter({
           orderByField = "deo.outputTokens";
         }
 
+        entryIdsQuery = entryIdsQuery.orderBy(orderByField, input.sortOrder.order);
         entriesQuery = entriesQuery.orderBy(orderByField, input.sortOrder.order);
-      } else {
-        entriesQuery = entriesQuery.orderBy("ne.persistentId", "desc");
       }
 
-      const [entries, matchingCounts, totalTestingCount] = await Promise.all([
-        entriesQuery
-          .orderBy("inputHash")
-          .execute()
-          .then((res) =>
-            res.map((entry) => ({
-              ...entry,
-              creationTime: creationTimeFromPersistentId(entry.persistentId),
-            })),
+      // Ensure consistent ordering for for all primary sorts
+      entryIdsQuery = entryIdsQuery.orderBy("ne.persistentId", "desc");
+      entriesQuery = entriesQuery.orderBy("ne.persistentId", "desc");
+
+      console.time("entryIdsQuery");
+      const entryIds = await entryIdsQuery.execute();
+      console.timeEnd("entryIdsQuery");
+
+      if (entryIds.length) {
+        entriesQuery = entriesQuery.where(
+          "ne.id",
+          "in",
+          entryIds.map((id) => id.id),
+        );
+      } else {
+        entriesQuery = entriesQuery.where(sql`false`);
+      }
+
+      console.time("entriesQuery - select and map");
+      const entries = await entriesQuery
+        .select([
+          "ne.id as id",
+          "ne.split as split",
+          "ne.persistentId as persistentId",
+          "ne.createdAt as createdAt",
+          "ne.updatedAt as updatedAt",
+          "ne.parentNodeEntryId",
+          "ne.dataChannelId",
+          "dei.messages as messages",
+          "dei.inputTokens as inputTokens",
+          "deo.output as output",
+          "deo.outputTokens as outputTokens",
+        ])
+        .execute()
+        .then((res) =>
+          res.map((entry) => ({
+            ...entry,
+            creationTime: creationTimeFromPersistentId(entry.persistentId),
+          })),
+        );
+      console.timeEnd("entriesQuery - select and map");
+
+      console.time("matchingCountsQuery");
+      const matchingCounts = await baseQuery
+        .select([
+          sql<number>`count(case when ne.split = 'TRAIN' then 1 end)::int`.as(
+            "matchingTrainingCount",
           ),
-        baseQuery
-          .select([
-            sql<number>`count(case when ne.split = 'TRAIN' then 1 end)::int`.as(
-              "matchingTrainingCount",
-            ),
-            sql<number>`count(*)::int`.as("matchingCount"),
-          ])
-          .executeTakeFirst(),
-        kysely
-          .selectFrom("NodeEntry as ne")
-          .innerJoin("DataChannel as dc", (join) =>
-            join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", nodeId),
-          )
-          .where("ne.split", "=", "TEST")
-          .select(sql<number>`count(*)::int`.as("totalTestingCount"))
-          .executeTakeFirst()
-          .then((r) => r?.totalTestingCount ?? 0),
-      ]);
+          sql<number>`count(*)::int`.as("matchingCount"),
+        ])
+        .executeTakeFirst();
+      console.timeEnd("matchingCountsQuery");
+
+      console.time("totalTestingCountQuery");
+      const totalTestingCount = await kysely
+        .selectFrom("NodeEntry as ne")
+        .innerJoin("DataChannel as dc", (join) =>
+          join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", nodeId),
+        )
+        .where("ne.split", "=", "TEST")
+        .select(sql<number>`count(*)::int`.as("totalTestingCount"))
+        .executeTakeFirst()
+        .then((r) => r?.totalTestingCount ?? 0);
+      console.timeEnd("totalTestingCountQuery");
 
       return {
         entries,
