@@ -46,7 +46,6 @@ import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
   useDataset,
-  useDatasetTrainingCost,
   useNodeEntries,
   useHandledAsyncCallback,
   useIsMissingBetaAccess,
@@ -122,16 +121,20 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
 
   const email = session.data?.user.email ?? "";
 
-  const price = useDatasetTrainingCost(
-    selectedBaseModel,
-    appliedPruningRuleIds,
-    trainingConfigOverrides?.num_epochs,
-    calculationRefetchInterval,
-  );
+  const trainingCosts = api.datasets.getTrainingCosts.useQuery(
+    {
+      datasetId: dataset?.id || "",
+      baseModel: splitProvider(selectedBaseModel),
+      filters,
+      pruningRuleIds: appliedPruningRuleIds,
+      selectedNumberOfEpochs: trainingConfigOverrides?.num_epochs,
+    },
+    { enabled: !!dataset && disclosure.isOpen, refetchInterval: calculationRefetchInterval },
+  ).data;
 
   useEffect(
-    () => setCalculationRefetchInterval(price.data?.calculating ? 5000 : 0),
-    [price.data?.calculating],
+    () => setCalculationRefetchInterval(trainingCosts?.calculating ? 5000 : 0),
+    [trainingCosts?.calculating],
   );
 
   useEffect(() => {
@@ -400,14 +403,14 @@ Controls the magnitude of updates to the model's parameters during training."
         </ModalBody>
         <ModalFooter>
           <VStack alignItems="end">
-            {price.data?.calculating ? (
+            {trainingCosts?.calculating ? (
               <Text>Processing dataset...</Text>
             ) : (
               displayCostEnabled && (
                 <HStack fontSize="sm" spacing={1}>
                   <Text>Estimated training price:</Text>
-                  <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!price.isLoading}>
-                    <Text>${Number(price.data?.cost ?? 0).toFixed(2)}</Text>
+                  <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!!trainingCosts}>
+                    <Text>${Number(trainingCosts?.cost ?? 0).toFixed(2)}</Text>
                   </Skeleton>
                 </HStack>
               )
@@ -423,7 +426,7 @@ Controls the magnitude of updates to the model's parameters during training."
                   [!needsMissingBetaAccess, "Training this model requires beta access"],
                   [!needsMoreTrainingData, "At least 10 training entries are required"],
                   [!!modelSlug, "Add a Model ID"],
-                  [price.data?.cost !== undefined, "Price is being calculated"],
+                  [trainingCosts?.cost !== undefined, "Price is being calculated"],
                 ]}
               >
                 <Button
