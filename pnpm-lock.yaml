@@ -104,6 +104,9 @@ importers:
       concurrently:
         specifier: ^8.2.0
         version: 8.2.0
+      cookies-next:
+        specifier: ^4.1.1
+        version: 4.1.1
       crypto-random-string:
         specifier: ^5.0.0
         version: 5.0.0
