@@ -122,7 +122,11 @@ const NavSidebar = () => {
               as={ChakraLink}
               justifyContent="start"
               onClick={() => {
-                signIn().catch(console.error);
+                if (process.env.GITHUB_CLIENT_ID === "your_client_id") {
+                  signIn("credentials").catch(console.error);
+                } else {
+                  signIn("github").catch(console.error);
+                }
               }}
             >
               <Icon as={BsPersonCircle} boxSize={6} mr={2} />
@@ -213,7 +217,11 @@ export default function AppShell({
 
   useEffect(() => {
     if (requireAuth && user === null && !authLoading) {
-      signIn().catch(console.error);
+      if (process.env.GITHUB_CLIENT_ID === "your_client_id") {
+        signIn("credentials").catch(console.error);
+      } else {
+        signIn("github").catch(console.error);
+      }
     }
   }, [requireAuth, user, authLoading]);
 

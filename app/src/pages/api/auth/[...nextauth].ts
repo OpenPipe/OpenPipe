@@ -1,7 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import GitHubModule, { type GithubProfile } from "next-auth/providers/github";
-import NextAuth, { type AuthOptions } from "next-auth";
+import NextAuth, { type AuthOptions, type Profile } from "next-auth";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { decode, encode } from "next-auth/jwt";
 import { prisma } from "~/server/db";
@@ -10,6 +10,8 @@ import { env } from "~/env.mjs";
 import { getCookie, setCookie } from "cookies-next";
 import { randomUUID } from "crypto";
 import { type Provider } from "next-auth/providers";
+import * as Sentry from "@sentry/nextjs";
+import { captureSignup } from "~/utils/analytics/serverAnalytics";
 
 const GitHubProvider = ensureDefaultExport(GitHubModule);
 
@@ -35,7 +37,7 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
   ];
 
   // Conditionally add CredentialsProvider in development environment
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.GITHUB_CLIENT_ID === "your_client_id" && process.env.NODE_ENV === "development") {
     providers.push(
       CredentialsProvider({
         credentials: {
@@ -149,7 +151,15 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
         },
       },
       events: {
+        signIn({ user, profile, isNewUser }) {
+          Sentry.setUser({ id: user.id });
+          if (isNewUser && process.env.GITHUB_CLIENT_ID !== "your_client_id") {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            captureSignup(user, (profile as Profile & { gitHubUsername: string }).gitHubUsername);
+          }
+        },
         async signOut({ session }) {
+          Sentry.setUser(null);
           const { sessionToken = "" } = session as unknown as {
             sessionToken?: string;
           };
@@ -162,6 +172,10 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
             });
           }
         },
+      },
+      theme: {
+        logo: "/logo.svg",
+        brandColor: "#ff5733",
       },
     } as AuthOptions,
   ] as const;
