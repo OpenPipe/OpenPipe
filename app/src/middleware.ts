@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { middleware as httpsRedirectMiddleware } from "./middleware/httpsRedirect";
 import { middleware as cspMiddleware } from "./middleware/csp";
