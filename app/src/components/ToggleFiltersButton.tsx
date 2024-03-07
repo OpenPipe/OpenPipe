@@ -5,7 +5,7 @@ import { useFilters } from "~/components/Filters/useFilters";
 
 const ToggleFiltersButton = ({ defaultShown }: { defaultShown?: boolean }) => {
   const filters = useFilters().filters;
-  const filtersShown = useFilters(defaultShown).filtersShown;
+  const filtersShown = useFilters({ defaultShown }).filtersShown;
   const setFiltersShown = useFilters().setFiltersShown;
 
   return (

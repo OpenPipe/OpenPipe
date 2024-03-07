@@ -18,7 +18,7 @@ import { BsDash } from "react-icons/bs";
 import { debounce } from "lodash-es";
 import { getDefaultDateFilter, useDateFilter } from "./useDateFilter";
 
-const DateFilter = () => {
+const LogsDateFilter = () => {
   const { filters, updateFilter, addFilter, deleteFilter } = useDateFilter();
   const filter = filters[0];
 
@@ -144,4 +144,4 @@ const DateRange = ({ filter, close }: { filter?: FilterData; close: () => void }
   );
 };
 
-export default DateFilter;
+export default LogsDateFilter;

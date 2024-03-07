@@ -1,10 +1,13 @@
 import { useQueryParam, JsonParam, withDefault, encodeQueryParams } from "use-query-params";
 
 import { type FilterData } from "./types";
+import { isEqual } from "lodash-es";
+
+const DEFAULT_URL_KEY = "filterData";
 
 export const useFilters = (options?: { defaultShown?: boolean; urlKey?: string }) => {
   const [filterData, setFilterData] = useQueryParam<{ shown: boolean; filters: FilterData[] }>(
-    options?.urlKey ?? "filterData",
+    options?.urlKey ?? DEFAULT_URL_KEY,
     withDefault(JsonParam, { shown: !!options?.defaultShown, filters: [] }),
   );
 
@@ -35,15 +38,21 @@ export const useFilters = (options?: { defaultShown?: boolean; urlKey?: string }
   };
 };
 
-export const constructFiltersQueryParams = (filters: FilterData[]): Record<string, any> => {
+export const constructFiltersQueryParams = ({
+  filters,
+  urlKey = DEFAULT_URL_KEY,
+}: {
+  filters: FilterData[];
+  urlKey?: string;
+}): Record<string, any> => {
   const queryParams = {
-    filterData: {
+    [urlKey]: {
       shown: true,
       filters,
     },
   };
 
-  const encodedParams = encodeQueryParams({ filterData: JsonParam }, queryParams);
+  const encodedParams = encodeQueryParams({ [urlKey]: JsonParam }, queryParams);
 
   return Object.fromEntries(
     Object.entries(encodedParams).map(([key, value]) => [key, value?.toString()]),
@@ -61,7 +70,7 @@ export const filtersAreEqual = (a: SimpleFilterData[], b: SimpleFilterData[]): b
   for (let i = 0; i < a.length; i++) {
     if (a[i]?.field !== b[i]?.field) return false;
     if (a[i]?.comparator !== b[i]?.comparator) return false;
-    if (a[i]?.value !== b[i]?.value) return false;
+    if (!isEqual(a[i]?.value, b[i]?.value)) return false;
   }
 
   return true;

@@ -14,7 +14,6 @@ import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { prepareIntegratedMonitorCeation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { convertCache } from "~/server/utils/nodes/convertCache";
-import { invalidateNodeEntries } from "~/server/tasks/nodes/processNodes/invalidateNodeEntries";
 import { FilterOutput } from "~/server/utils/nodes/nodeProperties/filterProperties";
 import { hashNode } from "~/server/utils/nodes/hashNode";
 
@@ -25,21 +24,42 @@ export const monitorsRouter = createTRPCRouter({
       .where("n.id", "=", input.id)
       .where("n.type", "=", "Monitor")
       .selectAll("n")
-      .executeTakeFirst();
+      .executeTakeFirst()
+      .then((monitor) => (monitor ? typedNode({ ...monitor, type: "Monitor" }) : undefined));
 
     if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
 
-    const tMonitor = typedNode({ ...monitor, type: "Monitor" });
-
     await requireCanViewProject(monitor.projectId, ctx);
 
+    const filter = await kysely
+      .selectFrom("Node as n")
+      .where("n.id", "=", monitor.config.filterNodeId)
+      .where("n.type", "=", "Filter")
+      .selectAll("n")
+      .executeTakeFirst()
+      .then((filter) => (filter ? typedNode({ ...filter, type: "Filter" }) : undefined));
+
+    if (!filter) throw new TRPCError({ code: "NOT_FOUND" });
+
+    const llmRelabel = await kysely
+      .selectFrom("Node as n")
+      .where("n.id", "=", monitor.config.relabelNodeId)
+      .where("n.type", "=", "LLMRelabel")
+      .selectAll("n")
+      .executeTakeFirst()
+      .then((relabelNode) =>
+        relabelNode ? typedNode({ ...relabelNode, type: "LLMRelabel" }) : undefined,
+      );
+
+    if (!llmRelabel) throw new TRPCError({ code: "NOT_FOUND" });
+
     const datasets = await getDownstreamDatasets({
-      monitorFilterNodeId: tMonitor.config.filterNodeId,
+      monitorFilterNodeId: monitor.config.filterNodeId,
     })
       .select(["datasetNode.id as datasetNodeId", "d.id as datasetId", "d.name as datasetName"])
       .execute();
 
-    return { ...tMonitor, datasets };
+    return { ...monitor, filter, llmRelabel, datasets };
   }),
   list: protectedProcedure
     .input(
@@ -174,12 +194,7 @@ export const monitorsRouter = createTRPCRouter({
       };
 
       const updatedHash = hashNode(updatedMonitorData);
-
       const invalidateMonitor = initialMonitorHash !== updatedHash && !preserveCache;
-
-      if (invalidateMonitor) {
-        updatedMonitorData.config.lastLoggedCallUpdatedAt = new Date(0);
-      }
 
       await prisma.node.update({
         where: { id },
@@ -208,7 +223,12 @@ export const monitorsRouter = createTRPCRouter({
             nodeId: tFilter.id,
           });
         } else {
-          await invalidateNodeEntries(tFilter.id);
+          await prisma.node.update({
+            where: { id: tFilter.id },
+            data: {
+              stale: true,
+            },
+          });
         }
       }
 

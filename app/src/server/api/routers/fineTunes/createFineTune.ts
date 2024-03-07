@@ -83,7 +83,7 @@ export const createFineTune = async (
     .expression(() =>
       constructNodeEntryFiltersQuery({
         filters: input.filters,
-        datasetNodeId: input.dataset.nodeId,
+        nodeId: input.dataset.nodeId,
       })
         .where("split", "=", "TRAIN")
         .where("status", "=", "PROCESSED")

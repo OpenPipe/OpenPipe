@@ -42,7 +42,7 @@ export const forwardNodeEntries = async ({
         "updatedAt",
       ])
       .expression(
-        selectionExpression()
+        selectionExpression({ nodeHash: outputDataChannel.originNodeHash })
           .innerJoin("DataChannel as dc", (join) => join.onRef("dc.id", "=", "ne.dataChannelId"))
           .where("dc.destinationId", "=", nodeId)
           .leftJoin("NodeEntry as existingEntry", (join) =>
@@ -78,7 +78,11 @@ export const forwardNodeEntries = async ({
   }
 };
 
-export type ForwardEntriesSelectionExpression = () => SelectQueryBuilder<
+export type ForwardEntriesSelectionExpression = ({
+  nodeHash,
+}: {
+  nodeHash: string;
+}) => SelectQueryBuilder<
   DB & {
     ne: NodeEntry;
   },

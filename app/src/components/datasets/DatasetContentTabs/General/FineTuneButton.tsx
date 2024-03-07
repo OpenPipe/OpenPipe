@@ -62,7 +62,8 @@ import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { type AxolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 const FineTuneButton = () => {
-  const datasetEntries = useNodeEntries().data;
+  const dataset = useDataset().data;
+  const datasetEntries = useNodeEntries({ nodeId: dataset?.nodeId }).data;
 
   const disclosure = useDisclosure();
 
@@ -87,7 +88,7 @@ const visibleModels = getEntries(supportedModels)
 
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
-  const datasetEntries = useNodeEntries().data;
+  const datasetEntries = useNodeEntries({ nodeId: dataset?.nodeId }).data;
   const selectedProject = useSelectedProject().data;
   const pruningRules = usePruningRules().data;
 

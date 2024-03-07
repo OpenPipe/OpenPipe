@@ -11,10 +11,12 @@ const InputEditor = ({
   inputMessagesToSave,
   setInputMessagesToSave,
   matchedRules,
+  editable,
 }: {
   inputMessagesToSave: ChatCompletionMessageParam[];
   setInputMessagesToSave: (inputMessagesToSave: ChatCompletionMessageParam[]) => void;
   matchedRules?: RouterOutputs["nodeEntries"]["get"]["matchedRules"];
+  editable: boolean;
 }) => {
   const [expanded, setExpanded] = useState(true);
 
@@ -41,7 +43,15 @@ const InputEditor = ({
           </HStack>
         </Button>
       </HStack>
-      <Collapse style={{ width: "100%" }} in={expanded} unmountOnExit={true}>
+      <Collapse
+        style={{
+          width: "100%",
+          paddingRight: 1,
+          paddingLeft: 1,
+        }}
+        in={expanded}
+        unmountOnExit={true}
+      >
         <VStack w="full" alignItems="flex-start" spacing={0}>
           {inputMessagesToSave.map((message, i) => {
             return (
@@ -60,24 +70,27 @@ const InputEditor = ({
                     setInputMessagesToSave(newInputMessages);
                   }}
                   ruleMatches={matchedRules}
+                  editable={editable}
                 />
               </Fragment>
             );
           })}
           <Divider my={4} />
-          <Button
-            w="full"
-            onClick={() =>
-              setInputMessagesToSave([...inputMessagesToSave, { role: "user", content: "" }])
-            }
-            variant="outline"
-            color="gray.500"
-          >
-            <HStack spacing={0}>
-              <Text>Add Message</Text>
-              <Icon as={BsPlus} boxSize={6} />
-            </HStack>
-          </Button>
+          {editable && (
+            <Button
+              w="full"
+              onClick={() =>
+                setInputMessagesToSave([...inputMessagesToSave, { role: "user", content: "" }])
+              }
+              variant="outline"
+              color="gray.500"
+            >
+              <HStack spacing={0}>
+                <Text>Add Message</Text>
+                <Icon as={BsPlus} boxSize={6} />
+              </HStack>
+            </Button>
+          )}
         </VStack>
       </Collapse>
     </VStack>

@@ -1,7 +1,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { HStack, IconButton, Input, Icon } from "@chakra-ui/react";
 import { BsTrash, BsDash } from "react-icons/bs";
-import { debounce } from "lodash-es";
 
 import { formatDateForPicker } from "~/utils/dayjs";
 import SelectFieldDropdown from "../SelectFieldDropdown";
@@ -30,13 +29,6 @@ const DateFilter = ({
     isArray ? (filter.value[1] as number) : Date.now(),
   );
 
-  const debouncedUpdateFilter = useCallback(
-    debounce((filter: FilterData) => updateFilter(filter), 500, {
-      leading: true,
-    }),
-    [updateFilter],
-  );
-
   const updateDate = useCallback(
     (dateStr: string, isSecondDate?: boolean) => {
       const date = dateStr ? new Date(dateStr).getTime() : Date.now();
@@ -49,20 +41,20 @@ const DateFilter = ({
         date1 = date;
         if (date > secondDate) date2 = date;
       }
+      updateFilter({ ...filter, value: [date1, date2] });
       setFirstDate(date1);
       setSecondDate(date2);
-      debouncedUpdateFilter({ ...filter, value: [date1, date2] });
     },
-    [firstDate, secondDate, setFirstDate, setSecondDate, filter, debouncedUpdateFilter],
+    [firstDate, secondDate, setFirstDate, setSecondDate, filter, updateFilter],
   );
 
   const valueIsEmpty = !filter.value;
 
   useEffect(() => {
     if (valueIsEmpty) {
-      updateDate("");
+      updateFilter({ ...filter, value: [firstDate, secondDate] });
     }
-  }, [valueIsEmpty, updateDate]);
+  }, [valueIsEmpty, firstDate, secondDate, updateFilter, filter]);
 
   return (
     <HStack>

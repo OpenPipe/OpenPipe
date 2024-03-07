@@ -20,7 +20,6 @@ import { isEqual } from "lodash-es";
 import { api } from "~/utils/api";
 import { useNodeEntry, useHandledAsyncCallback } from "~/utils/hooks";
 import EntrySplitDropdown from "./EntrySplitDropdown";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import dayjs from "~/utils/dayjs";
 import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
 import InputEditor from "./InputEditor";
@@ -31,16 +30,28 @@ import ConditionallyEnable from "~/components/ConditionallyEnable";
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";
 
-function DatasetEntryDrawer({
+export type UpdateEntryCallback = (input: {
+  id: string;
+  updates: { split?: "TRAIN" | "TEST"; messages?: string; tools?: string; output?: string };
+}) => Promise<void>;
+
+function NodeEntryDrawer({
   nodeEntryPersistentId,
+  nodeId,
   setNodeEntryPersistentId,
+  updateEntry,
 }: {
   nodeEntryPersistentId: string | null;
+  nodeId?: string;
   setNodeEntryPersistentId: (id: string | null) => void;
+  updateEntry?: UpdateEntryCallback;
 }) {
-  const utils = api.useContext();
+  const utils = api.useUtils();
 
-  const { data: nodeEntry, isLoading } = useNodeEntry(nodeEntryPersistentId);
+  const { data: nodeEntry, isLoading } = useNodeEntry({
+    nodeId,
+    persistentId: nodeEntryPersistentId,
+  });
 
   const savedInputMessages = useMemo(() => nodeEntry?.messages, [nodeEntry]);
   const savedTools = useMemo(() => nodeEntry?.tools, [nodeEntry]);
@@ -68,36 +79,37 @@ function DatasetEntryDrawer({
     [nodeEntry, inputMessagesToSave, toolsToSave, outputMessageToSave],
   );
 
-  const updateMutation = api.nodeEntries.update.useMutation();
   const [onSave, savingInProgress] = useHandledAsyncCallback(async () => {
     if (!nodeEntry?.id || !inputMessagesToSave) return;
-    const resp = await updateMutation.mutateAsync({
-      id: nodeEntry?.id,
+
+    await updateEntry?.({
+      id: nodeEntry.id,
       updates: {
         messages: JSON.stringify(inputMessagesToSave),
         tools: toolsToSave,
         output: JSON.stringify(outputMessageToSave),
       },
     });
-    if (maybeReportError(resp)) return;
+
     await utils.nodeEntries.list.invalidate();
     await utils.nodeEntries.get.invalidate();
-  }, [updateMutation, nodeEntry?.id, inputMessagesToSave, toolsToSave, outputMessageToSave, utils]);
+  }, [updateEntry, nodeEntry?.id, inputMessagesToSave, toolsToSave, outputMessageToSave, utils]);
 
   const [onUpdateSplit] = useHandledAsyncCallback(
     async (split: DatasetEntrySplit) => {
       if (!nodeEntry?.id) return;
-      const resp = await updateMutation.mutateAsync({
-        id: nodeEntry?.id,
+
+      await updateEntry?.({
+        id: nodeEntry.id,
         updates: {
           split,
         },
       });
-      if (maybeReportError(resp)) return;
+
       await utils.nodeEntries.list.invalidate();
       await utils.nodeEntries.get.invalidate();
     },
-    [updateMutation, nodeEntry?.id, utils],
+    [updateEntry, nodeEntry?.id, utils],
   );
 
   useKeepScrollAtBottom(CONTAINER_ID, CONTENT_ID);
@@ -152,44 +164,52 @@ function DatasetEntryDrawer({
               inputMessagesToSave={inputMessagesToSave}
               setInputMessagesToSave={setInputMessagesToSave}
               matchedRules={nodeEntry?.matchedRules}
+              editable={!!updateEntry}
             />
-            <ToolsEditor toolsToSave={toolsToSave} setToolsToSave={setToolsToSave} />
+            <ToolsEditor
+              toolsToSave={toolsToSave}
+              setToolsToSave={setToolsToSave}
+              editable={!!updateEntry}
+            />
             <OutputEditor
               outputMessageToSave={outputMessageToSave}
               setOutputMessageToSave={setOutputMessageToSave}
+              editable={!!updateEntry}
             />
           </VStack>
         </DrawerBody>
-        <DrawerFooter bgColor="gray.100">
-          <HStack>
-            <Button
-              isDisabled={isLoading || !hasUpdates}
-              onClick={() => {
-                savedInputMessages && setInputMessagesToSave(savedInputMessages);
-                savedTools && setToolsToSave(JSON.stringify(savedTools));
-                savedOutputMessage && setOutputMessageToSave(savedOutputMessage);
-              }}
-            >
-              Reset
-            </Button>
-            <ConditionallyEnable
-              accessRequired="requireCanModifyProject"
-              checks={[[hasUpdates, "No changes to save"]]}
-            >
+        {updateEntry && (
+          <DrawerFooter bgColor="gray.100">
+            <HStack>
               <Button
-                isLoading={isLoading || savingInProgress}
-                onClick={onSave}
-                colorScheme="orange"
+                isDisabled={isLoading || !hasUpdates}
+                onClick={() => {
+                  savedInputMessages && setInputMessagesToSave(savedInputMessages);
+                  savedTools && setToolsToSave(JSON.stringify(savedTools));
+                  savedOutputMessage && setOutputMessageToSave(savedOutputMessage);
+                }}
               >
-                Save
+                Reset
               </Button>
-            </ConditionallyEnable>
-          </HStack>
-        </DrawerFooter>
+              <ConditionallyEnable
+                accessRequired="requireCanModifyProject"
+                checks={[[hasUpdates, "No changes to save"]]}
+              >
+                <Button
+                  isLoading={isLoading || savingInProgress}
+                  onClick={onSave}
+                  colorScheme="orange"
+                >
+                  Save
+                </Button>
+              </ConditionallyEnable>
+            </HStack>
+          </DrawerFooter>
+        )}
       </DrawerContent>
     </Drawer>
   );
 }
 
 // Ensure that drawer does not constantly re-render when parent polls dataset entry list
-export default React.memo(DatasetEntryDrawer);
+export default React.memo(NodeEntryDrawer);
