@@ -60,6 +60,7 @@ import { useFilters } from "~/components/Filters/useFilters";
 import { ProjectLink } from "~/components/ProjectLink";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { type AxolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
+import { useActiveFeatureFlags } from "posthog-js/react";
 
 const FineTuneButton = () => {
   const datasetEntries = useNodeEntries().data;
@@ -137,9 +138,15 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     [trainingCosts?.calculating],
   );
 
+  const m7bInstructAccess = useActiveFeatureFlags()?.includes("m7bInstructAccess");
+  const filteredVisibleModels = visibleModels.filter(
+    (model) =>
+      m7bInstructAccess || splitProvider(model).baseModel !== "mistralai/Mistral-7B-Instruct-v0.2",
+  ) as [ProviderWithModel, ...[ProviderWithModel]];
+
   useEffect(() => {
     if (disclosure.isOpen) {
-      setSelectedBaseModel(visibleModels[0]);
+      setSelectedBaseModel(filteredVisibleModels[0]);
       setModelSlug(humanId({ separator: "-", capitalize: false }));
       setTrainingConfigOverrides(undefined);
       void utils.datasets.getTrainingCosts.invalidate();
@@ -243,7 +250,7 @@ const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                   Base model:
                 </Text>
                 <InputDropdown
-                  options={visibleModels}
+                  options={filteredVisibleModels}
                   getDisplayLabel={(option) => modelInfo(splitProvider(option)).name}
                   selectedOption={selectedBaseModel}
                   onSelect={(option) => setSelectedBaseModel(option)}

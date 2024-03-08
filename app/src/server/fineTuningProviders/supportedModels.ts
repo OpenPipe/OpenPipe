@@ -27,6 +27,11 @@ export const supportedModels: Record<ProviderWithModel, FrontendModelInfo> = {
     cost: sevenBCosts,
     trainable: true,
   },
+  "openpipe:mistralai/Mistral-7B-Instruct-v0.2": {
+    name: "Mistral 7B Instruct v0.2",
+    cost: sevenBCosts,
+    trainable: true,
+  },
   "openpipe:mistralai/Mixtral-8x7B-Instruct-v0.1": {
     name: "Mixtral 8x7B Instruct",
     cost: {
