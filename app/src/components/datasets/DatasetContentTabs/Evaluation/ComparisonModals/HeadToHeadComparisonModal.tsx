@@ -22,11 +22,11 @@ import { useRouter } from "next/router";
 
 import { type RouterOutputs, api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import { PotentiallyPendingFormattedMessage } from "../FormattedMessage";
+import { PotentiallyPendingFormattedMessage } from "~/components/nodeEntries/FormattedMessage";
 import { isNumber } from "lodash-es";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { useVisibleModelIds } from "../useVisibleModelIds";
-import FormattedDatasetEntryInput from "../FormattedInput";
+import FormattedInput from "~/components/nodeEntries/FormattedInput";
 import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
 import { useSelectedProject } from "~/utils/hooks";
 
@@ -358,7 +358,7 @@ const SelectedComparisonTable = ({
         </GridItem>
         <GridItem position="relative" {...contentProps} {...topBorderProps}>
           <Box ref={inputRef}>
-            <FormattedDatasetEntryInput messages={datasetEntry.messages} />
+            <FormattedInput input={datasetEntry} />
           </Box>
           {expandable && !expanded && (
             <Box

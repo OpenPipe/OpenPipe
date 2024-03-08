@@ -3,7 +3,7 @@ import { VStack, HStack, Text } from "@chakra-ui/react";
 import FineTuneButton from "./FineTuneButton";
 import UploadDataButton from "./UploadDataButton";
 import DatasetEntriesTable from "./DatasetEntriesTable";
-import DatasetEntryPaginator from "../../../NodeEntriesTable/NodeEntryPaginator";
+import DatasetEntryPaginator from "~/components/nodeEntries/NodeEntriesTable/NodeEntriesPaginator";
 import GeneralFilters from "./GeneralFilters";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";

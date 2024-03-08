@@ -7,11 +7,9 @@ import JsonEditor from "./JsonEditor";
 const ToolsEditor = ({
   toolsToSave,
   setToolsToSave,
-  editable,
 }: {
   toolsToSave: string;
   setToolsToSave: (toolsToSave: string) => void;
-  editable: boolean;
 }) => {
   const [expanded, setExpanded] = useState(false);
 

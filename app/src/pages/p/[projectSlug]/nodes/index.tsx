@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Table, Thead, Tr, Th, Td, VStack, Card } from "@chakra-ui/react";
+import { Table, Thead, Tr, Th, Td, VStack, Card, Button } from "@chakra-ui/react";
 
 import { api } from "~/utils/api";
 import { useSelectedProject } from "~/utils/hooks";
@@ -42,6 +42,7 @@ const Nodes = () => {
                 <Th>Name</Th>
                 <Th>Type</Th>
                 <Th>Id</Th>
+                <Th>Hash</Th>
                 <Th>Created At</Th>
                 <Th>Pending</Th>
                 <Th>Processing</Th>
@@ -55,6 +56,9 @@ const Nodes = () => {
                 <Td>{node.type}</Td>
                 <Td cursor="pointer" onClick={() => void copyToClipboard(node.id)}>
                   {node.id}
+                </Td>
+                <Td cursor="pointer" onClick={() => void copyToClipboard(node.hash)}>
+                  <Button variant="link">Copy</Button>
                 </Td>
                 <Td>{dayjs(node.createdAt).format("MM-D h:mm A")}</Td>
                 <Td>{node.numPendingEntries}</Td>

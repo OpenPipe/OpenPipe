@@ -90,8 +90,7 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
           "lc.updatedAt",
           ">=",
           dayjs(lastLoggedCallUpdatedAt).subtract(10, "seconds").toDate(),
-        )
-        .where("lc.updatedAt", "<", newLastLoggedCallUpdatedAt),
+        ),
     })
       .leftJoin("NodeEntry as existingNe", (eb) =>
         eb
@@ -120,6 +119,7 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
           if ("error" in validated) return null;
           return {
             ...validated,
+            loggedCallId: tLoggedCall.id,
             persistentId: generatePersistentId({
               creationTime: tLoggedCall.requestedAt,
               key: `${tLoggedCall.id}`,

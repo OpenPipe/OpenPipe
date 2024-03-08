@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 
 import { useDataset, useNodeEntries } from "~/utils/hooks";
 import { api } from "~/utils/api";
-import NodeEntriesTable from "~/components/NodeEntriesTable/NodeEntriesTable";
+import NodeEntriesTable from "~/components/nodeEntries/NodeEntriesTable/NodeEntriesTable";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
 export default function DatasetEntriesTable() {
@@ -43,6 +43,8 @@ export default function DatasetEntriesTable() {
         updates,
       });
       if (maybeReportError(resp)) return;
+
+      await utils.datasets.get.invalidate({ id: dataset?.id });
     },
     [updateMutation],
   );

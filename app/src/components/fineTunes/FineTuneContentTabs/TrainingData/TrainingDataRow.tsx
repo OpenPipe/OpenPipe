@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Th, Td, Thead, Tr, Text, Collapse } from "@chakra-ui/react";
+import { Th, Td, Thead, Tr, Text, Collapse, HStack } from "@chakra-ui/react";
 
 import { type RouterOutputs } from "~/utils/api";
+import { FormattedJson } from "~/components/FormattedJson";
+import { pick } from "lodash-es";
 
 export const TableHeader = () => {
   return (
     <Thead>
       <Tr>
-        <Th w="60%">Input</Th>
+        <Th>Input</Th>
         <Th>Output</Th>
       </Tr>
     </Thead>
@@ -20,8 +22,6 @@ const TrainingDataRow = ({
   entry: RouterOutputs["fineTunes"]["listTrainingEntries"]["entries"][number];
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const noOfLines = isExpanded ? undefined : 4;
 
   return (
     <>
@@ -37,37 +37,15 @@ const TrainingDataRow = ({
         <Td>{entry.inputTokens} tokens</Td>
         <Td>{entry.outputTokens} tokens</Td>
       </Tr>
-      <Tr sx={{ td: { verticalAlign: "top" } }}>
-        <Td py={isExpanded ? 4 : 0}>
+      <Tr>
+        <Td colSpan={2} py={0} minH={0}>
           <Collapse in={isExpanded}>
-            <Text
-              noOfLines={noOfLines}
-              h="full"
-              whiteSpace="pre-wrap"
-              p={4}
-              bgColor="orange.50"
-              borderRadius={4}
-              borderColor="orange.300"
-              borderWidth={1}
-            >
-              {JSON.stringify(entry, null, 4)}
-            </Text>
-          </Collapse>
-        </Td>
-        <Td py={isExpanded ? 4 : 0}>
-          <Collapse in={isExpanded}>
-            <Text
-              noOfLines={noOfLines}
-              h="full"
-              whiteSpace="pre-wrap"
-              p={4}
-              bgColor="orange.50"
-              borderRadius={4}
-              borderColor="orange.300"
-              borderWidth={1}
-            >
-              {JSON.stringify(entry.output, null, 4)}
-            </Text>
+            <HStack w="full" alignItems="flex-start" py={4} spacing={4} bgColor="white">
+              <FormattedJson
+                json={pick(entry, ["messages", "tool_choice", "tools", "response_format"])}
+              />
+              <FormattedJson json={entry.output} />
+            </HStack>
           </Collapse>
         </Td>
       </Tr>

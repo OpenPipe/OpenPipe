@@ -71,7 +71,12 @@ export const nodeEntriesRouter = createTRPCRouter({
       let entriesQuery = kysely
         .selectFrom("NodeEntry as ne")
         .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
-        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash");
+        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
+        .innerJoin(
+          "DatasetEntryOutput as originalDeo",
+          "originalDeo.hash",
+          "ne.originalOutputHash",
+        );
 
       if (input.sortOrder) {
         let orderByField: "ne.persistentId" | "ne.split" | "dei.inputTokens" | "deo.outputTokens";
@@ -115,9 +120,15 @@ export const nodeEntriesRouter = createTRPCRouter({
           "ne.parentNodeEntryId",
           "ne.dataChannelId",
           "dei.messages as messages",
+          "dei.tool_choice as tool_choice",
+          "dei.tools as tools",
+          "dei.response_format as response_format",
           "dei.inputTokens as inputTokens",
+          "ne.outputHash as outputHash",
           "deo.output as output",
           "deo.outputTokens as outputTokens",
+          "ne.originalOutputHash as originalOutputHash",
+          "originalDeo.output as originalOutput",
         ])
         .execute()
         .then((res) =>
@@ -720,6 +731,8 @@ export const nodeEntriesRouter = createTRPCRouter({
           .select((eb) => [
             "ne.id as id",
             "dei.messages as messages",
+            "dei.tool_choice",
+            "dei.tools",
             "dei.response_format as response_format",
             "deo.output as output",
             jsonArrayFrom(

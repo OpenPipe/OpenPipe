@@ -44,7 +44,7 @@ function NodeEntryDrawer({
   nodeEntryPersistentId: string | null;
   nodeId?: string;
   setNodeEntryPersistentId: (id: string | null) => void;
-  updateEntry?: UpdateEntryCallback;
+  updateEntry: UpdateEntryCallback;
 }) {
   const utils = api.useUtils();
 
@@ -82,7 +82,7 @@ function NodeEntryDrawer({
   const [onSave, savingInProgress] = useHandledAsyncCallback(async () => {
     if (!nodeEntry?.id || !inputMessagesToSave) return;
 
-    await updateEntry?.({
+    await updateEntry({
       id: nodeEntry.id,
       updates: {
         messages: JSON.stringify(inputMessagesToSave),
@@ -99,7 +99,7 @@ function NodeEntryDrawer({
     async (split: DatasetEntrySplit) => {
       if (!nodeEntry?.id) return;
 
-      await updateEntry?.({
+      await updateEntry({
         id: nodeEntry.id,
         updates: {
           split,
@@ -164,48 +164,40 @@ function NodeEntryDrawer({
               inputMessagesToSave={inputMessagesToSave}
               setInputMessagesToSave={setInputMessagesToSave}
               matchedRules={nodeEntry?.matchedRules}
-              editable={!!updateEntry}
             />
-            <ToolsEditor
-              toolsToSave={toolsToSave}
-              setToolsToSave={setToolsToSave}
-              editable={!!updateEntry}
-            />
+            <ToolsEditor toolsToSave={toolsToSave} setToolsToSave={setToolsToSave} />
             <OutputEditor
               outputMessageToSave={outputMessageToSave}
               setOutputMessageToSave={setOutputMessageToSave}
-              editable={!!updateEntry}
             />
           </VStack>
         </DrawerBody>
-        {updateEntry && (
-          <DrawerFooter bgColor="gray.100">
-            <HStack>
+        <DrawerFooter bgColor="gray.100">
+          <HStack>
+            <Button
+              isDisabled={isLoading || !hasUpdates}
+              onClick={() => {
+                savedInputMessages && setInputMessagesToSave(savedInputMessages);
+                savedTools && setToolsToSave(JSON.stringify(savedTools));
+                savedOutputMessage && setOutputMessageToSave(savedOutputMessage);
+              }}
+            >
+              Reset
+            </Button>
+            <ConditionallyEnable
+              accessRequired="requireCanModifyProject"
+              checks={[[hasUpdates, "No changes to save"]]}
+            >
               <Button
-                isDisabled={isLoading || !hasUpdates}
-                onClick={() => {
-                  savedInputMessages && setInputMessagesToSave(savedInputMessages);
-                  savedTools && setToolsToSave(JSON.stringify(savedTools));
-                  savedOutputMessage && setOutputMessageToSave(savedOutputMessage);
-                }}
+                isLoading={isLoading || savingInProgress}
+                onClick={onSave}
+                colorScheme="orange"
               >
-                Reset
+                Save
               </Button>
-              <ConditionallyEnable
-                accessRequired="requireCanModifyProject"
-                checks={[[hasUpdates, "No changes to save"]]}
-              >
-                <Button
-                  isLoading={isLoading || savingInProgress}
-                  onClick={onSave}
-                  colorScheme="orange"
-                >
-                  Save
-                </Button>
-              </ConditionallyEnable>
-            </HStack>
-          </DrawerFooter>
-        )}
+            </ConditionallyEnable>
+          </HStack>
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

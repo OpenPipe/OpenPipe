@@ -38,16 +38,19 @@ export default function NodeEntriesTable({
             <TableHeader />
             <Tbody>
               {entries?.length ? (
-                entries?.map((entry) => {
-                  return (
-                    <TableRow
-                      key={entry.persistentId}
-                      datasetEntry={entry}
-                      isSelected={entry.persistentId === expandedNodeEntryPersistentId}
-                      onSelect={() => setExpandedNodeEntryPersistentId(entry.persistentId)}
-                    />
-                  );
-                })
+                entries?.map((entry) => (
+                  <TableRow
+                    key={entry.persistentId}
+                    nodeEntry={entry}
+                    isSelected={entry.persistentId === expandedNodeEntryPersistentId}
+                    toggleSelected={() =>
+                      entry.persistentId === expandedNodeEntryPersistentId
+                        ? setExpandedNodeEntryPersistentId(null)
+                        : setExpandedNodeEntryPersistentId(entry.persistentId)
+                    }
+                    expandable={!updateEntry}
+                  />
+                ))
               ) : (
                 <EmptyTableRow nodeType={node?.type} />
               )}
@@ -55,12 +58,14 @@ export default function NodeEntriesTable({
           </Table>
         </Skeleton>
       </Card>
-      <NodeEntryDrawer
-        nodeEntryPersistentId={expandedNodeEntryPersistentId}
-        nodeId={nodeId}
-        setNodeEntryPersistentId={setExpandedNodeEntryPersistentId}
-        updateEntry={updateEntry}
-      />
+      {updateEntry && (
+        <NodeEntryDrawer
+          nodeEntryPersistentId={expandedNodeEntryPersistentId}
+          nodeId={nodeId}
+          setNodeEntryPersistentId={setExpandedNodeEntryPersistentId}
+          updateEntry={updateEntry}
+        />
+      )}
     </>
   );
 }

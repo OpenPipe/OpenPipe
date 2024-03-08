@@ -30,14 +30,12 @@ const EditableMessage = ({
   onDelete,
   isOutput,
   ruleMatches = [],
-  editable,
 }: {
   message: ChatCompletionMessageParam | null;
   onEdit: (message: ChatCompletionMessageParam) => void;
   onDelete?: () => void;
   isOutput?: boolean;
   ruleMatches?: RouterOutputs["nodeEntries"]["get"]["matchedRules"];
-  editable: boolean;
 }) => {
   const { role = "assistant", content = "" } = message || {};
 
@@ -98,7 +96,6 @@ const EditableMessage = ({
                 }
               }}
               inputGroupProps={{ w: "32", bgColor: "white" }}
-              isDisabled={!editable}
             />
           )}
           {role === "assistant" && (

@@ -62,9 +62,6 @@ export const constructFiltersQueryParams = ({
 type SimpleFilterData = Omit<FilterData, "id">;
 
 export const filtersAreEqual = (a: SimpleFilterData[], b: SimpleFilterData[]): boolean => {
-  a = a.filter((f) => !!f.value);
-  b = b.filter((f) => !!f.value);
-
   if (a.length !== b.length) return false;
 
   for (let i = 0; i < a.length; i++) {

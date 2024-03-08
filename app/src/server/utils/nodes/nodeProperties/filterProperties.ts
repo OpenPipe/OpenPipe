@@ -10,13 +10,13 @@ export enum FilterOutput {
   Failed = "failed",
 }
 
-const filterOutputBaseQuery = ({ nodeHash }: { nodeHash: string }) =>
+const filterOutputBaseQuery = ({ nodeId, nodeHash }: { nodeId: string; nodeHash: string }) =>
   kysely
     .selectFrom("NodeEntry as ne")
     .where("ne.status", "=", "PROCESSED")
     .innerJoin("CachedProcessedEntry as cpe", (join) =>
       join
-        .on("cpe.nodeHash", "=", nodeHash)
+        .on((eb) => eb.or([eb("cpe.nodeHash", "=", nodeHash), eb("cpe.nodeId", "=", nodeId)]))
         .onRef("cpe.incomingInputHash", "=", "ne.inputHash")
         .onRef("cpe.incomingOutputHash", "=", "ne.outputHash"),
     );
@@ -29,13 +29,21 @@ export const filterProperties: NodeProperties<"Filter"> = {
   outputs: [
     {
       label: FilterOutput.Passed,
-      selectionExpression: ({ nodeHash }) =>
-        filterOutputBaseQuery({ nodeHash }).where("cpe.filterOutcome", "=", FilterOutput.Passed),
+      selectionExpression: ({ nodeId, nodeHash }) =>
+        filterOutputBaseQuery({ nodeId, nodeHash }).where(
+          "cpe.filterOutcome",
+          "=",
+          FilterOutput.Passed,
+        ),
     },
     {
       label: FilterOutput.Failed,
-      selectionExpression: ({ nodeHash }) =>
-        filterOutputBaseQuery({ nodeHash }).where("cpe.filterOutcome", "=", FilterOutput.Failed),
+      selectionExpression: ({ nodeId, nodeHash }) =>
+        filterOutputBaseQuery({ nodeId, nodeHash }).where(
+          "cpe.filterOutcome",
+          "=",
+          FilterOutput.Failed,
+        ),
     },
   ],
   hashableFields: (node) => ({ filters: node.config.filters }),
@@ -69,6 +77,16 @@ export const filterProperties: NodeProperties<"Filter"> = {
           nodeId: node.id,
         })
           .where("ne.status", "=", "PROCESSING")
+          .distinctOn(["ne.inputHash", "ne.outputHash"])
+          .leftJoin("CachedProcessedEntry as cpe", (join) =>
+            join
+              .on((eb) =>
+                eb.or([eb("cpe.nodeHash", "=", node.hash), eb("cpe.nodeId", "=", node.id)]),
+              )
+              .onRef("cpe.incomingInputHash", "=", "ne.inputHash")
+              .onRef("cpe.incomingOutputHash", "=", "ne.outputHash"),
+          )
+          .where("cpe.incomingInputHash", "is", null)
           .select((eb) => [
             sql`uuid_generate_v4()`.as("id"),
             eb.val(node.projectId).as("projectId"),
@@ -99,21 +117,16 @@ export const filterProperties: NodeProperties<"Filter"> = {
             join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", node.id),
           )
           .where("ne.status", "=", "PROCESSING")
-          .innerJoin("Node as n", "n.id", "dc.destinationId")
-          .leftJoin("CachedProcessedEntry as cpe1", (join) =>
+          .distinctOn(["ne.inputHash", "ne.outputHash"])
+          .leftJoin("CachedProcessedEntry as cpe", (join) =>
             join
-              .onRef("cpe1.nodeHash", "=", "n.hash")
-              .onRef("cpe1.incomingInputHash", "=", "ne.inputHash")
-              .onRef("cpe1.incomingOutputHash", "=", "ne.outputHash"),
+              .on((eb) =>
+                eb.or([eb("cpe.nodeHash", "=", node.hash), eb("cpe.nodeId", "=", node.id)]),
+              )
+              .onRef("cpe.incomingInputHash", "=", "ne.inputHash")
+              .onRef("cpe.incomingOutputHash", "=", "ne.outputHash"),
           )
-          .where("cpe1.incomingInputHash", "is", null)
-          .leftJoin("CachedProcessedEntry as cpe2", (join) =>
-            join
-              .on("cpe2.nodeId", "=", node.id)
-              .onRef("cpe2.incomingInputHash", "=", "ne.inputHash")
-              .onRef("cpe2.incomingOutputHash", "=", "ne.outputHash"),
-          )
-          .where("cpe2.incomingInputHash", "is", null)
+          .where("cpe.incomingInputHash", "is", null)
           .select((eb) => [
             sql`uuid_generate_v4()`.as("id"),
             eb.val(node.projectId).as("projectId"),

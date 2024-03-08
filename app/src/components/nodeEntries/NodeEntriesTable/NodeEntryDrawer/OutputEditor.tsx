@@ -8,11 +8,9 @@ import EditableMessage from "./EditableMessage";
 const OutputEditor = ({
   outputMessageToSave,
   setOutputMessageToSave,
-  editable,
 }: {
   outputMessageToSave: ChatCompletionMessageParam | null;
   setOutputMessageToSave: (message: ChatCompletionMessageParam | null) => void;
-  editable: boolean;
 }) => {
   const [expanded, setExpanded] = useState(true);
 
@@ -45,7 +43,6 @@ const OutputEditor = ({
           message={outputMessageToSave}
           onEdit={(message) => setOutputMessageToSave(message)}
           isOutput
-          editable={editable}
         />
       </Collapse>
     </VStack>
