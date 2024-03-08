@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Th, Td, Thead, Tr, Text, Collapse, HStack } from "@chakra-ui/react";
+import { Th, Td, Thead, Tr, Collapse, HStack } from "@chakra-ui/react";
 
 import { type RouterOutputs } from "~/utils/api";
 import { FormattedJson } from "~/components/FormattedJson";

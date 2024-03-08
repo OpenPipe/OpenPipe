@@ -10,10 +10,8 @@ import {
   Badge,
   type TextProps,
   Collapse,
-  VStack,
   Heading,
   Table,
-  Th,
 } from "@chakra-ui/react";
 import { DatasetEntrySplit, type NodeType } from "@prisma/client";
 

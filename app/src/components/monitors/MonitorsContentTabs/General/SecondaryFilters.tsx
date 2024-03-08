@@ -13,7 +13,7 @@ import {
   Skeleton,
 } from "@chakra-ui/react";
 
-import { useFineTunes, useHandledAsyncCallback, useLoggedCallsCount } from "~/utils/hooks";
+import { useHandledAsyncCallback, useLoggedCallsCount } from "~/utils/hooks";
 import { type FilterOption } from "~/components/Filters/types";
 import { FilterContents } from "~/components/Filters/Filters";
 import { useMonitor } from "../../useMonitor";

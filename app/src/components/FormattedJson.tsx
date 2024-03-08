@@ -1,5 +1,4 @@
-import { Box, type BoxProps, IconButton, Button } from "@chakra-ui/react";
-import { CopyIcon } from "lucide-react";
+import { Box, type BoxProps, Button } from "@chakra-ui/react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atelierCaveLight } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
