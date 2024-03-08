@@ -71,9 +71,13 @@ export const TableRow = ({
         _hover={{ td: { bgColor: isSelected ? "gray.200" : "gray.50", cursor: "pointer" } }}
         bgColor={isSelected ? "gray.100" : undefined}
         transition={!expandable ? "background-color 1.2s" : undefined}
-        sx={{
-          "> td": { borderBottom: "none" },
-        }}
+        sx={
+          expandable
+            ? {
+                "> td": { borderBottom: "none" },
+              }
+            : undefined
+        }
         fontSize="sm"
       >
         <Td>
