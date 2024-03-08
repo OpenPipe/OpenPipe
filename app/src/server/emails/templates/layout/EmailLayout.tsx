@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { Html, Head, Body, Preview, Container, Section, Row } from "@react-email/components";
 import { Footer, Logo } from ".";
 

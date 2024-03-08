@@ -56,10 +56,7 @@ export const startDatasetTestJobs = async ({
     .concat(dataset.enabledComparisonModels ?? []);
 
   for (const modelId of modelIds) {
-    await startTestJobsForModel({
-      modelId,
-      nodeEntryBaseQuery,
-    });
+    await startTestJobsForModel(modelId);
   }
 };
 
@@ -152,29 +149,35 @@ export const startTestJobsForEval = async ({
   }
 };
 
-export const startTestJobsForModel = async ({
-  modelId,
-  nodeEntryBaseQuery,
-}: {
-  modelId: string;
-  nodeEntryBaseQuery: NodeEntryBaseQuery;
-}) => {
-  const nodeEntryToRun = await nodeEntryBaseQuery
+export const startTestJobsForModel = async (fineTuneId: string) => {
+  const fineTune = await prisma.fineTune.findFirstOrThrow({
+    where: { id: fineTuneId },
+    include: { dataset: true },
+  });
+
+  const nodeEntryToRun = await kysely
+    .selectFrom("NodeEntry as ne")
+    .innerJoin("DataChannel as dc", (join) =>
+      join
+        .onRef("dc.id", "=", "ne.dataChannelId")
+        .on("dc.destinationId", "=", fineTune.dataset.nodeId),
+    )
+    .where("ne.status", "=", "PROCESSED")
     .where("ne.split", "=", "TEST")
     .leftJoin("FineTuneTestingEntry as ftte", (join) =>
-      join.onRef("ftte.inputHash", "=", "ne.inputHash").on("ftte.modelId", "=", modelId),
+      join.onRef("ftte.inputHash", "=", "ne.inputHash").on("ftte.modelId", "=", fineTune.id),
     )
     .where("ftte.id", "is", null)
     .select(["ne.id as nodeEntryId"])
     .execute();
 
-  const jobsToRun = nodeEntryToRun.map((nodeEntry) => ({
-    modelId,
-    nodeEntryId: nodeEntry.nodeEntryId,
-    numPreviousTries: 0,
-  }));
-
-  for (const job of jobsToRun) {
-    await generateTestSetEntry.enqueue(job);
-  }
+  await Promise.all(
+    nodeEntryToRun.map((nodeEntry) =>
+      generateTestSetEntry.enqueue({
+        modelId: fineTune.id,
+        nodeEntryId: nodeEntry.nodeEntryId,
+        numPreviousTries: 0,
+      }),
+    ),
+  );
 };

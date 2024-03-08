@@ -20,6 +20,7 @@ import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
 import { getModalCompletion } from "./getModalCompletion";
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
 import { getFireworksCompletion } from "./getFireworksCompletion";
+import { fireworksConfig } from "~/server/fineTuningProviders/openpipe/fireworksConfig";
 
 export async function getCompletion(
   fineTune: TypedFineTune,
@@ -50,7 +51,7 @@ export async function getCompletion(
         return getModalCompletion(fineTune, prunedInput);
       case 3:
         let completion: Promise<ChatCompletion | Stream<ChatCompletionChunk>>;
-        if (fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1") {
+        if (fireworksConfig(fineTune) !== null) {
           completion = getFireworksCompletion(fineTune, prunedInput);
         } else if (fineTune.gpt4FallbackEnabled) {
           completion = getAzureGpt4Completion(input);

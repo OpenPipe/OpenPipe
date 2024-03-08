@@ -7,6 +7,8 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { prisma } from "~/server/db";
 import fs from "fs";
+import { typedFineTune } from "~/types/dbColumns.types";
+import { fireworksConfig } from "~/server/fineTuningProviders/openpipe/fireworksConfig";
 
 delete process.env.AWS_ACCESS_KEY_ID;
 delete process.env.AWS_SECRET_ACCESS_KEY;
@@ -39,9 +41,11 @@ const argv = await yargs(hideBin(process.argv))
 
 const modelSlug = argv.slug;
 
-const model = await prisma.fineTune.findUniqueOrThrow({
-  where: { slug: modelSlug },
-});
+const model = await prisma.fineTune
+  .findUniqueOrThrow({
+    where: { slug: modelSlug },
+  })
+  .then(typedFineTune);
 
 if (model.pipelineVersion < 3) {
   throw new Error("Only pipeline version 3 models are supported");
@@ -55,7 +59,7 @@ await $$`rm -rf ${localPath}`;
 const stagePath = `s3://user-models-pl-stage-4c769c7/models/${model.baseModel}:${model.id}:1`;
 const prodPath = `s3://user-models-pl-prod-5e7392e/models/${model.baseModel}:${model.id}:1`;
 
-console.log("Downloading the model weights...");
+console.log(`Downloading the model weights to ${localPath}...`);
 await $$`aws s3 sync ${prodPath} ${localPath}`;
 
 if (argv.stage) {
@@ -69,16 +73,38 @@ if (argv.modal) {
     cwd: "../trainer",
   })`poetry run modal volume put --env dev openpipe-model-cache ${localPath} /loras2/${model.id}`;
 }
-
 if (argv.fireworks) {
+  const fwConfig = fireworksConfig(model);
+  if (!fwConfig) {
+    throw new Error(`No Fireworks config found for model ${model.baseModel}`);
+  }
   console.log("Uploading the model weights to Fireworks...");
 
   fs.writeFileSync(
     `${localPath}/fireworks.json`,
     JSON.stringify({
-      base_model: "accounts/fireworks/models/mixtral-8x7b-instruct-hf",
+      base_model: fwConfig.baseModel,
     }),
   );
 
-  await $$`firectl create model ${model.id} --deploy --wait /tmp/${modelSlug}/`;
+  const fireworksModelName = model.id;
+  await $$`firectl create model ${fireworksModelName} /tmp/${modelSlug}/`;
+  await $$`firectl deploy ${fireworksModelName}`;
+
+  console.log(`Initiating deployment check for model ${fireworksModelName}...`);
+
+  while (true) {
+    const deploymentCheck = await $`firectl get model ${fireworksModelName} --output=json`;
+    const deploymentStatus = JSON.parse(deploymentCheck.stdout) as { state: number };
+
+    if (deploymentStatus.state === 5) {
+      console.log(`Model ${fireworksModelName} is successfully deployed.`);
+      break; // Exit the loop once the model is deployed
+    } else {
+      console.log(
+        `Model ${fireworksModelName} deployment status: ${deploymentStatus.state}, waiting...`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds before the next check
+    }
+  }
 }

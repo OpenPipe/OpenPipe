@@ -25,13 +25,4 @@ import { startTestJobsForModel } from "~/server/utils/nodes/startTestJobs";
 //   },
 // });
 
-// await startTestJobsForModel({
-//   modelId: model.id,
-//   nodeEntryBaseQuery: kysely
-//     .selectFrom("NodeEntry as ne")
-//     .where("ne.nodeId", "=", model.dataset.nodeId),
-// });
-
-await enqueueProcessNode({
-  nodeId: "e2a1af51-af5e-4288-afe8-75fe852b4e13",
-});
+await startTestJobsForModel("39acc241-782a-4f04-bc92-becbbecda852");

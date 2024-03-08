@@ -13,6 +13,7 @@ import { type RouterInputs, api } from "~/utils/api";
 import { toUTC } from "./dayjs";
 import { useDateFilter } from "~/components/Filters/useDateFilter";
 import { type FilterData } from "~/components/Filters/types";
+import { useActiveFeatureFlags } from "posthog-js/react";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
@@ -82,13 +83,7 @@ export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | un
   return [ref, dimensions];
 };
 
-export const useIsMissingBetaAccess = () => {
-  const flags = useAppStore((s) => s.featureFlags.featureFlags);
-  const flagsLoaded = useAppStore((s) => s.featureFlags.flagsLoaded);
-
-  // If the flags haven't loaded yet, we can't say for sure that the user doesn't have beta access
-  return flagsLoaded && !flags?.betaAccess;
-};
+export const useIsMissingBetaAccess = () => !useActiveFeatureFlags()?.includes("betaAccess");
 
 export const usePageParams = () => {
   const router = useRouter();

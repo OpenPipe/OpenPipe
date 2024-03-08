@@ -20,11 +20,11 @@ export const unstableFinetuneCreate = openApiProtectedProc
     z.object({
       datasetId: z.string(),
       slug: z.string(),
-      // one of 'model-1', 'model-2'
       baseModel: z.union([
         z.literal("OpenPipe/mistral-ft-optimized-1227"),
         z.literal("meta-llama/Llama-2-13b-hf"),
         z.literal("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+        // TODO: add mistral instruct
       ]),
     }),
   )
