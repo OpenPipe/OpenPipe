@@ -3,7 +3,7 @@ import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
 import { typedInvoice } from "~/types/dbColumns.types";
 import PaymentFailed from "./templates/PaymentFailed";
-import { JsonValue } from "~/types/kysely-codegen.types";
+import { type JsonValue } from "~/types/kysely-codegen.types";
 
 export const sendPaymentFailed = async (
   invoiceId: string,

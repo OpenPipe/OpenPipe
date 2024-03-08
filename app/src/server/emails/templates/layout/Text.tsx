@@ -1,5 +1,5 @@
 import { Text as ReactEmailText } from "@react-email/components";
-import React, { CSSProperties, ReactNode } from "react";
+import React, { type CSSProperties, type ReactNode } from "react";
 
 interface Props {
   style?: CSSProperties;

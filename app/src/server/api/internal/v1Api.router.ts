@@ -7,6 +7,7 @@ import { generateBlobDownloadUrl } from "~/utils/azure/server";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 import { env } from "~/env.mjs";
+import { fireworksConfig } from "~/server/fineTuningProviders/openpipe/fireworksConfig";
 
 export const v1ApiRouter = createOpenApiRouter({
   getTrainingInfo: openApiProtectedProc
@@ -44,10 +45,7 @@ export const v1ApiRouter = createOpenApiRouter({
           message: "missing precondition",
         });
 
-      const fireworksBaseModel =
-        fineTune.baseModel === "mistralai/Mixtral-8x7B-Instruct-v0.1"
-          ? "accounts/fireworks/models/mixtral-8x7b-instruct-hf"
-          : undefined;
+      const fireworksBaseModel = fireworksConfig(fineTune)?.baseModel;
 
       return {
         trainingDataUrl: generateBlobDownloadUrl(fineTune.trainingBlobName),

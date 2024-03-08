@@ -1,5 +1,5 @@
 import { Column, Row } from "@react-email/components";
-import React, { CSSProperties } from "react";
+import React, { type CSSProperties } from "react";
 import { Highlight, Text } from ".";
 
 interface Props {
