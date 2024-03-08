@@ -21,6 +21,7 @@ import { getModalCompletion } from "./getModalCompletion";
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
 import { getFireworksCompletion } from "./getFireworksCompletion";
 import { fireworksConfig } from "~/server/fineTuningProviders/openpipe/fireworksConfig";
+import { benchmarkMModels } from "./benchmarkMModels";
 
 export async function getCompletion(
   fineTune: TypedFineTune,
@@ -57,6 +58,11 @@ export async function getCompletion(
           completion = getAzureGpt4Completion(input);
           // keep gpus hot
           void getAnyscaleCompletion(fineTune, prunedInput).catch((e) => reportError(e));
+        } else if (!prunedInput.stream) {
+          completion = benchmarkMModels(
+            fineTune,
+            prunedInput as ChatCompletionCreateParamsNonStreaming,
+          );
         } else {
           completion = getAnyscaleCompletion(fineTune, prunedInput);
         }
