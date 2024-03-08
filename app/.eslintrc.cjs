@@ -20,11 +20,11 @@ const config = {
   parserOptions: {
     project: path.join(__dirname, "tsconfig.json"),
   },
-  plugins: ["@typescript-eslint", "unused-imports"],
+  plugins: ["@typescript-eslint", "unused-imports", "import"],
   extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
   rules: {
     "@typescript-eslint/consistent-type-imports": [
-      "warn",
+      "error",
       {
         prefer: "type-imports",
         fixStyle: "inline-type-imports",
@@ -39,6 +39,24 @@ const config = {
     ],
     "react/no-unescaped-entities": "off",
     "prefer-const": ["error", { destructuring: "all" }],
+    "import/order": [
+      "error",
+      {
+        groups: [["builtin", "external"], "internal", ["parent", "sibling", "index"]],
+        pathGroups: [
+          {
+            pattern: "~/**",
+            group: "internal",
+          },
+        ],
+        pathGroupsExcludedImportTypes: ["builtin"],
+        "newlines-between": "always",
+        alphabetize: {
+          order: "asc",
+          caseInsensitive: true,
+        },
+      },
+    ],
   },
 };
 
