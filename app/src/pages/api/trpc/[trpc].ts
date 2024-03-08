@@ -1,5 +1,5 @@
-import { createNextApiHandler } from "@trpc/server/adapters/next";
 import * as Sentry from "@sentry/nextjs";
+import { createNextApiHandler } from "@trpc/server/adapters/next";
 
 import { env } from "~/env.mjs";
 import { appRouter } from "~/server/api/root.router";

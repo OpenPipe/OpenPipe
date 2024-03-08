@@ -1,8 +1,8 @@
-import { useRef, useMemo, useEffect, useLayoutEffect, useState } from "react";
 import { VStack, Box } from "@chakra-ui/react";
+import { useRef, useMemo, useEffect, useLayoutEffect, useState } from "react";
 
-import { useAppStore } from "~/state/store";
 import { type CreatedEditor } from "~/state/sharedArgumentsEditor.slice";
+import { useAppStore } from "~/state/store";
 
 const JsonEditor = ({ value, onEdit }: { value: string; onEdit: (newValue: string) => void }) => {
   const monaco = useAppStore.use.sharedArgumentsEditor.monaco();

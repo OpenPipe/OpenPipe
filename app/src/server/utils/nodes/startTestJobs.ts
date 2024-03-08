@@ -1,7 +1,7 @@
+import type { ComparisonModel, Prisma } from "@prisma/client";
 import { type SelectQueryBuilder, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { shuffle } from "lodash-es";
-import type { ComparisonModel, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { kysely, prisma } from "~/server/db";

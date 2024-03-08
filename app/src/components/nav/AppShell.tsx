@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   VStack,
   Icon,
@@ -15,22 +14,24 @@ import {
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { BsFillKeyFill, BsGear, BsGithub, BsPersonCircle, BsClipboard2Data } from "react-icons/bs";
-import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
+import { signIn, useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import { AiOutlineThunderbolt, AiOutlineDatabase } from "react-icons/ai";
+import { BsFillKeyFill, BsGear, BsGithub, BsPersonCircle, BsClipboard2Data } from "react-icons/bs";
 import { FaBalanceScale, FaReadme } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
+import { IoStatsChartOutline, IoSpeedometerOutline } from "react-icons/io5";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
-import { signIn, useSession } from "next-auth/react";
 
-import ProjectMenu from "./ProjectMenu";
-import NavSidebarOption from "./NavSidebarOption";
-import IconLink from "./IconLink";
-import { BetaModal } from "../BetaModal";
-import { useIsMissingBetaAccess, useSelectedProject } from "~/utils/hooks";
-import { useAppStore } from "~/state/store";
-import { useAccessCheck } from "../ConditionallyEnable";
 import { env } from "~/env.mjs";
+import { useAppStore } from "~/state/store";
+import { useIsMissingBetaAccess, useSelectedProject } from "~/utils/hooks";
+
+import IconLink from "./IconLink";
+import NavSidebarOption from "./NavSidebarOption";
+import ProjectMenu from "./ProjectMenu";
+import { BetaModal } from "../BetaModal";
+import { useAccessCheck } from "../ConditionallyEnable";
 import MaintenanceBanner from "../MaintenanceBanner";
 
 const Divider = (props: BoxProps) => <Box h="1px" bgColor="gray.300" w="full" {...props} />;

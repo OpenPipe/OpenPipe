@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { HStack, Icon, Text, Button, useDisclosure } from "@chakra-ui/react";
-
-import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
-import { api } from "~/utils/api";
+import { useState } from "react";
 import { BsPlus } from "react-icons/bs";
+
+import { api } from "~/utils/api";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
+
 import PaymentDetailsModal from "./AddPaymentMethodModal";
 
 export default function AddPaymentMethodButton() {

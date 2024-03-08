@@ -2,6 +2,9 @@ import { type Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { type z } from "zod";
 
+import { prisma } from "~/server/db";
+import { type filtersSchema } from "~/types/shared.types";
+
 import {
   prepareArchiveCreation,
   prepareDatasetCreation,
@@ -11,8 +14,6 @@ import {
   prepareFilterCreation,
 } from "./prepareNodeCreation";
 import { DEFAULT_MAX_OUTPUT_SIZE, RelabelOption } from "../node.types";
-import { prisma } from "~/server/db";
-import { type filtersSchema } from "~/types/shared.types";
 
 export const prepareIntegratedArchiveCreation = ({
   projectId,

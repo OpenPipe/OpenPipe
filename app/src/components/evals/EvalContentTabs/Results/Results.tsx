@@ -1,4 +1,3 @@
-import React, { useMemo, useLayoutEffect, useState, useEffect } from "react";
 import {
   Badge,
   Box,
@@ -17,15 +16,16 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import chroma from "chroma-js";
-import { type RouterOutputs } from "~/utils/api";
+import React, { useMemo, useLayoutEffect, useState, useEffect } from "react";
 
 import ColoredPercent from "~/components/ColoredPercent";
-import { useDatasetEval } from "~/utils/hooks";
-import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
-import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
+import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { ProjectLink } from "~/components/ProjectLink";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
+import { type RouterOutputs } from "~/utils/api";
+import { useDatasetEval } from "~/utils/hooks";
 
 const Results = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);

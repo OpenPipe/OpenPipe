@@ -1,12 +1,13 @@
 import type { NodeType } from "@prisma/client";
+import type { ChatCompletionCreateParams, ChatCompletionMessage } from "openai/resources";
 import type { JsonValue } from "type-fest";
 
-import hashObject from "../hashObject";
-import { type InferNodeConfig } from "./node.types";
 import { kysely } from "~/server/db";
 import { nodePropertiesByType } from "~/server/tasks/nodes/processNodes/processNode.task";
+
+import { type InferNodeConfig } from "./node.types";
 import { type NodeProperties } from "./nodeProperties/nodeProperties.types";
-import type { ChatCompletionCreateParams, ChatCompletionMessage } from "openai/resources";
+import hashObject from "../hashObject";
 
 export const hashNode = <T extends NodeType>(node: {
   id: string;

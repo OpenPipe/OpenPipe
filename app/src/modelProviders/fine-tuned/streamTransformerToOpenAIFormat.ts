@@ -1,6 +1,6 @@
+import { type CompletionUsage } from "openai/resources";
 import type { ChatCompletionChunk, ChatCompletionCreateParams } from "openai/resources/chat";
 import { Stream } from "openai/streaming";
-import { type CompletionUsage } from "openai/resources";
 
 const FUNCTION_CALL_TAG = "<function>";
 const FUNCTION_ARGS_TAG = "<arguments>";

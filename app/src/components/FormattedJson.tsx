@@ -1,8 +1,8 @@
 import { Box, IconButton } from "@chakra-ui/react";
+import stringify from "json-stringify-pretty-compact";
 import { CopyIcon } from "lucide-react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atelierCaveLight } from "react-syntax-highlighter/dist/cjs/styles/hljs";
-import stringify from "json-stringify-pretty-compact";
 
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
 

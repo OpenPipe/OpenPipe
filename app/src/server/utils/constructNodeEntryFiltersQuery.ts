@@ -1,8 +1,9 @@
-import { type z } from "zod";
 import { type Expression, type SqlBool, sql } from "kysely";
+import { type z } from "zod";
 
 import { kysely } from "~/server/db";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
+
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
 export const constructNodeEntryFiltersQuery = ({

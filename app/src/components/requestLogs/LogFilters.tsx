@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
-import Filters from "../Filters/Filters";
 import { useSelectedProject } from "~/utils/hooks";
+
+import Filters from "../Filters/Filters";
 import { type FilterOption } from "../Filters/types";
 
 const defaultFilterOptions: FilterOption[] = [

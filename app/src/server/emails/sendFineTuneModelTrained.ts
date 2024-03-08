@@ -1,9 +1,12 @@
-import { env } from "~/env.mjs";
-import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
+
+import { env } from "~/env.mjs";
+import { type TypedFineTune } from "~/types/dbColumns.types";
+
+import { sendEmail } from "./sendEmail";
 import FineTuneModelTrained from "./templates/FineTuneModelTrained";
 import { prisma } from "../db";
-import { type TypedFineTune } from "~/types/dbColumns.types";
+
 
 export const sendFineTuneModelTrained = async (fineTune: TypedFineTune) => {
   if (!fineTune.userId) return;

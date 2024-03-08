@@ -1,13 +1,15 @@
-import { useCallback, useState } from "react";
 import { HStack, IconButton, Input } from "@chakra-ui/react";
+import { debounce } from "lodash-es";
+import { useCallback, useState } from "react";
 import { BsTrash } from "react-icons/bs";
 
-import { debounce } from "lodash-es";
-import SelectFieldDropdown from "../SelectFieldDropdown";
-import SelectComparatorDropdown from "../SelectComparatorDropdown";
-import { useFilters } from "../useFilters";
-import { type FilterOption, type FilterData } from "../types";
 import { type AtLeastOne } from "~/types/shared.types";
+
+import SelectComparatorDropdown from "../SelectComparatorDropdown";
+import SelectFieldDropdown from "../SelectFieldDropdown";
+import { type FilterOption, type FilterData } from "../types";
+import { useFilters } from "../useFilters";
+
 
 const TextFilter = ({
   filterOptions,

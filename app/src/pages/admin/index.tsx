@@ -1,7 +1,8 @@
 import { Text, VStack } from "@chakra-ui/react";
-import AppShell from "~/components/nav/AppShell";
-import { useAccessCheck } from "~/components/ConditionallyEnable";
+
 import AdminProjectsTable from "~/components/admin/Projects/AdminProjectsTable";
+import { useAccessCheck } from "~/components/ConditionallyEnable";
+import AppShell from "~/components/nav/AppShell";
 
 export default function AdminDashboard() {
   const isAdmin = useAccessCheck("requireIsAdmin").access;

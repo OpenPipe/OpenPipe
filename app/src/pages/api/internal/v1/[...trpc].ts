@@ -1,10 +1,10 @@
+import * as Sentry from "@sentry/nextjs";
 import { type NextApiRequest, type NextApiResponse } from "next";
 import cors from "nextjs-cors";
 import { createOpenApiNextHandler } from "trpc-openapi";
-import * as Sentry from "@sentry/nextjs";
 
-import { v1ApiRouter } from "~/server/api/internal/v1Api.router";
 import { createOpenApiContext } from "~/server/api/internal/openApiTrpc";
+import { v1ApiRouter } from "~/server/api/internal/v1Api.router";
 
 const openApiHandler = createOpenApiNextHandler({
   router: v1ApiRouter,

@@ -1,11 +1,12 @@
-import React, { Fragment, useState } from "react";
 import { VStack, HStack, Button, Text, Divider, Icon, Collapse } from "@chakra-ui/react";
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
+import React, { Fragment, useState } from "react";
 import { BsPlus } from "react-icons/bs";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+
+import { type RouterOutputs } from "~/utils/api";
 
 import EditableMessage from "./EditableMessage";
-import { type RouterOutputs } from "~/utils/api";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 const InputEditor = ({
   inputMessagesToSave,

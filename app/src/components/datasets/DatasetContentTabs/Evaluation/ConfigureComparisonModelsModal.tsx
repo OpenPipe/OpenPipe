@@ -1,4 +1,3 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   type UseDisclosureReturn,
   Modal,
@@ -15,20 +14,23 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import { type ComparisonModel } from "@prisma/client";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
+import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { ProjectLink } from "~/components/ProjectLink";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { api } from "~/utils/api";
+import { comparisonModels } from "~/utils/comparisonModels";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
   useDataset,
   useHandledAsyncCallback,
   useSelectedProject,
   useTestingEntries,
 } from "~/utils/hooks";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+
 import { useVisibleModelIds } from "./useVisibleModelIds";
-import { comparisonModels } from "~/utils/comparisonModels";
-import { getOutputTitle } from "~/server/utils/getOutputTitle";
-import { ProjectLink } from "~/components/ProjectLink";
-import ConditionallyEnable from "~/components/ConditionallyEnable";
+
 
 const ConfigureComparisonModelsModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;

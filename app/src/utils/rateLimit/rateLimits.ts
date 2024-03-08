@@ -1,4 +1,5 @@
 import { sql } from "kysely";
+
 import { kysely } from "~/server/db";
 
 type RateLimitConfig = {

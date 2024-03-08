@@ -1,8 +1,10 @@
+import { v4 as uuidv4 } from "uuid";
 import { describe, expect, it } from "vitest";
+
+import { getPreviousMonthPeriodUTC } from "~/utils/dayjs";
+
 import { createInvoice } from "./generateInvoices.task";
 import { prisma } from "../db";
-import { v4 as uuidv4 } from "uuid";
-import { getPreviousMonthPeriodUTC } from "~/utils/dayjs";
 import { prepareIntegratedDatasetCreation } from "../utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 
 describe("Invoice generator", () => {

@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import {
   Icon,
   Popover,
@@ -12,15 +11,17 @@ import {
   Box,
   Switch,
 } from "@chakra-ui/react";
-import { FiEdit2 } from "react-icons/fi";
+import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
 import { BsPlusSquare } from "react-icons/bs";
 import { FaBalanceScale } from "react-icons/fa";
-import { useRouter } from "next/router";
+import { FiEdit2 } from "react-icons/fi";
 
-import { useDataset, useIsClientInitialized, useSelectedProject } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
-import { useVisibleEvalIds } from "./useVisibleEvalIds";
+import { useDataset, useIsClientInitialized, useSelectedProject } from "~/utils/hooks";
+
 import AddEvalModal from "./AddEvalModal";
+import { useVisibleEvalIds } from "./useVisibleEvalIds";
 
 type Option = {
   key: string;

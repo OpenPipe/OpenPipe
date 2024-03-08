@@ -1,12 +1,12 @@
 import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, Text, VStack } from "@chakra-ui/react";
 import { AiOutlineThunderbolt } from "react-icons/ai";
 
+import FineTuneContentTabs from "~/components/fineTunes/FineTuneContentTabs/FineTuneContentTabs";
 import AppShell from "~/components/nav/AppShell";
-import { useFineTune } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import FineTuneContentTabs from "~/components/fineTunes/FineTuneContentTabs/FineTuneContentTabs";
 import { ProjectLink } from "~/components/ProjectLink";
+import { useFineTune } from "~/utils/hooks";
 
 export default function FineTune() {
   const fineTune = useFineTune();

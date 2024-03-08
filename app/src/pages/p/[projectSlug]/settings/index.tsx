@@ -15,20 +15,20 @@ import {
 import { useEffect, useState } from "react";
 import { BsPlus, BsTrash } from "react-icons/bs";
 
+import AutoResizeTextArea from "~/components/AutoResizeTextArea";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
+import CopiableCode from "~/components/CopiableCode";
+import InfoCircle from "~/components/InfoCircle";
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
-import { api } from "~/utils/api";
-import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import CopiableCode from "~/components/CopiableCode";
+import { ProjectLink } from "~/components/ProjectLink";
 import { DeleteProjectDialog } from "~/components/projectSettings/DeleteProjectDialog";
-import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
 import { InviteProjectUserModal } from "~/components/projectSettings/InviteProjectUserModal";
 import OpenaiApiKeyDisplay from "~/components/projectSettings/OpenaiApiKeyDisplay";
-import InfoCircle from "~/components/InfoCircle";
-import ConditionallyEnable from "~/components/ConditionallyEnable";
-import { ProjectLink } from "~/components/ProjectLink";
+import ProjectUserTable from "~/components/projectSettings/ProjectUserTable";
+import { api } from "~/utils/api";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { CONCURRENCY_RATE_LIMITS } from "~/utils/rateLimit/const";
 
 export default function Settings() {

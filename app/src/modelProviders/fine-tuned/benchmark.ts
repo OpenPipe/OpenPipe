@@ -1,9 +1,11 @@
+import { captureException } from "@sentry/node";
 import type { ChatCompletion, ChatCompletionCreateParamsNonStreaming } from "openai/resources";
+
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { posthogServerClient } from "~/utils/analytics/serverAnalytics";
+
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
 import { getModalCompletion } from "./getModalCompletion";
-import { captureException } from "@sentry/node";
 
 const firstSuccessful = <T>(promises: Promise<T>[]): Promise<T> => {
   let rejectCounter = 0;

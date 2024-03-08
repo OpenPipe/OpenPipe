@@ -1,17 +1,18 @@
-import { useCallback, useState } from "react";
 import { VStack, HStack, Text, Button, Box, Divider } from "@chakra-ui/react";
 import { useRouter } from "next/router";
+import { useCallback, useState } from "react";
 
 import { setActiveTab } from "~/components/ContentTabs";
-import { DATASET_GENERAL_TAB_KEY } from "../DatasetContentTabs";
-import { useDataset, useDatasetArchives, useSelectedProject } from "~/utils/hooks";
-import dayjs from "~/utils/dayjs";
-import { RemoveSourceDialog } from "./RemoveSourceDialog";
 import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
-import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 import { ProjectLink } from "~/components/ProjectLink";
-import RelabelArchiveDialog, { type DatasetArchive } from "./RelabelArchiveDialog";
 import { RelabelOption } from "~/server/utils/nodes/node.types";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import dayjs from "~/utils/dayjs";
+import { useDataset, useDatasetArchives, useSelectedProject } from "~/utils/hooks";
+
+import RelabelArchiveDialog, { type DatasetArchive } from "./RelabelArchiveDialog";
+import { RemoveSourceDialog } from "./RemoveSourceDialog";
+import { DATASET_GENERAL_TAB_KEY } from "../DatasetContentTabs";
 
 const Sources = () => {
   const dataset = useDataset().data;

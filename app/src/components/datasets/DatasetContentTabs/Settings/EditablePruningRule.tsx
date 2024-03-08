@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
 import { VStack, HStack, Text, Button, IconButton, Icon, useDisclosure } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
 import { BsTrash } from "react-icons/bs";
 
-import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import { api, type RouterOutputs } from "~/utils/api";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { api, type RouterOutputs } from "~/utils/api";
+import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
+
 import DeletePruningRuleDialog from "./DeletePruningRuleDialog";
 
 type PruningRule = RouterOutputs["pruningRules"]["list"][0];

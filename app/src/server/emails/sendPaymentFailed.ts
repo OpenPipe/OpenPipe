@@ -1,9 +1,12 @@
-import { env } from "~/env.mjs";
-import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
+
+import { env } from "~/env.mjs";
 import { typedInvoice } from "~/types/dbColumns.types";
-import PaymentFailed from "./templates/PaymentFailed";
 import { type JsonValue } from "~/types/kysely-codegen.types";
+
+import { sendEmail } from "./sendEmail";
+import PaymentFailed from "./templates/PaymentFailed";
+
 
 export const sendPaymentFailed = async (
   invoiceId: string,

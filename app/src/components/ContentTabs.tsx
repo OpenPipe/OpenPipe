@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect, forwardRef } from "react";
 import { Button, VStack, HStack, Text, Divider, Box, type StackProps } from "@chakra-ui/react";
-
 import { useRouter, type NextRouter } from "next/router";
+import { useState, useRef, useEffect, forwardRef } from "react";
 
 const ContentTabs = ({
   tabs,

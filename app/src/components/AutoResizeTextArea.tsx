@@ -1,6 +1,6 @@
 import { Textarea, type TextareaProps } from "@chakra-ui/react";
-import ResizeTextarea from "react-textarea-autosize";
 import React, { useEffect, useState } from "react";
+import ResizeTextarea from "react-textarea-autosize";
 
 export const AutoResizeTextarea: React.ForwardRefRenderFunction<
   HTMLTextAreaElement,

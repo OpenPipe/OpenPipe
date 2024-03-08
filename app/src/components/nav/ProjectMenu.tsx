@@ -15,15 +15,16 @@ import {
   Image,
   Box,
 } from "@chakra-ui/react";
-import Link from "next/link";
-import { BsPlus, BsPersonCircle } from "react-icons/bs";
 import { type Project } from "@prisma/client";
-
-import { api } from "~/utils/api";
-import NavSidebarOption from "./NavSidebarOption";
-import { useHandledAsyncCallback, useProjectList, useSelectedProject } from "~/utils/hooks";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSession, signOut } from "next-auth/react";
+import { BsPlus, BsPersonCircle } from "react-icons/bs";
+
+import { api } from "~/utils/api";
+import { useHandledAsyncCallback, useProjectList, useSelectedProject } from "~/utils/hooks";
+
+import NavSidebarOption from "./NavSidebarOption";
 
 export default function ProjectMenu({ displayProjectName }: { displayProjectName: boolean }) {
   const router = useRouter();

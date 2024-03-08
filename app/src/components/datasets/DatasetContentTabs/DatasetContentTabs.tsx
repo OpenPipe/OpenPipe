@@ -1,9 +1,10 @@
 import ContentTabs from "~/components/ContentTabs";
+
+import Evaluation from "./Evaluation/Evaluation";
 import General from "./General/General";
 import Models from "./Models/Models";
-import Sources from "./Sources/Sources";
-import Evaluation from "./Evaluation/Evaluation";
 import Settings from "./Settings/Settings";
+import Sources from "./Sources/Sources";
 import { ProcessingIndicator } from "../ProcessingIndicator";
 
 export const DATASET_GENERAL_TAB_KEY = "general";

@@ -1,3 +1,5 @@
+import { useToken } from "@chakra-ui/react";
+import { useMemo } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -8,11 +10,10 @@ import {
   Legend,
   Bar,
 } from "recharts";
-import { useMemo } from "react";
 
-import { useSelectedProject, useStats } from "~/utils/hooks";
 import { formatToUTCDayMonth } from "~/utils/dayjs";
-import { useToken } from "@chakra-ui/react";
+import { useSelectedProject, useStats } from "~/utils/hooks";
+
 import CustomTooltip from "./CustomTooltip";
 
 type propsType = {

@@ -1,8 +1,9 @@
+import { type Decimal } from "@prisma/client/runtime/library";
+import { TRPCError } from "@trpc/server";
 import Stripe from "stripe";
+
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
-import { TRPCError } from "@trpc/server";
-import { type Decimal } from "@prisma/client/runtime/library";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY ?? "");
 

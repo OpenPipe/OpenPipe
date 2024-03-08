@@ -2,8 +2,9 @@ import { HStack, Text, Button, Icon, useDisclosure } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 
 import { useSelectedProject } from "~/utils/hooks";
-import UpdateOpenaiApiKeyModal from "./UpdateOpenaiApiKeyModal";
+
 import RemoveOpenaiApiKeyDialog from "./RemoveOpenaiApiKeyDialog";
+import UpdateOpenaiApiKeyModal from "./UpdateOpenaiApiKeyModal";
 import ConditionallyEnable from "../ConditionallyEnable";
 
 const OpenaiApiKeyDisplay = () => {

@@ -2,6 +2,7 @@ import { type Node } from "@prisma/client";
 import { sql } from "kysely";
 
 import { kysely } from "~/server/db";
+
 import { nodePropertiesByType } from "./processNode.task";
 
 export const updateCached = async ({

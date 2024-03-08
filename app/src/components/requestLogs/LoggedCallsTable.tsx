@@ -1,6 +1,8 @@
 import { Card, Skeleton, Table, Tbody } from "@chakra-ui/react";
 import { useState } from "react";
+
 import { useLoggedCalls } from "~/utils/hooks";
+
 import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
 
 export default function LoggedCallsTable() {

@@ -1,5 +1,6 @@
-import { expect, it } from "vitest";
 import type { ChatCompletionMessage } from "openai/resources/chat";
+import { expect, it } from "vitest";
+
 import { calculateFieldComparisonScore } from "./calculateFieldComparisonScore";
 
 const originalMatchingArgs: ChatCompletionMessage = {

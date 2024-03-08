@@ -14,14 +14,16 @@ import {
   UnorderedList,
   VStack,
 } from "@chakra-ui/react";
-import { FaBalanceScale } from "react-icons/fa";
 import type { ChatCompletionMessage } from "openai/resources/chat";
+import { FaBalanceScale } from "react-icons/fa";
 
+import ColoredPercent from "~/components/ColoredPercent";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { useAppStore } from "~/state/store";
 import { api } from "~/utils/api";
-import { getOutputTitle } from "~/server/utils/getOutputTitle";
+
 import FormattedMessage from "../FormattedMessage";
-import ColoredPercent from "~/components/ColoredPercent";
+
 
 const FieldComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);

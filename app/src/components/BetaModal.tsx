@@ -12,8 +12,8 @@ import {
   Icon,
   Link,
 } from "@chakra-ui/react";
-import { BsStars } from "react-icons/bs";
 import { useSession } from "next-auth/react";
+import { BsStars } from "react-icons/bs";
 
 export const BetaModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const session = useSession();

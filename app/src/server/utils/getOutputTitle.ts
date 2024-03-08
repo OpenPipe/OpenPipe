@@ -1,4 +1,5 @@
 import { type ComparisonModel } from "@prisma/client";
+
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { getComparisonModelSlug, isComparisonModel } from "~/utils/comparisonModels";
 

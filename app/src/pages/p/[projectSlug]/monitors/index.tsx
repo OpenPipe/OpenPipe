@@ -1,6 +1,6 @@
 import { Text, VStack, HStack } from "@chakra-ui/react";
-import ConditionallyEnable from "~/components/ConditionallyEnable";
 
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import MonitorsTable from "~/components/monitors/MonitorsTable";
 import NewMonitorButton from "~/components/monitors/NewMonitorButton";
 import AppShell from "~/components/nav/AppShell";

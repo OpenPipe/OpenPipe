@@ -2,8 +2,9 @@ import { isEqual, mean } from "lodash-es";
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
 
-import { kysely } from "../db";
 import { type typedNodeEntry } from "~/types/dbColumns.types";
+
+import { kysely } from "../db";
 
 export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 

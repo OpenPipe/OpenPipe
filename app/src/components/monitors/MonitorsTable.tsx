@@ -1,10 +1,11 @@
 import { Card, Table, Thead, Tr, Th, Tbody, Td, VStack, Icon, Text } from "@chakra-ui/react";
 import { FaTable } from "react-icons/fa";
 
-import dayjs from "~/utils/dayjs";
-import { ProjectLink } from "../ProjectLink";
 import { api } from "~/utils/api";
+import dayjs from "~/utils/dayjs";
 import { useSelectedProject } from "~/utils/hooks";
+
+import { ProjectLink } from "../ProjectLink";
 
 const MonitorsTable = () => {
   const project = useSelectedProject().data;

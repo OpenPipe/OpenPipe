@@ -1,6 +1,4 @@
 import fs from "fs";
-import path from "path";
-import OpenAI, { type ClientOptions } from "openpipe-dev/src/openai";
 import { APIError, default as OriginalOpenAI } from "openai";
 import {
   type ChatCompletionChunk,
@@ -10,8 +8,11 @@ import {
   type ChatCompletionCreateParamsNonStreaming,
 } from "openai/resources/chat";
 import { type Stream } from "openai/streaming";
+import OpenAI, { type ClientOptions } from "openpipe-dev/src/openai";
+import path from "path";
 
 import { env } from "~/env.mjs";
+
 import { prisma } from "../db";
 
 let config: ClientOptions;

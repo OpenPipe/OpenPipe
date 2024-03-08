@@ -1,7 +1,7 @@
 import { VStack, Text, Heading, HStack } from "@chakra-ui/react";
 
-import { useFineTune } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";
+import { useFineTune } from "~/utils/hooks";
 
 const FineTunePruningRules = () => {
   const fineTune = useFineTune().data;

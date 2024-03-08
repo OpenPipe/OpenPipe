@@ -1,7 +1,7 @@
 import { type StackProps } from "@chakra-ui/react";
 
-import { useTestingEntries } from "~/utils/hooks";
 import Paginator from "~/components/Paginator";
+import { useTestingEntries } from "~/utils/hooks";
 
 const EvaluationPaginator = (props: StackProps) => {
   const { data } = useTestingEntries();

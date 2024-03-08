@@ -1,10 +1,12 @@
 import { VStack, HStack, Text, Table, Tbody } from "@chakra-ui/react";
 
-import { useFineTune, useTrainingEntries } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";
-import TrainingDataRow, { TableHeader } from "./TrainingDataRow";
-import TrainingDataPaginator from "./TrainingDataPaginator";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
+import { useFineTune, useTrainingEntries } from "~/utils/hooks";
+
+import TrainingDataPaginator from "./TrainingDataPaginator";
+import TrainingDataRow, { TableHeader } from "./TrainingDataRow";
+
 
 const TrainingData = () => {
   const fineTune = useFineTune().data;

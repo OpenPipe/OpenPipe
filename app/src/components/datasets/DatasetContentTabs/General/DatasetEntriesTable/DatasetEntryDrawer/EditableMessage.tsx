@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import {
   VStack,
   HStack,
@@ -11,13 +10,15 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
-import { BsX } from "react-icons/bs";
+import { useMemo, useState } from "react";
 import DiffViewer, { DiffMethod } from "react-diff-viewer";
+import { BsX } from "react-icons/bs";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
-import { type RouterOutputs } from "~/utils/api";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import InputDropdown from "~/components/InputDropdown";
+import { type RouterOutputs } from "~/utils/api";
+
 import { parseableToToolCalls } from "./parseableToToolCalls";
 import ToolCallsEditor from "./ToolCallsEditor";
 

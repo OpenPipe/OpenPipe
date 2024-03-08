@@ -1,9 +1,9 @@
 import { type ComparisonModel } from "@prisma/client";
 
-import { EVALUATION_FILTERS_OUTPUT_APPENDIX } from "~/types/shared.types";
 import { useFilters } from "~/components/Filters/useFilters";
-import { useDataset } from "~/utils/hooks";
+import { EVALUATION_FILTERS_OUTPUT_APPENDIX } from "~/types/shared.types";
 import { getComparisonModel, isComparisonModelName } from "~/utils/comparisonModels";
+import { useDataset } from "~/utils/hooks";
 
 export const useMappedModelIdFilters = () => {
   const dataset = useDataset().data;

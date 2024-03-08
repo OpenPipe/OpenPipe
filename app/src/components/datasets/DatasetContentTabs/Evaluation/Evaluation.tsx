@@ -1,15 +1,20 @@
 import { VStack, HStack, Box, Text } from "@chakra-ui/react";
 
-import EvaluationTable from "./EvaluationTable/EvaluationTable";
-import ModelVisibilityDropdown from "./ModelVisibilityDropdown";
-import EvaluationFilters from "./EvaluationFilters";
-import { useTestingEntries } from "~/utils/hooks";
-import EvaluationPaginator from "./EvaluationTable/EvaluationPaginator";
 import { useFilters } from "~/components/Filters/useFilters";
-import EvalVisibilityDropdown from "./EvalVisibilityDropdown";
-import HeadToHeadComparisonModal from "./ComparisonModals/HeadToHeadComparisonModal";
-import FieldComparisonModal from "./ComparisonModals/FieldComparisonModal";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
+import { useTestingEntries } from "~/utils/hooks";
+
+import FieldComparisonModal from "./ComparisonModals/FieldComparisonModal";
+import HeadToHeadComparisonModal from "./ComparisonModals/HeadToHeadComparisonModal";
+import EvaluationFilters from "./EvaluationFilters";
+import EvaluationPaginator from "./EvaluationTable/EvaluationPaginator";
+import EvaluationTable from "./EvaluationTable/EvaluationTable";
+import EvalVisibilityDropdown from "./EvalVisibilityDropdown";
+import ModelVisibilityDropdown from "./ModelVisibilityDropdown";
+
+
+
+
 
 const Evaluation = () => {
   const filtersShown = useFilters().filtersShown;

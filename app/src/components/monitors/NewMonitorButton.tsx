@@ -1,6 +1,6 @@
 import { HStack, Text, Button, Icon } from "@chakra-ui/react";
-import { BsPlus } from "react-icons/bs";
 import { useRouter } from "next/router";
+import { BsPlus } from "react-icons/bs";
 
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";

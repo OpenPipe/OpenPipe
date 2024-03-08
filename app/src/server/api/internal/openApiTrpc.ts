@@ -1,9 +1,9 @@
+import * as SentryModule from "@sentry/nextjs";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { type OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
-import * as SentryModule from "@sentry/nextjs";
 
 import { env } from "~/env.mjs";
 import { ensureDefaultExport } from "~/utils/utils";

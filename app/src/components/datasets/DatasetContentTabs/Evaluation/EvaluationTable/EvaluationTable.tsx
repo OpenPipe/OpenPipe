@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
 import { Card, Grid, HStack, Box, Text } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
 
+import { api } from "~/utils/api";
 import { useTestingEntries, useDataset } from "~/utils/hooks";
+
 import EvaluationRow, { TableHeader } from "./EvaluationRow";
 import { useVisibleModelIds } from "../useVisibleModelIds";
-import { api } from "~/utils/api";
 
 const EvaluationTable = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);

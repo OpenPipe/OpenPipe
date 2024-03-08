@@ -1,7 +1,7 @@
-import { readFileSync } from "fs";
 import { type DB } from "../types/kysely-codegen.types";
 
 import { PrismaClient } from "@prisma/client";
+import { readFileSync } from "fs";
 import { Kysely, PostgresDialect } from "kysely";
 // TODO: Revert to normal import when our tsconfig.json is fixed
 // import { Pool } from "pg";

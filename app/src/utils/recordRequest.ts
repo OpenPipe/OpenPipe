@@ -1,22 +1,23 @@
+import { type FineTune, Prisma, UsageType } from "@prisma/client";
+import { captureException } from "@sentry/node";
 import type { ChatCompletion, ChatCompletionChunk } from "openai/resources";
 import { Stream } from "openai/streaming";
 import mergeChunks from "openpipe-dev/src/openai/mergeChunks";
-import { z } from "zod";
-import { type FineTune, Prisma, UsageType } from "@prisma/client";
-import { captureException } from "@sentry/node";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
-import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { default as openAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
 import { kysely, prisma } from "~/server/db";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { type BaseModel } from "~/server/fineTuningProviders/types";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { chatCompletionOutput, type chatCompletionInput } from "~/types/shared.types";
+
 import {
   countLlamaInputTokens,
   countLlamaOutputTokens,
   countOpenAIChatTokens,
 } from "./countTokens";
-import { default as openAIModelProvider } from "~/modelProviders/openai-ChatCompletion";
-import { type BaseModel } from "~/server/fineTuningProviders/types";
 import { recordOngoingRequestEnd } from "./rateLimit/concurrencyRateLimits";
 
 export const recordUsage = async ({

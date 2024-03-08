@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
 import type {
   ChatCompletionAssistantMessageParam,
   ChatCompletionMessageParam,
   ChatCompletionCreateParamsBase,
   ChatCompletionMessage,
 } from "openai/resources/chat/completions";
+import { describe, expect, it } from "vitest";
 
 import { deserializeChatOutput, serializeChatInput, serializeChatOutput } from "./serializers";
 

@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { HStack, VStack, Icon, Text, Link, Button } from "@chakra-ui/react";
+import { useState } from "react";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 import JsonEditor from "./JsonEditor";

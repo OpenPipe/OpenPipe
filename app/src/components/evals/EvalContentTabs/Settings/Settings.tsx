@@ -1,21 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Checkbox, HStack, Input, VStack, Text, useDisclosure } from "@chakra-ui/react";
 import { isEqual } from "lodash-es";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import InfoCircle from "~/components/InfoCircle";
-import { api } from "~/utils/api";
-import { useDataset, useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
-import DeleteEvalDialog from "./DeleteEvalDialog";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
+import ContentCard from "~/components/ContentCard";
+import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
+import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { useFilters } from "~/components/Filters/useFilters";
+import InfoCircle from "~/components/InfoCircle";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { useAppStore } from "~/state/store";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { getOutputTitle } from "~/server/utils/getOutputTitle";
-import ContentCard from "~/components/ContentCard";
-import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
-import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
-import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { useDataset, useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
+
+import DeleteEvalDialog from "./DeleteEvalDialog";
 
 const Settings = () => {
   const utils = api.useContext();

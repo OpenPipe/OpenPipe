@@ -1,6 +1,7 @@
 import type { CachedResponse } from "@prisma/client";
 import { captureException } from "@sentry/node";
 import { TRPCError } from "@trpc/server";
+import { type TRPC_ERROR_CODE_KEY } from "@trpc/server/rpc";
 import { APIError } from "openai";
 import { type ChatCompletion, type ChatCompletionChunk } from "openai/resources/chat";
 import { Stream } from "openai/streaming";
@@ -24,13 +25,13 @@ import {
   toolChoiceInput,
   toolsInput,
 } from "~/types/shared.types";
-import { recordLoggedCall, recordUsage } from "~/utils/recordRequest";
-import { openApiProtectedProc } from "../../openApiTrpc";
 import {
   recordOngoingRequestEnd,
   recordOngoingRequestStart,
 } from "~/utils/rateLimit/concurrencyRateLimits";
-import { type TRPC_ERROR_CODE_KEY } from "@trpc/server/rpc";
+import { recordLoggedCall, recordUsage } from "~/utils/recordRequest";
+
+import { openApiProtectedProc } from "../../openApiTrpc";
 
 export const createChatCompletion = openApiProtectedProc
   .meta({

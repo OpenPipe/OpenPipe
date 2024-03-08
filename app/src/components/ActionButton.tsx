@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { Button, HStack, type ButtonProps, Icon, Text } from "@chakra-ui/react";
+import { useState } from "react";
 import { type IconType } from "react-icons";
 
-import { BetaModal } from "./BetaModal";
 import { useIsMissingBetaAccess } from "~/utils/hooks";
+
+import { BetaModal } from "./BetaModal";
 
 const ActionButton = ({
   icon,

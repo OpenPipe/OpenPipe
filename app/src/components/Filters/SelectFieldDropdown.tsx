@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 
 import InputDropdown from "~/components/InputDropdown";
-import { useFilters } from "./useFilters";
-import { type FilterData, comparatorsForFilterType, type FilterOption } from "./types";
 import { type AtLeastOne } from "~/types/shared.types";
+
+import { type FilterData, comparatorsForFilterType, type FilterOption } from "./types";
+import { useFilters } from "./useFilters";
 
 const SelectFieldDropdown = ({
   filterOptions,

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
 import { HStack, Text, Icon } from "@chakra-ui/react";
-import { RiInformationFill } from "react-icons/ri";
 import pluralize from "pluralize";
+import { useEffect, useState } from "react";
+import { RiInformationFill } from "react-icons/ri";
 
 import { useDataset } from "~/utils/hooks";
 

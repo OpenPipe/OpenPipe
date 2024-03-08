@@ -8,6 +8,7 @@ import {
   type InputGroupProps,
 } from "@chakra-ui/react";
 import { IoMdSend } from "react-icons/io";
+
 import AutoResizeTextArea from "./AutoResizeTextArea";
 
 export const CustomInstructionsInput = ({

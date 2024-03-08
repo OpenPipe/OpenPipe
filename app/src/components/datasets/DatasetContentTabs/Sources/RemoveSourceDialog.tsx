@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import {
   AlertDialog,
   AlertDialogOverlay,
@@ -11,12 +10,14 @@ import {
   Text,
 } from "@chakra-ui/react";
 import pluralize from "pluralize";
+import { useRef } from "react";
 
-import { api } from "~/utils/api";
-import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { type DatasetArchive } from "./RelabelArchiveDialog";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { api } from "~/utils/api";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
+
+import { type DatasetArchive } from "./RelabelArchiveDialog";
 
 export const RemoveSourceDialog = ({
   source,

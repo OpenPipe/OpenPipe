@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+import { omit } from "lodash-es";
 import type {
   ChatCompletion,
   ChatCompletionChunk,
@@ -9,7 +10,7 @@ import type {
 } from "openai/resources/chat";
 import { type Stream } from "openai/streaming";
 
-import { omit } from "lodash-es";
+import { fireworksConfig } from "~/server/fineTuningProviders/openpipe/fireworksConfig";
 import {
   convertFunctionMessageToToolCall,
   convertToolCallInputToFunctionInput,
@@ -17,10 +18,11 @@ import {
 import { getAzureGpt4Completion, getOpenaiCompletion } from "~/server/utils/openai";
 import { type TypedFineTune } from "~/types/dbColumns.types";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
-import { getModalCompletion } from "./getModalCompletion";
+
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
 import { getFireworksCompletion } from "./getFireworksCompletion";
-import { fireworksConfig } from "~/server/fineTuningProviders/openpipe/fireworksConfig";
+import { getModalCompletion } from "./getModalCompletion";
+
 
 export async function getCompletion(
   fineTune: TypedFineTune,

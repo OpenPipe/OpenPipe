@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useMemo } from "react";
 import {
   Drawer,
   DrawerBody,
@@ -13,20 +12,22 @@ import {
   Button,
   Text,
 } from "@chakra-ui/react";
-import type { ChatCompletionMessageParam } from "openai/resources/chat";
 import { type DatasetEntrySplit } from "@prisma/client";
 import { isEqual } from "lodash-es";
+import type { ChatCompletionMessageParam } from "openai/resources/chat";
+import React, { useState, useEffect, useMemo } from "react";
 
-import { api } from "~/utils/api";
-import { useNodeEntry, useHandledAsyncCallback } from "~/utils/hooks";
-import EntrySplitDropdown from "./EntrySplitDropdown";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import dayjs from "~/utils/dayjs";
-import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
-import InputEditor from "./InputEditor";
-import ToolsEditor from "./ToolsEditor";
-import OutputEditor from "./OutputEditor";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { api } from "~/utils/api";
+import dayjs from "~/utils/dayjs";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { useNodeEntry, useHandledAsyncCallback } from "~/utils/hooks";
+
+import EntrySplitDropdown from "./EntrySplitDropdown";
+import InputEditor from "./InputEditor";
+import OutputEditor from "./OutputEditor";
+import ToolsEditor from "./ToolsEditor";
+import useKeepScrollAtBottom from "./useKeepScrollAtBottom";
 
 const CONTAINER_ID = "drawer-container";
 const CONTENT_ID = "drawer-content";

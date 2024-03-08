@@ -1,10 +1,12 @@
 import { VStack, Text, Card } from "@chakra-ui/react";
 
-import AddFilterButton from "../Filters/AddFilterButton";
-import Filter from "./Filter/index";
-import { useFilters } from "./useFilters";
-import { type FilterOption } from "./types";
 import { type AtLeastOne } from "~/types/shared.types";
+
+import Filter from "./Filter/index";
+import { type FilterOption } from "./types";
+import { useFilters } from "./useFilters";
+import AddFilterButton from "../Filters/AddFilterButton";
+
 
 const Filters = ({ filterOptions }: { filterOptions: FilterOption[] }) => {
   const filters = useFilters().filters;

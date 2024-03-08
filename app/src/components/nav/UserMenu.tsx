@@ -13,6 +13,7 @@ import {
 import { type Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { BsBoxArrowRight, BsChevronRight, BsPersonCircle } from "react-icons/bs";
+
 import NavSidebarOption from "./NavSidebarOption";
 
 export default function UserMenu({ user, ...rest }: { user: Session } & StackProps) {

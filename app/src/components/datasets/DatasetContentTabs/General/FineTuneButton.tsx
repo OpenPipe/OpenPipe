@@ -26,16 +26,22 @@ import {
   NumberDecrementStepper,
   NumberInputField,
 } from "@chakra-ui/react";
+import { type PruningRule } from "@prisma/client";
 import humanId from "human-id";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import { useActiveFeatureFlags } from "posthog-js/react";
 import { useEffect, useState } from "react";
 import { AiTwotoneThunderbolt } from "react-icons/ai";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
-import { type PruningRule } from "@prisma/client";
 
 import ActionButton from "~/components/ActionButton";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { useFilters } from "~/components/Filters/useFilters";
+import InfoCircle from "~/components/InfoCircle";
 import InputDropdown from "~/components/InputDropdown";
+import { ProjectLink } from "~/components/ProjectLink";
+import { type AxolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 import {
   modelInfo,
   splitProvider,
@@ -53,14 +59,11 @@ import {
   useSelectedProject,
 } from "~/utils/hooks";
 import { getEntries } from "~/utils/utils";
-import InfoCircle from "~/components/InfoCircle";
-import { DATASET_SETTINGS_TAB_KEY } from "../DatasetContentTabs";
+
 import TrainingEntryMeter from "./TrainingEntryMeter";
-import { useFilters } from "~/components/Filters/useFilters";
-import { ProjectLink } from "~/components/ProjectLink";
-import ConditionallyEnable from "~/components/ConditionallyEnable";
-import { type AxolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
-import { useActiveFeatureFlags } from "posthog-js/react";
+import { DATASET_SETTINGS_TAB_KEY } from "../DatasetContentTabs";
+
+
 
 const FineTuneButton = () => {
   const datasetEntries = useNodeEntries().data;

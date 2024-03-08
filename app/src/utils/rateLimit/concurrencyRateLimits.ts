@@ -1,8 +1,10 @@
 import { sql } from "kysely";
-import { kysely } from "~/server/db";
-import { v4 as uuidv4 } from "uuid";
 import { RateLimitError } from "openai";
+import { v4 as uuidv4 } from "uuid";
+
 import { env } from "~/env.mjs";
+import { kysely } from "~/server/db";
+
 import { CONCURRENCY_RATE_LIMITS } from "./const";
 
 export const recordOngoingRequestStart = async (projectId: string, proceed = true) => {

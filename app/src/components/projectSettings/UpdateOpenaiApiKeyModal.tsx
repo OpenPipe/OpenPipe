@@ -18,8 +18,8 @@ import {
 import { useState, useEffect } from "react";
 
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 
 const UpdateOpenaiApiKeyModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const selectedProject = useSelectedProject().data;

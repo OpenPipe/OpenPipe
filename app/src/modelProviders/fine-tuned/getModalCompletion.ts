@@ -3,6 +3,7 @@ import type { ChatCompletion, ChatCompletionCreateParams } from "openai/resource
 
 import { loraInference, runInference } from "~/server/modal-rpc/clients";
 import { type TypedFineTune } from "~/types/dbColumns.types";
+
 import { deserializeChatOutput, serializeChatInput } from "./serializers";
 
 export async function getModalCompletion(

@@ -4,6 +4,7 @@ import type {
   ChatCompletionMessageParam,
 } from "openai/resources/chat";
 import { z } from "zod";
+
 import { type TypedFineTune } from "./dbColumns.types";
 
 export const CURRENT_PIPELINE_VERSION: TypedFineTune["pipelineVersion"] = 3;

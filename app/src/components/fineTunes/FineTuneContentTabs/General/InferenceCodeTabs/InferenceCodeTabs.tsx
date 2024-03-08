@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 
+import { env } from "~/env.mjs";
 import { type RouterOutputs } from "~/utils/api";
 import { useFineTune, useSelectedProject, useTrainingEntries } from "~/utils/hooks";
+
 import CopiableCodeTabs, { type CodeTab } from "./CopiableCodeTabs";
-import { env } from "~/env.mjs";
 
 const baseTabs: CodeTab[] = [
   {

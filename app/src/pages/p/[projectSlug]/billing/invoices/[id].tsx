@@ -18,20 +18,20 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react";
+import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { FaPrint } from "react-icons/fa";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
-import { ProjectLink, useProjectLink } from "~/components/ProjectLink";
 
+import { getStatusColor } from "~/components/billing/BillingContentTabs/Invoices/InvoicesTable";
+import PayButton from "~/components/billing/BillingContentTabs/PaymentMethods/PayButton";
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
+import { ProjectLink, useProjectLink } from "~/components/ProjectLink";
 import { typedInvoice } from "~/types/dbColumns.types";
-import { useInvoice, useSelectedProject } from "~/utils/hooks";
 import { type JsonValue } from "~/types/kysely-codegen.types";
-import PayButton from "~/components/billing/BillingContentTabs/PaymentMethods/PayButton";
-import { getStatusColor } from "~/components/billing/BillingContentTabs/Invoices/InvoicesTable";
-import dayjs from "dayjs";
+import { useInvoice, useSelectedProject } from "~/utils/hooks";
 
 export default function Invoice() {
   const selectedProject = useSelectedProject().data;

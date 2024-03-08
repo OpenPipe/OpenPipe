@@ -13,11 +13,10 @@ import {
   useDisclosure,
   type InputGroupProps,
 } from "@chakra-ui/react";
-
-import { FiChevronDown } from "react-icons/fi";
-import { BiCheck } from "react-icons/bi";
 import { isEqual } from "lodash-es";
 import React from "react";
+import { BiCheck } from "react-icons/bi";
+import { FiChevronDown } from "react-icons/fi";
 
 type InputDropdownProps<T> = {
   options: ReadonlyArray<T>;

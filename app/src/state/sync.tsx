@@ -1,5 +1,7 @@
 import { useEffect } from "react";
+
 import { api } from "~/utils/api";
+
 import { useAppStore } from "./store";
 
 export function SyncAppStore() {

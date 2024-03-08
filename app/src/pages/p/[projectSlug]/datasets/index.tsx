@@ -1,8 +1,9 @@
 import { VStack, HStack, Text } from "@chakra-ui/react";
-import AppShell from "~/components/nav/AppShell";
+
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import DatasetsTable from "~/components/datasets/DatasetsTable";
 import NewDatasetButton from "~/components/datasets/NewDatasetButton";
-import ConditionallyEnable from "~/components/ConditionallyEnable";
+import AppShell from "~/components/nav/AppShell";
 
 export default function DatasetsPage() {
   return (

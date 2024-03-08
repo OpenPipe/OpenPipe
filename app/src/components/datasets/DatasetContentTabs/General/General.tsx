@@ -1,13 +1,14 @@
 import { VStack, HStack, Text } from "@chakra-ui/react";
 
-import FineTuneButton from "./FineTuneButton";
-import UploadDataButton from "./UploadDataButton";
-import DatasetEntriesTable from "./DatasetEntriesTable/DatasetEntriesTable";
-import DatasetEntryPaginator from "./DatasetEntryPaginator";
-import GeneralFilters from "./GeneralFilters";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 import { useNodeEntries } from "~/utils/hooks";
+
+import DatasetEntriesTable from "./DatasetEntriesTable/DatasetEntriesTable";
+import DatasetEntryPaginator from "./DatasetEntryPaginator";
+import FineTuneButton from "./FineTuneButton";
+import GeneralFilters from "./GeneralFilters";
+import UploadDataButton from "./UploadDataButton";
 
 const General = () => {
   const filtersShown = useFilters().filtersShown;

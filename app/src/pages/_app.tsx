@@ -1,16 +1,17 @@
-import { useEffect } from "react";
+import { type AppType } from "next/app";
+import Head from "next/head";
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-import { type AppType } from "next/app";
-import { api } from "~/utils/api";
-import Favicon from "~/components/Favicon";
-import Head from "next/head";
-import { ChakraThemeProvider } from "~/theme/ChakraThemeProvider";
-import { SyncAppStore } from "~/state/sync";
 import NextAdapterPages from "next-query-params/pages";
+import { useEffect } from "react";
 import { QueryParamProvider } from "use-query-params";
-import { FrontendAnalyticsProvider } from "~/utils/analytics/analytics";
+
+import Favicon from "~/components/Favicon";
 import { useAppStore } from "~/state/store";
+import { SyncAppStore } from "~/state/sync";
+import { ChakraThemeProvider } from "~/theme/ChakraThemeProvider";
+import { FrontendAnalyticsProvider } from "~/utils/analytics/analytics";
+import { api } from "~/utils/api";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,

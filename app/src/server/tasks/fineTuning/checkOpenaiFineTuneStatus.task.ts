@@ -1,10 +1,12 @@
 import OpenAI from "openai";
 
 import { prisma } from "~/server/db";
-import defineTask from "../defineTask";
-import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
-import { typedFineTune } from "~/types/dbColumns.types";
 import { startTestJobsForModel } from "~/server/utils/nodes/startTestJobs";
+import { typedFineTune } from "~/types/dbColumns.types";
+import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
+
+import defineTask from "../defineTask";
+
 
 const runOnce = async () => {
   const trainingOpenaiFineTunes = await prisma.fineTune

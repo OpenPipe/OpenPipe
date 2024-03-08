@@ -1,5 +1,6 @@
 import { Icon, HStack, Text, type BoxProps } from "@chakra-ui/react";
 import { type IconType } from "react-icons";
+
 import NavSidebarOption from "./NavSidebarOption";
 import { ProjectLink, type ProjectLinkProps, type ProjectRoute } from "../ProjectLink";
 

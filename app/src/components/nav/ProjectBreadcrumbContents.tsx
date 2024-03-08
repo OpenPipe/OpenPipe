@@ -1,4 +1,5 @@
 import { HStack, Flex, Text } from "@chakra-ui/react";
+
 import { useSelectedProject } from "~/utils/hooks";
 
 // Have to export only contents here instead of full BreadcrumbItem because Chakra doesn't

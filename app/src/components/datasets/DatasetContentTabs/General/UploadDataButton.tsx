@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -18,14 +17,11 @@ import {
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
 import pluralize from "pluralize";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { AiOutlineCloudUpload, AiOutlineFile } from "react-icons/ai";
 import { FaReadme } from "react-icons/fa";
 
-import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
-import { api } from "~/utils/api";
 import ActionButton from "~/components/ActionButton";
-import { uploadDatasetEntryFile } from "~/utils/azure/website";
-import { formatFileSize } from "~/utils/utils";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import {
   type RowToImport,
@@ -33,6 +29,10 @@ import {
   isRowToImport,
   isParseError,
 } from "~/server/utils/datasetEntryCreation/parseRowsToImport";
+import { api } from "~/utils/api";
+import { uploadDatasetEntryFile } from "~/utils/azure/website";
+import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
+import { formatFileSize } from "~/utils/utils";
 
 const UploadDataButton = () => {
   const disclosure = useDisclosure();

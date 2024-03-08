@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import { Table, Thead, Tr, Th, Td, VStack } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
-import { api } from "~/utils/api";
-import { useSelectedProject } from "~/utils/hooks";
-import dayjs from "~/utils/dayjs";
 import AppShell from "~/components/nav/AppShell";
+import { api } from "~/utils/api";
+import dayjs from "~/utils/dayjs";
+import { useSelectedProject } from "~/utils/hooks";
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
 
 // useful for debugging

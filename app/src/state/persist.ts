@@ -1,8 +1,9 @@
-import { type PersistOptions } from "zustand/middleware/persist";
-import { type State } from "./store";
-import SuperJSON from "superjson";
 import { merge, pick } from "lodash-es";
+import SuperJSON from "superjson";
 import { type PartialDeep } from "type-fest";
+import { type PersistOptions } from "zustand/middleware/persist";
+
+import { type State } from "./store";
 
 export type PersistedState = PartialDeep<State>;
 

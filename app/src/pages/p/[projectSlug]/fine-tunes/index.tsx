@@ -1,6 +1,6 @@
 import { Text, VStack } from "@chakra-ui/react";
-import FineTunesTable from "~/components/fineTunes/FineTunesTable";
 
+import FineTunesTable from "~/components/fineTunes/FineTunesTable";
 import AppShell from "~/components/nav/AppShell";
 
 export default function FineTunes() {

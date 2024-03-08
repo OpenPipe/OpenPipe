@@ -1,11 +1,12 @@
 import { Card, Table, Thead, Tr, Th, Tbody, Td, VStack, Icon, Text } from "@chakra-ui/react";
-import { FaTable } from "react-icons/fa";
 import { type FineTuneStatus } from "@prisma/client";
+import { FaTable } from "react-icons/fa";
 
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import dayjs from "~/utils/dayjs";
 import { useFineTunes } from "~/utils/hooks";
+
 import ViewDatasetButton from "../datasets/ViewDatasetButton";
-import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { ProjectLink } from "../ProjectLink";
 
 const FineTunesTable = ({}) => {

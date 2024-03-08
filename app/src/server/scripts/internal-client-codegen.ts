@@ -1,8 +1,9 @@
 import "dotenv/config";
-import { openApiDocument } from "~/pages/api/internal/v1/openapi.json";
+import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
-import { execSync } from "child_process";
+
+import { openApiDocument } from "~/pages/api/internal/v1/openapi.json";
 
 const scriptPath = import.meta.url.replace("file://", "");
 const dockerClientPath = path.join(path.dirname(scriptPath), "../../../../trainer");

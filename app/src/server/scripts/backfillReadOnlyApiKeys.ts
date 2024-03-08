@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { kysely } from "../db";
 import { generateApiKey } from "~/server/utils/generateApiKey";
+
+import { kysely } from "../db";
 
 console.log("Backfilling read-only API keys");
 

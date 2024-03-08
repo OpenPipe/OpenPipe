@@ -1,12 +1,12 @@
 import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, Text, VStack } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
 
+import EvalContentTabs from "~/components/evals/EvalContentTabs/EvalContentTabs";
 import AppShell from "~/components/nav/AppShell";
-import { useDatasetEval } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import EvalContentTabs from "~/components/evals/EvalContentTabs/EvalContentTabs";
 import { ProjectLink } from "~/components/ProjectLink";
+import { useDatasetEval } from "~/utils/hooks";
 
 export default function Eval() {
   const datasetEval = useDatasetEval();

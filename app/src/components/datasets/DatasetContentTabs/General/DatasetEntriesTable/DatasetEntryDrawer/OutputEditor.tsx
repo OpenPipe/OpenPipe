@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { VStack, HStack, Button, Text, Divider, Icon, Collapse } from "@chakra-ui/react";
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
+import React, { useState } from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 import EditableMessage from "./EditableMessage";

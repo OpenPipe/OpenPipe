@@ -1,18 +1,20 @@
-import { useMemo, useEffect, useCallback } from "react";
 import { HStack, IconButton } from "@chakra-ui/react";
+import { useMemo, useEffect, useCallback } from "react";
 import { BsTrash } from "react-icons/bs";
 
-import SelectFieldDropdown from "../SelectFieldDropdown";
+import InputDropdown from "~/components/InputDropdown";
+import { type AtLeastOne } from "~/types/shared.types";
+
 import SelectComparatorDropdown from "../SelectComparatorDropdown";
-import { useFilters } from "../useFilters";
+import SelectFieldDropdown from "../SelectFieldDropdown";
 import type {
   FilterData,
   SelectFilterSelectOption,
   FilterOption,
   SelectFilterOption,
 } from "../types";
-import { type AtLeastOne } from "~/types/shared.types";
-import InputDropdown from "~/components/InputDropdown";
+import { useFilters } from "../useFilters";
+
 
 const SelectFilter = ({
   filterOptions,

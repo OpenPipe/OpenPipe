@@ -4,23 +4,26 @@ import type {
   ComparisonModel,
   DatasetEntryOutput,
 } from "@prisma/client";
-import type { ChatCompletionCreateParams, FunctionParameters } from "openai/resources";
 import { captureException } from "@sentry/node";
-import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
-import type { JsonObject } from "type-fest";
 import { isEqual } from "lodash-es";
 import { RateLimitError } from "openai";
+import type { ChatCompletionCreateParams, FunctionParameters } from "openai/resources";
+import type { JsonObject } from "type-fest";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 import { kysely, prisma } from "~/server/db";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
-import { getOpenaiCompletion } from "../utils/openai";
-import defineTask from "./defineTask";
-import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonModels";
-import { chatCompletionMessage } from "~/types/shared.types";
-import { countOpenAIChatTokens } from "~/utils/countTokens";
-import { generateEntry } from "./generateTestSetEntry.task";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
+import { chatCompletionMessage } from "~/types/shared.types";
+import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonModels";
+import { countOpenAIChatTokens } from "~/utils/countTokens";
+
+import defineTask from "./defineTask";
+import { generateEntry } from "./generateTestSetEntry.task";
+import { getOpenaiCompletion } from "../utils/openai";
+
+
 
 // Accept result criteria instead of ids to recover from duplicate result creation attempts
 export type EvalKey = {

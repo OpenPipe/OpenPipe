@@ -1,4 +1,5 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import * as Sentry from "@sentry/nextjs";
 import { type GetServerSidePropsContext } from "next";
 import {
   getServerSession,
@@ -6,13 +7,12 @@ import {
   type DefaultSession,
   type Profile,
 } from "next-auth";
-import * as Sentry from "@sentry/nextjs";
 import GitHubModule, { type GithubProfile } from "next-auth/providers/github";
 
-import { prisma } from "~/server/db";
 import { env } from "~/env.mjs";
-import { ensureDefaultExport } from "~/utils/utils";
+import { prisma } from "~/server/db";
 import { captureSignup } from "~/utils/analytics/serverAnalytics";
+import { ensureDefaultExport } from "~/utils/utils";
 
 const GitHubProvider = ensureDefaultExport(GitHubModule);
 

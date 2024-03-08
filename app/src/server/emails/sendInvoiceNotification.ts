@@ -1,8 +1,10 @@
-import { env } from "~/env.mjs";
-import { sendEmail } from "./sendEmail";
 import { render } from "@react-email/render";
+
+import { env } from "~/env.mjs";
 import { typedInvoice } from "~/types/dbColumns.types";
 import { type JsonValue } from "~/types/kysely-codegen.types";
+
+import { sendEmail } from "./sendEmail";
 import InvoiceNotification from "./templates/InvoiceNotification";
 
 export const sendInvoiceNotification = async (

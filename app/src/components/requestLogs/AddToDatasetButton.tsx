@@ -1,4 +1,3 @@
-import { useState, useEffect, useMemo } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -18,24 +17,28 @@ import {
   type UseDisclosureReturn,
   Checkbox,
 } from "@chakra-ui/react";
+import { useRouter } from "next/router";
+import { useState, useEffect, useMemo } from "react";
 import { FiPlusSquare } from "react-icons/fi";
 
+import { useAppStore } from "~/state/store";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { api } from "~/utils/api";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
   useDatasets,
   useHandledAsyncCallback,
   useSelectedProject,
   useTotalNumLogsSelected,
 } from "~/utils/hooks";
-import { api } from "~/utils/api";
-import { useAppStore } from "~/state/store";
+
 import ActionButton from "../ActionButton";
-import InputDropdown from "../InputDropdown";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { useRouter } from "next/router";
-import { useFilters, constructFiltersQueryParams } from "../Filters/useFilters";
 import { DATASET_GENERAL_TAB_KEY } from "../datasets/DatasetContentTabs/DatasetContentTabs";
-import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 import { useDateFilter } from "../Filters/useDateFilter";
+import { useFilters, constructFiltersQueryParams } from "../Filters/useFilters";
+import InputDropdown from "../InputDropdown";
+
+
 
 const AddToDatasetButton = () => {
   const totalNumLogsSelected = useTotalNumLogsSelected();

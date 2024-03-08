@@ -1,10 +1,10 @@
+import { sql } from "kysely";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { requireIsAdmin } from "~/utils/accessControl";
 import { kysely } from "~/server/db";
-import { sql } from "kysely";
+import { requireIsAdmin } from "~/utils/accessControl";
 
 export const adminUsersRouter = createTRPCRouter({
   impersonate: protectedProcedure

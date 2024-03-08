@@ -1,5 +1,6 @@
 import { marked } from "marked";
 import nodemailer from "nodemailer";
+
 import { env } from "~/env.mjs";
 
 // Check if SMTP_HOST is defined and use a fake transport or the real SMTP transport accordingly

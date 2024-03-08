@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   Icon,
   Popover,
@@ -11,15 +10,17 @@ import {
   useDisclosure,
   Box,
 } from "@chakra-ui/react";
+import { useMemo } from "react";
 import { BiCheck } from "react-icons/bi";
 import { BsPlusSquare, BsToggles } from "react-icons/bs";
 
-import { useDataset, useIsClientInitialized } from "~/utils/hooks";
 import ActionButton from "~/components/ActionButton";
-import { useVisibleModelIds } from "./useVisibleModelIds";
-import ConfigureComparisonModelsModal from "./ConfigureComparisonModelsModal";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { useDataset, useIsClientInitialized } from "~/utils/hooks";
+
+import ConfigureComparisonModelsModal from "./ConfigureComparisonModelsModal";
+import { useVisibleModelIds } from "./useVisibleModelIds";
 
 export const EMPTY_OUTPUT_COLUMNS_KEY = "empty";
 

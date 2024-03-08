@@ -7,18 +7,19 @@
  * need to use are documented accordingly near the end.
  */
 
+import * as Sentry from "@sentry/nextjs";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { noop } from "lodash-es";
 import { type Session } from "next-auth";
 import superjson from "superjson";
 import { type OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
-import * as Sentry from "@sentry/nextjs";
 
 import { getServerAuthSession } from "~/server/auth";
 import { prisma } from "~/server/db";
 import { capturePath } from "~/utils/analytics/serverAnalytics";
-import { noop } from "lodash-es";
+
 
 /**
  * 1. CONTEXT

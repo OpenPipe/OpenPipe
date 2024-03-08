@@ -1,5 +1,6 @@
 import { type NextApiRequest, type NextApiResponse } from "next";
 import { generateOpenApiDocument } from "trpc-openapi";
+
 import { v1ApiRouter } from "~/server/api/external/v1Api/router";
 
 export const openApiDocument = generateOpenApiDocument(v1ApiRouter, {

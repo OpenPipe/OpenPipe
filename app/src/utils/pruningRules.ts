@@ -1,5 +1,7 @@
 import { type ChatCompletionMessageParam } from "openai/resources/chat";
+
 import { prisma } from "~/server/db";
+
 import { isComparisonModel } from "./comparisonModels";
 
 export function escapeString(input: string | undefined) {

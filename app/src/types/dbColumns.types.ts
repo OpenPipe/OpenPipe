@@ -7,14 +7,15 @@ import type {
 } from "@prisma/client";
 import { z } from "zod";
 
+import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 import { baseModel } from "~/server/fineTuningProviders/types";
+
 import {
   chatCompletionInput,
   chatCompletionInputReqPayload,
   chatCompletionMessage,
   chatCompletionOutput,
 } from "./shared.types";
-import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 
 export const chatInputs = chatCompletionInputReqPayload.shape;
 

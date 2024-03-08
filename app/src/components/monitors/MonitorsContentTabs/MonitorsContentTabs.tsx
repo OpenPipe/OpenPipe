@@ -1,4 +1,5 @@
 import ContentTabs from "~/components/ContentTabs";
+
 import MonitorFilters from "./Filters/Filters";
 import Results from "./Results/Results";
 

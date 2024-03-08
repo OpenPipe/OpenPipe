@@ -1,17 +1,19 @@
-import { type StateCreator, create } from "zustand";
-import { immer } from "zustand/middleware/immer";
 import { enableMapSet } from "immer";
+import { type StateCreator, create } from "zustand";
 import { persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
+
+import { type APIClient } from "~/utils/api";
+
+import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisibilitySlice";
 import { createSelectors } from "./createSelectors";
+import { type EvaluationsSlice, createEvaluationsSlice } from "./evaluationsSlice";
+import { type PersistedState, persistOptions } from "./persist";
+import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
 import {
   type SharedArgumentsEditorSlice,
   createArgumentsEditorSlice,
 } from "./sharedArgumentsEditor.slice";
-import { type APIClient } from "~/utils/api";
-import { type PersistedState, persistOptions } from "./persist";
-import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
-import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisibilitySlice";
-import { type EvaluationsSlice, createEvaluationsSlice } from "./evaluationsSlice";
 
 enableMapSet();
 

@@ -1,10 +1,12 @@
 import { Card, CardBody, Text, HStack, VStack, Icon, Button } from "@chakra-ui/react";
+import { FaCcMastercard, FaCcVisa, FaCreditCard } from "react-icons/fa";
+
 import { api } from "~/utils/api";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { useHandledAsyncCallback, usePaymentMethods, useSelectedProject } from "~/utils/hooks";
 
 import AddPaymentMethodButton from "./AddPaymentMethodButton";
-import { useHandledAsyncCallback, usePaymentMethods, useSelectedProject } from "~/utils/hooks";
-import { FaCcMastercard, FaCcVisa, FaCreditCard } from "react-icons/fa";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+
 
 const PaymentMethods = () => {
   const selectedProject = useSelectedProject().data;

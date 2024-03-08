@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Text,
   VStack,
@@ -12,16 +11,18 @@ import {
   AlertDescription,
 } from "@chakra-ui/react";
 import type { ChatCompletionMessage } from "openai/resources/chat";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
-import { type RouterOutputs } from "~/utils/api";
-import ModelHeader from "./ModelHeader";
 import { ORIGINAL_MODEL_ID, typedDatasetEntryInput } from "~/types/dbColumns.types";
-import { useVisibleEvalIds } from "../useVisibleEvalIds";
+import { type RouterOutputs } from "~/utils/api";
+
 import EvalResults from "./EvalResults";
-import FormattedMessage from "../FormattedMessage";
-import { useVisibleModelIds } from "../useVisibleModelIds";
+import ModelHeader from "./ModelHeader";
 import FormattedDatasetEntryInput from "../FormattedInput";
+import FormattedMessage from "../FormattedMessage";
+import { useVisibleEvalIds } from "../useVisibleEvalIds";
+import { useVisibleModelIds } from "../useVisibleModelIds";
 
 export const TableHeader = () => {
   const visibleModelIds = useVisibleModelIds().visibleModelIds;

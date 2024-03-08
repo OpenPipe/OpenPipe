@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+import { type Completion } from "openai/resources";
 import type {
   ChatCompletion,
   ChatCompletionChunk,
@@ -6,12 +7,12 @@ import type {
   ChatCompletionCreateParamsNonStreaming,
   ChatCompletionCreateParamsStreaming,
 } from "openai/resources/chat";
-
-import { type TypedFineTune } from "~/types/dbColumns.types";
-import { deserializeChatOutput, serializeChatInput } from "./serializers";
-import { env } from "~/env.mjs";
-import { type Completion } from "openai/resources";
 import { Stream } from "openai/streaming";
+
+import { env } from "~/env.mjs";
+import { type TypedFineTune } from "~/types/dbColumns.types";
+
+import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import {
   constructOpenAIChunk,
   transformToolCallStreamToOpenAIFormat,

@@ -12,13 +12,13 @@ import {
   Box,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
-
-import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
-import { api } from "~/utils/api";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { toast } from "~/theme/ChakraThemeProvider";
-import { env } from "~/env.mjs";
 import { loadStripe } from "@stripe/stripe-js";
+
+import { env } from "~/env.mjs";
+import { toast } from "~/theme/ChakraThemeProvider";
+import { api } from "~/utils/api";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 
 const stripePromise = loadStripe(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "");
 

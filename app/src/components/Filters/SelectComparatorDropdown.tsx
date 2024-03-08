@@ -1,8 +1,10 @@
 import { useEffect } from "react";
+
 import InputDropdown from "~/components/InputDropdown";
-import { useFilters } from "./useFilters";
-import { type FilterData, comparatorsForFilterType, type FilterType } from "./types";
 import { type comparators } from "~/types/shared.types";
+
+import { type FilterData, comparatorsForFilterType, type FilterType } from "./types";
+import { useFilters } from "./useFilters";
 
 const SelectComparatorDropdown = ({
   filter,

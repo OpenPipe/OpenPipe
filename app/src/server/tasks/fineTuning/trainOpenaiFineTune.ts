@@ -1,15 +1,16 @@
 import fs from "fs";
-import OpenAI from "openai";
 import { from } from "ix/asynciterable";
 import { filter, map } from "ix/asynciterable/operators";
+import OpenAI from "openai";
 
 import { prisma } from "~/server/db";
-import { truthyFilter } from "~/utils/utils";
 import { convertToolCallMessagesToFunction } from "~/server/utils/convertFunctionCalls";
 import { typedNodeEntry, typedFineTune } from "~/types/dbColumns.types";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { getStringsToPrune, pruneInputMessages } from "~/utils/pruningRules";
+import { truthyFilter } from "~/utils/utils";
+
 import { iterateTrainingRows } from "./trainFineTune.task";
 
 export const trainOpenaiFineTune = async (fineTuneId: string) => {

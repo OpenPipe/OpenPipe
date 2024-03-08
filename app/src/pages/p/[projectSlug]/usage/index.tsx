@@ -29,11 +29,11 @@ import {
 } from "@chakra-ui/react";
 import { ChevronRightIcon, ChevronLeftIcon, DollarSign, Hash } from "lucide-react";
 import { StringParam, withDefault, useQueryParams } from "use-query-params";
-import { ProjectLink } from "~/components/ProjectLink";
-import CostGraph from "~/components/dashboard/CostGraph";
 
+import CostGraph from "~/components/dashboard/CostGraph";
 import UsageGraph from "~/components/dashboard/UsageGraph";
 import AppShell from "~/components/nav/AppShell";
+import { ProjectLink } from "~/components/ProjectLink";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { calculateSpendingsWithCredits } from "~/utils/billing";
 import dayjs, { formatToUTCDayMonth } from "~/utils/dayjs";

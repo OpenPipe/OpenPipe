@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import OpenAI from "openai";
 import type {
   ChatCompletion,
   ChatCompletionChunk,
@@ -7,11 +7,12 @@ import type {
   ChatCompletionCreateParamsStreaming,
 } from "openai/resources/chat";
 import { Stream } from "openai/streaming";
-import OpenAI from "openai";
+import { v4 as uuidv4 } from "uuid";
 
-import { type TypedFineTune } from "~/types/dbColumns.types";
-import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import { env } from "~/env.mjs";
+import { type TypedFineTune } from "~/types/dbColumns.types";
+
+import { deserializeChatOutput, serializeChatInput } from "./serializers";
 import {
   constructOpenAIChunk,
   transformToolCallStreamToOpenAIFormat,

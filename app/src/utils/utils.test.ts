@@ -1,4 +1,5 @@
 import { assertType, test } from "vitest";
+
 import { passThroughNulls } from "./utils";
 
 test("passThroughNulls", () => {

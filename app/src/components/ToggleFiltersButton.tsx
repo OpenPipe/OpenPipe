@@ -1,7 +1,8 @@
 import { FiFilter } from "react-icons/fi";
 
-import ActionButton from "./ActionButton";
 import { useFilters } from "~/components/Filters/useFilters";
+
+import ActionButton from "./ActionButton";
 
 const ToggleFiltersButton = ({ defaultShown }: { defaultShown?: boolean }) => {
   const filters = useFilters().filters;

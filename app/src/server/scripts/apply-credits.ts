@@ -3,6 +3,7 @@
 import "dotenv/config";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+
 import { prisma } from "~/server/db";
 
 const argv = await yargs(hideBin(process.argv))

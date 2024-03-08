@@ -1,7 +1,7 @@
 import { type Node, type NodeType } from "@prisma/client";
 
-import { type InferNodeConfig } from "./node.types";
 import { hashNode } from "./hashNode";
+import { type InferNodeConfig } from "./node.types";
 
 // This function signature ensures the config matches the type
 export const checkNodeInput = <

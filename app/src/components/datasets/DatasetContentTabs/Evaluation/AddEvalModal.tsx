@@ -1,4 +1,3 @@
-import { useState, useEffect, useMemo } from "react";
 import {
   Button,
   Checkbox,
@@ -17,25 +16,28 @@ import {
   Link as ChakraLink,
   type UseDisclosureReturn,
 } from "@chakra-ui/react";
-import { FaBalanceScale } from "react-icons/fa";
 import { useRouter } from "next/router";
+import { useState, useEffect, useMemo } from "react";
+import { FaBalanceScale } from "react-icons/fa";
 
+import AutoResizeTextArea from "~/components/AutoResizeTextArea";
+import ConditionallyEnable from "~/components/ConditionallyEnable";
+import { useFilters } from "~/components/Filters/useFilters";
+import InfoCircle from "~/components/InfoCircle";
+import { ProjectLink } from "~/components/ProjectLink";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
+import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { api } from "~/utils/api";
+import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import {
   useDataset,
   useNodeEntries,
   useHandledAsyncCallback,
   useSelectedProject,
 } from "~/utils/hooks";
-import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
-import { useFilters } from "~/components/Filters/useFilters";
-import InfoCircle from "~/components/InfoCircle";
-import { getOutputTitle } from "~/server/utils/getOutputTitle";
-import { ProjectLink } from "~/components/ProjectLink";
-import ConditionallyEnable from "~/components/ConditionallyEnable";
+
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();

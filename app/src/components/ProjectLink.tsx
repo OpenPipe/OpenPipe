@@ -1,8 +1,8 @@
-import { type Ref, forwardRef, useMemo } from "react";
-import Link, { type LinkProps } from "next/link";
-import type { Route, DynamicRoute } from "nextjs-routes";
 import { Box } from "@chakra-ui/react";
+import Link, { type LinkProps } from "next/link";
+import { type Ref, forwardRef, useMemo } from "react";
 
+import type { Route, DynamicRoute } from "nextjs-routes";
 import { useSelectedProject } from "~/utils/hooks";
 
 type ExtractSlugRoutes<T> = T extends DynamicRoute<`/p/[projectSlug]${infer Rest}`, infer Params>

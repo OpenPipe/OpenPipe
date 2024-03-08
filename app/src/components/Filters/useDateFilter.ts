@@ -1,7 +1,8 @@
 import { useQueryParam, JsonParam, withDefault } from "use-query-params";
 
-import { type FilterData } from "./types";
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
+
+import { type FilterData } from "./types";
 
 export const useDateFilter = () => {
   const [dateFilter, setDateFilter] = useQueryParam<FilterData[]>(

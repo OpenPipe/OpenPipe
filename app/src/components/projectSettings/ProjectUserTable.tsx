@@ -1,12 +1,13 @@
-import { useState } from "react";
 import { Table, Thead, Tr, Th, Tbody, Td, IconButton, Text, Button } from "@chakra-ui/react";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { BsTrash } from "react-icons/bs";
 
-import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
-import { RemoveProjectUserDialog, type ProjectUser } from "./RemoveProjectUserDialog";
 import { api } from "~/utils/api";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
+
+import { RemoveProjectUserDialog, type ProjectUser } from "./RemoveProjectUserDialog";
 import ConditionallyEnable, { useAccessCheck } from "../ConditionallyEnable";
 
 const ProjectUserTable = () => {

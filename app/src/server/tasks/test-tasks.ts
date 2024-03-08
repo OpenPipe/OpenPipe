@@ -1,8 +1,10 @@
 import "dotenv/config";
 
-import defineTask from "./defineTask";
 import { type TaskList, run } from "graphile-worker";
+
 import { env } from "~/env.mjs";
+
+import defineTask from "./defineTask";
 
 import "../../../sentry.server.config";
 

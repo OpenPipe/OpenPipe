@@ -1,18 +1,18 @@
-import { useMemo } from "react";
 import { Box } from "@chakra-ui/react";
+import { useMemo } from "react";
 
-import { useDataset, useDatasetArchives } from "~/utils/hooks";
 import Filters from "~/components/Filters/Filters";
-import {
-  EVALUATION_FILTERS_OUTPUT_APPENDIX,
-  EvaluationFiltersDefaultFields,
-} from "~/types/shared.types";
-import { getComparisonModelName } from "~/utils/comparisonModels";
 import type {
   TextFilterOption,
   FilterOption,
   SelectFilterOption,
 } from "~/components/Filters/types";
+import {
+  EVALUATION_FILTERS_OUTPUT_APPENDIX,
+  EvaluationFiltersDefaultFields,
+} from "~/types/shared.types";
+import { getComparisonModelName } from "~/utils/comparisonModels";
+import { useDataset, useDatasetArchives } from "~/utils/hooks";
 
 const EvaluationFilters = () => {
   const dataset = useDataset().data;

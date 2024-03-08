@@ -1,8 +1,9 @@
 import { type AtLeastOne } from "~/types/shared.types";
-import { type FilterData, type FilterOption } from "../types";
+
 import DateFilter from "./DateFilter";
-import TextFilter from "./TextFilter";
 import SelectFilter from "./SelectFilter";
+import TextFilter from "./TextFilter";
+import { type FilterData, type FilterOption } from "../types";
 
 const Filter = ({
   filterOptions,

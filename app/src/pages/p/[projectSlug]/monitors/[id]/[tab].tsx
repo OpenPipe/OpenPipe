@@ -1,12 +1,12 @@
 import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, Text, VStack } from "@chakra-ui/react";
 import { BsClipboard2Data } from "react-icons/bs";
 
+import MonitorContentTabs from "~/components/monitors/MonitorsContentTabs/MonitorsContentTabs";
+import { useMonitor } from "~/components/monitors/useMonitor";
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import { ProjectLink } from "~/components/ProjectLink";
-import { useMonitor } from "~/components/monitors/useMonitor";
-import MonitorContentTabs from "~/components/monitors/MonitorsContentTabs/MonitorsContentTabs";
 
 export default function Monitor() {
   const monitor = useMonitor();

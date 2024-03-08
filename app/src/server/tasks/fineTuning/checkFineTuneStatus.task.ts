@@ -1,21 +1,25 @@
-import { kysely, prisma } from "~/server/db";
-import defineTask from "../defineTask";
-import { trainerv1 } from "~/server/modal-rpc/clients";
-import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
-
-// import dayjs duration
+import { captureException } from "@sentry/node";
 import dayjs from "dayjs";
-import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
-import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+
+import { kysely, prisma } from "~/server/db";
+import { sendFineTuneModelTrained } from "~/server/emails/sendFineTuneModelTrained";
 import {
   calculateNumEpochs,
   getNumEpochsFromConfig,
 } from "~/server/fineTuningProviders/openpipe/trainingConfig";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
+import { trainerv1 } from "~/server/modal-rpc/clients";
+import { typedFineTune } from "~/types/dbColumns.types";
+import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
+
 import { trainFineTune } from "./trainFineTune.task";
+import defineTask from "../defineTask";
+
+// import dayjs duration
+
+
 import { startTestJobsForModel } from "~/server/utils/nodes/startTestJobs";
-import { captureException } from "@sentry/node";
-import { sendFineTuneModelTrained } from "~/server/emails/sendFineTuneModelTrained";
 
 const MAX_AUTO_RETRIES = 2;
 

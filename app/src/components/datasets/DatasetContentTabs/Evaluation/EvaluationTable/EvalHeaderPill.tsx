@@ -1,5 +1,3 @@
-import { useMemo, useRef, useState, useLayoutEffect } from "react";
-import type { DatasetEval } from "@prisma/client";
 import {
   Box,
   Button,
@@ -11,18 +9,21 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@chakra-ui/react";
-import { FiChevronDown, FiEdit2, FiFilter } from "react-icons/fi";
-import { FaArrowDown, FaArrowUp, FaEyeSlash } from "react-icons/fa";
+import type { DatasetEval } from "@prisma/client";
 import { isNumber } from "lodash-es";
 import { useRouter } from "next/router";
+import { useMemo, useRef, useState, useLayoutEffect } from "react";
+import { FaArrowDown, FaArrowUp, FaEyeSlash } from "react-icons/fa";
+import { FiChevronDown, FiEdit2, FiFilter } from "react-icons/fi";
 
-import { useModelTestingStats, useDataset, useSelectedProject } from "~/utils/hooks";
 import ColoredPercent from "~/components/ColoredPercent";
-import { useVisibleEvalIds } from "../useVisibleEvalIds";
-import { useTestEntrySortOrder } from "../useTestEntrySortOrder";
-import { EvaluationFiltersDefaultFields, SortOrder } from "~/types/shared.types";
-import { useFilters } from "~/components/Filters/useFilters";
 import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
+import { useFilters } from "~/components/Filters/useFilters";
+import { EvaluationFiltersDefaultFields, SortOrder } from "~/types/shared.types";
+import { useModelTestingStats, useDataset, useSelectedProject } from "~/utils/hooks";
+
+import { useTestEntrySortOrder } from "../useTestEntrySortOrder";
+import { useVisibleEvalIds } from "../useVisibleEvalIds";
 
 const EvalHeaderPill = ({
   datasetEval,

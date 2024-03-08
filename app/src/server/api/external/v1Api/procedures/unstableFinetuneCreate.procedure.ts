@@ -1,8 +1,9 @@
+import { type Dataset } from "@prisma/client";
 import { z } from "zod";
 
-import { type Dataset } from "@prisma/client";
 import { createFineTune } from "~/server/api/routers/fineTunes/createFineTune";
 import { prisma } from "~/server/db";
+
 import { openApiProtectedProc } from "../../openApiTrpc";
 import { requireWriteKey } from "../helpers";
 

@@ -1,7 +1,8 @@
-import React from "react";
-import chroma from "chroma-js";
-
 import { VStack, HStack, Text, Box, type StackProps } from "@chakra-ui/react";
+import chroma from "chroma-js";
+import React from "react";
+
+
 import { useNodeEntries } from "~/utils/hooks";
 
 const TrainingEntryMeter = (props: StackProps) => {

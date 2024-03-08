@@ -1,10 +1,10 @@
-import EmailLayout from "./EmailLayout";
-import Header from "./Header";
-import Footer from "./Footer";
-import Logo from "./Logo";
 import Button from "./Button";
-import Text from "./Text";
-import InvoiceDescription from "./InvoiceDescription";
+import EmailLayout from "./EmailLayout";
+import Footer from "./Footer";
+import Header from "./Header";
 import Highlight from "./Highlight";
+import InvoiceDescription from "./InvoiceDescription";
+import Logo from "./Logo";
+import Text from "./Text";
 
 export { EmailLayout, Text, Header, Button, Footer, Logo, InvoiceDescription, Highlight };

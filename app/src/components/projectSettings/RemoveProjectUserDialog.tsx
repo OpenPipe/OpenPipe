@@ -10,10 +10,10 @@ import {
   VStack,
   Spinner,
 } from "@chakra-ui/react";
-import { useSession } from "next-auth/react";
-
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 import { useRef } from "react";
+
 import { type RouterOutputs, api } from "~/utils/api";
 import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 

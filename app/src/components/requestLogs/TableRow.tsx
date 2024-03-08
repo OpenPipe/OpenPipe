@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   Box,
   Heading,
@@ -15,11 +14,13 @@ import {
   Skeleton,
   Link as ChakraLink,
 } from "@chakra-ui/react";
+import { useMemo } from "react";
 
-import dayjs from "~/utils/dayjs";
-import { type RouterOutputs } from "~/utils/api";
-import { FormattedJson } from "../FormattedJson";
+import { ProjectLink } from "~/components/ProjectLink";
+import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import { useAppStore } from "~/state/store";
+import { type RouterOutputs } from "~/utils/api";
+import dayjs from "~/utils/dayjs";
 import {
   useIsClientInitialized,
   useLoggedCalls,
@@ -27,10 +28,11 @@ import {
   useTotalNumLogsSelected,
   useSelectedProject,
 } from "~/utils/hooks";
-import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
-import { useFilters } from "../Filters/useFilters";
+
 import { useDateFilter } from "../Filters/useDateFilter";
-import { ProjectLink } from "~/components/ProjectLink";
+import { useFilters } from "../Filters/useFilters";
+import { FormattedJson } from "../FormattedJson";
+
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 

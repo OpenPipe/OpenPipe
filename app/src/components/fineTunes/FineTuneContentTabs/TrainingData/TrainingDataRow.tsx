@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Th, Td, Thead, Tr, Text, Collapse } from "@chakra-ui/react";
+import { useState } from "react";
 
 import { type RouterOutputs } from "~/utils/api";
 

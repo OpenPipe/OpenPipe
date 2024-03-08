@@ -1,4 +1,3 @@
-import { useMemo, useState, useRef, useLayoutEffect } from "react";
 import {
   Button,
   HStack,
@@ -16,19 +15,22 @@ import {
   Grid,
   GridItem,
 } from "@chakra-ui/react";
+import { isNumber } from "lodash-es";
+import { useRouter } from "next/router";
+import { useMemo, useState, useRef, useLayoutEffect } from "react";
 import { FaBalanceScale } from "react-icons/fa";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
-import { useRouter } from "next/router";
 
-import { type RouterOutputs, api } from "~/utils/api";
-import { useAppStore } from "~/state/store";
-import { PotentiallyPendingFormattedMessage } from "../FormattedMessage";
-import { isNumber } from "lodash-es";
-import { getOutputTitle } from "~/server/utils/getOutputTitle";
-import { useVisibleModelIds } from "../useVisibleModelIds";
-import FormattedDatasetEntryInput from "../FormattedInput";
 import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
+import { getOutputTitle } from "~/server/utils/getOutputTitle";
+import { useAppStore } from "~/state/store";
+import { type RouterOutputs, api } from "~/utils/api";
 import { useSelectedProject } from "~/utils/hooks";
+
+import FormattedDatasetEntryInput from "../FormattedInput";
+import { PotentiallyPendingFormattedMessage } from "../FormattedMessage";
+import { useVisibleModelIds } from "../useVisibleModelIds";
+
 
 const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);

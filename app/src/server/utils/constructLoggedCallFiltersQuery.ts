@@ -1,13 +1,14 @@
-import { type z } from "zod";
 import { type Expression, type SqlBool, sql, type WhereInterface } from "kysely";
+import { type z } from "zod";
 
 import { kysely } from "~/server/db";
+import type { LoggedCall, DB } from "~/types/kysely-codegen.types";
 import { LoggedCallsFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
+
 import {
   textComparatorToSqlExpression,
   dateComparatorToSqlExpression,
 } from "./comparatorToSqlExpression";
-import type { LoggedCall, DB } from "~/types/kysely-codegen.types";
 
 const BASE_QUERY = kysely.selectFrom("LoggedCall as lc");
 

@@ -1,8 +1,9 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
 import { requireCanViewProject } from "~/utils/accessControl";
-import { TRPCError } from "@trpc/server";
 
 export const invoicesRouter = createTRPCRouter({
   list: protectedProcedure

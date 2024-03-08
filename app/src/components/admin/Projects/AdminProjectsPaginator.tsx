@@ -1,6 +1,6 @@
 import { type StackProps } from "@chakra-ui/react";
-import Paginator from "~/components/Paginator";
 
+import Paginator from "~/components/Paginator";
 import { useAdminProjects } from "~/utils/hooks";
 
 const AdminProjectsPaginator = (props: StackProps) => {

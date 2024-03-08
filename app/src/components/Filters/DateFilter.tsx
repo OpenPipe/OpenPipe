@@ -11,11 +11,13 @@ import {
   PopoverTrigger,
   Portal,
 } from "@chakra-ui/react";
-import { useCallback, useState } from "react";
-import { type FilterData } from "./types";
-import { formatDateForPicker } from "~/utils/dayjs";
-import { BsDash } from "react-icons/bs";
 import { debounce } from "lodash-es";
+import { useCallback, useState } from "react";
+import { BsDash } from "react-icons/bs";
+
+import { formatDateForPicker } from "~/utils/dayjs";
+
+import { type FilterData } from "./types";
 import { getDefaultDateFilter, useDateFilter } from "./useDateFilter";
 
 const DateFilter = () => {

@@ -1,4 +1,5 @@
 import { assertType, expect, test } from "vitest";
+
 import { typedFineTune } from "./dbColumns.types";
 
 test("typedFineTune", () => {

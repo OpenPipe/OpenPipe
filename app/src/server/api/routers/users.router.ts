@@ -1,16 +1,17 @@
+import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { TRPCError } from "@trpc/server";
+
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
-import { error, success } from "~/utils/errorHandling/standardResponses";
+import { sendProjectInvitation } from "~/server/emails/sendProjectInvitation";
 import {
   type AccessCheck,
   accessChecks,
   requireIsProjectAdmin,
   requireNothing,
 } from "~/utils/accessControl";
-import { sendProjectInvitation } from "~/server/emails/sendProjectInvitation";
+import { error, success } from "~/utils/errorHandling/standardResponses";
 
 export const usersRouter = createTRPCRouter({
   inviteToProject: protectedProcedure

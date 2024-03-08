@@ -1,13 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
 import { Text, VStack, HStack, GridItem } from "@chakra-ui/react";
+import { useState, useEffect, useMemo } from "react";
 
-import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hooks";
-import EvalHeaderPill from "./EvalHeaderPill";
-import { useVisibleEvalIds } from "../useVisibleEvalIds";
+import { ProjectLink } from "~/components/ProjectLink";
+import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
-import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
-import { ProjectLink } from "~/components/ProjectLink";
+import { useDataset, useModelTestingStats, useTestingEntries } from "~/utils/hooks";
+
+import EvalHeaderPill from "./EvalHeaderPill";
+import { useVisibleEvalIds } from "../useVisibleEvalIds";
 
 const ModelHeader = ({ modelId }: { modelId: string }) => {
   const [refetchInterval, setRefetchInterval] = useState(0);

@@ -1,9 +1,11 @@
-import { TrainerV1 } from "./trainerV1";
-import { env } from "~/env.mjs";
-import { z } from "zod";
 import { captureException } from "@sentry/node";
 import { pick } from "lodash-es";
+import { z } from "zod";
+
+import { env } from "~/env.mjs";
+
 import { LoraInferenceV1 } from "./loraInferenceV1";
+import { TrainerV1 } from "./trainerV1";
 
 // When we kick off a training job the trainer needs to be able to report its
 // progress somewhere, and since the trainer will be running remotely on Modal

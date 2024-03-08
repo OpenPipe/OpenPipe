@@ -1,11 +1,12 @@
-import { Fragment } from "react";
 import { Divider, Heading, VStack, HStack, Text, Icon, Button, Link } from "@chakra-ui/react";
+import { Fragment } from "react";
 import { RiInformationFill } from "react-icons/ri";
 
+import ContentCard from "~/components/ContentCard";
 import { usePruningRules } from "~/utils/hooks";
+
 import EditablePruningRule from "./EditablePruningRule";
 import PruningRuleCreator from "./PruningRuleCreator";
-import ContentCard from "~/components/ContentCard";
 
 const PruningRulesEditor = () => {
   const pruningRules = usePruningRules().data;

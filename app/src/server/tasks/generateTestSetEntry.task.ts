@@ -1,27 +1,29 @@
 import { UsageType, type ComparisonModel } from "@prisma/client";
 import { isNumber } from "lodash-es";
+import { RateLimitError } from "openai";
 import type {
   ChatCompletion,
   ChatCompletionCreateParamsNonStreaming,
   ChatCompletionMessage,
 } from "openai/resources/chat";
 import { v4 as uuidv4 } from "uuid";
-import { RateLimitError } from "openai";
 
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { kysely, prisma } from "~/server/db";
 import { typedFineTune, typedNodeEntry } from "~/types/dbColumns.types";
+import { chatCompletionMessage } from "~/types/shared.types";
 import { COMPARISON_MODEL_NAMES, isComparisonModel } from "~/utils/comparisonModels";
+import { fireworksTestSetLimit } from "~/utils/rateLimit/rateLimits";
+
+import defineTask from "./defineTask";
 import { calculateCost } from "../fineTuningProviders/supportedModels";
 import {
   calculateFieldComparisonScore,
   saveFieldComparisonScore,
 } from "../utils/calculateFieldComparisonScore";
-import { getOpenaiCompletion } from "../utils/openai";
-import defineTask from "./defineTask";
 import { hashAndSaveDatasetEntryOutput } from "../utils/nodes/hashNode";
-import { chatCompletionMessage } from "~/types/shared.types";
-import { fireworksTestSetLimit } from "~/utils/rateLimit/rateLimits";
+import { getOpenaiCompletion } from "../utils/openai";
+
 
 export type GenerateTestSetEntryJob = {
   modelId: string;

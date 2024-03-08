@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { fireworksTestSetLimit, rateLimit } from "./rateLimits";
+
 import { sleep } from "~/server/utils/sleep";
+
+import { fireworksTestSetLimit, rateLimit } from "./rateLimits";
 
 const rateLimitConfig = {
   capacity: 5, // Allow 5 requests

@@ -2,14 +2,14 @@ import { Breadcrumb, BreadcrumbItem, Center, Flex, Icon, VStack, Text } from "@c
 import { useEffect } from "react";
 import { AiOutlineDatabase } from "react-icons/ai";
 
+import DatasetContentTabs from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
+import FileUploadsCard from "~/components/datasets/FileUploadsCard";
 import AppShell from "~/components/nav/AppShell";
-import { useDataset } from "~/utils/hooks";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
-import { useAppStore } from "~/state/store";
-import FileUploadsCard from "~/components/datasets/FileUploadsCard";
-import DatasetContentTabs from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 import { ProjectLink } from "~/components/ProjectLink";
+import { useAppStore } from "~/state/store";
+import { useDataset } from "~/utils/hooks";
 
 export default function Dataset() {
   const dataset = useDataset();

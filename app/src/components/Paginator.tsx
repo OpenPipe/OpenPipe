@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import React, { useCallback, useEffect } from "react";
 import { FiChevronsLeft, FiChevronsRight, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+
 import { usePageParams } from "~/utils/hooks";
 
 const pageSizeOptions = [10, 25, 50, 100];

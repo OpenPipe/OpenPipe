@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import {
   type UseDisclosureReturn,
   AlertDialog,
@@ -9,10 +8,11 @@ import {
   AlertDialogFooter,
   Button,
 } from "@chakra-ui/react";
+import { useRef } from "react";
 
+import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { api, type RouterOutputs } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback } from "~/utils/hooks";
-import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 const DeletePruningRuleDialog = ({
   rule,

@@ -1,8 +1,8 @@
 import "dotenv/config";
-import path from "path";
-import { generate } from "openapi-typescript-codegen";
-import fs from "fs/promises";
 import { $ } from "execa";
+import fs from "fs/promises";
+import { generate } from "openapi-typescript-codegen";
+import path from "path";
 
 const $$ = $({ stdio: "inherit", shell: true });
 

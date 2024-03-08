@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Tabs,
   TabList,
@@ -10,9 +9,10 @@ import {
   Text,
   Tooltip,
 } from "@chakra-ui/react";
+import { CopyIcon } from "lucide-react";
+import { useState } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { srcery } from "react-syntax-highlighter/dist/cjs/styles/hljs";
-import { CopyIcon } from "lucide-react";
 
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
 

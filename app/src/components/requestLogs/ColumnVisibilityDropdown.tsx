@@ -10,13 +10,14 @@ import {
   useDisclosure,
   Box,
 } from "@chakra-ui/react";
+import { useMemo } from "react";
 import { BiCheck } from "react-icons/bi";
 import { BsToggles } from "react-icons/bs";
-import { useMemo } from "react";
 
-import { useIsClientInitialized, useSelectedProject } from "~/utils/hooks";
-import { useAppStore } from "~/state/store";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
+import { useAppStore } from "~/state/store";
+import { useIsClientInitialized, useSelectedProject } from "~/utils/hooks";
+
 import ActionButton from "../ActionButton";
 
 const ColumnVisibilityDropdown = () => {

@@ -1,5 +1,6 @@
-import React, { type ReactNode } from "react";
 import { Html, Head, Body, Preview, Container, Section, Row } from "@react-email/components";
+import React, { type ReactNode } from "react";
+
 import { Footer, Logo } from ".";
 
 interface EmailLayoutProps {

@@ -1,7 +1,7 @@
 import { VStack } from "@chakra-ui/react";
 
-import PruningRulesEditor from "./PruningRulesEditor";
 import DatasetDangerZone from "./DatasetDangerZone";
+import PruningRulesEditor from "./PruningRulesEditor";
 
 const Settings = () => {
   return (

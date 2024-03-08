@@ -1,6 +1,7 @@
+import ContentTabs from "~/components/ContentTabs";
+
 import General from "./General/General";
 import TrainingData from "./TrainingData/TrainingData";
-import ContentTabs from "~/components/ContentTabs";
 
 export const FINE_TUNE_DATASET_GENERAL_TAB_KEY = "general";
 

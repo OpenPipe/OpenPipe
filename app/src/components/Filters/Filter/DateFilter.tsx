@@ -1,14 +1,15 @@
-import { useCallback, useState, useEffect } from "react";
 import { HStack, IconButton, Input, Icon } from "@chakra-ui/react";
-import { BsTrash, BsDash } from "react-icons/bs";
 import { debounce } from "lodash-es";
+import { useCallback, useState, useEffect } from "react";
+import { BsTrash, BsDash } from "react-icons/bs";
 
-import { formatDateForPicker } from "~/utils/dayjs";
-import SelectFieldDropdown from "../SelectFieldDropdown";
-import SelectComparatorDropdown from "../SelectComparatorDropdown";
-import { useFilters } from "../useFilters";
-import { type FilterData, type FilterOption } from "../types";
 import { type AtLeastOne } from "~/types/shared.types";
+import { formatDateForPicker } from "~/utils/dayjs";
+
+import SelectComparatorDropdown from "../SelectComparatorDropdown";
+import SelectFieldDropdown from "../SelectFieldDropdown";
+import { type FilterData, type FilterOption } from "../types";
+import { useFilters } from "../useFilters";
 
 const DateFilter = ({
   filterOptions,

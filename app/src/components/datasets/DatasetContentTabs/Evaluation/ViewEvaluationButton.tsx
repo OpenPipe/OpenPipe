@@ -1,9 +1,10 @@
 import { Button } from "@chakra-ui/react";
 
-import { DATASET_EVALUATION_TAB_KEY } from "../DatasetContentTabs";
-import { constructVisibleModelIdsQueryParams } from "./useVisibleModelIds";
-import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { ProjectLink } from "~/components/ProjectLink";
+import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+
+import { constructVisibleModelIdsQueryParams } from "./useVisibleModelIds";
+import { DATASET_EVALUATION_TAB_KEY } from "../DatasetContentTabs";
 
 const ViewEvaluationButton = ({
   datasetId,

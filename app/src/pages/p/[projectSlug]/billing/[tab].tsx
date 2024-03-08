@@ -1,11 +1,11 @@
 import { Breadcrumb, BreadcrumbItem, Flex, Icon, VStack } from "@chakra-ui/react";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
-import { ProjectLink } from "~/components/ProjectLink";
-import BillingContentTabs from "~/components/billing/BillingContentTabs/BillingContentTabs";
 
+import BillingContentTabs from "~/components/billing/BillingContentTabs/BillingContentTabs";
 import AppShell from "~/components/nav/AppShell";
 import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
+import { ProjectLink } from "~/components/ProjectLink";
 import { useSelectedProject } from "~/utils/hooks";
 
 export default function BillingTabs() {

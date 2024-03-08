@@ -1,7 +1,7 @@
 import { type StackProps } from "@chakra-ui/react";
 
-import { useTrainingEntries } from "~/utils/hooks";
 import Paginator from "~/components/Paginator";
+import { useTrainingEntries } from "~/utils/hooks";
 
 const TrainingDataPaginator = (props: StackProps) => {
   const { data } = useTrainingEntries();

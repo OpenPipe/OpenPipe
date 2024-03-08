@@ -18,12 +18,12 @@ import {
   RadioGroup,
   Radio,
 } from "@chakra-ui/react";
+import { type ProjectUserRole } from "@prisma/client";
 import { useState, useEffect } from "react";
 
 import { api } from "~/utils/api";
-import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { type ProjectUserRole } from "@prisma/client";
+import { useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 
 export const InviteProjectUserModal = ({
   isOpen,

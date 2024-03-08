@@ -1,6 +1,7 @@
-import * as React from "react";
-import { Button, EmailLayout, Header, InvoiceDescription, Text } from "./layout";
 import { Link } from "@react-email/components";
+import * as React from "react";
+
+import { Button, EmailLayout, Header, InvoiceDescription, Text } from "./layout";
 import { demoDescription } from "./layout/DemoData";
 
 interface Props {

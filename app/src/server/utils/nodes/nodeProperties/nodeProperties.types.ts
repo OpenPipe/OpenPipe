@@ -3,9 +3,10 @@ import { type z } from "zod";
 
 import { type ForwardEntriesSelectionExpression } from "~/server/tasks/nodes/processNodes/forwardNodeEntries";
 import { type ProcessEntryResult } from "~/server/tasks/nodes/processNodes/processNode.task";
-import { type AtLeastOne } from "~/types/shared.types";
-import type { InferNodeConfig } from "../node.types";
 import { type typedNodeEntry } from "~/types/dbColumns.types";
+import { type AtLeastOne } from "~/types/shared.types";
+
+import type { InferNodeConfig } from "../node.types";
 
 type CacheMatchField = "nodeEntryPersistentId" | "incomingInputHash" | "incomingOutputHash";
 type CacheWriteField =

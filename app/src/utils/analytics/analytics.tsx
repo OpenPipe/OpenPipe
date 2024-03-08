@@ -1,12 +1,14 @@
 "use client";
-import { useSession } from "next-auth/react";
-import React, { type ReactNode, useEffect } from "react";
-import { PostHogProvider } from "posthog-js/react";
 import * as Sentry from "@sentry/browser";
-
-import posthog from "posthog-js";
-import { env } from "~/env.mjs";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
+import { PostHogProvider } from "posthog-js/react";
+import React, { type ReactNode, useEffect } from "react";
+
+
+import { env } from "~/env.mjs";
+
 
 // Make sure we're in the browser
 const inBrowser = typeof window !== "undefined";
