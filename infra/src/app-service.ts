@@ -68,7 +68,10 @@ export const service = new kubernetes.core.v1.Service(
         "service.beta.kubernetes.io/aws-load-balancer-ssl-cert": certificateArn,
         "service.beta.kubernetes.io/aws-load-balancer-backend-protocol": "http",
         "service.beta.kubernetes.io/aws-load-balancer-ssl-ports": "443",
-        "service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout": "60",
+        "service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout": "900",
+        "service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy":
+          "ELBSecurityPolicy-TLS13-1-2-2021-06",
+        "service.beta.kubernetes.io/aws-load-balancer-type": "nlb",
       },
     },
     spec: {
