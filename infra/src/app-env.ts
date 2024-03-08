@@ -2,6 +2,7 @@ import * as kubernetes from "@pulumi/kubernetes";
 import { eksProvider } from "./cluster";
 import { nm } from "./helpers";
 import { dbConnectionString } from "./database";
+import { encryptedReadReplicaConnectionString } from "./database";
 import { exportedModelsBucketName } from "./models";
 import * as pulumi from "@pulumi/pulumi";
 import { appUserAccessKeyId, appUserSecretAccessKey } from "./app-user";
@@ -17,6 +18,7 @@ export const environment = new kubernetes.core.v1.Secret(
   {
     stringData: {
       DATABASE_URL: dbConnectionString,
+      ENCRYPTED_DATABASE_URL: encryptedReadReplicaConnectionString,
       // DATABASE_URL: cfg.requireSecret("DATABASE_URL"),
       OPENAI_API_KEY: cfg.requireSecret("OPENAI_API_KEY"),
       NEXTAUTH_SECRET: cfg.requireSecret("NEXTAUTH_SECRET"),
