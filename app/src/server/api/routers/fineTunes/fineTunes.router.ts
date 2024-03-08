@@ -102,9 +102,16 @@ export const fineTunesRouter = createTRPCRouter({
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
-            "numTestingEntries",
-          ),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .innerJoin("DataChannel as dc", (join) =>
+              join
+                .onRef("dc.id", "=", "ne.dataChannelId")
+                .onRef("dc.destinationId", "=", "d.nodeId"),
+            )
+            .where("ne.split", "=", "TEST")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numTestEntries"),
           jsonArrayFrom(
             eb
               .selectFrom("PruningRule")

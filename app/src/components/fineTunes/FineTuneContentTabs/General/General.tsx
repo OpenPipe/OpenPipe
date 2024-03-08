@@ -59,7 +59,7 @@ const General = () => {
             </HStack>
             <HStack>
               <Text w={180}>Test Set Size</Text>
-              <Text color="gray.500">{fineTune.numTestingEntries.toLocaleString()}</Text>
+              <Text color="gray.500">{fineTune.numTestEntries?.toLocaleString()}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Test Set Performance</Text>
