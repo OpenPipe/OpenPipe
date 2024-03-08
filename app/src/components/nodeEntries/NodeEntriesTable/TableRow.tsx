@@ -56,7 +56,6 @@ export const TableRow = ({
   toggleSelected: () => void;
   expandable: boolean;
 }) => {
-  console.log(nodeEntry);
   const createdAt = dayjs(nodeEntry.creationTime).format("MMMM D h:mm A");
   const fullTime = dayjs(nodeEntry.creationTime).toString();
 
