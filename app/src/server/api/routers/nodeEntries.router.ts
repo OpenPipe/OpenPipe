@@ -38,7 +38,7 @@ export const nodeEntriesRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
-        datasetId: z.string(),
+        nodeId: z.string(),
         filters: filtersSchema,
         page: z.number(),
         pageSize: z.number(),
@@ -51,16 +51,16 @@ export const nodeEntriesRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { datasetId, filters, page, pageSize } = input;
+      const { nodeId, filters, page, pageSize } = input;
 
-      const { projectId, nodeId } = await prisma.dataset.findUniqueOrThrow({
-        where: { id: datasetId },
+      const { projectId } = await prisma.node.findUniqueOrThrow({
+        where: { id: nodeId },
       });
       await requireCanViewProject(projectId, ctx);
 
-      if (!nodeId) throw new TRPCError({ message: "Dataset node not found", code: "NOT_FOUND" });
+      if (!projectId) throw new TRPCError({ message: "Node not found", code: "NOT_FOUND" });
 
-      const baseQuery = constructNodeEntryFiltersQuery({ filters, datasetNodeId: nodeId });
+      const baseQuery = constructNodeEntryFiltersQuery({ filters, nodeId });
 
       // Get the IDs separately to avoid unnecessary joins
       let entryIdsQuery = baseQuery
@@ -71,7 +71,12 @@ export const nodeEntriesRouter = createTRPCRouter({
       let entriesQuery = kysely
         .selectFrom("NodeEntry as ne")
         .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
-        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash");
+        .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
+        .innerJoin(
+          "DatasetEntryOutput as originalDeo",
+          "originalDeo.hash",
+          "ne.originalOutputHash",
+        );
 
       if (input.sortOrder) {
         let orderByField: "ne.persistentId" | "ne.split" | "dei.inputTokens" | "deo.outputTokens";
@@ -115,9 +120,15 @@ export const nodeEntriesRouter = createTRPCRouter({
           "ne.parentNodeEntryId",
           "ne.dataChannelId",
           "dei.messages as messages",
+          "dei.tool_choice as tool_choice",
+          "dei.tools as tools",
+          "dei.response_format as response_format",
           "dei.inputTokens as inputTokens",
+          "ne.outputHash as outputHash",
           "deo.output as output",
           "deo.outputTokens as outputTokens",
+          "ne.originalOutputHash as originalOutputHash",
+          "originalDeo.output as originalOutput",
         ])
         .execute()
         .then((res) =>
@@ -154,12 +165,12 @@ export const nodeEntriesRouter = createTRPCRouter({
       };
     }),
   get: protectedProcedure
-    .input(z.object({ persistentId: z.string(), datasetId: z.string() }))
+    .input(z.object({ persistentId: z.string(), nodeId: z.string() }))
     .query(async ({ input, ctx }) => {
       const nodeEntry = await kysely
-        .selectFrom("Dataset as d")
-        .where("d.id", "=", input.datasetId)
-        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectFrom("Node as n")
+        .where("n.id", "=", input.nodeId)
+        .leftJoin("Dataset as d", "d.nodeId", "n.id")
         .innerJoin("DataChannel as dc", "dc.destinationId", "n.id")
         .innerJoin("NodeEntry as ne", (join) =>
           join
@@ -184,7 +195,7 @@ export const nodeEntriesRouter = createTRPCRouter({
               .selectFrom("PruningRuleMatch as prm")
               .whereRef("prm.inputHash", "=", "ne.inputHash")
               .innerJoin("PruningRule as pr", "pr.id", "prm.pruningRuleId")
-              .where("pr.datasetId", "=", input.datasetId)
+              .whereRef("pr.datasetId", "=", "d.id")
               .select(["pr.textToMatch", "pr.tokensInText"]),
           ).as("matchedRules"),
         ])
@@ -720,6 +731,8 @@ export const nodeEntriesRouter = createTRPCRouter({
           .select((eb) => [
             "ne.id as id",
             "dei.messages as messages",
+            "dei.tool_choice",
+            "dei.tools",
             "dei.response_format as response_format",
             "deo.output as output",
             jsonArrayFrom(

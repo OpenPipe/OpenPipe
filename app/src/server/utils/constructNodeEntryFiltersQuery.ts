@@ -7,14 +7,14 @@ import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
 export const constructNodeEntryFiltersQuery = ({
   filters,
-  datasetNodeId,
+  nodeId,
 }: {
   filters: z.infer<typeof filtersSchema>;
-  datasetNodeId: string;
+  nodeId: string;
 }) => {
   let updatedBaseQuery = kysely
     .with("dc", (eb) =>
-      eb.selectFrom("DataChannel").where("destinationId", "=", datasetNodeId).select("id"),
+      eb.selectFrom("DataChannel").where("destinationId", "=", nodeId).select("id"),
     )
     .selectFrom("dc")
     .innerJoin("NodeEntry as ne", (join) => join.onRef("ne.dataChannelId", "=", "dc.id"))

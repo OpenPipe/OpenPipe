@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Table, Thead, Tr, Th, Td, VStack } from "@chakra-ui/react";
+import { Table, Thead, Tr, Th, Td, VStack, Card, Button } from "@chakra-ui/react";
 
 import { api } from "~/utils/api";
 import { useSelectedProject } from "~/utils/hooks";
@@ -13,7 +13,7 @@ const Nodes = () => {
 
   const [refetchInterval, setRefetchInterval] = useState<number | undefined>(undefined);
 
-  const nodes = api.projects.listProjectNodes.useQuery(
+  const nodes = api.nodes.list.useQuery(
     { projectId: project?.id as string },
     { enabled: !!project?.id, refetchInterval },
   ).data;
@@ -35,38 +35,40 @@ const Nodes = () => {
   return (
     <AppShell title="Nodes">
       <VStack p={8}>
-        <Table bgColor="white" borderWidth={1} borderColor="gray.300" borderRadius={8}>
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Type</Th>
-              <Th>Id</Th>
-              <Th>Created At</Th>
-              <Th>Train</Th>
-              <Th>Test</Th>
-              <Th>Pending</Th>
-              <Th>Processing</Th>
-              <Th>Processed</Th>
-              <Th>Error</Th>
-            </Tr>
-          </Thead>
-          {nodes?.map((node) => (
-            <Tr key={node.id}>
-              <Td>{node.name}</Td>
-              <Td>{node.type}</Td>
-              <Td cursor="pointer" onClick={() => void copyToClipboard(node.id)}>
-                {node.id}
-              </Td>
-              <Td>{dayjs(node.createdAt).format("MM-D h:mm A")}</Td>
-              <Td>{node.numTrainingEntries}</Td>
-              <Td>{node.numTestingEntries}</Td>
-              <Td>{node.numPendingEntries}</Td>
-              <Td>{node.numProcessingEntries}</Td>
-              <Td>{node.numProcessedEntries}</Td>
-              <Td>{node.numErrorEntries}</Td>
-            </Tr>
-          ))}
-        </Table>
+        <Card width="full" overflowX="auto">
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Type</Th>
+                <Th>Id</Th>
+                <Th>Hash</Th>
+                <Th>Created At</Th>
+                <Th>Pending</Th>
+                <Th>Processing</Th>
+                <Th>Processed</Th>
+                <Th>Error</Th>
+              </Tr>
+            </Thead>
+            {nodes?.map((node) => (
+              <Tr key={node.id}>
+                <Td>{node.name}</Td>
+                <Td>{node.type}</Td>
+                <Td cursor="pointer" onClick={() => void copyToClipboard(node.id)}>
+                  {node.id}
+                </Td>
+                <Td cursor="pointer" onClick={() => void copyToClipboard(node.hash)}>
+                  <Button variant="link">Copy</Button>
+                </Td>
+                <Td>{dayjs(node.createdAt).format("MM-D h:mm A")}</Td>
+                <Td>{node.numPendingEntries}</Td>
+                <Td>{node.numProcessingEntries}</Td>
+                <Td>{node.numProcessedEntries}</Td>
+                <Td>{node.numErrorEntries}</Td>
+              </Tr>
+            ))}
+          </Table>
+        </Card>
       </VStack>
     </AppShell>
   );

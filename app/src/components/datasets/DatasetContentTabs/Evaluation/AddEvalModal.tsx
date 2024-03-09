@@ -45,7 +45,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
 
   const dataset = useDataset().data;
-  const testingCount = useNodeEntries().data?.totalTestingCount;
+  const testingCount = useNodeEntries({ nodeId: dataset?.nodeId }).data?.totalTestingCount;
 
   const modelOptions = useMemo(() => {
     const options = [

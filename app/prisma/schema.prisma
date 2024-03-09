@@ -202,9 +202,8 @@ model LoggedCall {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@index(projectId)
     @@index([projectId, requestedAt])
-    @@index([projectId, updatedAt])
+    @@index([projectId, model, updatedAt])
     @@index([completionId])
 }
 

@@ -17,14 +17,16 @@ const ViewTestOutputButton = () => {
 
   const visibleEvalIdsQueryParams = constructVisibleEvalIdsQueryParams([datasetEval?.id ?? ""]);
 
-  const filtersQueryParams = constructFiltersQueryParams([
-    {
-      id: Date.now().toString(),
-      field: EvaluationFiltersDefaultFields.EvalApplied,
-      comparator: "=",
-      value: datasetEval?.id ?? "",
-    },
-  ]);
+  const filtersQueryParams = constructFiltersQueryParams({
+    filters: [
+      {
+        id: Date.now().toString(),
+        field: EvaluationFiltersDefaultFields.EvalApplied,
+        comparator: "=",
+        value: datasetEval?.id ?? "",
+      },
+    ],
+  });
 
   if (!datasetEval) return null;
 

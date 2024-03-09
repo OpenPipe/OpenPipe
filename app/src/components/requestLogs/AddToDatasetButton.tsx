@@ -120,14 +120,16 @@ const AddToDatasetModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) 
 
     const { datasetId, archiveNodeId } = response.payload;
 
-    const filtersQueryParams = constructFiltersQueryParams([
-      {
-        id: Date.now().toString(),
-        field: GeneralFiltersDefaultFields.Source,
-        comparator: "=",
-        value: archiveNodeId,
-      },
-    ]);
+    const filtersQueryParams = constructFiltersQueryParams({
+      filters: [
+        {
+          id: Date.now().toString(),
+          field: GeneralFiltersDefaultFields.Source,
+          comparator: "=",
+          value: archiveNodeId,
+        },
+      ],
+    });
 
     await router.push({
       pathname: "/p/[projectSlug]/datasets/[id]/[tab]",

@@ -12,6 +12,7 @@ import { useAppStore } from "~/state/store";
 import { type RouterInputs, api } from "~/utils/api";
 import { toUTC } from "./dayjs";
 import { useDateFilter } from "~/components/Filters/useDateFilter";
+import { type FilterData } from "~/components/Filters/types";
 import { useActiveFeatureFlags } from "posthog-js/react";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
@@ -164,9 +165,16 @@ export const useDataset = (options?: { datasetId?: string; refetchInterval?: num
   return dataset;
 };
 
-export const useNodeEntries = (refetchInterval = 0) => {
-  const dataset = useDataset().data;
+export const useNode = ({ id }: { id?: string }) =>
+  api.nodes.get.useQuery({ id: id as string }, { enabled: !!id });
 
+export const useNodeEntries = ({
+  nodeId,
+  refetchInterval = 0,
+}: {
+  nodeId?: string;
+  refetchInterval?: number;
+}) => {
   const filters = useFilters().filters;
 
   const { page, pageSize } = usePageParams();
@@ -175,19 +183,23 @@ export const useNodeEntries = (refetchInterval = 0) => {
     useSortOrder<NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>["field"]>().params;
 
   const result = api.nodeEntries.list.useQuery(
-    { datasetId: dataset?.id ?? "", filters, page, pageSize, sortOrder: sort },
-    { enabled: !!dataset?.id, refetchInterval },
+    { nodeId: nodeId ?? "", filters, page, pageSize, sortOrder: sort },
+    { enabled: !!nodeId, refetchInterval },
   );
 
   return useStableData(result);
 };
 
-export const useNodeEntry = (persistentId: string | null) => {
-  const dataset = useDataset().data;
-
+export const useNodeEntry = ({
+  persistentId,
+  nodeId,
+}: {
+  persistentId: string | null;
+  nodeId?: string;
+}) => {
   const result = api.nodeEntries.get.useQuery(
-    { persistentId: persistentId as string, datasetId: dataset?.id ?? "" },
-    { enabled: !!persistentId && !!dataset?.id },
+    { persistentId: persistentId as string, nodeId: nodeId as string },
+    { enabled: !!persistentId && !!nodeId },
   );
 
   return useStableData(result);
@@ -293,20 +305,21 @@ export const useModelTestingStats = (
   return useStableData(result);
 };
 
-const useFiltersWithValues = () => {
-  const generalFilters = useFilters().filters;
-  const dateFilters = useDateFilter().filters;
-  const allFilters = [...generalFilters, ...dateFilters];
-
-  // prevent blank filters from throwing off caching
-  return allFilters.filter((filter) => filter.value !== "");
+// prevent blank filters from throwing off caching
+const removeEmptyFilters = (filters: FilterData[]) => {
+  return filters.filter((filter) => filter.value !== "");
 };
 
-export const useLoggedCalls = () => {
+export const useLoggedCalls = (options?: { filters?: FilterData[]; disabled?: boolean }) => {
   const selectedProjectId = useSelectedProject().data?.id;
   const { page, pageSize } = usePageParams();
 
-  const filtersWithValues = useFiltersWithValues();
+  const generalFilters = useFilters().filters;
+  const dateFilters = useDateFilter().filters;
+
+  const filtersWithValues = removeEmptyFilters(
+    options?.filters ?? [...dateFilters, ...generalFilters],
+  );
 
   const result = api.loggedCalls.list.useQuery(
     {
@@ -315,15 +328,22 @@ export const useLoggedCalls = () => {
       pageSize,
       filters: filtersWithValues,
     },
-    { enabled: !!selectedProjectId, refetchOnWindowFocus: false },
+    { enabled: !!selectedProjectId && !options?.disabled, refetchOnWindowFocus: false },
   );
 
   return result;
 };
 
-export const useLoggedCallsCount = () => {
+export const useLoggedCallsCount = (options?: { filters?: FilterData[]; disabled?: boolean }) => {
   const selectedProjectId = useSelectedProject().data?.id;
-  const filtersWithValues = useFiltersWithValues();
+
+  const generalFilters = useFilters().filters;
+  const dateFilters = useDateFilter().filters;
+
+  const filtersWithValues = removeEmptyFilters(
+    options?.filters ?? [...dateFilters, ...generalFilters],
+  );
+
   const setMatchingLogsCount = useAppStore((state) => state.selectedLogs.setMatchingLogsCount);
 
   const result = api.loggedCalls.getMatchingCount.useQuery(
@@ -332,7 +352,7 @@ export const useLoggedCallsCount = () => {
       filters: filtersWithValues,
     },
     {
-      enabled: !!selectedProjectId,
+      enabled: !!selectedProjectId && !options?.disabled,
       refetchOnWindowFocus: false,
       trpc: {
         context: {

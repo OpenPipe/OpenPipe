@@ -29,14 +29,16 @@ const Sources = () => {
     (sourceNodeId: string) => {
       if (!selectedProject || !dataset?.id) return;
 
-      const filtersQueryParams = constructFiltersQueryParams([
-        {
-          id: Date.now().toString(),
-          field: GeneralFiltersDefaultFields.Source,
-          comparator: "=",
-          value: sourceNodeId,
-        },
-      ]);
+      const filtersQueryParams = constructFiltersQueryParams({
+        filters: [
+          {
+            id: Date.now().toString(),
+            field: GeneralFiltersDefaultFields.Source,
+            comparator: "=",
+            value: sourceNodeId,
+          },
+        ],
+      });
 
       void router.push({
         pathname: "/p/[projectSlug]/datasets/[id]/[tab]",

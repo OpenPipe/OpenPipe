@@ -11,7 +11,6 @@ import {
   AlertIcon,
   AlertDescription,
 } from "@chakra-ui/react";
-import type { ChatCompletionMessage } from "openai/resources/chat";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 import { type RouterOutputs } from "~/utils/api";
@@ -19,9 +18,10 @@ import ModelHeader from "./ModelHeader";
 import { ORIGINAL_MODEL_ID, typedDatasetEntryInput } from "~/types/dbColumns.types";
 import { useVisibleEvalIds } from "../useVisibleEvalIds";
 import EvalResults from "./EvalResults";
-import FormattedMessage from "../FormattedMessage";
 import { useVisibleModelIds } from "../useVisibleModelIds";
-import FormattedDatasetEntryInput from "../FormattedInput";
+import FormattedInput from "~/components/nodeEntries/FormattedInput";
+import FormattedOutput from "~/components/nodeEntries/FormattedOutput";
+import { pick } from "lodash-es";
 
 export const TableHeader = () => {
   const visibleModelIds = useVisibleModelIds().visibleModelIds;
@@ -164,7 +164,7 @@ const FormattedInputGridItem = ({
         position={expandable && !isExpanded ? "absolute" : "relative"}
         bottom={expandable && !isExpanded ? `${VERTICAL_PADDING}px` : "auto"}
       >
-        <FormattedDatasetEntryInput messages={entry.messages} />
+        <FormattedInput input={pick(entry, ["messages"])} />
       </VStack>
       {expandable && (
         <VStack position="absolute" top={0} w="full" spacing={0}>
@@ -242,7 +242,7 @@ const FormattedOutputGridItem = ({
   return (
     <GridItem borderTopWidth={1} borderLeftWidth={1}>
       <VStack ref={ref} w="full" alignItems="flex-start" justifyContent="space-between" h="full">
-        <FormattedOutput entry={entry} preferJson={preferJson} />
+        <PotentiallyPendingOutput entry={entry} preferJson={preferJson} />
         <EvalResults
           nodeEntryId={datasetEntryId}
           modelId={entry.modelId}
@@ -253,7 +253,13 @@ const FormattedOutputGridItem = ({
   );
 };
 
-export const FormattedOutput = ({ entry, preferJson }: { entry: FTEntry; preferJson: boolean }) => {
+const PotentiallyPendingOutput = ({
+  entry,
+  preferJson,
+}: {
+  entry: FTEntry;
+  preferJson: boolean;
+}) => {
   if (entry.errorMessage) {
     if (entry.errorMessage === "Pending") {
       return <Text color="gray.500">Pending</Text>;
@@ -263,10 +269,9 @@ export const FormattedOutput = ({ entry, preferJson }: { entry: FTEntry; preferJ
 
   if (!entry.output) return <Text color="gray.500">Pending</Text>;
 
-  const message = entry.output as unknown as ChatCompletionMessage;
   return (
     <VStack w="full" alignItems="flex-start">
-      <FormattedMessage message={message} preferJson={preferJson} />
+      <FormattedOutput output={entry.output} preferJson={preferJson} />
       {entry.finishReason === "length" && (
         <Alert status="warning" mt={4} zIndex={0}>
           <AlertIcon />

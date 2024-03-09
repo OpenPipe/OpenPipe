@@ -162,7 +162,7 @@ export const datasetsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructNodeEntryFiltersQuery({ filters, datasetNodeId: nodeId }).where(
+      const baseQuery = constructNodeEntryFiltersQuery({ filters, nodeId }).where(
         "ne.split",
         "=",
         "TRAIN",
