@@ -122,8 +122,8 @@ const NavSidebar = () => {
               as={ChakraLink}
               justifyContent="start"
               onClick={() => {
-                if (process.env.GITHUB_CLIENT_ID === "your_client_id") {
-                  signIn("credentials").catch(console.error);
+                if (!process.env.GITHUB_CLIENT_ID) {
+                  signIn().catch(console.error);
                 } else {
                   signIn("github").catch(console.error);
                 }
@@ -217,8 +217,8 @@ export default function AppShell({
 
   useEffect(() => {
     if (requireAuth && user === null && !authLoading) {
-      if (process.env.GITHUB_CLIENT_ID === "your_client_id") {
-        signIn("credentials").catch(console.error);
+      if (!process.env.GITHUB_CLIENT_ID) {
+        signIn().catch(console.error);
       } else {
         signIn("github").catch(console.error);
       }

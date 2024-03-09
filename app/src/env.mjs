@@ -14,8 +14,8 @@ export const env = createEnv({
       .string()
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
-    GITHUB_CLIENT_ID: z.string().min(1),
-    GITHUB_CLIENT_SECRET: z.string().min(1),
+    GITHUB_CLIENT_ID: z.string().optional(),
+    GITHUB_CLIENT_SECRET: z.string().optional(),
     OPENAI_API_KEY: z.string().min(1),
     AZURE_OPENAI_API_KEY_EASTUS2: z.string().default("placeholder"),
     AZURE_OPENAI_API_KEY_EASTUS: z.string().default("placeholder"),

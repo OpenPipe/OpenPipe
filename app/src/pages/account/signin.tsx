@@ -11,8 +11,9 @@ export default function SignIn() {
     if (session) {
       router.push("/").catch(console.error);
     } else if (session === null) {
-      if (process.env.GITHUB_CLIENT_ID === "your_client_id") {
-        signIn("credentials").catch(console.error);
+      if (!process.env.GITHUB_CLIENT_ID) {
+        console.log("No GitHub client ID");
+        signIn().catch(console.error);
       } else {
         signIn("github").catch(console.error);
       }

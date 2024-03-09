@@ -22,8 +22,8 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
     req?.method === "POST";
   const providers: Provider[] = [
     GitHubProvider({
-      clientId: env.GITHUB_CLIENT_ID,
-      clientSecret: env.GITHUB_CLIENT_SECRET,
+      clientId: env.GITHUB_CLIENT_ID as string,
+      clientSecret: env.GITHUB_CLIENT_SECRET as string,
       profile(profile: GithubProfile) {
         return {
           id: profile.id.toString(),
@@ -37,7 +37,9 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
   ];
 
   // Conditionally add CredentialsProvider in development environment
-  if (process.env.GITHUB_CLIENT_ID === "your_client_id" && process.env.NODE_ENV === "development") {
+  if (!process.env.GITHUB_CLIENT_ID && process.env.NODE_ENV === "development") {
+    // Remove the GitHub provider since it's not configured
+    providers.pop();
     providers.push(
       CredentialsProvider({
         credentials: {
