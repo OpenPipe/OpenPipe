@@ -103,11 +103,14 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
 
     const firstResultHandled =
       (firstResult.status === "IN_PROGRESS" || firstResult.status === "COMPLETE") &&
+      // backfill results if they were created without a score (3/9/2024 bugfix)
+      firstResult.score !== null &&
       (firstResult.nodeEntryOutputHash === nodeEntry.outputHash ||
         firstResult.modelId !== ORIGINAL_MODEL_ID);
 
     const secondResultHandled =
       (secondResult.status === "IN_PROGRESS" || secondResult.status === "COMPLETE") &&
+      secondResult.score !== null &&
       (secondResult.nodeEntryOutputHash === nodeEntry.outputHash ||
         secondResult.modelId !== ORIGINAL_MODEL_ID);
 
@@ -126,7 +129,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       },
     });
 
-    // Combine query to ensure both results are complete
+    // Look for cached combined result from another row
     const completeCombinedResult = await kysely
       .selectFrom("NodeEntry as ne")
       .where("ne.id", "=", nodeEntryId)
@@ -140,14 +143,15 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
         join
           .onRef("der.nodeEntryInputHash", "=", "ne.inputHash")
           .on("der.datasetEvalOutputSourceId", "=", firstOutputSourceId)
-          .on("der.status", "=", "COMPLETE"),
+          .on("der.status", "=", "COMPLETE")
+          .on("der.score", "!=", null),
       )
       .innerJoin("DatasetEvalResult as comparisonDer", (join) =>
         join
           .onRef("comparisonDer.nodeEntryInputHash", "=", "ne.inputHash")
-          .on("comparisonDer.nodeEntryOutputHash", "=", nodeEntry.outputHash)
           .on("comparisonDer.datasetEvalOutputSourceId", "=", secondOutputSourceId)
-          .on("der.status", "=", "COMPLETE"),
+          .on("comparisonDer.status", "=", "COMPLETE")
+          .on("comparisonDer.score", "!=", null),
       )
       .innerJoin("DatasetEvalNodeEntry as dene", "dene.nodeEntryPersistentId", "ne.persistentId")
       .where((eb) =>
@@ -173,30 +177,32 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       .executeTakeFirst();
 
     if (completeCombinedResult) {
-      await prisma.datasetEvalResult.update({
-        where: { id: firstResult.id },
-        data: {
-          score: completeCombinedResult.firstResultScore,
-          explanation: completeCombinedResult.firstResultExplanation,
-          judge: completeCombinedResult.judge,
-          wasFirst: completeCombinedResult.firstResultWasFirst,
-          nodeEntryOutputHash: nodeEntry.outputHash,
-          status: "COMPLETE",
-          errorMessage: null,
-        },
-      });
-      await prisma.datasetEvalResult.update({
-        where: { id: secondResult.id },
-        data: {
-          score: completeCombinedResult.secondResultScore,
-          explanation: completeCombinedResult.secondResultExplanation,
-          judge: completeCombinedResult.judge,
-          wasFirst: !completeCombinedResult.firstResultWasFirst,
-          nodeEntryOutputHash: nodeEntry.outputHash,
-          status: "COMPLETE",
-          errorMessage: null,
-        },
-      });
+      await prisma.$transaction([
+        prisma.datasetEvalResult.update({
+          where: { id: firstResult.id },
+          data: {
+            score: completeCombinedResult.firstResultScore,
+            explanation: completeCombinedResult.firstResultExplanation,
+            judge: completeCombinedResult.judge,
+            wasFirst: completeCombinedResult.firstResultWasFirst,
+            nodeEntryOutputHash: nodeEntry.outputHash,
+            status: "COMPLETE",
+            errorMessage: null,
+          },
+        }),
+        prisma.datasetEvalResult.update({
+          where: { id: secondResult.id },
+          data: {
+            score: completeCombinedResult.secondResultScore,
+            explanation: completeCombinedResult.secondResultExplanation,
+            judge: completeCombinedResult.judge,
+            wasFirst: !completeCombinedResult.firstResultWasFirst,
+            nodeEntryOutputHash: nodeEntry.outputHash,
+            status: "COMPLETE",
+            errorMessage: null,
+          },
+        }),
+      ]);
       return;
     }
 
