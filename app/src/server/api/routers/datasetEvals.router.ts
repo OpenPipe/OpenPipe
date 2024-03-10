@@ -14,6 +14,11 @@ import { startTestJobsForEval } from "~/server/utils/nodes/startTestJobs";
 import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
 import { filtersSchema } from "~/types/shared.types";
 import { isComparisonModel } from "~/utils/comparisonModels";
+import {
+  RESPONSE_1_PLACEHOLDER,
+  RESPONSE_2_PLACEHOLDER,
+  getModelTitle,
+} from "~/server/tasks/evaluateTestSetEntries.task";
 
 export const datasetEvalsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -557,7 +562,7 @@ export const datasetEvalsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const entry = await kysely
+      const evalResult = await kysely
         .selectFrom("NodeEntry as ne")
         .where("ne.id", "=", input.nodeEntryId)
         .innerJoin("DatasetEvalNodeEntry as dene", (join) =>
@@ -627,6 +632,7 @@ export const datasetEvalsRouter = createTRPCRouter({
               .select([
                 "comparisonDer.score",
                 "comparisonDer.explanation",
+                "comparisonDer.wasFirst",
                 "comparisonDer.status",
                 "comparisonDer.errorMessage",
                 "comparisonDeos.modelId",
@@ -637,27 +643,43 @@ export const datasetEvalsRouter = createTRPCRouter({
         ])
         .executeTakeFirst();
 
-      if (!entry) {
+      if (!evalResult) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Dataset entry for head-to-head comparison details not found",
+          message: "Result for head-to-head comparison details not found",
         });
       }
 
-      await requireCanViewProject(entry.projectId, ctx);
+      await requireCanViewProject(evalResult.projectId, ctx);
 
       // fill in output for original model
-      if (entry.modelId === ORIGINAL_MODEL_ID) {
-        entry.output = entry.originalOutput;
+      if (evalResult.modelId === ORIGINAL_MODEL_ID) {
+        evalResult.output = evalResult.originalOutput;
       }
-      const originalModelComparisonResult = entry.comparisonResults.find(
-        (result) => result.modelId === ORIGINAL_MODEL_ID,
+      const originalModelComparisonResult = evalResult.comparisonResults.find(
+        (comparisonResult) => comparisonResult.modelId === ORIGINAL_MODEL_ID,
       );
       if (originalModelComparisonResult) {
-        originalModelComparisonResult.output = entry.originalOutput;
+        originalModelComparisonResult.output = evalResult.originalOutput;
       }
 
-      return { entry };
+      // substitute model titles for placeholders in explanation
+      const modelTitle = getModelTitle(evalResult);
+      for (const comparisonResult of evalResult.comparisonResults) {
+        if (!comparisonResult.explanation) continue;
+        const comparisonModelTitle = getModelTitle(comparisonResult);
+
+        const firstTitle = comparisonResult.wasFirst ? comparisonModelTitle : modelTitle;
+        const secondTitle = comparisonResult.wasFirst ? modelTitle : comparisonModelTitle;
+
+        comparisonResult.explanation = comparisonResult.explanation
+          .replaceAll(RESPONSE_1_PLACEHOLDER, firstTitle)
+          .replaceAll(RESPONSE_1_PLACEHOLDER.toLowerCase(), firstTitle)
+          .replaceAll(RESPONSE_2_PLACEHOLDER, secondTitle)
+          .replaceAll(RESPONSE_2_PLACEHOLDER.toLowerCase(), secondTitle);
+      }
+
+      return { evalResult };
     }),
   testingStats: protectedProcedure
     .input(
