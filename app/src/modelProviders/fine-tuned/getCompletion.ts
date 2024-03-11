@@ -21,7 +21,7 @@ import { getModalCompletion } from "./getModalCompletion";
 import { getAnyscaleCompletion } from "./getAnyscaleCompletion";
 import { getFireworksCompletion } from "./getFireworksCompletion";
 import { fireworksConfig } from "~/server/fineTuningProviders/openpipe/fireworksConfig";
-import { benchmarkMModels } from "./benchmarkMModels";
+import { benchmarkMModels } from "./benchmark";
 
 export async function getCompletion(
   fineTune: TypedFineTune,

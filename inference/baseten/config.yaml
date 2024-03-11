@@ -1,0 +1,26 @@
+model_name: Mistral 7B Optimized LORA
+description: Mistral 7B Optimized LORA
+python_version: py311
+model_metadata:
+  model: OpenPipe/mistral-ft-optimized-1227
+model_cache:
+  - repo_id: OpenPipe/mistral-ft-optimized-1227
+    allow_patterns:
+      - "*.json"
+      - "*.safetensors"
+requirements:
+  - vllm==0.3.3
+  - pydantic==2.6.3
+  - boto3==1.34.59
+
+resources:
+  accelerator: H100
+  memory: 32Gi
+runtime:
+  predict_concurrency: 24
+secrets:
+  hf_access_token: null
+  aws_access_key_id: null
+  aws_secret_access_key: null
+  user_models_bucket_name: null
+  user_models_bucket_region: null

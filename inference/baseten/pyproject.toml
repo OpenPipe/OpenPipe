@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "baseten"
+version = "0.1.0"
+description = ""
+authors = ["Kyle Corbitt <kyle@corbt.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "~3.11"
+pydantic = "^2.6.3"
+truss = "^0.9.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

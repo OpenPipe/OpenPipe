@@ -76,6 +76,8 @@ export async function getAnyscaleCompletion(
   const serializedInput = serializeChatInput(input, fineTune);
   const templatedPrompt = `### Instruction:\n${serializedInput}\n\n### Response:\n`;
 
+  console.log(templatedPrompt);
+
   const resp = await client.chat.completions.create({
     model: `${fineTune.baseModel}:${fineTune.id}:1`,
     messages: [{ role: "system", content: templatedPrompt }],

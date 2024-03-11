@@ -208,7 +208,7 @@ export default function Settings() {
                   Your rate limit represents the number of concurrent requests you can send to our
                   servers without getting a <Text as="i">429 "Too Many Requests"</Text> error. To
                   increase your rate limit, email us at{" "}
-                  <ChakraLink as="b" href="mailto:support@openipe.ai">
+                  <ChakraLink href="mailto:support@openipe.ai" target="_blank" color="blue.500">
                     support@openipe.ai
                   </ChakraLink>
                   .
