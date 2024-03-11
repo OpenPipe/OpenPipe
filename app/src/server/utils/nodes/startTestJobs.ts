@@ -28,6 +28,7 @@ export const startDatasetTestJobs = async ({
     .selectFrom("Dataset as d")
     .where("d.id", "=", datasetId)
     .select((eb) => [
+      "d.id",
       jsonArrayFrom(
         eb
           .selectFrom("DatasetEval as de")
@@ -56,7 +57,10 @@ export const startDatasetTestJobs = async ({
     .concat(dataset.enabledComparisonModels ?? []);
 
   for (const modelId of modelIds) {
-    await startTestJobsForModel(modelId);
+    await startTestJobsForModel({
+      modelId,
+      datasetId: dataset.id,
+    });
   }
 };
 
@@ -149,32 +153,37 @@ export const startTestJobsForEval = async ({
   }
 };
 
-export const startTestJobsForModel = async (fineTuneId: string) => {
-  const fineTune = await prisma.fineTune.findFirstOrThrow({
-    where: { id: fineTuneId },
-    include: { dataset: true },
+export const startTestJobsForModel = async ({
+  modelId,
+  datasetId,
+}: {
+  modelId: string;
+  datasetId: string;
+}) => {
+  const dataset = await prisma.dataset.findUniqueOrThrow({
+    where: {
+      id: datasetId,
+    },
   });
 
-  const nodeEntryToRun = await kysely
+  const nodeEntriesToRun = await kysely
     .selectFrom("NodeEntry as ne")
     .innerJoin("DataChannel as dc", (join) =>
-      join
-        .onRef("dc.id", "=", "ne.dataChannelId")
-        .on("dc.destinationId", "=", fineTune.dataset.nodeId),
+      join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", dataset.nodeId),
     )
     .where("ne.status", "=", "PROCESSED")
     .where("ne.split", "=", "TEST")
     .leftJoin("FineTuneTestingEntry as ftte", (join) =>
-      join.onRef("ftte.inputHash", "=", "ne.inputHash").on("ftte.modelId", "=", fineTune.id),
+      join.onRef("ftte.inputHash", "=", "ne.inputHash").on("ftte.modelId", "=", modelId),
     )
     .where("ftte.id", "is", null)
     .select(["ne.id as nodeEntryId"])
     .execute();
 
   await Promise.all(
-    nodeEntryToRun.map((nodeEntry) =>
+    nodeEntriesToRun.map((nodeEntry) =>
       generateTestSetEntry.enqueue({
-        modelId: fineTune.id,
+        modelId,
         nodeEntryId: nodeEntry.nodeEntryId,
         numPreviousTries: 0,
       }),

@@ -24,5 +24,3 @@ import { startTestJobsForModel } from "~/server/utils/nodes/startTestJobs";
 //     modelId: model.id,
 //   },
 // });
-
-await startTestJobsForModel("39acc241-782a-4f04-bc92-becbbecda852");

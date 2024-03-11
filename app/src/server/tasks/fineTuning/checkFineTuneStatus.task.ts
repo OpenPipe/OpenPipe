@@ -85,7 +85,10 @@ export const checkFineTuneStatus = defineTask({
             });
 
             captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
-            await startTestJobsForModel(currentFineTune.id);
+            await startTestJobsForModel({
+              modelId: currentFineTune.id,
+              datasetId: currentFineTune.datasetId,
+            });
             await sendFineTuneModelTrained(typedFT);
           } else if (resp.status === "error") {
             if (ft.numTrainingAutoretries < MAX_AUTO_RETRIES) {
