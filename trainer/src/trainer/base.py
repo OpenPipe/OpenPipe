@@ -8,6 +8,7 @@ def cache_model_weights():
     # all our base model weights to the image to make training faster.
     snapshot_download("OpenPipe/mistral-ft-optimized-1227")
     snapshot_download("mistralai/Mixtral-8x7B-Instruct-v0.1")
+    snapshot_download("mistralai/Mistral-7B-Instruct-v0.2")
 
     # This one is rarely used and quite large so just skip
     # snapshot_download("meta-llama/Llama-2-13b-hf")

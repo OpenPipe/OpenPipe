@@ -7,19 +7,20 @@ import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
 
 export const constructNodeEntryFiltersQuery = ({
   filters,
-  datasetNodeId,
+  nodeId,
 }: {
   filters: z.infer<typeof filtersSchema>;
-  datasetNodeId: string;
+  nodeId: string;
 }) => {
   let updatedBaseQuery = kysely
     .with("dc", (eb) =>
-      eb.selectFrom("DataChannel").where("destinationId", "=", datasetNodeId).select("id"),
+      eb.selectFrom("DataChannel").where("destinationId", "=", nodeId).select("id"),
     )
     .selectFrom("dc")
     .innerJoin("NodeEntry as ne", (join) => join.onRef("ne.dataChannelId", "=", "dc.id"))
-    .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
-    .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
+    // leftJoin to avoid unnecessary lookups when we don't filter by input/output
+    .leftJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
+    .leftJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
     .where((eb) => {
       const wheres: Expression<SqlBool>[] = [];
 

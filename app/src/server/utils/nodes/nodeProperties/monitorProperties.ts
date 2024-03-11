@@ -10,6 +10,7 @@ import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreat
 import { generatePersistentId } from "~/server/utils/nodes/utils";
 import { type NodeProperties } from "./nodeProperties.types";
 import { monitorNodeSchema } from "../node.types";
+import { checkNodeInput } from "../checkNodeInput";
 
 export enum MonitorOutput {
   MatchedLogs = "Matched Logs",
@@ -18,7 +19,43 @@ export enum MonitorOutput {
 export const monitorProperties: NodeProperties<"Monitor"> = {
   schema: monitorNodeSchema,
   outputs: [{ label: MonitorOutput.MatchedLogs }],
-  hashableFields: (node) => ({ filters: node.config.initialFilters }),
+  hashableFields: (node) => ({
+    filters: node.config.initialFilters,
+    sampleRate: node.config.sampleRate,
+    maxOutputSize: node.config.maxOutputSize,
+  }),
+  beforeInvalidating: async (node) => {
+    // delete all existing entries for this monitor
+    await kysely
+      .deleteFrom("NodeEntry as ne")
+      .using((eb) =>
+        eb
+          .selectFrom("NodeEntry as entryToDelete")
+          .innerJoin("DataChannel as dc", (join) =>
+            join
+              .onRef("dc.id", "=", "entryToDelete.dataChannelId")
+              .on("dc.destinationId", "=", node.id),
+          )
+          .select("entryToDelete.id")
+          .as("entryToDelete"),
+      )
+      .whereRef("ne.id", "=", "entryToDelete.id")
+      .execute();
+
+    // reprocess all logged calls
+    await prisma.node.update({
+      where: { id: node.id },
+      data: checkNodeInput({
+        id: node.id,
+        projectId: node.projectId,
+        type: "Monitor",
+        config: {
+          ...node.config,
+          lastLoggedCallUpdatedAt: new Date(0),
+        },
+      }),
+    });
+  },
   beforeProcessing: async (node) => {
     const { initialFilters, lastLoggedCallUpdatedAt, maxOutputSize, sampleRate } = node.config;
 
@@ -36,19 +73,24 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
       .where("ne.dataChannelId", "=", inputDataChannelId)
       .groupBy("ne.dataChannelId")
       .select(sql<number>`count(*)::int`.as("count"))
-      .executeTakeFirst();
-
-    if (!numExistingEntries) return;
+      .executeTakeFirst()
+      .then((r) => (r ? r.count : 0));
 
     const sampleRateHash = calculateSampleRateHash(sampleRate);
     const nodeId = node.id;
+
+    const newLastLoggedCallUpdatedAt = new Date();
 
     const loggedCallsToAdd = await constructLoggedCallFiltersQuery({
       filters: initialFilters,
       projectId: node.projectId,
       baseQuery: kysely
         .selectFrom("LoggedCall as lc")
-        .where("lc.updatedAt", ">=", dayjs(lastLoggedCallUpdatedAt).toDate()),
+        .where(
+          "lc.updatedAt",
+          ">=",
+          dayjs(lastLoggedCallUpdatedAt).subtract(10, "seconds").toDate(),
+        ),
     })
       .leftJoin("NodeEntry as existingNe", (eb) =>
         eb
@@ -57,10 +99,11 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
       )
       .where("existingNe.id", "is", null)
       // hash lc.id and nodeId to compare against a sampleRate hash
-      .where(sql`md5(lc.id || '::' || ${nodeId}) > ${sampleRateHash}`)
+      .where(sql`md5(lc.id || '::' || ${nodeId}) <= ${sampleRateHash}`)
       .orderBy("lc.createdAt", "asc")
-      .limit(maxOutputSize - numExistingEntries.count)
+      .limit(maxOutputSize - numExistingEntries)
       .selectAll("lc")
+      .select([sql`md5(lc.id || '::' || ${nodeId})`.as("hash")])
       .execute();
 
     const entriesToImport = loggedCallsToAdd
@@ -76,6 +119,7 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
           if ("error" in validated) return null;
           return {
             ...validated,
+            loggedCallId: tLoggedCall.id,
             persistentId: generatePersistentId({
               creationTime: tLoggedCall.requestedAt,
               key: `${tLoggedCall.id}`,
@@ -115,6 +159,15 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
         data: nodeEntriesToCreate,
         skipDuplicates: true,
       }),
+      prisma.node.update({
+        where: { id: node.id },
+        data: {
+          config: {
+            ...node.config,
+            lastLoggedCallUpdatedAt: newLastLoggedCallUpdatedAt,
+          },
+        },
+      }),
     ]);
   },
 };
@@ -137,5 +190,5 @@ const calculateSampleRateHash = (sampleRate: number) => {
     thresholdHex = "0" + thresholdHex;
   }
 
-  return thresholdHex;
+  return thresholdHex.toLowerCase();
 };

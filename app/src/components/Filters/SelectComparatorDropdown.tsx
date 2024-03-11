@@ -7,11 +7,13 @@ import { type comparators } from "~/types/shared.types";
 const SelectComparatorDropdown = ({
   filter,
   filterType,
+  urlKey,
 }: {
   filter: FilterData;
   filterType: FilterType;
+  urlKey?: string;
 }) => {
-  const updateFilter = useFilters().updateFilter;
+  const updateFilter = useFilters({ urlKey }).updateFilter;
 
   const comparators = comparatorsForFilterType(filterType);
 

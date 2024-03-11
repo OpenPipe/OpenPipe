@@ -27,7 +27,6 @@
 Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited to your exact needs. Query your past requests and evaluate models against one another. Switch between OpenAI and fine-tuned models with one line of code.
 <br>
 
-
 ## Features
 
 - Easy integration with OpenAI's SDK in both Python and TypeScript.
@@ -44,12 +43,10 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 
 ## Supported Base Models
 
-To fine-tune Mistral and Llama 2 models in the hosted app, [join the waitlist](https://ax3nafkw0jp.typeform.com/to/ZNpYqvAc).
-
-- mixtral-8x7B-instruct
-- mistral-7B-optimized-1227
-- llama-2-13B
-- gpt-3.5-turbo
+- [mistralai/Mixtral-8x7B-Instruct-v0.1](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1)
+- [OpenPipe/mistral-ft-optimized-1227](https://huggingface.co/OpenPipe/mistral-ft-optimized-1227)
+- [meta-llama/Llama-2-13b](https://huggingface.co/meta-llama/Llama-2-13b)
+- [gpt-3.5-turbo](https://openai.com/blog/gpt-3-5-turbo-fine-tuning-and-api-updates)
 
 ## Documentation
 
@@ -63,12 +60,14 @@ To fine-tune Mistral and Llama 2 models in the hosted app, [join the waitlist](h
 4. Clone this repository: `git clone https://github.com/openpipe/openpipe`
 5. Install the dependencies: `cd openpipe && pnpm install`
 6. Create a `.env` file (`cd app && cp .env.example .env`) and enter your `OPENAI_API_KEY`.
-7. If you just installed postgres and wish to use the default `DATABASE_URL` run the following commands: 
+7. If you just installed postgres and wish to use the default `DATABASE_URL` run the following commands:
+
 ```sh
 psql postgres
 CREATE ROLE postgres WITH LOGIN PASSWORD 'postgres';
 ALTER ROLE postgres SUPERUSER;
 ```
+
 8. Update `DATABASE_URL` if necessary to point to your Postgres instance and run `pnpm prisma migrate dev` in the `app` directory to create the database.
 9. Create a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app), set the callback URL to `<your local instance>/api/auth/callback/github`, e.g. `http://localhost:3000/api/auth/callback/github`.
 10. Update the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` values from the Github OAuth app (Note: a PR to make auth optional when running locally would be a great contribution!).
@@ -76,6 +75,7 @@ ALTER ROLE postgres SUPERUSER;
 12. Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Using Locally
+
 ```sh
 import os
 from openpipe import OpenAI
@@ -90,9 +90,9 @@ client = OpenAI(
 
 completion = client.chat.completions.create(
     model="gpt-3.5-turbo",
-    messages=[{"role": "system", "content": "count to 10"}], 
+    messages=[{"role": "system", "content": "count to 10"}],
     openpipe={
-        "tags": {"prompt_id": "counting"}, 
+        "tags": {"prompt_id": "counting"},
         "log_request": True
     },
 )

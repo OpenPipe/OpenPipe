@@ -21,6 +21,13 @@ import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodePro
 import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
 import { typedNodeEntry } from "~/types/dbColumns.types";
 
+const fetchNode = async ({ id }: { id: string }) =>
+  prisma.node
+    .findUnique({
+      where: { id },
+    })
+    .then((n) => (n ? typedNode(n) : null));
+
 export type ProcessNodeJob = {
   nodeId: string;
 };
@@ -30,15 +37,16 @@ export const processNode = defineTask<ProcessNodeJob>({
   handler: async (task) => {
     const { nodeId } = task;
 
-    const node = await prisma.node
-      .findUnique({
-        where: { id: nodeId },
-      })
-      .then((n) => (n ? typedNode(n) : null));
+    const originalNode = await fetchNode({ id: nodeId });
+    if (!originalNode) return;
 
-    if (!node) return;
+    console.log({ nodeId, type: originalNode.type });
 
-    if (node.stale) {
+    const nodeProperties = nodePropertiesByType[originalNode.type] as NodeProperties<NodeType>;
+
+    if (originalNode.stale) {
+      console.log(`Invalidating ${originalNode.type}`);
+      await nodeProperties.beforeInvalidating?.(originalNode);
       await invalidateNodeEntries(nodeId);
       await prisma.node.update({
         where: { id: nodeId },
@@ -46,9 +54,9 @@ export const processNode = defineTask<ProcessNodeJob>({
       });
     }
 
-    console.log({ nodeId, type: node.type });
-
-    const nodeProperties = nodePropertiesByType[node.type] as NodeProperties<NodeType>;
+    // refetch the node in case it was updated during the beforeInvalidating step
+    const node = await fetchNode(originalNode);
+    if (!node) return;
 
     // ensure that all "PROCESSING" and "ERROR" entries are reset to "PENDING" after job restart
     await kysely

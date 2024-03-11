@@ -32,7 +32,7 @@ const EditablePruningRule = ({ index, rule }: { index: number; rule: PruningRule
       },
     });
 
-    await utils.nodeEntries.list.invalidate({ datasetId: dataset?.id });
+    await utils.nodeEntries.list.invalidate({ nodeId: dataset?.nodeId });
     await utils.pruningRules.list.invalidate({ datasetId: dataset?.id });
   }, [updateRuleMutation, editedTextToMatch, rule, utils, dataset?.id]);
 

@@ -68,12 +68,13 @@ export const fineTunesRouter = createTRPCRouter({
         .selectFrom("Dataset as d")
         .where("d.id", "=", datasetId)
         .innerJoin("FineTune as ft", "ft.datasetId", "d.id")
+        .innerJoin("DataChannel as dc", "d.nodeId", "dc.destinationId")
         .selectAll("ft")
         .select(() => [
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "dataChannelId" = dc.id and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
             "numTestingEntries",
           ),
           sql<number>`(select count(*) from "PruningRule" where "fineTuneId" = ft.id)::int`.as(
@@ -102,9 +103,16 @@ export const fineTunesRouter = createTRPCRouter({
           sql<number>`(select count(*) from "FineTuneTrainingEntry" where "fineTuneId" = ft.id)::int`.as(
             "numTrainingEntries",
           ),
-          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "split" = 'TEST' and "status" = 'PROCESSED')::int`.as(
-            "numTestingEntries",
-          ),
+          eb
+            .selectFrom("NodeEntry as ne")
+            .innerJoin("DataChannel as dc", (join) =>
+              join
+                .onRef("dc.id", "=", "ne.dataChannelId")
+                .onRef("dc.destinationId", "=", "d.nodeId"),
+            )
+            .where("ne.split", "=", "TEST")
+            .select(sql<number>`count(*)::int`.as("count"))
+            .as("numTestEntries"),
           jsonArrayFrom(
             eb
               .selectFrom("PruningRule")

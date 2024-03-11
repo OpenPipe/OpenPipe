@@ -11,6 +11,7 @@ const defaultFilterOptions: FilterOption[] = [
   { type: "text", field: LoggedCallsFiltersDefaultFields.Model, label: "Model" },
   { type: "text", field: LoggedCallsFiltersDefaultFields.StatusCode, label: "Status Code" },
   { type: "text", field: LoggedCallsFiltersDefaultFields.CompletionId, label: "Completion Id" },
+  { type: "date", field: LoggedCallsFiltersDefaultFields.SentAt, label: "Sent At" },
 ];
 
 const LogFilters = () => {

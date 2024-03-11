@@ -1,7 +1,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { HStack, IconButton, Input, Icon } from "@chakra-ui/react";
 import { BsTrash, BsDash } from "react-icons/bs";
-import { debounce } from "lodash-es";
 
 import { formatDateForPicker } from "~/utils/dayjs";
 import SelectFieldDropdown from "../SelectFieldDropdown";
@@ -13,12 +12,13 @@ import { type AtLeastOne } from "~/types/shared.types";
 const DateFilter = ({
   filterOptions,
   filter,
+  urlKey,
 }: {
   filterOptions: AtLeastOne<FilterOption>;
   filter: FilterData;
+  urlKey?: string;
 }) => {
-  const updateFilter = useFilters().updateFilter;
-  const removeFilter = useFilters().removeFilter;
+  const { updateFilter, removeFilter } = useFilters({ urlKey });
 
   const isArray = Array.isArray(filter.value);
 
@@ -27,13 +27,6 @@ const DateFilter = ({
   );
   const [secondDate, setSecondDate] = useState<number>(
     isArray ? (filter.value[1] as number) : Date.now(),
-  );
-
-  const debouncedUpdateFilter = useCallback(
-    debounce((filter: FilterData) => updateFilter(filter), 500, {
-      leading: true,
-    }),
-    [updateFilter],
   );
 
   const updateDate = useCallback(
@@ -48,25 +41,25 @@ const DateFilter = ({
         date1 = date;
         if (date > secondDate) date2 = date;
       }
+      updateFilter({ ...filter, value: [date1, date2] });
       setFirstDate(date1);
       setSecondDate(date2);
-      debouncedUpdateFilter({ ...filter, value: [date1, date2] });
     },
-    [firstDate, secondDate, setFirstDate, setSecondDate, filter, debouncedUpdateFilter],
+    [firstDate, secondDate, setFirstDate, setSecondDate, filter, updateFilter],
   );
 
   const valueIsEmpty = !filter.value;
 
   useEffect(() => {
     if (valueIsEmpty) {
-      updateDate("");
+      updateFilter({ ...filter, value: [firstDate, secondDate] });
     }
-  }, [valueIsEmpty, updateDate]);
+  }, [valueIsEmpty, firstDate, secondDate, updateFilter, filter]);
 
   return (
     <HStack>
-      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} />
-      <SelectComparatorDropdown filter={filter} filterType="date" />
+      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} urlKey={urlKey} />
+      <SelectComparatorDropdown filter={filter} filterType="date" urlKey={urlKey} />
       <HStack>
         {!["LAST 15M", "LAST 24H", "LAST 7D"].includes(filter.comparator) && (
           <Input

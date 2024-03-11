@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-import { kysely, prisma } from "~/server/db";
+import { prisma } from "~/server/db";
 import defineTask from "../defineTask";
 import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalytics";
 import { typedFineTune } from "~/types/dbColumns.types";
@@ -59,23 +59,10 @@ const runOnce = async () => {
           });
           captureFineTuneTrainingFinished(fineTune.projectId, fineTune.slug, true);
 
-          const dataset = await prisma.dataset.findUnique({
-            where: { id: fineTune.datasetId },
+          await startTestJobsForModel({
+            modelId: fineTune.id,
+            datasetId: fineTune.datasetId,
           });
-
-          if (dataset?.nodeId) {
-            await startTestJobsForModel({
-              modelId: fineTune.id,
-              nodeEntryBaseQuery: kysely
-                .selectFrom("NodeEntry as ne")
-                .innerJoin("DataChannel as dc", (join) =>
-                  join
-                    .onRef("dc.id", "=", "ne.dataChannelId")
-                    .on("dc.destinationId", "=", dataset.nodeId),
-                )
-                .where("ne.status", "=", "PROCESSED"),
-            });
-          }
         } else if (resp.status === "failed") {
           await prisma.fineTune.update({
             where: { id: fineTune.id },

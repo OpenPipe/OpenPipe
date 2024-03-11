@@ -350,7 +350,7 @@ export class DefaultService {
             name: string;
         },
     ): CancelablePromise<{
-        id: string;
+        datasetId: string;
     }> {
         return this.httpRequest.request({
             method: 'POST',

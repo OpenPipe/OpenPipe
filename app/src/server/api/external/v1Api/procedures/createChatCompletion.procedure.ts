@@ -30,7 +30,7 @@ import {
   recordOngoingRequestEnd,
   recordOngoingRequestStart,
 } from "~/utils/rateLimit/concurrencyRateLimits";
-import { TRPC_ERROR_CODE_KEY } from "@trpc/server/rpc";
+import { type TRPC_ERROR_CODE_KEY } from "@trpc/server/rpc";
 
 export const createChatCompletion = openApiProtectedProc
   .meta({

@@ -1564,12 +1564,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
+                    "datasetId": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "id"
+                    "datasetId"
                   ],
                   "additionalProperties": false
                 }

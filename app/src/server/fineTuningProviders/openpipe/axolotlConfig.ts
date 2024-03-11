@@ -41,7 +41,7 @@ export const axolotlConfig = z.object({
     eos_token: z.string(),
     unk_token: z.string(),
   }),
-  base_model: z.string().optional(),
+  base_model: z.string(),
   base_model_config: z.string().optional(),
   datasets: z
     .array(

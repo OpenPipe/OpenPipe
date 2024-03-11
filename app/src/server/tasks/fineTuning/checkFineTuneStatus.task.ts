@@ -7,7 +7,7 @@ import { captureFineTuneTrainingFinished } from "~/utils/analytics/serverAnalyti
 import dayjs from "dayjs";
 import { typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
-import { calculateCost, modelInfo } from "~/server/fineTuningProviders/supportedModels";
+import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 import {
   calculateNumEpochs,
   getNumEpochsFromConfig,
@@ -84,46 +84,12 @@ export const checkFineTuneStatus = defineTask({
               },
             });
 
-            // Notify the owner that the model has been trained
-            if (typedFT.userId) {
-              const project = await prisma.project.findUniqueOrThrow({
-                where: { id: typedFT.projectId },
-              });
-
-              const creator = await prisma.user.findUniqueOrThrow({
-                where: { id: typedFT.userId },
-              });
-
-              if (creator.email) {
-                await sendFineTuneModelTrained(
-                  typedFT.id,
-                  "openpipe:" + typedFT.slug,
-                  modelInfo(typedFT).name,
-                  project.slug,
-                  creator.email,
-                );
-              }
-            }
-
             captureFineTuneTrainingFinished(typedFT.projectId, typedFT.slug, true);
-
-            const dataset = await prisma.dataset.findUnique({
-              where: { id: typedFT.datasetId },
+            await startTestJobsForModel({
+              modelId: currentFineTune.id,
+              datasetId: currentFineTune.datasetId,
             });
-
-            if (dataset?.nodeId) {
-              await startTestJobsForModel({
-                modelId: currentFineTune.id,
-                nodeEntryBaseQuery: kysely
-                  .selectFrom("NodeEntry as ne")
-                  .innerJoin("DataChannel as dc", (join) =>
-                    join
-                      .onRef("dc.id", "=", "ne.dataChannelId")
-                      .on("dc.destinationId", "=", dataset.nodeId),
-                  )
-                  .where("ne.status", "=", "PROCESSED"),
-              });
-            }
+            await sendFineTuneModelTrained(typedFT);
           } else if (resp.status === "error") {
             if (ft.numTrainingAutoretries < MAX_AUTO_RETRIES) {
               // Sometimes training jobs fail for no reason, so we'll retry them a few times

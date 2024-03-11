@@ -15,7 +15,7 @@ if (env.NEXT_PUBLIC_SENTRY_DSN) {
     dsn: env.NEXT_PUBLIC_SENTRY_DSN,
 
     // Adjust this value in production, or use tracesSampler for greater control
-    tracesSampleRate: 0.1,
+    tracesSampleRate: 0.05,
 
     integrations: [
       ...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),

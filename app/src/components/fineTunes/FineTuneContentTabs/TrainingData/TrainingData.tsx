@@ -29,8 +29,8 @@ const TrainingData = () => {
             />
           </HStack>
 
-          <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white">
-            <Table>
+          <VStack w="full" alignItems="flex-start" spacing={4} bgColor="white" pt={2}>
+            <Table layout="fixed" sx={{ "& td": { px: 4 }, "& th": { px: 4 } }}>
               <TableHeader />
               <Tbody>
                 {entries.map((entry) => (
