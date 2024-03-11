@@ -24,6 +24,8 @@ export async function benchmarkMModels(
   fineTune: TypedFineTune,
   input: ChatCompletionCreateParamsNonStreaming,
 ): Promise<ChatCompletion> {
+  if (process.env.ENABLE_BENCHMARKING !== "true") return getAnyscaleCompletion(fineTune, input);
+
   const comparisonModelId = comparisonModels[fineTune.id];
 
   const comparisonModel =
