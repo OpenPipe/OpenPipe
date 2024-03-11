@@ -153,6 +153,7 @@ export const startTestJobsForEval = async ({
   }
 };
 
+// Used for both fine-tuned and comparison models
 export const startTestJobsForModel = async ({
   modelId,
   datasetId,
