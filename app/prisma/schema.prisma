@@ -807,7 +807,7 @@ model DatasetEntryInput {
     messages        Json   @default("[]")
     response_format Json?
     inputTokens     Int?
-    hash            String
+    hash            String @id
 
     projectId String  @db.Uuid
     project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -820,7 +820,7 @@ model DatasetEntryInput {
 
 model DatasetEntryOutput {
     output       Json
-    hash         String
+    hash         String @id
     outputTokens Int?
 
     projectId String  @db.Uuid
