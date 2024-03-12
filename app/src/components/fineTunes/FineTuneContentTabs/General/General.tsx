@@ -55,7 +55,7 @@ const General = () => {
             </HStack>
             <HStack>
               <Text w={180}>Training Set Size</Text>
-              <Text color="gray.500">{fineTune.numTrainingEntries.toLocaleString()}</Text>
+              <Text color="gray.500">{fineTune.numTrainingEntries?.toLocaleString()}</Text>
             </HStack>
             <HStack>
               <Text w={180}>Test Set Size</Text>

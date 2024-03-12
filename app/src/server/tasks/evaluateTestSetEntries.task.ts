@@ -22,6 +22,28 @@ import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { generateEntry } from "./generateTestSetEntry.task";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
 
+export const RESPONSE_1_PLACEHOLDER = "Response 1";
+export const RESPONSE_2_PLACEHOLDER = "Response 2";
+
+export const getModelTitle = ({
+  modelId,
+  slug,
+}: {
+  modelId: string | null;
+  slug: string | null;
+}): string => {
+  if (modelId === ORIGINAL_MODEL_ID) {
+    return "the original model";
+  }
+  if (modelId && isComparisonModel(modelId)) {
+    return getComparisonModelName(modelId as ComparisonModel) as string;
+  }
+  if (slug) {
+    return `openpipe:${slug}`;
+  }
+  throw new Error("Model title not found");
+};
+
 // Accept result criteria instead of ids to recover from duplicate result creation attempts
 export type EvalKey = {
   nodeEntryId: string;
@@ -103,11 +125,14 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
 
     const firstResultHandled =
       (firstResult.status === "IN_PROGRESS" || firstResult.status === "COMPLETE") &&
+      // backfill results if they were created without a score (3/9/2024 bugfix)
+      firstResult.score !== null &&
       (firstResult.nodeEntryOutputHash === nodeEntry.outputHash ||
         firstResult.modelId !== ORIGINAL_MODEL_ID);
 
     const secondResultHandled =
       (secondResult.status === "IN_PROGRESS" || secondResult.status === "COMPLETE") &&
+      secondResult.score !== null &&
       (secondResult.nodeEntryOutputHash === nodeEntry.outputHash ||
         secondResult.modelId !== ORIGINAL_MODEL_ID);
 
@@ -126,7 +151,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       },
     });
 
-    // Combine query to ensure both results are complete
+    // Look for cached combined result from another row
     const completeCombinedResult = await kysely
       .selectFrom("NodeEntry as ne")
       .where("ne.id", "=", nodeEntryId)
@@ -140,14 +165,15 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
         join
           .onRef("der.nodeEntryInputHash", "=", "ne.inputHash")
           .on("der.datasetEvalOutputSourceId", "=", firstOutputSourceId)
-          .on("der.status", "=", "COMPLETE"),
+          .on("der.status", "=", "COMPLETE")
+          .on("der.score", "!=", null),
       )
       .innerJoin("DatasetEvalResult as comparisonDer", (join) =>
         join
           .onRef("comparisonDer.nodeEntryInputHash", "=", "ne.inputHash")
-          .on("comparisonDer.nodeEntryOutputHash", "=", nodeEntry.outputHash)
           .on("comparisonDer.datasetEvalOutputSourceId", "=", secondOutputSourceId)
-          .on("der.status", "=", "COMPLETE"),
+          .on("comparisonDer.status", "=", "COMPLETE")
+          .on("comparisonDer.score", "!=", null),
       )
       .innerJoin("DatasetEvalNodeEntry as dene", "dene.nodeEntryPersistentId", "ne.persistentId")
       .where((eb) =>
@@ -173,30 +199,32 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       .executeTakeFirst();
 
     if (completeCombinedResult) {
-      await prisma.datasetEvalResult.update({
-        where: { id: firstResult.id },
-        data: {
-          score: completeCombinedResult.firstResultScore,
-          explanation: completeCombinedResult.firstResultExplanation,
-          judge: completeCombinedResult.judge,
-          wasFirst: completeCombinedResult.firstResultWasFirst,
-          nodeEntryOutputHash: nodeEntry.outputHash,
-          status: "COMPLETE",
-          errorMessage: null,
-        },
-      });
-      await prisma.datasetEvalResult.update({
-        where: { id: secondResult.id },
-        data: {
-          score: completeCombinedResult.secondResultScore,
-          explanation: completeCombinedResult.secondResultExplanation,
-          judge: completeCombinedResult.judge,
-          wasFirst: !completeCombinedResult.firstResultWasFirst,
-          nodeEntryOutputHash: nodeEntry.outputHash,
-          status: "COMPLETE",
-          errorMessage: null,
-        },
-      });
+      await prisma.$transaction([
+        prisma.datasetEvalResult.update({
+          where: { id: firstResult.id },
+          data: {
+            score: completeCombinedResult.firstResultScore,
+            explanation: completeCombinedResult.firstResultExplanation,
+            judge: completeCombinedResult.judge,
+            wasFirst: completeCombinedResult.firstResultWasFirst,
+            nodeEntryOutputHash: nodeEntry.outputHash,
+            status: "COMPLETE",
+            errorMessage: null,
+          },
+        }),
+        prisma.datasetEvalResult.update({
+          where: { id: secondResult.id },
+          data: {
+            score: completeCombinedResult.secondResultScore,
+            explanation: completeCombinedResult.secondResultExplanation,
+            judge: completeCombinedResult.judge,
+            wasFirst: !completeCombinedResult.firstResultWasFirst,
+            nodeEntryOutputHash: nodeEntry.outputHash,
+            status: "COMPLETE",
+            errorMessage: null,
+          },
+        }),
+      ]);
       return;
     }
 
@@ -221,7 +249,6 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       }
 
       const outputs = [];
-      const entryIds = [];
 
       for (const result of [firstResult, secondResult]) {
         try {
@@ -242,13 +269,6 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
               ])
               .executeTakeFirstOrThrow();
             outputs.push(entry.output);
-            if (isComparisonModel(entry.modelId)) {
-              entryIds.push(getComparisonModelName(entry.modelId as ComparisonModel));
-            } else if (entry.fineTuneSlug) {
-              entryIds.push("openpipe:" + entry.fineTuneSlug);
-            } else {
-              throw new Error("No fineTune or comparison model found for entry");
-            }
           } else {
             const entry = await kysely
               .selectFrom("NodeEntry as ne")
@@ -257,7 +277,6 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
               .select(["deo.output"])
               .executeTakeFirstOrThrow();
             outputs.push(entry.output);
-            entryIds.push("the original model");
           }
         } catch (e) {
           console.error("error getting entry for result", result, e);
@@ -277,8 +296,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       }
 
       const [firstOutput, secondOutput] = outputs;
-      const [firstEntryId, secondEntryId] = entryIds;
-      if (!firstOutput || !secondOutput || !firstEntryId || !secondEntryId) {
+      if (!firstOutput || !secondOutput) {
         await prisma.datasetEvalResult.updateMany({
           where: {
             id: {
@@ -365,12 +383,6 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
         throw e;
       }
 
-      explanation = explanation
-        .replaceAll("response 1", firstEntryId)
-        .replaceAll("Response 1", firstEntryId)
-        .replaceAll("response 2", secondEntryId)
-        .replaceAll("Response 2", secondEntryId);
-
       let score1, score2;
 
       switch (judgement) {
@@ -388,27 +400,28 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
           break;
       }
 
-      await prisma.datasetEvalResult.update({
-        where: { id: firstResult.id },
-        data: {
-          status: "COMPLETE",
-          explanation,
-          score: score1,
-          wasFirst: true,
-          judge: judgementInput?.model,
-        },
-      });
-
-      await prisma.datasetEvalResult.update({
-        where: { id: secondResult.id },
-        data: {
-          status: "COMPLETE",
-          explanation,
-          score: score2,
-          wasFirst: false,
-          judge: judgementInput?.model,
-        },
-      });
+      await prisma.$transaction([
+        prisma.datasetEvalResult.update({
+          where: { id: firstResult.id },
+          data: {
+            status: "COMPLETE",
+            explanation,
+            score: score1,
+            wasFirst: true,
+            judge: judgementInput?.model,
+          },
+        }),
+        prisma.datasetEvalResult.update({
+          where: { id: secondResult.id },
+          data: {
+            status: "COMPLETE",
+            explanation,
+            score: score2,
+            wasFirst: false,
+            judge: judgementInput?.model,
+          },
+        }),
+      ]);
     } catch (e) {
       console.error("error in evaluateTestSetEntries", e);
 

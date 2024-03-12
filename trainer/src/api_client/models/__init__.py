@@ -1,6 +1,7 @@
 """ Contains all the data models used in inputs/outputs """
 
 from .get_model_export_info_response_200 import GetModelExportInfoResponse200
+from .get_model_export_info_response_200_weights_format import GetModelExportInfoResponse200WeightsFormat
 from .get_training_info_response_200 import GetTrainingInfoResponse200
 from .get_training_info_response_200_training_config import GetTrainingInfoResponse200TrainingConfig
 from .get_training_info_response_200_training_config_adapter import GetTrainingInfoResponse200TrainingConfigAdapter
@@ -19,6 +20,7 @@ from .report_model_export_complete_response_200 import ReportModelExportComplete
 
 __all__ = (
     "GetModelExportInfoResponse200",
+    "GetModelExportInfoResponse200WeightsFormat",
     "GetTrainingInfoResponse200",
     "GetTrainingInfoResponse200TrainingConfig",
     "GetTrainingInfoResponse200TrainingConfigAdapter",

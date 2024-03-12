@@ -57,11 +57,11 @@ const HeadToHeadComparisonModal = () => {
     },
   );
 
-  if (!data || !data.entry) {
+  if (!data || !data.evalResult) {
     return null;
   }
 
-  const selectedOutputTitle = getOutputTitle(data.entry.modelId, data.entry.slug) ?? "";
+  const selectedOutputTitle = getOutputTitle(data.evalResult.modelId, data.evalResult.slug) ?? "";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xl", md: "8xl" }}>
@@ -70,7 +70,7 @@ const HeadToHeadComparisonModal = () => {
         <ModalHeader>
           <HStack>
             <Icon as={FaBalanceScale} />
-            <Text>{data.entry.datasetEvalName} - Head To Head Comparison</Text>
+            <Text>{data.evalResult.datasetEvalName} - Head To Head Comparison</Text>
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
@@ -86,7 +86,7 @@ const HeadToHeadComparisonModal = () => {
               borderColor="gray.300"
             >
               <Text fontWeight="bold">Evaluation Criteria</Text>
-              <Text>{data.entry.datasetEvalInstructions}</Text>
+              <Text>{data.evalResult.datasetEvalInstructions}</Text>
             </VStack>
             <Grid
               display="grid"
@@ -104,7 +104,7 @@ const HeadToHeadComparisonModal = () => {
               }}
             >
               <ComparisonsHeader />
-              {data.entry.comparisonResults.map((result) => (
+              {data.evalResult.comparisonResults.map((result) => (
                 <ComparisonRow
                   key={result.modelId}
                   selectedOutputTitle={selectedOutputTitle}
@@ -113,7 +113,7 @@ const HeadToHeadComparisonModal = () => {
               ))}
             </Grid>
             <SelectedComparisonTable
-              datasetEntry={data.entry}
+              evalResult={data.evalResult}
               selectedOutputTitle={selectedOutputTitle}
             />
           </VStack>
@@ -184,7 +184,7 @@ const ComparisonsHeader = () => (
 );
 
 type ComparisonResult =
-  RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"]["comparisonResults"][number];
+  RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["evalResult"]["comparisonResults"][number];
 
 const VERTICAL_PADDING = 64;
 const MIN_EXPANDABLE_HEIGHT = 200;
@@ -297,15 +297,16 @@ const ComparisonRow = ({
   );
 };
 
-type ComparisonEntry = RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["entry"];
+type ResultWithComparisons =
+  RouterOutputs["datasetEvals"]["getHeadToHeadComparisonDetails"]["evalResult"];
 
 const MIN_HEIGHT = 200;
 
 const SelectedComparisonTable = ({
-  datasetEntry,
+  evalResult,
   selectedOutputTitle,
 }: {
-  datasetEntry: ComparisonEntry;
+  evalResult: ResultWithComparisons;
   selectedOutputTitle: string;
 }) => {
   const inputRef = useRef<HTMLDivElement>(null);
@@ -358,7 +359,7 @@ const SelectedComparisonTable = ({
         </GridItem>
         <GridItem position="relative" {...contentProps} {...topBorderProps}>
           <Box ref={inputRef}>
-            <FormattedInput input={datasetEntry} />
+            <FormattedInput input={evalResult} />
           </Box>
           {expandable && !expanded && (
             <Box
@@ -375,7 +376,7 @@ const SelectedComparisonTable = ({
         </GridItem>
         <GridItem position="relative" {...contentProps} {...leftBorderProps} {...topBorderProps}>
           <Box ref={outputRef}>
-            <PotentiallyPendingFormattedMessage output={datasetEntry.output} />
+            <PotentiallyPendingFormattedMessage output={evalResult.output} />
           </Box>
           {expandable && !expanded && (
             <Box

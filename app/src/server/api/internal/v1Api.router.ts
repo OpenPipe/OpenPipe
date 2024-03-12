@@ -8,6 +8,7 @@ import { typedFineTune } from "~/types/dbColumns.types";
 import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
 import { env } from "~/env.mjs";
 import { fireworksConfig } from "~/server/fineTuningProviders/openpipe/fireworksConfig";
+import { weightsFormat } from "~/types/shared.types";
 
 export const v1ApiRouter = createOpenApiRouter({
   getTrainingInfo: openApiProtectedProc
@@ -74,6 +75,7 @@ export const v1ApiRouter = createOpenApiRouter({
         fineTuneId: z.string(),
         s3BucketName: z.string(),
         s3Key: z.string(),
+        weightsFormat,
       }),
     )
     .mutation(async ({ input }) => {
@@ -95,6 +97,7 @@ export const v1ApiRouter = createOpenApiRouter({
         fineTuneId: exportRequest.fineTuneId,
         s3BucketName: env.EXPORTED_MODELS_BUCKET_NAME,
         s3Key: exportRequest.s3Key,
+        weightsFormat: weightsFormat.parse(exportRequest.weightsFormat),
       };
     }),
   reportModelExportComplete: openApiProtectedProc
