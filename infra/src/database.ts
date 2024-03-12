@@ -22,7 +22,7 @@ const password = new random.RandomPassword(nm("app-db-password"), {
 
 const isProd = pulumi.getStack().includes("prod");
 
-const dbParameterGroup = new aws.rds.ParameterGroup("app-db-parameter-group", {
+const dbParameterGroup = new aws.rds.ParameterGroup(nm("app-db-parameter-group"), {
   family: "postgres15",
   parameters: [
     {
@@ -57,7 +57,7 @@ const dbInstance = new aws.rds.Instance(nm("app"), {
   finalSnapshotIdentifier: nm("app-db-final-snapshot"),
 });
 
-const encryptedDbInstance = new aws.rds.Instance("app-encrypted", {
+const encryptedDbInstance = new aws.rds.Instance(nm("app-encrypted"), {
   username: "openpipe",
   password: password.result,
   dbName,
@@ -67,8 +67,8 @@ const encryptedDbInstance = new aws.rds.Instance("app-encrypted", {
   storageType: "io1",
   iops: 12000,
   engine: "postgres",
-  engineVersion: "15.5",
-  parameterGroupName: "default.postgres15",
+  engineVersion: "16",
+  parameterGroupName: "default.postgres16",
   dbSubnetGroupName: dbSubnetGroup.name,
   vpcSecurityGroupIds: [dbSecurityGroup.id],
   publiclyAccessible: true,
@@ -80,7 +80,6 @@ const encryptedDbInstance = new aws.rds.Instance("app-encrypted", {
   // snapshotIdentifier: isProd ? undefined : "app-pl-stage-test-snapshot",
   finalSnapshotIdentifier: nm("app-db-encrypted-final-snapshot"),
   storageEncrypted: true,
-  identifier: "app-encrypted-db-instance",
 });
 
 // Database Migration Service requires the below IAM Roles to be created before
@@ -102,55 +101,55 @@ const dmsAssumeRole = aws.iam.getPolicyDocument({
     },
   ],
 });
-const dms_access_for_endpoint = new aws.iam.Role("dms-access-for-endpoint", {
+const dms_access_for_endpoint = new aws.iam.Role(nm("dms-access-for-endpoint"), {
   assumeRolePolicy: dmsAssumeRole.then((dmsAssumeRole) => dmsAssumeRole.json),
-  name: "dms-access-for-endpoint",
+  name: nm("dms-access-for-endpoint"),
 });
 
 const dms_access_for_endpoint_AmazonDMSRedshiftS3Role = new aws.iam.RolePolicyAttachment(
-  "dms-access-for-endpoint-AmazonDMSRedshiftS3Role",
+  nm("dms-access-for-endpoint-AmazonDMSRedshiftS3Role"),
   {
     policyArn: "arn:aws:iam::aws:policy/service-role/AmazonDMSRedshiftS3Role",
     role: dms_access_for_endpoint.name,
   },
 );
 
-const dms_cloudwatch_logs_role = new aws.iam.Role("dms-cloudwatch-logs-role", {
+const dms_cloudwatch_logs_role = new aws.iam.Role(nm("dms-cloudwatch-logs-role"), {
   assumeRolePolicy: dmsAssumeRole.then((dmsAssumeRole) => dmsAssumeRole.json),
-  name: "dms-cloudwatch-logs-role",
+  name: nm("dms-cloudwatch-logs-role"),
 });
 
 const dms_cloudwatch_logs_role_AmazonDMSCloudWatchLogsRole = new aws.iam.RolePolicyAttachment(
-  "dms-cloudwatch-logs-role-AmazonDMSCloudWatchLogsRole",
+  nm("dms-cloudwatch-logs-role-AmazonDMSCloudWatchLogsRole"),
   {
     policyArn: "arn:aws:iam::aws:policy/service-role/AmazonDMSCloudWatchLogsRole",
     role: dms_cloudwatch_logs_role.name,
   },
 );
 
-const dms_vpc_role = new aws.iam.Role("dms-vpc-role", {
+const dms_vpc_role = new aws.iam.Role(nm("dms-vpc-role"), {
   assumeRolePolicy: dmsAssumeRole.then((dmsAssumeRole) => dmsAssumeRole.json),
-  name: "dms-vpc-role",
+  name: nm("dms-vpc-role"),
 });
 
 const dms_vpc_role_AmazonDMSVPCManagementRole = new aws.iam.RolePolicyAttachment(
-  "dms-vpc-role-AmazonDMSVPCManagementRole",
+  nm("dms-vpc-role-AmazonDMSVPCManagementRole"),
   {
     policyArn: "arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole",
     role: dms_vpc_role.name,
   },
 );
 
-const dmsSubnetGroup = new aws.dms.ReplicationSubnetGroup("app-dms-subnet-group", {
-  replicationSubnetGroupId: "app-dms-subnet-group",
+const dmsSubnetGroup = new aws.dms.ReplicationSubnetGroup(nm("app-dms-subnet-group"), {
+  replicationSubnetGroupId: nm("app-dms-subnet-group"),
   replicationSubnetGroupDescription: "Subnet group for DMS replication instance",
   subnetIds: [vpc.publicSubnetIds[0], vpc.publicSubnetIds[1]],
 });
 
 const dmsReplicationInstance = new aws.dms.ReplicationInstance(
-  "app-dms-replication-instance",
+  nm("app-dms-replication-instance"),
   {
-    replicationInstanceId: "app-dms-replication-instance",
+    replicationInstanceId: nm("app-dms-replication-instance"),
     replicationInstanceClass: "dms.c4.large",
     allocatedStorage: 100,
     engineVersion: "3.5.1",
@@ -174,7 +173,7 @@ const dmsSourceEndpoint = pulumi
   })
   .apply(
     ({ password }) =>
-      new aws.dms.Endpoint("app-dms-source-endpoint", {
+      new aws.dms.Endpoint(nm("app-dms-source-endpoint"), {
         endpointType: "source",
         engineName: "postgres",
         serverName: dbInstance.address,
@@ -183,7 +182,7 @@ const dmsSourceEndpoint = pulumi
         password: password,
         databaseName: dbName,
         sslMode: "require",
-        endpointId: "app-dms-source-endpoint",
+        endpointId: nm("app-dms-source-endpoint"),
       }),
   );
 
@@ -193,7 +192,7 @@ const dmsTargetEndpoint = pulumi
   })
   .apply(
     ({ password }) =>
-      new aws.dms.Endpoint("target-endpoint", {
+      new aws.dms.Endpoint(nm("target-endpoint"), {
         endpointType: "target",
         engineName: "postgres",
         serverName: encryptedDbInstance.address,
@@ -202,13 +201,13 @@ const dmsTargetEndpoint = pulumi
         username: encryptedDbInstance.username,
         password: password,
         sslMode: "require",
-        endpointId: "app-dms-target-endpoint",
+        endpointId: nm("app-dms-target-endpoint"),
       }),
   );
 
 // Create a migration task to copy the data from the source to the target database
 const dmsMigrationTask = new aws.dms.ReplicationTask(
-  "app-dms-migration-task",
+  nm("app-dms-migration-task"),
   {
     replicationInstanceArn: dmsReplicationInstance.replicationInstanceArn,
     sourceEndpointArn: dmsSourceEndpoint.endpointArn,
@@ -245,7 +244,7 @@ const dmsMigrationTask = new aws.dms.ReplicationTask(
         LobMaxSize: 16384,
       },
     }),
-    replicationTaskId: "app-dms-migration-task",
+    replicationTaskId: nm("app-dms-migration-task"),
   },
   {
     dependsOn: [encryptedDbInstance],
