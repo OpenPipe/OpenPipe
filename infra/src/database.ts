@@ -129,7 +129,7 @@ const dms_cloudwatch_logs_role_AmazonDMSCloudWatchLogsRole = new aws.iam.RolePol
 
 const dms_vpc_role = new aws.iam.Role(nm("dms-vpc-role"), {
   assumeRolePolicy: dmsAssumeRole.then((dmsAssumeRole) => dmsAssumeRole.json),
-  name: nm("dms-vpc-role"),
+  name: isProd ? "dms-vpc-role" : nm("dms-vpc-role"),
 });
 
 const dms_vpc_role_AmazonDMSVPCManagementRole = new aws.iam.RolePolicyAttachment(
