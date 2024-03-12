@@ -24,6 +24,7 @@ export const getExportWeightsRequests = protectedProcedure
         // only in the last 7 days
         createdAt: { gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
       },
+      orderBy: { createdAt: "asc" },
     });
 
     return requests;
