@@ -7,15 +7,15 @@ import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { TRPCError } from "@trpc/server";
 import { filtersSchema } from "~/types/shared.types";
-import { typedNode } from "~/server/utils/nodes/node.types";
+import { relabelOptions, typedNode } from "~/server/utils/nodes/node.types";
 import { success } from "~/utils/errorHandling/standardResponses";
-import { getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
+import { getDownstreamDatasets, getMonitors } from "~/server/utils/nodes/relationalQueries";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { prepareIntegratedMonitorCeation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { convertCache } from "~/server/utils/nodes/convertCache";
-import { FilterOutput } from "~/server/utils/nodes/nodeProperties/filterProperties";
 import { hashNode } from "~/server/utils/nodes/hashNode";
+import { LLMRelabelOutput } from "~/server/utils/nodes/nodeProperties/llmRelabelProperties";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -87,11 +87,15 @@ export const monitorsRouter = createTRPCRouter({
       (monitor.numUnprocessedEntries ?? 0) +
       Math.max(0, (monitor.numProcessedEntries ?? 0) - (llmRelabel.numProcessedEntries ?? 0));
 
-    const datasets = await getDownstreamDatasets({
-      monitorFilterNodeId: monitor.config.filterNodeId,
+    const datasetNodes = await getDownstreamDatasets({
+      monitorLLMRelabelNodeId: monitor.config.relabelNodeId,
     })
-      .select(["datasetNode.id as datasetNodeId", "d.id as datasetId", "d.name as datasetName"])
-      .execute();
+      .selectAll("datasetNode")
+      .select(["d.id as datasetId", "d.name as datasetName"])
+      .distinctOn(["dc1.createdAt"])
+      .orderBy("dc1.createdAt", "asc")
+      .execute()
+      .then((nodes) => nodes.map((node) => typedNode({ ...node, type: "Dataset" })));
 
     return {
       ...monitor,
@@ -99,7 +103,7 @@ export const monitorsRouter = createTRPCRouter({
       llmRelabel,
       numIncomingEntries,
       numFullyProcessedEntries: llmRelabel.numProcessedEntries,
-      datasets,
+      datasetNodes,
     };
   }),
   list: protectedProcedure
@@ -130,8 +134,8 @@ export const monitorsRouter = createTRPCRouter({
 
       const numDatasets = await Promise.all(
         monitors.map((monitor) =>
-          getDownstreamDatasets({ monitorFilterNodeId: monitor.config.filterNodeId })
-            .groupBy(["filterNode.id", "datasetNode.id"])
+          getDownstreamDatasets({ monitorLLMRelabelNodeId: monitor.config.relabelNodeId })
+            .groupBy(["monitorLLMRelabelNode.id", "datasetNode.id"])
             .select(sql<number>`count("datasetNode".id)::int`.as("count"))
             .executeTakeFirst(),
         ),
@@ -141,6 +145,55 @@ export const monitorsRouter = createTRPCRouter({
         ...monitor,
         numDatasets: numDatasets[i]?.count ?? 0,
       }));
+    }),
+  listForDataset: protectedProcedure
+    .input(
+      z.object({
+        datasetId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const datasetNode = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", input.datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .executeTakeFirst()
+        .then((node) => (node ? typedNode({ ...node, type: "Dataset" }) : null));
+
+      if (!datasetNode) throw new TRPCError({ code: "NOT_FOUND", message: "Dataset not found" });
+
+      await requireCanViewProject(datasetNode.projectId, ctx);
+
+      const monitors = await getMonitors({
+        datasetManualRelabelNodeId: datasetNode.config.manualRelabelNodeId,
+      })
+        .innerJoin("DataChannel as dc", "dc.destinationId", "monitorNode.id")
+        .leftJoin("NodeEntry as ne", "dc.id", "ne.dataChannelId")
+        .groupBy(["monitorNode.id", "llmRelabelNode.id"])
+        .distinctOn("monitorNode.createdAt")
+        .selectAll("monitorNode")
+        .select([
+          "llmRelabelNode.id as llmRelabelNodeId",
+          "llmRelabelNode.config as llmRelabelNodeConfig",
+          sql<number>`SUM(CASE WHEN ne.split = 'TRAIN' THEN 1 ELSE 0 END)::int`.as(
+            "numTrainEntries",
+          ),
+          sql<number>`SUM(CASE WHEN ne.split = 'TEST' THEN 1 ELSE 0 END)::int`.as("numTestEntries"),
+        ])
+        .orderBy("monitorNode.createdAt", "desc")
+        .execute()
+        .then((monitors) =>
+          monitors.map((archive) => ({
+            ...archive,
+            relabelOption: typedNode({
+              type: "LLMRelabel",
+              config: archive.llmRelabelNodeConfig,
+            }).config.relabelLLM,
+          })),
+        );
+
+      return monitors;
     }),
   create: protectedProcedure
     .input(
@@ -173,7 +226,8 @@ export const monitorsRouter = createTRPCRouter({
           sampleRate: z.number().optional(),
           maxOutputSize: z.number().optional(),
           checkFilters: filtersSchema.optional(),
-          datasetLLMRelabelNodeIds: z.array(z.string()).optional(),
+          relabelLLM: z.enum(relabelOptions).optional(),
+          datasetManualRelabelNodeIds: z.array(z.string()).optional(),
         }),
         preserveCache: z.boolean().optional(),
       }),
@@ -187,7 +241,7 @@ export const monitorsRouter = createTRPCRouter({
           sampleRate,
           maxOutputSize,
           checkFilters,
-          datasetLLMRelabelNodeIds,
+          datasetManualRelabelNodeIds,
         },
         preserveCache,
       } = input;
@@ -196,30 +250,37 @@ export const monitorsRouter = createTRPCRouter({
         .selectFrom("Node as n")
         .where("n.id", "=", id)
         .selectAll("n")
-        .executeTakeFirst();
+        .executeTakeFirst()
+        .then((monitor) => (monitor ? typedNode({ ...monitor, type: "Monitor" }) : undefined));
 
       if (!monitor) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const tMonitor = typedNode({ ...monitor, type: "Monitor" });
-
-      if (tMonitor.type !== "Monitor") throw new TRPCError({ code: "BAD_REQUEST" });
+      await requireCanModifyProject(monitor.projectId, ctx);
 
       const filter = await kysely
         .selectFrom("Node as n")
-        .where("n.id", "=", tMonitor.config.filterNodeId)
-        .innerJoin("NodeOutput as no", "no.nodeId", "n.id")
-        .where("no.label", "=", FilterOutput.Passed)
+        .where("n.id", "=", monitor.config.filterNodeId)
         .selectAll("n")
-        .select(["no.id as passedFilterOutputId"])
-        .executeTakeFirst();
+        .executeTakeFirst()
+        .then((filter) => (filter ? typedNode({ ...filter, type: "Filter" }) : undefined));
 
       if (!filter) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const tFilter = typedNode({ ...filter, type: "Filter" });
+      const llmRelabel = await kysely
+        .selectFrom("Node as n")
+        .where("n.id", "=", monitor.config.relabelNodeId)
+        .innerJoin("NodeOutput as no", "no.nodeId", "n.id")
+        .where("no.label", "=", LLMRelabelOutput.Relabeled)
+        .selectAll("n")
+        .select(["no.id as relabeledLLMOutputId"])
+        .executeTakeFirst()
+        .then((llmRelabel) =>
+          llmRelabel ? typedNode({ ...llmRelabel, type: "LLMRelabel" }) : undefined,
+        );
 
-      await requireCanModifyProject(tMonitor.projectId, ctx);
+      if (!llmRelabel) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const initialMonitorHash = tMonitor.hash;
+      const initialMonitorHash = monitor.hash;
 
       const updatedMonitorData = {
         id,
@@ -227,10 +288,10 @@ export const monitorsRouter = createTRPCRouter({
         name,
         type: "Monitor" as const,
         config: {
-          ...tMonitor.config,
-          initialFilters: initialFilters ?? tMonitor.config.initialFilters,
-          sampleRate: sampleRate ?? tMonitor.config.sampleRate,
-          maxOutputSize: maxOutputSize ?? tMonitor.config.maxOutputSize,
+          ...monitor.config,
+          initialFilters: initialFilters ?? monitor.config.initialFilters,
+          sampleRate: sampleRate ?? monitor.config.sampleRate,
+          maxOutputSize: maxOutputSize ?? monitor.config.maxOutputSize,
         },
       };
 
@@ -243,29 +304,29 @@ export const monitorsRouter = createTRPCRouter({
       });
 
       const { hash: updatedFilterHash } = await prisma.node.update({
-        where: { id: tMonitor.config.filterNodeId },
+        where: { id: monitor.config.filterNodeId },
         data: checkNodeInput({
-          id: tMonitor.config.filterNodeId,
+          id: monitor.config.filterNodeId,
           projectId: monitor.projectId,
           type: "Filter",
           config: {
-            ...tFilter.config,
-            filters: checkFilters ?? tFilter.config.filters,
+            ...filter.config,
+            filters: checkFilters ?? filter.config.filters,
           },
         }),
       });
 
-      const filterChecksUpdated = updatedFilterHash !== tFilter.hash;
+      const filterChecksUpdated = updatedFilterHash !== filter.hash;
 
       if (filterChecksUpdated) {
         if (preserveCache) {
           await convertCache({
-            nodeHash: tFilter.hash,
-            nodeId: tFilter.id,
+            nodeHash: filter.hash,
+            nodeId: filter.id,
           });
         } else {
           await prisma.node.update({
-            where: { id: tFilter.id },
+            where: { id: filter.id },
             data: {
               stale: true,
             },
@@ -273,40 +334,60 @@ export const monitorsRouter = createTRPCRouter({
         }
       }
 
-      if (datasetLLMRelabelNodeIds) {
-        const existingDatasetLLMRelabelNodeIds = await getDownstreamDatasets({
-          monitorFilterNodeId: tFilter.id,
+      const relabelLLMUpdated =
+        input.updates.relabelLLM && input.updates.relabelLLM !== llmRelabel.config.relabelLLM;
+
+      if (relabelLLMUpdated) {
+        await prisma.node.update({
+          where: { id: monitor.config.relabelNodeId },
+          data: {
+            stale: true,
+            config: {
+              ...llmRelabel.config,
+              relabelLLM: input.updates.relabelLLM,
+            },
+          },
+        });
+      }
+
+      if (datasetManualRelabelNodeIds) {
+        const existingDatasetManualRelabelNodeIds = await getDownstreamDatasets({
+          monitorLLMRelabelNodeId: llmRelabel.id,
         })
-          .select(["datasetLLMRelabelNode.id"])
+          .select(["manualRelabelNode.id"])
           .execute()
           .then((nodes) => nodes.map((node) => node.id));
 
-        const datasetLLMRelabelNodeIdsToConnect = datasetLLMRelabelNodeIds.filter(
-          (id) => !existingDatasetLLMRelabelNodeIds.includes(id),
+        const nodeIdsToConnect = datasetManualRelabelNodeIds.filter(
+          (id) => !existingDatasetManualRelabelNodeIds.includes(id),
         );
 
-        await kysely
-          .insertInto("DataChannel")
-          .columns(["originId", "destinationId"])
-          .values(
-            datasetLLMRelabelNodeIdsToConnect.map((llmRelabelNodeId) => ({
-              id: uuidv4(),
-              originId: tFilter.passedFilterOutputId,
-              destinationId: llmRelabelNodeId,
-              updatedAt: new Date(),
-            })),
-          )
-          .execute();
+        if (nodeIdsToConnect.length) {
+          await kysely
+            .insertInto("DataChannel")
+            .columns(["originId", "destinationId"])
+            .values(
+              nodeIdsToConnect.map((nodeId) => ({
+                id: uuidv4(),
+                originId: llmRelabel.relabeledLLMOutputId,
+                destinationId: nodeId,
+                updatedAt: new Date(),
+              })),
+            )
+            .execute();
+        }
 
-        const datasetNodeIdsToDisconnect = existingDatasetLLMRelabelNodeIds.filter(
-          (id) => !datasetLLMRelabelNodeIds.includes(id),
+        const nodeIdsToDisconnect = existingDatasetManualRelabelNodeIds.filter(
+          (id) => !datasetManualRelabelNodeIds.includes(id),
         );
 
-        await kysely
-          .deleteFrom("DataChannel")
-          .where("originId", "=", tFilter.passedFilterOutputId)
-          .where("destinationId", "in", datasetNodeIdsToDisconnect)
-          .execute();
+        if (nodeIdsToDisconnect.length) {
+          await kysely
+            .deleteFrom("DataChannel")
+            .where("originId", "=", llmRelabel.relabeledLLMOutputId)
+            .where("destinationId", "in", nodeIdsToDisconnect)
+            .execute();
+        }
       }
 
       await enqueueProcessNode({ nodeId: id, invalidateData: invalidateMonitor });

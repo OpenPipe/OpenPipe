@@ -118,7 +118,7 @@ export const prepareIntegratedMonitorCeation = ({
       name: "New Monitor",
       projectId,
       config: {
-        maxOutputSize: 20000,
+        maxOutputSize: 500,
         sampleRate: 100,
         initialFilters,
         lastLoggedCallUpdatedAt: new Date(0),

@@ -22,7 +22,7 @@ const FormattedMessage = ({
         {message.tool_calls.map((toolCall, index) => {
           const fn = toolCall.function;
 
-          return <HighlightedJson key={index} fnLabel={fn.name} json={fn.arguments} />;
+          return <HighlightedJS key={index} fnLabel={fn.name} json={fn.arguments} />;
         })}
       </VStack>
     );
@@ -36,7 +36,7 @@ const FormattedMessage = ({
             content (json)
           </Text>
         )}
-        <HighlightedJson json={message.content ?? ""} />;
+        <HighlightedJS json={message.content ?? ""} />;
       </VStack>
     );
   }
@@ -57,7 +57,7 @@ const FormattedMessage = ({
 
 export default FormattedMessage;
 
-const HighlightedJson = (props: { json: string; fnLabel?: string }) => {
+const HighlightedJS = (props: { json: string; fnLabel?: string }) => {
   let formattedJson = props.json;
 
   try {
@@ -65,7 +65,7 @@ const HighlightedJson = (props: { json: string; fnLabel?: string }) => {
   } catch (e) {}
 
   return (
-    <VStack w="full" alignItems="flex-start" bgColor="#f0f0f0" borderRadius={8}>
+    <VStack w="full" alignItems="flex-start" bgColor="blackAlpha.50" borderRadius={8}>
       <SyntaxHighlighter
         customStyle={{
           overflowX: "unset",

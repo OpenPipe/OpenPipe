@@ -223,11 +223,12 @@ export const datasetsRouter = createTRPCRouter({
 
       const datasets = await kysely
         .selectFrom("Dataset as d")
-        .where("projectId", "=", projectId)
-        .where("nodeId", "is not", null)
+        .where("d.projectId", "=", projectId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
         .leftJoin("DataChannel as dc", "dc.destinationId", "d.nodeId")
         .selectAll("d")
         .select(() => [
+          "n.config as nodeConfig",
           sql<number>`(select count(*) from "NodeEntry" where "dataChannelId" = dc."id" and "status" = 'PROCESSED')::int`.as(
             "datasetEntryCount",
           ),
@@ -236,7 +237,13 @@ export const datasetsRouter = createTRPCRouter({
           ),
         ])
         .orderBy("d.createdAt", "desc")
-        .execute();
+        .execute()
+        .then((datasets) =>
+          datasets.map((dataset) => ({
+            ...dataset,
+            node: typedNode({ config: dataset.nodeConfig, type: "Dataset" }),
+          })),
+        );
 
       return datasets;
     }),

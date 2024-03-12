@@ -23,6 +23,7 @@ import { api } from "~/utils/api";
 import { INITIAL_FILTERS_URL_KEY } from "./InitialFilters";
 import TextSwitch from "./TextSwitch";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { LabelText, CaptionText } from "./styledText";
 
 export const SECONDARY_FILTERS_URL_KEY = "secondary";
 
@@ -66,14 +67,13 @@ const SecondaryFilters = () => {
 
   const saveDisabled = !monitor || !sampleRate || !maxOutputSize || noChanges;
 
-  const projectUpdateMutation = api.monitors.update.useMutation();
-
   const utils = api.useUtils();
 
+  const monitorUpdateMutation = api.monitors.update.useMutation();
   const [updateMonitor, updatingMonitor] = useHandledAsyncCallback(async () => {
     if (saveDisabled) return;
 
-    await projectUpdateMutation.mutateAsync({
+    await monitorUpdateMutation.mutateAsync({
       id: monitor?.id,
       updates: {
         checkFilters: filters,
@@ -89,7 +89,7 @@ const SecondaryFilters = () => {
 
     await utils.monitors.list.invalidate();
     await utils.monitors.get.invalidate({ id: monitor?.id });
-  }, [projectUpdateMutation, utils, saveDisabled, monitor?.id, filters, sampleRate, maxOutputSize]);
+  }, [monitorUpdateMutation, utils, saveDisabled, monitor?.id, filters, sampleRate, maxOutputSize]);
 
   const isLoaded = savedSampleRate !== undefined && !!savedFilters;
 
@@ -103,9 +103,7 @@ const SecondaryFilters = () => {
       <Skeleton isLoaded={isLoaded}>
         <VStack alignItems="flex-start" padding={4} spacing={4} w="full">
           <VStack alignItems="flex-start">
-            <Text fontWeight="bold" color="gray.500">
-              Max Sample Size
-            </Text>
+            <LabelText>Max Sample Size</LabelText>
             <NumberInput
               value={maxOutputSize}
               inputMode="numeric"
@@ -121,7 +119,7 @@ const SecondaryFilters = () => {
                 <NumberDecrementStepper />
               </NumberInputStepper>
             </NumberInput>
-            <Text fontSize="xs" color="gray.500" fontWeight="500">
+            <CaptionText>
               <HStack spacing={1}>
                 <Text>Filters will process at most</Text>
                 <Skeleton isLoaded={maxOutputSize !== undefined}>
@@ -129,12 +127,10 @@ const SecondaryFilters = () => {
                 </Skeleton>
                 <Text> matches</Text>
               </HStack>
-            </Text>
+            </CaptionText>
           </VStack>
           <VStack alignItems="flex-start">
-            <Text fontWeight="bold" color="gray.500">
-              Sample Rate (%)
-            </Text>
+            <LabelText>Sample Rate (%)</LabelText>
             <NumberInput
               value={sampleRateStr}
               inputMode="decimal"
@@ -154,7 +150,7 @@ const SecondaryFilters = () => {
               }}
               max={100}
               min={0}
-              precision={2}
+              precision={3}
               step={0.01}
               w={300}
             >
@@ -164,7 +160,7 @@ const SecondaryFilters = () => {
                 <NumberDecrementStepper />
               </NumberInputStepper>
             </NumberInput>
-            <Text fontSize="xs" color="gray.500" fontWeight="500">
+            <CaptionText>
               <HStack spacing={1}>
                 <Text>Filters will immediately process an estimated</Text>
                 <Skeleton isLoaded={initialCount !== undefined}>
@@ -172,13 +168,11 @@ const SecondaryFilters = () => {
                 </Skeleton>
                 <Text> matches</Text>
               </HStack>
-            </Text>
+            </CaptionText>
           </VStack>
 
           <HStack spacing={4}>
-            <Text fontWeight="bold" color="gray.500">
-              Filters
-            </Text>
+            <LabelText>Filters</LabelText>
             <TextSwitch
               options={[
                 { value: "SQL" },

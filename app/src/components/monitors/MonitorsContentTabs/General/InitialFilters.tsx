@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { Card, Text, VStack, HStack, Button, Skeleton } from "@chakra-ui/react";
+import { Card, VStack, HStack, Button, Skeleton } from "@chakra-ui/react";
 import { v4 as uuidv4 } from "uuid";
 
 import { useFineTunes, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
@@ -12,6 +12,7 @@ import { addFilterIds, filtersAreEqual, useFilters } from "~/components/Filters/
 import { toast } from "~/theme/ChakraThemeProvider";
 import { api } from "~/utils/api";
 import { formatFTSlug } from "~/utils/utils";
+import { LabelText } from "./styledText";
 
 const defaultMonitorSQLFilterOptions: FilterOption[] = [
   { type: "text", field: LoggedCallsFiltersDefaultFields.Request, label: "Request" },
@@ -60,14 +61,13 @@ const InitialFilters = () => {
 
   const saveDisabled = !monitor || !filters.length || !modelFilter?.value || noChanges;
 
-  const projectUpdateMutation = api.monitors.update.useMutation();
-
   const utils = api.useUtils();
 
+  const monitorUpdateMutation = api.monitors.update.useMutation();
   const [updateMonitor, updatingMonitor] = useHandledAsyncCallback(async () => {
     if (saveDisabled) return;
 
-    await projectUpdateMutation.mutateAsync({
+    await monitorUpdateMutation.mutateAsync({
       id: monitor?.id,
       updates: {
         initialFilters: filters,
@@ -81,7 +81,7 @@ const InitialFilters = () => {
 
     await utils.monitors.list.invalidate();
     await utils.monitors.get.invalidate({ id: monitor?.id });
-  }, [projectUpdateMutation, utils, saveDisabled, monitor?.id, filters]);
+  }, [monitorUpdateMutation, utils, saveDisabled, monitor?.id, filters]);
 
   const filterOptions = useMemo(() => {
     const tagFilterOptions: FilterOption[] = (tagNames || []).map((tag) => ({
@@ -99,9 +99,7 @@ const InitialFilters = () => {
       <Skeleton isLoaded={isLoaded}>
         <VStack alignItems="flex-start" padding={4} spacing={4} w="full">
           <VStack alignItems="flex-start">
-            <Text fontWeight="bold" color="gray.500">
-              Model
-            </Text>
+            <LabelText>Model</LabelText>
             {isLoaded && (
               <InputDropdown
                 options={fineTunes.map((fineTune) => formatFTSlug(fineTune.slug))}
@@ -116,9 +114,7 @@ const InitialFilters = () => {
               />
             )}
           </VStack>
-          <Text fontWeight="bold" color="gray.500">
-            Filters
-          </Text>
+          <LabelText>Filters</LabelText>
           <FilterContents
             filters={otherFilters}
             filterOptions={filterOptions}

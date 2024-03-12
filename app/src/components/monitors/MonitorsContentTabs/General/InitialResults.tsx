@@ -21,14 +21,7 @@ const InitialResults = () => {
 
   return (
     <VStack w="full" spacing={0}>
-      <HStack
-        as={Button}
-        variant="ghost"
-        w={80}
-        onClick={() => setExpanded(!expanded)}
-        mt={8}
-        mb={4}
-      >
+      <HStack as={Button} variant="ghost" w={80} onClick={() => setExpanded(!expanded)} mb={-4}>
         <Text>{expanded ? "Hide" : "Preview"} Initial Results</Text>
         <Skeleton isLoaded={count !== undefined}>
           <Text>({count ? count.toLocaleString() : 0})</Text>
@@ -56,7 +49,7 @@ const InitialResults = () => {
               />
             </ProjectLink>
           </HStack>
-          <LoggedCallsTable filters={initialFilters} showOptions={false} sortField="updatedAt" />
+          <LoggedCallsTable filters={initialFilters} showOptions={false} />
         </VStack>
       </Collapse>
     </VStack>

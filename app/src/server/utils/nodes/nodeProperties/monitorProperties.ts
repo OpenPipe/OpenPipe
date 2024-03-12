@@ -103,7 +103,6 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
                 ">=",
                 dayjs(lastLoggedCallUpdatedAt).subtract(10, "seconds").toDate(),
               )
-              .limit(Math.max(maxOutputSize * 1.1, Math.round((maxOutputSize * 100) / sampleRate)))
               .selectAll("lc")
               .as("subquery1"),
           )
@@ -126,7 +125,7 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
       .selectAll("subquery")
       .limit(Math.round(numEntriesToImport * 1.1));
 
-    console.log("loggedCallsQuery", loggedCallsQuery.compile());
+    // console.log("loggedCallsQuery", loggedCallsQuery.compile());
 
     const loggedCallsToAdd = await loggedCallsQuery.execute();
 

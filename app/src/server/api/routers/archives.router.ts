@@ -24,16 +24,15 @@ export const archivesRouter = createTRPCRouter({
         .where("d.id", "=", input.datasetId)
         .innerJoin("Node as n", "n.id", "d.nodeId")
         .selectAll("n")
-        .executeTakeFirst();
+        .executeTakeFirst()
+        .then((node) => (node ? typedNode({ ...node, type: "Dataset" }) : null));
 
       if (!datasetNode) throw new TRPCError({ code: "NOT_FOUND", message: "Dataset not found" });
 
       await requireCanViewProject(datasetNode.projectId, ctx);
 
-      const tNode = typedNode({ ...datasetNode, type: "Dataset" });
-
       const archives = await getArchives({
-        datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
+        datasetManualRelabelNodeId: datasetNode.config.manualRelabelNodeId,
       })
         .leftJoin("DatasetFileUpload as dfu", "dfu.nodeId", "archiveNode.id")
         .where("dfu.errorMessage", "is", null)
