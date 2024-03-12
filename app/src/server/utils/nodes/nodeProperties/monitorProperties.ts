@@ -87,7 +87,9 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
 
     const sampleRateHash = calculateSampleRateHash(sampleRate);
 
-    const castNodeId = parseInt(nodeId.substring(0, 8), 16);
+    const castNodeId = parseInt(nodeId.substring(0, 7), 16);
+
+    console.log("starting queryCalls");
 
     const loggedCallsQuery = kysely
       .selectFrom((eb) =>
@@ -108,7 +110,7 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
           )
           // compare to sampleRate
           .where(
-            sql`(('x' || LEFT(subquery1.id::text, 8))::bit(32)::int # 
+            sql`(('x' || LEFT(subquery1.id::text, 7))::bit(32)::int #
           ${castNodeId}) < ${sampleRateHash}`,
           )
           .limit(Math.round(maxOutputSize * 1.1))

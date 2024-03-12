@@ -376,6 +376,9 @@ export const monitorsRouter = createTRPCRouter({
 
       await prisma.$transaction([
         prisma.node.delete({
+          where: { id: tMonitor.config.relabelNodeId },
+        }),
+        prisma.node.delete({
           where: { id: tMonitor.config.filterNodeId },
         }),
         prisma.node.delete({
