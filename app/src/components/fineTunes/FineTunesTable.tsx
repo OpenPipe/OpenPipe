@@ -1,4 +1,16 @@
-import { Card, Table, Thead, Tr, Th, Tbody, Td, VStack, Icon, Text } from "@chakra-ui/react";
+import {
+  Card,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  VStack,
+  Icon,
+  Text,
+  Skeleton,
+} from "@chakra-ui/react";
 import { FaTable } from "react-icons/fa";
 import { type FineTuneStatus } from "@prisma/client";
 
@@ -9,77 +21,77 @@ import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { ProjectLink } from "../ProjectLink";
 
 const FineTunesTable = ({}) => {
-  const query = useFineTunes(10000);
+  const { data, isLoading } = useFineTunes(10000);
 
-  const fineTunes = query.data?.fineTunes || [];
-
-  if (query.isLoading) return null;
+  const fineTunes = data?.fineTunes || [];
 
   return (
     <Card width="100%" overflowX="auto">
-      {fineTunes.length ? (
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>ID</Th>
-              <Th>Created At</Th>
-              <Th>Base Model</Th>
-              <Th>Training Size</Th>
-              <Th>Dataset</Th>
-              <Th>Status</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {fineTunes.map((fineTune) => {
-              return (
-                <Tr key={fineTune.id}>
-                  <Td>
-                    <ProjectLink
-                      href={{ pathname: "/fine-tunes/[id]", query: { id: fineTune.id } }}
-                    >
-                      <Text color="blue.600">openpipe:{fineTune.slug}</Text>
-                    </ProjectLink>
-                  </Td>
-                  <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
-                  <Td>
-                    <Text
-                      color="orange.500"
-                      fontWeight="bold"
-                      fontSize="xs"
-                      textTransform="uppercase"
-                    >
-                      {modelInfo(fineTune).name}
-                    </Text>
-                  </Td>
-                  <Td>{fineTune.numTrainingEntries.toLocaleString()}</Td>
-                  <Td>
-                    <ViewDatasetButton
-                      buttonText={fineTune.datasetName ?? ""}
-                      datasetId={fineTune.datasetId}
-                    />
-                  </Td>
-                  <Td fontSize="sm" fontWeight="bold">
-                    <FTStatus status={fineTune.status} />
-                  </Td>
-                </Tr>
-              );
-            })}
-          </Tbody>
-        </Table>
-      ) : (
-        <VStack py={8}>
-          <Icon as={FaTable} boxSize={16} color="gray.300" />
-          <Text color="gray.500" textAlign="center" w="full" p={4}>
-            This project has no fine-tuned models. Start with a dataset in the{" "}
-            <ProjectLink href="/datasets">
-              <Text as="span" color="blue.600">
-                Datasets
-              </Text>
-            </ProjectLink>{" "}
-            tab.
-          </Text>
-        </VStack>
-      )}
+      <Skeleton isLoaded={!isLoading}>
+        {fineTunes.length ? (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>ID</Th>
+                <Th>Created At</Th>
+                <Th>Base Model</Th>
+                <Th>Training Size</Th>
+                <Th>Dataset</Th>
+                <Th>Status</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {fineTunes.map((fineTune) => {
+                return (
+                  <Tr key={fineTune.id}>
+                    <Td>
+                      <ProjectLink
+                        href={{ pathname: "/fine-tunes/[id]", query: { id: fineTune.id } }}
+                      >
+                        <Text color="blue.600">openpipe:{fineTune.slug}</Text>
+                      </ProjectLink>
+                    </Td>
+                    <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>
+                    <Td>
+                      <Text
+                        color="orange.500"
+                        fontWeight="bold"
+                        fontSize="xs"
+                        textTransform="uppercase"
+                      >
+                        {modelInfo(fineTune).name}
+                      </Text>
+                    </Td>
+                    <Td>{fineTune.numTrainingEntries.toLocaleString()}</Td>
+                    <Td>
+                      <ViewDatasetButton
+                        buttonText={fineTune.datasetName ?? ""}
+                        datasetId={fineTune.datasetId}
+                      />
+                    </Td>
+                    <Td fontSize="sm" fontWeight="bold">
+                      <FTStatus status={fineTune.status} />
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </Table>
+        ) : (
+          <VStack py={8}>
+            <Icon as={FaTable} boxSize={16} color="gray.300" />
+            <Text color="gray.500" textAlign="center" w="full" p={4}>
+              This project has no fine-tuned models. Start with a dataset in the{" "}
+              <ProjectLink href="/datasets">
+                <Text as="span" color="blue.600">
+                  Datasets
+                </Text>
+              </ProjectLink>{" "}
+              tab.
+            </Text>
+          </VStack>
+        )}
+      </Skeleton>
     </Card>
   );
 };

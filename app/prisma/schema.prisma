@@ -666,8 +666,9 @@ enum ExportWeightsStatus {
 model ExportWeightsRequest {
     id String @id @default(uuid()) @db.Uuid
 
-    s3Key     String
-    publicUrl String @unique
+    s3Key         String
+    publicUrl     String @unique
+    weightsFormat String @default("fp32")
 
     fineTuneId String   @db.Uuid
     fineTune   FineTune @relation(fields: [fineTuneId], references: [id], onDelete: Cascade)

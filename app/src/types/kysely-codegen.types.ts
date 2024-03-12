@@ -206,6 +206,7 @@ export interface ExportWeightsRequest {
   userId: string;
   status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
   createdAt: Generated<Timestamp>;
+  weightsFormat: Generated<string>;
 }
 
 export interface FineTune {
