@@ -15,14 +15,14 @@ import pluralize from "pluralize";
 import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { type DatasetArchive } from "./RelabelArchiveDialog";
+import { type DatasetSource } from "./RelabelArchiveDialog";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 export const RemoveSourceDialog = ({
   source,
   onClose,
 }: {
-  source: DatasetArchive | null;
+  source: DatasetSource | null;
   onClose: () => void;
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -42,7 +42,7 @@ export const RemoveSourceDialog = ({
     });
     if (maybeReportError(resp)) return;
     await utils.nodeEntries.list.invalidate();
-    await utils.archives.listForDataset.invalidate();
+    await utils.datasets.listSources.invalidate();
     await utils.datasets.get.invalidate();
 
     onClose();

@@ -205,19 +205,10 @@ export const useNodeEntry = ({
   return useStableData(result);
 };
 
-export const useDatasetArchives = () => {
+export const useDatasetSources = () => {
   const dataset = useDataset().data;
 
-  return api.archives.listForDataset.useQuery(
-    { datasetId: dataset?.id ?? "" },
-    { enabled: !!dataset?.id },
-  );
-};
-
-export const useDatasetMonitors = () => {
-  const dataset = useDataset().data;
-
-  return api.monitors.listForDataset.useQuery(
+  return api.datasets.listSources.useQuery(
     { datasetId: dataset?.id ?? "" },
     { enabled: !!dataset?.id },
   );

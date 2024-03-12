@@ -23,7 +23,9 @@ import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
 import { baseModel } from "~/server/fineTuningProviders/types";
 import { calculateCost } from "~/server/fineTuningProviders/supportedModels";
 import { calculateNumEpochs } from "~/server/fineTuningProviders/openpipe/trainingConfig";
-import { getArchives, getSourceLLMRelabelNodes } from "~/server/utils/nodes/relationalQueries";
+import { getSourceLLMRelabelNodes } from "~/server/utils/nodes/relationalQueries";
+import { listFileUploads, hideFileUploads } from "./fileUploads";
+import { listSources, removeSource } from "./sources";
 
 export const datasetsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -422,114 +424,8 @@ export const datasetsRouter = createTRPCRouter({
 
       await enqueueProcessNode({ nodeId: archiveNodeId });
     }),
-  listFileUploads: protectedProcedure
-    .input(z.object({ datasetId: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const datasetNode = await kysely
-        .selectFrom("Dataset as d")
-        .where("d.id", "=", input.datasetId)
-        .innerJoin("Node as n", "n.id", "d.nodeId")
-        .select(["n.projectId", "n.type", "n.config"])
-        .executeTakeFirst();
-
-      if (!datasetNode) {
-        throw new Error("Node not found");
-      }
-
-      await requireCanViewProject(datasetNode.projectId, ctx);
-
-      const tNode = typedNode({ ...datasetNode, type: "Dataset" });
-
-      const archives = await getArchives({
-        datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
-      })
-        .select(["archiveNode.id as archiveNodeId"])
-        .execute();
-
-      if (!archives.length) return [];
-
-      return await prisma.datasetFileUpload.findMany({
-        where: {
-          nodeId: {
-            in: archives.map((a) => a.archiveNodeId),
-          },
-          visible: true,
-        },
-        orderBy: { createdAt: "desc" },
-      });
-    }),
-  hideFileUploads: protectedProcedure
-    .input(z.object({ fileUploadIds: z.string().array() }))
-    .mutation(async ({ input, ctx }) => {
-      if (!input.fileUploadIds.length) return error("No file upload ids provided");
-
-      const { node } = await prisma.datasetFileUpload.findUniqueOrThrow({
-        where: { id: input.fileUploadIds[0] },
-        select: {
-          node: {
-            select: {
-              id: true,
-              projectId: true,
-            },
-          },
-        },
-      });
-
-      if (!node) return error("Node not found");
-
-      await requireCanModifyProject(node.projectId, ctx);
-
-      await prisma.datasetFileUpload.updateMany({
-        where: {
-          id: {
-            in: input.fileUploadIds,
-          },
-        },
-        data: {
-          visible: false,
-        },
-      });
-    }),
-
-  removeSource: protectedProcedure
-    .input(
-      z.object({
-        datasetId: z.string(),
-        sourceLLMRelabelNodeId: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const { projectId } = await prisma.dataset.findUniqueOrThrow({
-        where: { id: input.datasetId },
-      });
-      await requireCanModifyProject(projectId, ctx);
-
-      const datasetNode = await kysely
-        .selectFrom("Dataset as d")
-        .where("d.id", "=", input.datasetId)
-        .innerJoin("Node as n", "n.id", "d.nodeId")
-        .selectAll("n")
-        .executeTakeFirst();
-
-      if (!datasetNode) return error("Dataset not found");
-
-      const tDatasetNode = typedNode({ ...datasetNode, type: "Dataset" });
-
-      const sourceLLMRelabelNode = await kysely
-        .selectFrom("Node as n")
-        .where("n.id", "=", input.sourceLLMRelabelNodeId)
-        .innerJoin("NodeOutput as no", "n.id", "no.nodeId")
-        .select(["no.id as nodeOutputId"])
-        .executeTakeFirst();
-
-      if (!sourceLLMRelabelNode) return error("Source node not found");
-
-      await kysely
-        .deleteFrom("DataChannel")
-        .where("originId", "=", sourceLLMRelabelNode.nodeOutputId)
-        .where("destinationId", "=", tDatasetNode.config.manualRelabelNodeId)
-        .execute();
-
-      return success("Source removed");
-    }),
+  listFileUploads,
+  hideFileUploads,
+  listSources,
+  removeSource,
 });

@@ -1,7 +1,7 @@
 import { VStack, Heading } from "@chakra-ui/react";
 import InitialFiltersBlock from "./InitialFiltersBlock";
 import InitialResultsBlock from "./InitialResultsBlock";
-import SecondaryFiltersBlock from "./SecondaryFiltersBlock";
+import SecondaryFiltersBlock from "./SecondaryFiltersBlock/SecondaryFiltersBlock";
 import RelabelingBlock from "./RelabelingBlock";
 import DatasetsBlock from "./DatasetsBlock/DatasetsBlock";
 

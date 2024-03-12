@@ -12,6 +12,7 @@ import {
   Text,
   useDisclosure,
   type InputGroupProps,
+  type PlacementWithLogical,
 } from "@chakra-ui/react";
 
 import { FiChevronDown } from "react-icons/fi";
@@ -29,6 +30,7 @@ type InputDropdownProps<T> = {
   maxPopoverContentHeight?: number;
   minItemHeight?: number;
   placeholder?: string;
+  placement?: PlacementWithLogical;
 };
 
 const InputDropdown = <T,>({
@@ -41,11 +43,12 @@ const InputDropdown = <T,>({
   maxPopoverContentHeight,
   minItemHeight,
   placeholder,
+  placement = "auto",
 }: InputDropdownProps<T>) => {
   const { onOpen, ...popover } = useDisclosure();
 
   return (
-    <Popover placement="auto" onOpen={isDisabled ? undefined : onOpen} {...popover}>
+    <Popover placement={placement} onOpen={isDisabled ? undefined : onOpen} {...popover}>
       <PopoverTrigger>
         <InputGroup
           cursor="pointer"

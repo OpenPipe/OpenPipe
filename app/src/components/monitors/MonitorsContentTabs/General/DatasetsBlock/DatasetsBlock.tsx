@@ -150,13 +150,14 @@ const DatasetsBlock = () => {
                 spacing={4}
                 borderTopWidth={currentDatasets?.length ? 1 : 0}
               >
-                <LabelText>New Dataset</LabelText>
+                <LabelText>Add Dataset</LabelText>
                 <HStack w="full" justifyContent="space-between">
                   <InputDropdown
                     selectedOption={datasetToConnect}
                     options={availableDatasets}
                     getDisplayLabel={(option) => option.name}
                     onSelect={setDatasetToConnect}
+                    placement="top-start"
                   />
                   <Button
                     variant="ghost"
@@ -178,6 +179,7 @@ const DatasetsBlock = () => {
         dataset={datasetToDisconnect}
         onConfirm={() => {
           if (datasetToDisconnect) updateMonitor({ datasetToDisconnect });
+          setDatasetToDisconnect(null);
         }}
         onCancel={() => setDatasetToDisconnect(null)}
       />

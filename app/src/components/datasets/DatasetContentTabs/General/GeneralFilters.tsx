@@ -4,11 +4,10 @@ import { useMemo } from "react";
 import Filters from "~/components/Filters/Filters";
 import { type FilterOption } from "~/components/Filters/types";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
-import { useDatasetArchives, useDatasetMonitors } from "~/utils/hooks";
+import { useDatasetSources } from "~/utils/hooks";
 
 const GeneralFilters = (props: BoxProps) => {
-  const archives = useDatasetArchives().data;
-  const monitors = useDatasetMonitors().data;
+  const sources = useDatasetSources().data;
 
   const filterOptions = useMemo(() => {
     const filterOptions: FilterOption[] = [
@@ -21,8 +20,7 @@ const GeneralFilters = (props: BoxProps) => {
       },
     ];
 
-    if (archives?.length || monitors?.length) {
-      const sources = (archives || []).concat(monitors || []);
+    if (sources?.length) {
       filterOptions.push({
         type: "select",
         field: GeneralFiltersDefaultFields.Source,
@@ -33,7 +31,7 @@ const GeneralFilters = (props: BoxProps) => {
       });
     }
     return filterOptions;
-  }, [archives, monitors]);
+  }, [sources]);
 
   return (
     <Box w="full" pt={1} {...props}>

@@ -5,6 +5,7 @@ import General from "./General/General";
 import Results from "./Results/Results";
 import { useMonitor } from "../useMonitor";
 import { MonitorProcessingIndicator } from "~/components/nodeEntries/MonitorProcessingIndicator";
+import Settings from "./Settings/Settings";
 
 export const MONITOR_GENERAL_KEY = "general";
 
@@ -19,11 +20,21 @@ const resultsTab = {
   component: <Results />,
 };
 
+const settingsTab = {
+  key: "settings",
+  title: "Settings",
+  component: <Settings />,
+};
+
 const MonitorContentTabs = () => {
   const count = useMonitor().data?.numFullyProcessedEntries ?? 0;
 
   const tabs = useMemo(
-    () => [generalTab, { ...resultsTab, title: `Results (${(count ?? 0).toLocaleString()})` }],
+    () => [
+      generalTab,
+      { ...resultsTab, title: `Results (${(count ?? 0).toLocaleString()})` },
+      settingsTab,
+    ],
     [count],
   );
 

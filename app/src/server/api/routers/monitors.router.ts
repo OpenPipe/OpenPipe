@@ -9,7 +9,7 @@ import { TRPCError } from "@trpc/server";
 import { filtersSchema } from "~/types/shared.types";
 import { relabelOptions, typedNode } from "~/server/utils/nodes/node.types";
 import { success } from "~/utils/errorHandling/standardResponses";
-import { getDownstreamDatasets, getMonitors } from "~/server/utils/nodes/relationalQueries";
+import { getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
 import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { prepareIntegratedMonitorCeation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
@@ -151,55 +151,6 @@ export const monitorsRouter = createTRPCRouter({
         numDatasets: numDatasets[i]?.count ?? 0,
       }));
     }),
-  listForDataset: protectedProcedure
-    .input(
-      z.object({
-        datasetId: z.string(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const datasetNode = await kysely
-        .selectFrom("Dataset as d")
-        .where("d.id", "=", input.datasetId)
-        .innerJoin("Node as n", "n.id", "d.nodeId")
-        .selectAll("n")
-        .executeTakeFirst()
-        .then((node) => (node ? typedNode({ ...node, type: "Dataset" }) : null));
-
-      if (!datasetNode) throw new TRPCError({ code: "NOT_FOUND", message: "Dataset not found" });
-
-      await requireCanViewProject(datasetNode.projectId, ctx);
-
-      const monitors = await getMonitors({
-        datasetManualRelabelNodeId: datasetNode.config.manualRelabelNodeId,
-      })
-        .innerJoin("DataChannel as dc", "dc.destinationId", "monitorNode.id")
-        .leftJoin("NodeEntry as ne", "dc.id", "ne.dataChannelId")
-        .groupBy(["monitorNode.id", "llmRelabelNode.id"])
-        .distinctOn("monitorNode.createdAt")
-        .selectAll("monitorNode")
-        .select([
-          "llmRelabelNode.id as llmRelabelNodeId",
-          "llmRelabelNode.config as llmRelabelNodeConfig",
-          sql<number>`SUM(CASE WHEN ne.split = 'TRAIN' THEN 1 ELSE 0 END)::int`.as(
-            "numTrainEntries",
-          ),
-          sql<number>`SUM(CASE WHEN ne.split = 'TEST' THEN 1 ELSE 0 END)::int`.as("numTestEntries"),
-        ])
-        .orderBy("monitorNode.createdAt", "desc")
-        .execute()
-        .then((monitors) =>
-          monitors.map((archive) => ({
-            ...archive,
-            relabelOption: typedNode({
-              type: "LLMRelabel",
-              config: archive.llmRelabelNodeConfig,
-            }).config.relabelLLM,
-          })),
-        );
-
-      return monitors;
-    }),
   create: protectedProcedure
     .input(
       z.object({
@@ -285,6 +236,8 @@ export const monitorsRouter = createTRPCRouter({
 
       if (!llmRelabel) throw new TRPCError({ code: "NOT_FOUND" });
 
+      let shouldReprocess = false;
+
       const initialMonitorHash = monitor.hash;
 
       const updatedMonitorData = {
@@ -300,8 +253,9 @@ export const monitorsRouter = createTRPCRouter({
         },
       };
 
-      const updatedHash = hashNode(updatedMonitorData);
-      const invalidateMonitor = initialMonitorHash !== updatedHash && !preserveCache;
+      const hashUpdated = initialMonitorHash !== hashNode(updatedMonitorData);
+      if (hashUpdated) shouldReprocess = true;
+      const invalidateMonitor = hashUpdated && !preserveCache;
 
       await prisma.node.update({
         where: { id },
@@ -324,6 +278,7 @@ export const monitorsRouter = createTRPCRouter({
       const filterChecksUpdated = updatedFilterHash !== filter.hash;
 
       if (filterChecksUpdated) {
+        shouldReprocess = true;
         if (preserveCache) {
           await convertCache({
             nodeHash: filter.hash,
@@ -343,6 +298,7 @@ export const monitorsRouter = createTRPCRouter({
         input.updates.relabelLLM && input.updates.relabelLLM !== llmRelabel.config.relabelLLM;
 
       if (relabelLLMUpdated) {
+        shouldReprocess = true;
         await prisma.node.update({
           where: { id: monitor.config.relabelNodeId },
           data: {
@@ -356,6 +312,7 @@ export const monitorsRouter = createTRPCRouter({
       }
 
       if (datasetManualRelabelNodeIds) {
+        shouldReprocess = true;
         const existingDatasetManualRelabelNodeIds = await getDownstreamDatasets({
           monitorLLMRelabelNodeId: llmRelabel.id,
         })
@@ -395,7 +352,8 @@ export const monitorsRouter = createTRPCRouter({
         }
       }
 
-      await enqueueProcessNode({ nodeId: id, invalidateData: invalidateMonitor });
+      if (shouldReprocess)
+        await enqueueProcessNode({ nodeId: id, invalidateData: invalidateMonitor });
 
       return success("Monitor updated");
     }),

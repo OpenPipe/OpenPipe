@@ -22,14 +22,14 @@ import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { ProjectLink } from "~/components/ProjectLink";
 
-export type DatasetArchive = RouterOutputs["archives"]["listForDataset"][number];
+export type DatasetSource = RouterOutputs["datasets"]["listSources"][number];
 
 const RelabelArchiveDialog = ({
   onClose,
   archive,
 }: {
   onClose: () => void;
-  archive: DatasetArchive | null;
+  archive: DatasetSource | null;
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -55,7 +55,7 @@ const RelabelArchiveDialog = ({
     if (maybeReportError(resp)) return;
 
     await utils.nodeEntries.list.invalidate();
-    await utils.archives.listForDataset.invalidate();
+    await utils.datasets.listSources.invalidate();
     await utils.datasets.get.invalidate();
 
     onClose();

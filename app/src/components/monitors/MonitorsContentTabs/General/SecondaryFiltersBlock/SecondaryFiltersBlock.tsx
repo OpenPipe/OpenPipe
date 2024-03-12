@@ -16,14 +16,14 @@ import {
 import { useHandledAsyncCallback, useLoggedCallsCount } from "~/utils/hooks";
 import { type FilterOption } from "~/components/Filters/types";
 import { FilterContents } from "~/components/Filters/Filters";
-import { useMonitor } from "../../useMonitor";
+import { useMonitor } from "../../../useMonitor";
 import { addFilterIds, filtersAreEqual, useFilters } from "~/components/Filters/useFilters";
 import { toast } from "~/theme/ChakraThemeProvider";
 import { api } from "~/utils/api";
-import { INITIAL_FILTERS_URL_KEY } from "./InitialFiltersBlock";
+import { INITIAL_FILTERS_URL_KEY } from "../InitialFiltersBlock";
 import TextSwitch from "./TextSwitch";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
-import { LabelText, CaptionText } from "./styledText";
+import { LabelText, CaptionText } from "../styledText";
 
 export const SECONDARY_FILTERS_URL_KEY = "secondary";
 
@@ -151,7 +151,7 @@ const SecondaryFiltersBlock = () => {
               max={100}
               min={0}
               precision={3}
-              step={0.01}
+              step={0.001}
               w={300}
             >
               <NumberInputField />

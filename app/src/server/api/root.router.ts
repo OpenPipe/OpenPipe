@@ -2,7 +2,7 @@ import { createTRPCCaller, createTRPCRouter } from "~/server/api/trpc";
 import { projectsRouter } from "./routers/projects.router";
 import { usageRouter } from "./routers/usage.router";
 import { loggedCallsRouter } from "./routers/loggedCalls.router";
-import { datasetsRouter } from "./routers/datasets.router";
+import { datasetsRouter } from "./routers/datasets/datasets.router";
 import { datasetEvalsRouter } from "./routers/datasetEvals.router";
 import { pruningRulesRouter } from "./routers/pruningRules.router";
 import { usersRouter } from "./routers/users.router";
