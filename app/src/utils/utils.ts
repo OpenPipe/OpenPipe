@@ -40,3 +40,5 @@ export const numberWithDefault = (
   num: number | string | bigint | null | undefined,
   defaultValue = 0,
 ) => Number(num ?? defaultValue);
+
+export const formatFTSlug = (slug: string) => `openpipe:${slug}`;

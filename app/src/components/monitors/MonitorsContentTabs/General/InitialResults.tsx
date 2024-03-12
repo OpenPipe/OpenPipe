@@ -24,7 +24,7 @@ const InitialResults = () => {
       <HStack
         as={Button}
         variant="ghost"
-        w={64}
+        w={80}
         onClick={() => setExpanded(!expanded)}
         mt={8}
         mb={4}

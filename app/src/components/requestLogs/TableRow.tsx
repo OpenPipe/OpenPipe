@@ -15,6 +15,7 @@ import {
   Skeleton,
   Link as ChakraLink,
 } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 
 import dayjs from "~/utils/dayjs";
 import { type RouterOutputs } from "~/utils/api";
@@ -22,14 +23,11 @@ import { FormattedJson } from "../FormattedJson";
 import { useAppStore } from "~/state/store";
 import {
   useIsClientInitialized,
-  useLoggedCalls,
   useLoggedCallsCount,
   useTotalNumLogsSelected,
   useSelectedProject,
 } from "~/utils/hooks";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
-import { useFilters } from "../Filters/useFilters";
-import { useDateFilter } from "../Filters/useDateFilter";
 import { ProjectLink } from "~/components/ProjectLink";
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
@@ -234,29 +232,30 @@ export const TableRow = ({
   );
 };
 
-export const EmptyTableRow = ({ filtersApplied = true }: { filtersApplied?: boolean }) => {
+export const EmptyTableRow = ({ filtersApplied }: { filtersApplied?: boolean }) => {
   const visibleColumns = useAppStore((s) => s.columnVisibility.visibleColumns);
-  const generalFilters = useFilters().filters;
-  const dateFilters = useDateFilter().filters;
-  const allFilters = [...generalFilters, ...dateFilters];
-  const { isFetching, isLoading } = useLoggedCalls();
 
-  if (isLoading || isFetching) {
-    return null;
-  }
+  const router = useRouter();
 
-  if (allFilters.length && filtersApplied) {
+  const isRequestLogsPage = router.pathname.includes("request-logs");
+
+  if (filtersApplied) {
     return (
       <Tr>
         <Td w="full" colSpan={visibleColumns.size + 1}>
           <Text color="gray.500" textAlign="center" w="full" p={4}>
-            No matching request logs found. Try removing some filters or view{" "}
-            <ProjectLink href={{ pathname: "/request-logs", query: { dateFilter: "[]" } }}>
-              <Text as="b" color="blue.600">
-                all
+            No matching request logs found.{" "}
+            {isRequestLogsPage && (
+              <Text as="span">
+                Try removing some filters or view{" "}
+                <ProjectLink href={{ pathname: "/request-logs", query: { dateFilter: "[]" } }}>
+                  <Text as="b" color="blue.600">
+                    all
+                  </Text>
+                </ProjectLink>{" "}
+                records.
               </Text>
-            </ProjectLink>{" "}
-            records.
+            )}
           </Text>
         </Td>
       </Tr>

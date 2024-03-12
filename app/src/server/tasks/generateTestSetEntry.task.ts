@@ -22,6 +22,7 @@ import defineTask from "./defineTask";
 import { hashAndSaveDatasetEntryOutput } from "../utils/nodes/hashNode";
 import { chatCompletionMessage } from "~/types/shared.types";
 import { fireworksTestSetLimit } from "~/utils/rateLimit/rateLimits";
+import { formatFTSlug } from "~/utils/utils";
 
 export type GenerateTestSetEntryJob = {
   modelId: string;
@@ -163,7 +164,7 @@ export const generateEntry = async ({
   let completion: ChatCompletion;
   const input: ChatCompletionCreateParamsNonStreaming = {
     model: fineTune
-      ? `openpipe:${fineTune.slug}`
+      ? formatFTSlug(fineTune.slug)
       : COMPARISON_MODEL_NAMES[modelId as ComparisonModel].name,
     messages: tNodeEntry.messages,
     tool_choice: tNodeEntry.tool_choice ?? undefined,

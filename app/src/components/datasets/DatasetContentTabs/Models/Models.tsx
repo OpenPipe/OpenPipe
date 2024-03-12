@@ -9,6 +9,7 @@ import ViewEvaluationButton from "../Evaluation/ViewEvaluationButton";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { ProjectLink } from "~/components/ProjectLink";
 import { FTStatus } from "~/components/fineTunes/FineTunesTable";
+import { formatFTSlug } from "~/utils/utils";
 
 const Models = () => {
   const fineTunes = useDatasetFineTunes().data;
@@ -55,7 +56,7 @@ const Models = () => {
                       fontWeight="bold"
                       _hover={{ textDecoration: "underline" }}
                     >
-                      openpipe:{fineTune.slug}
+                      {formatFTSlug(fineTune.slug)}
                     </Text>
                     <Text
                       color="orange.500"

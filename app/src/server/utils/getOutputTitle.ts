@@ -1,6 +1,7 @@
 import { type ComparisonModel } from "@prisma/client";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { getComparisonModelSlug, isComparisonModel } from "~/utils/comparisonModels";
+import { formatFTSlug } from "~/utils/utils";
 
 export const getOutputTitle = (modelId: string | null, slug?: string | null) => {
   let title = null;
@@ -9,7 +10,7 @@ export const getOutputTitle = (modelId: string | null, slug?: string | null) => 
   } else if (modelId && isComparisonModel(modelId)) {
     title = getComparisonModelSlug(modelId as ComparisonModel);
   } else if (slug) {
-    title = "openpipe:" + slug;
+    title = formatFTSlug(slug);
   }
   return title;
 };

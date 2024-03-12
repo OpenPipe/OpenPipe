@@ -2,6 +2,7 @@ import { VStack, Text, Heading, HStack } from "@chakra-ui/react";
 
 import { useFineTune } from "~/utils/hooks";
 import ContentCard from "~/components/ContentCard";
+import { formatFTSlug } from "~/utils/utils";
 
 const FineTunePruningRules = () => {
   const fineTune = useFineTune().data;
@@ -23,9 +24,9 @@ const FineTunePruningRules = () => {
               <Text as="span" fontWeight="bold">
                 {fineTune.datasetName}
               </Text>{" "}
-              dataset will not affect <Text as="b">openpipe:{fineTune.slug}</Text>. The rule numbers
-              provided below are specific to this model, and may not match pruning rule numbers in
-              the dataset view.
+              dataset will not affect <Text as="b">{formatFTSlug(fineTune.slug)}</Text>. The rule
+              numbers provided below are specific to this model, and may not match pruning rule
+              numbers in the dataset view.
             </Text>
             {pruningRules.map((rule, index) => (
               <VStack alignItems="flex-start" w="full" key={index}>

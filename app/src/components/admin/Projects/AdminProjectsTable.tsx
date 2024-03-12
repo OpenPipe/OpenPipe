@@ -29,6 +29,7 @@ import { useAdminProjects, useHandledAsyncCallback, useSearchQuery } from "~/uti
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
 import AdminProjectsPaginator from "./AdminProjectsPaginator";
 import { ChangeRateLimit } from "../Actions/ChangeRateLimit";
+import { formatFTSlug } from "~/utils/utils";
 
 type SortableField = NonNullable<RouterInputs["adminProjects"]["list"]["sortOrder"]>["field"];
 type AdminProjectType = RouterOutputs["adminProjects"]["list"]["projects"][0];
@@ -193,7 +194,7 @@ const ExtendableArea: React.FC<ExtendableAreaProps> = ({ expandedRow, project })
                   <Card p={3} mr={2} borderColor="orange.200" backgroundColor="orange.50">
                     {project.fineTunes.map((fineTune) => (
                       <HStack key={fineTune.slug}>
-                        <Text as="b">openpipe:{fineTune.slug}</Text>
+                        <Text as="b">{formatFTSlug(fineTune.slug)}</Text>
                         <Text>({fineTune.baseModel})</Text>
                       </HStack>
                     ))}

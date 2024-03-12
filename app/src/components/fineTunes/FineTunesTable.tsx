@@ -19,6 +19,7 @@ import { useFineTunes } from "~/utils/hooks";
 import ViewDatasetButton from "../datasets/ViewDatasetButton";
 import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { ProjectLink } from "../ProjectLink";
+import { formatFTSlug } from "~/utils/utils";
 
 const FineTunesTable = ({}) => {
   const { data, isLoading } = useFineTunes(10000);
@@ -48,7 +49,7 @@ const FineTunesTable = ({}) => {
                       <ProjectLink
                         href={{ pathname: "/fine-tunes/[id]", query: { id: fineTune.id } }}
                       >
-                        <Text color="blue.600">openpipe:{fineTune.slug}</Text>
+                        <Text color="blue.600">{formatFTSlug(fineTune.slug)}</Text>
                       </ProjectLink>
                     </Td>
                     <Td>{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Td>

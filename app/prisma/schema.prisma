@@ -707,13 +707,19 @@ enum NodeType {
     Dataset
 }
 
+enum NodeStatus {
+    IDLE
+    PROCESSING
+}
+
 model Node {
-    id     String   @id @default(uuid()) @db.Uuid
+    id     String     @id @default(uuid()) @db.Uuid
     type   NodeType
     name   String
     config Json
     hash   String
-    stale  Boolean  @default(false)
+    stale  Boolean    @default(false)
+    status NodeStatus @default(IDLE)
 
     inputDataChannels      DataChannel[]
     outputs                NodeOutput[]

@@ -4,6 +4,7 @@ import { render } from "@react-email/render";
 import FineTuneModelTrained from "./templates/FineTuneModelTrained";
 import { prisma } from "../db";
 import { type TypedFineTune } from "~/types/dbColumns.types";
+import { formatFTSlug } from "~/utils/utils";
 
 export const sendFineTuneModelTrained = async (fineTune: TypedFineTune) => {
   if (!fineTune.userId) return;
@@ -23,7 +24,7 @@ export const sendFineTuneModelTrained = async (fineTune: TypedFineTune) => {
 
   const emailBody = render(
     FineTuneModelTrained({
-      fineTuneModelName: `openpipe:${fineTune.slug}`,
+      fineTuneModelName: formatFTSlug(fineTune.slug),
       baseModel: fineTune.baseModel,
       fineTuneModelLink,
     }),

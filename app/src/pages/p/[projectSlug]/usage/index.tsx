@@ -38,7 +38,7 @@ import { modelInfo } from "~/server/fineTuningProviders/supportedModels";
 import { calculateSpendingsWithCredits } from "~/utils/billing";
 import dayjs, { formatToUTCDayMonth } from "~/utils/dayjs";
 import { useSelectedProject, useStats } from "~/utils/hooks";
-import { numberWithDefault } from "~/utils/utils";
+import { formatFTSlug, numberWithDefault } from "~/utils/utils";
 
 export default function Usage() {
   const { data: selectedProject } = useSelectedProject();
@@ -298,7 +298,7 @@ export default function Usage() {
                         <ProjectLink
                           href={{ pathname: "/fine-tunes/[id]", query: { id: model.ftId } }}
                         >
-                          <Text color="blue.600">openpipe:{model.slug}</Text>
+                          <Text color="blue.600">{formatFTSlug(model.slug)}</Text>
                         </ProjectLink>
                       </Td>
                       <Td>

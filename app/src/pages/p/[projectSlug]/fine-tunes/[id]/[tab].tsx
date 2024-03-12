@@ -7,6 +7,7 @@ import PageHeaderContainer from "~/components/nav/PageHeaderContainer";
 import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContents";
 import FineTuneContentTabs from "~/components/fineTunes/FineTuneContentTabs/FineTuneContentTabs";
 import { ProjectLink } from "~/components/ProjectLink";
+import { formatFTSlug } from "~/utils/utils";
 
 export default function FineTune() {
   const fineTune = useFineTune();
@@ -21,10 +22,10 @@ export default function FineTune() {
     );
   }
 
-  const slug = fineTune.data?.slug ?? "";
+  const formattedSlug = formatFTSlug(fineTune.data?.slug ?? "");
 
   return (
-    <AppShell title={`openpipe:${slug}`}>
+    <AppShell title={formattedSlug}>
       <VStack>
         <PageHeaderContainer>
           <Breadcrumb>
@@ -39,7 +40,7 @@ export default function FineTune() {
               </ProjectLink>
             </BreadcrumbItem>
             <BreadcrumbItem isCurrentPage>
-              <Text size="sm">openpipe:{slug}</Text>
+              <Text size="sm">{formattedSlug}</Text>
             </BreadcrumbItem>
           </Breadcrumb>
         </PageHeaderContainer>

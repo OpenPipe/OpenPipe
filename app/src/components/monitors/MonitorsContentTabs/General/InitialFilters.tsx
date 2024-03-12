@@ -11,6 +11,7 @@ import { useMonitor } from "../../useMonitor";
 import { addFilterIds, filtersAreEqual, useFilters } from "~/components/Filters/useFilters";
 import { toast } from "~/theme/ChakraThemeProvider";
 import { api } from "~/utils/api";
+import { formatFTSlug } from "~/utils/utils";
 
 const defaultMonitorSQLFilterOptions: FilterOption[] = [
   { type: "text", field: LoggedCallsFiltersDefaultFields.Request, label: "Request" },
@@ -42,7 +43,7 @@ const InitialFilters = () => {
             id: uuidv4(),
             field: LoggedCallsFiltersDefaultFields.Model,
             comparator: "=",
-            value: fineTunes[0].slug,
+            value: formatFTSlug(fineTunes[0].slug),
           },
           {
             id: uuidv4(),
@@ -103,7 +104,7 @@ const InitialFilters = () => {
             </Text>
             {isLoaded && (
               <InputDropdown
-                options={fineTunes.map((fineTune) => `openpipe:${fineTune.slug}`)}
+                options={fineTunes.map((fineTune) => formatFTSlug(fineTune.slug))}
                 selectedOption={modelFilter.value}
                 onSelect={(value) => {
                   setFilters([{ ...modelFilter, value }, statusFilter, ...otherFilters]);

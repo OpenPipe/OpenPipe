@@ -21,6 +21,7 @@ import { chatCompletionMessage } from "~/types/shared.types";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { generateEntry } from "./generateTestSetEntry.task";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
+import { formatFTSlug } from "~/utils/utils";
 
 export const RESPONSE_1_PLACEHOLDER = "Response 1";
 export const RESPONSE_2_PLACEHOLDER = "Response 2";
@@ -39,7 +40,7 @@ export const getModelTitle = ({
     return getComparisonModelName(modelId as ComparisonModel) as string;
   }
   if (slug) {
-    return `openpipe:${slug}`;
+    return formatFTSlug(slug);
   }
   throw new Error("Model title not found");
 };

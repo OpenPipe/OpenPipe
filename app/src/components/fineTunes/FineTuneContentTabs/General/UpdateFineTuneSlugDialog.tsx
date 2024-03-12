@@ -18,6 +18,7 @@ import {
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
+import { formatFTSlug } from "~/utils/utils";
 
 const UpdateFineTuneSlugDialog = ({
   fineTuneId,
@@ -53,6 +54,9 @@ const UpdateFineTuneSlugDialog = ({
     }
   }, [disclosure.isOpen, setSlugToSave]);
 
+  const formattedPreviousFineTuneSlug = formatFTSlug(previousFineTuneSlug);
+  const formattedNewFineTuneSlug = formatFTSlug(newFineTuneSlug);
+
   return (
     <AlertDialog leastDestructiveRef={cancelRef} {...disclosure}>
       <AlertDialogOverlay>
@@ -72,21 +76,21 @@ const UpdateFineTuneSlugDialog = ({
                   <Text as="b" w={24}>
                     Current ID:
                   </Text>
-                  <Text>openpipe:{previousFineTuneSlug}</Text>
+                  <Text>{formattedPreviousFineTuneSlug}</Text>
                 </HStack>
                 <HStack w="full">
                   <Text as="b" w={24}>
                     New ID:
                   </Text>
-                  <Text>openpipe:{newFineTuneSlug}</Text>
+                  <Text>{formattedNewFineTuneSlug}</Text>
                 </HStack>
               </VStack>
               <Text>To confirm this change, please type the model's existing ID below.</Text>
               <Box bgColor="orange.100" w="full" p={2} borderRadius={4}>
-                <Text fontFamily="inconsolata">openpipe:{previousFineTuneSlug}</Text>
+                <Text fontFamily="inconsolata">{formattedPreviousFineTuneSlug}</Text>
               </Box>
               <Input
-                placeholder={`openpipe:${previousFineTuneSlug}`}
+                placeholder={formattedPreviousFineTuneSlug}
                 value={slugToSave}
                 onChange={(e) => setSlugToSave(e.target.value)}
               />
@@ -100,7 +104,7 @@ const UpdateFineTuneSlugDialog = ({
             <Button
               colorScheme="orange"
               ml={3}
-              isDisabled={slugToSave !== `openpipe:${previousFineTuneSlug}`}
+              isDisabled={slugToSave !== formattedPreviousFineTuneSlug}
               isLoading={updateInProgress}
               onClick={onUpdateConfirm}
             >

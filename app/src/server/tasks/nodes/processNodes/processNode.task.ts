@@ -40,6 +40,11 @@ export const processNode = defineTask<ProcessNodeJob>({
     const originalNode = await fetchNode({ id: nodeId });
     if (!originalNode) return;
 
+    await prisma.node.update({
+      where: { id: nodeId },
+      data: { status: "PROCESSING" },
+    });
+
     console.log({ nodeId, type: originalNode.type });
 
     const nodeProperties = nodePropertiesByType[originalNode.type] as NodeProperties<NodeType>;
@@ -217,6 +222,11 @@ export const processNode = defineTask<ProcessNodeJob>({
     if (nodeProperties.afterAll) {
       await nodeProperties.afterAll(node);
     }
+
+    await prisma.node.update({
+      where: { id: nodeId },
+      data: { status: "IDLE" },
+    });
   },
 });
 

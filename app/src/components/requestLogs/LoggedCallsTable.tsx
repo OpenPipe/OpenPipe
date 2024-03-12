@@ -9,7 +9,7 @@ export default function LoggedCallsTable({
   filters,
 }: {
   showOptions?: boolean;
-  filters?: FilterData[];
+  filters: FilterData[];
 }) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
@@ -40,7 +40,7 @@ export default function LoggedCallsTable({
                 );
               })
             ) : (
-              <EmptyTableRow />
+              <EmptyTableRow filtersApplied={!!filters?.length} />
             )}
           </Tbody>
         </Table>

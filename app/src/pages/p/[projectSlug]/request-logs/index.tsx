@@ -14,6 +14,7 @@ import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import LogsDateFilter from "~/components/Filters/LogsDateFilter";
+import { useDateFilter } from "~/components/Filters/useDateFilter";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -21,7 +22,8 @@ const spin = keyframes`
 `;
 
 export default function LoggedCalls() {
-  const filtersShown = useFilters({ defaultShown: true }).filtersShown;
+  const { filters: dateFilters } = useDateFilter();
+  const { filters, filtersShown } = useFilters({ defaultShown: true });
 
   const utils = api.useUtils();
 
@@ -67,7 +69,7 @@ export default function LoggedCalls() {
             </HStack>
           </Flex>
           {filtersShown && <LogFilters />}
-          <LoggedCallTable />
+          <LoggedCallTable filters={[...dateFilters, ...filters]} />
           <LoggedCallsPaginator />
         </VStack>
       </Box>
