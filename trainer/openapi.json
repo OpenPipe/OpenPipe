@@ -267,6 +267,7 @@
                         "warmup_steps",
                         "weight_decay",
                         "special_tokens",
+                        "base_model",
                         "datasets",
                         "val_set_size",
                         "num_epochs"
@@ -331,13 +332,22 @@
                     },
                     "s3Key": {
                       "type": "string"
+                    },
+                    "weightsFormat": {
+                      "type": "string",
+                      "enum": [
+                        "fp32",
+                        "bf16",
+                        "fp16"
+                      ]
                     }
                   },
                   "required": [
                     "baseModel",
                     "fineTuneId",
                     "s3BucketName",
-                    "s3Key"
+                    "s3Key",
+                    "weightsFormat"
                   ],
                   "additionalProperties": false
                 }

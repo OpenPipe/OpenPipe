@@ -64,6 +64,17 @@ async def do_export_weights(export_id: str, base_url: str):
     logging.info("Merging model")
     merged_dir = tempfile.mkdtemp()
     model = model.merge_and_unload()
+
+    if model_info.weights_format == "bf16":
+        logging.info("Converting model to bf16")
+        model = model.bfloat16()
+    elif model_info.weights_format == "fp16":
+        logging.info("Converting model to fp16")
+        model = model.half()
+    else: # fp32
+        logging.info("Converting model to fp32")
+        model = model.float()
+
     model.save_pretrained(merged_dir)
     tokenizer.save_pretrained(merged_dir)
 
