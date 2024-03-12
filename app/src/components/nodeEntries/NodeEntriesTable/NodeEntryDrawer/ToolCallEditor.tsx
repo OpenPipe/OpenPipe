@@ -19,7 +19,7 @@ const ToolCallEditor = ({
     <VStack
       w="full"
       alignItems="flex-start"
-      bgColor="orange.100"
+      bgColor="blackAlpha.100"
       borderRadius={8}
       borderWidth={1}
       p={4}

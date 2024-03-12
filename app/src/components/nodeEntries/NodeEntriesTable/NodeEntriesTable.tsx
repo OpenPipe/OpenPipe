@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card, Skeleton, Table, Tbody } from "@chakra-ui/react";
 
-import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
+import { TableHeader, TableRow } from "./TableRow/TableRow";
+import EmptyRow from "./TableRow/EmptyRow";
 import { type RouterOutputs } from "~/utils/api";
 import NodeEntryDrawer, { type UpdateEntryCallback } from "./NodeEntryDrawer/NodeEntryDrawer";
 import { useNode } from "~/utils/hooks";
@@ -28,12 +29,7 @@ export default function NodeEntriesTable({
   return (
     <>
       <Card width="100%" overflowX="auto">
-        <Skeleton
-          startColor="gray.100"
-          minHeight="126px"
-          endColor="gray.300"
-          isLoaded={!loading && !!entries}
-        >
+        <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!loading && !!entries}>
           <Table>
             <TableHeader />
             <Tbody>
@@ -52,7 +48,7 @@ export default function NodeEntriesTable({
                   />
                 ))
               ) : (
-                <EmptyTableRow nodeType={node?.type} />
+                <EmptyRow nodeType={node?.type} />
               )}
             </Tbody>
           </Table>

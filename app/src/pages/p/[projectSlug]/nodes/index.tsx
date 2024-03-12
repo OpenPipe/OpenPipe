@@ -44,6 +44,7 @@ const Nodes = () => {
                 <Th>Id</Th>
                 <Th>Hash</Th>
                 <Th>Created At</Th>
+                <Th>Status</Th>
                 <Th>Pending</Th>
                 <Th>Processing</Th>
                 <Th>Processed</Th>
@@ -61,6 +62,7 @@ const Nodes = () => {
                   <Button variant="link">Copy</Button>
                 </Td>
                 <Td>{dayjs(node.createdAt).format("MM-D h:mm A")}</Td>
+                <Td>{node.status}</Td>
                 <Td>{node.numPendingEntries}</Td>
                 <Td>{node.numProcessingEntries}</Td>
                 <Td>{node.numProcessedEntries}</Td>

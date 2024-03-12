@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect, useLayoutEffect, useState } from "react";
+import React, { useRef, useMemo, useEffect, useLayoutEffect, useState } from "react";
 import { VStack, Box } from "@chakra-ui/react";
 
 import { useAppStore } from "~/state/store";
@@ -114,4 +114,7 @@ const JsonEditor = ({ value, onEdit }: { value: string; onEdit: (newValue: strin
   );
 };
 
-export default JsonEditor;
+export default React.memo(
+  JsonEditor,
+  (prevProps, nextProps) => prevProps.value === nextProps.value,
+);

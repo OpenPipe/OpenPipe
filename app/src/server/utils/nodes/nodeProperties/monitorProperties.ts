@@ -11,6 +11,7 @@ import { generatePersistentId } from "~/server/utils/nodes/utils";
 import { type NodeProperties } from "./nodeProperties.types";
 import { monitorNodeSchema } from "../node.types";
 import { checkNodeInput } from "../checkNodeInput";
+import { enqueueCountDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
 
 export enum MonitorOutput {
   MatchedLogs = "Matched Logs",
@@ -76,35 +77,62 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
       .executeTakeFirst()
       .then((r) => (r ? r.count : 0));
 
-    const sampleRateHash = calculateSampleRateHash(sampleRate);
     const nodeId = node.id;
 
     const newLastLoggedCallUpdatedAt = new Date();
 
-    const loggedCallsToAdd = await constructLoggedCallFiltersQuery({
-      filters: initialFilters,
-      projectId: node.projectId,
-      baseQuery: kysely
-        .selectFrom("LoggedCall as lc")
-        .where(
-          "lc.updatedAt",
-          ">=",
-          dayjs(lastLoggedCallUpdatedAt).subtract(10, "seconds").toDate(),
-        ),
-    })
+    const queryCallsStartTime = Date.now();
+
+    const numEntriesToImport = maxOutputSize - numExistingEntries;
+
+    const sampleRateHash = calculateSampleRateHash(sampleRate);
+
+    const castNodeId = parseInt(nodeId.substring(0, 8), 16);
+
+    const loggedCallsQuery = kysely
+      .selectFrom((eb) =>
+        eb
+          .selectFrom((eb) =>
+            constructLoggedCallFiltersQuery({
+              filters: initialFilters,
+              projectId: node.projectId,
+              baseQuery: eb.selectFrom("LoggedCall as lc"),
+            })
+              .where(
+                "lc.updatedAt",
+                ">=",
+                dayjs(lastLoggedCallUpdatedAt).subtract(10, "seconds").toDate(),
+              )
+              .limit(Math.max(maxOutputSize * 1.1, Math.round((maxOutputSize * 100) / sampleRate)))
+              .selectAll("lc")
+              .as("subquery1"),
+          )
+          // compare to sampleRate
+          .where(
+            sql`(('x' || LEFT(subquery1.id::text, 8))::bit(32)::int # 
+          ${castNodeId}) < ${sampleRateHash}`,
+          )
+          .limit(Math.round(maxOutputSize * 1.1))
+          .orderBy("subquery1.updatedAt", "desc")
+          .selectAll("subquery1")
+          .as("subquery"),
+      )
       .leftJoin("NodeEntry as existingNe", (eb) =>
         eb
-          .onRef("existingNe.loggedCallId", "=", "lc.id")
+          .onRef("existingNe.loggedCallId", "=", "subquery.id")
           .on("existingNe.dataChannelId", "=", inputDataChannelId),
       )
       .where("existingNe.id", "is", null)
-      // hash lc.id and nodeId to compare against a sampleRate hash
-      .where(sql`md5(lc.id || '::' || ${nodeId}) <= ${sampleRateHash}`)
-      .orderBy("lc.createdAt", "asc")
-      .limit(maxOutputSize - numExistingEntries)
-      .selectAll("lc")
-      .select([sql`md5(lc.id || '::' || ${nodeId})`.as("hash")])
-      .execute();
+      .selectAll("subquery")
+      .limit(Math.round(numEntriesToImport * 1.1));
+
+    console.log("loggedCallsQuery", loggedCallsQuery.compile());
+
+    const loggedCallsToAdd = await loggedCallsQuery.execute();
+
+    console.log("queryCallsTime", Date.now() - queryCallsStartTime);
+
+    console.log("loggedCallsToAdd", loggedCallsToAdd.length);
 
     const entriesToImport = loggedCallsToAdd
       .map((loggedCall) => {
@@ -131,7 +159,8 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
           return null;
         }
       })
-      .filter(truthyFilter);
+      .filter(truthyFilter)
+      .slice(0, numEntriesToImport);
 
     const inputDataChannel = await prisma.dataChannel.findFirst({
       where: { destinationId: node.id },
@@ -145,6 +174,8 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
         dataChannelId: inputDataChannel.id,
         entriesToImport,
       });
+
+    const saveStartTime = new Date();
 
     await prisma.$transaction([
       prisma.datasetEntryInput.createMany({
@@ -169,26 +200,21 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
         },
       }),
     ]);
+
+    console.log("save time", new Date().getTime() - saveStartTime.getTime());
+
+    await enqueueCountDatasetEntryTokens({ projectId: node.projectId });
   },
 };
 
-const calculateSampleRateHash = (sampleRate: number) => {
-  // Ensure the sample rate is between 0 and 100
-  if (sampleRate < 0 || sampleRate > 100) {
-    throw new Error("Sample rate must be between 0 and 100");
-  }
+function calculateSampleRateHash(sampleRate: number) {
+  // For a 32-bit hash, the maximum value is 2^32 - 1
+  const maxHashValue = Math.pow(2, 32) - 1;
 
-  // Calculate the threshold value
-  const maxDecimalValue = BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-  const thresholdDecimalValue = (maxDecimalValue * BigInt(Math.floor(sampleRate))) / BigInt(100);
+  // Calculate the hash threshold based on the sample rate
+  // Note: sampleRate is expected to be a percentage (e.g., 10 for 10%)
+  const sampleRateHash = Math.round((sampleRate / 100) * maxHashValue);
 
-  // Convert the threshold value to a hexadecimal string
-  let thresholdHex = thresholdDecimalValue.toString(16).toUpperCase();
-
-  // Pad the string with leading zeros if it's not 32 characters long
-  while (thresholdHex.length < 32) {
-    thresholdHex = "0" + thresholdHex;
-  }
-
-  return thresholdHex.toLowerCase();
-};
+  // Adjust to match signed 32-bit integer range
+  return sampleRateHash - Math.pow(2, 31);
+}

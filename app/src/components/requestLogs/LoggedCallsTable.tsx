@@ -17,7 +17,12 @@ export default function LoggedCallsTable({
 
   return (
     <Card width="100%" overflowX="auto">
-      <Skeleton startColor="gray.100" minHeight="126px" endColor="gray.300" isLoaded={!isLoading}>
+      <Skeleton
+        startColor="gray.100"
+        endColor="gray.300"
+        minHeight={isLoading ? "126px" : undefined}
+        isLoaded={!isLoading}
+      >
         <Table>
           <TableHeader showOptions={showOptions} />
           <Tbody>

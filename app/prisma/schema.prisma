@@ -204,6 +204,7 @@ model LoggedCall {
 
     @@index([projectId, requestedAt])
     @@index([projectId, model, updatedAt])
+    @@index([projectId, model, statusCode])
     @@index([completionId])
 }
 

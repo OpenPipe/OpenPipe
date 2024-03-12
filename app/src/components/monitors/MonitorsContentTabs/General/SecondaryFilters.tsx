@@ -42,8 +42,9 @@ const SecondaryFilters = () => {
 
   const initialCount = useLoggedCallsCount({ filters: initialFilters }).data?.count;
 
-  const [sampleRate, setSampleRate] = useState(0);
-
+  // Store as string to allow for temporarily invalid values
+  const [sampleRateStr, setSampleRateStr] = useState("0");
+  const sampleRate = parseFloat(sampleRateStr);
   const [maxOutputSize, setMaxOutputSize] = useState(0);
 
   useEffect(() => {
@@ -52,7 +53,7 @@ const SecondaryFilters = () => {
 
   useEffect(() => {
     if (savedSampleRate !== undefined && savedMaxOutputSize !== undefined) {
-      setSampleRate(savedSampleRate);
+      setSampleRateStr(savedSampleRate.toString());
       setMaxOutputSize(savedMaxOutputSize);
     }
   }, [savedSampleRate, savedMaxOutputSize]);
@@ -63,7 +64,7 @@ const SecondaryFilters = () => {
       savedSampleRate === sampleRate &&
       savedMaxOutputSize === maxOutputSize);
 
-  const saveDisabled = !monitor || !sampleRate || !maxOutputSize || !filters.length || noChanges;
+  const saveDisabled = !monitor || !sampleRate || !maxOutputSize || noChanges;
 
   const projectUpdateMutation = api.monitors.update.useMutation();
 
@@ -92,7 +93,10 @@ const SecondaryFilters = () => {
 
   const isLoaded = savedSampleRate !== undefined && !!savedFilters;
 
-  const estimatedMatches = Math.round((initialCount ?? 0) * (sampleRate / 100));
+  const estimatedMatches = Math.min(
+    maxOutputSize,
+    Math.round((initialCount ?? 0) * (sampleRate / 100)),
+  );
 
   return (
     <Card w="full">
@@ -100,15 +104,15 @@ const SecondaryFilters = () => {
         <VStack alignItems="flex-start" padding={4} spacing={4} w="full">
           <VStack alignItems="flex-start">
             <Text fontWeight="bold" color="gray.500">
-              Sample Rate (%)
+              Max Sample Size
             </Text>
             <NumberInput
-              value={sampleRate}
-              onChange={(value) => setSampleRate(parseFloat(value))}
-              max={100}
-              min={0}
-              precision={2}
-              step={0.2}
+              value={maxOutputSize}
+              inputMode="numeric"
+              onChange={(value) => setMaxOutputSize(parseInt(value))}
+              max={20000}
+              min={1}
+              step={1}
               w={300}
             >
               <NumberInputField />
@@ -119,7 +123,50 @@ const SecondaryFilters = () => {
             </NumberInput>
             <Text fontSize="xs" color="gray.500" fontWeight="500">
               <HStack spacing={1}>
-                <Text>Secondary filters will process an estimated</Text>
+                <Text>Filters will process at most</Text>
+                <Skeleton isLoaded={maxOutputSize !== undefined}>
+                  {maxOutputSize.toLocaleString()}
+                </Skeleton>
+                <Text> matches</Text>
+              </HStack>
+            </Text>
+          </VStack>
+          <VStack alignItems="flex-start">
+            <Text fontWeight="bold" color="gray.500">
+              Sample Rate (%)
+            </Text>
+            <NumberInput
+              value={sampleRateStr}
+              inputMode="decimal"
+              onChange={(value) => setSampleRateStr(value)}
+              onBlur={(e) => {
+                const value = parseFloat(e.target.value);
+
+                console.log(value);
+
+                if (value > 100) {
+                  setSampleRateStr("100");
+                } else if (value >= 0 && value <= 100) {
+                  setSampleRateStr(e.target.value);
+                } else {
+                  setSampleRateStr("0");
+                }
+              }}
+              max={100}
+              min={0}
+              precision={2}
+              step={0.01}
+              w={300}
+            >
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="xs" color="gray.500" fontWeight="500">
+              <HStack spacing={1}>
+                <Text>Filters will immediately process an estimated</Text>
                 <Skeleton isLoaded={initialCount !== undefined}>
                   {estimatedMatches.toLocaleString()}
                 </Skeleton>
@@ -127,6 +174,7 @@ const SecondaryFilters = () => {
               </HStack>
             </Text>
           </VStack>
+
           <HStack spacing={4}>
             <Text fontWeight="bold" color="gray.500">
               Filters
@@ -146,7 +194,7 @@ const SecondaryFilters = () => {
           <HStack w="full" justifyContent="flex-end">
             <Button
               onClick={() => {
-                if (savedSampleRate) setSampleRate(savedSampleRate);
+                if (savedSampleRate) setSampleRateStr(savedSampleRate.toString());
                 if (savedMaxOutputSize) setMaxOutputSize(savedMaxOutputSize);
                 if (savedFilters) setFilters(addFilterIds(savedFilters));
               }}

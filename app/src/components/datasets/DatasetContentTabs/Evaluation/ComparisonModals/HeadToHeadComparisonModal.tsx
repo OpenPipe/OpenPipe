@@ -19,16 +19,17 @@ import {
 import { FaBalanceScale } from "react-icons/fa";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { useRouter } from "next/router";
+import { isNumber } from "lodash-es";
 
 import { type RouterOutputs, api } from "~/utils/api";
 import { useAppStore } from "~/state/store";
-import { PotentiallyPendingFormattedMessage } from "~/components/nodeEntries/FormattedMessage";
-import { isNumber } from "lodash-es";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { useVisibleModelIds } from "../useVisibleModelIds";
 import FormattedInput from "~/components/nodeEntries/FormattedInput";
 import { EVAL_SETTINGS_TAB_KEY } from "~/components/evals/EvalContentTabs/EvalContentTabs";
 import { useSelectedProject } from "~/utils/hooks";
+import { typedDatasetEntryInput } from "~/types/dbColumns.types";
+import { PotentiallyPendingFormattedOutput } from "~/components/nodeEntries/FormattedOutput";
 
 const HeadToHeadComparisonModal = () => {
   const comparisonCriteria = useAppStore((state) => state.evaluationsSlice.comparisonCriteria);
@@ -61,6 +62,8 @@ const HeadToHeadComparisonModal = () => {
     return null;
   }
 
+  const preferJson =
+    typedDatasetEntryInput(data.evalResult).response_format?.type === "json_object";
   const selectedOutputTitle = getOutputTitle(data.evalResult.modelId, data.evalResult.slug) ?? "";
 
   return (
@@ -109,12 +112,14 @@ const HeadToHeadComparisonModal = () => {
                   key={result.modelId}
                   selectedOutputTitle={selectedOutputTitle}
                   result={result}
+                  preferJson={preferJson}
                 />
               ))}
             </Grid>
             <SelectedComparisonTable
               evalResult={data.evalResult}
               selectedOutputTitle={selectedOutputTitle}
+              preferJson={preferJson}
             />
           </VStack>
         </ModalBody>
@@ -192,9 +197,11 @@ const MIN_EXPANDABLE_HEIGHT = 200;
 const ComparisonRow = ({
   selectedOutputTitle,
   result,
+  preferJson,
 }: {
   selectedOutputTitle: string;
   result: ComparisonResult;
+  preferJson: boolean;
 }) => {
   const explanationRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -260,7 +267,7 @@ const ComparisonRow = ({
           overflow="hidden"
         >
           <Box ref={outputRef}>
-            <PotentiallyPendingFormattedMessage output={result.output} />
+            <PotentiallyPendingFormattedOutput output={result.output} preferJson={preferJson} />
           </Box>
           {expandable && (
             <VStack position="absolute" bottom={0} w="full" spacing={0}>
@@ -305,9 +312,11 @@ const MIN_HEIGHT = 200;
 const SelectedComparisonTable = ({
   evalResult,
   selectedOutputTitle,
+  preferJson,
 }: {
   evalResult: ResultWithComparisons;
   selectedOutputTitle: string;
+  preferJson: boolean;
 }) => {
   const inputRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -376,7 +385,7 @@ const SelectedComparisonTable = ({
         </GridItem>
         <GridItem position="relative" {...contentProps} {...leftBorderProps} {...topBorderProps}>
           <Box ref={outputRef}>
-            <PotentiallyPendingFormattedMessage output={evalResult.output} />
+            <PotentiallyPendingFormattedOutput output={evalResult.output} preferJson={preferJson} />
           </Box>
           {expandable && !expanded && (
             <Box

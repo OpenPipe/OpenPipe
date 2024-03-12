@@ -595,6 +595,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         .select((eb) => [
           "d.projectId as projectId",
           "dei.messages as messages",
+          "dei.response_format as responseFormat",
           "deo.output as originalOutput",
           "deos.modelId",
           "ftteDEO.output as output",

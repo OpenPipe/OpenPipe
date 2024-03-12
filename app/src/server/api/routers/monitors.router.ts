@@ -24,6 +24,26 @@ export const monitorsRouter = createTRPCRouter({
       .where("n.id", "=", input.id)
       .where("n.type", "=", "Monitor")
       .selectAll("n")
+      .select((eb) => [
+        eb
+          .selectFrom("NodeEntry as ne")
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").onRef("dc.destinationId", "=", "n.id"),
+          )
+          .where("ne.status", "!=", "PROCESSED")
+          .select(sql<number>`count(*)::int`.as("count"))
+          .as("numUnprocessedEntries"),
+      ])
+      .select((eb) => [
+        eb
+          .selectFrom("NodeEntry as ne")
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").onRef("dc.destinationId", "=", "n.id"),
+          )
+          .where("ne.status", "=", "PROCESSED")
+          .select(sql<number>`count(*)::int`.as("count"))
+          .as("numProcessedEntries"),
+      ])
       .executeTakeFirst()
       .then((monitor) => (monitor ? typedNode({ ...monitor, type: "Monitor" }) : undefined));
 
@@ -46,6 +66,16 @@ export const monitorsRouter = createTRPCRouter({
       .where("n.id", "=", monitor.config.relabelNodeId)
       .where("n.type", "=", "LLMRelabel")
       .selectAll("n")
+      .select((eb) => [
+        eb
+          .selectFrom("NodeEntry as ne")
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").onRef("dc.destinationId", "=", "n.id"),
+          )
+          .where("ne.status", "=", "PROCESSED")
+          .select(sql<number>`count(*)::int`.as("count"))
+          .as("numProcessedEntries"),
+      ])
       .executeTakeFirst()
       .then((relabelNode) =>
         relabelNode ? typedNode({ ...relabelNode, type: "LLMRelabel" }) : undefined,
@@ -53,13 +83,24 @@ export const monitorsRouter = createTRPCRouter({
 
     if (!llmRelabel) throw new TRPCError({ code: "NOT_FOUND" });
 
+    const numIncomingEntries =
+      (monitor.numUnprocessedEntries ?? 0) +
+      Math.max(0, (monitor.numProcessedEntries ?? 0) - (llmRelabel.numProcessedEntries ?? 0));
+
     const datasets = await getDownstreamDatasets({
       monitorFilterNodeId: monitor.config.filterNodeId,
     })
       .select(["datasetNode.id as datasetNodeId", "d.id as datasetId", "d.name as datasetName"])
       .execute();
 
-    return { ...monitor, filter, llmRelabel, datasets };
+    return {
+      ...monitor,
+      filter,
+      llmRelabel,
+      numIncomingEntries,
+      numFullyProcessedEntries: llmRelabel.numProcessedEntries,
+      datasets,
+    };
   }),
   list: protectedProcedure
     .input(
@@ -268,10 +309,7 @@ export const monitorsRouter = createTRPCRouter({
           .execute();
       }
 
-      await enqueueProcessNode({
-        nodeId: id,
-        invalidateData: invalidateMonitor,
-      });
+      await enqueueProcessNode({ nodeId: id, invalidateData: invalidateMonitor });
 
       return success("Monitor updated");
     }),

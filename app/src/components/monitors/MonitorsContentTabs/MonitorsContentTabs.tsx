@@ -1,9 +1,10 @@
+import { useMemo } from "react";
+
 import ContentTabs from "~/components/ContentTabs";
 import General from "./General/General";
 import Results from "./Results/Results";
 import { useMonitor } from "../useMonitor";
-import { useMemo } from "react";
-import { useNodeEntries } from "~/utils/hooks";
+import { MonitorProcessingIndicator } from "~/components/nodeEntries/MonitorProcessingIndicator";
 
 export const MONITOR_GENERAL_KEY = "general";
 
@@ -19,17 +20,14 @@ const resultsTab = {
 };
 
 const MonitorContentTabs = () => {
-  const monitor = useMonitor().data;
-
-  const count = useNodeEntries({ nodeId: monitor?.llmRelabel.id, refetchInterval: 5000 }).data
-    ?.matchingCount;
+  const count = useMonitor().data?.numFullyProcessedEntries ?? 0;
 
   const tabs = useMemo(
-    () => [generalTab, { ...resultsTab, title: `Results (${count ?? 0})` }],
+    () => [generalTab, { ...resultsTab, title: `Results (${(count ?? 0).toLocaleString()})` }],
     [count],
   );
 
-  return <ContentTabs tabs={tabs} />;
+  return <ContentTabs tabs={tabs} rightHeader={<MonitorProcessingIndicator />} />;
 };
 
 export default MonitorContentTabs;

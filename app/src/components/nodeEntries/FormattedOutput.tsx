@@ -5,12 +5,29 @@ import { chatCompletionMessage } from "~/types/shared.types";
 import { FormattedJson } from "../FormattedJson";
 import FormattedMessage from "./FormattedMessage";
 
-const FormattedOutput = ({
+export const PotentiallyPendingFormattedOutput = ({
   output,
   preferJson,
+  includeField,
 }: {
   output: DatasetEntryOutput["output"];
   preferJson: boolean;
+  includeField?: boolean;
+}) => {
+  if (output) {
+    return <FormattedOutput output={output} preferJson={preferJson} includeField={includeField} />;
+  }
+  return <Text color="gray.500">Pending</Text>;
+};
+
+const FormattedOutput = ({
+  output,
+  preferJson,
+  includeField,
+}: {
+  output: DatasetEntryOutput["output"];
+  preferJson: boolean;
+  includeField?: boolean;
 }) => {
   const parsed = chatCompletionMessage.safeParse(output);
 
@@ -23,7 +40,9 @@ const FormattedOutput = ({
     );
   }
 
-  return <FormattedMessage message={parsed.data} preferJson={preferJson} />;
+  return (
+    <FormattedMessage message={parsed.data} preferJson={preferJson} includeField={includeField} />
+  );
 };
 
 export default FormattedOutput;

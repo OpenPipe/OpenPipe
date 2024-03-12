@@ -11,7 +11,7 @@ const Results = () => {
   const entries = useNodeEntries({ nodeId: monitor?.llmRelabel.id }).data?.entries;
 
   return (
-    <VStack w="full">
+    <VStack w="full" pb={16}>
       <NodeEntriesTable nodeId={monitor?.llmRelabel.id} entries={entries} />
       <NodeEntriesPaginator nodeId={monitor?.llmRelabel.id} />
     </VStack>

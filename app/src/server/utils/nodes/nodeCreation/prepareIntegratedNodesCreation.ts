@@ -10,7 +10,7 @@ import {
   prepareMonitorCreation,
   prepareFilterCreation,
 } from "./prepareNodeCreation";
-import { DEFAULT_MAX_OUTPUT_SIZE, RelabelOption } from "../node.types";
+import { RelabelOption } from "../node.types";
 import { prisma } from "~/server/db";
 import { type filtersSchema } from "~/types/shared.types";
 
@@ -118,7 +118,7 @@ export const prepareIntegratedMonitorCeation = ({
       name: "New Monitor",
       projectId,
       config: {
-        maxOutputSize: DEFAULT_MAX_OUTPUT_SIZE,
+        maxOutputSize: 20000,
         sampleRate: 100,
         initialFilters,
         lastLoggedCallUpdatedAt: new Date(0),

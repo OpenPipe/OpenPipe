@@ -56,7 +56,7 @@ const InitialResults = () => {
               />
             </ProjectLink>
           </HStack>
-          <LoggedCallsTable filters={initialFilters} showOptions={false} />
+          <LoggedCallsTable filters={initialFilters} showOptions={false} sortField="updatedAt" />
         </VStack>
       </Collapse>
     </VStack>
