@@ -1,7 +1,7 @@
 import { VStack, Heading } from "@chakra-ui/react";
-import InitialFilters from "./InitialFilters";
-import InitialResults from "./InitialResults";
-import SecondaryFilters from "./SecondaryFilters";
+import InitialFiltersBlock from "./InitialFiltersBlock";
+import InitialResultsBlock from "./InitialResultsBlock";
+import SecondaryFiltersBlock from "./SecondaryFiltersBlock";
 import RelabelingBlock from "./RelabelingBlock";
 import DatasetsBlock from "./DatasetsBlock/DatasetsBlock";
 
@@ -10,12 +10,12 @@ const General = () => {
     <VStack w="full" alignItems="flex-start" spacing={12} pb={16}>
       <VStack w="full" alignItems="flex-start">
         <Heading size="md">Initial Filters</Heading>
-        <InitialFilters />
+        <InitialFiltersBlock />
       </VStack>
-      <InitialResults />
+      <InitialResultsBlock />
       <VStack w="full" alignItems="flex-start">
         <Heading size="md">Secondary Filters</Heading>
-        <SecondaryFilters />
+        <SecondaryFiltersBlock />
       </VStack>
       <VStack w="full" alignItems="flex-start">
         <Heading size="md">Relabeling</Heading>

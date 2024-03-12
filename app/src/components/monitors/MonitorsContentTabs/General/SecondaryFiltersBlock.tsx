@@ -20,7 +20,7 @@ import { useMonitor } from "../../useMonitor";
 import { addFilterIds, filtersAreEqual, useFilters } from "~/components/Filters/useFilters";
 import { toast } from "~/theme/ChakraThemeProvider";
 import { api } from "~/utils/api";
-import { INITIAL_FILTERS_URL_KEY } from "./InitialFilters";
+import { INITIAL_FILTERS_URL_KEY } from "./InitialFiltersBlock";
 import TextSwitch from "./TextSwitch";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 import { LabelText, CaptionText } from "./styledText";
@@ -32,7 +32,7 @@ const secondaryFilterOptions: FilterOption[] = [
   { type: "text", field: GeneralFiltersDefaultFields.Output, label: "Response" },
 ];
 
-const SecondaryFilters = () => {
+const SecondaryFiltersBlock = () => {
   const monitor = useMonitor().data;
   const savedFilters = useMonitor().data?.filter.config.filters;
   const savedSampleRate = useMonitor().data?.config.sampleRate;
@@ -210,4 +210,4 @@ const SecondaryFilters = () => {
   );
 };
 
-export default SecondaryFilters;
+export default SecondaryFiltersBlock;

@@ -54,6 +54,7 @@ export const getArchives = ({
     .innerJoin("DataChannel as archiveLlmDC", "archiveLlmDC.destinationId", "llmRelabelNode.id")
     .innerJoin("NodeOutput as archiveNodeOutput", "archiveNodeOutput.id", "archiveLlmDC.originId")
     .innerJoin("Node as archiveNode", "archiveNode.id", "archiveNodeOutput.nodeId")
+    .where("archiveNode.type", "=", "Archive")
     .distinctOn("archiveNode.id");
 
 export const getMonitors = ({

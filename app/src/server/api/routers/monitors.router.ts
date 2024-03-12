@@ -87,15 +87,20 @@ export const monitorsRouter = createTRPCRouter({
       (monitor.numUnprocessedEntries ?? 0) +
       Math.max(0, (monitor.numProcessedEntries ?? 0) - (llmRelabel.numProcessedEntries ?? 0));
 
-    const datasetNodes = await getDownstreamDatasets({
+    const datasets = await getDownstreamDatasets({
       monitorLLMRelabelNodeId: monitor.config.relabelNodeId,
     })
-      .selectAll("datasetNode")
-      .select(["d.id as datasetId", "d.name as datasetName"])
+      .selectAll("d")
+      .select(["datasetNode.config as nodeConfig"])
       .distinctOn(["dc1.createdAt"])
       .orderBy("dc1.createdAt", "asc")
       .execute()
-      .then((nodes) => nodes.map((node) => typedNode({ ...node, type: "Dataset" })));
+      .then((datasets) =>
+        datasets.map((dataset) => ({
+          ...dataset,
+          node: typedNode({ config: dataset.nodeConfig, type: "Dataset" }),
+        })),
+      );
 
     return {
       ...monitor,
@@ -103,7 +108,7 @@ export const monitorsRouter = createTRPCRouter({
       llmRelabel,
       numIncomingEntries,
       numFullyProcessedEntries: llmRelabel.numProcessedEntries,
-      datasetNodes,
+      datasets,
     };
   }),
   list: protectedProcedure

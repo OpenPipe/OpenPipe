@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Box } from "@chakra-ui/react";
 
-import { useDataset, useDatasetArchives } from "~/utils/hooks";
+import { useDataset, useDatasetArchives, useDatasetMonitors } from "~/utils/hooks";
 import Filters from "~/components/Filters/Filters";
 import {
   EVALUATION_FILTERS_OUTPUT_APPENDIX,
@@ -17,6 +17,7 @@ import type {
 const EvaluationFilters = () => {
   const dataset = useDataset().data;
   const archives = useDatasetArchives().data;
+  const monitors = useDatasetMonitors().data;
 
   const filterOptions = useMemo(() => {
     const initialStaticOptions: FilterOption[] = [
@@ -48,13 +49,14 @@ const EvaluationFilters = () => {
         ]
       : [];
     const finalStaticOptions: FilterOption[] = [];
-    if (archives?.length) {
+    if (archives?.length || monitors?.length) {
+      const sources = (archives || []).concat(monitors || []);
       finalStaticOptions.push({
         type: "select",
         field: EvaluationFiltersDefaultFields.Source,
-        options: archives.map((archive) => ({
-          value: archive.id,
-          label: archive.name,
+        options: sources.map((source) => ({
+          value: source.id,
+          label: source.name,
         })),
       });
     }
@@ -71,6 +73,7 @@ const EvaluationFilters = () => {
     dataset?.deployedFineTunes,
     dataset?.datasetEvals,
     archives,
+    monitors,
   ]);
 
   return (

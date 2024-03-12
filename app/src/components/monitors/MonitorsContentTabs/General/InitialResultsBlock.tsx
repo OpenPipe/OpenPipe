@@ -2,7 +2,7 @@ import { useState } from "react";
 import { HStack, VStack, Collapse, Text, Button, Icon, Skeleton } from "@chakra-ui/react";
 import { FaChevronDown, FaChevronUp, FaExternalLinkAlt } from "react-icons/fa";
 
-import { INITIAL_FILTERS_URL_KEY } from "./InitialFilters";
+import { INITIAL_FILTERS_URL_KEY } from "./InitialFiltersBlock";
 import LoggedCallsTable from "~/components/requestLogs/LoggedCallsTable";
 import { ProjectLink } from "~/components/ProjectLink";
 import { constructFiltersQueryParams, useFilters } from "~/components/Filters/useFilters";
@@ -10,7 +10,7 @@ import { useLoggedCallsCount } from "~/utils/hooks";
 import ColumnVisibilityDropdown from "~/components/requestLogs/ColumnVisibilityDropdown";
 import ActionButton from "~/components/ActionButton";
 
-const InitialResults = () => {
+const InitialResultsBlock = () => {
   const [expanded, setExpanded] = useState(false);
 
   const initialFilters = useFilters({ urlKey: INITIAL_FILTERS_URL_KEY }).filters;
@@ -21,7 +21,7 @@ const InitialResults = () => {
 
   return (
     <VStack w="full" spacing={0}>
-      <HStack as={Button} variant="ghost" w={80} onClick={() => setExpanded(!expanded)} mb={-4}>
+      <HStack as={Button} variant="ghost" w={80} onClick={() => setExpanded(!expanded)}>
         <Text>{expanded ? "Hide" : "Preview"} Initial Results</Text>
         <Skeleton isLoaded={count !== undefined}>
           <Text>({count ? count.toLocaleString() : 0})</Text>
@@ -30,7 +30,7 @@ const InitialResults = () => {
       </HStack>
 
       <Collapse in={expanded} style={{ width: "100%" }}>
-        <VStack w="full" pb={8}>
+        <VStack w="full" pt={4} pb={8}>
           <HStack w="full" justifyContent="flex-end">
             <ColumnVisibilityDropdown />
             <ProjectLink
@@ -56,4 +56,4 @@ const InitialResults = () => {
   );
 };
 
-export default InitialResults;
+export default InitialResultsBlock;

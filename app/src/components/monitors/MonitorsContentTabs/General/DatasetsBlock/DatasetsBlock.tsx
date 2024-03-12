@@ -10,6 +10,9 @@ import { api } from "~/utils/api";
 import { toast } from "~/theme/ChakraThemeProvider";
 import { type DatasetToDisconnect, DisconnectDatasetDialog } from "./DisconnectDatasetDialog";
 import { ProjectLink } from "~/components/ProjectLink";
+import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
+import { GeneralFiltersDefaultFields } from "~/types/shared.types";
+import { DATASET_GENERAL_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 
 type DatasetToConnect = RouterOutputs["datasets"]["list"][number];
 
@@ -17,7 +20,7 @@ const DatasetsBlock = () => {
   const allDatasets = useDatasets().data;
   const monitor = useMonitor().data;
 
-  const currentDatasets = monitor?.datasetNodes;
+  const currentDatasets = monitor?.datasets;
 
   const [datasetToConnect, setDatasetToConnect] = useState<DatasetToConnect | null>(null);
   const [datasetToDisconnect, setDatasetToDisconnect] = useState<DatasetToDisconnect | null>(null);
@@ -25,9 +28,7 @@ const DatasetsBlock = () => {
   const availableDatasets = useMemo(
     () =>
       allDatasets
-        ? allDatasets.filter(
-            (node) => !currentDatasets?.some((dataset) => dataset.datasetId === node.id),
-          )
+        ? allDatasets.filter((d1) => !currentDatasets?.some((d2) => d1.nodeId === d2.nodeId))
         : [],
     [allDatasets, currentDatasets],
   );
@@ -53,7 +54,7 @@ const DatasetsBlock = () => {
       if (saveDisabled || (!datasetToConnect && !datasetToDisconnect)) return;
 
       const connectedManualRelabelNodeIds = currentDatasets.map(
-        (dataset) => dataset.config.manualRelabelNodeId,
+        (dataset) => dataset.node.config.manualRelabelNodeId,
       );
 
       if (datasetToConnect) {
@@ -75,7 +76,7 @@ const DatasetsBlock = () => {
           id: monitor?.id,
           updates: {
             datasetManualRelabelNodeIds: connectedManualRelabelNodeIds.filter(
-              (id) => id !== datasetToDisconnect.config.manualRelabelNodeId,
+              (id) => id !== datasetToDisconnect.node.config.manualRelabelNodeId,
             ),
           },
         });
@@ -97,33 +98,50 @@ const DatasetsBlock = () => {
       <Card w="full">
         <Skeleton isLoaded={!!monitor && !!allDatasets}>
           <VStack alignItems="flex-start" spacing={4} w="full">
-            {currentDatasets?.map((dataset, i) => (
-              <VStack
-                key={dataset.datasetId}
-                w="full"
-                alignItems="flex-start"
-                borderTopWidth={i ? 1 : 0}
-                p={4}
-              >
-                <HStack w="full" justifyContent="space-between">
-                  <ProjectLink
-                    href={{ pathname: "/datasets/[id]", query: { id: dataset.datasetId } }}
-                  >
-                    <LabelText color="blue.600" _hover={{ textDecoration: "underline" }}>
-                      {dataset.datasetName}
-                    </LabelText>
-                  </ProjectLink>
-                  <Button
-                    variant="ghost"
-                    colorScheme="red"
-                    size="sm"
-                    onClick={() => setDatasetToDisconnect(dataset)}
-                  >
-                    Disconnect
-                  </Button>
-                </HStack>
-              </VStack>
-            ))}
+            {monitor &&
+              currentDatasets?.map((dataset, i) => (
+                <VStack
+                  key={dataset.id}
+                  w="full"
+                  alignItems="flex-start"
+                  borderTopWidth={i ? 1 : 0}
+                  p={4}
+                >
+                  <HStack w="full" justifyContent="space-between">
+                    <ProjectLink
+                      href={{
+                        pathname: "/datasets/[id]/[tab]",
+                        query: {
+                          id: dataset.id,
+                          tab: DATASET_GENERAL_TAB_KEY,
+                          ...constructFiltersQueryParams({
+                            filters: [
+                              {
+                                id: Date.now().toString(),
+                                field: GeneralFiltersDefaultFields.Source,
+                                comparator: "=",
+                                value: monitor.id,
+                              },
+                            ],
+                          }),
+                        },
+                      }}
+                    >
+                      <LabelText color="blue.600" _hover={{ textDecoration: "underline" }}>
+                        {dataset.name}
+                      </LabelText>
+                    </ProjectLink>
+                    <Button
+                      variant="ghost"
+                      colorScheme="red"
+                      size="sm"
+                      onClick={() => setDatasetToDisconnect(dataset)}
+                    >
+                      Disconnect
+                    </Button>
+                  </HStack>
+                </VStack>
+              ))}
             {availableDatasets.length && datasetToConnect && (
               <VStack
                 w="full"

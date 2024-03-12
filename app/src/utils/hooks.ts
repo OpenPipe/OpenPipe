@@ -214,6 +214,15 @@ export const useDatasetArchives = () => {
   );
 };
 
+export const useDatasetMonitors = () => {
+  const dataset = useDataset().data;
+
+  return api.monitors.listForDataset.useQuery(
+    { datasetId: dataset?.id ?? "" },
+    { enabled: !!dataset?.id },
+  );
+};
+
 // Prevent annoying flashes while loading from the server
 const useStableData = <TData, TError>(result: UseQueryResult<TData, TError>) => {
   const { data, isFetching } = result;

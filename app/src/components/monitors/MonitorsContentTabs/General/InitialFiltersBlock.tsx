@@ -23,7 +23,7 @@ const defaultMonitorSQLFilterOptions: FilterOption[] = [
 
 export const INITIAL_FILTERS_URL_KEY = "initial";
 
-const InitialFilters = () => {
+const InitialFiltersBlock = () => {
   const tagNames = useSelectedProject().data?.tagNames;
 
   const fineTunes = useFineTunes().data?.fineTunes;
@@ -143,4 +143,4 @@ const InitialFilters = () => {
   );
 };
 
-export default InitialFilters;
+export default InitialFiltersBlock;

@@ -14,7 +14,7 @@ import {
 import { type RouterOutputs } from "~/utils/api";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 
-export type DatasetToDisconnect = RouterOutputs["monitors"]["get"]["datasetNodes"][number];
+export type DatasetToDisconnect = RouterOutputs["monitors"]["get"]["datasets"][number];
 
 export const DisconnectDatasetDialog = ({
   dataset,
