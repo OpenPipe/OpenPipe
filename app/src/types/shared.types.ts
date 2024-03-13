@@ -237,6 +237,8 @@ export enum LoggedCallsFiltersDefaultFields {
   Model = "model",
   StatusCode = "statusCode",
   CompletionId = "completionId",
+  SampleRate = "sampleRate",
+  MaxOutputSize = "maxOutputSize",
 }
 
 export enum MonitorCheckFiltersExtendedFields {

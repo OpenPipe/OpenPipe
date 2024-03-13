@@ -41,6 +41,9 @@ export interface FilterData {
   value: string | [number, number];
 }
 
+// server does not store the id
+export type ServerFilterData = Omit<FilterData, "id">;
+
 export const comparatorsForFilterType = (
   filterType: FilterType,
 ): AtLeastOne<(typeof comparators)[number]> => {

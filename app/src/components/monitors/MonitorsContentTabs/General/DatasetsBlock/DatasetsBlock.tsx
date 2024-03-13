@@ -158,6 +158,8 @@ const DatasetsBlock = () => {
                     getDisplayLabel={(option) => option.name}
                     onSelect={setDatasetToConnect}
                     placement="top-start"
+                    maxPopoverContentHeight={400}
+                    minItemHeight={10}
                   />
                   <Button
                     variant="ghost"

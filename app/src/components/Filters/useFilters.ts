@@ -1,6 +1,6 @@
 import { useQueryParam, JsonParam, withDefault, encodeQueryParams } from "use-query-params";
 
-import { type FilterData } from "./types";
+import { type FilterData, type ServerFilterData } from "./types";
 import { isEqual } from "lodash-es";
 
 const DEFAULT_URL_KEY = "filterData";
@@ -59,9 +59,7 @@ export const constructFiltersQueryParams = ({
   );
 };
 
-type SimpleFilterData = Omit<FilterData, "id">;
-
-export const filtersAreEqual = (a: SimpleFilterData[], b: SimpleFilterData[]): boolean => {
+export const filtersAreEqual = (a: ServerFilterData[], b: ServerFilterData[]): boolean => {
   if (a.length !== b.length) return false;
 
   for (let i = 0; i < a.length; i++) {
@@ -73,5 +71,5 @@ export const filtersAreEqual = (a: SimpleFilterData[], b: SimpleFilterData[]): b
   return true;
 };
 
-export const addFilterIds = (filters: SimpleFilterData[]): FilterData[] =>
+export const addFilterIds = (filters: ServerFilterData[]): FilterData[] =>
   filters.map((filter, index) => ({ ...filter, id: index.toString() }));

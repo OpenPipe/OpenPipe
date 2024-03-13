@@ -8,6 +8,7 @@ import {
   dateComparatorToSqlExpression,
 } from "./comparatorToSqlExpression";
 import type { LoggedCall, DB } from "~/types/kysely-codegen.types";
+import { generateSampleRateUuid } from "./generateSampleRateUuid";
 
 const BASE_QUERY = kysely.selectFrom("LoggedCall as lc");
 
@@ -100,6 +101,27 @@ export const constructLoggedCallFiltersQuery = ({
       .where(
         filterExpression(sql.raw(`${tableAlias}.value`)),
       ) as unknown as typeof updatedBaseQuery;
+  }
+
+  const sampleRateFilter = filters.find(
+    (filter) => filter.field === LoggedCallsFiltersDefaultFields.SampleRate,
+  );
+
+  if (sampleRateFilter?.value) {
+    updatedBaseQuery = updatedBaseQuery.where(
+      "lc.id",
+      "<=",
+      generateSampleRateUuid(parseFloat(sampleRateFilter.value as string)),
+    );
+  }
+
+  const maxOutputSizeFilter = filters.find(
+    (filter) => filter.field === LoggedCallsFiltersDefaultFields.MaxOutputSize,
+  );
+  if (maxOutputSizeFilter?.value) {
+    updatedBaseQuery = updatedBaseQuery.limit(
+      Math.round(parseFloat(maxOutputSizeFilter.value as string)),
+    );
   }
 
   if (selectionParams) {

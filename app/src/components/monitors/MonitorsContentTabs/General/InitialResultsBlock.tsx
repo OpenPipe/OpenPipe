@@ -2,27 +2,27 @@ import { useState } from "react";
 import { HStack, VStack, Collapse, Text, Button, Icon, Skeleton } from "@chakra-ui/react";
 import { FaChevronDown, FaChevronUp, FaExternalLinkAlt } from "react-icons/fa";
 
-import { INITIAL_FILTERS_URL_KEY } from "./InitialFiltersBlock";
 import LoggedCallsTable from "~/components/requestLogs/LoggedCallsTable";
 import { ProjectLink } from "~/components/ProjectLink";
-import { constructFiltersQueryParams, useFilters } from "~/components/Filters/useFilters";
+import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
 import { useLoggedCallsCount } from "~/utils/hooks";
 import ColumnVisibilityDropdown from "~/components/requestLogs/ColumnVisibilityDropdown";
 import ActionButton from "~/components/ActionButton";
+import { useInitialFilters } from "./InitialFiltersBlock/useInitialFilters";
 
 const InitialResultsBlock = () => {
   const [expanded, setExpanded] = useState(false);
 
-  const initialFilters = useFilters({ urlKey: INITIAL_FILTERS_URL_KEY }).filters;
+  const { filters, saveableFilters } = useInitialFilters();
 
-  const count = useLoggedCallsCount({ filters: initialFilters }).data?.count;
+  const count = useLoggedCallsCount({ filters }).data?.count;
 
-  const filtersQueryParams = constructFiltersQueryParams({ filters: initialFilters });
+  const filtersQueryParams = constructFiltersQueryParams({ filters: saveableFilters });
 
   return (
     <VStack w="full" spacing={0}>
       <HStack as={Button} variant="ghost" w={80} onClick={() => setExpanded(!expanded)}>
-        <Text>{expanded ? "Hide" : "Preview"} Initial Results</Text>
+        <Text>{expanded ? "Hide" : "Preview"} Matching Logs</Text>
         <Skeleton isLoaded={count !== undefined}>
           <Text>({count ? count.toLocaleString() : 0})</Text>
         </Skeleton>
@@ -42,14 +42,10 @@ const InitialResultsBlock = () => {
               }}
               target="_blank"
             >
-              <ActionButton
-                icon={FaExternalLinkAlt}
-                iconBoxSize={3.5}
-                label={`View All (${count ? count.toLocaleString() : 0})`}
-              />
+              <ActionButton icon={FaExternalLinkAlt} iconBoxSize={3.5} label={`View All`} />
             </ProjectLink>
           </HStack>
-          <LoggedCallsTable filters={initialFilters} showOptions={false} />
+          <LoggedCallsTable filters={filters} showOptions={false} />
         </VStack>
       </Collapse>
     </VStack>

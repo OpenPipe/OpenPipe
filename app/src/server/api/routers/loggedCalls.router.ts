@@ -9,6 +9,7 @@ import { requireCanViewProject } from "~/utils/accessControl";
 import hashObject from "~/server/utils/hashObject";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import { filtersSchema } from "~/types/shared.types";
+import { kysely } from "~/server/db";
 
 export const loggedCallsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -88,7 +89,10 @@ export const loggedCallsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const count = await constructLoggedCallFiltersQuery({ filters, projectId })
+      const count = await kysely
+        .selectFrom(() =>
+          constructLoggedCallFiltersQuery({ filters, projectId }).selectAll("lc").as("subquery"),
+        )
         .select(sql<number>`count(*)::int`.as("matchCount"))
         .executeTakeFirstOrThrow()
         .then((result) => result.matchCount);

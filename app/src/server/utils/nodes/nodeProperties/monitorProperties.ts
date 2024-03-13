@@ -1,4 +1,5 @@
 import { sql } from "kysely";
+import { v4 as uuidv4 } from "uuid";
 
 import { kysely, prisma } from "~/server/db";
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
@@ -77,45 +78,32 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
       .executeTakeFirst()
       .then((r) => (r ? r.count : 0));
 
-    const nodeId = node.id;
-
     const newLastLoggedCallUpdatedAt = new Date();
 
     const queryCallsStartTime = Date.now();
 
     const numEntriesToImport = maxOutputSize - numExistingEntries;
 
-    const sampleRateHash = calculateSampleRateHash(sampleRate);
-
-    const castNodeId = parseInt(nodeId.substring(0, 7), 16);
+    const sampleRateUuid = generateSampleRateUUID(sampleRate);
 
     console.log("starting queryCalls");
 
     const loggedCallsQuery = kysely
       .selectFrom((eb) =>
-        eb
-          .selectFrom((eb) =>
-            constructLoggedCallFiltersQuery({
-              filters: initialFilters,
-              projectId: node.projectId,
-              baseQuery: eb.selectFrom("LoggedCall as lc"),
-            })
-              .where(
-                "lc.updatedAt",
-                ">=",
-                dayjs(lastLoggedCallUpdatedAt).subtract(10, "seconds").toDate(),
-              )
-              .selectAll("lc")
-              .as("subquery1"),
-          )
-          // compare to sampleRate
+        constructLoggedCallFiltersQuery({
+          filters: initialFilters,
+          projectId: node.projectId,
+          baseQuery: eb.selectFrom("LoggedCall as lc"),
+        })
           .where(
-            sql`(('x' || LEFT(subquery1.id::text, 7))::bit(32)::int #
-          ${castNodeId}) < ${sampleRateHash}`,
+            "lc.updatedAt",
+            ">=",
+            dayjs(lastLoggedCallUpdatedAt).subtract(10, "seconds").toDate(),
           )
+          .where("lc.id", "<=", sampleRateUuid)
+          .selectAll("lc")
           .limit(Math.round(maxOutputSize * 1.1))
-          .orderBy("subquery1.updatedAt", "desc")
-          .selectAll("subquery1")
+          .orderBy("lc.updatedAt", "desc")
           .as("subquery"),
       )
       .leftJoin("NodeEntry as existingNe", (eb) =>
@@ -208,14 +196,27 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
   },
 };
 
-function calculateSampleRateHash(sampleRate: number) {
-  // For a 32-bit hash, the maximum value is 2^32 - 1
-  const maxHashValue = Math.pow(2, 32) - 1;
+function generateSampleRateUUID(percentage: number): string {
+  // Ensure the percentage is within bounds
+  if (percentage < 0 || percentage > 100) {
+    throw new Error("Percentage must be between 0 and 100");
+  }
 
-  // Calculate the hash threshold based on the sample rate
-  // Note: sampleRate is expected to be a percentage (e.g., 10 for 10%)
-  const sampleRateHash = Math.round((sampleRate / 100) * maxHashValue);
+  // Convert the percentage to a fraction of the maximum value of the first 6 hex digits of UUID
+  // The first 6 hex digits are chosen for simplicity and to avoid interfering with UUID version and variant bits
+  const fraction = percentage / 100;
+  const maxFirst6HexValue = 0xffffff; // Max value for 6 hex digits
+  const thresholdValue = Math.floor(fraction * maxFirst6HexValue);
 
-  // Adjust to match signed 32-bit integer range
-  return sampleRateHash - Math.pow(2, 31);
+  // Format the threshold value into a 6-digit hex string
+  const thresholdHex = thresholdValue.toString(16).padStart(6, "0");
+
+  // Generate a random UUID
+  let uuid = uuidv4();
+
+  // Replace the first 6 hex digits of the UUID with our threshold-based hex digits
+  // Ensuring it aligns with the percentage-based sampling requirement
+  uuid = thresholdHex + uuid.slice(6);
+
+  return uuid;
 }
