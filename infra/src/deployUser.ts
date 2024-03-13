@@ -48,11 +48,7 @@ const deployUserPolicy = new aws.iam.Policy(
         },
         {
           Action: [
-            // "iam:CreatePolicy",
             "iam:GetPolicy",
-            // "iam:CreatePolicyVersion",
-            // "iam:ListPolicyVersions",
-            // "iam:DeletePolicyVersion",
           ],
           Effect: "Allow",
           Resource: "*",
