@@ -36,6 +36,7 @@ import InfoCircle from "~/components/InfoCircle";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ProjectLink } from "~/components/ProjectLink";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import InputDropdown from "~/components/InputDropdown";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -152,6 +153,14 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             ) : (
               <VStack alignItems="flex-start" w="full" spacing={8}>
                 <VStack alignItems="flex-start" w="full">
+                  <Text fontWeight="bold">Comparison model:</Text>
+                  <InputDropdown
+                    options={["GPT 3", "GPT-4"]}
+                    // getDisplayLabel={(option) => modelInfo(splitProvider(option)).name}
+                    selectedOption={"GPT 3"}
+                    onSelect={(option) => option}
+                    inputGroupProps={{ w: "100%" }}
+                  />
                   <Text fontWeight="bold">Name</Text>
                   <Input
                     value={name}
