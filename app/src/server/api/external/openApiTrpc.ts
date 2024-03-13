@@ -89,7 +89,15 @@ const sentryMiddleware = t.middleware(async ({ ctx, next }) => {
     attachRpcInput: true,
   });
 
-  const scope = Sentry.getCurrentHub().getScope();
+  const owner = await prisma.projectUser.findFirst({
+    where: {
+      projectId: ctx.key?.projectId,
+      role: "OWNER",
+    },
+  });
+
+  owner && Sentry.setUser({ id: owner.id });
+  const scope = Sentry.getIsolationScope();
   if (scope) {
     scope.setExtra("key", ctx.key);
     scope.setExtra("projectId", ctx.key?.projectId);
