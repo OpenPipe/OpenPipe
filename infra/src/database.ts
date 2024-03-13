@@ -2,11 +2,21 @@ import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import * as random from "@pulumi/random";
 import { nm } from "./helpers";
-import { vpc } from "./vpc";
+import { vpc, vpcCidrBlocks } from "./vpc";
+
+const cfg = new pulumi.Config();
+const allowedListArray = cfg.require("ALLOWED_IP_LIST").split(",");
 
 const dbSecurityGroup = new aws.ec2.SecurityGroup(nm("app-db"), {
   vpcId: vpc.vpcId,
-  ingress: [{ protocol: "tcp", fromPort: 5432, toPort: 5432, cidrBlocks: ["0.0.0.0/0"] }],
+  ingress: [
+    {
+      protocol: "tcp",
+      fromPort: 5432,
+      toPort: 5432,
+      cidrBlocks: [vpcCidrBlocks, ...allowedListArray],
+    },
+  ],
 });
 
 const dbSubnetGroup = new aws.rds.SubnetGroup(nm("app-db"), {
@@ -103,7 +113,7 @@ const dmsAssumeRole = aws.iam.getPolicyDocument({
 });
 const dms_access_for_endpoint = new aws.iam.Role(nm("dms-access-for-endpoint"), {
   assumeRolePolicy: dmsAssumeRole.then((dmsAssumeRole) => dmsAssumeRole.json),
-  name: nm("dms-access-for-endpoint"),
+  name: isProd ? "dms-access-for-endpoint" : nm("dms-access-for-endpoint"),
 });
 
 const dms_access_for_endpoint_AmazonDMSRedshiftS3Role = new aws.iam.RolePolicyAttachment(
@@ -116,7 +126,7 @@ const dms_access_for_endpoint_AmazonDMSRedshiftS3Role = new aws.iam.RolePolicyAt
 
 const dms_cloudwatch_logs_role = new aws.iam.Role(nm("dms-cloudwatch-logs-role"), {
   assumeRolePolicy: dmsAssumeRole.then((dmsAssumeRole) => dmsAssumeRole.json),
-  name: nm("dms-cloudwatch-logs-role"),
+  name: isProd ? "dms-cloudwatch-logs-role" : nm("dms-cloudwatch-logs-role"),
 });
 
 const dms_cloudwatch_logs_role_AmazonDMSCloudWatchLogsRole = new aws.iam.RolePolicyAttachment(
