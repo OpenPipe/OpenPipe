@@ -29,7 +29,7 @@ export const listSources = protectedProcedure
     })
       .leftJoin("DatasetFileUpload as dfu", "dfu.nodeId", "archiveNode.id")
       .where("dfu.errorMessage", "is", null)
-      .innerJoin("DataChannel as dc", "dc.destinationId", "archiveNode.id")
+      .innerJoin("DataChannel as dc", "dc.destinationId", "llmRelabelNode.id")
       .leftJoin("NodeEntry as ne", "dc.id", "ne.dataChannelId")
       .groupBy(["archiveNode.id", "llmRelabelNode.id"])
       .distinctOn("archiveNode.createdAt")
@@ -55,7 +55,7 @@ export const listSources = protectedProcedure
     const monitors = await getMonitors({
       datasetManualRelabelNodeId: datasetNode.config.manualRelabelNodeId,
     })
-      .innerJoin("DataChannel as dc", "dc.destinationId", "monitorNode.id")
+      .innerJoin("DataChannel as dc", "dc.destinationId", "llmRelabelNode.id")
       .leftJoin("NodeEntry as ne", "dc.id", "ne.dataChannelId")
       .groupBy(["monitorNode.id", "llmRelabelNode.id"])
       .distinctOn("monitorNode.createdAt")

@@ -58,7 +58,7 @@ const Nodes = () => {
                 <Td cursor="pointer" onClick={() => void copyToClipboard(node.id)}>
                   {node.id}
                 </Td>
-                <Td cursor="pointer" onClick={() => void copyToClipboard(node.hash)}>
+                <Td cursor="pointer" onClick={() => void copyToClipboard(node.hash, node.hash)}>
                   <Button variant="link">Copy</Button>
                 </Td>
                 <Td>{dayjs(node.createdAt).format("MM-D h:mm A")}</Td>

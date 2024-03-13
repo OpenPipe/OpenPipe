@@ -3,11 +3,11 @@ import { useToast } from "@chakra-ui/react";
 export const useCopyToClipboard = () => {
   const toast = useToast();
 
-  const copyToClipboard = async (text?: string) => {
+  const copyToClipboard = async (text?: string, confirmationMessage?: string) => {
     try {
       await navigator.clipboard.writeText(text as string);
       toast({
-        title: "Copied to clipboard",
+        title: confirmationMessage ?? "Copied to clipboard",
         status: "success",
         duration: 2000,
       });

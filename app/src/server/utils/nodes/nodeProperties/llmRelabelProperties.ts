@@ -33,12 +33,12 @@ export const llmRelabelProperties: NodeProperties<"LLMRelabel"> = {
     }
   },
   processEntry: async ({ node, entry }) => {
-    const { tool_choice, tools, messages, response_format } = entry;
+    const { tool_choice, tools, messages, response_format, output } = entry;
 
     try {
       let completionMessage;
       if (node.config.relabelLLM === RelabelOption.SkipRelabel) {
-        completionMessage = entry.output;
+        completionMessage = output;
       } else {
         const completion = await getOpenaiCompletion(node.projectId, {
           model: node.config.relabelLLM,

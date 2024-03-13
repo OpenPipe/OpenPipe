@@ -101,7 +101,7 @@ export const loggedCallsRouter = createTRPCRouter({
         )
         .select(sql<number>`count(*)::int`.as("matchCount"));
 
-      console.log("getMatchingCount", query.compile());
+      // console.log("getMatchingCount", query.compile());
 
       const count = await query.executeTakeFirstOrThrow().then((result) => result.matchCount);
 

@@ -4,13 +4,15 @@ import { type ServerFilterData, type FilterData } from "~/components/Filters/typ
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
 import { INITIAL_FILTERS_URL_KEY } from "../constants";
 import { addFilterIds, useFilters } from "~/components/Filters/useFilters";
-import { defaultMonitorSQLFilterOptions } from "./InitialFilterContents";
 import { truthyFilter } from "~/utils/utils";
 
 export const stripFilters = (filters: FilterData[]): FilterData[] => {
   return filters.filter(
     (filter) =>
-      defaultMonitorSQLFilterOptions.find((option) => option.field === filter.field) !== undefined,
+      filter.field !== LoggedCallsFiltersDefaultFields.Model &&
+      filter.field !== LoggedCallsFiltersDefaultFields.StatusCode &&
+      filter.field !== LoggedCallsFiltersDefaultFields.SampleRate &&
+      filter.field !== LoggedCallsFiltersDefaultFields.MaxOutputSize,
   );
 };
 
