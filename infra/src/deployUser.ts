@@ -41,6 +41,11 @@ const deployUserPolicy = new aws.iam.Policy(
           Effect: "Allow",
           Resource: "*",
         },
+        {
+          Action: ["dms:DescribeReplicationTasks"],
+          Effect: "Allow",
+          Resource: "*",
+        },
       ],
     }),
   },
