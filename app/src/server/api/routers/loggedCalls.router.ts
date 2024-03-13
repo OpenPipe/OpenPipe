@@ -19,12 +19,16 @@ export const loggedCallsRouter = createTRPCRouter({
         page: z.number(),
         pageSize: z.number(),
         filters: filtersSchema,
+        orderBy: z.enum(["updatedAt", "requestedAt"]).optional().default("requestedAt"),
       }),
     )
     .query(async ({ input, ctx }) => {
       const { projectId, page, pageSize, filters } = input;
 
       await requireCanViewProject(projectId, ctx);
+
+      const orderByField = input.orderBy === "updatedAt" ? "lc.updatedAt" : "lc.requestedAt";
+      const orderDirection = input.orderBy === "updatedAt" ? "asc" : "desc";
 
       const rawCalls = await constructLoggedCallFiltersQuery({ filters, projectId })
         .select((eb) => [
@@ -49,7 +53,7 @@ export const loggedCallsRouter = createTRPCRouter({
               .whereRef("loggedCallId", "=", "lc.id"),
           ).as("tags"),
         ])
-        .orderBy("lc.requestedAt", "desc")
+        .orderBy(orderByField, orderDirection)
         .limit(pageSize)
         .offset((page - 1) * pageSize)
         .execute();
@@ -89,13 +93,19 @@ export const loggedCallsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const count = await kysely
+      const startTime = Date.now();
+
+      const query = kysely
         .selectFrom(() =>
           constructLoggedCallFiltersQuery({ filters, projectId }).selectAll("lc").as("subquery"),
         )
-        .select(sql<number>`count(*)::int`.as("matchCount"))
-        .executeTakeFirstOrThrow()
-        .then((result) => result.matchCount);
+        .select(sql<number>`count(*)::int`.as("matchCount"));
+
+      console.log("getMatchingCount", query.compile());
+
+      const count = await query.executeTakeFirstOrThrow().then((result) => result.matchCount);
+
+      console.log("getMatchingCount", "time", Date.now() - startTime);
 
       return { count };
     }),

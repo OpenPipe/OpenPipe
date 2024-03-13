@@ -208,6 +208,8 @@ export enum SortOrder {
   DESC = "desc",
 }
 
+export type LoggedCallsOrderBy = "updatedAt" | "requestedAt";
+
 export const textComparators = ["=", "!=", "CONTAINS", "NOT_CONTAINS"] as const;
 export const dateComparators = [
   "LAST 15M",

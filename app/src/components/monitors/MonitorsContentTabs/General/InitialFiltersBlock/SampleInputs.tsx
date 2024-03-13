@@ -28,7 +28,7 @@ const SampleInputs = ({
   setMaxOutputSize: (maxOutputSize: number) => void;
 }) => {
   const filters = useFilters({ urlKey: INITIAL_FILTERS_URL_KEY }).filters;
-  const initialCount = useLoggedCallsCount({ filters }).data?.count;
+  const initialCount = useLoggedCallsCount({ filters, disabled: !filters.length }).data?.count;
 
   // Store as string to allow for temporarily invalid values
   const [sampleRateStr, setSampleRateStr] = useState("0");

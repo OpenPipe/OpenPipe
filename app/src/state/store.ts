@@ -21,6 +21,8 @@ export type State = {
   markMounted: () => void;
   sidebarExpanded: boolean;
   setSidebarExpanded: (expanded: boolean) => void;
+  initialResultsExpanded: boolean;
+  setInitialResultsExpanded: (expanded: boolean) => void;
   api: APIClient | null;
   setApi: (api: APIClient) => void;
   sharedArgumentsEditor: SharedArgumentsEditorSlice;
@@ -47,6 +49,11 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
       setSidebarExpanded: (expanded) =>
         set((state) => {
           state.sidebarExpanded = expanded;
+        }),
+      initialResultsExpanded: false,
+      setInitialResultsExpanded: (expanded) =>
+        set((state) => {
+          state.initialResultsExpanded = expanded;
         }),
       api: null,
       setApi: (api) =>

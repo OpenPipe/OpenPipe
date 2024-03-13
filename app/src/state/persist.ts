@@ -9,7 +9,7 @@ export type PersistedState = PartialDeep<State>;
 export const persistOptions: PersistOptions<State, PersistedState> = {
   name: "persisted-app-store",
   partialize: (state) => ({
-    columnVisibility: pick(state.columnVisibility, ["visibleColumns"]),
+    columnVisibility: pick(state.columnVisibility, ["visibleColumns", "initialResultsExpanded"]),
   }),
   merge: (saved, state) => merge(state, saved),
   storage: {

@@ -103,7 +103,7 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
           .where("lc.id", "<=", sampleRateUuid)
           .selectAll("lc")
           .limit(Math.round(maxOutputSize * 1.1))
-          .orderBy("lc.updatedAt", "desc")
+          .orderBy("lc.updatedAt", "asc")
           .as("subquery"),
       )
       .leftJoin("NodeEntry as existingNe", (eb) =>

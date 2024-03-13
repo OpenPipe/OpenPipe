@@ -8,7 +8,13 @@ import NodeEntriesPaginator from "~/components/nodeEntries/NodeEntriesTable/Node
 const Results = () => {
   const monitor = useMonitor().data;
 
-  const entries = useNodeEntries({ nodeId: monitor?.llmRelabel.id }).data?.entries;
+  const entries = useNodeEntries({
+    nodeId: monitor?.llmRelabel.id,
+    defaultSortOrder: {
+      field: "persistentId",
+      order: "asc",
+    },
+  }).data?.entries;
 
   return (
     <VStack w="full" pb={16}>

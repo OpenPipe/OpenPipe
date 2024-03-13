@@ -14,6 +14,7 @@ import { toUTC } from "./dayjs";
 import { useDateFilter } from "~/components/Filters/useDateFilter";
 import { type FilterData } from "~/components/Filters/types";
 import { useActiveFeatureFlags } from "posthog-js/react";
+import { type LoggedCallsOrderBy } from "~/types/shared.types";
 
 type AsyncFunction<T extends unknown[], U> = (...args: T) => Promise<U>;
 
@@ -168,22 +169,24 @@ export const useDataset = (options?: { datasetId?: string; refetchInterval?: num
 export const useNode = ({ id }: { id?: string }) =>
   api.nodes.get.useQuery({ id: id as string }, { enabled: !!id });
 
+type NodeEntriesSortOrder = NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>;
 export const useNodeEntries = ({
   nodeId,
   refetchInterval = 0,
+  defaultSortOrder,
 }: {
   nodeId?: string;
   refetchInterval?: number;
+  defaultSortOrder?: NodeEntriesSortOrder;
 }) => {
   const filters = useFilters().filters;
 
   const { page, pageSize } = usePageParams();
 
-  const sort =
-    useSortOrder<NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>["field"]>().params;
+  const sort = useSortOrder<NodeEntriesSortOrder["field"]>().params;
 
   const result = api.nodeEntries.list.useQuery(
-    { nodeId: nodeId ?? "", filters, page, pageSize, sortOrder: sort },
+    { nodeId: nodeId ?? "", filters, page, pageSize, sortOrder: sort ?? defaultSortOrder },
     { enabled: !!nodeId, refetchInterval },
   );
 
@@ -310,7 +313,11 @@ const removeEmptyFilters = (filters: FilterData[]) => {
   return filters.filter((filter) => filter.value !== "");
 };
 
-export const useLoggedCalls = (options?: { filters?: FilterData[]; disabled?: boolean }) => {
+export const useLoggedCalls = (options?: {
+  filters?: FilterData[];
+  disabled?: boolean;
+  orderBy?: LoggedCallsOrderBy;
+}) => {
   const selectedProjectId = useSelectedProject().data?.id;
   const { page, pageSize } = usePageParams();
 
@@ -327,6 +334,7 @@ export const useLoggedCalls = (options?: { filters?: FilterData[]; disabled?: bo
       page,
       pageSize,
       filters: filtersWithValues,
+      orderBy: options?.orderBy,
     },
     { enabled: !!selectedProjectId && !options?.disabled, refetchOnWindowFocus: false },
   );

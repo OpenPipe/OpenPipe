@@ -2,7 +2,7 @@ import { Flex, Text, VStack, HStack, Box, IconButton, Icon, keyframes } from "@c
 import { BiRefresh } from "react-icons/bi";
 
 import AppShell from "~/components/nav/AppShell";
-import LoggedCallTable from "~/components/requestLogs/LoggedCallsTable";
+import LoggedCallsTable from "~/components/requestLogs/LoggedCallsTable";
 import LoggedCallsPaginator from "~/components/requestLogs/LoggedCallsPaginator";
 import LogFilters from "~/components/requestLogs/LogFilters";
 import ColumnVisibilityDropdown from "~/components/requestLogs/ColumnVisibilityDropdown";
@@ -69,7 +69,7 @@ export default function LoggedCalls() {
             </HStack>
           </Flex>
           {filtersShown && <LogFilters />}
-          <LoggedCallTable filters={[...dateFilters, ...filters]} />
+          <LoggedCallsTable filters={[...dateFilters, ...filters]} />
           <LoggedCallsPaginator />
         </VStack>
       </Box>

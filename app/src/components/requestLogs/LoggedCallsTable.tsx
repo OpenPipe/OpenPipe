@@ -3,17 +3,20 @@ import { useState } from "react";
 import { useLoggedCalls } from "~/utils/hooks";
 import { TableHeader, TableRow, EmptyTableRow } from "./TableRow";
 import { type FilterData } from "../Filters/types";
+import { type LoggedCallsOrderBy } from "~/types/shared.types";
 
 export default function LoggedCallsTable({
   showOptions = true,
   filters,
+  orderBy,
 }: {
   showOptions?: boolean;
   filters: FilterData[];
+  orderBy?: LoggedCallsOrderBy;
 }) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const { data: loggedCalls, isLoading } = useLoggedCalls({ filters });
+  const { data: loggedCalls, isLoading } = useLoggedCalls({ filters, orderBy });
 
   return (
     <Card width="100%" overflowX="auto">
