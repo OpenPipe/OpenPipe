@@ -5,6 +5,7 @@ import { nm } from "./helpers";
 import { vpc, vpcCidrBlocks } from "./vpc";
 
 const cfg = new pulumi.Config();
+const allowedListArray = cfg.require("ALLOWED_IP_LIST").split(",");
 
 const dbSecurityGroup = new aws.ec2.SecurityGroup(nm("app-db"), {
   vpcId: vpc.vpcId,
@@ -13,7 +14,7 @@ const dbSecurityGroup = new aws.ec2.SecurityGroup(nm("app-db"), {
       protocol: "tcp",
       fromPort: 5432,
       toPort: 5432,
-      cidrBlocks: [vpcCidrBlocks, cfg.require("ALLOWED_IP_LIST")],
+      cidrBlocks: [vpcCidrBlocks, ...allowedListArray],
     },
   ],
 });

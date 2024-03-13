@@ -2,7 +2,7 @@ config:
   aws-native:region: us-west-2
   aws:region: us-west-2
   openpipe:ALLOWED_IP_LIST:
-    secure: AAABACCbWl8ASasm2juEsx3z/8oz72HtdWUteoHr4y3Oe274pCYntVaW1RecVDbPDg==
+    secure: AAABAGVz7ItXWBwDtP0kp0R0qyKvNUeuCZKE3AZcd5h4pswYxuCl1q4bTIaGcSqzg8oS1wolmBS5EoDHq4wgy/rWQCCRqgS681iqmAqP/VZyH9sQBj0a8angVk//lnEtbqEkbpO6w4tmVsvUkUCJDDsglKA25yhCPEXAEdPyXwW06xvImGr8X6pjg4C13heZihwlP/BglAiwe7hH64py8gitAarugQZewZ4J1qxSR4x9nOmauBNvB3guVdMWCBUojce0Y608
   openpipe:ANYSCALE_INFERENCE_API_KEY:
     secure: AAABAEkqA8a0Jud/Z2yjQXsRXwvmh54DwFWbDJarnNS3ZlhLpZdFO6pTwCW1EDlpY8nVSooHlmJZSZi5Y8tzwqpudYSt6lYYc8a4
   openpipe:ANYSCALE_INFERENCE_BASE_URL: https://inference-stage-c6qyl.cld-tskg84t9kb3cr8ud.s.anyscaleuserdata.com/v1

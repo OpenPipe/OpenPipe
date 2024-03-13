@@ -2,7 +2,7 @@ config:
   aws-native:region: us-west-2
   aws:region: us-west-2
   openpipe:ALLOWED_IP_LIST:
-    secure: AAABAD+vzw3ZeVmSKfVV59sxDVQ3u/FF+opCzoeEYyYyl5yLtte4JVmcUDK46mVqRg==
+    secure: AAABAKw5hqzBY3HqcuyLZ9w6HAkaM9pySePLdRZcU/E0oHoQjdrC2lk8bZM1E/trbqatrn/zFqZVFO31Mp0yHk22l/edPDtNVIta8b4Lm/TPPgUzFs0r9ON7OptKkf3rj/kx+Is0kwGQioA9pdyQyUFJ6KwIEtkZSv+DHnCrgAp7jfsW+XQda1v4braSK/qPatp3LNfSWUr71XSx0DHHhbH6we9RulmW3Om9vhMXpqLfyf7i7vX1JUlA4SwMrtQXYG+fiTby
   openpipe:ANYSCALE_ENABLE_A100: "true"
   openpipe:ANYSCALE_INFERENCE_API_KEY:
     secure: AAABAFPYf6OL5TLvPZUU+/jhzGYcIhxg3pwpmV+BQnegrMRYbQboxRi+Zb+on+KVGqLM/vDcvXeqs4zOesGbCCi4oAhIOgG2bR6T
