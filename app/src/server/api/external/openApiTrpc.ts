@@ -84,11 +84,19 @@ const t = initTRPC
 
 export const createOpenApiRouter = t.router;
 
-const sentryMiddleware = t.middleware(
+const sentryMiddleware = t.middleware(async ({ ctx, next }) => {
   Sentry.Handlers.trpcMiddleware({
     attachRpcInput: true,
-  }),
-);
+  });
+
+  const scope = Sentry.getCurrentHub().getScope();
+  if (scope) {
+    scope.setExtra("key", ctx.key);
+    scope.setExtra("projectId", ctx.key?.projectId);
+  }
+
+  return next();
+});
 
 export const openApiPublicProc = t.procedure.use(sentryMiddleware);
 
