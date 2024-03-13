@@ -43,7 +43,7 @@ const InputDropdown = <T,>({
   maxPopoverContentHeight,
   minItemHeight,
   placeholder,
-  placement = "auto",
+  placement = "bottom-start",
 }: InputDropdownProps<T>) => {
   const { onOpen, ...popover } = useDisclosure();
 
