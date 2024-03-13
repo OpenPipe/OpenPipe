@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Card, VStack, HStack, Button, Skeleton } from "@chakra-ui/react";
 
 import { useHandledAsyncCallback } from "~/utils/hooks";
@@ -21,34 +21,16 @@ const secondaryFilterOptions: FilterOption[] = [
 const SecondaryFiltersBlock = () => {
   const monitor = useMonitor().data;
   const savedFilters = useMonitor().data?.filter.config.filters;
-  const savedSampleRate = useMonitor().data?.config.sampleRate;
-  const savedMaxOutputSize = useMonitor().data?.config.maxOutputSize;
 
   const { filters, setFilters } = useFilters({ urlKey: SECONDARY_FILTERS_URL_KEY });
-
-  // Store as string to allow for temporarily invalid values
-  const [sampleRateStr, setSampleRateStr] = useState("0");
-  const sampleRate = parseFloat(sampleRateStr);
-  const [maxOutputSize, setMaxOutputSize] = useState(0);
 
   useEffect(() => {
     if (savedFilters) setFilters(addFilterIds(savedFilters));
   }, [savedFilters]);
 
-  useEffect(() => {
-    if (savedSampleRate !== undefined && savedMaxOutputSize !== undefined) {
-      setSampleRateStr(savedSampleRate.toString());
-      setMaxOutputSize(savedMaxOutputSize);
-    }
-  }, [savedSampleRate, savedMaxOutputSize]);
+  const noChanges = !savedFilters || filtersAreEqual(filters, savedFilters);
 
-  const noChanges =
-    !savedFilters ||
-    (filtersAreEqual(filters, savedFilters) &&
-      savedSampleRate === sampleRate &&
-      savedMaxOutputSize === maxOutputSize);
-
-  const saveDisabled = !monitor || !sampleRate || !maxOutputSize || noChanges;
+  const saveDisabled = !monitor || noChanges;
 
   const utils = api.useUtils();
 
@@ -60,8 +42,6 @@ const SecondaryFiltersBlock = () => {
       id: monitor?.id,
       updates: {
         checkFilters: filters,
-        sampleRate,
-        maxOutputSize,
       },
     });
 
@@ -72,9 +52,9 @@ const SecondaryFiltersBlock = () => {
 
     await utils.monitors.list.invalidate();
     await utils.monitors.get.invalidate({ id: monitor?.id });
-  }, [monitorUpdateMutation, utils, saveDisabled, monitor?.id, filters, sampleRate, maxOutputSize]);
+  }, [monitorUpdateMutation, utils, saveDisabled, monitor?.id, filters]);
 
-  const isLoaded = savedSampleRate !== undefined && !!savedFilters;
+  const isLoaded = !!savedFilters;
 
   return (
     <Card w="full">
@@ -97,8 +77,6 @@ const SecondaryFiltersBlock = () => {
           <HStack w="full" justifyContent="flex-end">
             <Button
               onClick={() => {
-                if (savedSampleRate) setSampleRateStr(savedSampleRate.toString());
-                if (savedMaxOutputSize) setMaxOutputSize(savedMaxOutputSize);
                 if (savedFilters) setFilters(addFilterIds(savedFilters));
               }}
               isDisabled={noChanges || updatingMonitor}
