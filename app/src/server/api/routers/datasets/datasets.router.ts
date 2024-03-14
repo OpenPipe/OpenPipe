@@ -156,15 +156,19 @@ export const datasetsRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const { datasetId, filters, baseModel, pruningRuleIds, selectedNumberOfEpochs } = input;
-      const { projectId, nodeId } = await prisma.dataset.findUniqueOrThrow({
-        where: { id: datasetId },
-      });
 
-      if (!nodeId) throw new TRPCError({ message: "Dataset node not found", code: "NOT_FOUND" });
+      const node = await kysely
+        .selectFrom("Dataset as d")
+        .where("d.id", "=", datasetId)
+        .innerJoin("Node as n", "n.id", "d.nodeId")
+        .selectAll("n")
+        .executeTakeFirst();
 
-      await requireCanViewProject(projectId, ctx);
+      if (!node) throw new TRPCError({ message: "Dataset node not found", code: "NOT_FOUND" });
 
-      const baseQuery = constructNodeEntryFiltersQuery({ filters, nodeId }).where(
+      await requireCanViewProject(node.projectId, ctx);
+
+      const baseQuery = constructNodeEntryFiltersQuery({ filters, node }).where(
         "ne.split",
         "=",
         "TRAIN",

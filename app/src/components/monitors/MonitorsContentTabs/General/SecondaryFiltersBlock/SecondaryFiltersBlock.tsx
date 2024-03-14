@@ -12,6 +12,7 @@ import TextSwitch from "./TextSwitch";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 import { LabelText } from "../styledText";
 import { SECONDARY_FILTERS_URL_KEY } from "../constants";
+import { BlockProcessingIndicator } from "../BlockProcessingIndicator";
 
 const secondaryFilterOptions: FilterOption[] = [
   { type: "text", field: GeneralFiltersDefaultFields.Input, label: "Request" },
@@ -21,6 +22,7 @@ const secondaryFilterOptions: FilterOption[] = [
 const SecondaryFiltersBlock = () => {
   const monitor = useMonitor().data;
   const savedFilters = useMonitor().data?.filter.config.filters;
+  const checksProcessing = useMonitor().data?.filter.status === "PROCESSING";
 
   const { filters, setFilters } = useFilters({ urlKey: SECONDARY_FILTERS_URL_KEY });
 
@@ -75,6 +77,7 @@ const SecondaryFiltersBlock = () => {
             urlKey={SECONDARY_FILTERS_URL_KEY}
           />
           <HStack w="full" justifyContent="flex-end">
+            <BlockProcessingIndicator isProcessing={checksProcessing} />
             <Button
               onClick={() => {
                 if (savedFilters) setFilters(addFilterIds(savedFilters));

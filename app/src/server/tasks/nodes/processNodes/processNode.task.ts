@@ -16,7 +16,7 @@ import { typedNode } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
 import { forwardNodeEntries } from "./forwardNodeEntries";
 import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
-import { updateCached } from "./updateCached";
+import { markCachedEntriesProcessed } from "./updateCached";
 import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
 import { typedNodeEntry } from "~/types/dbColumns.types";
@@ -73,7 +73,7 @@ export const processNode = defineTask<ProcessNodeJob>({
       .where((eb) => eb.or([eb("ne.status", "=", "PROCESSING"), eb("ne.status", "=", "ERROR")]))
       .execute();
 
-    await updateCached({ node });
+    await markCachedEntriesProcessed({ node });
 
     if (nodeProperties.beforeProcessing) {
       await nodeProperties.beforeProcessing(node);
@@ -82,9 +82,9 @@ export const processNode = defineTask<ProcessNodeJob>({
     const forwardAllOutputs = async () => {
       for (const output of nodeProperties.outputs) {
         await forwardNodeEntries({
-          nodeId,
+          node,
           nodeOutputLabel: output.label,
-          selectionExpression: output.selectionExpression,
+          selectionCriteria: output.selectionCriteria,
         });
       }
       await enqueueDescendants(nodeId);
@@ -98,7 +98,7 @@ export const processNode = defineTask<ProcessNodeJob>({
       const concurrency = nodeProperties.getConcurrency(node);
 
       while (true) {
-        await updateCached({ node });
+        await markCachedEntriesProcessed({ node });
 
         const entriesBatch = await kysely
           .selectFrom("NodeEntry as ne")

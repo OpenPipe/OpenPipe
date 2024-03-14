@@ -317,6 +317,7 @@ export const useLoggedCalls = (options?: {
   filters?: FilterData[];
   disabled?: boolean;
   orderBy?: LoggedCallsOrderBy;
+  slowBatch?: boolean;
 }) => {
   const selectedProjectId = useSelectedProject().data?.id;
   const { page, pageSize } = usePageParams();
@@ -336,7 +337,15 @@ export const useLoggedCalls = (options?: {
       filters: filtersWithValues,
       orderBy: options?.orderBy,
     },
-    { enabled: !!selectedProjectId && !options?.disabled, refetchOnWindowFocus: false },
+    {
+      enabled: !!selectedProjectId && !options?.disabled,
+      refetchOnWindowFocus: false,
+      trpc: {
+        context: {
+          slowBatch: !!options?.slowBatch,
+        },
+      },
+    },
   );
 
   return result;

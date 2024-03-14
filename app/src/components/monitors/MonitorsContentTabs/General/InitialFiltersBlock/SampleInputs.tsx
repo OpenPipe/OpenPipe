@@ -15,6 +15,7 @@ import { useLoggedCallsCount } from "~/utils/hooks";
 import { LabelText, CaptionText } from "../styledText";
 import { useFilters } from "~/components/Filters/useFilters";
 import { INITIAL_FILTERS_URL_KEY } from "../constants";
+import InfoCircle from "~/components/InfoCircle";
 
 const SampleInputs = ({
   sampleRate,
@@ -72,7 +73,12 @@ const SampleInputs = ({
           </NumberInput>
         </VStack>
         <VStack alignItems="flex-start">
-          <LabelText>Max Sample Size</LabelText>
+          <HStack>
+            <LabelText>Max Rows to Check</LabelText>
+            <InfoCircle
+              tooltipText={`The monitor will stop processing new rows after ${maxOutputSize.toLocaleString()} have been checked.`}
+            />
+          </HStack>
           <NumberInput
             value={maxOutputSize}
             inputMode="numeric"

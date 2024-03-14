@@ -1,25 +1,27 @@
-import { type SelectQueryBuilder, sql } from "kysely";
+import { sql } from "kysely";
+import { type Node } from "@prisma/client";
 
 import { kysely, prisma } from "~/server/db";
-import type { DB, NodeEntry } from "~/types/kysely-codegen.types";
+import { type OutputSelectionCriteria } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
+import { selectEntriesWithCache } from "./updateCached";
 
 export const forwardNodeEntries = async ({
-  nodeId,
+  node,
   nodeOutputLabel,
-  selectionExpression = defaultSelectionExpression,
+  selectionCriteria,
 }: {
-  nodeId: string;
+  node: Pick<Node, "id" | "hash" | "type">;
   nodeOutputLabel: string;
-  selectionExpression?: ForwardEntriesSelectionExpression;
+  selectionCriteria?: OutputSelectionCriteria;
 }) => {
   const outputDataChannels = await kysely
     .selectFrom("Node as originNode")
-    .where("originNode.id", "=", nodeId)
+    .where("originNode.id", "=", node.id)
     .innerJoin("NodeOutput as no", "no.nodeId", "originNode.id")
     .where("no.label", "=", nodeOutputLabel)
     .innerJoin("DataChannel as dc", "dc.originId", "no.id")
     .innerJoin("Node as destinationNode", "destinationNode.id", "dc.destinationId")
-    .select(["originNode.hash as originNodeHash", "dc.id as channelId", "no.label as label"])
+    .select(["dc.id as channelId", "no.label as label"])
     .execute();
 
   for (const outputDataChannel of outputDataChannels) {
@@ -41,10 +43,13 @@ export const forwardNodeEntries = async ({
         "originalOutputHash",
         "updatedAt",
       ])
-      .expression(
-        selectionExpression({ nodeId, nodeHash: outputDataChannel.originNodeHash })
-          .innerJoin("DataChannel as dc", (join) => join.onRef("dc.id", "=", "ne.dataChannelId"))
-          .where("dc.destinationId", "=", nodeId)
+      .expression((eb) =>
+        eb
+          .selectFrom(
+            selectEntriesWithCache({ node, filterOutcome: selectionCriteria?.filterOutcome }).as(
+              "ne",
+            ),
+          )
           .leftJoin("NodeEntry as existingEntry", (join) =>
             join
               .onRef("existingEntry.parentNodeEntryId", "=", "ne.id")
@@ -77,20 +82,3 @@ export const forwardNodeEntries = async ({
     });
   }
 };
-
-export type ForwardEntriesSelectionExpression = ({
-  nodeId,
-  nodeHash,
-}: {
-  nodeId: string;
-  nodeHash: string;
-}) => SelectQueryBuilder<
-  DB & {
-    ne: NodeEntry;
-  },
-  "ne",
-  object
->;
-
-const defaultSelectionExpression: ForwardEntriesSelectionExpression = () =>
-  kysely.selectFrom("NodeEntry as ne").where("ne.status", "=", "PROCESSED");

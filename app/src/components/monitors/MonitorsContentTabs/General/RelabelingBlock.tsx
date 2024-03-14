@@ -7,11 +7,12 @@ import { LabelText } from "./styledText";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { toast } from "~/theme/ChakraThemeProvider";
+import { BlockProcessingIndicator } from "./BlockProcessingIndicator";
 
 const RelabelingBlock = () => {
   const monitor = useMonitor().data;
-
   const savedRelabelOption = monitor?.llmRelabel.config.relabelLLM;
+  const relabelingProcessing = monitor?.llmRelabel.status === "PROCESSING";
 
   const [relabelOption, setRelabelOption] = useState<RelabelOption>(RelabelOption.SkipRelabel);
 
@@ -67,6 +68,7 @@ const RelabelingBlock = () => {
             </RadioGroup>
           </VStack>
           <HStack w="full" justifyContent="flex-end">
+            <BlockProcessingIndicator isProcessing={relabelingProcessing} />
             <Button
               onClick={() => {
                 if (savedRelabelOption) setRelabelOption(savedRelabelOption);

@@ -1,5 +1,5 @@
-import { HStack, Text, Icon } from "@chakra-ui/react";
-import { RiInformationFill } from "react-icons/ri";
+import { HStack, Text } from "@chakra-ui/react";
+import { ThreeDots } from "react-loader-spinner";
 
 export const ProcessingIndicator = ({ message }: { message: string }) => {
   return (
@@ -15,7 +15,7 @@ export const ProcessingIndicator = ({ message }: { message: string }) => {
       fontWeight="bold"
       spacing={1}
     >
-      <Icon as={RiInformationFill} color="orange.300" boxSize={4} /> <Text>{message}</Text>
+      <ThreeDots visible color="orange" height={12} width={12} /> <Text>{message}</Text>
     </HStack>
   );
 };

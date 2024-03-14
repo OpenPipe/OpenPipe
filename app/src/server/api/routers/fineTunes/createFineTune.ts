@@ -77,13 +77,17 @@ export const createFineTune = async (
     },
   });
 
+  const node = await prisma.node.findUnique({ where: { id: input.dataset.nodeId } });
+
+  if (!node) return error("Node not found");
+
   await kysely
     .insertInto("FineTuneTrainingEntry")
     .columns(["id", "nodeEntryPersistentId", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
     .expression(() =>
       constructNodeEntryFiltersQuery({
         filters: input.filters,
-        nodeId: input.dataset.nodeId,
+        node,
       })
         .where("split", "=", "TRAIN")
         .where("status", "=", "PROCESSED")

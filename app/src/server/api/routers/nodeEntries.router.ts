@@ -53,14 +53,15 @@ export const nodeEntriesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { nodeId, filters, page, pageSize } = input;
 
-      const { projectId } = await prisma.node.findUniqueOrThrow({
+      const node = await prisma.node.findUnique({
         where: { id: nodeId },
       });
-      await requireCanViewProject(projectId, ctx);
 
-      if (!projectId) throw new TRPCError({ message: "Node not found", code: "NOT_FOUND" });
+      if (!node) throw new TRPCError({ message: "Node not found", code: "NOT_FOUND" });
 
-      const baseQuery = constructNodeEntryFiltersQuery({ filters, nodeId });
+      await requireCanViewProject(node.projectId, ctx);
+
+      const baseQuery = constructNodeEntryFiltersQuery({ filters, node });
 
       // Get the IDs separately to avoid unnecessary joins
       let entryIdsQuery = baseQuery

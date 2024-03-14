@@ -32,7 +32,7 @@ const MonitorContentTabs = () => {
   const tabs = useMemo(
     () => [
       generalTab,
-      { ...resultsTab, title: `Results (${(count ?? 0).toLocaleString()})` },
+      { ...resultsTab, title: `Filtered Results (${(count ?? 0).toLocaleString()})` },
       settingsTab,
     ],
     [count],

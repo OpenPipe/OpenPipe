@@ -29,11 +29,18 @@ import {
 } from "~/utils/hooks";
 import { StaticColumnKeys } from "~/state/columnVisibilitySlice";
 import { ProjectLink } from "~/components/ProjectLink";
+import { type FilterData } from "../Filters/types";
 
 type LoggedCall = RouterOutputs["loggedCalls"]["list"]["calls"][0];
 
-export const TableHeader = ({ showOptions }: { showOptions?: boolean }) => {
-  const loggedCallsCount = useLoggedCallsCount();
+export const TableHeader = ({
+  showOptions,
+  filters,
+}: {
+  showOptions?: boolean;
+  filters?: FilterData[];
+}) => {
+  const loggedCallsCount = useLoggedCallsCount({ filters, disabled: !showOptions });
   const deselectedLogIds = useAppStore((s) => s.selectedLogs.deselectedLogIds);
   const defaultToSelected = useAppStore((s) => s.selectedLogs.defaultToSelected);
   const toggleAllSelected = useAppStore((s) => s.selectedLogs.toggleAllSelected);

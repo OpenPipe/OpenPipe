@@ -107,6 +107,7 @@
     "react-email": "2.0.0",
     "react-github-btn": "^1.4.0",
     "react-icons": "^4.10.1",
+    "react-loader-spinner": "^6.1.6",
     "react-select": "^5.7.4",
     "react-syntax-highlighter": "^15.5.0",
     "react-textarea-autosize": "^8.5.0",

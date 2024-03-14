@@ -1,7 +1,6 @@
 import type { NodeEntry, Node, NodeType } from "@prisma/client";
 import { type z } from "zod";
 
-import { type ForwardEntriesSelectionExpression } from "~/server/tasks/nodes/processNodes/forwardNodeEntries";
 import { type ProcessEntryResult } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { type AtLeastOne } from "~/types/shared.types";
 import type { InferNodeConfig } from "../node.types";
@@ -14,6 +13,10 @@ type CacheWriteField =
   | "outgoingSplit"
   | "filterOutcome"
   | "explanation";
+
+export type OutputSelectionCriteria = {
+  filterOutcome?: string;
+};
 
 export type NodeProperties<T extends NodeType> = {
   schema: z.ZodObject<
@@ -34,7 +37,7 @@ export type NodeProperties<T extends NodeType> = {
   readBatchSize?: number;
   outputs: {
     label: string;
-    selectionExpression?: ForwardEntriesSelectionExpression;
+    selectionCriteria?: OutputSelectionCriteria;
   }[];
   hashableFields?: (node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId">) => {
     [key: string]: unknown;
@@ -44,7 +47,7 @@ export type NodeProperties<T extends NodeType> = {
     node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash">,
   ) => Promise<void>;
   beforeProcessing?: (
-    node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash">,
+    node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash" | "type">,
   ) => Promise<void>;
   processEntry?: ({
     node,

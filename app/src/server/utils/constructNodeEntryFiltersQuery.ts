@@ -1,23 +1,21 @@
 import { type z } from "zod";
 import { type Expression, type SqlBool, sql } from "kysely";
+import { type Node } from "@prisma/client";
 
 import { kysely } from "~/server/db";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
+import { selectEntriesWithCache } from "../tasks/nodes/processNodes/updateCached";
 
 export const constructNodeEntryFiltersQuery = ({
   filters,
-  nodeId,
+  node,
 }: {
   filters: z.infer<typeof filtersSchema>;
-  nodeId: string;
+  node: Pick<Node, "id" | "hash" | "type">;
 }) => {
   let updatedBaseQuery = kysely
-    .with("dc", (eb) =>
-      eb.selectFrom("DataChannel").where("destinationId", "=", nodeId).select("id"),
-    )
-    .selectFrom("dc")
-    .innerJoin("NodeEntry as ne", (join) => join.onRef("ne.dataChannelId", "=", "dc.id"))
+    .selectFrom(selectEntriesWithCache({ node }).as("ne"))
     // leftJoin to avoid unnecessary lookups when we don't filter by input/output
     .leftJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
     .leftJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")

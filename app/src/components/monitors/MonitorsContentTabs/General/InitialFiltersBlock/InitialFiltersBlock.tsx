@@ -12,6 +12,7 @@ import { LabelText } from "../styledText";
 import { useInitialFilters } from "./useInitialFilters";
 import InitialFilterContents from "./InitialFilterContents";
 import SampleInputs from "./SampleInputs";
+import { BlockProcessingIndicator } from "../BlockProcessingIndicator";
 
 const InitialFiltersBlock = () => {
   const fineTunes = useFineTunes().data?.fineTunes;
@@ -20,6 +21,7 @@ const InitialFiltersBlock = () => {
   const savedFilters = useMonitor().data?.config.initialFilters;
   const savedSampleRate = useMonitor().data?.config.sampleRate;
   const savedMaxOutputSize = useMonitor().data?.config.maxOutputSize;
+  const monitorProcessing = useMonitor().data?.status === "PROCESSING";
 
   const { modelFilter, sampleRateFilter, maxOutputSizeFilter, saveableFilters, updateFilters } =
     useInitialFilters();
@@ -130,12 +132,14 @@ const InitialFiltersBlock = () => {
             />
           )}
           <HStack w="full" justifyContent="flex-end">
+            <BlockProcessingIndicator isProcessing={monitorProcessing} />
             <Button onClick={() => initializeFilters()} isDisabled={noChanges || updatingMonitor}>
               Reset
             </Button>
             <Button
               colorScheme="blue"
-              isDisabled={saveDisabled || updatingMonitor}
+              isDisabled={saveDisabled}
+              isLoading={updatingMonitor}
               onClick={updateMonitor}
             >
               Save

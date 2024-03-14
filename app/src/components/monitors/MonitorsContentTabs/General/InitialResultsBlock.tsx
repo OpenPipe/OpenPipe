@@ -43,10 +43,10 @@ const InitialResultsBlock = () => {
               }}
               target="_blank"
             >
-              <ActionButton icon={FaExternalLinkAlt} iconBoxSize={3.5} label={`View All`} />
+              <ActionButton icon={FaExternalLinkAlt} iconBoxSize={3.5} label="View All" />
             </ProjectLink>
           </HStack>
-          <LoggedCallsTable filters={filters} showOptions={false} orderBy="updatedAt" />
+          <LoggedCallsTable filters={filters} showOptions={false} slowBatch orderBy="updatedAt" />
         </VStack>
       </Collapse>
     </VStack>

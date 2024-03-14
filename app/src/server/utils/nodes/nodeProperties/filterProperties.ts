@@ -10,17 +10,6 @@ export enum FilterOutput {
   Failed = "failed",
 }
 
-const filterOutputBaseQuery = ({ nodeId, nodeHash }: { nodeId: string; nodeHash: string }) =>
-  kysely
-    .selectFrom("NodeEntry as ne")
-    .where("ne.status", "=", "PROCESSED")
-    .innerJoin("CachedProcessedEntry as cpe", (join) =>
-      join
-        .on((eb) => eb.or([eb("cpe.nodeHash", "=", nodeHash), eb("cpe.nodeId", "=", nodeId)]))
-        .onRef("cpe.incomingInputHash", "=", "ne.inputHash")
-        .onRef("cpe.incomingOutputHash", "=", "ne.outputHash"),
-    );
-
 export const filterProperties: NodeProperties<"Filter"> = {
   schema: filterNodeSchema,
   cacheMatchFields: ["incomingInputHash", "incomingOutputHash"],
@@ -29,21 +18,15 @@ export const filterProperties: NodeProperties<"Filter"> = {
   outputs: [
     {
       label: FilterOutput.Passed,
-      selectionExpression: ({ nodeId, nodeHash }) =>
-        filterOutputBaseQuery({ nodeId, nodeHash }).where(
-          "cpe.filterOutcome",
-          "=",
-          FilterOutput.Passed,
-        ),
+      selectionCriteria: {
+        filterOutcome: FilterOutput.Passed,
+      },
     },
     {
       label: FilterOutput.Failed,
-      selectionExpression: ({ nodeId, nodeHash }) =>
-        filterOutputBaseQuery({ nodeId, nodeHash }).where(
-          "cpe.filterOutcome",
-          "=",
-          FilterOutput.Failed,
-        ),
+      selectionCriteria: {
+        filterOutcome: FilterOutput.Failed,
+      },
     },
   ],
   hashableFields: (node) => ({ filters: node.config.filters }),
@@ -74,7 +57,7 @@ export const filterProperties: NodeProperties<"Filter"> = {
       .expression(() =>
         constructNodeEntryFiltersQuery({
           filters,
-          nodeId: node.id,
+          node,
         })
           .where("ne.status", "=", "PROCESSING")
           .distinctOn(["ne.inputHash", "ne.outputHash"])
