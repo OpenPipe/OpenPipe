@@ -43,26 +43,26 @@ const General = () => {
               Overview
             </Heading>
             <HStack>
-              <Text w={180}>Base Model</Text>
+              <Text minW={180}>Base Model</Text>
               <Text color="gray.500">{modelInfo(fineTune).name}</Text>
             </HStack>
             <HStack>
-              <Text w={180}>Dataset</Text>
+              <Text minW={180}>Dataset</Text>
               <ViewDatasetButton
                 buttonText={fineTune.datasetName ?? ""}
                 datasetId={fineTune.datasetId}
               />
             </HStack>
             <HStack>
-              <Text w={180}>Training Set Size</Text>
+              <Text minW={180}>Training Set Size</Text>
               <Text color="gray.500">{fineTune.numTrainingEntries?.toLocaleString()}</Text>
             </HStack>
             <HStack>
-              <Text w={180}>Test Set Size</Text>
+              <Text minW={180}>Test Set Size</Text>
               <Text color="gray.500">{fineTune.numTestEntries?.toLocaleString()}</Text>
             </HStack>
             <HStack>
-              <Text w={180}>Test Set Performance</Text>
+              <Text minW={180}>Test Set Performance</Text>
               {fineTune.status === "DEPLOYED" ? (
                 <ViewEvaluationButton datasetId={fineTune.datasetId} fineTuneId={fineTune.id} />
               ) : (
@@ -70,12 +70,12 @@ const General = () => {
               )}
             </HStack>
             <HStack>
-              <Text w={180}>Pipeline Version</Text>
+              <Text minW={180}>Pipeline Version</Text>
               <Text color="gray.500">{fineTune.pipelineVersion}</Text>
             </HStack>
             {fineTune.trainingConfigOverrides && (
               <HStack>
-                <Text w={180}>Training Config</Text>
+                <Text minW={180}>Training Config</Text>
                 <Text color="gray.500">
                   {Object.entries(fineTune.trainingConfigOverrides)
                     .map(([key, value]) => `${key}: ${String(value)}`)
@@ -84,11 +84,11 @@ const General = () => {
               </HStack>
             )}
             <HStack>
-              <Text w={180}>Created At</Text>
+              <Text minW={180}>Created At</Text>
               <Text color="gray.500">{dayjs(fineTune.createdAt).format("MMMM D h:mm A")}</Text>
             </HStack>
             <HStack alignItems="flex-start">
-              <Text w={180}>Status</Text>
+              <Text minW={180}>Status</Text>
               <HStack alignItems="center" spacing={4}>
                 <FTStatus status={fineTune.status} />
                 {fineTune.errorMessage && <Text color="gray.500">{fineTune.errorMessage}</Text>}

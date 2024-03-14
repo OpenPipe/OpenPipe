@@ -23,6 +23,7 @@ const ViewDatasetButton = ({
           tab: tabKey,
         },
       }}
+      whiteSpace={"normal"}
       variant="link"
       color="blue.600"
       fontWeight="normal"
