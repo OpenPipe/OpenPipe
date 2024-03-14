@@ -92,6 +92,13 @@ const encryptedDbInstance = new aws.rds.Instance(nm("app-encrypted"), {
   storageEncrypted: true,
 });
 
+// TODO: Remove this after replication is done. Manually created instance is still uses it.
+const dmsSubnetGroup = new aws.dms.ReplicationSubnetGroup(nm("app-dms-subnet-group"), {
+  replicationSubnetGroupId: nm("app-dms-subnet-group"),
+  replicationSubnetGroupDescription: "Subnet group for DMS replication instance",
+  subnetIds: [vpc.publicSubnetIds[0], vpc.publicSubnetIds[1]],
+});
+
 export const encryptedReadReplicaConnectionString = pulumi.secret(
   pulumi.interpolate`postgresql://${encryptedDbInstance.username}:${encryptedDbInstance.password}@${encryptedDbInstance.address}:${encryptedDbInstance.port}/${dbName}`,
 );
