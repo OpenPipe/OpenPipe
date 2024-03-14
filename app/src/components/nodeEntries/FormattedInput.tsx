@@ -1,11 +1,10 @@
 import { VStack, Text } from "@chakra-ui/react";
 import type { DatasetEntryInput } from "@prisma/client";
-import type { ChatCompletionMessage } from "openai/resources/chat";
-import FormattedMessage from "./FormattedMessage";
 import { FormattedJson } from "../FormattedJson";
+import { typedDatasetEntryInput } from "~/types/dbColumns.types";
 
 const FormattedInput = ({
-  input: { messages, tool_choice, tools },
+  input,
 }: {
   input: {
     messages: DatasetEntryInput["messages"];
@@ -13,14 +12,20 @@ const FormattedInput = ({
     tools?: DatasetEntryInput["tools"];
   };
 }) => {
+  const { messages, tool_choice, tools } = typedDatasetEntryInput(input);
+
   return (
     <VStack spacing={8} maxW="full">
-      {(messages as unknown as ChatCompletionMessage[]).map((message, index) => (
+      {messages.map((message, index) => (
         <VStack key={index} alignItems="flex-start" w="full">
           <Text fontWeight="bold" color="gray.500">
             {message.role}
           </Text>
-          <FormattedMessage message={message} />
+          <Text whiteSpace="pre-wrap" maxW="full">
+            {typeof message.content === "string"
+              ? message.content
+              : JSON.stringify(message.content, null, 2)}
+          </Text>
         </VStack>
       ))}
       {tool_choice && (
