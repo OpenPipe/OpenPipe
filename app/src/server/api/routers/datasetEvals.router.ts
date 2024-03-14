@@ -19,6 +19,7 @@ import {
   RESPONSE_2_PLACEHOLDER,
   getModelTitle,
 } from "~/server/tasks/evaluateTestSetEntries.task";
+import { getEvaluationModel } from "~/server/utils/externalModels/evaluationModels";
 
 export const datasetEvalsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -205,6 +206,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         instructions: z.string(),
         modelIds: z.array(z.string()),
         numRows: z.number(),
+        evaluationModelId: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -241,6 +243,7 @@ export const datasetEvalsRouter = createTRPCRouter({
       }
 
       const shuffledNodeEntries = shuffle(testNodeEntries).slice(0, input.numRows);
+      let evaluationModel = await getEvaluationModel(input.evaluationModelId);
 
       let datasetEval;
       try {
@@ -249,6 +252,7 @@ export const datasetEvalsRouter = createTRPCRouter({
             name: input.name,
             instructions: input.instructions,
             datasetId: input.datasetId,
+            judge: evaluationModel.name,
             datasetEvalOutputSources: {
               create: input.modelIds.map((modelId) => ({
                 modelId,
@@ -268,6 +272,7 @@ export const datasetEvalsRouter = createTRPCRouter({
 
         await startTestJobsForEval({
           datasetEvalId: datasetEval.id,
+          evaluationModelId: input.evaluationModelId,
           nodeEntryBaseQuery: kysely
             .selectFrom("NodeEntry as ne")
             .innerJoin("DataChannel as dc", (join) =>

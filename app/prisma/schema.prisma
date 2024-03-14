@@ -477,13 +477,14 @@ model DatasetEval {
 
     name         String
     instructions String?
+    judge        String?
     type         DatasetEvalType @default(HEAD_TO_HEAD)
 
     datasetEvalNodeEntries   DatasetEvalNodeEntry[]
     datasetEvalOutputSources DatasetEvalOutputSource[]
-
     datasetId String  @db.Uuid
     dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+    
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -863,4 +864,16 @@ model CachedProcessedEntry {
     @@index([incomingInputHash, nodeHash])
     @@index([incomingInputHash, nodeId])
     @@index([projectId])
+}
+
+model ExternalModel {
+    id String @id @default(uuid()) @db.Uuid
+
+    modelName String
+    slug String
+    endpoint  String
+    apiKey  String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

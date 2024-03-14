@@ -37,6 +37,11 @@ import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ProjectLink } from "~/components/ProjectLink";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import InputDropdown from "~/components/InputDropdown";
+import { externalModel } from "~/utils/externalModels/allModels";
+import {
+  defaultEvaluationModel,
+  predefinedEvaluationModels,
+} from "~/utils/externalModels/evaluationModels";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -73,6 +78,10 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const [instructions, setInstructions] = useState("");
   const [numRows, setNumRows] = useState(0);
   const [includedModelIds, setIncludedModelIds] = useState<string[]>([]);
+  const [selectedEvaluationModel, setSelectedEvaluationModel] =
+    useState<externalModel>(defaultEvaluationModel);
+
+  const evaluationModels = predefinedEvaluationModels;
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -102,6 +111,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
       instructions,
       numRows,
       modelIds: includedModelIds,
+      evaluationModelId: selectedEvaluationModel.id,
     });
     if (maybeReportError(resp)) return;
 
@@ -153,12 +163,12 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
             ) : (
               <VStack alignItems="flex-start" w="full" spacing={8}>
                 <VStack alignItems="flex-start" w="full">
-                  <Text fontWeight="bold">Comparison model:</Text>
+                  <Text fontWeight="bold">Judge model:</Text>
                   <InputDropdown
-                    options={["GPT 3", "GPT-4"]}
-                    // getDisplayLabel={(option) => modelInfo(splitProvider(option)).name}
-                    selectedOption={"GPT 3"}
-                    onSelect={(option) => option}
+                    options={evaluationModels}
+                    getDisplayLabel={(option) => option.slug}
+                    selectedOption={selectedEvaluationModel}
+                    onSelect={(option) => setSelectedEvaluationModel(option)}
                     inputGroupProps={{ w: "100%" }}
                   />
                   <Text fontWeight="bold">Name</Text>

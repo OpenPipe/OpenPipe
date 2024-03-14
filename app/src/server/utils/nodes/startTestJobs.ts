@@ -67,9 +67,11 @@ export const startDatasetTestJobs = async ({
 export const startTestJobsForEval = async ({
   datasetEvalId,
   nodeEntryBaseQuery,
+  evaluationModelId,
 }: {
   datasetEvalId: string;
   nodeEntryBaseQuery: NodeEntryBaseQuery;
+  evaluationModelId?: string;
 }) => {
   const datasetEval = await kysely
     .selectFrom("DatasetEval as eval")
@@ -113,6 +115,7 @@ export const startTestJobsForEval = async ({
         const secondOutputSourceId = datasetEval.outputSources[j]?.id as string;
         evalsToRun.push({
           nodeEntryId: datasetEvalNodeEntry.nodeEntryId,
+          evaluationModelId: evaluationModelId,
           firstOutputSourceId,
           secondOutputSourceId,
         });

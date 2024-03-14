@@ -21,6 +21,11 @@ import { chatCompletionMessage } from "~/types/shared.types";
 import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { generateEntry } from "./generateTestSetEntry.task";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
+import {
+  defaultEvaluationModel,
+  findPredefinedEvaluationModel,
+} from "~/utils/externalModels/evaluationModels";
+import { getEvaluationModel } from "../utils/externalModels/evaluationModels";
 
 export const RESPONSE_1_PLACEHOLDER = "Response 1";
 export const RESPONSE_2_PLACEHOLDER = "Response 2";
@@ -49,12 +54,13 @@ export type EvalKey = {
   nodeEntryId: string;
   firstOutputSourceId: string;
   secondOutputSourceId: string;
+  evaluationModelId?: string;
 };
 
 export const evaluateTestSetEntries = defineTask<EvalKey>({
   id: "evaluateTestSetEntries",
   handler: async (task) => {
-    let { nodeEntryId, firstOutputSourceId, secondOutputSourceId } = task;
+    let { nodeEntryId, firstOutputSourceId, secondOutputSourceId, evaluationModelId } = task;
 
     // randomize the order of the output sources to avoid bias
     if (Math.random() > 0.5) {
@@ -342,14 +348,17 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
 
       let args;
 
+      const evaluationModel = await getEvaluationModel(evaluationModelId);
+
       let judgementInput: ChatCompletionCreateParams | null = null;
 
       try {
-        judgementInput = constructJudgementInput(
+        judgementInput = await constructJudgementInput(
           input,
           firstOutput as JsonObject,
           secondOutput as JsonObject,
           datasetEval.instructions,
+          evaluationModel.name,
         );
 
         const response = await getOpenaiCompletion(datasetEval.projectId, judgementInput);
@@ -456,14 +465,15 @@ const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSche
   "functionParamsSchema"
 ] as FunctionParameters;
 
-const constructJudgementInput = (
+const constructJudgementInput = async (
   datasetEntryInput: DatasetEntryInput,
   firstOutput: JsonObject,
   secondOutput: JsonObject,
   instructions: string | null,
+  evaluationModelName: string,
 ) => {
   const input: ChatCompletionCreateParams = {
-    model: "gpt-4-0613",
+    model: evaluationModelName,
     messages: [
       {
         role: "system",
@@ -505,11 +515,11 @@ const constructJudgementInput = (
     });
   }
 
-  const approximateTokens = countOpenAIChatTokens("gpt-4-0613", input.messages);
+  // const approximateTokens = countOpenAIChatTokens("gpt-4-0613", input.messages);
 
-  if (approximateTokens > 7168) {
-    input.model = "gpt-4-0125-preview";
-  }
+  // if (approximateTokens > 7168) {
+  //   input.model = "gpt-4-0125-preview";
+  // }
 
   return input;
 };
