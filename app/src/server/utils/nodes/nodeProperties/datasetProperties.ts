@@ -1,12 +1,8 @@
 import { kysely } from "~/server/db";
 import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
-import { type NodeProperties } from "./nodeProperties.types";
+import { DatasetOutput, type NodeProperties } from "./nodeProperties.types";
 import { datasetNodeSchema } from "../node.types";
-
-export enum DatasetOutput {
-  Entries = "entries",
-}
 
 export const datasetProperties: NodeProperties<"Dataset"> = {
   schema: datasetNodeSchema,

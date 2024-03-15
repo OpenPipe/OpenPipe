@@ -15,7 +15,11 @@ import { enqueueProcessNode } from "~/server/tasks/nodes/processNodes/processNod
 import { prepareIntegratedMonitorCeation } from "~/server/utils/nodes/nodeCreation/prepareIntegratedNodesCreation";
 import { convertCache } from "~/server/utils/nodes/convertCache";
 import { hashNode } from "~/server/utils/nodes/hashNode";
-import { LLMRelabelOutput } from "~/server/utils/nodes/nodeProperties/llmRelabelProperties";
+import {
+  FilterOutput,
+  LLMRelabelOutput,
+} from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
+import { selectEntriesWithCache } from "~/server/tasks/nodes/processNodes/updateCached";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -61,31 +65,31 @@ export const monitorsRouter = createTRPCRouter({
 
     if (!filter) throw new TRPCError({ code: "NOT_FOUND" });
 
+    const numFilteredEntries = await kysely
+      .selectFrom(selectEntriesWithCache({ node: filter }).as("ne"))
+      .where("ne.status", "=", "PROCESSED")
+      .select([
+        sql<number>`count(case when ne."filterOutcome" = ${FilterOutput.Passed} then 1 end)::int`.as(
+          "passed",
+        ),
+        sql<number>`count(case when ne."filterOutcome" = ${FilterOutput.Failed} then 1 end)::int`.as(
+          "failed",
+        ),
+      ])
+      .executeTakeFirst();
+
     const llmRelabel = await kysely
       .selectFrom("Node as n")
       .where("n.id", "=", monitor.config.relabelNodeId)
       .where("n.type", "=", "LLMRelabel")
       .selectAll("n")
-      .select((eb) => [
-        eb
-          .selectFrom("NodeEntry as ne")
-          .innerJoin("DataChannel as dc", (join) =>
-            join.onRef("dc.id", "=", "ne.dataChannelId").onRef("dc.destinationId", "=", "n.id"),
-          )
-          .where("ne.status", "=", "PROCESSED")
-          .select(sql<number>`count(*)::int`.as("count"))
-          .as("numProcessedEntries"),
-      ])
+
       .executeTakeFirst()
       .then((relabelNode) =>
         relabelNode ? typedNode({ ...relabelNode, type: "LLMRelabel" }) : undefined,
       );
 
     if (!llmRelabel) throw new TRPCError({ code: "NOT_FOUND" });
-
-    const numIncomingEntries =
-      (monitor.numUnprocessedEntries ?? 0) +
-      Math.max(0, (monitor.numProcessedEntries ?? 0) - (llmRelabel.numProcessedEntries ?? 0));
 
     const datasets = await getDownstreamDatasets({
       monitorLLMRelabelNodeId: monitor.config.relabelNodeId,
@@ -106,8 +110,8 @@ export const monitorsRouter = createTRPCRouter({
       ...monitor,
       filter,
       llmRelabel,
-      numIncomingEntries,
-      numFullyProcessedEntries: llmRelabel.numProcessedEntries,
+      numPassedEntries: numFilteredEntries?.passed ?? 0,
+      numFailedEntries: numFilteredEntries?.failed ?? 0,
       datasets,
     };
   }),

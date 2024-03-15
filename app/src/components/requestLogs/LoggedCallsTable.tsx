@@ -9,16 +9,26 @@ export default function LoggedCallsTable({
   showOptions = true,
   filters,
   orderBy,
+  sampleRate,
+  maxOutputSize,
   slowBatch,
 }: {
   showOptions?: boolean;
   filters: FilterData[];
   orderBy?: LoggedCallsOrderBy;
+  sampleRate?: number;
+  maxOutputSize?: number;
   slowBatch?: boolean;
 }) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const { data: loggedCalls, isLoading } = useLoggedCalls({ filters, orderBy, slowBatch });
+  const { data: loggedCalls, isLoading } = useLoggedCalls({
+    filters,
+    orderBy,
+    slowBatch,
+    sampleRate,
+    maxOutputSize,
+  });
 
   return (
     <Card width="100%" overflowX="auto">

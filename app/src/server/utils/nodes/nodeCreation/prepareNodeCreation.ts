@@ -4,11 +4,13 @@ import { v4 as uuidv4 } from "uuid";
 import { type InferNodeConfig } from "../node.types";
 import { checkNodeInput } from "../checkNodeInput";
 import { prisma } from "~/server/db";
-import { ArchiveOutput } from "../nodeProperties/archiveProperties";
-import { MonitorOutput } from "../nodeProperties/monitorProperties";
-import { DatasetOutput } from "../nodeProperties/datasetProperties";
-import { ManualRelabelOutput } from "../nodeProperties/manualRelabelProperties";
-import { LLMRelabelOutput } from "../nodeProperties/llmRelabelProperties";
+import {
+  ArchiveOutput,
+  MonitorOutput,
+  LLMRelabelOutput,
+  ManualRelabelOutput,
+  DatasetOutput,
+} from "../nodeProperties/nodeProperties.types";
 
 export const prepareArchiveCreation = ({
   nodeParams,

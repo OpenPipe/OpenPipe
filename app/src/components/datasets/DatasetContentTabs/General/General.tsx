@@ -3,11 +3,11 @@ import { VStack, HStack, Text } from "@chakra-ui/react";
 import FineTuneButton from "./FineTuneButton";
 import UploadDataButton from "./UploadDataButton";
 import DatasetEntriesTable from "./DatasetEntriesTable";
-import DatasetEntryPaginator from "~/components/nodeEntries/NodeEntriesTable/NodeEntriesPaginator";
 import GeneralFilters from "./GeneralFilters";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 import { useNodeEntries, useDataset } from "~/utils/hooks";
+import Paginator from "~/components/Paginator";
 
 const General = () => {
   const filtersShown = useFilters().filtersShown;
@@ -30,7 +30,7 @@ const General = () => {
         {matchingCount ? `(${matchingCount.toLocaleString()})` : ""}
       </Text>
       <DatasetEntriesTable />
-      <DatasetEntryPaginator nodeId={dataset?.nodeId} />
+      {matchingCount && <Paginator count={matchingCount} />}
     </VStack>
   );
 };

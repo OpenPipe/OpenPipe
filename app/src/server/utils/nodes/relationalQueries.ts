@@ -1,5 +1,5 @@
 import { kysely } from "~/server/db";
-import { LLMRelabelOutput } from "./nodeProperties/llmRelabelProperties";
+import { LLMRelabelOutput } from "./nodeProperties/nodeProperties.types";
 
 export const getDownstreamDatasets = ({
   monitorLLMRelabelNodeId,

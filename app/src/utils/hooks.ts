@@ -172,21 +172,29 @@ export const useNode = ({ id }: { id?: string }) =>
 type NodeEntriesSortOrder = NonNullable<RouterInputs["nodeEntries"]["list"]["sortOrder"]>;
 export const useNodeEntries = ({
   nodeId,
+  filters,
   refetchInterval = 0,
   defaultSortOrder,
 }: {
   nodeId?: string;
+  filters?: FilterData[];
   refetchInterval?: number;
   defaultSortOrder?: NodeEntriesSortOrder;
 }) => {
-  const filters = useFilters().filters;
+  const defaultFilters = useFilters().filters;
 
   const { page, pageSize } = usePageParams();
 
   const sort = useSortOrder<NodeEntriesSortOrder["field"]>().params;
 
   const result = api.nodeEntries.list.useQuery(
-    { nodeId: nodeId ?? "", filters, page, pageSize, sortOrder: sort ?? defaultSortOrder },
+    {
+      nodeId: nodeId ?? "",
+      filters: filters ?? defaultFilters,
+      page,
+      pageSize,
+      sortOrder: sort ?? defaultSortOrder,
+    },
     { enabled: !!nodeId, refetchInterval },
   );
 
@@ -315,6 +323,8 @@ const removeEmptyFilters = (filters: FilterData[]) => {
 
 export const useLoggedCalls = (options?: {
   filters?: FilterData[];
+  sampleRate?: number;
+  maxOutputSize?: number;
   disabled?: boolean;
   orderBy?: LoggedCallsOrderBy;
   slowBatch?: boolean;
@@ -332,9 +342,11 @@ export const useLoggedCalls = (options?: {
   const result = api.loggedCalls.list.useQuery(
     {
       projectId: selectedProjectId ?? "",
+      filters: filtersWithValues,
       page,
       pageSize,
-      filters: filtersWithValues,
+      sampleRate: options?.sampleRate,
+      maxOutputSize: options?.maxOutputSize,
       orderBy: options?.orderBy,
     },
     {
@@ -351,7 +363,12 @@ export const useLoggedCalls = (options?: {
   return result;
 };
 
-export const useLoggedCallsCount = (options?: { filters?: FilterData[]; disabled?: boolean }) => {
+export const useLoggedCallsCount = (options?: {
+  filters?: FilterData[];
+  disabled?: boolean;
+  sampleRate?: number;
+  maxOutputSize?: number;
+}) => {
   const selectedProjectId = useSelectedProject().data?.id;
 
   const generalFilters = useFilters().filters;
@@ -367,6 +384,8 @@ export const useLoggedCallsCount = (options?: { filters?: FilterData[]; disabled
     {
       projectId: selectedProjectId ?? "",
       filters: filtersWithValues,
+      sampleRate: options?.sampleRate,
+      maxOutputSize: options?.maxOutputSize,
     },
     {
       enabled: !!selectedProjectId && !options?.disabled,

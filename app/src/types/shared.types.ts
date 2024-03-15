@@ -239,19 +239,19 @@ export enum LoggedCallsFiltersDefaultFields {
   Model = "model",
   StatusCode = "statusCode",
   CompletionId = "completionId",
-  SampleRate = "sampleRate",
-  MaxOutputSize = "maxOutputSize",
 }
 
 export enum MonitorCheckFiltersExtendedFields {
   CustomLLMFilter = "custom LLM filter",
 }
 
+// TODO: choose more accurate name
 export enum GeneralFiltersDefaultFields {
   Input = "Input",
   Output = "Output",
   Split = "Split",
   Source = "Source",
+  FilterOutcome = "Filter Outcome",
 }
 
 export enum EvaluationFiltersDefaultFields {

@@ -9,14 +9,10 @@ import { validateRowToImport } from "~/server/utils/datasetEntryCreation/parseRo
 import { truthyFilter } from "~/utils/utils";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { generatePersistentId } from "~/server/utils/nodes/utils";
-import { type NodeProperties } from "./nodeProperties.types";
+import { MonitorOutput, type NodeProperties } from "./nodeProperties.types";
 import { monitorNodeSchema } from "../node.types";
 import { checkNodeInput } from "../checkNodeInput";
 import { enqueueCountDatasetEntryTokens } from "~/server/tasks/fineTuning/countDatasetEntryTokens.task";
-
-export enum MonitorOutput {
-  MatchedLogs = "Matched Logs",
-}
 
 export const monitorProperties: NodeProperties<"Monitor"> = {
   schema: monitorNodeSchema,

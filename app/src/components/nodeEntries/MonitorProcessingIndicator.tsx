@@ -25,7 +25,7 @@ export const MonitorProcessingIndicator = () => {
   }
 
   useEffect(() => {
-    setRefetchInterval(processingMessage ? 5000 : 0);
+    setRefetchInterval(processingMessage ? 2000 : 0);
   }, [processingMessage, setRefetchInterval]);
 
   if (!processingMessage) return null;

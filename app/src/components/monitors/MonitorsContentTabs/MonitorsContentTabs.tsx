@@ -3,11 +3,11 @@ import { useMemo } from "react";
 import ContentTabs from "~/components/ContentTabs";
 import General from "./General/General";
 import Results from "./Results/Results";
-import { useMonitor } from "../useMonitor";
 import { MonitorProcessingIndicator } from "~/components/nodeEntries/MonitorProcessingIndicator";
 import Settings from "./Settings/Settings";
 
 export const MONITOR_GENERAL_KEY = "general";
+export const MONITOR_RESULTS_KEY = "results";
 
 const generalTab = {
   key: MONITOR_GENERAL_KEY,
@@ -16,7 +16,7 @@ const generalTab = {
 };
 
 const resultsTab = {
-  key: "results",
+  key: MONITOR_RESULTS_KEY,
   component: <Results />,
 };
 
@@ -27,18 +27,11 @@ const settingsTab = {
 };
 
 const MonitorContentTabs = () => {
-  const count = useMonitor().data?.numFullyProcessedEntries ?? 0;
+  const tabs = useMemo(() => [generalTab, { ...resultsTab, title: `Results` }, settingsTab], []);
 
-  const tabs = useMemo(
-    () => [
-      generalTab,
-      { ...resultsTab, title: `Filtered Results (${(count ?? 0).toLocaleString()})` },
-      settingsTab,
-    ],
-    [count],
+  return (
+    <ContentTabs tabs={tabs} rightHeader={<MonitorProcessingIndicator />} headerProps={{ pb: 4 }} />
   );
-
-  return <ContentTabs tabs={tabs} rightHeader={<MonitorProcessingIndicator />} />;
 };
 
 export default MonitorContentTabs;

@@ -35,6 +35,9 @@ export const constructNodeEntryFiltersQuery = ({
         if (filter.field === GeneralFiltersDefaultFields.Output) {
           wheres.push(filterExpression(sql.raw(`deo."output"::text`)));
         }
+        if (filter.field === GeneralFiltersDefaultFields.FilterOutcome) {
+          wheres.push(filterExpression(sql.raw(`ne."filterOutcome"`)));
+        }
       }
 
       return eb.and(wheres);

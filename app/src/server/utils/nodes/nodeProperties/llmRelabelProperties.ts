@@ -3,12 +3,8 @@ import { APIError } from "openai";
 
 import { kysely } from "~/server/db";
 import { getOpenaiCompletion } from "~/server/utils/openai";
-import { type NodeProperties } from "./nodeProperties.types";
+import { LLMRelabelOutput, type NodeProperties } from "./nodeProperties.types";
 import { RelabelOption, llmRelabelNodeSchema } from "../node.types";
-
-export enum LLMRelabelOutput {
-  Relabeled = "relabeled",
-}
 
 export const llmRelabelProperties: NodeProperties<"LLMRelabel"> = {
   schema: llmRelabelNodeSchema,

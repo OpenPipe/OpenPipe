@@ -32,7 +32,7 @@ import {
 } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
-import { ManualRelabelOutput } from "~/server/utils/nodes/nodeProperties/manualRelabelProperties";
+import { ManualRelabelOutput } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 
 export const nodeEntriesRouter = createTRPCRouter({
   list: protectedProcedure

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { HStack, VStack, Collapse, Text, Button, Icon, Skeleton } from "@chakra-ui/react";
 import { FaChevronDown, FaChevronUp, FaExternalLinkAlt } from "react-icons/fa";
 
@@ -7,18 +8,21 @@ import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
 import { useLoggedCallsCount } from "~/utils/hooks";
 import ColumnVisibilityDropdown from "~/components/requestLogs/ColumnVisibilityDropdown";
 import ActionButton from "~/components/ActionButton";
-import { useInitialFilters } from "./InitialFiltersBlock/useInitialFilters";
-import { useAppStore } from "~/state/store";
+import { useMonitorFilters } from "./useMonitorFilters";
 
 const InitialResultsBlock = () => {
-  const expanded = useAppStore((state) => state.initialResultsExpanded);
-  const setExpanded = useAppStore((state) => state.setInitialResultsExpanded);
+  const [expanded, setExpanded] = useState(false);
 
-  const { filters, saveableFilters } = useInitialFilters();
+  const { initialFilters, sampleRate, maxOutputSize } = useMonitorFilters();
 
-  const count = useLoggedCallsCount({ filters, disabled: !filters.length }).data?.count;
+  const count = useLoggedCallsCount({
+    filters: initialFilters,
+    sampleRate,
+    maxOutputSize,
+    disabled: !initialFilters.length,
+  }).data?.count;
 
-  const filtersQueryParams = constructFiltersQueryParams({ filters: saveableFilters });
+  const filtersQueryParams = constructFiltersQueryParams({ filters: initialFilters });
 
   return (
     <VStack w="full" spacing={0}>
@@ -46,7 +50,12 @@ const InitialResultsBlock = () => {
               <ActionButton icon={FaExternalLinkAlt} iconBoxSize={3.5} label="View All" />
             </ProjectLink>
           </HStack>
-          <LoggedCallsTable filters={filters} showOptions={false} slowBatch orderBy="updatedAt" />
+          <LoggedCallsTable
+            filters={initialFilters}
+            showOptions={false}
+            slowBatch
+            orderBy="updatedAt"
+          />
         </VStack>
       </Collapse>
     </VStack>

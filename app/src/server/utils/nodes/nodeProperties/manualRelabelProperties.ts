@@ -1,9 +1,5 @@
-import { type NodeProperties } from "./nodeProperties.types";
+import { ManualRelabelOutput, type NodeProperties } from "./nodeProperties.types";
 import { manualRelabelNodeSchema } from "../node.types";
-
-export enum ManualRelabelOutput {
-  Relabeled = "relabeled",
-}
 
 export const manualRelabelProperties: NodeProperties<"ManualRelabel"> = {
   schema: manualRelabelNodeSchema,

@@ -16,21 +16,24 @@ export const loggedCallsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
+        filters: filtersSchema,
         page: z.number(),
         pageSize: z.number(),
-        filters: filtersSchema,
+        sampleRate: z.number().optional(),
+        maxOutputSize: z.number().optional(),
         orderBy: z.enum(["updatedAt", "requestedAt"]).optional().default("requestedAt"),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { projectId, page, pageSize, filters } = input;
+      const { projectId, filters, page, pageSize, sampleRate, maxOutputSize, orderBy } = input;
 
       await requireCanViewProject(projectId, ctx);
 
-      const orderByField = input.orderBy === "updatedAt" ? "lc.updatedAt" : "lc.requestedAt";
-      const orderDirection = input.orderBy === "updatedAt" ? "asc" : "desc";
+      const orderByField = orderBy === "updatedAt" ? "lc.updatedAt" : "lc.requestedAt";
+      const orderDirection = orderBy === "updatedAt" ? "asc" : "desc";
 
-      const rawCalls = await constructLoggedCallFiltersQuery({ filters, projectId })
+      const limit = maxOutputSize ? Math.min(pageSize, maxOutputSize) : pageSize;
+      const rawCalls = await constructLoggedCallFiltersQuery({ filters, projectId, sampleRate })
         .select((eb) => [
           "lc.id as id",
           "lc.requestedAt as requestedAt",
@@ -54,7 +57,7 @@ export const loggedCallsRouter = createTRPCRouter({
           ).as("tags"),
         ])
         .orderBy(orderByField, orderDirection)
-        .limit(pageSize)
+        .limit(limit)
         .offset((page - 1) * pageSize)
         .execute();
 
@@ -87,18 +90,33 @@ export const loggedCallsRouter = createTRPCRouter({
       return { calls };
     }),
   getMatchingCount: protectedProcedure
-    .input(z.object({ projectId: z.string(), filters: filtersSchema }))
+    .input(
+      z.object({
+        projectId: z.string(),
+        filters: filtersSchema,
+        sampleRate: z.number().optional(),
+        maxOutputSize: z.number().optional(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const { projectId, filters } = input;
+      const { projectId, filters, sampleRate, maxOutputSize } = input;
 
       await requireCanViewProject(projectId, ctx);
 
       const startTime = Date.now();
 
+      let innerQuery = constructLoggedCallFiltersQuery({
+        filters,
+        projectId,
+        sampleRate,
+      }).selectAll("lc");
+
+      if (maxOutputSize) {
+        innerQuery = innerQuery.limit(maxOutputSize);
+      }
+
       const query = kysely
-        .selectFrom(() =>
-          constructLoggedCallFiltersQuery({ filters, projectId }).selectAll("lc").as("subquery"),
-        )
+        .selectFrom(() => innerQuery.as("subquery"))
         .select(sql<number>`count(*)::int`.as("matchCount"));
 
       // console.log("getMatchingCount", query.compile());

@@ -2,13 +2,8 @@ import { sql } from "kysely";
 
 import { kysely } from "~/server/db";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
-import { type NodeProperties } from "./nodeProperties.types";
+import { FilterOutput, type NodeProperties } from "./nodeProperties.types";
 import { filterNodeSchema } from "../node.types";
-
-export enum FilterOutput {
-  Passed = "passed",
-  Failed = "failed",
-}
 
 export const filterProperties: NodeProperties<"Filter"> = {
   schema: filterNodeSchema,

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   VStack,
   HStack,
-  Skeleton,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
@@ -10,33 +9,20 @@ import {
   NumberDecrementStepper,
 } from "@chakra-ui/react";
 
-import { useLoggedCallsCount } from "~/utils/hooks";
-
-import { LabelText, CaptionText } from "../styledText";
-import { useFilters } from "~/components/Filters/useFilters";
-import { INITIAL_FILTERS_URL_KEY } from "../constants";
+import { LabelText } from "../styledText";
 import InfoCircle from "~/components/InfoCircle";
+import { useMonitorFilters } from "../useMonitorFilters";
 
-const SampleInputs = ({
-  sampleRate,
-  maxOutputSize,
-  setSampleRate,
-  setMaxOutputSize,
-}: {
-  sampleRate: number;
-  maxOutputSize: number;
-  setSampleRate: (sampleRate: number) => void;
-  setMaxOutputSize: (maxOutputSize: number) => void;
-}) => {
-  const filters = useFilters({ urlKey: INITIAL_FILTERS_URL_KEY }).filters;
-  const initialCount = useLoggedCallsCount({ filters, disabled: !filters.length }).data?.count;
+const SampleInputs = () => {
+  const { sampleRate, maxOutputSize, setSamplingCriteria } = useMonitorFilters();
 
   // Store as string to allow for temporarily invalid values
-  const [sampleRateStr, setSampleRateStr] = useState("0");
+  const [tempSampleRateStr, setTempSampleRateStr] = useState("0");
+  const [tempMaxOutputSize, setTempMaxOutputSize] = useState(maxOutputSize);
 
   useEffect(() => {
-    setSampleRateStr(sampleRate.toString());
-    setMaxOutputSize(maxOutputSize);
+    setTempSampleRateStr(sampleRate.toString());
+    setTempMaxOutputSize(maxOutputSize);
   }, [sampleRate, maxOutputSize]);
 
   return (
@@ -45,18 +31,18 @@ const SampleInputs = ({
         <VStack alignItems="flex-start">
           <LabelText>Sample Rate (%)</LabelText>
           <NumberInput
-            value={sampleRateStr}
+            value={tempSampleRateStr}
             inputMode="decimal"
-            onChange={(value) => setSampleRateStr(value)}
+            onChange={(value) => setTempSampleRateStr(value)}
             onBlur={(e) => {
               const value = parseFloat(e.target.value);
 
               if (value > 100) {
-                setSampleRate(100);
+                setSamplingCriteria({ sampleRate: 100, maxOutputSize });
               } else if (value >= 0 && value <= 100) {
-                setSampleRate(value);
+                setSamplingCriteria({ sampleRate: value, maxOutputSize });
               } else {
-                setSampleRate(0);
+                setSamplingCriteria({ sampleRate: 0, maxOutputSize });
               }
             }}
             max={100}
@@ -80,9 +66,20 @@ const SampleInputs = ({
             />
           </HStack>
           <NumberInput
-            value={maxOutputSize}
+            value={tempMaxOutputSize}
             inputMode="numeric"
-            onChange={(value) => setMaxOutputSize(parseInt(value))}
+            onChange={(value) => setTempMaxOutputSize(parseInt(value))}
+            onBlur={(e) => {
+              const value = parseInt(e.target.value);
+
+              if (value > 20000) {
+                setSamplingCriteria({ sampleRate, maxOutputSize: 20000 });
+              } else if (value >= 1 && value <= 20000) {
+                setSamplingCriteria({ sampleRate, maxOutputSize: value });
+              } else {
+                setSamplingCriteria({ sampleRate, maxOutputSize: 1 });
+              }
+            }}
             max={20000}
             min={1}
             step={1}
@@ -95,12 +92,6 @@ const SampleInputs = ({
             </NumberInputStepper>
           </NumberInput>
         </VStack>
-      </HStack>
-      <HStack spacing={1}>
-        <Skeleton isLoaded={initialCount !== undefined}>
-          <CaptionText>{initialCount?.toLocaleString() ?? 10}</CaptionText>
-        </Skeleton>
-        <CaptionText> rows will immediately be checked</CaptionText>
       </HStack>
     </VStack>
   );

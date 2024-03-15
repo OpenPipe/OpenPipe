@@ -6,6 +6,31 @@ import { type AtLeastOne } from "~/types/shared.types";
 import type { InferNodeConfig } from "../node.types";
 import { type typedNodeEntry } from "~/types/dbColumns.types";
 
+export enum ArchiveOutput {
+  Entries = "entries",
+}
+
+export enum MonitorOutput {
+  MatchedLogs = "Matched Logs",
+}
+
+export enum FilterOutput {
+  Passed = "passed",
+  Failed = "failed",
+}
+
+export enum LLMRelabelOutput {
+  Relabeled = "relabeled",
+}
+
+export enum ManualRelabelOutput {
+  Relabeled = "relabeled",
+}
+
+export enum DatasetOutput {
+  Entries = "entries",
+}
+
 type CacheMatchField = "nodeEntryPersistentId" | "incomingInputHash" | "incomingOutputHash";
 type CacheWriteField =
   | "outgoingInputHash"

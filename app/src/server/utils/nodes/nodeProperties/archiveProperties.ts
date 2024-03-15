@@ -1,11 +1,7 @@
 import { kysely } from "~/server/db";
 import { importDatasetEntries } from "~/server/utils/nodes/importDatasetEntries";
-import { type NodeProperties } from "./nodeProperties.types";
+import { ArchiveOutput, type NodeProperties } from "./nodeProperties.types";
 import { archiveNodeSchema } from "../node.types";
-
-export enum ArchiveOutput {
-  Entries = "entries",
-}
 
 export const archiveProperties: NodeProperties<"Archive"> = {
   schema: archiveNodeSchema,
