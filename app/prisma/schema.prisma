@@ -145,6 +145,7 @@ model Project {
     datasetEntryOutputs    DatasetEntryOutput[]
     cachedProcessedEntries CachedProcessedEntry[]
     fineTuneTestingEntries FineTuneTestingEntry[]
+    externalModels         ExternalModel[]
 }
 
 enum ProjectUserRole {
@@ -477,7 +478,7 @@ model DatasetEval {
 
     name         String
     instructions String?
-    judge        String?
+    evaluationModelId        String @db.Uuid
     type         DatasetEvalType @default(HEAD_TO_HEAD)
 
     datasetEvalNodeEntries   DatasetEvalNodeEntry[]
@@ -485,7 +486,6 @@ model DatasetEval {
     datasetId String  @db.Uuid
     dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
     
-
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
@@ -870,9 +870,12 @@ model ExternalModel {
     id String @id @default(uuid()) @db.Uuid
 
     modelName String
-    slug String
+    displayName String
     endpoint  String
     apiKey  String
+
+    projectId String  @db.Uuid
+    project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

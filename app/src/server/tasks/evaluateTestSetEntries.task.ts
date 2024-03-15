@@ -18,13 +18,8 @@ import { getOpenaiCompletion } from "../utils/openai";
 import defineTask from "./defineTask";
 import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonModels";
 import { chatCompletionMessage } from "~/types/shared.types";
-import { countOpenAIChatTokens } from "~/utils/countTokens";
 import { generateEntry } from "./generateTestSetEntry.task";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
-import {
-  defaultEvaluationModel,
-  findPredefinedEvaluationModel,
-} from "~/utils/externalModels/evaluationModels";
 import { getEvaluationModel } from "../utils/externalModels/evaluationModels";
 
 export const RESPONSE_1_PLACEHOLDER = "Response 1";
@@ -514,12 +509,6 @@ const constructJudgementInput = async (
       content: `Remember to pay attention to the user's instructions: ${instructions}`,
     });
   }
-
-  // const approximateTokens = countOpenAIChatTokens("gpt-4-0613", input.messages);
-
-  // if (approximateTokens > 7168) {
-  //   input.model = "gpt-4-0125-preview";
-  // }
 
   return input;
 };

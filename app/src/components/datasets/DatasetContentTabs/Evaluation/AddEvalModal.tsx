@@ -42,6 +42,7 @@ import {
   defaultEvaluationModel,
   predefinedEvaluationModels,
 } from "~/utils/externalModels/evaluationModels";
+import EvalForm from "~/components/evals/EvalForm/EvalForm";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -53,35 +54,12 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
   const testingCount = useNodeEntries({ nodeId: dataset?.nodeId }).data?.totalTestingCount;
 
-  const modelOptions = useMemo(() => {
-    const options = [
-      {
-        id: ORIGINAL_MODEL_ID,
-        name: getOutputTitle(ORIGINAL_MODEL_ID) ?? "",
-      },
-    ];
-    if (!dataset) return options;
-    return [
-      ...options,
-      ...dataset.enabledComparisonModels.map((comparisonModelId) => ({
-        id: comparisonModelId,
-        name: getOutputTitle(comparisonModelId) ?? "",
-      })),
-      ...dataset.deployedFineTunes.map((model) => ({
-        id: model.id,
-        name: getOutputTitle(model.id, model.slug) ?? "",
-      })),
-    ];
-  }, [dataset]);
-
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
   const [numRows, setNumRows] = useState(0);
   const [includedModelIds, setIncludedModelIds] = useState<string[]>([]);
   const [selectedEvaluationModel, setSelectedEvaluationModel] =
     useState<externalModel>(defaultEvaluationModel);
-
-  const evaluationModels = predefinedEvaluationModels;
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -129,11 +107,10 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     addFilter,
   ]);
 
-  const numComparisons = useMemo(
+  const numAddedComparisons = useMemo(
     () => ((numRows || 0) * includedModelIds.length * (includedModelIds.length - 1)) / 2,
     [numRows, includedModelIds],
   );
-
   return (
     <Modal {...disclosure} size="xl">
       <ModalOverlay />
@@ -162,79 +139,16 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
               </Text>
             ) : (
               <VStack alignItems="flex-start" w="full" spacing={8}>
-                <VStack alignItems="flex-start" w="full">
-                  <Text fontWeight="bold">Judge model:</Text>
-                  <InputDropdown
-                    options={evaluationModels}
-                    getDisplayLabel={(option) => option.slug}
-                    selectedOption={selectedEvaluationModel}
-                    onSelect={(option) => setSelectedEvaluationModel(option)}
-                    inputGroupProps={{ w: "100%" }}
+                {dataset && (
+                  <EvalForm
+                    datasetId={dataset.id}
+                    nameState={{ name, setName }}
+                    modelState={{ includedModelIds, setIncludedModelIds }}
+                    rowsState={{ numRows, setNumRows, numAddedComparisons }}
+                    evaluationModelState={{ selectedEvaluationModel, setSelectedEvaluationModel }}
+                    instructionsState={{ instructions, setInstructions }}
                   />
-                  <Text fontWeight="bold">Name</Text>
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Eval1"
-                    w="full"
-                  />
-                </VStack>
-                <VStack alignItems="flex-start" w="full">
-                  <Text fontWeight="bold" pb={2}>
-                    Included Models
-                  </Text>
-                  <VStack alignItems="flex-start">
-                    {modelOptions.map((model) => (
-                      <Checkbox
-                        key={model.id}
-                        isChecked={includedModelIds.includes(model.id)}
-                        colorScheme="blue"
-                        onChange={() =>
-                          setIncludedModelIds((ids) =>
-                            ids.includes(model.id)
-                              ? ids.filter((id) => id !== model.id)
-                              : [...ids, model.id],
-                          )
-                        }
-                      >
-                        <Text>{model.name}</Text>
-                      </Checkbox>
-                    ))}
-                  </VStack>
-                </VStack>
-                <VStack alignItems="flex-start" w="full">
-                  <HStack>
-                    <Text fontWeight="bold">Dataset Entries </Text>
-                    <InfoCircle tooltipText="The number of randomly selected dataset entries to apply this eval to." />
-                  </HStack>
-                  <Input
-                    value={numRows}
-                    type="number"
-                    onChange={(e) => setNumRows(parseInt(e.target.value.match(/\d+/g)?.[0] ?? ""))}
-                    placeholder="10"
-                    w="full"
-                  />
-                  <Text
-                    bgColor="orange.50"
-                    borderColor="orange.500"
-                    borderRadius={4}
-                    borderWidth={1}
-                    p={2}
-                  >
-                    Your eval will run <b>{numComparisons}</b> head-to-head comparisons and cost
-                    approximately <b>${(numComparisons * 0.06).toFixed(2)}</b>.
-                  </Text>
-                </VStack>
-                <VStack alignItems="flex-start" w="full">
-                  <Text fontWeight="bold">Instructions</Text>
-                  <AutoResizeTextArea
-                    value={instructions}
-                    onChange={(e) => setInstructions(e.target.value)}
-                    placeholder="Which model's output better matches the prompt?"
-                    w="full"
-                    minH={16}
-                  />
-                </VStack>
+                )}
               </VStack>
             )}
           </VStack>

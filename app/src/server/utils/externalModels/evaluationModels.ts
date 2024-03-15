@@ -3,7 +3,7 @@ import {
   findPredefinedEvaluationModel,
 } from "~/utils/externalModels/evaluationModels";
 
-export const getEvaluationModel = async (id: string | undefined) => {
+export const getEvaluationModel = async (id?: string | null) => {
   if (!id) return defaultEvaluationModel;
 
   let predefinedEvaluationModel = findPredefinedEvaluationModel(id);

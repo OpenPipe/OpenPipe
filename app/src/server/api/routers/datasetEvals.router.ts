@@ -44,6 +44,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         "eval.name",
         "eval.instructions",
         "eval.datasetId",
+        "eval.evaluationModelId",
         "d.projectId",
         "d.name as datasetName",
         jsonArrayFrom(
@@ -252,7 +253,7 @@ export const datasetEvalsRouter = createTRPCRouter({
             name: input.name,
             instructions: input.instructions,
             datasetId: input.datasetId,
-            judge: evaluationModel.name,
+            evaluationModelId: evaluationModel.id,
             datasetEvalOutputSources: {
               create: input.modelIds.map((modelId) => ({
                 modelId,
@@ -272,7 +273,7 @@ export const datasetEvalsRouter = createTRPCRouter({
 
         await startTestJobsForEval({
           datasetEvalId: datasetEval.id,
-          evaluationModelId: input.evaluationModelId,
+          evaluationModelId: evaluationModel.id,
           nodeEntryBaseQuery: kysely
             .selectFrom("NodeEntry as ne")
             .innerJoin("DataChannel as dc", (join) =>
@@ -301,6 +302,7 @@ export const datasetEvalsRouter = createTRPCRouter({
           instructions: z.string().optional(),
           modelIds: z.array(z.string()).optional(),
           numRows: z.number().optional(),
+          evaluationModelId: z.string().optional(),
         }),
       }),
     )
@@ -341,10 +343,15 @@ export const datasetEvalsRouter = createTRPCRouter({
         data: {
           name: input.updates.name,
           instructions: input.updates.instructions,
+          evaluationModelId: input.updates.evaluationModelId,
         },
       });
 
-      if (input.updates.instructions && input.updates.instructions !== datasetEval.instructions) {
+      if (
+        (input.updates.instructions && input.updates.instructions !== datasetEval.instructions) ||
+        (input.updates.evaluationModelId &&
+          input.updates.evaluationModelId !== datasetEval.evaluationModelId)
+      ) {
         await kysely
           .deleteFrom("DatasetEvalResult as der")
           .where(({ exists, selectFrom }) =>
@@ -405,8 +412,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         )
         .selectAll("dene")
         .execute();
-
-      const currentNumRows = currentDatasetEvalNodeEntries.length;
+      let currentNumRows = currentDatasetEvalNodeEntries.length;
 
       if (input.updates.numRows && input.updates.numRows !== currentNumRows) {
         // delete all datasetEvalNodeEntries without NodeEntries currently in dataset
@@ -443,7 +449,6 @@ export const datasetEvalsRouter = createTRPCRouter({
             .execute();
         } else {
           const numRowsToCreate = input.updates.numRows - currentNumRows;
-
           const nodeEntriesToCreate = await kysely
             .selectFrom("NodeEntry as ne")
             .innerJoin("DataChannel as dc", (join) =>

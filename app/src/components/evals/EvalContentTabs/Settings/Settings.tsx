@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Checkbox, HStack, Input, VStack, Text, useDisclosure } from "@chakra-ui/react";
-import { isEqual } from "lodash-es";
+import { add, isEqual } from "lodash-es";
 
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import InfoCircle from "~/components/InfoCircle";
 import { api } from "~/utils/api";
-import { useDataset, useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
+import { useDataset, useDatasetEval, useHandledAsyncCallback, useNodeEntries } from "~/utils/hooks";
 import DeleteEvalDialog from "./DeleteEvalDialog";
-import { useFilters } from "~/components/Filters/useFilters";
 import { useAppStore } from "~/state/store";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
@@ -16,14 +15,27 @@ import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
+import InputDropdown from "~/components/InputDropdown";
+import {
+  defaultEvaluationModel,
+  predefinedEvaluationModels,
+} from "~/utils/externalModels/evaluationModels";
+import { externalModel } from "~/utils/externalModels/allModels";
+import { getEvaluationModel } from "~/server/utils/externalModels/evaluationModels";
+import { useFilters } from "~/components/Filters/useFilters";
+import frontendModelProvider from "~/modelProviders/openai-ChatCompletion/frontend";
+import EvalName from "../../EvalForm/EvalForm";
+import EvalForm from "../../EvalForm/EvalForm";
 
 const Settings = () => {
   const utils = api.useContext();
 
   const saveMutation = api.datasetEvals.update.useMutation();
 
+  const deleteEvalDialog = useDisclosure();
   const datasetEval = useDatasetEval().data;
   const dataset = useDataset({ datasetId: datasetEval?.datasetId }).data;
+
   const setComparisonCriteria = useAppStore(
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
@@ -32,10 +44,8 @@ const Settings = () => {
   const [instructions, setInstructions] = useState("");
   const [numRows, setNumRows] = useState(0);
   const [includedModelIds, setIncludedModelIds] = useState<string[]>([]);
-
-  const addFilter = useFilters().addFilter;
-
-  const deleteEvalDialog = useDisclosure();
+  const [selectedEvaluationModel, setSelectedEvaluationModel] =
+    useState<externalModel>(defaultEvaluationModel);
 
   const [onSaveConfirm, saveInProgress] = useHandledAsyncCallback(async () => {
     if (
@@ -47,6 +57,7 @@ const Settings = () => {
       includedModelIds.length < 2
     )
       return;
+
     const resp = await saveMutation.mutateAsync({
       id: datasetEval.id,
       updates: {
@@ -54,29 +65,24 @@ const Settings = () => {
         instructions,
         numRows,
         modelIds: includedModelIds,
+        evaluationModelId: selectedEvaluationModel.id,
       },
     });
     if (maybeReportError(resp)) return;
+
     await utils.nodeEntries.listTestingEntries.invalidate({ datasetId: dataset.id });
     await utils.datasetEvals.testingStats.invalidate({ datasetId: dataset.id });
     await utils.datasets.get.invalidate();
     await utils.datasetEvals.get.invalidate({ id: datasetEval.id });
 
     setComparisonCriteria(null);
-  }, [
-    saveMutation,
-    addFilter,
-    dataset?.id,
-    datasetEval?.id,
-    setComparisonCriteria,
-    name,
-    instructions,
-  ]);
+  }, [saveMutation, dataset?.id, datasetEval?.id, setComparisonCriteria, name, instructions]);
 
   const hasChanged =
     name !== datasetEval?.name ||
     instructions !== datasetEval?.instructions ||
     numRows !== datasetEval?.numRows ||
+    selectedEvaluationModel.id !== datasetEval?.evaluationModelId ||
     !isEqual(
       includedModelIds.sort(),
       datasetEval?.outputSources.map((source) => source.modelId).sort(),
@@ -87,6 +93,9 @@ const Settings = () => {
 
     const numRowFinalComparisons = (includedModelIds.length * (includedModelIds.length - 1)) / 2;
 
+    if (selectedEvaluationModel.id !== datasetEval?.evaluationModelId) {
+      return numRowFinalComparisons * numRows;
+    }
     // If the instructions have changed, we need to re-evaluate all comparisons
     if (instructions !== datasetEval.instructions) {
       return numRowFinalComparisons * numRows;
@@ -117,39 +126,31 @@ const Settings = () => {
     includedModelIds,
     datasetEval?.instructions,
     instructions,
+    datasetEval?.evaluationModelId,
+    selectedEvaluationModel.id,
   ]);
 
-  const modelOptions = useMemo(() => {
-    const options = [
-      {
-        id: ORIGINAL_MODEL_ID,
-        name: getOutputTitle(ORIGINAL_MODEL_ID) ?? "",
-      },
-    ];
-    if (!dataset) return options;
-    return [
-      ...options,
-      ...dataset.enabledComparisonModels.map((comparisonModelId) => ({
-        id: comparisonModelId,
-        name: getOutputTitle(comparisonModelId) ?? "",
-      })),
-      ...dataset.deployedFineTunes.map((model) => ({
-        id: model.id,
-        name: getOutputTitle(model.id, model.slug) ?? "",
-      })),
-    ];
-  }, [dataset]);
-
-  const reset = useCallback(() => {
+  const reset = useCallback(async () => {
     if (datasetEval) {
       setName(datasetEval.name);
       setInstructions(datasetEval.instructions ?? "");
       setNumRows(datasetEval.numRows);
       setIncludedModelIds(datasetEval.outputSources.map((source) => source.modelId));
+
+      setSelectedEvaluationModel(await getEvaluationModel(datasetEval.evaluationModelId));
     }
   }, [datasetEval, setName, setInstructions, setNumRows, setIncludedModelIds]);
 
-  useEffect(() => reset(), [datasetEval, reset]);
+  useEffect(() => {
+    fetchEvaluationModel();
+
+    async function fetchEvaluationModel() {
+      datasetEval &&
+        setSelectedEvaluationModel(await getEvaluationModel(datasetEval.evaluationModelId));
+    }
+  }, [datasetEval?.evaluationModelId]);
+
+  useEffect(() => void reset(), [datasetEval, reset]);
 
   if (!datasetEval?.datasetName) return null;
 
@@ -173,71 +174,14 @@ const Settings = () => {
                 fontWeight="500"
               />
             </VStack>
-            <VStack alignItems="flex-start" w="full">
-              <Text fontWeight="bold">Name</Text>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Eval1"
-                w="full"
-              />
-            </VStack>
-            <VStack alignItems="flex-start" w="full">
-              <Text fontWeight="bold" pb={2}>
-                Included Models
-              </Text>
-              <VStack alignItems="flex-start">
-                {modelOptions.map((model) => (
-                  <Checkbox
-                    key={model.id}
-                    isChecked={includedModelIds.includes(model.id)}
-                    colorScheme="blue"
-                    onChange={() =>
-                      setIncludedModelIds((ids) =>
-                        ids.includes(model.id)
-                          ? ids.filter((id) => id !== model.id)
-                          : [...ids, model.id],
-                      )
-                    }
-                  >
-                    <Text>{model.name}</Text>
-                  </Checkbox>
-                ))}
-              </VStack>
-            </VStack>
-            <VStack alignItems="flex-start" w="full">
-              <HStack>
-                <Text fontWeight="bold">Dataset Entries</Text>
-                <InfoCircle tooltipText="The number of randomly selected dataset entries to apply this eval to." />
-              </HStack>
-              <Input
-                value={numRows}
-                type="number"
-                onChange={(e) => setNumRows(parseInt(e.target.value.match(/\d+/g)?.[0] ?? ""))}
-                placeholder="100"
-                w="full"
-              />
-              <Text
-                bgColor="orange.50"
-                borderColor="orange.500"
-                borderRadius={4}
-                borderWidth={1}
-                p={2}
-              >
-                These changes will add <b>{numAddedComparisons}</b> head-to-head comparisons and
-                cost approximately <b>${(numAddedComparisons * 0.06).toFixed(2)}</b>.
-              </Text>
-            </VStack>
-            <VStack alignItems="flex-start" w="full">
-              <Text fontWeight="bold">Instructions</Text>
-              <AutoResizeTextArea
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Which model's output better matches the prompt?"
-                w="full"
-                minH={32}
-              />
-            </VStack>
+            <EvalForm
+              datasetId={datasetEval.datasetId}
+              nameState={{ name, setName }}
+              modelState={{ includedModelIds, setIncludedModelIds }}
+              rowsState={{ numRows, setNumRows, numAddedComparisons }}
+              evaluationModelState={{ selectedEvaluationModel, setSelectedEvaluationModel }}
+              instructionsState={{ instructions, setInstructions }}
+            />
             <HStack alignSelf="flex-end">
               <ConditionallyEnable accessRequired="requireCanModifyProject">
                 <Button

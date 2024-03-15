@@ -146,6 +146,7 @@ export interface DatasetEval {
   datasetId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  evaluationModelId: string | null;
 }
 
 export interface DatasetEvalNodeEntry {
@@ -207,6 +208,17 @@ export interface ExportWeightsRequest {
   status: Generated<"COMPLETE" | "ERROR" | "IN_PROGRESS" | "PENDING">;
   createdAt: Generated<Timestamp>;
   weightsFormat: Generated<string>;
+}
+
+export interface ExternalModel {
+  id: string;
+  modelName: string;
+  slug: string;
+  endpoint: string;
+  apiKey: string;
+  projectId: string;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Timestamp;
 }
 
 export interface FineTune {
@@ -539,6 +551,7 @@ export interface DB {
   DatasetEvalResult: DatasetEvalResult;
   DatasetFileUpload: DatasetFileUpload;
   ExportWeightsRequest: ExportWeightsRequest;
+  ExternalModel: ExternalModel;
   FineTune: FineTune;
   FineTuneTestingEntry: FineTuneTestingEntry;
   FineTuneTrainingEntry: FineTuneTrainingEntry;
