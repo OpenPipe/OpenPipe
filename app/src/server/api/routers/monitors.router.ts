@@ -82,7 +82,11 @@ export const monitorsRouter = createTRPCRouter({
       monitorFilterNodeId: monitor.config.filterNodeId,
     })
       .selectAll("d")
-      .select(["datasetNode.config as nodeConfig", "llmRelabelNode.config as llmRelabelNodeConfig"])
+      .select([
+        "datasetNode.config as nodeConfig",
+        "llmRelabelNode.id as llmRelabelNodeId",
+        "llmRelabelNode.config as llmRelabelNodeConfig",
+      ])
       .distinctOn(["dc0.createdAt"])
       .orderBy("dc0.createdAt", "asc")
       .execute()
@@ -90,7 +94,11 @@ export const monitorsRouter = createTRPCRouter({
         datasets.map((dataset) => ({
           ...dataset,
           node: typedNode({ config: dataset.nodeConfig, type: "Dataset" }),
-          llmRelabelNode: typedNode({ config: dataset.llmRelabelNodeConfig, type: "LLMRelabel" }),
+          llmRelabelNode: typedNode({
+            id: dataset.llmRelabelNodeId,
+            config: dataset.llmRelabelNodeConfig,
+            type: "LLMRelabel",
+          }),
         })),
       );
 

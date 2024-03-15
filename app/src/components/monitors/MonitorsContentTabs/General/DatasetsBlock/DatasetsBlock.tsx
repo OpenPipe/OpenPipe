@@ -20,7 +20,8 @@ import { useDatasets, useHandledAsyncCallback } from "~/utils/hooks";
 import InputDropdown from "~/components/InputDropdown";
 import { api } from "~/utils/api";
 import { toast } from "~/theme/ChakraThemeProvider";
-import { type DatasetToDisconnect, DisconnectDatasetDialog } from "./DisconnectDatasetDialog";
+import { type ConnectedDataset, DisconnectDatasetDialog } from "./DisconnectDatasetDialog";
+import RelabelSourceDialog from "~/components/datasets/DatasetContentTabs/Sources/RelabelSourceDialog";
 import { ProjectLink } from "~/components/ProjectLink";
 import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
@@ -35,7 +36,8 @@ const DatasetsBlock = () => {
   const currentDatasets = monitor?.datasets;
 
   const [datasetToConnect, setDatasetToConnect] = useState<DatasetToConnect | null>(null);
-  const [datasetToDisconnect, setDatasetToDisconnect] = useState<DatasetToDisconnect | null>(null);
+  const [datasetToDisconnect, setDatasetToDisconnect] = useState<ConnectedDataset | null>(null);
+  const [datasetToRelabel, setDatasetToRelabel] = useState<ConnectedDataset | null>(null);
 
   const availableDatasets = useMemo(
     () =>
@@ -44,16 +46,6 @@ const DatasetsBlock = () => {
         : [],
     [allDatasets, currentDatasets],
   );
-
-  const datasets = useMemo(() => {
-    return allDatasets?.map((dataset) => {
-      const connectedDataset = currentDatasets?.find((d) => d.nodeId === dataset.nodeId);
-      if (connectedDataset) {
-        return connectedDataset;
-      }
-      return dataset;
-    });
-  }, [allDatasets, currentDatasets]);
 
   useEffect(() => {
     if (availableDatasets?.[0]) {
@@ -71,7 +63,7 @@ const DatasetsBlock = () => {
       datasetToDisconnect,
     }: {
       datasetToConnect?: DatasetToConnect;
-      datasetToDisconnect?: DatasetToDisconnect;
+      datasetToDisconnect?: ConnectedDataset;
     }) => {
       if (saveDisabled || (!datasetToConnect && !datasetToDisconnect)) return;
 
@@ -125,94 +117,6 @@ const DatasetsBlock = () => {
                 <Th>Name</Th>
                 <Th>Relabeling Method</Th>
                 <Th>Relabeled Data</Th>
-                <Th isNumeric>Connection</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {monitor &&
-                datasets?.map((dataset) => {
-                  const isConnected = "llmRelabelNode" in dataset;
-                  return (
-                    <Tr key={dataset.id}>
-                      <Td>
-                        <ProjectLink
-                          href={{
-                            pathname: "/datasets/[id]/[tab]",
-                            query: {
-                              id: dataset.id,
-                              tab: DATASET_GENERAL_TAB_KEY,
-                              ...constructFiltersQueryParams({
-                                filters: [
-                                  {
-                                    id: Date.now().toString(),
-                                    field: GeneralFiltersDefaultFields.Source,
-                                    comparator: "=",
-                                    value: monitor.id,
-                                  },
-                                ],
-                              }),
-                            },
-                          }}
-                        >
-                          <LabelText
-                            color="blue.600"
-                            fontWeight={500}
-                            _hover={{ textDecoration: "underline" }}
-                          >
-                            {dataset.name}
-                          </LabelText>
-                        </ProjectLink>
-                      </Td>
-                      <Td>
-                        {isConnected ? (
-                          <Button variant="link" fontWeight="400" colorScheme="blue">
-                            {dataset.llmRelabelNode?.config.relabelLLM}
-                          </Button>
-                        ) : undefined}
-                      </Td>
-                      <Td>
-                        {isConnected ? (
-                          <Button variant="link" fontWeight="400" colorScheme="blue">
-                            View
-                          </Button>
-                        ) : undefined}
-                      </Td>
-                      <Td isNumeric>
-                        {isConnected ? (
-                          <Button
-                            variant="ghost"
-                            colorScheme="red"
-                            size="sm"
-                            onClick={() => setDatasetToDisconnect(dataset)}
-                          >
-                            Disconnect
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            colorScheme="blue"
-                            size="sm"
-                            onClick={() => updateMonitor({ datasetToConnect: dataset })}
-                          >
-                            Connect
-                          </Button>
-                        )}
-                      </Td>
-                    </Tr>
-                  );
-                })}
-            </Tbody>
-          </Table>
-        </Skeleton>
-      </Card>
-      <Card width="100%">
-        <Skeleton isLoaded={!!monitor}>
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>Name</Th>
-                <Th>Relabeling Method</Th>
-                <Th>Relabeled Data</Th>
                 <Th />
               </Tr>
             </Thead>
@@ -251,7 +155,11 @@ const DatasetsBlock = () => {
                         </ProjectLink>
                       </Td>
                       <Td>
-                        <Button variant="link" fontWeight="400">
+                        <Button
+                          variant="link"
+                          fontWeight="400"
+                          onClick={() => setDatasetToRelabel(dataset)}
+                        >
                           {dataset.llmRelabelNode?.config.relabelLLM}
                         </Button>
                       </Td>
@@ -303,88 +211,6 @@ const DatasetsBlock = () => {
           )}
         </Skeleton>
       </Card>
-      <Card w="full">
-        <Skeleton isLoaded={!!monitor && !!allDatasets}>
-          <VStack alignItems="flex-start" spacing={4} w="full">
-            {monitor &&
-              currentDatasets?.map((dataset, i) => (
-                <VStack
-                  key={dataset.id}
-                  w="full"
-                  alignItems="flex-start"
-                  borderTopWidth={i ? 1 : 0}
-                  p={4}
-                >
-                  <HStack w="full" justifyContent="space-between">
-                    <ProjectLink
-                      href={{
-                        pathname: "/datasets/[id]/[tab]",
-                        query: {
-                          id: dataset.id,
-                          tab: DATASET_GENERAL_TAB_KEY,
-                          ...constructFiltersQueryParams({
-                            filters: [
-                              {
-                                id: Date.now().toString(),
-                                field: GeneralFiltersDefaultFields.Source,
-                                comparator: "=",
-                                value: monitor.id,
-                              },
-                            ],
-                          }),
-                        },
-                      }}
-                    >
-                      <LabelText color="blue.600" _hover={{ textDecoration: "underline" }}>
-                        {dataset.name}
-                      </LabelText>
-                    </ProjectLink>
-                    <Button
-                      variant="ghost"
-                      colorScheme="red"
-                      size="sm"
-                      onClick={() => setDatasetToDisconnect(dataset)}
-                    >
-                      Disconnect
-                    </Button>
-                  </HStack>
-                </VStack>
-              ))}
-            {availableDatasets.length && datasetToConnect && (
-              <VStack
-                w="full"
-                alignItems="flex-start"
-                p={4}
-                spacing={4}
-                borderTopWidth={currentDatasets?.length ? 1 : 0}
-              >
-                <LabelText>Add Dataset</LabelText>
-                <HStack w="full" justifyContent="space-between">
-                  <InputDropdown
-                    selectedOption={datasetToConnect}
-                    options={availableDatasets}
-                    getDisplayLabel={(option) => option.name}
-                    onSelect={setDatasetToConnect}
-                    placement="top-start"
-                    maxPopoverContentHeight={400}
-                    minItemHeight={10}
-                  />
-                  <Button
-                    variant="ghost"
-                    colorScheme="blue"
-                    size="sm"
-                    onClick={() => updateMonitor({ datasetToConnect })}
-                    isLoading={updatingMonitor}
-                    isDisabled={saveDisabled}
-                  >
-                    Connect
-                  </Button>
-                </HStack>
-              </VStack>
-            )}
-          </VStack>
-        </Skeleton>
-      </Card>
       <DisconnectDatasetDialog
         dataset={datasetToDisconnect}
         onConfirm={() => {
@@ -392,6 +218,19 @@ const DatasetsBlock = () => {
           setDatasetToDisconnect(null);
         }}
         onCancel={() => setDatasetToDisconnect(null)}
+      />
+      <RelabelSourceDialog
+        source={
+          monitor && datasetToRelabel
+            ? {
+                name: monitor.name,
+                relabelOption: datasetToRelabel.llmRelabelNode?.config.relabelLLM,
+                numTotalEntries: monitor.numPassedEntries,
+                llmRelabelNodeId: datasetToRelabel.llmRelabelNode.id,
+              }
+            : null
+        }
+        onClose={() => setDatasetToRelabel(null)}
       />
     </>
   );

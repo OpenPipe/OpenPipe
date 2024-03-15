@@ -14,14 +14,14 @@ import {
 import { type RouterOutputs } from "~/utils/api";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 
-export type DatasetToDisconnect = RouterOutputs["monitors"]["get"]["datasets"][number];
+export type ConnectedDataset = RouterOutputs["monitors"]["get"]["datasets"][number];
 
 export const DisconnectDatasetDialog = ({
   dataset,
   onConfirm,
   onCancel,
 }: {
-  dataset: DatasetToDisconnect | null;
+  dataset: ConnectedDataset | null;
   onConfirm: () => void;
   onCancel: () => void;
 }) => {

@@ -32,8 +32,7 @@ const RelabelSourceDialog = ({
   source: {
     name: string;
     relabelOption: RelabelOption;
-    numTestEntries: number;
-    numTrainEntries: number;
+    numTotalEntries: number;
     llmRelabelNodeId: string;
   } | null;
 }) => {
@@ -63,11 +62,10 @@ const RelabelSourceDialog = ({
     await utils.nodeEntries.list.invalidate();
     await utils.datasets.listSources.invalidate();
     await utils.datasets.get.invalidate();
+    await utils.monitors.get.invalidate();
 
     onClose();
   }, [mutation, relabelOption, onClose]);
-
-  const numEntries = source ? source.numTrainEntries + source.numTestEntries : 0;
 
   return (
     <AlertDialog leastDestructiveRef={cancelRef} isOpen={!!source} onClose={onClose}>
@@ -80,8 +78,9 @@ const RelabelSourceDialog = ({
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
-                Choose a model to relabel the <b>{numEntries.toLocaleString()}</b> entries in{" "}
-                <b>{source?.name}</b>. This project's OpenAI API key will be used for the API calls.
+                Choose a model to relabel the <b>{source?.numTotalEntries.toLocaleString()}</b>{" "}
+                entries in <b>{source?.name}</b>. This project's OpenAI API key will be used for the
+                API calls.
               </Text>
 
               {needsMissingOpenaiKey ? (

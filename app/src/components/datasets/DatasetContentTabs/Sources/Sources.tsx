@@ -24,8 +24,8 @@ const Sources = () => {
 
   const selectedProject = useSelectedProject().data;
 
-  const [sourceToRelabel, setSourceToRelabel] = useState<DatasetSource | null>(null);
   const [sourceToRemove, setSourceToRemove] = useState<DatasetSource | null>(null);
+  const [sourceToRelabel, setSourceToRelabel] = useState<DatasetSource | null>(null);
 
   const router = useRouter();
 

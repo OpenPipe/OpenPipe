@@ -49,6 +49,7 @@ export const listSources = protectedProcedure
             type: "LLMRelabel",
             config: archive.llmRelabelNodeConfig,
           }).config.relabelLLM,
+          numTotalEntries: archive.numTrainEntries + archive.numTestEntries,
         })),
       );
 
@@ -69,12 +70,13 @@ export const listSources = protectedProcedure
       .orderBy("monitorNode.createdAt", "desc")
       .execute()
       .then((monitors) =>
-        monitors.map((archive) => ({
-          ...archive,
+        monitors.map((monitor) => ({
+          ...monitor,
           relabelOption: typedNode({
             type: "LLMRelabel",
-            config: archive.llmRelabelNodeConfig,
+            config: monitor.llmRelabelNodeConfig,
           }).config.relabelLLM,
+          numTotalEntries: monitor.numTrainEntries + monitor.numTestEntries,
         })),
       );
 
