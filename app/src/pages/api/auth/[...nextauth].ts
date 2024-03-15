@@ -20,76 +20,71 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
     req.query?.nextauth?.includes("callback") &&
     req.query.nextauth?.includes("credentials") &&
     req?.method === "POST";
-  const providers: Provider[] = [
-    GitHubProvider({
-      clientId: env.GITHUB_CLIENT_ID as string,
-      clientSecret: env.GITHUB_CLIENT_SECRET as string,
-      profile(profile: GithubProfile) {
-        return {
-          id: profile.id.toString(),
-          name: profile.name ?? profile.login,
-          email: profile.email,
-          image: profile.avatar_url,
-          gitHubUsername: profile.login,
-        };
-      },
-    }),
-  ];
+  const providers: Provider[] =
+    env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
+      ? [
+          GitHubProvider({
+            clientId: env.GITHUB_CLIENT_ID,
+            clientSecret: env.GITHUB_CLIENT_SECRET,
+            profile(profile: GithubProfile) {
+              return {
+                id: profile.id.toString(),
+                name: profile.name ?? profile.login,
+                email: profile.email,
+                image: profile.avatar_url,
+                gitHubUsername: profile.login,
+              };
+            },
+          }),
+        ]
+      : [
+          CredentialsProvider({
+            credentials: {
+              email: { label: "Email", type: "text" },
+            },
+            authorize: async (credentials) => {
+              const { email } = credentials || {};
+              if (!email) {
+                throw new Error("Email is required");
+              }
+              try {
+                const { email } = credentials as { email: string; password?: string };
 
-  // Conditionally add CredentialsProvider in development environment
-  if (!process.env.GITHUB_CLIENT_ID && process.env.NODE_ENV === "development") {
-    // Remove the GitHub provider since it's not configured
-    providers.pop();
-    providers.push(
-      CredentialsProvider({
-        credentials: {
-          email: { label: "email", type: "text" },
-        },
-        authorize: async (credentials) => {
-          // Authorization logic remains the same
-          const { email } = credentials || {};
-          if (!email) {
-            throw new Error("Email is required");
-          }
-          try {
-            const { email } = credentials as { email: string; password?: string };
+                let user = await prisma.user.findUnique({
+                  where: {
+                    email,
+                  },
+                });
 
-            let user = await prisma.user.findUnique({
-              where: {
-                email,
-              },
-            });
+                if (!user) {
+                  user = await prisma.user.create({
+                    data: {
+                      email,
+                    },
+                  });
 
-            if (!user) {
-              user = await prisma.user.create({
-                data: {
-                  email,
-                },
-              });
+                  await prisma.account.create({
+                    data: {
+                      userId: user.id,
+                      provider: "credentials",
+                      type: "credentials",
+                      providerAccountId: user.id,
+                    },
+                  });
+                }
 
-              await prisma.account.create({
-                data: {
-                  userId: user.id,
-                  provider: "credentials",
-                  type: "credentials",
-                  providerAccountId: user.id,
-                },
-              });
-            }
-
-            return {
-              id: user.id,
-              email: user.email,
-              image: user.image,
-              name: user.name,
-            };
-          } catch (error) {
-            throw error;
-          }
-        },
-      }),
-    );
-  }
+                return {
+                  id: user.id,
+                  email: user.email,
+                  image: user.image,
+                  name: user.name,
+                };
+              } catch (error) {
+                throw error;
+              }
+            },
+          }),
+        ];
   return [
     req,
     res,
