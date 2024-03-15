@@ -15,7 +15,7 @@ import pluralize from "pluralize";
 import { api } from "~/utils/api";
 import { useDataset, useHandledAsyncCallback, useSelectedProject } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { type DatasetSource } from "./RelabelArchiveDialog";
+import { type DatasetSource } from "./RelabelSourceDialog";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 
 export const RemoveSourceDialog = ({

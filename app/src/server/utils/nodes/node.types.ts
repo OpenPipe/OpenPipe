@@ -44,7 +44,6 @@ export const monitorNodeSchema = z
         maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
         sampleRate: z.number().default(1),
         filterNodeId: z.string(),
-        relabelNodeId: z.string(),
       })
       .passthrough(),
   })

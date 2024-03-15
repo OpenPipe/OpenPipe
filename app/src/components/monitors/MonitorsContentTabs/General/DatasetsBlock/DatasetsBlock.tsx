@@ -1,5 +1,17 @@
 import { useEffect, useState, useMemo } from "react";
-import { VStack, Card, Skeleton, HStack, Button } from "@chakra-ui/react";
+import {
+  VStack,
+  Card,
+  Skeleton,
+  HStack,
+  Button,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+} from "@chakra-ui/react";
 
 import { useMonitor } from "../../../useMonitor";
 import { LabelText } from "../styledText";
@@ -32,6 +44,16 @@ const DatasetsBlock = () => {
         : [],
     [allDatasets, currentDatasets],
   );
+
+  const datasets = useMemo(() => {
+    return allDatasets?.map((dataset) => {
+      const connectedDataset = currentDatasets?.find((d) => d.nodeId === dataset.nodeId);
+      if (connectedDataset) {
+        return connectedDataset;
+      }
+      return dataset;
+    });
+  }, [allDatasets, currentDatasets]);
 
   useEffect(() => {
     if (availableDatasets?.[0]) {
@@ -95,6 +117,192 @@ const DatasetsBlock = () => {
 
   return (
     <>
+      <Card width="100%">
+        <Skeleton isLoaded={!!monitor}>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Relabeling Method</Th>
+                <Th>Relabeled Data</Th>
+                <Th isNumeric>Connection</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {monitor &&
+                datasets?.map((dataset) => {
+                  const isConnected = "llmRelabelNode" in dataset;
+                  return (
+                    <Tr key={dataset.id}>
+                      <Td>
+                        <ProjectLink
+                          href={{
+                            pathname: "/datasets/[id]/[tab]",
+                            query: {
+                              id: dataset.id,
+                              tab: DATASET_GENERAL_TAB_KEY,
+                              ...constructFiltersQueryParams({
+                                filters: [
+                                  {
+                                    id: Date.now().toString(),
+                                    field: GeneralFiltersDefaultFields.Source,
+                                    comparator: "=",
+                                    value: monitor.id,
+                                  },
+                                ],
+                              }),
+                            },
+                          }}
+                        >
+                          <LabelText
+                            color="blue.600"
+                            fontWeight={500}
+                            _hover={{ textDecoration: "underline" }}
+                          >
+                            {dataset.name}
+                          </LabelText>
+                        </ProjectLink>
+                      </Td>
+                      <Td>
+                        {isConnected ? (
+                          <Button variant="link" fontWeight="400" colorScheme="blue">
+                            {dataset.llmRelabelNode?.config.relabelLLM}
+                          </Button>
+                        ) : undefined}
+                      </Td>
+                      <Td>
+                        {isConnected ? (
+                          <Button variant="link" fontWeight="400" colorScheme="blue">
+                            View
+                          </Button>
+                        ) : undefined}
+                      </Td>
+                      <Td isNumeric>
+                        {isConnected ? (
+                          <Button
+                            variant="ghost"
+                            colorScheme="red"
+                            size="sm"
+                            onClick={() => setDatasetToDisconnect(dataset)}
+                          >
+                            Disconnect
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            colorScheme="blue"
+                            size="sm"
+                            onClick={() => updateMonitor({ datasetToConnect: dataset })}
+                          >
+                            Connect
+                          </Button>
+                        )}
+                      </Td>
+                    </Tr>
+                  );
+                })}
+            </Tbody>
+          </Table>
+        </Skeleton>
+      </Card>
+      <Card width="100%">
+        <Skeleton isLoaded={!!monitor}>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Relabeling Method</Th>
+                <Th>Relabeled Data</Th>
+                <Th />
+              </Tr>
+            </Thead>
+            <Tbody>
+              {monitor &&
+                currentDatasets?.map((dataset) => {
+                  return (
+                    <Tr key={dataset.id}>
+                      <Td>
+                        <ProjectLink
+                          href={{
+                            pathname: "/datasets/[id]/[tab]",
+                            query: {
+                              id: dataset.id,
+                              tab: DATASET_GENERAL_TAB_KEY,
+                              ...constructFiltersQueryParams({
+                                filters: [
+                                  {
+                                    id: Date.now().toString(),
+                                    field: GeneralFiltersDefaultFields.Source,
+                                    comparator: "=",
+                                    value: monitor.id,
+                                  },
+                                ],
+                              }),
+                            },
+                          }}
+                        >
+                          <LabelText
+                            color="blue.600"
+                            fontWeight={500}
+                            _hover={{ textDecoration: "underline" }}
+                          >
+                            {dataset.name}
+                          </LabelText>
+                        </ProjectLink>
+                      </Td>
+                      <Td>
+                        <Button variant="link" fontWeight="400">
+                          {dataset.llmRelabelNode?.config.relabelLLM}
+                        </Button>
+                      </Td>
+                      <Td>
+                        <Button variant="link" fontWeight="400">
+                          View
+                        </Button>
+                      </Td>
+                      <Td display="flex" justifyContent="flex-end">
+                        <Button
+                          variant="ghost"
+                          colorScheme="red"
+                          size="sm"
+                          onClick={() => setDatasetToDisconnect(dataset)}
+                        >
+                          Disconnect
+                        </Button>
+                      </Td>
+                    </Tr>
+                  );
+                })}
+            </Tbody>
+          </Table>
+          {availableDatasets.length && datasetToConnect && (
+            <VStack w="full" alignItems="flex-start" p={4} spacing={4}>
+              <LabelText>Add Dataset</LabelText>
+              <HStack w="full" justifyContent="space-between">
+                <InputDropdown
+                  selectedOption={datasetToConnect}
+                  options={availableDatasets}
+                  getDisplayLabel={(option) => option.name}
+                  onSelect={setDatasetToConnect}
+                  placement="top-start"
+                  maxPopoverContentHeight={400}
+                  minItemHeight={10}
+                />
+                <Button
+                  variant="ghost"
+                  colorScheme="blue"
+                  size="sm"
+                  onClick={() => updateMonitor({ datasetToConnect })}
+                  isLoading={updatingMonitor}
+                  isDisabled={saveDisabled}
+                >
+                  Connect
+                </Button>
+              </HStack>
+            </VStack>
+          )}
+        </Skeleton>
+      </Card>
       <Card w="full">
         <Skeleton isLoaded={!!monitor && !!allDatasets}>
           <VStack alignItems="flex-start" spacing={4} w="full">

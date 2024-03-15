@@ -10,9 +10,8 @@ import { RemoveSourceDialog } from "./RemoveSourceDialog";
 import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 import { ProjectLink } from "~/components/ProjectLink";
-import RelabelArchiveDialog, { type DatasetSource } from "./RelabelArchiveDialog";
+import RelabelSourceDialog, { type DatasetSource } from "./RelabelSourceDialog";
 import { RelabelOption } from "~/server/utils/nodes/node.types";
-import { LabelText } from "~/components/monitors/MonitorsContentTabs/General/styledText";
 import { MONITOR_GENERAL_KEY } from "~/components/monitors/MonitorsContentTabs/MonitorsContentTabs";
 
 const Sources = () => {
@@ -25,7 +24,7 @@ const Sources = () => {
 
   const selectedProject = useSelectedProject().data;
 
-  const [archiveToRelabel, setArchiveToRelabel] = useState<DatasetSource | null>(null);
+  const [sourceToRelabel, setSourceToRelabel] = useState<DatasetSource | null>(null);
   const [sourceToRemove, setSourceToRemove] = useState<DatasetSource | null>(null);
 
   const router = useRouter();
@@ -103,6 +102,7 @@ const Sources = () => {
                   source={monitor}
                   filterToSource={filterToSource}
                   openRemoveDialog={() => setSourceToRemove(monitor)}
+                  openRelabelDialog={() => setSourceToRelabel(monitor)}
                 />
               </Box>
             ))}
@@ -128,7 +128,7 @@ const Sources = () => {
                   source={archive}
                   filterToSource={filterToSource}
                   openRemoveDialog={() => setSourceToRemove(archive)}
-                  openRelabelDialog={() => setArchiveToRelabel(archive)}
+                  openRelabelDialog={() => setSourceToRelabel(archive)}
                 />
               </Box>
             ))}
@@ -136,7 +136,7 @@ const Sources = () => {
         </VStack>
       )}
 
-      <RelabelArchiveDialog archive={archiveToRelabel} onClose={() => setArchiveToRelabel(null)} />
+      <RelabelSourceDialog source={sourceToRelabel} onClose={() => setSourceToRelabel(null)} />
       <RemoveSourceDialog source={sourceToRemove} onClose={() => setSourceToRemove(null)} />
     </VStack>
   );
@@ -151,11 +151,10 @@ const Source = ({
   source: DatasetSource;
   filterToSource: (sourceId: string) => void;
   openRemoveDialog: () => void;
-  openRelabelDialog?: () => void;
+  openRelabelDialog: () => void;
 }) => {
   const relabelOptionText = getRelabelOptionText({
     relabelOption: source.relabelOption,
-    suggestRelabeling: source.type === "Archive",
   });
 
   return (
@@ -181,20 +180,13 @@ const Source = ({
           ) : (
             <Text fontWeight="bold">{source.name}</Text>
           )}
-          {openRelabelDialog ? (
-            <Button variant="link" fontSize="sm" colorScheme="blue" onClick={openRelabelDialog}>
-              {relabelOptionText}
-            </Button>
-          ) : (
-            <LabelText fontSize="sm">{relabelOptionText}</LabelText>
-          )}
-        </VStack>
-
-        {openRemoveDialog && (
-          <Button variant="ghost" colorScheme="red" my={-2} onClick={openRemoveDialog}>
-            Remove
+          <Button variant="link" fontSize="sm" colorScheme="blue" onClick={openRelabelDialog}>
+            {relabelOptionText}
           </Button>
-        )}
+        </VStack>
+        <Button variant="ghost" colorScheme="red" my={-2} onClick={openRemoveDialog}>
+          Remove
+        </Button>
       </HStack>
       <HStack>
         <Text w={180}>Creation Date</Text>
@@ -230,15 +222,9 @@ const Source = ({
   );
 };
 
-const getRelabelOptionText = ({
-  relabelOption,
-  suggestRelabeling,
-}: {
-  relabelOption: RelabelOption;
-  suggestRelabeling: boolean;
-}) => {
+const getRelabelOptionText = ({ relabelOption }: { relabelOption: RelabelOption }) => {
   if (relabelOption === RelabelOption.SkipRelabel) {
-    return suggestRelabeling ? "Relabel entries" : "Relabeling skipped";
+    return "Relabel entries";
   }
   return `Relabeled by ${relabelOption}`;
 };

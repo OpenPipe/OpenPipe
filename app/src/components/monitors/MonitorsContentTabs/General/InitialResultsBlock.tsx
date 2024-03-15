@@ -52,6 +52,8 @@ const InitialResultsBlock = () => {
           </HStack>
           <LoggedCallsTable
             filters={initialFilters}
+            sampleRate={sampleRate}
+            maxOutputSize={maxOutputSize}
             showOptions={false}
             slowBatch
             orderBy="updatedAt"

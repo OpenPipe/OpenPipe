@@ -1,21 +1,25 @@
 import { kysely } from "~/server/db";
-import { LLMRelabelOutput } from "./nodeProperties/nodeProperties.types";
+import { FilterOutput, LLMRelabelOutput } from "./nodeProperties/nodeProperties.types";
 
-export const getDownstreamDatasets = ({
-  monitorLLMRelabelNodeId,
-}: {
-  monitorLLMRelabelNodeId: string;
-}) => {
+export const getDownstreamDatasets = ({ monitorFilterNodeId }: { monitorFilterNodeId: string }) => {
   return kysely
-    .selectFrom("Node as monitorLLMRelabelNode")
-    .where("monitorLLMRelabelNode.id", "=", monitorLLMRelabelNodeId)
+    .selectFrom("Node as monitorFilterNode")
+    .where("monitorFilterNode.id", "=", monitorFilterNodeId)
     .innerJoin(
-      "NodeOutput as monitorLLMRelabelNodeOutput",
-      "monitorLLMRelabelNodeOutput.nodeId",
-      "monitorLLMRelabelNode.id",
+      "NodeOutput as monitorFilterNodeOutput",
+      "monitorFilterNodeOutput.nodeId",
+      "monitorFilterNode.id",
     )
-    .where("monitorLLMRelabelNodeOutput.label", "=", LLMRelabelOutput.Relabeled)
-    .innerJoin("DataChannel as dc1", "dc1.originId", "monitorLLMRelabelNodeOutput.id")
+    .where("monitorFilterNodeOutput.label", "=", FilterOutput.Passed)
+    .innerJoin("DataChannel as dc0", "dc0.originId", "monitorFilterNodeOutput.id")
+    .innerJoin("Node as llmRelabelNode", "llmRelabelNode.id", "dc0.destinationId")
+    .innerJoin(
+      "NodeOutput as llmRelabelNodeOutput",
+      "llmRelabelNodeOutput.nodeId",
+      "llmRelabelNode.id",
+    )
+    .where("llmRelabelNodeOutput.label", "=", LLMRelabelOutput.Relabeled)
+    .innerJoin("DataChannel as dc1", "dc1.originId", "llmRelabelNodeOutput.id")
     .innerJoin("Node as manualRelabelNode", "manualRelabelNode.id", "dc1.destinationId")
     .innerJoin(
       "NodeOutput as manualRelabelNodeOutput",

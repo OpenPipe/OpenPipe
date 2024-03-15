@@ -27,6 +27,7 @@ export const loggedCallsRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { projectId, filters, page, pageSize, sampleRate, maxOutputSize, orderBy } = input;
 
+      console.log({ maxOutputSize });
       await requireCanViewProject(projectId, ctx);
 
       const orderByField = orderBy === "updatedAt" ? "lc.updatedAt" : "lc.requestedAt";

@@ -79,19 +79,6 @@ export const prepareIntegratedMonitorCeation = ({
 }) => {
   const prismaCreations: Prisma.PrismaPromise<unknown>[] = [];
 
-  const preparedLLMRelabelCreation = prepareLLMRelabelCreation({
-    nodeParams: {
-      name: "Monitor LLM Relabel",
-      projectId,
-      config: {
-        relabelLLM: RelabelOption.SkipRelabel,
-        maxLLMConcurrency: 2,
-      },
-    },
-  });
-
-  prismaCreations.push(...preparedLLMRelabelCreation.prismaCreations);
-
   const preparedFilterCreation = prepareFilterCreation({
     nodeParams: {
       name: "Monitor Filter",
@@ -103,15 +90,7 @@ export const prepareIntegratedMonitorCeation = ({
     },
   });
 
-  prismaCreations.push(
-    ...preparedFilterCreation.prismaCreations,
-    prisma.dataChannel.create({
-      data: {
-        originId: preparedFilterCreation.passedOutputId,
-        destinationId: preparedLLMRelabelCreation.relabelNodeId,
-      },
-    }),
-  );
+  prismaCreations.push(...preparedFilterCreation.prismaCreations);
 
   const preparedMonitorCreation = prepareMonitorCreation({
     nodeParams: {
@@ -123,7 +102,6 @@ export const prepareIntegratedMonitorCeation = ({
         initialFilters,
         lastLoggedCallUpdatedAt: new Date(0),
         filterNodeId: preparedFilterCreation.filterNodeId,
-        relabelNodeId: preparedLLMRelabelCreation.relabelNodeId,
       },
     },
   });
@@ -201,5 +179,50 @@ export const prepareIntegratedDatasetCreation = ({
     datasetNodeHash: preparedDatasetCreation.datasetNodeHash,
     manualRelabelDatasetInputChannelId,
     manualRelabelNodeId: preparedManualRelabelCreation.relabelNodeId,
+  };
+};
+
+export const prepareMonitorDatasetRelabelNode = ({
+  projectId,
+  monitorFilterPassedOutputId,
+  datasetManualRelabelNodeId,
+}: {
+  projectId: string;
+  monitorFilterPassedOutputId: string;
+  datasetManualRelabelNodeId: string;
+}) => {
+  const prismaCreations: Prisma.PrismaPromise<unknown>[] = [];
+
+  const preparedLLMRelabelCreation = prepareLLMRelabelCreation({
+    nodeParams: {
+      name: "Monitor Dataset Relabel",
+      projectId,
+      config: {
+        relabelLLM: RelabelOption.SkipRelabel,
+        maxLLMConcurrency: 2,
+      },
+    },
+  });
+
+  prismaCreations.push(...preparedLLMRelabelCreation.prismaCreations);
+
+  prismaCreations.push(
+    prisma.dataChannel.create({
+      data: {
+        originId: monitorFilterPassedOutputId,
+        destinationId: preparedLLMRelabelCreation.relabelNodeId,
+      },
+    }),
+    prisma.dataChannel.create({
+      data: {
+        originId: preparedLLMRelabelCreation.relabeledOutputId,
+        destinationId: datasetManualRelabelNodeId,
+      },
+    }),
+  );
+
+  return {
+    prismaCreations,
+    llmRelabelNodeId: preparedLLMRelabelCreation.relabelNodeId,
   };
 };

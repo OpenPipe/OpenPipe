@@ -24,32 +24,38 @@ import { ProjectLink } from "~/components/ProjectLink";
 
 export type DatasetSource = RouterOutputs["datasets"]["listSources"][number];
 
-const RelabelArchiveDialog = ({
+const RelabelSourceDialog = ({
   onClose,
-  archive,
+  source,
 }: {
   onClose: () => void;
-  archive: DatasetSource | null;
+  source: {
+    name: string;
+    relabelOption: RelabelOption;
+    numTestEntries: number;
+    numTrainEntries: number;
+    llmRelabelNodeId: string;
+  } | null;
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const selectedProject = useSelectedProject().data;
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
 
-  const mutation = api.archives.updateRelabelingModel.useMutation();
+  const mutation = api.nodes.updateRelabelingModel.useMutation();
   const utils = api.useUtils();
 
-  const [relabelOption, setRelabelOption] = useState(archive?.relabelOption);
+  const [relabelOption, setRelabelOption] = useState(source?.relabelOption);
 
   useEffect(
-    () => setRelabelOption(archive?.relabelOption),
-    [archive?.relabelOption, setRelabelOption],
+    () => setRelabelOption(source?.relabelOption),
+    [source?.relabelOption, setRelabelOption],
   );
 
   const [onRelabelConfirm, confirmingRelabelInProgress] = useHandledAsyncCallback(async () => {
-    if (!archive || !relabelOption || relabelOption === archive.relabelOption) return;
+    if (!source || !relabelOption || relabelOption === source.relabelOption) return;
     const resp = await mutation.mutateAsync({
-      archiveLLMRelabelNodeId: archive.llmRelabelNodeId,
+      llmRelabelNodeId: source.llmRelabelNodeId,
       relabelOption,
     });
     if (maybeReportError(resp)) return;
@@ -61,22 +67,21 @@ const RelabelArchiveDialog = ({
     onClose();
   }, [mutation, relabelOption, onClose]);
 
-  const numEntries = archive ? archive.numTrainEntries + archive.numTestEntries : 0;
+  const numEntries = source ? source.numTrainEntries + source.numTestEntries : 0;
 
   return (
-    <AlertDialog leastDestructiveRef={cancelRef} isOpen={!!archive} onClose={onClose}>
+    <AlertDialog leastDestructiveRef={cancelRef} isOpen={!!source} onClose={onClose}>
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Relabel Archive
+            Configure Relabeling
           </AlertDialogHeader>
 
           <AlertDialogBody>
             <VStack spacing={4} alignItems="flex-start">
               <Text>
                 Choose a model to relabel the <b>{numEntries.toLocaleString()}</b> entries in{" "}
-                <b>{archive?.name}</b>. This project's OpenAI API key will be used for the API
-                calls.
+                <b>{source?.name}</b>. This project's OpenAI API key will be used for the API calls.
               </Text>
 
               {needsMissingOpenaiKey ? (
@@ -115,7 +120,7 @@ const RelabelArchiveDialog = ({
               accessRequired="requireCanModifyProject"
               checks={[
                 [!needsMissingOpenaiKey, "OpenAI Key is required to relabel"],
-                [relabelOption !== archive?.relabelOption, "Choose a new relabeling option"],
+                [relabelOption !== source?.relabelOption, "Choose a new relabeling option"],
               ]}
             >
               <Button
@@ -134,4 +139,4 @@ const RelabelArchiveDialog = ({
   );
 };
 
-export default RelabelArchiveDialog;
+export default RelabelSourceDialog;

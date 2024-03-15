@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useMonitor } from "../monitors/useMonitor";
 import { ProcessingIndicator } from "../ProcessingIndicator";
-import { RelabelOption } from "~/server/utils/nodes/node.types";
+import { api } from "~/utils/api";
 
 export const MonitorProcessingIndicator = () => {
   const [refetchInterval, setRefetchInterval] = useState(0);
@@ -15,16 +15,13 @@ export const MonitorProcessingIndicator = () => {
     processingMessage = "Processing initial filters";
   } else if (monitor?.filter.status === "PROCESSING") {
     processingMessage = "Processing secondary filters";
-  } else if (
-    monitor?.llmRelabel.status === "PROCESSING" &&
-    monitor?.llmRelabel.config.relabelLLM !== RelabelOption.SkipRelabel
-  ) {
-    processingMessage = "Relabeling results";
-  } else if (monitor?.llmRelabel.status === "PROCESSING") {
-    processingMessage = "Processing final results";
   }
 
+  const utils = api.useUtils();
+
   useEffect(() => {
+    if (processingMessage === null && monitor)
+      void utils.nodeEntries.list.invalidate({ nodeId: monitor.filter.id });
     setRefetchInterval(processingMessage ? 2000 : 0);
   }, [processingMessage, setRefetchInterval]);
 
