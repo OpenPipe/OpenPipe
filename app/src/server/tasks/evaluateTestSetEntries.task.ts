@@ -20,7 +20,7 @@ import { getComparisonModelName, isComparisonModel } from "~/utils/comparisonMod
 import { chatCompletionMessage } from "~/types/shared.types";
 import { generateEntry } from "./generateTestSetEntry.task";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
-import { getEvaluationModel } from "../utils/externalModels/evaluationModels";
+import { getEvaluationModel } from "../api/routers/externalModel.router";
 
 export const RESPONSE_1_PLACEHOLDER = "Response 1";
 export const RESPONSE_2_PLACEHOLDER = "Response 2";
@@ -348,7 +348,7 @@ export const evaluateTestSetEntries = defineTask<EvalKey>({
       let judgementInput: ChatCompletionCreateParams | null = null;
 
       try {
-        judgementInput = await constructJudgementInput(
+        judgementInput = constructJudgementInput(
           input,
           firstOutput as JsonObject,
           secondOutput as JsonObject,
@@ -460,7 +460,7 @@ const functionParams = zodToJsonSchema(functionParamsSchema, "functionParamsSche
   "functionParamsSchema"
 ] as FunctionParameters;
 
-const constructJudgementInput = async (
+const constructJudgementInput = (
   datasetEntryInput: DatasetEntryInput,
   firstOutput: JsonObject,
   secondOutput: JsonObject,

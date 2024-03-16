@@ -1,10 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   Button,
-  Checkbox,
   HStack,
   Icon,
-  Input,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -28,21 +26,14 @@ import {
   useSelectedProject,
 } from "~/utils/hooks";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { useVisibleEvalIds } from "./useVisibleEvalIds";
 import { useFilters } from "~/components/Filters/useFilters";
-import InfoCircle from "~/components/InfoCircle";
-import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ProjectLink } from "~/components/ProjectLink";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
-import InputDropdown from "~/components/InputDropdown";
-import { externalModel } from "~/utils/externalModels/allModels";
-import {
-  defaultEvaluationModel,
-  predefinedEvaluationModels,
-} from "~/utils/externalModels/evaluationModels";
+import { defaultEvaluationModel } from "~/utils/externalModels/evaluationModels";
 import EvalForm from "~/components/evals/EvalForm/EvalForm";
+import { ExternalModel } from "@prisma/client";
 
 const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const mutation = api.datasetEvals.create.useMutation();
@@ -59,7 +50,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const [numRows, setNumRows] = useState(0);
   const [includedModelIds, setIncludedModelIds] = useState<string[]>([]);
   const [selectedEvaluationModel, setSelectedEvaluationModel] =
-    useState<externalModel>(defaultEvaluationModel);
+    useState<ExternalModel>(defaultEvaluationModel);
 
   useEffect(() => {
     if (disclosure.isOpen) {
@@ -107,7 +98,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
     addFilter,
   ]);
 
-  const numAddedComparisons = useMemo(
+  const numComparisons = useMemo(
     () => ((numRows || 0) * includedModelIds.length * (includedModelIds.length - 1)) / 2,
     [numRows, includedModelIds],
   );
@@ -144,7 +135,7 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
                     datasetId={dataset.id}
                     nameState={{ name, setName }}
                     modelState={{ includedModelIds, setIncludedModelIds }}
-                    rowsState={{ numRows, setNumRows, numAddedComparisons }}
+                    rowsState={{ numRows, setNumRows, numComparisons }}
                     evaluationModelState={{ selectedEvaluationModel, setSelectedEvaluationModel }}
                     instructionsState={{ instructions, setInstructions }}
                   />

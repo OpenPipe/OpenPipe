@@ -1,31 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Checkbox, HStack, Input, VStack, Text, useDisclosure } from "@chakra-ui/react";
-import { add, isEqual } from "lodash-es";
+import { Button, HStack, VStack, Text, useDisclosure } from "@chakra-ui/react";
+import { isEqual } from "lodash-es";
 
-import AutoResizeTextArea from "~/components/AutoResizeTextArea";
-import InfoCircle from "~/components/InfoCircle";
 import { api } from "~/utils/api";
-import { useDataset, useDatasetEval, useHandledAsyncCallback, useNodeEntries } from "~/utils/hooks";
+import { useDataset, useDatasetEval, useHandledAsyncCallback } from "~/utils/hooks";
 import DeleteEvalDialog from "./DeleteEvalDialog";
 import { useAppStore } from "~/state/store";
-import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
-import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import ContentCard from "~/components/ContentCard";
 import ViewDatasetButton from "~/components/datasets/ViewDatasetButton";
 import { DATASET_EVALUATION_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
-import InputDropdown from "~/components/InputDropdown";
-import {
-  defaultEvaluationModel,
-  predefinedEvaluationModels,
-} from "~/utils/externalModels/evaluationModels";
-import { externalModel } from "~/utils/externalModels/allModels";
-import { getEvaluationModel } from "~/server/utils/externalModels/evaluationModels";
-import { useFilters } from "~/components/Filters/useFilters";
-import frontendModelProvider from "~/modelProviders/openai-ChatCompletion/frontend";
-import EvalName from "../../EvalForm/EvalForm";
+import { defaultEvaluationModel } from "~/utils/externalModels/evaluationModels";
 import EvalForm from "../../EvalForm/EvalForm";
+import { type ExternalModel } from "@prisma/client";
 
 const Settings = () => {
   const utils = api.useContext();
@@ -40,12 +28,17 @@ const Settings = () => {
     (state) => state.evaluationsSlice.setComparisonCriteria,
   );
 
+  const usedEvaluationModel = api.externalModels.get.useQuery(
+    { id: datasetEval?.evaluationModelId },
+    { enabled: !!datasetEval },
+  ).data;
+
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
   const [numRows, setNumRows] = useState(0);
   const [includedModelIds, setIncludedModelIds] = useState<string[]>([]);
   const [selectedEvaluationModel, setSelectedEvaluationModel] =
-    useState<externalModel>(defaultEvaluationModel);
+    useState<ExternalModel>(defaultEvaluationModel);
 
   const [onSaveConfirm, saveInProgress] = useHandledAsyncCallback(async () => {
     if (
@@ -88,16 +81,16 @@ const Settings = () => {
       datasetEval?.outputSources.map((source) => source.modelId).sort(),
     );
 
-  const numAddedComparisons = useMemo(() => {
+  const numComparisons = useMemo(() => {
     if (!datasetEval?.outputSources) return 0;
 
     const numRowFinalComparisons = (includedModelIds.length * (includedModelIds.length - 1)) / 2;
 
-    if (selectedEvaluationModel.id !== datasetEval?.evaluationModelId) {
-      return numRowFinalComparisons * numRows;
-    }
-    // If the instructions have changed, we need to re-evaluate all comparisons
-    if (instructions !== datasetEval.instructions) {
+    // If the instructions or model have changed, we need to re-evaluate all comparisons
+    if (
+      selectedEvaluationModel.id !== datasetEval?.evaluationModelId ||
+      instructions !== datasetEval.instructions
+    ) {
       return numRowFinalComparisons * numRows;
     }
 
@@ -130,25 +123,20 @@ const Settings = () => {
     selectedEvaluationModel.id,
   ]);
 
-  const reset = useCallback(async () => {
+  const reset = useCallback(() => {
     if (datasetEval) {
       setName(datasetEval.name);
       setInstructions(datasetEval.instructions ?? "");
       setNumRows(datasetEval.numRows);
       setIncludedModelIds(datasetEval.outputSources.map((source) => source.modelId));
 
-      setSelectedEvaluationModel(await getEvaluationModel(datasetEval.evaluationModelId));
+      usedEvaluationModel && setSelectedEvaluationModel(usedEvaluationModel);
     }
   }, [datasetEval, setName, setInstructions, setNumRows, setIncludedModelIds]);
 
   useEffect(() => {
-    fetchEvaluationModel();
-
-    async function fetchEvaluationModel() {
-      datasetEval &&
-        setSelectedEvaluationModel(await getEvaluationModel(datasetEval.evaluationModelId));
-    }
-  }, [datasetEval?.evaluationModelId]);
+    usedEvaluationModel && setSelectedEvaluationModel(usedEvaluationModel);
+  }, [usedEvaluationModel]);
 
   useEffect(() => void reset(), [datasetEval, reset]);
 
@@ -178,7 +166,7 @@ const Settings = () => {
               datasetId={datasetEval.datasetId}
               nameState={{ name, setName }}
               modelState={{ includedModelIds, setIncludedModelIds }}
-              rowsState={{ numRows, setNumRows, numAddedComparisons }}
+              rowsState={{ numRows, setNumRows, numComparisons }}
               evaluationModelState={{ selectedEvaluationModel, setSelectedEvaluationModel }}
               instructionsState={{ instructions, setInstructions }}
             />

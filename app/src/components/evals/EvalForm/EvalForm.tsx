@@ -1,4 +1,5 @@
 import { Input, VStack, Text, Checkbox, HStack } from "@chakra-ui/react";
+import { ExternalModel } from "@prisma/client";
 import { useMemo } from "react";
 import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 import InfoCircle from "~/components/InfoCircle";
@@ -6,7 +7,6 @@ import InputDropdown from "~/components/InputDropdown";
 import frontendModelProvider from "~/modelProviders/openai-ChatCompletion/frontend";
 import { getOutputTitle } from "~/server/utils/getOutputTitle";
 import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
-import { externalModel } from "~/utils/externalModels/allModels";
 import { predefinedEvaluationModels } from "~/utils/externalModels/evaluationModels";
 import { useDataset, useNodeEntries } from "~/utils/hooks";
 
@@ -23,11 +23,11 @@ interface EvalNameProps {
   rowsState: {
     numRows: number;
     setNumRows: React.Dispatch<React.SetStateAction<number>>;
-    numAddedComparisons?: number;
+    numComparisons: number;
   };
   evaluationModelState: {
-    selectedEvaluationModel: externalModel;
-    setSelectedEvaluationModel: React.Dispatch<React.SetStateAction<externalModel>>;
+    selectedEvaluationModel: ExternalModel;
+    setSelectedEvaluationModel: React.Dispatch<React.SetStateAction<ExternalModel>>;
   };
   instructionsState: {
     instructions: string;
@@ -45,7 +45,7 @@ const EvalForm: React.FC<EvalNameProps> = ({
 }) => {
   const { name, setName } = nameState;
   const { includedModelIds, setIncludedModelIds } = modelState;
-  const { numRows, setNumRows, numAddedComparisons } = rowsState;
+  const { numRows, setNumRows, numComparisons } = rowsState;
   const { selectedEvaluationModel, setSelectedEvaluationModel } = evaluationModelState;
   const { instructions, setInstructions } = instructionsState;
 
@@ -85,8 +85,8 @@ const EvalForm: React.FC<EvalNameProps> = ({
     const costPerComparison =
       inputTokensPerComparison * inputTokenPrice + outputTokensPerComparison * outputTokenPrice;
 
-    return (costPerComparison * numAddedComparisons).toFixed(2);
-  }, [inputTokensPerComparison, modelPrice, numAddedComparisons]);
+    return (costPerComparison * numComparisons).toFixed(2);
+  }, [inputTokensPerComparison, modelPrice, numComparisons]);
 
   const modelOptions = useMemo(() => {
     const options = [
@@ -154,7 +154,7 @@ const EvalForm: React.FC<EvalNameProps> = ({
           w="full"
         />
         <Text bgColor="orange.50" borderColor="orange.500" borderRadius={4} borderWidth={1} p={2}>
-          These changes will add <b>{numAddedComparisons}</b> head-to-head comparisons
+          These changes will add <b>{numComparisons}</b> head-to-head comparisons
           {modelPrice.inputTokenPrice > 0 && (
             <>
               {" "}
@@ -171,7 +171,7 @@ const EvalForm: React.FC<EvalNameProps> = ({
         </HStack>
         <InputDropdown
           options={evaluationModels}
-          getDisplayLabel={(option) => option.slug}
+          getDisplayLabel={(option) => option.displayName}
           selectedOption={selectedEvaluationModel}
           onSelect={(option) => setSelectedEvaluationModel(option)}
           inputGroupProps={{ w: "100%" }}

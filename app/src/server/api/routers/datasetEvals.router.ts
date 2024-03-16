@@ -19,7 +19,7 @@ import {
   RESPONSE_2_PLACEHOLDER,
   getModelTitle,
 } from "~/server/tasks/evaluateTestSetEntries.task";
-import { getEvaluationModel } from "~/server/utils/externalModels/evaluationModels";
+import { getEvaluationModel } from "./externalModel.router";
 
 export const datasetEvalsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -244,7 +244,7 @@ export const datasetEvalsRouter = createTRPCRouter({
       }
 
       const shuffledNodeEntries = shuffle(testNodeEntries).slice(0, input.numRows);
-      let evaluationModel = await getEvaluationModel(input.evaluationModelId);
+      const evaluationModel = await getEvaluationModel(input.evaluationModelId);
 
       let datasetEval;
       try {
@@ -412,7 +412,8 @@ export const datasetEvalsRouter = createTRPCRouter({
         )
         .selectAll("dene")
         .execute();
-      let currentNumRows = currentDatasetEvalNodeEntries.length;
+
+      const currentNumRows = currentDatasetEvalNodeEntries.length;
 
       if (input.updates.numRows && input.updates.numRows !== currentNumRows) {
         // delete all datasetEvalNodeEntries without NodeEntries currently in dataset

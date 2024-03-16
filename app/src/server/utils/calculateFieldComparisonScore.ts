@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { kysely } from "../db";
 import { type typedNodeEntry } from "~/types/dbColumns.types";
+import { defaultEvaluationModel } from "~/utils/externalModels/evaluationModels";
 
 export const FIELD_COMPARISON_EVAL_NAME = "Field Comparison";
 
@@ -41,6 +42,7 @@ export const saveFieldComparisonScore = async ({
           datasetId,
           name: FIELD_COMPARISON_EVAL_NAME,
           type: "FIELD_COMPARISON",
+          evaluationModelId: defaultEvaluationModel.id,
           updatedAt: new Date(),
         })
         .onConflict((oc) => oc.columns(["datasetId", "name"]).doNothing())

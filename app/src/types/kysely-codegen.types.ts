@@ -146,7 +146,7 @@ export interface DatasetEval {
   datasetId: string;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  evaluationModelId: string | null;
+  evaluationModelId: string;
 }
 
 export interface DatasetEvalNodeEntry {
@@ -212,8 +212,8 @@ export interface ExportWeightsRequest {
 
 export interface ExternalModel {
   id: string;
-  modelName: string;
-  slug: string;
+  name: string;
+  displayName: string;
   endpoint: string;
   apiKey: string;
   projectId: string;

@@ -8,6 +8,7 @@ import { kysely, prisma } from "~/server/db";
 import { type RouterInputs } from "~/utils/api";
 import { table } from "table";
 import { env } from "~/env.mjs";
+import { defaultEvaluationModel } from "~/utils/externalModels/evaluationModels";
 
 const experimentName = "lora-r";
 
@@ -129,6 +130,7 @@ const runEvals = async (args: Awaited<ReturnType<typeof createFineTunes>>) => {
       name: experimentName,
       instructions: "Which model’s output better matches the prompt?",
       modelIds: [],
+      evaluationModelId: defaultEvaluationModel.id,
       numRows: Math.min(numTestEntries, 50),
     });
     if (newEval.status === "error") {

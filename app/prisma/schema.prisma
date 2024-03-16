@@ -869,7 +869,7 @@ model CachedProcessedEntry {
 model ExternalModel {
     id String @id @default(uuid()) @db.Uuid
 
-    modelName String
+    name String
     displayName String
     endpoint  String
     apiKey  String
