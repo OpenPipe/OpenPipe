@@ -1,7 +1,7 @@
-import { HStack, Text } from "@chakra-ui/react";
+import { HStack, type StackProps, Text } from "@chakra-ui/react";
 import { ThreeDots } from "react-loader-spinner";
 
-export const ProcessingIndicator = ({ message }: { message: string }) => {
+export const ProcessingIndicator = ({ message, ...props }: { message: string } & StackProps) => {
   return (
     <HStack
       bgColor="orange.50"
@@ -14,6 +14,7 @@ export const ProcessingIndicator = ({ message }: { message: string }) => {
       fontSize={12}
       fontWeight="bold"
       spacing={1}
+      {...props}
     >
       <ThreeDots visible color="orange" height={12} width={12} /> <Text>{message}</Text>
     </HStack>

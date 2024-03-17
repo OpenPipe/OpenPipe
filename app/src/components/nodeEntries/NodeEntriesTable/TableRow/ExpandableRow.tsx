@@ -20,8 +20,10 @@ const ExpandableRow = ({ nodeEntry, expanded }: { nodeEntry: NodeEntryRow; expan
 export default ExpandableRow;
 
 const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
-  const isRelabeled = nodeEntry.originalOutputHash !== nodeEntry.outputHash;
+  const isRelabeled = nodeEntry.incomingOutputHash !== nodeEntry.outputHash;
   const preferJson = typedDatasetEntryInput(nodeEntry).response_format?.type === "json_object";
+  const showRejectedOutput =
+    isRelabeled && (nodeEntry.nodeType === "LLMRelabel" || nodeEntry.nodeType === "ManualRelabel");
 
   return (
     <Box pt={8} pb={12} overflow="hidden">
@@ -41,9 +43,9 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
             <FormattedInput input={nodeEntry} />
           </Box>
         </VStack>
-        {isRelabeled && (
+        {showRejectedOutput && (
           <VStack flex={1} align="stretch">
-            <Heading size="sm">Original Output</Heading>
+            <Heading size="sm">Rejected Output</Heading>
             <Box
               flex={1}
               justifyContent="flex-start"
@@ -55,7 +57,7 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
               w="full"
             >
               <FormattedOutput
-                output={nodeEntry.originalOutput}
+                output={nodeEntry.incomingOutput}
                 preferJson={preferJson}
                 includeField
               />
@@ -63,7 +65,7 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
           </VStack>
         )}
         <VStack flex={1} align="stretch">
-          <Heading size="sm">{isRelabeled ? "Relabeled Output" : "Output"}</Heading>
+          <Heading size="sm">{showRejectedOutput ? "Relabeled Output" : "Output"}</Heading>
           <Box
             flex={1}
             justifyContent="flex-start"

@@ -14,7 +14,7 @@ const filterOptions: FilterOption[] = [
   },
 ];
 
-const ResultsFilters = (props: BoxProps) => {
+const SimpleNodeEntryFilters = (props: BoxProps) => {
   return (
     <Box w="full" pt={1} {...props}>
       <Filters filterOptions={filterOptions} />
@@ -22,4 +22,4 @@ const ResultsFilters = (props: BoxProps) => {
   );
 };
 
-export default ResultsFilters;
+export default SimpleNodeEntryFilters;

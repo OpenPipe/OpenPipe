@@ -33,6 +33,7 @@ import {
 import { updateDatasetPruningRuleMatches } from "~/server/utils/nodes/updatePruningRuleMatches";
 import { startDatasetTestJobs } from "~/server/utils/nodes/startTestJobs";
 import { ManualRelabelOutput } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
+import { selectEntriesWithCache } from "~/server/tasks/nodes/processNodes/nodeEntryCache";
 
 export const nodeEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -70,13 +71,13 @@ export const nodeEntriesRouter = createTRPCRouter({
         .offset((page - 1) * pageSize);
 
       let entriesQuery = kysely
-        .selectFrom("NodeEntry as ne")
+        .selectFrom(selectEntriesWithCache({ node }).as("ne"))
         .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
         .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
         .innerJoin(
-          "DatasetEntryOutput as originalDeo",
-          "originalDeo.hash",
-          "ne.originalOutputHash",
+          "DatasetEntryOutput as incomingDeo",
+          "incomingDeo.hash",
+          "ne.incomingOutputHash",
         );
 
       if (input.sortOrder) {
@@ -128,14 +129,15 @@ export const nodeEntriesRouter = createTRPCRouter({
           "ne.outputHash as outputHash",
           "deo.output as output",
           "deo.outputTokens as outputTokens",
-          "ne.originalOutputHash as originalOutputHash",
-          "originalDeo.output as originalOutput",
+          "ne.incomingOutputHash as incomingOutputHash",
+          "incomingDeo.output as incomingOutput",
         ])
         .execute()
         .then((res) =>
           res.map((entry) => ({
             ...entry,
             creationTime: creationTimeFromPersistentId(entry.persistentId),
+            nodeType: node.type,
           })),
         );
 

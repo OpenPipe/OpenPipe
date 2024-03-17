@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { sql } from "kysely";
-import { type Prisma } from "@prisma/client";
+import { NodeEntryStatus, type Prisma } from "@prisma/client";
+import { jsonObjectFrom } from "kysely/helpers/postgres";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { kysely, prisma } from "~/server/db";
@@ -19,7 +20,7 @@ import {
 import { convertCache } from "~/server/utils/nodes/convertCache";
 import { hashNode } from "~/server/utils/nodes/hashNode";
 import { FilterOutput } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
-import { selectEntriesWithCache } from "~/server/tasks/nodes/processNodes/updateCached";
+import { selectEntriesWithCache } from "~/server/tasks/nodes/processNodes/nodeEntryCache";
 
 export const monitorsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -82,10 +83,24 @@ export const monitorsRouter = createTRPCRouter({
       monitorFilterNodeId: monitor.config.filterNodeId,
     })
       .selectAll("d")
-      .select([
+      .select((eb) => [
         "datasetNode.config as nodeConfig",
         "llmRelabelNode.id as llmRelabelNodeId",
         "llmRelabelNode.config as llmRelabelNodeConfig",
+        jsonObjectFrom(
+          eb
+            .selectFrom("DataChannel as dc")
+            .whereRef("dc.destinationId", "=", "llmRelabelNode.id")
+            .innerJoin("NodeEntry as ne", "ne.dataChannelId", "dc.id")
+            .select([
+              sql<number>`count(case when ne.status = ${NodeEntryStatus.PROCESSED} then 1 end)::int`.as(
+                "numRelabeledEntries",
+              ),
+              sql<number>`count(case when ne.status != ${NodeEntryStatus.PROCESSED} then 1 end)::int`.as(
+                "numUnrelabeledEntries",
+              ),
+            ]),
+        ).as("entryCounts"),
       ])
       .distinctOn(["dc0.createdAt"])
       .orderBy("dc0.createdAt", "asc")
@@ -93,6 +108,8 @@ export const monitorsRouter = createTRPCRouter({
       .then((datasets) =>
         datasets.map((dataset) => ({
           ...dataset,
+          numRelabeledEntries: dataset.entryCounts?.numRelabeledEntries ?? 0,
+          numUnrelabeledEntries: dataset.entryCounts?.numUnrelabeledEntries ?? 0,
           node: typedNode({ config: dataset.nodeConfig, type: "Dataset" }),
           llmRelabelNode: typedNode({
             id: dataset.llmRelabelNodeId,

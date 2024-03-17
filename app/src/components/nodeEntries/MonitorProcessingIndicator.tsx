@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { HStack } from "@chakra-ui/react";
 
 import { useMonitor } from "../monitors/useMonitor";
 import { ProcessingIndicator } from "../ProcessingIndicator";
@@ -15,6 +16,8 @@ export const MonitorProcessingIndicator = () => {
     processingMessage = "Processing initial filters";
   } else if (monitor?.filter.status === "PROCESSING") {
     processingMessage = "Processing secondary filters";
+  } else if (monitor?.datasets.some((dataset) => dataset.numUnrelabeledEntries > 0)) {
+    processingMessage = "Relabeling entries";
   }
 
   const utils = api.useUtils();
@@ -27,5 +30,9 @@ export const MonitorProcessingIndicator = () => {
 
   if (!processingMessage) return null;
 
-  return <ProcessingIndicator message={processingMessage} />;
+  return (
+    <HStack position="fixed" top={0} zIndex={10} justifyContent="center">
+      <ProcessingIndicator message={processingMessage} borderTopRadius={0} borderTopWidth={0} />
+    </HStack>
+  );
 };

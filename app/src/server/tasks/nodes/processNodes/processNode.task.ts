@@ -16,10 +16,11 @@ import { typedNode } from "~/server/utils/nodes/node.types";
 import { kysely, prisma } from "~/server/db";
 import { forwardNodeEntries } from "./forwardNodeEntries";
 import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
-import { markCachedEntriesProcessed } from "./updateCached";
+import { markCachedEntriesProcessed } from "./nodeEntryCache";
 import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
 import { typedNodeEntry } from "~/types/dbColumns.types";
+import { printNodeEntries } from "~/server/utils/nodes/utils";
 
 const fetchNode = async ({ id }: { id: string }) =>
   prisma.node
@@ -127,6 +128,12 @@ export const processNode = defineTask<ProcessNodeJob>({
           break;
         }
 
+        const updatedNode = await fetchNode({ id: nodeId });
+        if (updatedNode?.hash !== node.hash) {
+          console.log("HASH UPDATED!!!");
+          return;
+        }
+
         let processEntryResults: SaveableProcessEntryResult[] = [];
 
         const saveAndForward = async () => {
@@ -174,43 +181,6 @@ export const processNode = defineTask<ProcessNodeJob>({
 
         await saveAndForward();
       }
-    } else {
-      // If no processEntry function is provided, just mark all entries as PROCESSED
-      let updateQuery = kysely
-        .updateTable("NodeEntry as ne")
-        .set({ status: "PROCESSED" })
-        .from("DataChannel as dc")
-        .where("dc.destinationId", "=", node.id)
-        .whereRef("ne.dataChannelId", "=", "dc.id")
-        .where("ne.status", "=", "PENDING");
-
-      if (nodeProperties.cacheMatchFields) {
-        updateQuery = updateQuery.where((eb) =>
-          eb.not(
-            eb.exists(
-              eb.selectFrom("CachedProcessedEntry as cpe").where((eb) => {
-                const ands = [
-                  eb.or([eb("cpe.nodeHash", "=", node.hash), eb("cpe.nodeId", "=", node.id)]),
-                ];
-
-                if (nodeProperties.cacheMatchFields?.includes("nodeEntryPersistentId")) {
-                  ands.push(eb("ne.persistentId", "=", `cpe.nodeEntryPersistentId`));
-                }
-                if (nodeProperties.cacheMatchFields?.includes("incomingInputHash")) {
-                  ands.push(eb("ne.inputHash", "=", `cpe.incomingInputHash`));
-                }
-                if (nodeProperties.cacheMatchFields?.includes("incomingOutputHash")) {
-                  ands.push(eb("ne.outputHash", "=", `cpe.incomingOutputHash`));
-                }
-
-                return eb.and(ands);
-              }),
-            ),
-          ),
-        );
-      }
-
-      await updateQuery.execute();
     }
 
     if (nodeProperties.afterProcessing) {
@@ -255,7 +225,6 @@ export const nodePropertiesByType = {
 export type SuccessProcessEntryResult = {
   status: "PROCESSED";
   output?: ChatCompletionMessage;
-  originalOutputHash?: string;
   filterOutcome?: string;
   explanation?: string;
 };

@@ -18,11 +18,13 @@ export const prepareDatasetEntriesForImport = async ({
   projectId,
   dataChannelId,
   entriesToImport,
+  supportDPO,
   onProgress,
 }: {
   projectId: string;
   dataChannelId: string;
   entriesToImport: EntryToImport[];
+  supportDPO?: boolean;
   onProgress?: (progress: number) => Promise<void>;
 }): Promise<{
   datasetEntryInputsToCreate: Prisma.DatasetEntryInputCreateManyInput[];
@@ -85,7 +87,7 @@ export const prepareDatasetEntriesForImport = async ({
       dataChannelId,
       inputHash,
       outputHash,
-      originalOutputHash: outputHash,
+      originalOutputHash: supportDPO ? outputHash : undefined,
       loggedCallId: row.loggedCallId,
     };
 

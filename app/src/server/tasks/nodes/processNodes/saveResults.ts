@@ -32,8 +32,6 @@ export const saveResults = async ({
     id: string;
     data: {
       status: NodeEntryStatus;
-      outputHash?: string;
-      originalOutputHash?: string;
       error?: string;
     };
   }[] = [];
@@ -59,8 +57,6 @@ export const saveResults = async ({
         id: result.nodeEntryId,
         data: {
           status: "PROCESSED",
-          outputHash: outputHash ? outputHash : undefined,
-          originalOutputHash: result.originalOutputHash ? result.originalOutputHash : undefined,
         },
       });
 

@@ -4,7 +4,9 @@ import { Card, Skeleton, Table, Tbody } from "@chakra-ui/react";
 import { TableHeader, TableRow } from "./TableRow/TableRow";
 import EmptyRow from "./TableRow/EmptyRow";
 import { type RouterOutputs } from "~/utils/api";
-import NodeEntryDrawer, { type UpdateEntryCallback } from "./NodeEntryDrawer/NodeEntryDrawer";
+import NodeEntryEditDrawer, {
+  type UpdateEntryCallback,
+} from "./NodeEntryEditDrawer/NodeEntryEditDrawer";
 import { useNode } from "~/utils/hooks";
 
 type NodeEntryRow = RouterOutputs["nodeEntries"]["list"]["entries"][number];
@@ -55,7 +57,7 @@ export default function NodeEntriesTable({
         </Skeleton>
       </Card>
       {updateEntry && (
-        <NodeEntryDrawer
+        <NodeEntryEditDrawer
           nodeEntryPersistentId={expandedNodeEntryPersistentId}
           nodeId={nodeId}
           setNodeEntryPersistentId={setExpandedNodeEntryPersistentId}

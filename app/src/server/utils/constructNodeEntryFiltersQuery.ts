@@ -5,7 +5,7 @@ import { type Node } from "@prisma/client";
 import { kysely } from "~/server/db";
 import { GeneralFiltersDefaultFields, type filtersSchema } from "~/types/shared.types";
 import { textComparatorToSqlExpression } from "./comparatorToSqlExpression";
-import { selectEntriesWithCache } from "../tasks/nodes/processNodes/updateCached";
+import { selectEntriesWithCache } from "../tasks/nodes/processNodes/nodeEntryCache";
 
 export const constructNodeEntryFiltersQuery = ({
   filters,

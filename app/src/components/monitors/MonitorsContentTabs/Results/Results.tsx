@@ -7,7 +7,7 @@ import { FilterOutput } from "~/server/utils/nodes/nodeProperties/nodeProperties
 import { useFilters } from "~/components/Filters/useFilters";
 import { useNodeEntries } from "~/utils/hooks";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
-import ResultsFilters from "./ResultsFilters";
+import BasicNodeEntryFilters from "~/components/nodeEntries/BasicNodeEntryFilters";
 import Paginator from "~/components/Paginator";
 
 const Results = () => {
@@ -56,7 +56,7 @@ const Results = () => {
         </ButtonGroup>
         <ToggleFiltersButton />
       </HStack>
-      {filtersShown && <ResultsFilters pb={8} />}
+      {filtersShown && <BasicNodeEntryFilters pb={8} />}
       <Text fontWeight="bold" fontSize="lg">
         Matching Entries {matchingCount !== undefined ? `(${matchingCount.toLocaleString()})` : ""}
       </Text>

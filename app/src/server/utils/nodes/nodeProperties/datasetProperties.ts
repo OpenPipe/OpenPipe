@@ -16,6 +16,15 @@ export const datasetProperties: NodeProperties<"Dataset"> = {
 
     if (!dataset) throw new Error("Dataset not found");
 
+    await kysely
+      .updateTable("NodeEntry as ne")
+      .set({ status: "PROCESSED" })
+      .from("DataChannel as dc")
+      .where("dc.destinationId", "=", node.id)
+      .whereRef("ne.dataChannelId", "=", "dc.id")
+      .where("ne.status", "=", "PENDING")
+      .execute();
+
     // update pruning rule matches
     await updateDatasetPruningRuleMatches({
       nodeHash: node.hash,

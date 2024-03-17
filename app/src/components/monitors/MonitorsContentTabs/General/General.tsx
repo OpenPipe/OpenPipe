@@ -20,7 +20,7 @@ const General = () => {
       </VStack>
       <SecondaryResultsBlock />
       <VStack w="full" alignItems="flex-start">
-        <Heading size="md">Datasets</Heading>
+        <Heading size="md">Connected Datasets</Heading>
         <DatasetsBlock />
       </VStack>
     </VStack>

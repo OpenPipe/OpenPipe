@@ -11,6 +11,7 @@ import {
   Tr,
   Th,
   Td,
+  Icon,
 } from "@chakra-ui/react";
 
 import { useMonitor } from "../../../useMonitor";
@@ -26,6 +27,9 @@ import { ProjectLink } from "~/components/ProjectLink";
 import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 import { DATASET_GENERAL_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
+import NodeEntriesBottomDrawer from "~/components/nodeEntries/NodeEntriesBottomDrawer";
+import { MdEdit } from "react-icons/md";
+import { BlockProcessingIndicator } from "../BlockProcessingIndicator";
 
 type DatasetToConnect = RouterOutputs["datasets"]["list"][number];
 
@@ -38,6 +42,8 @@ const DatasetsBlock = () => {
   const [datasetToConnect, setDatasetToConnect] = useState<DatasetToConnect | null>(null);
   const [datasetToDisconnect, setDatasetToDisconnect] = useState<ConnectedDataset | null>(null);
   const [datasetToRelabel, setDatasetToRelabel] = useState<ConnectedDataset | null>(null);
+  const [relabeledConnectionToView, setRelabeledConnectionToView] =
+    useState<ConnectedDataset | null>(null);
 
   const availableDatasets = useMemo(
     () =>
@@ -116,13 +122,13 @@ const DatasetsBlock = () => {
               <Tr>
                 <Th>Name</Th>
                 <Th>Relabeling Method</Th>
-                <Th>Relabeled Data</Th>
                 <Th />
               </Tr>
             </Thead>
-            <Tbody>
+            <Tbody fontSize="sm">
               {monitor &&
                 currentDatasets?.map((dataset) => {
+                  const isRelabeling = !!dataset.numUnrelabeledEntries;
                   return (
                     <Tr key={dataset.id}>
                       <Td>
@@ -156,19 +162,32 @@ const DatasetsBlock = () => {
                       </Td>
                       <Td>
                         <Button
-                          variant="link"
-                          fontWeight="400"
+                          variant="ghost"
+                          size="sm"
+                          colorScheme="gray"
                           onClick={() => setDatasetToRelabel(dataset)}
                         >
-                          {dataset.llmRelabelNode?.config.relabelLLM}
+                          {dataset.llmRelabelNode.config.relabelLLM}
+                          <Icon as={MdEdit} ml={1} />
                         </Button>
                       </Td>
-                      <Td>
-                        <Button variant="link" fontWeight="400">
-                          View
-                        </Button>
-                      </Td>
-                      <Td display="flex" justifyContent="flex-end">
+                      <Td display="flex" justifyContent="flex-end" alignItems="center">
+                        <HStack spacing={1}>
+                          <BlockProcessingIndicator isProcessing={isRelabeling} />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            colorScheme="blue"
+                            onClick={() => setRelabeledConnectionToView(dataset)}
+                          >
+                            {isRelabeling
+                              ? `${dataset.numRelabeledEntries}/${
+                                  dataset.numUnrelabeledEntries + dataset.numRelabeledEntries
+                                }`
+                              : "Preview Data"}
+                          </Button>
+                        </HStack>
+
                         <Button
                           variant="ghost"
                           colorScheme="red"
@@ -185,7 +204,7 @@ const DatasetsBlock = () => {
           </Table>
           {availableDatasets.length && datasetToConnect && (
             <VStack w="full" alignItems="flex-start" p={4} spacing={4}>
-              <LabelText>Add Dataset</LabelText>
+              <LabelText>Connect New Dataset</LabelText>
               <HStack w="full" justifyContent="space-between">
                 <InputDropdown
                   selectedOption={datasetToConnect}
@@ -231,6 +250,10 @@ const DatasetsBlock = () => {
             : null
         }
         onClose={() => setDatasetToRelabel(null)}
+      />
+      <NodeEntriesBottomDrawer
+        nodeId={relabeledConnectionToView?.llmRelabelNodeId}
+        onClose={() => setRelabeledConnectionToView(null)}
       />
     </>
   );

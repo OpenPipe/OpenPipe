@@ -35,7 +35,7 @@ export type UpdateEntryCallback = (input: {
   updates: { split?: "TRAIN" | "TEST"; messages?: string; tools?: string; output?: string };
 }) => Promise<void>;
 
-function NodeEntryDrawer({
+function NodeEntryEditDrawer({
   nodeEntryPersistentId,
   nodeId,
   setNodeEntryPersistentId,
@@ -204,4 +204,4 @@ function NodeEntryDrawer({
 }
 
 // Ensure that drawer does not constantly re-render when parent polls dataset entry list
-export default React.memo(NodeEntryDrawer);
+export default React.memo(NodeEntryEditDrawer);

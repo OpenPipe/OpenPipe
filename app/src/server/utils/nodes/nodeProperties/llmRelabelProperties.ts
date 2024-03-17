@@ -10,7 +10,7 @@ export const llmRelabelProperties: NodeProperties<"LLMRelabel"> = {
   schema: llmRelabelNodeSchema,
   cacheMatchFields: ["incomingInputHash"],
   cacheWriteFields: ["outgoingOutputHash"],
-  readBatchSize: 50,
+  readBatchSize: 10,
   outputs: [{ label: LLMRelabelOutput.Relabeled }],
   hashableFields: (node) => ({ relabelLLM: node.config.relabelLLM }),
   getConcurrency: (node) => {

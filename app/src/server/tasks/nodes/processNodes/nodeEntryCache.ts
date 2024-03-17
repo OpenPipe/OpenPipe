@@ -42,14 +42,14 @@ export const selectEntriesWithCache = ({
       eb.val(false).as("cacheHit"),
       eb.val(null).as("filterOutcome"),
       eb.val(null).as("explanation"),
+      "originalNE.outputHash as incomingOutputHash",
     ]);
 
   if (nodeProperties.cacheMatchFields && nodeProperties.cacheWriteFields) {
     let cacheSelectQuery = baseQuery.leftJoin("CachedProcessedEntry as cpe", (join) => {
-      let joinClause = join
-        .on((eb) => eb.or([eb("cpe.nodeHash", "=", node.hash), eb("cpe.nodeId", "=", node.id)]))
-        .onRef("cpe.incomingInputHash", "=", "originalNE.inputHash")
-        .onRef("cpe.incomingOutputHash", "=", "originalNE.outputHash");
+      let joinClause = join.on((eb) =>
+        eb.or([eb("cpe.nodeHash", "=", node.hash), eb("cpe.nodeId", "=", node.id)]),
+      );
 
       if (nodeProperties.cacheMatchFields?.includes("nodeEntryPersistentId")) {
         joinClause = joinClause.onRef("cpe.nodeEntryPersistentId", "=", "originalNE.persistentId");
@@ -105,6 +105,7 @@ export const selectEntriesWithCache = ({
       "originalNE.parentNodeEntryId",
       "originalNE.createdAt",
       "originalNE.updatedAt",
+      "originalNE.outputHash as incomingOutputHash",
       sql`cpe."incomingInputHash" is not null`.as("cacheHit"),
     ]) as typeof defaultSelectQuery;
   } else {

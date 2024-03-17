@@ -395,7 +395,7 @@ export interface NodeEntry {
   loggedCallId: string | null;
   inputHash: string;
   outputHash: string;
-  originalOutputHash: string;
+  originalOutputHash: string | null;
   dataChannelId: string;
   parentNodeEntryId: string | null;
   createdAt: Generated<Timestamp>;

@@ -789,7 +789,7 @@ model NodeEntry {
 
     inputHash          String
     outputHash         String
-    originalOutputHash String
+    originalOutputHash String?
 
     dataChannelId String      @db.Uuid
     dataChannel   DataChannel @relation(fields: [dataChannelId], references: [id], onDelete: Cascade)

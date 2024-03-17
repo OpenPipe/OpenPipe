@@ -3,7 +3,7 @@ import { type Node } from "@prisma/client";
 
 import { kysely, prisma } from "~/server/db";
 import { type OutputSelectionCriteria } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
-import { selectEntriesWithCache } from "./updateCached";
+import { selectEntriesWithCache } from "./nodeEntryCache";
 
 export const forwardNodeEntries = async ({
   node,
@@ -50,6 +50,7 @@ export const forwardNodeEntries = async ({
               "ne",
             ),
           )
+          .where("ne.status", "=", "PROCESSED")
           .leftJoin("NodeEntry as existingEntry", (join) =>
             join
               .onRef("existingEntry.parentNodeEntryId", "=", "ne.id")

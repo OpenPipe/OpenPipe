@@ -7,6 +7,7 @@ import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContent
 import { ProjectLink } from "~/components/ProjectLink";
 import { useMonitor } from "~/components/monitors/useMonitor";
 import MonitorContentTabs from "~/components/monitors/MonitorsContentTabs/MonitorsContentTabs";
+import { MonitorProcessingIndicator } from "~/components/nodeEntries/MonitorProcessingIndicator";
 
 export default function Monitor() {
   const monitor = useMonitor();
@@ -28,6 +29,7 @@ export default function Monitor() {
   return (
     <AppShell title={name}>
       <VStack h="full" overflowY="scroll">
+        <MonitorProcessingIndicator />
         <PageHeaderContainer>
           <Breadcrumb>
             <BreadcrumbItem>

@@ -158,6 +158,7 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
         projectId: node.projectId,
         dataChannelId: inputDataChannel.id,
         entriesToImport,
+        supportDPO: true,
       });
 
     const saveStartTime = new Date();
@@ -187,6 +188,15 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
     ]);
 
     console.log("save time", new Date().getTime() - saveStartTime.getTime());
+
+    await kysely
+      .updateTable("NodeEntry as ne")
+      .set({ status: "PROCESSED" })
+      .from("DataChannel as dc")
+      .where("dc.destinationId", "=", node.id)
+      .whereRef("ne.dataChannelId", "=", "dc.id")
+      .where("ne.status", "=", "PENDING")
+      .execute();
 
     await enqueueCountDatasetEntryTokens({ projectId: node.projectId });
   },

@@ -1,4 +1,5 @@
-import { kysely } from "~/server/db";
+import { type NodeType } from "@prisma/client";
+import { kysely, prisma } from "~/server/db";
 
 export const generatePersistentId = ({
   creationTime,
@@ -20,7 +21,16 @@ export const creationTimeFromPersistentId = (persistentId: string) => {
   return new Date(creationTime);
 };
 
-export const printNodeEntries = async (nodeId: string) => {
+export const printNodeEntries = async ({
+  nodeId,
+  nodeType,
+}: {
+  nodeId: string;
+  nodeType?: NodeType;
+}) => {
+  const node = await prisma.node.findUnique({ where: { id: nodeId } });
+
+  if (!node || (nodeType && node.type !== nodeType)) return;
   const nodeEntries = await kysely
     .selectFrom("NodeEntry as ne")
     .innerJoin("DataChannel as dc", (join) =>

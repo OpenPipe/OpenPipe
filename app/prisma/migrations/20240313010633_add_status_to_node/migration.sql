@@ -9,3 +9,6 @@ ALTER TABLE "Node" ADD COLUMN     "status" "NodeStatus" NOT NULL DEFAULT 'IDLE';
 
 -- CreateIndex
 CREATE INDEX "LoggedCall_projectId_model_updatedAt_id_idx" ON "LoggedCall"("projectId", "model", "updatedAt", "id");
+
+-- AlterTable
+ALTER TABLE "NodeEntry" ALTER COLUMN "originalOutputHash" DROP NOT NULL;
