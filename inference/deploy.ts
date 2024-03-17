@@ -221,7 +221,7 @@ const createAppConfig = (
 ): Config => ({
   name: `inference-${env}`,
   compute_config: "openpipe5",
-  cluster_env: "llm-env:5",
+  cluster_env: "llm-env:7",
 
   ray_serve_config: {
     applications: [
