@@ -38,7 +38,7 @@ const NodeEntriesBottomDrawer = ({ nodeId, onClose }: { nodeId?: string; onClose
     <>
       <Drawer placement="bottom" isOpen={!!nodeId} onClose={onClose} size="full">
         <DrawerOverlay />
-        <DrawerContent bgColor="gray.50" h="90vh" containerProps={{ overflowY: "scroll" }}>
+        <DrawerContent bgColor="gray.50" h="90vh">
           <Button
             position="absolute"
             top={-12}
@@ -56,7 +56,7 @@ const NodeEntriesBottomDrawer = ({ nodeId, onClose }: { nodeId?: string; onClose
             </HStack>
           </Button>
 
-          <DrawerBody>
+          <DrawerBody overflowY="scroll">
             <VStack position="relative" w="full" py={6} alignItems="flex-start">
               {filtersShown && <BasicNodeEntryFilters pb={4} />}
 

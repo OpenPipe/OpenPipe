@@ -13,6 +13,7 @@ import { ProjectLink } from "~/components/ProjectLink";
 import RelabelSourceDialog, { type DatasetSource } from "./RelabelSourceDialog";
 import { RelabelOption } from "~/server/utils/nodes/node.types";
 import { MONITOR_GENERAL_KEY } from "~/components/monitors/MonitorsContentTabs/MonitorsContentTabs";
+import NodeEntriesBottomDrawer from "~/components/nodeEntries/NodeEntriesBottomDrawer";
 
 const Sources = () => {
   const dataset = useDataset().data;
@@ -26,6 +27,7 @@ const Sources = () => {
 
   const [sourceToRemove, setSourceToRemove] = useState<DatasetSource | null>(null);
   const [sourceToRelabel, setSourceToRelabel] = useState<DatasetSource | null>(null);
+  const [sourceToView, setSourceToView] = useState<DatasetSource | null>(null);
 
   const router = useRouter();
 
@@ -103,6 +105,7 @@ const Sources = () => {
                   filterToSource={filterToSource}
                   openRemoveDialog={() => setSourceToRemove(monitor)}
                   openRelabelDialog={() => setSourceToRelabel(monitor)}
+                  openViewBottomDrawer={() => setSourceToView(monitor)}
                 />
               </Box>
             ))}
@@ -129,6 +132,7 @@ const Sources = () => {
                   filterToSource={filterToSource}
                   openRemoveDialog={() => setSourceToRemove(archive)}
                   openRelabelDialog={() => setSourceToRelabel(archive)}
+                  openViewBottomDrawer={() => setSourceToView(archive)}
                 />
               </Box>
             ))}
@@ -138,6 +142,10 @@ const Sources = () => {
 
       <RelabelSourceDialog source={sourceToRelabel} onClose={() => setSourceToRelabel(null)} />
       <RemoveSourceDialog source={sourceToRemove} onClose={() => setSourceToRemove(null)} />
+      <NodeEntriesBottomDrawer
+        nodeId={sourceToView?.llmRelabelNodeId}
+        onClose={() => setSourceToView(null)}
+      />
     </VStack>
   );
 };
@@ -147,11 +155,13 @@ const Source = ({
   filterToSource,
   openRemoveDialog,
   openRelabelDialog,
+  openViewBottomDrawer,
 }: {
   source: DatasetSource;
   filterToSource: (sourceId: string) => void;
   openRemoveDialog: () => void;
   openRelabelDialog: () => void;
+  openViewBottomDrawer: () => void;
 }) => {
   const relabelOptionText = getRelabelOptionText({
     relabelOption: source.relabelOption,
@@ -184,9 +194,14 @@ const Source = ({
             {relabelOptionText}
           </Button>
         </VStack>
-        <Button variant="ghost" colorScheme="red" my={-2} onClick={openRemoveDialog}>
-          Remove
-        </Button>
+        <HStack my={-2} spacing={0}>
+          <Button variant="ghost" colorScheme="blue" size="sm" onClick={openViewBottomDrawer}>
+            View Data
+          </Button>
+          <Button variant="ghost" colorScheme="red" size="sm" onClick={openRemoveDialog}>
+            Remove
+          </Button>
+        </HStack>
       </HStack>
       <HStack>
         <Text w={180}>Creation Date</Text>
