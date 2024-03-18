@@ -1,7 +1,6 @@
 import { VStack, Text } from "@chakra-ui/react";
 import type { DatasetEntryInput } from "@prisma/client";
 
-import FormattedMessage from "./FormattedMessage";
 import { FormattedJson } from "../FormattedJson";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
 
@@ -23,7 +22,11 @@ const FormattedInput = ({
           <Text fontWeight="bold" color="gray.500">
             {message.role}
           </Text>
-          <FormattedMessage message={message} />
+          <Text whiteSpace="pre-wrap" maxW="full">
+            {typeof message.content === "string"
+              ? message.content
+              : JSON.stringify(message.content, null, 2)}
+          </Text>
         </VStack>
       ))}
       {tool_choice && (
