@@ -12,7 +12,10 @@ import {
   Th,
   Td,
   Icon,
+  Text,
 } from "@chakra-ui/react";
+import pluralize from "pluralize";
+import { MdEdit, MdError } from "react-icons/md";
 
 import { useMonitor } from "../../../useMonitor";
 import { LabelText } from "../styledText";
@@ -28,7 +31,6 @@ import { constructFiltersQueryParams } from "~/components/Filters/useFilters";
 import { GeneralFiltersDefaultFields } from "~/types/shared.types";
 import { DATASET_GENERAL_TAB_KEY } from "~/components/datasets/DatasetContentTabs/DatasetContentTabs";
 import NodeEntriesBottomDrawer from "~/components/nodeEntries/NodeEntriesBottomDrawer";
-import { MdEdit } from "react-icons/md";
 import { BlockProcessingIndicator } from "../BlockProcessingIndicator";
 
 type DatasetToConnect = RouterOutputs["datasets"]["list"][number];
@@ -174,6 +176,15 @@ const DatasetsBlock = () => {
                       <Td display="flex" justifyContent="flex-end" alignItems="center">
                         <HStack spacing={1}>
                           <BlockProcessingIndicator isProcessing={isRelabeling} />
+                          {dataset.numErroredEntries && (
+                            <HStack spacing={1} color="red.500">
+                              <Icon as={MdError} />
+                              <Text fontWeight="bold">
+                                {pluralize("error", dataset.numErroredEntries, true)}
+                              </Text>
+                            </HStack>
+                          )}
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -182,7 +193,9 @@ const DatasetsBlock = () => {
                           >
                             {isRelabeling
                               ? `${dataset.numRelabeledEntries}/${
-                                  dataset.numUnrelabeledEntries + dataset.numRelabeledEntries
+                                  dataset.numUnrelabeledEntries +
+                                  dataset.numErroredEntries +
+                                  dataset.numRelabeledEntries
                                 }`
                               : "Preview Data"}
                           </Button>

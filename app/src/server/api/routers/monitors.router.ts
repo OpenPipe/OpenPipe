@@ -96,7 +96,10 @@ export const monitorsRouter = createTRPCRouter({
               sql<number>`count(case when ne.status = ${NodeEntryStatus.PROCESSED} then 1 end)::int`.as(
                 "numRelabeledEntries",
               ),
-              sql<number>`count(case when ne.status != ${NodeEntryStatus.PROCESSED} then 1 end)::int`.as(
+              sql<number>`count(case when ne.status = ${NodeEntryStatus.ERROR} then 1 end)::int`.as(
+                "numErroredEntries",
+              ),
+              sql<number>`count(case when ne.status != ${NodeEntryStatus.PROCESSED} and ne.status != ${NodeEntryStatus.ERROR} then 1 end)::int`.as(
                 "numUnrelabeledEntries",
               ),
             ]),
@@ -109,6 +112,7 @@ export const monitorsRouter = createTRPCRouter({
         datasets.map((dataset) => ({
           ...dataset,
           numRelabeledEntries: dataset.entryCounts?.numRelabeledEntries ?? 0,
+          numErroredEntries: dataset.entryCounts?.numErroredEntries ?? 0,
           numUnrelabeledEntries: dataset.entryCounts?.numUnrelabeledEntries ?? 0,
           node: typedNode({ config: dataset.nodeConfig, type: "Dataset" }),
           llmRelabelNode: typedNode({

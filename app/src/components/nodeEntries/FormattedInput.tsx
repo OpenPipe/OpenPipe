@@ -13,7 +13,7 @@ const FormattedInput = ({
     tools?: DatasetEntryInput["tools"];
   };
 }) => {
-  const { messages, tool_choice, tools } = typedDatasetEntryInput(input);
+  const { messages, tool_choice, tools, response_format } = typedDatasetEntryInput(input);
 
   return (
     <VStack spacing={8} maxW="full">
@@ -43,6 +43,14 @@ const FormattedInput = ({
             tools
           </Text>
           <FormattedJson copiable={false} json={tools} borderWidth={0} />
+        </VStack>
+      )}
+      {response_format && (
+        <VStack alignItems="flex-start" w="full">
+          <Text fontWeight="bold" color="gray.500">
+            response_format
+          </Text>
+          <FormattedJson copiable={false} json={response_format} borderWidth={0} />
         </VStack>
       )}
     </VStack>
