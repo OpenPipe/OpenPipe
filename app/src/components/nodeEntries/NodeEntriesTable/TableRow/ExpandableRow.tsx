@@ -28,7 +28,7 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
   return (
     <Box pt={8} pb={12} overflow="hidden">
       <HStack w="full" alignItems="flex-start" spacing={4}>
-        <VStack flex={1} align="stretch">
+        <VStack flex={1} alignItems="flex-start">
           <Heading size="sm">Input</Heading>
           <Box
             flex={1}
@@ -44,7 +44,7 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
           </Box>
         </VStack>
         {showRejectedOutput && (
-          <VStack flex={1} align="stretch">
+          <VStack flex={1} alignItems="flex-start">
             <Heading size="sm">Rejected Output</Heading>
             <Box
               flex={1}
@@ -64,7 +64,7 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
             </Box>
           </VStack>
         )}
-        <VStack flex={1} align="stretch">
+        <VStack flex={1} alignItems="flex-start">
           <Heading size="sm">{showRejectedOutput ? "Relabeled Output" : "Output"}</Heading>
           <Box
             flex={1}

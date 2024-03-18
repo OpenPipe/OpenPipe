@@ -383,7 +383,7 @@ export interface Node {
   creatorId: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
-  status: Generated<"IDLE" | "PROCESSING">;
+  status: Generated<"IDLE" | "PROCESSING" | "QUEUED">;
 }
 
 export interface NodeEntry {

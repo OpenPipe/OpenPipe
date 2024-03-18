@@ -17,6 +17,7 @@ export const constructLoggedCallFiltersQuery = ({
   projectId,
   selectionParams,
   sampleRate,
+  maxOutputSize,
   baseQuery = BASE_QUERY,
 }: {
   filters: z.infer<typeof filtersSchema>;
@@ -28,6 +29,7 @@ export const constructLoggedCallFiltersQuery = ({
     removeUnsuccessful: boolean;
   };
   sampleRate?: number;
+  maxOutputSize?: number;
   baseQuery?: WhereInterface<
     DB & {
       lc: LoggedCall;
@@ -107,6 +109,10 @@ export const constructLoggedCallFiltersQuery = ({
 
   if (sampleRate) {
     updatedBaseQuery = updatedBaseQuery.where("lc.id", "<=", generateSampleRateUuid(sampleRate));
+  }
+
+  if (maxOutputSize) {
+    updatedBaseQuery = updatedBaseQuery.limit(maxOutputSize);
   }
 
   if (selectionParams) {

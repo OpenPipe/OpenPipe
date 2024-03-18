@@ -237,7 +237,7 @@ model LoggedCallTag {
     loggedCall   LoggedCall @relation(fields: [loggedCallId], references: [id], onDelete: Cascade)
 
     @@unique([loggedCallId, name])
-    @@index(loggedCallId)
+    @@index([loggedCallId, name, value])
     @@index([name, projectId])
     @@index([projectId, name])
     @@index([projectId, name, value])
@@ -709,6 +709,7 @@ enum NodeType {
 
 enum NodeStatus {
     IDLE
+    QUEUED
     PROCESSING
 }
 

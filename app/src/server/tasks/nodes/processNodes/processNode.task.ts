@@ -20,7 +20,6 @@ import { markCachedEntriesProcessed } from "./nodeEntryCache";
 import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
 import { typedNodeEntry } from "~/types/dbColumns.types";
-import { printNodeEntries } from "~/server/utils/nodes/utils";
 
 const fetchNode = async ({ id }: { id: string }) =>
   prisma.node
@@ -210,6 +209,16 @@ export const enqueueProcessNode = async (
       data: { stale: true },
     });
   }
+  await kysely.transaction().execute(async (trx) => {
+    const node = await trx
+      .selectFrom("Node")
+      .where("id", "=", job.nodeId)
+      .select("status")
+      .executeTakeFirst();
+    if (node?.status !== "IDLE") return;
+
+    await trx.updateTable("Node").where("id", "=", job.nodeId).set({ status: "QUEUED" }).execute();
+  });
   await processNode.enqueue(job, { ...spec, queueName: job.nodeId, jobKey: job.nodeId });
 };
 

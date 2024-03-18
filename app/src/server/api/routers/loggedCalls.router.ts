@@ -34,7 +34,12 @@ export const loggedCallsRouter = createTRPCRouter({
       const orderDirection = orderBy === "updatedAt" ? "asc" : "desc";
 
       const limit = maxOutputSize ? Math.min(pageSize, maxOutputSize) : pageSize;
-      const rawCalls = await constructLoggedCallFiltersQuery({ filters, projectId, sampleRate })
+      const rawCalls = await constructLoggedCallFiltersQuery({
+        filters,
+        projectId,
+        sampleRate,
+        maxOutputSize,
+      })
         .select((eb) => [
           "lc.id as id",
           "lc.requestedAt as requestedAt",
@@ -110,6 +115,7 @@ export const loggedCallsRouter = createTRPCRouter({
         filters,
         projectId,
         sampleRate,
+        maxOutputSize,
       }).selectAll("lc");
 
       if (maxOutputSize) {

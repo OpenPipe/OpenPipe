@@ -2,6 +2,7 @@ import { type RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/router";
 import { type Query } from "nextjs-routes";
 import type { UseQueryResult } from "@tanstack/react-query";
+import { JsonParam, useQueryParam, withDefault } from "use-query-params";
 
 import { useFilters } from "~/components/Filters/useFilters";
 import { useMappedModelIdFilters } from "~/components/datasets/DatasetContentTabs/Evaluation/useMappedModelIdFilters";
@@ -86,29 +87,23 @@ export const useElementDimensions = (): [RefObject<HTMLElement>, Dimensions | un
 
 export const useIsMissingBetaAccess = () => !useActiveFeatureFlags()?.includes("betaAccess");
 
-export const usePageParams = () => {
-  const router = useRouter();
+const DEFAULT_PAGE_URL_KEY = "pageParams";
+const DEFAULT_PAGE_PARAMS = { page: 1, pageSize: 10 };
+export const usePageParams = (urlKey?: string) => {
+  const [pageParams, setPageParamsRaw] = useQueryParam<{ page: number; pageSize: number }>(
+    urlKey ?? DEFAULT_PAGE_URL_KEY,
+    withDefault(JsonParam, DEFAULT_PAGE_PARAMS),
+  );
 
-  const page = parseInt(router.query.page as string, 10) || 1;
-  const pageSize = parseInt(router.query.pageSize as string, 10) || 10;
+  const setPageParams = ({ page, pageSize }: { page?: number; pageSize?: number }) =>
+    setPageParamsRaw({
+      page: page ?? pageParams.page,
+      pageSize: pageSize ?? pageParams.pageSize,
+    });
 
-  const setPageParams = (newPageParams: { page?: number; pageSize?: number }) => {
-    const updatedQuery = {
-      ...router.query,
-      ...newPageParams,
-    };
+  const resetPageParams = () => setPageParamsRaw(DEFAULT_PAGE_PARAMS);
 
-    void router.push(
-      {
-        pathname: router.pathname,
-        query: updatedQuery as Query,
-      },
-      undefined,
-      { shallow: true },
-    );
-  };
-
-  return { page, pageSize, setPageParams };
+  return { page: pageParams.page, pageSize: pageParams.pageSize, setPageParams, resetPageParams };
 };
 
 export const useSearchQuery = () => {
@@ -173,17 +168,19 @@ type NodeEntriesSortOrder = NonNullable<RouterInputs["nodeEntries"]["list"]["sor
 export const useNodeEntries = ({
   nodeId,
   filters,
+  pageParamsUrlKey,
   refetchInterval = 0,
   defaultSortOrder,
 }: {
   nodeId?: string;
   filters?: FilterData[];
+  pageParamsUrlKey?: string;
   refetchInterval?: number;
   defaultSortOrder?: NodeEntriesSortOrder;
 }) => {
   const defaultFilters = useFilters().filters;
 
-  const { page, pageSize } = usePageParams();
+  const { page, pageSize } = usePageParams(pageParamsUrlKey);
 
   const sort = useSortOrder<NodeEntriesSortOrder["field"]>().params;
 

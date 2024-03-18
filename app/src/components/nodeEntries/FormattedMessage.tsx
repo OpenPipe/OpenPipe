@@ -48,7 +48,7 @@ const FormattedMessage = ({
           content
         </Text>
       )}
-      <Text whiteSpace="pre-wrap" maxW="full">
+      <Text whiteSpace="pre-wrap" maxW="full" wordBreak="break-word">
         {message.content?.toString()}
       </Text>
     </VStack>

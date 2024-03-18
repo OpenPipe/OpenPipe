@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "NodeStatus" AS ENUM ('IDLE', 'PROCESSING');
+CREATE TYPE "NodeStatus" AS ENUM ('IDLE', 'QUEUED', 'PROCESSING');
 
 -- DropIndex
 DROP INDEX "LoggedCall_projectId_model_updatedAt_idx";
@@ -12,3 +12,9 @@ CREATE INDEX "LoggedCall_projectId_model_updatedAt_id_idx" ON "LoggedCall"("proj
 
 -- AlterTable
 ALTER TABLE "NodeEntry" ALTER COLUMN "originalOutputHash" DROP NOT NULL;
+
+-- DropIndex
+DROP INDEX "LoggedCallTag_loggedCallId_idx";
+
+-- CreateIndex
+CREATE INDEX "LoggedCallTag_loggedCallId_name_value_idx" ON "LoggedCallTag"("loggedCallId", "name", "value");

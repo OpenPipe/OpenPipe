@@ -14,8 +14,12 @@ import { usePageParams } from "~/utils/hooks";
 
 const pageSizeOptions = [10, 25, 50, 100];
 
-const Paginator = ({ count, ...props }: { count: number } & StackProps) => {
-  const { page, pageSize, setPageParams } = usePageParams();
+const Paginator = ({
+  count,
+  urlKey,
+  ...props
+}: { count: number; urlKey?: string } & StackProps) => {
+  const { page, pageSize, setPageParams } = usePageParams(urlKey);
 
   const lastPage = Math.ceil(count / pageSize);
 

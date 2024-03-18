@@ -80,8 +80,6 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
 
     const numEntriesToImport = maxOutputSize - numExistingEntries;
 
-    const sampleRateUuid = generateSampleRateUUID(sampleRate);
-
     console.log("starting queryCalls");
 
     const loggedCallsQuery = kysely
@@ -90,15 +88,15 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
           filters: initialFilters,
           projectId: node.projectId,
           baseQuery: eb.selectFrom("LoggedCall as lc"),
+          sampleRate,
+          maxOutputSize: Math.round(maxOutputSize * 1.1),
         })
           .where(
             "lc.updatedAt",
             ">=",
             dayjs(lastLoggedCallUpdatedAt).subtract(10, "seconds").toDate(),
           )
-          .where("lc.id", "<=", sampleRateUuid)
           .selectAll("lc")
-          .limit(Math.round(maxOutputSize * 1.1))
           .orderBy("lc.updatedAt", "asc")
           .as("subquery"),
       )

@@ -62,8 +62,11 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       await requireCanViewProject(node.projectId, ctx);
 
-      const baseQuery = constructNodeEntryFiltersQuery({ filters, node });
-
+      const baseQuery = constructNodeEntryFiltersQuery({ filters, node }).where(
+        "ne.status",
+        "=",
+        "PROCESSED",
+      );
       // Get the IDs separately to avoid unnecessary joins
       let entryIdsQuery = baseQuery
         .select(["ne.id as id"])

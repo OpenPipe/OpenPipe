@@ -34,7 +34,8 @@ export const selectEntriesWithCache = ({
     .selectFrom("Node as n")
     .where("n.id", "=", node.id)
     .innerJoin("DataChannel as dc", "dc.destinationId", "n.id")
-    .innerJoin("NodeEntry as originalNE", "originalNE.dataChannelId", "dc.id");
+    .innerJoin("NodeEntry as originalNE", "originalNE.dataChannelId", "dc.id")
+    .distinctOn("originalNE.id");
 
   const defaultSelectQuery = baseQuery
     .selectAll("originalNE")
