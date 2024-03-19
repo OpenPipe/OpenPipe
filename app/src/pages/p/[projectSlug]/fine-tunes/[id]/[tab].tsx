@@ -21,9 +21,7 @@ export default function FineTune() {
     );
   }
 
-  if (!fineTune.data) return null;
-
-  const { slug } = fineTune.data;
+  const slug = fineTune.data?.slug ?? "";
 
   return (
     <AppShell title={`openpipe:${slug}`}>

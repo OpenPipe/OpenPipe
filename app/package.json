@@ -137,7 +137,7 @@
     "@types/json-schema": "^7.0.12",
     "@types/localtunnel": "^2.0.2",
     "@types/lodash-es": "^4.17.8",
-    "@types/node": "^18.16.0",
+    "@types/node": "^20.11.25",
     "@types/nodemailer": "^6.4.14",
     "@types/pg": "^8.11.2",
     "@types/pg-copy-streams": "^1.2.5",

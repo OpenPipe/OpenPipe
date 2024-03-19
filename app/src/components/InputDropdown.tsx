@@ -12,6 +12,7 @@ import {
   Text,
   useDisclosure,
   type InputGroupProps,
+  type PlacementWithLogical,
 } from "@chakra-ui/react";
 
 import { FiChevronDown } from "react-icons/fi";
@@ -28,6 +29,8 @@ type InputDropdownProps<T> = {
   isDisabled?: boolean;
   maxPopoverContentHeight?: number;
   minItemHeight?: number;
+  placeholder?: string;
+  placement?: PlacementWithLogical;
 };
 
 const InputDropdown = <T,>({
@@ -39,11 +42,13 @@ const InputDropdown = <T,>({
   isDisabled,
   maxPopoverContentHeight,
   minItemHeight,
+  placeholder,
+  placement = "bottom-start",
 }: InputDropdownProps<T>) => {
   const { onOpen, ...popover } = useDisclosure();
 
   return (
-    <Popover placement="bottom-start" onOpen={isDisabled ? undefined : onOpen} {...popover}>
+    <Popover placement={placement} onOpen={isDisabled ? undefined : onOpen} {...popover}>
       <PopoverTrigger>
         <InputGroup
           cursor="pointer"
@@ -59,6 +64,7 @@ const InputDropdown = <T,>({
             borderColor={popover.isOpen ? "blue.500" : undefined}
             _hover={popover.isOpen ? { borderColor: "blue.500" } : undefined}
             contentEditable={false}
+            placeholder={placeholder}
             // disable focus
             onFocus={(e) => {
               e.target.blur();

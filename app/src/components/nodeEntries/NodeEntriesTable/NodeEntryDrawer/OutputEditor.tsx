@@ -37,7 +37,7 @@ const OutputEditor = ({
           </HStack>
         </Button>
       </HStack>
-      <Collapse style={{ width: "100%" }} in={expanded} unmountOnExit={true}>
+      <Collapse style={{ width: "100%", padding: 1 }} in={expanded} unmountOnExit={true}>
         <Divider my={4} />
         <EditableMessage
           message={outputMessageToSave}

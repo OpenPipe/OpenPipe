@@ -22,6 +22,27 @@ let config = {
     defaultLocale: "en",
   },
 
+  // TODO: Move headers setup to a load balancer
+  headers: async () => [
+    {
+      source: "/:path*",
+      headers: [
+        {
+          key: "X-Frame-Options",
+          value: "DENY",
+        },
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=31536000; includeSubDomains; preload",
+        },
+        {
+          key: "X-Content-Type-Options",
+          value: "nosniff",
+        },
+      ],
+    },
+  ],
+
   rewrites: async () => [
     {
       source: "/ingest/:path*",

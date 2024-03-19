@@ -54,6 +54,7 @@ class GetTrainingInfoResponse200TrainingConfig:
         warmup_steps (float):
         weight_decay (float):
         special_tokens (GetTrainingInfoResponse200TrainingConfigSpecialTokens):
+        base_model (str):
         datasets (List['GetTrainingInfoResponse200TrainingConfigDatasetsItem']):
         val_set_size (float):
         num_epochs (float):
@@ -64,7 +65,6 @@ class GetTrainingInfoResponse200TrainingConfig:
         eval_sample_packing (Union[Unset, bool]):
         pad_to_sequence_len (Union[Unset, bool]):
         lora_target_modules (Union[Unset, List[str]]):
-        base_model (Union[Unset, str]):
         base_model_config (Union[Unset, str]):
         dataset_processes (Union[Unset, float]):
         output_dir (Union[Unset, str]):
@@ -103,6 +103,7 @@ class GetTrainingInfoResponse200TrainingConfig:
     warmup_steps: float
     weight_decay: float
     special_tokens: "GetTrainingInfoResponse200TrainingConfigSpecialTokens"
+    base_model: str
     datasets: List["GetTrainingInfoResponse200TrainingConfigDatasetsItem"]
     val_set_size: float
     num_epochs: float
@@ -113,7 +114,6 @@ class GetTrainingInfoResponse200TrainingConfig:
     eval_sample_packing: Union[Unset, bool] = UNSET
     pad_to_sequence_len: Union[Unset, bool] = UNSET
     lora_target_modules: Union[Unset, List[str]] = UNSET
-    base_model: Union[Unset, str] = UNSET
     base_model_config: Union[Unset, str] = UNSET
     dataset_processes: Union[Unset, float] = UNSET
     output_dir: Union[Unset, str] = UNSET
@@ -155,6 +155,7 @@ class GetTrainingInfoResponse200TrainingConfig:
         weight_decay = self.weight_decay
         special_tokens = self.special_tokens.to_dict()
 
+        base_model = self.base_model
         datasets = []
         for datasets_item_data in self.datasets:
             datasets_item = datasets_item_data.to_dict()
@@ -176,7 +177,6 @@ class GetTrainingInfoResponse200TrainingConfig:
         if not isinstance(self.lora_target_modules, Unset):
             lora_target_modules = self.lora_target_modules
 
-        base_model = self.base_model
         base_model_config = self.base_model_config
         dataset_processes = self.dataset_processes
         output_dir = self.output_dir
@@ -217,6 +217,7 @@ class GetTrainingInfoResponse200TrainingConfig:
                 "warmup_steps": warmup_steps,
                 "weight_decay": weight_decay,
                 "special_tokens": special_tokens,
+                "base_model": base_model,
                 "datasets": datasets,
                 "val_set_size": val_set_size,
                 "num_epochs": num_epochs,
@@ -236,8 +237,6 @@ class GetTrainingInfoResponse200TrainingConfig:
             field_dict["pad_to_sequence_len"] = pad_to_sequence_len
         if lora_target_modules is not UNSET:
             field_dict["lora_target_modules"] = lora_target_modules
-        if base_model is not UNSET:
-            field_dict["base_model"] = base_model
         if base_model_config is not UNSET:
             field_dict["base_model_config"] = base_model_config
         if dataset_processes is not UNSET:
@@ -326,6 +325,8 @@ class GetTrainingInfoResponse200TrainingConfig:
 
         special_tokens = GetTrainingInfoResponse200TrainingConfigSpecialTokens.from_dict(d.pop("special_tokens"))
 
+        base_model = d.pop("base_model")
+
         datasets = []
         _datasets = d.pop("datasets")
         for datasets_item_data in _datasets:
@@ -355,8 +356,6 @@ class GetTrainingInfoResponse200TrainingConfig:
         pad_to_sequence_len = d.pop("pad_to_sequence_len", UNSET)
 
         lora_target_modules = cast(List[str], d.pop("lora_target_modules", UNSET))
-
-        base_model = d.pop("base_model", UNSET)
 
         base_model_config = d.pop("base_model_config", UNSET)
 
@@ -406,6 +405,7 @@ class GetTrainingInfoResponse200TrainingConfig:
             warmup_steps=warmup_steps,
             weight_decay=weight_decay,
             special_tokens=special_tokens,
+            base_model=base_model,
             datasets=datasets,
             val_set_size=val_set_size,
             num_epochs=num_epochs,
@@ -416,7 +416,6 @@ class GetTrainingInfoResponse200TrainingConfig:
             eval_sample_packing=eval_sample_packing,
             pad_to_sequence_len=pad_to_sequence_len,
             lora_target_modules=lora_target_modules,
-            base_model=base_model,
             base_model_config=base_model_config,
             dataset_processes=dataset_processes,
             output_dir=output_dir,

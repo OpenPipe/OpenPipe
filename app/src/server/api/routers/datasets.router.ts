@@ -62,13 +62,17 @@ export const datasetsRouter = createTRPCRouter({
         ).as("deployedFineTunes"),
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "d.nodeId")
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").onRef("dc.destinationId", "=", "d.nodeId"),
+          )
           .where("ne.split", "=", "TEST")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numTestEntries"),
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "d.nodeId")
+          .innerJoin("DataChannel as dc", (join) =>
+            join.onRef("dc.id", "=", "ne.dataChannelId").onRef("dc.destinationId", "=", "d.nodeId"),
+          )
           .where("ne.status", "=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numProcessedEntries"),
@@ -80,10 +84,7 @@ export const datasetsRouter = createTRPCRouter({
 
     await requireCanViewProject(dataset.projectId, ctx);
 
-    const tNode = typedNode(dataset.node);
-
-    if (tNode.type !== "Dataset")
-      throw new TRPCError({ message: "Node incorrect type", code: "NOT_FOUND" });
+    const tNode = typedNode({ ...dataset.node, type: "Dataset" });
 
     const relabelNodeStats = await getSourceLLMRelabelNodes({
       datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
@@ -92,13 +93,21 @@ export const datasetsRouter = createTRPCRouter({
       .select((eb) => [
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "llmRelabelNode.id")
+          .innerJoin("DataChannel as dc", (join) =>
+            join
+              .onRef("dc.id", "=", "ne.dataChannelId")
+              .onRef("dc.destinationId", "=", "llmRelabelNode.id"),
+          )
           .where("ne.status", "!=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numUnprocessedEntries"),
         eb
           .selectFrom("NodeEntry as ne")
-          .whereRef("ne.nodeId", "=", "llmRelabelNode.id")
+          .innerJoin("DataChannel as dc", (join) =>
+            join
+              .onRef("dc.id", "=", "ne.dataChannelId")
+              .onRef("dc.destinationId", "=", "llmRelabelNode.id"),
+          )
           .where("ne.status", "=", "PROCESSED")
           .select(sql<number>`count(*)::int`.as("count"))
           .as("numProcessedEntries"),
@@ -153,7 +162,7 @@ export const datasetsRouter = createTRPCRouter({
 
       await requireCanViewProject(projectId, ctx);
 
-      const baseQuery = constructNodeEntryFiltersQuery({ filters, datasetNodeId: nodeId }).where(
+      const baseQuery = constructNodeEntryFiltersQuery({ filters, nodeId }).where(
         "ne.split",
         "=",
         "TRAIN",
@@ -163,7 +172,7 @@ export const datasetsRouter = createTRPCRouter({
         .where((eb) =>
           eb.or([eb("dei.inputTokens", "is", null), eb("deo.outputTokens", "is", null)]),
         )
-        .select("id")
+        .select("ne.id")
         .executeTakeFirst();
 
       if (datasetCalculationInProgress) {
@@ -184,7 +193,7 @@ export const datasetsRouter = createTRPCRouter({
 
       if (pruningRuleIds.length > 0) {
         totalMatchTokens = await baseQuery
-          .innerJoin("NewPruningRuleMatch as prm", (join) =>
+          .innerJoin("PruningRuleMatch as prm", (join) =>
             join
               .onRef("prm.inputHash", "=", "ne.inputHash")
               .on("prm.pruningRuleId", "in", pruningRuleIds),
@@ -216,9 +225,10 @@ export const datasetsRouter = createTRPCRouter({
         .selectFrom("Dataset as d")
         .where("projectId", "=", projectId)
         .where("nodeId", "is not", null)
-        .selectAll()
+        .leftJoin("DataChannel as dc", "dc.destinationId", "d.nodeId")
+        .selectAll("d")
         .select(() => [
-          sql<number>`(select count(*) from "NodeEntry" where "nodeId" = d."nodeId" and "status" = 'PROCESSED')::int`.as(
+          sql<number>`(select count(*) from "NodeEntry" where "dataChannelId" = dc."id" and "status" = 'PROCESSED')::int`.as(
             "datasetEntryCount",
           ),
           sql<number>`(select count(*) from "FineTune" where "datasetId" = d.id)::int`.as(
@@ -282,7 +292,9 @@ export const datasetsRouter = createTRPCRouter({
           datasetId: input.id,
           nodeEntryBaseQuery: kysely
             .selectFrom("NodeEntry as ne")
-            .where("ne.nodeId", "=", nodeId)
+            .innerJoin("DataChannel as dc", (join) =>
+              join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", nodeId),
+            )
             .where("ne.split", "=", "TEST")
             .where("ne.status", "=", "PROCESSED"),
         });
@@ -308,9 +320,7 @@ export const datasetsRouter = createTRPCRouter({
 
       if (!datasetNode) return error("Dataset not found");
 
-      const tNode = typedNode(datasetNode);
-
-      if (tNode.type !== "Dataset") return error("Node incorrect type");
+      const tNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       await prisma.$transaction([
         prisma.dataset.delete({
@@ -360,9 +370,7 @@ export const datasetsRouter = createTRPCRouter({
 
       if (!datasetNode) return error("Dataset not found");
 
-      const tDatasetNode = typedNode(datasetNode);
-
-      if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
+      const tDatasetNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       const latestUpload = await prisma.node.findFirst({
         where: {
@@ -423,10 +431,7 @@ export const datasetsRouter = createTRPCRouter({
 
       await requireCanViewProject(datasetNode.projectId, ctx);
 
-      const tNode = typedNode(datasetNode);
-      if (tNode.type !== "Dataset") {
-        throw new Error("Node is not a Dataset");
-      }
+      const tNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       const archives = await getArchives({
         datasetManualRelabelNodeId: tNode.config.manualRelabelNodeId,
@@ -501,9 +506,7 @@ export const datasetsRouter = createTRPCRouter({
 
       if (!datasetNode) return error("Dataset not found");
 
-      const tDatasetNode = typedNode(datasetNode);
-
-      if (tDatasetNode.type !== "Dataset") return error("Node incorrect type");
+      const tDatasetNode = typedNode({ ...datasetNode, type: "Dataset" });
 
       const sourceLLMRelabelNode = await kysely
         .selectFrom("Node as n")

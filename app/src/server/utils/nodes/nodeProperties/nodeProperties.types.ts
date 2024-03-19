@@ -4,7 +4,8 @@ import { type z } from "zod";
 import { type ForwardEntriesSelectionExpression } from "~/server/tasks/nodes/processNodes/forwardNodeEntries";
 import { type ProcessEntryResult } from "~/server/tasks/nodes/processNodes/processNode.task";
 import { type AtLeastOne } from "~/types/shared.types";
-import type { InferNodeConfig, typedNodeEntry } from "../node.types";
+import type { InferNodeConfig } from "../node.types";
+import { type typedNodeEntry } from "~/types/dbColumns.types";
 
 type CacheMatchField = "nodeEntryPersistentId" | "incomingInputHash" | "incomingOutputHash";
 type CacheWriteField =
@@ -39,6 +40,12 @@ export type NodeProperties<T extends NodeType> = {
     [key: string]: unknown;
   };
   getConcurrency?: (node: { config: InferNodeConfig<T> }) => number;
+  beforeInvalidating?: (
+    node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash">,
+  ) => Promise<void>;
+  beforeProcessing?: (
+    node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash">,
+  ) => Promise<void>;
   processEntry?: ({
     node,
     entry,
@@ -46,9 +53,6 @@ export type NodeProperties<T extends NodeType> = {
     node: { config: InferNodeConfig<T> } & Pick<Node, "projectId" | "hash">;
     entry: ReturnType<typeof typedNodeEntry> & Pick<NodeEntry, "id" | "outputHash">;
   }) => Promise<ProcessEntryResult>;
-  beforeProcessing?: (
-    node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash">,
-  ) => Promise<void>;
   afterProcessing?: (
     node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "hash">,
   ) => Promise<void>;

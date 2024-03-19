@@ -16,6 +16,7 @@ import { nodeEntriesRouter } from "./routers/nodeEntries.router";
 import { archivesRouter } from "./routers/archives.router";
 import { adminProjectsRouter } from "./routers/adminProjects.router";
 import { creditAdjustmentsRouter } from "./routers/creditAdjustments.router";
+import { nodesRouter } from "./routers/nodes.router";
 
 /**
  * This is the primary router for your server.
@@ -40,6 +41,7 @@ export const appRouter = createTRPCRouter({
   nodeEntries: nodeEntriesRouter,
   archives: archivesRouter,
   creditAdjustments: creditAdjustmentsRouter,
+  nodes: nodesRouter,
 });
 
 // export type definition of API

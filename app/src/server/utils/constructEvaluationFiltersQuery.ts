@@ -17,9 +17,10 @@ export const constructEvaluationFiltersQuery = ({
     .selectFrom("NodeEntry as ne")
     .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
     .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
+    .innerJoin("DataChannel as dc", (join) => join.onRef("dc.id", "=", "ne.dataChannelId"))
+    .where("dc.destinationId", "=", nodeId)
     .where((eb) => {
       const wheres: Expression<SqlBool>[] = [
-        eb("ne.nodeId", "=", nodeId),
         eb("ne.status", "=", "PROCESSED"),
         eb("ne.split", "=", "TEST"),
       ];
@@ -63,7 +64,7 @@ export const constructEvaluationFiltersQuery = ({
 
     const tableAlias = `te${i}`;
     updatedBaseQuery = updatedBaseQuery
-      .innerJoin(`NewFineTuneTestingEntry as ${tableAlias}`, (join) =>
+      .innerJoin(`FineTuneTestingEntry as ${tableAlias}`, (join) =>
         join
           .onRef("ne.inputHash", "=", `${tableAlias}.inputHash`)
           .on(`${tableAlias}.modelId`, "=", filter.field),

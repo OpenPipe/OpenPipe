@@ -2,13 +2,12 @@ import { type Node } from "@prisma/client";
 import { sql } from "kysely";
 
 import { kysely } from "~/server/db";
-import { type typedNode } from "~/server/utils/nodes/node.types";
 import { nodePropertiesByType } from "./processNode.task";
 
 export const updateCached = async ({
   node,
 }: {
-  node: ReturnType<typeof typedNode> & Pick<Node, "id" | "projectId" | "hash">;
+  node: Pick<Node, "id" | "projectId" | "hash" | "type">;
 }) => {
   const nodeProperties = nodePropertiesByType[node.type];
 
@@ -18,7 +17,9 @@ export const updateCached = async ({
       .set({ status: "PROCESSED" })
       .from("CachedProcessedEntry as cpne")
       .where((eb) => eb.or([eb("cpne.nodeHash", "=", node.hash), eb("cpne.nodeId", "=", node.id)]))
-      .where("ne.nodeId", "=", node.id)
+      .from("DataChannel as dc")
+      .where("dc.destinationId", "=", node.id)
+      .whereRef("ne.dataChannelId", "=", "dc.id")
       .where("ne.status", "=", "PENDING");
 
     if (nodeProperties.cacheWriteFields.includes("outgoingInputHash")) {

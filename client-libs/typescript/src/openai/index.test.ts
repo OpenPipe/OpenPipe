@@ -691,7 +691,7 @@ test("ft content call unusual tags", async () => {
   }
 }, 100000);
 
-test.only("ft content call streaming compatibility", async () => {
+test("ft content call streaming compatibility", async () => {
   const models = [
     "openpipe:test-tool-calls-mixtral-p3",
     "openpipe:test-tool-calls-mistral-p3",

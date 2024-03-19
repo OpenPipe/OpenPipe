@@ -122,9 +122,9 @@ const templateTabs = (
       code: templatedCode
         .replace("{{TEMPLATED_OPENPIPE_API_KEY}}", apiKey)
         .replace("{{FINE_TUNE_MODEL_SLUG}}", modelSlug)
-        .replace("{{TEMPLATED_TOOL_CHOICE}}", tabFormattedToolChoice.replace(/`/g, "\\`"))
-        .replace("{{TEMPLATED_TOOLS}}", tabFormattedTools.replace(/`/g, "\\`"))
-        .replace("{{TEMPLATED_MESSAGES}}", tabFormattedMessages.replace(/`/g, "\\`")),
+        .replace("{{TEMPLATED_TOOL_CHOICE}}", tabFormattedToolChoice)
+        .replace("{{TEMPLATED_TOOLS}}", tabFormattedTools)
+        .replace("{{TEMPLATED_MESSAGES}}", tabFormattedMessages),
     };
   });
 };

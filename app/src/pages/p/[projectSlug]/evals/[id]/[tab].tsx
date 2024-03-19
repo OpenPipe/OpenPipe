@@ -8,7 +8,7 @@ import ProjectBreadcrumbContents from "~/components/nav/ProjectBreadcrumbContent
 import EvalContentTabs from "~/components/evals/EvalContentTabs/EvalContentTabs";
 import { ProjectLink } from "~/components/ProjectLink";
 
-export default function FineTune() {
+export default function Eval() {
   const datasetEval = useDatasetEval();
 
   if (!datasetEval.isLoading && !datasetEval.data) {

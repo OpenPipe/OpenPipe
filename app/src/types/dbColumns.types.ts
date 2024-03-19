@@ -1,4 +1,10 @@
-import type { DatasetEntry, FineTune, Invoice, LoggedCall } from "@prisma/client";
+import type {
+  DatasetEntryInput,
+  DatasetEntryOutput,
+  FineTune,
+  Invoice,
+  LoggedCall,
+} from "@prisma/client";
 import { z } from "zod";
 
 import { baseModel } from "~/server/fineTuningProviders/types";
@@ -12,22 +18,42 @@ import { axolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConf
 
 export const chatInputs = chatCompletionInputReqPayload.shape;
 
-export const datasetEntrySchema = z
+const datasetEntryInput = z
   .object({
     messages: chatInputs.messages,
-    function_call: chatInputs.function_call.nullable(),
-    functions: chatInputs.functions.nullable(),
-    tool_choice: chatInputs.tool_choice.nullable(),
-    tools: chatInputs.tools.nullable(),
-    response_format: chatInputs.response_format.nullable(),
+    tool_choice: chatInputs.tool_choice.optional().nullable(),
+    tools: chatInputs.tools.optional().nullable(),
+    response_format: chatInputs.response_format.optional().nullable(),
+  })
+  .passthrough();
+
+export const typedDatasetEntryInput = <T extends Pick<DatasetEntryInput, "messages">>(
+  input: T,
+): Omit<T, "messages"> &
+  // @ts-expect-error zod doesn't type `passthrough()` correctly.
+  z.infer<typeof datasetEntryInput> => datasetEntryInput.parse(input);
+
+const datasetEntryOutput = z
+  .object({
     output: chatCompletionMessage,
   })
   .passthrough();
 
-export const typedDatasetEntry = <T extends Pick<DatasetEntry, "messages">>(
+export const typedDatasetEntryOutput = <T extends Pick<DatasetEntryOutput, "output">>(
   input: T,
+): Omit<T, "output"> &
   // @ts-expect-error zod doesn't type `passthrough()` correctly.
-): Omit<T, "messages"> & z.infer<typeof datasetEntrySchema> => datasetEntrySchema.parse(input);
+  z.infer<typeof datasetEntryOutput> => datasetEntryOutput.parse(input);
+
+const nodeEntry = z.intersection(datasetEntryInput.passthrough(), datasetEntryOutput.passthrough());
+
+export const typedNodeEntry = <
+  T extends Pick<DatasetEntryInput, "messages"> & Pick<DatasetEntryOutput, "output">,
+>(
+  input: T,
+): Omit<T, "messages" | "output"> & z.infer<typeof nodeEntry> =>
+  // @ts-expect-error zod doesn't type `passthrough()` correctly.
+  nodeEntry.parse(input);
 
 const loggedCall = z
   .object({

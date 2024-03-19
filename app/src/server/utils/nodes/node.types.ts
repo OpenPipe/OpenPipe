@@ -1,8 +1,7 @@
-import type { DatasetEntryInput, DatasetEntryOutput, Node, Prisma } from "@prisma/client";
+import type { NodeType, Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { chatInputs } from "~/types/dbColumns.types";
-import { chatCompletionMessage, filtersSchema } from "~/types/shared.types";
+import { filtersSchema } from "~/types/shared.types";
 
 export const DEFAULT_MAX_OUTPUT_SIZE = 50000;
 
@@ -38,7 +37,10 @@ export const monitorNodeSchema = z
     config: z
       .object({
         initialFilters: filtersSchema,
-        lastLoggedCallUpdatedAt: z.date().default(new Date(0)),
+        lastLoggedCallUpdatedAt: z
+          .string()
+          .transform((arg) => new Date(arg))
+          .default(new Date(0).toISOString()),
         maxOutputSize: z.number().default(DEFAULT_MAX_OUTPUT_SIZE),
         sampleRate: z.number().default(1),
         filterNodeId: z.string(),
@@ -104,50 +106,13 @@ export type InferNodeConfig<T extends z.infer<typeof nodeSchema>["type"]> = Extr
   { type: T }
 >["config"];
 
-export const typedNode = <T extends Pick<Node, "type"> & { config: Prisma.JsonValue | object }>(
-  input: T,
-): Omit<T, "type" | "config"> & z.infer<typeof nodeSchema> => ({
+export const typedNode = <
+  T extends NodeType,
+  U extends { config: Prisma.JsonValue | object },
+  C extends InferNodeConfig<T>,
+>(
+  input: U & { type: T },
+): Omit<U, "config"> & { config: C } => ({
   ...input,
-  ...nodeSchema.parse(input),
+  config: nodeSchema.parse(input).config as C,
 });
-
-const datasetEntryInput = z
-  .object({
-    messages: chatInputs.messages,
-    tool_choice: chatInputs.tool_choice.optional().nullable(),
-    tools: chatInputs.tools.optional().nullable(),
-    response_format: chatInputs.response_format.optional().nullable(),
-  })
-  .passthrough();
-
-export const typedDatasetEntryInput = <
-  T extends Pick<DatasetEntryInput, "messages" | "tool_choice" | "tools" | "response_format">,
->(
-  input: T,
-): Omit<T, "messages" | "tool_choice" | "tools" | "response_format"> &
-  // @ts-expect-error zod doesn't type `passthrough()` correctly.
-  z.infer<typeof datasetEntryInput> => datasetEntryInput.parse(input);
-
-const datasetEntryOutput = z
-  .object({
-    output: chatCompletionMessage,
-  })
-  .passthrough();
-
-export const typedDatasetEntryOutput = <T extends Pick<DatasetEntryOutput, "output">>(
-  input: T,
-): Omit<T, "output"> &
-  // @ts-expect-error zod doesn't type `passthrough()` correctly.
-  z.infer<typeof datasetEntryOutput> => datasetEntryOutput.parse(input);
-
-const nodeEntry = z.intersection(datasetEntryInput, datasetEntryOutput.passthrough());
-
-export const typedNodeEntry = <
-  T extends Pick<DatasetEntryInput, "messages" | "tool_choice" | "tools" | "response_format"> &
-    Pick<DatasetEntryOutput, "output">,
->(
-  input: T,
-): Omit<T, "messages" | "tool_choice" | "tools" | "response_format" | "output"> &
-  z.infer<typeof nodeEntry> =>
-  // @ts-expect-error zod doesn't type `passthrough()` correctly.
-  nodeEntry.parse(input);

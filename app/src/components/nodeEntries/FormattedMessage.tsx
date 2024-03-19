@@ -31,6 +31,9 @@ const FormattedMessage = ({
   if (message.tool_calls) {
     return (
       <VStack alignItems="flex-start" whiteSpace="pre-wrap" w="full">
+        <Text fontWeight="bold" color="gray.500">
+          tool_calls
+        </Text>
         {message.tool_calls.map((toolCall, index) => {
           const fn = toolCall.function;
 
@@ -59,14 +62,14 @@ const HighlightedJson = (props: { json: string; fnLabel?: string }) => {
   } catch (e) {}
 
   return (
-    <VStack w="full" alignItems="flex-start">
+    <VStack w="full" alignItems="flex-start" bgColor="gray.50" borderRadius={4}>
       <SyntaxHighlighter
         customStyle={{
           overflowX: "unset",
           width: "100%",
           flex: 1,
-          backgroundColor: "#f0f0f0",
-          borderRadius: 8,
+          backgroundColor: "transparent",
+          fontSize: 14,
         }}
         language="javascript"
         lineProps={{

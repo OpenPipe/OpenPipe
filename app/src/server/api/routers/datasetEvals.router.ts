@@ -8,9 +8,17 @@ import { error, success } from "~/utils/errorHandling/standardResponses";
 import { shuffle } from "lodash-es";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { TRPCError } from "@trpc/server";
-import { ORIGINAL_MODEL_ID } from "~/types/dbColumns.types";
+import { ORIGINAL_MODEL_ID, typedFineTune } from "~/types/dbColumns.types";
 import { sql } from "kysely";
 import { startTestJobsForEval } from "~/server/utils/nodes/startTestJobs";
+import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluationFiltersQuery";
+import { filtersSchema } from "~/types/shared.types";
+import { isComparisonModel } from "~/utils/comparisonModels";
+import {
+  RESPONSE_1_PLACEHOLDER,
+  RESPONSE_2_PLACEHOLDER,
+  getModelTitle,
+} from "~/server/tasks/evaluateTestSetEntries.task";
 
 export const datasetEvalsRouter = createTRPCRouter({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
@@ -47,9 +55,10 @@ export const datasetEvalsRouter = createTRPCRouter({
         eb
           .selectFrom("DatasetEvalNodeEntry as dene")
           .whereRef("dene.datasetEvalId", "=", "eval.id")
+          .innerJoin("DataChannel as dc", "dc.destinationId", "d.nodeId")
           .innerJoin("NodeEntry as ne", (join) =>
             join
-              .onRef("ne.nodeId", "=", "d.nodeId")
+              .onRef("ne.dataChannelId", "=", "dc.id")
               .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
               .on("ne.split", "=", "TEST")
               .on("ne.status", "=", "PROCESSED"),
@@ -68,11 +77,12 @@ export const datasetEvalsRouter = createTRPCRouter({
     const resultsBaseQuery = kysely
       .selectFrom("DatasetEvalOutputSource as deos")
       .where("deos.datasetEvalId", "=", input.id)
-      .innerJoin("NewDatasetEvalResult as der", "der.datasetEvalOutputSourceId", "deos.id")
+      .innerJoin("DatasetEvalResult as der", "der.datasetEvalOutputSourceId", "deos.id")
       .innerJoin("DatasetEvalNodeEntry as dene", "dene.id", "der.datasetEvalNodeEntryId")
+      .innerJoin("DataChannel as dc", (join) => join.on("dc.destinationId", "=", datasetNodeId))
       .innerJoin("NodeEntry as ne", (join) =>
         join
-          .on("ne.nodeId", "=", datasetNodeId)
+          .onRef("ne.dataChannelId", "=", "dc.id")
           .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
           .on("ne.split", "=", "TEST")
           .onRef("ne.inputHash", "=", "der.nodeEntryInputHash"),
@@ -157,9 +167,10 @@ export const datasetEvalsRouter = createTRPCRouter({
           (join) => join.onRef("modelsSubquery.datasetEvalId", "=", "eval.id"),
         )
         .leftJoin("DatasetEvalNodeEntry as dene", "dene.datasetEvalId", "eval.id")
+        .innerJoin("DataChannel as dc", "dc.destinationId", "d.nodeId")
         .innerJoin("NodeEntry as ne", (join) =>
           join
-            .onRef("ne.nodeId", "=", "d.nodeId")
+            .onRef("ne.dataChannelId", "=", "dc.id")
             .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
             .on("ne.split", "=", "TEST")
             .on("ne.status", "=", "PROCESSED"),
@@ -214,11 +225,13 @@ export const datasetEvalsRouter = createTRPCRouter({
       }
 
       const testNodeEntries = await kysely
-        .selectFrom("NodeEntry")
-        .where("nodeId", "=", dataset.nodeId)
-        .where("split", "=", "TEST")
-        .where("status", "=", "PROCESSED")
-        .select(["persistentId"])
+        .selectFrom("NodeEntry as ne")
+        .innerJoin("DataChannel as dc", (join) =>
+          join.on("dc.destinationId", "=", dataset.nodeId).onRef("dc.id", "=", "ne.dataChannelId"),
+        )
+        .where("ne.split", "=", "TEST")
+        .where("ne.status", "=", "PROCESSED")
+        .select(["ne.persistentId"])
         .execute();
 
       if (testNodeEntries.length < input.numRows) {
@@ -257,7 +270,11 @@ export const datasetEvalsRouter = createTRPCRouter({
           datasetEvalId: datasetEval.id,
           nodeEntryBaseQuery: kysely
             .selectFrom("NodeEntry as ne")
-            .where("ne.nodeId", "=", dataset.nodeId)
+            .innerJoin("DataChannel as dc", (join) =>
+              join
+                .on("dc.destinationId", "=", dataset.nodeId)
+                .onRef("dc.id", "=", "ne.dataChannelId"),
+            )
             .where("ne.split", "=", "TEST")
             .where("ne.status", "=", "PROCESSED"),
         });
@@ -296,13 +313,17 @@ export const datasetEvalsRouter = createTRPCRouter({
       let shouldQueueEvalJobs = false;
 
       const numTestNodeEntries = await kysely
-        .selectFrom("NodeEntry")
-        .where("nodeId", "=", datasetEval.dataset.nodeId)
-        .where("split", "=", "TEST")
-        .where("status", "=", "PROCESSED")
-        .select((eb) => [eb.fn.count<string>("persistentId").as("numRows")])
+        .selectFrom("NodeEntry as ne")
+        .innerJoin("DataChannel as dc", (join) =>
+          join
+            .on("dc.destinationId", "=", datasetEval.dataset.nodeId)
+            .onRef("dc.id", "=", "ne.dataChannelId"),
+        )
+        .where("ne.split", "=", "TEST")
+        .where("ne.status", "=", "PROCESSED")
+        .select([sql<number>`count(ne."persistentId")::int`.as("numRows")])
         .executeTakeFirst()
-        .then((row) => parseInt(row?.numRows ?? "0"));
+        .then((row) => row?.numRows ?? 0);
 
       if (input.updates.numRows && numTestNodeEntries < input.updates.numRows) {
         return error(
@@ -320,7 +341,7 @@ export const datasetEvalsRouter = createTRPCRouter({
 
       if (input.updates.instructions && input.updates.instructions !== datasetEval.instructions) {
         await kysely
-          .deleteFrom("NewDatasetEvalResult as der")
+          .deleteFrom("DatasetEvalResult as der")
           .where(({ exists, selectFrom }) =>
             exists(
               selectFrom("DatasetEvalOutputSource as deos")
@@ -367,9 +388,12 @@ export const datasetEvalsRouter = createTRPCRouter({
       const currentDatasetEvalNodeEntries = await kysely
         .selectFrom("DatasetEvalNodeEntry as dene")
         .where("dene.datasetEvalId", "=", input.id)
+        .innerJoin("DataChannel as dc", (join) =>
+          join.on("dc.destinationId", "=", datasetEval.dataset.nodeId),
+        )
         .innerJoin("NodeEntry as ne", (join) =>
           join
-            .on("ne.nodeId", "=", datasetEval.dataset.nodeId)
+            .onRef("ne.dataChannelId", "=", "dc.id")
             .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
             .on("ne.split", "=", "TEST")
             .on("ne.status", "=", "PROCESSED"),
@@ -389,7 +413,11 @@ export const datasetEvalsRouter = createTRPCRouter({
               eb.exists(
                 eb
                   .selectFrom("NodeEntry as ne")
-                  .where("ne.nodeId", "=", datasetEval.dataset.nodeId)
+                  .innerJoin("DataChannel as dc", (join) =>
+                    join
+                      .on("dc.destinationId", "=", datasetEval.dataset.nodeId)
+                      .onRef("dc.id", "=", "ne.dataChannelId"),
+                  )
                   .where("ne.split", "=", "TEST")
                   .whereRef("ne.persistentId", "=", "dene.nodeEntryPersistentId"),
               ),
@@ -413,7 +441,11 @@ export const datasetEvalsRouter = createTRPCRouter({
 
           const nodeEntriesToCreate = await kysely
             .selectFrom("NodeEntry as ne")
-            .where("ne.nodeId", "=", datasetEval.dataset.nodeId)
+            .innerJoin("DataChannel as dc", (join) =>
+              join
+                .on("dc.destinationId", "=", datasetEval.dataset.nodeId)
+                .onRef("dc.id", "=", "ne.dataChannelId"),
+            )
             .where("ne.split", "=", "TEST")
             .where("ne.status", "=", "PROCESSED")
             .leftJoin("DatasetEvalNodeEntry as dene", (join) =>
@@ -443,7 +475,11 @@ export const datasetEvalsRouter = createTRPCRouter({
           datasetEvalId: input.id,
           nodeEntryBaseQuery: kysely
             .selectFrom("NodeEntry as ne")
-            .where("ne.nodeId", "=", datasetEval.dataset.nodeId)
+            .innerJoin("DataChannel as dc", (join) =>
+              join
+                .on("dc.destinationId", "=", datasetEval.dataset.nodeId)
+                .onRef("dc.id", "=", "ne.dataChannelId"),
+            )
             .where("ne.split", "=", "TEST")
             .where("ne.status", "=", "PROCESSED"),
         });
@@ -497,8 +533,8 @@ export const datasetEvalsRouter = createTRPCRouter({
             .onRef("dene.nodeEntryPersistentId", "=", "ne.persistentId")
             .on("dene.datasetEvalId", "=", input.datasetEvalId),
         )
-        .innerJoin("NewDatasetEvalResult as der", "der.datasetEvalNodeEntryId", "dene.id")
-        .innerJoin("NewFineTuneTestingEntry as ftte", (join) =>
+        .innerJoin("DatasetEvalResult as der", "der.datasetEvalNodeEntryId", "dene.id")
+        .innerJoin("FineTuneTestingEntry as ftte", (join) =>
           join.onRef("ftte.inputHash", "=", "ne.inputHash").on("ftte.modelId", "=", input.modelId),
         )
         .innerJoin("DatasetEntryOutput as ftteDEO", "ftteDEO.hash", "ftte.outputHash")
@@ -526,7 +562,7 @@ export const datasetEvalsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const entry = await kysely
+      const evalResult = await kysely
         .selectFrom("NodeEntry as ne")
         .where("ne.id", "=", input.nodeEntryId)
         .innerJoin("DatasetEvalNodeEntry as dene", (join) =>
@@ -541,7 +577,7 @@ export const datasetEvalsRouter = createTRPCRouter({
             .on("deos.datasetEvalId", "=", input.datasetEvalId)
             .on("deos.modelId", "=", input.modelId),
         )
-        .leftJoin("NewDatasetEvalResult as selectedDer", (join) =>
+        .leftJoin("DatasetEvalResult as selectedDer", (join) =>
           join
             .onRef("selectedDer.datasetEvalNodeEntryId", "=", "dene.id")
             .onRef("selectedDer.datasetEvalOutputSourceId", "=", "deos.id"),
@@ -549,7 +585,7 @@ export const datasetEvalsRouter = createTRPCRouter({
         .distinctOn("deos.modelId")
         .innerJoin("DatasetEntryInput as dei", "dei.hash", "ne.inputHash")
         .innerJoin("DatasetEntryOutput as deo", "deo.hash", "ne.outputHash")
-        .leftJoin("NewFineTuneTestingEntry as ftte", (join) =>
+        .leftJoin("FineTuneTestingEntry as ftte", (join) =>
           join
             .onRef("ftte.inputHash", "=", "ne.inputHash")
             .onRef("ftte.modelId", "=", "deos.modelId"),
@@ -567,11 +603,11 @@ export const datasetEvalsRouter = createTRPCRouter({
           "de.instructions as datasetEvalInstructions",
           jsonArrayFrom(
             eb
-              .selectFrom("NewDatasetEvalResult as der")
+              .selectFrom("DatasetEvalResult as der")
               .whereRef("der.datasetEvalNodeEntryId", "=", "dene.id")
               .whereRef("der.datasetEvalOutputSourceId", "=", "deos.id")
               .leftJoin(
-                "NewDatasetEvalResult as comparisonDer",
+                "DatasetEvalResult as comparisonDer",
                 "comparisonDer.id",
                 "der.comparisonResultId",
               )
@@ -581,7 +617,7 @@ export const datasetEvalsRouter = createTRPCRouter({
                 "comparisonDer.datasetEvalOutputSourceId",
               )
               .where("comparisonDeos.modelId", "in", input.visibleModelIds)
-              .leftJoin("NewFineTuneTestingEntry as comparisonFtte", (join) =>
+              .leftJoin("FineTuneTestingEntry as comparisonFtte", (join) =>
                 join
                   .onRef("comparisonFtte.inputHash", "=", "ne.inputHash")
                   .onRef("comparisonFtte.modelId", "=", "comparisonDeos.modelId"),
@@ -596,6 +632,7 @@ export const datasetEvalsRouter = createTRPCRouter({
               .select([
                 "comparisonDer.score",
                 "comparisonDer.explanation",
+                "comparisonDer.wasFirst",
                 "comparisonDer.status",
                 "comparisonDer.errorMessage",
                 "comparisonDeos.modelId",
@@ -606,26 +643,222 @@ export const datasetEvalsRouter = createTRPCRouter({
         ])
         .executeTakeFirst();
 
-      if (!entry) {
+      if (!evalResult) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Dataset entry for head-to-head comparison details not found",
+          message: "Result for head-to-head comparison details not found",
         });
       }
 
-      await requireCanViewProject(entry.projectId, ctx);
+      await requireCanViewProject(evalResult.projectId, ctx);
 
       // fill in output for original model
-      if (entry.modelId === ORIGINAL_MODEL_ID) {
-        entry.output = entry.originalOutput;
+      if (evalResult.modelId === ORIGINAL_MODEL_ID) {
+        evalResult.output = evalResult.originalOutput;
       }
-      const originalModelComparisonResult = entry.comparisonResults.find(
-        (result) => result.modelId === ORIGINAL_MODEL_ID,
+      const originalModelComparisonResult = evalResult.comparisonResults.find(
+        (comparisonResult) => comparisonResult.modelId === ORIGINAL_MODEL_ID,
       );
       if (originalModelComparisonResult) {
-        originalModelComparisonResult.output = entry.originalOutput;
+        originalModelComparisonResult.output = evalResult.originalOutput;
       }
 
-      return { entry };
+      // substitute model titles for placeholders in explanation
+      const modelTitle = getModelTitle(evalResult);
+      for (const comparisonResult of evalResult.comparisonResults) {
+        if (!comparisonResult.explanation) continue;
+        const comparisonModelTitle = getModelTitle(comparisonResult);
+
+        const firstTitle = comparisonResult.wasFirst ? comparisonModelTitle : modelTitle;
+        const secondTitle = comparisonResult.wasFirst ? modelTitle : comparisonModelTitle;
+
+        comparisonResult.explanation = comparisonResult.explanation
+          .replaceAll(RESPONSE_1_PLACEHOLDER, firstTitle)
+          .replaceAll(RESPONSE_1_PLACEHOLDER.toLowerCase(), firstTitle)
+          .replaceAll(RESPONSE_2_PLACEHOLDER, secondTitle)
+          .replaceAll(RESPONSE_2_PLACEHOLDER.toLowerCase(), secondTitle);
+      }
+
+      return { evalResult };
+    }),
+  testingStats: protectedProcedure
+    .input(
+      z.object({
+        datasetId: z.string(),
+        filters: filtersSchema,
+        modelId: z.string(),
+        visibleModelIds: z.string().array(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { datasetId, filters, modelId, visibleModelIds } = input;
+
+      const dataset = await prisma.dataset.findUnique({
+        where: {
+          id: datasetId,
+        },
+        include: {
+          datasetEvals: true,
+        },
+      });
+
+      if (!dataset?.nodeId)
+        throw new TRPCError({ message: "Dataset node does not exist", code: "NOT_FOUND" });
+
+      const finishedCount = await kysely
+        .selectFrom("NodeEntry as ne")
+        .innerJoin("DataChannel as dc", (join) =>
+          join.on("dc.destinationId", "=", dataset.nodeId).onRef("ne.dataChannelId", "=", "dc.id"),
+        )
+        .where("ne.split", "=", "TEST")
+        .innerJoin("FineTuneTestingEntry as ftte", (join) =>
+          join
+            .onRef("ftte.inputHash", "=", "ne.inputHash")
+            .on("ftte.modelId", "=", modelId)
+            .on("ftte.outputHash", "is not", null),
+        )
+        .select([sql<number>`count(*)::int`.as("count")])
+        .executeTakeFirst()
+        .then((res) => res?.count ?? 0);
+
+      const baseQuery = constructEvaluationFiltersQuery({ filters, nodeId: dataset.nodeId });
+
+      let updatedPerformanceQuery = baseQuery;
+
+      let i = 0;
+      // Add average score for each dataset eval
+      for (const datasetEval of dataset?.datasetEvals ?? []) {
+        const alias = `eval${i++}`;
+        updatedPerformanceQuery = updatedPerformanceQuery
+          .leftJoin(
+            (eb) =>
+              eb
+                .selectFrom(`DatasetEval as de`)
+                .where("de.id", "=", datasetEval.id)
+                .innerJoin("Dataset as d", "d.id", "de.datasetId")
+                .innerJoin("DataChannel as dc", "dc.destinationId", "d.nodeId")
+                .innerJoin("DatasetEvalNodeEntry as dene", "dene.datasetEvalId", "de.id")
+                .innerJoin("NodeEntry as ne", (join) =>
+                  join
+                    .onRef("ne.persistentId", "=", "dene.nodeEntryPersistentId")
+                    // include dataChannelId to make use of the [dataChannelId, persistentId] index
+                    .onRef("ne.dataChannelId", "=", "dc.id"),
+                )
+                .leftJoin("DatasetEvalResult as der", (join) =>
+                  join
+                    .onRef("der.datasetEvalNodeEntryId", "=", "dene.id")
+                    .onRef("der.nodeEntryInputHash", "=", "ne.inputHash"),
+                )
+                .leftJoin(
+                  "DatasetEvalOutputSource as deos",
+                  "deos.id",
+                  "der.datasetEvalOutputSourceId",
+                )
+                .where("deos.modelId", "=", modelId)
+                .leftJoin(
+                  "DatasetEvalOutputSource as comparisonDeos",
+                  "comparisonDeos.id",
+                  "der.comparisonOutputSourceId",
+                )
+                .where((eb) =>
+                  eb.or([
+                    eb("der.comparisonOutputSourceId", "is", null),
+                    eb("comparisonDeos.modelId", "in", visibleModelIds),
+                  ]),
+                )
+                .select((eb) => [
+                  "dene.nodeEntryPersistentId as persistentId",
+                  eb.fn.agg<number>("AVG", [`der.score`]).as(`scoreForEval`),
+                  sql`COUNT(CASE WHEN der.score = 1 THEN 1 ELSE NULL END)`.as(`wins`),
+                  sql`COUNT(CASE WHEN der.score = .5 THEN 1 ELSE NULL END)`.as(`ties`),
+                  sql`COUNT(CASE WHEN der.score = 0 THEN 1 ELSE NULL END)`.as(`losses`),
+                  sql`COUNT(CASE WHEN der.status = 'PENDING' OR der.status = 'IN_PROGRESS' THEN 1 ELSE NULL END)`.as(
+                    `pending`,
+                  ),
+                  sql`COUNT(CASE WHEN der.status = 'COMPLETE' OR der.status = 'ERROR' THEN 1 ELSE NULL END)`.as(
+                    `complete`,
+                  ),
+                ])
+                .groupBy(["dene.nodeEntryPersistentId"])
+                .as(alias),
+            (join) => join.onRef(`${alias}.persistentId`, "=", "ne.persistentId"),
+          )
+          .select((eb) => [
+            eb.fn.agg<number>("AVG", [`${alias}.scoreForEval`]).as(`score_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.wins) AS INT)`).as(`totalWins_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.ties) AS INT)`).as(`totalTies_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.losses) AS INT)`).as(`totalLosses_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.pending) AS INT)`).as(`totalPending_${datasetEval.id}`),
+            sql.raw(`CAST(SUM(${alias}.complete) AS INT)`).as(`totalComplete_${datasetEval.id}`),
+            sql
+              .raw(`CAST(COUNT(${alias}."persistentId") AS INT)`)
+              .as(`totalCount_${datasetEval.id}`),
+          ]) as unknown as typeof baseQuery;
+      }
+
+      const performance = await updatedPerformanceQuery
+        .select("dc.destinationId")
+        .groupBy("dc.destinationId")
+        .executeTakeFirst()
+        .then((result) => result as typeof result & Record<string, number>);
+
+      const evalPerformances: Record<
+        string,
+        {
+          totalCount: number;
+          numPending: number;
+          numComplete: number;
+          score: number | null;
+          totalWins: number | null;
+          totalTies: number | null;
+          totalLosses: number | null;
+        }
+      > = {};
+
+      for (const datasetEval of dataset?.datasetEvals ?? []) {
+        if (
+          !performance ||
+          !(`totalCount_${datasetEval.id}` in performance) ||
+          !performance[`totalCount_${datasetEval.id}`]
+        )
+          continue;
+        evalPerformances[datasetEval.id] = {
+          totalCount: performance[`totalCount_${datasetEval.id}`] ?? 0,
+          numPending: performance[`totalPending_${datasetEval.id}`] ?? 0,
+          numComplete: performance[`totalComplete_${datasetEval.id}`] ?? 0,
+          score: performance[`score_${datasetEval.id}`] ?? null,
+          totalWins: performance[`totalWins_${datasetEval.id}`] ?? null,
+          totalTies: performance[`totalTies_${datasetEval.id}`] ?? null,
+          totalLosses: performance[`totalLosses_${datasetEval.id}`] ?? null,
+        };
+      }
+
+      if (!dataset) throw new TRPCError({ message: "Dataset not found", code: "NOT_FOUND" });
+      await requireCanViewProject(dataset.projectId, ctx);
+
+      let fineTune;
+      if (modelId !== ORIGINAL_MODEL_ID && !isComparisonModel(modelId)) {
+        fineTune = typedFineTune(
+          await prisma.fineTune.findFirstOrThrow({
+            where: { id: modelId },
+            select: {
+              slug: true,
+              baseModel: true,
+              provider: true,
+            },
+          }),
+        );
+      }
+
+      const resultsPending = Object.values(evalPerformances).some(
+        (performance) => performance.numPending > 0,
+      );
+
+      return {
+        fineTune,
+        finishedCount,
+        evalPerformances,
+        resultsPending,
+      };
     }),
 });

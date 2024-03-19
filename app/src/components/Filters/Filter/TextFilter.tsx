@@ -12,12 +12,13 @@ import { type AtLeastOne } from "~/types/shared.types";
 const TextFilter = ({
   filterOptions,
   filter,
+  urlKey,
 }: {
   filterOptions: AtLeastOne<FilterOption>;
   filter: FilterData;
+  urlKey?: string;
 }) => {
-  const updateFilter = useFilters().updateFilter;
-  const removeFilter = useFilters().removeFilter;
+  const { updateFilter, removeFilter } = useFilters({ urlKey });
 
   const [editedValue, setEditedValue] = useState(filter.value as string);
 
@@ -30,8 +31,8 @@ const TextFilter = ({
 
   return (
     <HStack>
-      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} />
-      <SelectComparatorDropdown filter={filter} filterType="text" />
+      <SelectFieldDropdown filterOptions={filterOptions} filter={filter} urlKey={urlKey} />
+      <SelectComparatorDropdown filter={filter} filterType="text" urlKey={urlKey} />
       <Input
         value={editedValue}
         onChange={(e) => {

@@ -78,13 +78,12 @@ export const createFineTune = async (
   });
 
   await kysely
-    .insertInto("NewFineTuneTrainingEntry")
+    .insertInto("FineTuneTrainingEntry")
     .columns(["id", "nodeEntryPersistentId", "inputHash", "outputHash", "fineTuneId", "updatedAt"])
     .expression(() =>
       constructNodeEntryFiltersQuery({
         filters: input.filters,
-        // TODO: remove type assertion once nodeId is required
-        datasetNodeId: input.dataset.nodeId as string,
+        nodeId: input.dataset.nodeId,
       })
         .where("split", "=", "TRAIN")
         .where("status", "=", "PROCESSED")

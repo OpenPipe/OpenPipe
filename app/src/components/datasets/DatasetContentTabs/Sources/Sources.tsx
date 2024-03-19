@@ -29,14 +29,16 @@ const Sources = () => {
     (sourceNodeId: string) => {
       if (!selectedProject || !dataset?.id) return;
 
-      const filtersQueryParams = constructFiltersQueryParams([
-        {
-          id: Date.now().toString(),
-          field: GeneralFiltersDefaultFields.Source,
-          comparator: "=",
-          value: sourceNodeId,
-        },
-      ]);
+      const filtersQueryParams = constructFiltersQueryParams({
+        filters: [
+          {
+            id: Date.now().toString(),
+            field: GeneralFiltersDefaultFields.Source,
+            comparator: "=",
+            value: sourceNodeId,
+          },
+        ],
+      });
 
       void router.push({
         pathname: "/p/[projectSlug]/datasets/[id]/[tab]",
@@ -87,7 +89,7 @@ const Sources = () => {
         borderWidth={1}
       >
         {archives.map((archive, index) => (
-          <>
+          <Box key={archive.id}>
             {!!index && <Divider key={`${archive.id}-divider`} color="gray.300" my={1} />}
             <VStack key={archive.id} w="full" spacing={2} alignItems="flex-start" p={4}>
               <HStack w="full" justifyContent="space-between" alignItems="flex-start">
@@ -143,7 +145,7 @@ const Sources = () => {
                 </Button>
               </HStack>
             </VStack>
-          </>
+          </Box>
         ))}
       </VStack>
       <RelabelArchiveDialog archive={archiveToRelabel} onClose={() => setArchiveToRelabel(null)} />

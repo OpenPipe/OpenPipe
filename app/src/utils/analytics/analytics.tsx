@@ -1,13 +1,12 @@
 "use client";
 import { useSession } from "next-auth/react";
 import React, { type ReactNode, useEffect } from "react";
-import { PostHogProvider, useActiveFeatureFlags } from "posthog-js/react";
+import { PostHogProvider } from "posthog-js/react";
 import * as Sentry from "@sentry/browser";
 
 import posthog from "posthog-js";
 import { env } from "~/env.mjs";
 import { useRouter } from "next/router";
-import { useAppStore } from "~/state/store";
 
 // Make sure we're in the browser
 const inBrowser = typeof window !== "undefined";
@@ -25,14 +24,6 @@ export const FrontendAnalyticsProvider = ({ children }: { children: ReactNode })
       router.events.off("routeChangeComplete", handleRouteChange);
     };
   }, [router.events]);
-
-  const setFeatureFlags = useAppStore((s) => s.featureFlags.setFeatureFlags);
-  const activeFlags = useActiveFeatureFlags();
-  useEffect(() => {
-    if (activeFlags) {
-      setFeatureFlags(activeFlags);
-    }
-  }, [activeFlags, setFeatureFlags]);
 
   useEffect(() => {
     if (env.NEXT_PUBLIC_POSTHOG_KEY && inBrowser && session && session.user) {

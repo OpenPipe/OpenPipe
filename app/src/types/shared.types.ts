@@ -5,6 +5,7 @@ import type {
 } from "openai/resources/chat";
 import { z } from "zod";
 import { type TypedFineTune } from "./dbColumns.types";
+import { type FilterData } from "~/components/Filters/types";
 
 export const CURRENT_PIPELINE_VERSION: TypedFineTune["pipelineVersion"] = 3;
 
@@ -220,13 +221,14 @@ export const selectComparators = ["=", "!="] as const;
 export const comparators = [...textComparators, ...dateComparators, ...selectComparators] as const;
 export type ComparatorsSubsetType = typeof textComparators | typeof dateComparators;
 
-export const filtersSchema = z.array(
-  z.object({
-    field: z.string(),
-    comparator: z.enum(comparators),
-    value: z.string().or(z.array(z.number())),
-  }),
-);
+const filterSchema = z.object({
+  field: z.string(),
+  comparator: z.enum(comparators),
+  //  string | [number, number]
+  value: z.string().or(z.tuple([z.number(), z.number()])),
+}) satisfies z.ZodType<Omit<FilterData, "id">, any, any>;
+
+export const filtersSchema = z.array(filterSchema);
 
 export enum LoggedCallsFiltersDefaultFields {
   SentAt = "sentAt",
@@ -256,3 +258,6 @@ export enum EvaluationFiltersDefaultFields {
 }
 
 export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";
+
+export const weightsFormats = ["fp32", "bf16", "fp16"] as const;
+export const weightsFormat = z.enum(weightsFormats);

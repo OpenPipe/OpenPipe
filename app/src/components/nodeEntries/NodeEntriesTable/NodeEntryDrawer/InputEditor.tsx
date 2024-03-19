@@ -41,7 +41,15 @@ const InputEditor = ({
           </HStack>
         </Button>
       </HStack>
-      <Collapse style={{ width: "100%" }} in={expanded} unmountOnExit={true}>
+      <Collapse
+        style={{
+          width: "100%",
+          paddingRight: 1,
+          paddingLeft: 1,
+        }}
+        in={expanded}
+        unmountOnExit={true}
+      >
         <VStack w="full" alignItems="flex-start" spacing={0}>
           {inputMessagesToSave.map((message, i) => {
             return (

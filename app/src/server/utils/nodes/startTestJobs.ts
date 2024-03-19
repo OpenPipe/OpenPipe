@@ -28,6 +28,7 @@ export const startDatasetTestJobs = async ({
     .selectFrom("Dataset as d")
     .where("d.id", "=", datasetId)
     .select((eb) => [
+      "d.id",
       jsonArrayFrom(
         eb
           .selectFrom("DatasetEval as de")
@@ -58,7 +59,7 @@ export const startDatasetTestJobs = async ({
   for (const modelId of modelIds) {
     await startTestJobsForModel({
       modelId,
-      nodeEntryBaseQuery,
+      datasetId: dataset.id,
     });
   }
 };
@@ -103,7 +104,7 @@ export const startTestJobsForEval = async ({
   if (!datasetEval) return;
 
   const evalsToRun: EvalKey[] = [];
-  const datasetEvalResultsToCreate: Prisma.NewDatasetEvalResultCreateManyInput[] = [];
+  const datasetEvalResultsToCreate: Prisma.DatasetEvalResultCreateManyInput[] = [];
 
   for (const datasetEvalNodeEntry of datasetEval.datasetEvalDatasetEntries) {
     for (let i = 0; i < datasetEval.outputSources.length; i++) {
@@ -142,7 +143,7 @@ export const startTestJobsForEval = async ({
   // Shuffle so all models get results run at roughly the same rate
   const shuffledEvalsToRun = shuffle(evalsToRun);
 
-  await prisma.newDatasetEvalResult.createMany({
+  await prisma.datasetEvalResult.createMany({
     data: datasetEvalResultsToCreate,
     skipDuplicates: true,
   });
@@ -152,29 +153,41 @@ export const startTestJobsForEval = async ({
   }
 };
 
+// Used for both fine-tuned and comparison models
 export const startTestJobsForModel = async ({
   modelId,
-  nodeEntryBaseQuery,
+  datasetId,
 }: {
   modelId: string;
-  nodeEntryBaseQuery: NodeEntryBaseQuery;
+  datasetId: string;
 }) => {
-  const nodeEntryToRun = await nodeEntryBaseQuery
+  const dataset = await prisma.dataset.findUniqueOrThrow({
+    where: {
+      id: datasetId,
+    },
+  });
+
+  const nodeEntriesToRun = await kysely
+    .selectFrom("NodeEntry as ne")
+    .innerJoin("DataChannel as dc", (join) =>
+      join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", dataset.nodeId),
+    )
+    .where("ne.status", "=", "PROCESSED")
     .where("ne.split", "=", "TEST")
-    .leftJoin("NewFineTuneTestingEntry as ftte", (join) =>
+    .leftJoin("FineTuneTestingEntry as ftte", (join) =>
       join.onRef("ftte.inputHash", "=", "ne.inputHash").on("ftte.modelId", "=", modelId),
     )
     .where("ftte.id", "is", null)
     .select(["ne.id as nodeEntryId"])
     .execute();
 
-  const jobsToRun = nodeEntryToRun.map((nodeEntry) => ({
-    modelId,
-    nodeEntryId: nodeEntry.nodeEntryId,
-    numPreviousTries: 0,
-  }));
-
-  for (const job of jobsToRun) {
-    await generateTestSetEntry.enqueue(job);
-  }
+  await Promise.all(
+    nodeEntriesToRun.map((nodeEntry) =>
+      generateTestSetEntry.enqueue({
+        modelId,
+        nodeEntryId: nodeEntry.nodeEntryId,
+        numPreviousTries: 0,
+      }),
+    ),
+  );
 };

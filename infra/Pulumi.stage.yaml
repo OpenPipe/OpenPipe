@@ -1,6 +1,8 @@
 config:
   aws-native:region: us-west-2
   aws:region: us-west-2
+  openpipe:ALLOWED_IP_LIST:
+    secure: AAABAGVz7ItXWBwDtP0kp0R0qyKvNUeuCZKE3AZcd5h4pswYxuCl1q4bTIaGcSqzg8oS1wolmBS5EoDHq4wgy/rWQCCRqgS681iqmAqP/VZyH9sQBj0a8angVk//lnEtbqEkbpO6w4tmVsvUkUCJDDsglKA25yhCPEXAEdPyXwW06xvImGr8X6pjg4C13heZihwlP/BglAiwe7hH64py8gitAarugQZewZ4J1qxSR4x9nOmauBNvB3guVdMWCBUojce0Y608
   openpipe:ANYSCALE_INFERENCE_API_KEY:
     secure: AAABAEkqA8a0Jud/Z2yjQXsRXwvmh54DwFWbDJarnNS3ZlhLpZdFO6pTwCW1EDlpY8nVSooHlmJZSZi5Y8tzwqpudYSt6lYYc8a4
   openpipe:ANYSCALE_INFERENCE_BASE_URL: https://inference-stage-c6qyl.cld-tskg84t9kb3cr8ud.s.anyscaleuserdata.com/v1
@@ -38,7 +40,7 @@ config:
     secure: AAABABlrDVTEPwFbH+lRBsVfYvJZplScryCWJr6VxG+aL8/x9CUQIlle2ttg8ElILmHk4LmI/wW+99vKwtw1N2EiBgT7B0qb
   openpipe:MODAL_ENVIRONMENT: dev
   openpipe:NEXT_PUBLIC_DEPLOY_ENV: staging
-  openpipe:NEXT_PUBLIC_MAINTENANCE_MODE: "true"
+  openpipe:NEXT_PUBLIC_MAINTENANCE_MODE: "false"
   openpipe:NEXT_PUBLIC_POSTHOG_KEY: phc_A64o490gM4GibR97l2SPXK4W6K2TrQozLfkrxh6jDqu
   openpipe:NEXT_PUBLIC_SENTRY_DSN: https://3443df79f39db55f5b60c6d9f41ae684@o4505642008641536.ingest.sentry.io/4505642011394048
   openpipe:NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_51OcEiyIpUtvR6wbgpoMtjp7GzrWoNcjM2kLSeYlEAcP9BevVtv69TeUvhndrg87A4zigWNXYfTjeHyDqX4dt3Pm100pZ8BTBtu

@@ -13,7 +13,7 @@ import { useLoggedCalls } from "~/utils/hooks";
 import { useFilters } from "~/components/Filters/useFilters";
 import ToggleFiltersButton from "~/components/ToggleFiltersButton";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
-import DateFilter from "~/components/Filters/DateFilter";
+import LogsDateFilter from "~/components/Filters/LogsDateFilter";
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -21,7 +21,7 @@ const spin = keyframes`
 `;
 
 export default function LoggedCalls() {
-  const filtersShown = useFilters(true).filtersShown;
+  const filtersShown = useFilters({ defaultShown: true }).filtersShown;
 
   const utils = api.useUtils();
 
@@ -55,7 +55,7 @@ export default function LoggedCalls() {
           </HStack>
           <Flex flexDir={{ base: "column", md: "row" }} w="full" justifyContent="space-between">
             <HStack>
-              <DateFilter />
+              <LogsDateFilter />
             </HStack>
             <HStack pt={{ base: 4, md: 0 }}>
               <ConditionallyEnable accessRequired="requireCanModifyProject">

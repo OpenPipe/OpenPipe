@@ -11,7 +11,6 @@ import { type APIClient } from "~/utils/api";
 import { type PersistedState, persistOptions } from "./persist";
 import { type SelectedLogsSlice, createSelectedLogsSlice } from "./selectedLogsSlice";
 import { type ColumnVisibilitySlice, createColumnVisibilitySlice } from "./columnVisibilitySlice";
-import { type FeatureFlagsSlice, createFeatureFlagsSlice } from "./featureFlags";
 import { type EvaluationsSlice, createEvaluationsSlice } from "./evaluationsSlice";
 
 enableMapSet();
@@ -27,7 +26,6 @@ export type State = {
   sharedArgumentsEditor: SharedArgumentsEditorSlice;
   selectedLogs: SelectedLogsSlice;
   columnVisibility: ColumnVisibilitySlice;
-  featureFlags: FeatureFlagsSlice;
   evaluationsSlice: EvaluationsSlice;
 };
 
@@ -58,7 +56,6 @@ const useBaseStore = create<State, [["zustand/persist", PersistedState], ["zusta
       sharedArgumentsEditor: createArgumentsEditorSlice(set, get, ...rest),
       selectedLogs: createSelectedLogsSlice(set, get, ...rest),
       columnVisibility: createColumnVisibilitySlice(set, get, ...rest),
-      featureFlags: createFeatureFlagsSlice(set, get, ...rest),
       evaluationsSlice: createEvaluationsSlice(set, get, ...rest),
     })),
     persistOptions,

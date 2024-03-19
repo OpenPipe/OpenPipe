@@ -47,7 +47,7 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
   });
 
   const trainingEntries = await kysely
-    .selectFrom("NewFineTuneTrainingEntry as ftte")
+    .selectFrom("FineTuneTrainingEntry as ftte")
     .where("ftte.fineTuneId", "=", fineTune.id)
     .select(({ fn }) => [
       fn.count<string>("ftte.id").as("count"),
@@ -68,6 +68,7 @@ export async function trainingConfig(fineTune: TypedFineTune): Promise<AxolotlCo
       "meta-llama/Llama-2-7b-hf": "LlamaForCausalLM",
       "OpenPipe/mistral-ft-optimized-1218": "MistralForCausalLM",
       "OpenPipe/mistral-ft-optimized-1227": "MistralForCausalLM",
+      "mistralai/Mistral-7B-Instruct-v0.2": "MistralForCausalLM",
       "mistralai/Mixtral-8x7B-Instruct-v0.1": "MixtralForCausalLM",
     } as const
   )[fineTune.baseModel];

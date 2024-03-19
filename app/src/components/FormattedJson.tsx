@@ -1,24 +1,34 @@
-import { Box, IconButton } from "@chakra-ui/react";
-import { CopyIcon } from "lucide-react";
+import { Box, type BoxProps, Button } from "@chakra-ui/react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atelierCaveLight } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import stringify from "json-stringify-pretty-compact";
 
 import { useCopyToClipboard } from "~/utils/useCopyToClipboard";
 
-const FormattedJson = ({ json }: { json: any }) => {
+const FormattedJson = ({
+  json,
+  copiable = true,
+  ...rest
+}: { json: any; copiable?: boolean } & BoxProps) => {
   const jsonString = stringify(json, { maxLength: 40 });
   const copyToClipboard = useCopyToClipboard();
 
   return (
-    <Box position="relative" fontSize="sm" borderRadius="md" overflow="hidden">
+    <Box
+      position="relative"
+      fontSize="sm"
+      borderRadius="md"
+      overflow="hidden"
+      borderWidth={1}
+      borderColor="gray.300"
+      bgColor="gray.50"
+      w="full"
+      {...rest}
+    >
       <SyntaxHighlighter
         customStyle={{
           overflowX: "unset",
-          backgroundColor: "#FFFAF0",
-          borderColor: "#F6AD55",
-          border: "1px solid #F6AD55",
-          borderRadius: 8,
+          backgroundColor: "transparent",
           padding: 16,
         }}
         language="json"
@@ -31,17 +41,20 @@ const FormattedJson = ({ json }: { json: any }) => {
         {/* convert non-breaking spaces into regular spaces */}
         {jsonString.replace(/[\u00A0]+/g, " ")}
       </SyntaxHighlighter>
-      <IconButton
-        aria-label="Copy"
-        icon={<CopyIcon />}
-        position="absolute"
-        top={4}
-        right={4}
-        size="xs"
-        colorScheme="orange"
-        variant="ghost"
-        onClick={() => void copyToClipboard(jsonString)}
-      />
+      {copiable && (
+        <Button
+          variant="ghost"
+          position="absolute"
+          top={1.5}
+          right={1.5}
+          colorScheme="orange"
+          _hover={{ bgColor: "gray.100" }}
+          fontSize="xs"
+          onClick={() => void copyToClipboard(jsonString)}
+        >
+          COPY
+        </Button>
+      )}
     </Box>
   );
 };
