@@ -70,7 +70,7 @@ ALTER ROLE postgres SUPERUSER;
 
 8. Update `DATABASE_URL` if necessary to point to your Postgres instance and run `pnpm prisma migrate dev` in the `app` directory to create the database.
 9. (Optional) For GitHub OAuth setup, create a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app), set the callback URL to `<your local instance>/api/auth/callback/github`, e.g., `http://localhost:3000/api/auth/callback/github`. Add the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` values from the GitHub OAuth app in your `.env` file.
-10. If you do not set up GitHub OAuth, you can still run the application locally and sign in using an email address. This is useful for quick testing or development work without needing to configure OAuth.
+10. If you do not set up GitHub OAuth, you can still run the application locally and sign in using an email address. 
 11. To start the app run `pnpm dev` in the `app` directory.
 12. Navigate to [http://localhost:3000](http://localhost:3000)
 
