@@ -150,7 +150,7 @@ export function authOptionsWrapper(req: NextApiRequest, res: NextApiResponse) {
       events: {
         signIn({ user, profile, isNewUser }) {
           Sentry.setUser({ id: user.id });
-          if (isNewUser && process.env.GITHUB_CLIENT_ID !== "your_client_id") {
+          if (isNewUser && env.GITHUB_CLIENT_ID) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             captureSignup(user, (profile as Profile & { gitHubUsername: string }).gitHubUsername);
           }
