@@ -8,7 +8,7 @@ import { SortableHeader } from "~/components/sorting";
 import type { NodeEntryRow, SortableField } from "./types";
 import ExpandableRow from "./ExpandableRow";
 
-export const TableHeader = () => {
+export const TableHeader = ({ errorShown }: { errorShown: boolean }) => {
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
 
@@ -16,8 +16,7 @@ export const TableHeader = () => {
     <Thead>
       <Tr>
         <SortableHeader<SortableField> title="Created At" field="persistentId" />
-        {/* error placeholder */}
-        <Th />
+        {errorShown && <Th />}
         <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />
         <SortableHeader<SortableField> isNumeric title="Split" field="split" />
@@ -31,11 +30,13 @@ export const TableRow = ({
   isSelected,
   toggleSelected,
   expandable,
+  errorShown,
 }: {
   nodeEntry: NodeEntryRow;
   isSelected: boolean;
   toggleSelected: () => void;
   expandable: boolean;
+  errorShown: boolean;
 }) => {
   const createdAt = dayjs(nodeEntry.creationTime).format("MMMM D h:mm A");
   const fullTime = dayjs(nodeEntry.creationTime).toString();
@@ -67,16 +68,18 @@ export const TableRow = ({
             </Box>
           </Tooltip>
         </Td>
-        <Td>
-          {nodeEntry.error && (
-            <HStack spacing={1} color="red.600">
-              <Icon as={MdError} />
-              <Text fontWeight="bold" noOfLines={1}>
-                {nodeEntry.error}
-              </Text>
-            </HStack>
-          )}
-        </Td>
+        {errorShown && (
+          <Td>
+            {nodeEntry.error && (
+              <HStack spacing={1} color="red.600">
+                <Icon as={MdError} />
+                <Text fontWeight="bold" noOfLines={1}>
+                  {nodeEntry.error}
+                </Text>
+              </HStack>
+            )}
+          </Td>
+        )}
         <Td isNumeric>
           {nodeEntry.inputTokens?.toLocaleString() ?? <Text color="gray.500">counting</Text>}
         </Td>

@@ -28,12 +28,14 @@ export default function NodeEntriesTable({
 
   const node = useNode({ id: nodeId }).data;
 
+  const errorShown = !!entries?.some((entry) => !!entry.error);
+
   return (
     <>
       <Card width="100%" overflowX="auto">
         <Skeleton startColor="gray.100" endColor="gray.300" isLoaded={!loading && !!entries}>
           <Table>
-            <TableHeader />
+            <TableHeader errorShown={errorShown} />
             <Tbody>
               {entries?.length ? (
                 entries?.map((entry) => (
@@ -47,6 +49,7 @@ export default function NodeEntriesTable({
                         : setExpandedNodeEntryPersistentId(entry.persistentId)
                     }
                     expandable={!updateEntry}
+                    errorShown={errorShown}
                   />
                 ))
               ) : (

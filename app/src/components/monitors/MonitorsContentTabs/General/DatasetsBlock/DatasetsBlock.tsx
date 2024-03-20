@@ -119,7 +119,7 @@ const DatasetsBlock = () => {
     <>
       <Card width="100%">
         <Skeleton isLoaded={!!monitor}>
-          <Table>
+          <Table sx={{ "& td": { px: 4 }, "& th": { px: 4 } }}>
             <Thead>
               <Tr>
                 <Th>Name</Th>

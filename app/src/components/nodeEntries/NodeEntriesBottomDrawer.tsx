@@ -71,7 +71,7 @@ const NodeEntriesBottomDrawer = ({ nodeId, onClose }: { nodeId?: string; onClose
               {filtersShown && <BasicNodeEntryFilters pb={4} />}
 
               <HStack w="full" justifyContent="space-between" pb={2}>
-                <ButtonGroup size="sm" isAttached variant="outline">
+                <ButtonGroup size="sm" isAttached variant="outline" w={64}>
                   <Button
                     bgColor="white"
                     isActive={selectedStatus === NodeEntryStatus.PROCESSED}
@@ -98,7 +98,9 @@ const NodeEntriesBottomDrawer = ({ nodeId, onClose }: { nodeId?: string; onClose
                   Matching Entries{" "}
                   {matchingCount !== undefined ? `(${matchingCount.toLocaleString()})` : ""}
                 </Text>
-                <ToggleFiltersButton />
+                <HStack w={64} justifyContent="flex-end">
+                  <ToggleFiltersButton />
+                </HStack>
               </HStack>
 
               <NodeEntriesTable nodeId={nodeId} entries={entries} />
