@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Button,
   Link as ChakraLink,
@@ -29,10 +30,10 @@ import {
 import humanId from "human-id";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useActiveFeatureFlags } from "posthog-js/react";
 import { AiTwotoneThunderbolt } from "react-icons/ai";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
-import { type PruningRule } from "@prisma/client";
+import { NodeEntryStatus, type PruningRule } from "@prisma/client";
 
 import ActionButton from "~/components/ActionButton";
 import InputDropdown from "~/components/InputDropdown";
@@ -60,11 +61,13 @@ import { useFilters } from "~/components/Filters/useFilters";
 import { ProjectLink } from "~/components/ProjectLink";
 import ConditionallyEnable from "~/components/ConditionallyEnable";
 import { type AxolotlConfig } from "~/server/fineTuningProviders/openpipe/axolotlConfig";
-import { useActiveFeatureFlags } from "posthog-js/react";
 
 const FineTuneButton = () => {
   const dataset = useDataset().data;
-  const datasetEntries = useNodeEntries({ nodeId: dataset?.nodeId }).data;
+  const datasetEntries = useNodeEntries({
+    nodeId: dataset?.nodeId,
+    status: NodeEntryStatus.PROCESSED,
+  }).data;
 
   const disclosure = useDisclosure();
 
@@ -89,7 +92,10 @@ const visibleModels = getEntries(supportedModels)
 
 const FineTuneModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const dataset = useDataset().data;
-  const datasetEntries = useNodeEntries({ nodeId: dataset?.nodeId }).data;
+  const datasetEntries = useNodeEntries({
+    nodeId: dataset?.nodeId,
+    status: NodeEntryStatus.PROCESSED,
+  }).data;
   const selectedProject = useSelectedProject().data;
   const pruningRules = usePruningRules().data;
 

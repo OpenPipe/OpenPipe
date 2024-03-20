@@ -4,6 +4,8 @@ import type {
   ChatCompletionMessageParam,
 } from "openai/resources/chat";
 import { z } from "zod";
+import { NodeEntryStatus } from "@prisma/client";
+
 import { type TypedFineTune } from "./dbColumns.types";
 import { type FilterData } from "~/components/Filters/types";
 
@@ -265,3 +267,10 @@ export const EVALUATION_FILTERS_OUTPUT_APPENDIX = " (output)";
 
 export const weightsFormats = ["fp32", "bf16", "fp16"] as const;
 export const weightsFormat = z.enum(weightsFormats);
+
+export const nodeEntryStatus = z.enum([
+  NodeEntryStatus.PENDING,
+  NodeEntryStatus.PROCESSING,
+  NodeEntryStatus.PROCESSED,
+  NodeEntryStatus.ERROR,
+]);

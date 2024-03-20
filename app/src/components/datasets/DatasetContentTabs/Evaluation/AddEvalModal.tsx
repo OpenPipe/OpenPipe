@@ -19,6 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { FaBalanceScale } from "react-icons/fa";
 import { useRouter } from "next/router";
+import { NodeEntryStatus } from "@prisma/client";
 
 import { api } from "~/utils/api";
 import {
@@ -45,7 +46,10 @@ const AddEvalModal = ({ disclosure }: { disclosure: UseDisclosureReturn }) => {
   const needsMissingOpenaiKey = !selectedProject?.condensedOpenAIKey;
 
   const dataset = useDataset().data;
-  const testingCount = useNodeEntries({ nodeId: dataset?.nodeId }).data?.totalTestingCount;
+  const testingCount = useNodeEntries({
+    nodeId: dataset?.nodeId,
+    status: NodeEntryStatus.PROCESSED,
+  }).data?.totalTestingCount;
 
   const modelOptions = useMemo(() => {
     const options = [

@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { type Query } from "nextjs-routes";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { JsonParam, useQueryParam, withDefault } from "use-query-params";
+import { type NodeEntryStatus } from "@prisma/client";
 
 import { useFilters } from "~/components/Filters/useFilters";
 import { useMappedModelIdFilters } from "~/components/datasets/DatasetContentTabs/Evaluation/useMappedModelIdFilters";
@@ -168,12 +169,14 @@ type NodeEntriesSortOrder = NonNullable<RouterInputs["nodeEntries"]["list"]["sor
 export const useNodeEntries = ({
   nodeId,
   filters,
+  status,
   pageParamsUrlKey,
   refetchInterval = 0,
   defaultSortOrder,
 }: {
   nodeId?: string;
   filters?: FilterData[];
+  status?: NodeEntryStatus;
   pageParamsUrlKey?: string;
   refetchInterval?: number;
   defaultSortOrder?: NodeEntriesSortOrder;
@@ -188,6 +191,7 @@ export const useNodeEntries = ({
     {
       nodeId: nodeId ?? "",
       filters: filters ?? defaultFilters,
+      status,
       page,
       pageSize,
       sortOrder: sort ?? defaultSortOrder,

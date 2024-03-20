@@ -1,5 +1,6 @@
-import { Box, Td, Tr, Thead, Tooltip, HStack, Text, Badge } from "@chakra-ui/react";
+import { Box, Th, Td, Tr, Thead, Tooltip, HStack, Text, Badge, Icon } from "@chakra-ui/react";
 import { DatasetEntrySplit } from "@prisma/client";
+import { MdError } from "react-icons/md";
 
 import dayjs from "~/utils/dayjs";
 import { useIsClientInitialized } from "~/utils/hooks";
@@ -15,6 +16,8 @@ export const TableHeader = () => {
     <Thead>
       <Tr>
         <SortableHeader<SortableField> title="Created At" field="persistentId" />
+        {/* error placeholder */}
+        <Th />
         <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />
         <SortableHeader<SortableField> isNumeric title="Split" field="split" />
@@ -63,6 +66,16 @@ export const TableRow = ({
               {createdAt}
             </Box>
           </Tooltip>
+        </Td>
+        <Td>
+          {nodeEntry.error && (
+            <HStack spacing={1} color="red.600">
+              <Icon as={MdError} />
+              <Text fontWeight="bold" noOfLines={1}>
+                {nodeEntry.error}
+              </Text>
+            </HStack>
+          )}
         </Td>
         <Td isNumeric>
           {nodeEntry.inputTokens?.toLocaleString() ?? <Text color="gray.500">counting</Text>}

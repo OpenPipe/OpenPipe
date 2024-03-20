@@ -1,13 +1,17 @@
 import React from "react";
 import chroma from "chroma-js";
-
+import { NodeEntryStatus } from "@prisma/client";
 import { VStack, HStack, Text, Box, type StackProps } from "@chakra-ui/react";
+
 import { useNodeEntries, useDataset } from "~/utils/hooks";
 
 const TrainingEntryMeter = (props: StackProps) => {
   const dataset = useDataset().data;
 
-  const datasetEntries = useNodeEntries({ nodeId: dataset?.nodeId }).data;
+  const datasetEntries = useNodeEntries({
+    nodeId: dataset?.nodeId,
+    status: NodeEntryStatus.PROCESSED,
+  }).data;
 
   // Get the number of training entries
   const numTrainingEntries = datasetEntries?.matchingTrainingCount || 0;

@@ -177,7 +177,7 @@ const DatasetsBlock = () => {
                         <HStack spacing={1}>
                           <BlockProcessingIndicator isProcessing={isRelabeling} />
                           {dataset.numErroredEntries && (
-                            <HStack spacing={1} color="red.500">
+                            <HStack spacing={1} color="red.600">
                               <Icon as={MdError} />
                               <Text fontWeight="bold">
                                 {pluralize("error", dataset.numErroredEntries, true)}

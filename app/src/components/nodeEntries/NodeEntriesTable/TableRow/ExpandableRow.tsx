@@ -1,4 +1,5 @@
-import { Box, Td, Tr, HStack, VStack, Collapse, Heading } from "@chakra-ui/react";
+import { Box, Td, Tr, HStack, VStack, Collapse, Heading, Icon, Text } from "@chakra-ui/react";
+import { MdError } from "react-icons/md";
 
 import FormattedOutput from "../../FormattedOutput";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
@@ -8,7 +9,7 @@ import type { NodeEntryRow } from "./types";
 const ExpandableRow = ({ nodeEntry, expanded }: { nodeEntry: NodeEntryRow; expanded: boolean }) => {
   return (
     <Tr maxW="full" borderBottomWidth={0} borderTopWidth={0} bgColor="white">
-      <Td colSpan={4} w="full" maxW="full" py={0} px={6}>
+      <Td colSpan={5} w="full" maxW="full" py={0} px={6}>
         <Collapse in={expanded}>
           <ReadableInputOutput nodeEntry={nodeEntry} />
         </Collapse>
@@ -26,7 +27,24 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
     isRelabeled && (nodeEntry.nodeType === "LLMRelabel" || nodeEntry.nodeType === "ManualRelabel");
 
   return (
-    <Box pt={8} pb={12} overflow="hidden">
+    <VStack pt={8} pb={12} overflow="hidden" spacing={4}>
+      {nodeEntry.error && (
+        <VStack
+          w="full"
+          alignItems="flex-start"
+          bgColor="red.50"
+          borderColor="red.600"
+          p={4}
+          borderRadius={4}
+          borderWidth={1}
+        >
+          <HStack spacing={1} color="red.600">
+            <Icon as={MdError} />
+            <Text fontWeight="bold">Processing Error</Text>
+          </HStack>
+          <Text>{nodeEntry.error}</Text>
+        </VStack>
+      )}
       <HStack w="full" alignItems="flex-start" spacing={4}>
         <VStack flex={1} alignItems="flex-start">
           <Heading size="sm">Input</Heading>
@@ -80,6 +98,6 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
           </Box>
         </VStack>
       </HStack>
-    </Box>
+    </VStack>
   );
 };

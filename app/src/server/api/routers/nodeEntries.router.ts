@@ -15,7 +15,7 @@ import { constructEvaluationFiltersQuery } from "~/server/utils/constructEvaluat
 import { constructLoggedCallFiltersQuery } from "~/server/utils/constructLoggedCallFiltersQuery";
 import { prepareDatasetEntriesForImport } from "~/server/utils/datasetEntryCreation/prepareDatasetEntriesForImport";
 import { typedNodeEntry, typedLoggedCall } from "~/types/dbColumns.types";
-import { SortOrder, filtersSchema, toolsInput } from "~/types/shared.types";
+import { SortOrder, filtersSchema, toolsInput, nodeEntryStatus } from "~/types/shared.types";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { error, success } from "~/utils/errorHandling/standardResponses";
 import { truthyFilter } from "~/utils/utils";
@@ -41,6 +41,7 @@ export const nodeEntriesRouter = createTRPCRouter({
       z.object({
         nodeId: z.string(),
         filters: filtersSchema,
+        status: nodeEntryStatus.optional(),
         page: z.number(),
         pageSize: z.number(),
         sortOrder: z
@@ -52,7 +53,7 @@ export const nodeEntriesRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { nodeId, filters, page, pageSize } = input;
+      const { nodeId, filters, status, page, pageSize } = input;
 
       const node = await prisma.node.findUnique({
         where: { id: nodeId },
@@ -62,11 +63,12 @@ export const nodeEntriesRouter = createTRPCRouter({
 
       await requireCanViewProject(node.projectId, ctx);
 
-      const baseQuery = constructNodeEntryFiltersQuery({ filters, node }).where(
-        "ne.status",
-        "=",
-        "PROCESSED",
-      );
+      let baseQuery = constructNodeEntryFiltersQuery({ filters, node });
+
+      if (status) {
+        baseQuery = baseQuery.where("ne.status", "=", status);
+      }
+
       // Get the IDs separately to avoid unnecessary joins
       let entryIdsQuery = baseQuery
         .select(["ne.id as id"])
@@ -124,6 +126,7 @@ export const nodeEntriesRouter = createTRPCRouter({
           "ne.updatedAt as updatedAt",
           "ne.parentNodeEntryId",
           "ne.dataChannelId",
+          "ne.error",
           "dei.messages as messages",
           "dei.tool_choice as tool_choice",
           "dei.tools as tools",

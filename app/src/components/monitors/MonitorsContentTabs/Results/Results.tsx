@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { VStack, HStack, ButtonGroup, Button, Text } from "@chakra-ui/react";
+import { NodeEntryStatus } from "@prisma/client";
 
 import { useMonitor } from "../../useMonitor";
 import FilteredNodeEntriesTable, { addFilterOutcomeFilter } from "./FilteredNodeEntriesTable";
@@ -25,8 +26,11 @@ const Results = () => {
     [filters, selectedOutput],
   );
 
-  const matchingCount = useNodeEntries({ nodeId: monitor?.filter.id, filters: combinedFilters })
-    .data?.matchingCount;
+  const matchingCount = useNodeEntries({
+    nodeId: monitor?.filter.id,
+    filters: combinedFilters,
+    status: NodeEntryStatus.PROCESSED,
+  }).data?.matchingCount;
 
   return (
     <VStack w="full" pb={16} alignItems="flex-start">

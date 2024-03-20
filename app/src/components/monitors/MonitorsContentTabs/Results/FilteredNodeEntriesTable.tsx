@@ -1,3 +1,5 @@
+import { NodeEntryStatus } from "@prisma/client";
+
 import NodeEntriesTable from "~/components/nodeEntries/NodeEntriesTable/NodeEntriesTable";
 import { useMonitor } from "../../useMonitor";
 import { useNodeEntries } from "~/utils/hooks";
@@ -30,6 +32,7 @@ const FilteredResultsTable = ({ filters }: { filters: FilterData[] }) => {
   const entries = useNodeEntries({
     nodeId: monitor?.filter.id,
     filters,
+    status: NodeEntryStatus.PROCESSED,
     defaultSortOrder: {
       field: "persistentId",
       order: "asc",
