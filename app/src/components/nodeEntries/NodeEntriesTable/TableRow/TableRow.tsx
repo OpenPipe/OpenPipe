@@ -15,7 +15,7 @@ export const TableHeader = ({ errorShown }: { errorShown: boolean }) => {
   return (
     <Thead>
       <Tr>
-        <SortableHeader<SortableField> title="Created At" field="persistentId" />
+        <SortableHeader<SortableField> title="Imported At" field="persistentId" />
         {errorShown && <Th />}
         <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />

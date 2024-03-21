@@ -74,6 +74,7 @@ export type NodeProperties<T extends NodeType> = {
   beforeProcessing?: (
     node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash" | "type">,
   ) => Promise<void>;
+  shouldSkipProcessEntry?: (node: { config: InferNodeConfig<T> }) => boolean;
   processEntry?: ({
     node,
     entry,

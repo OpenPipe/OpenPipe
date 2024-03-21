@@ -85,7 +85,12 @@ export const prepareIntegratedMonitorCeation = ({
       projectId,
       config: {
         maxLLMConcurrency: 2,
+        mode: "SQL",
         filters: [],
+        judgementCriteria: {
+          model: RelabelOption.GPT41106,
+          instructions: "Is the output a good match for the input?",
+        },
       },
     },
   });

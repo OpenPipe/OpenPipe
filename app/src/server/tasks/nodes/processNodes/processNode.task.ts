@@ -1,4 +1,4 @@
-import type { NodeType } from "@prisma/client";
+import { NodeEntryStatus, type NodeType } from "@prisma/client";
 import type { TaskSpec } from "graphile-worker";
 import type { ChatCompletionMessage } from "openai/resources";
 import { from, lastValueFrom } from "rxjs";
@@ -18,8 +18,10 @@ import { forwardNodeEntries } from "./forwardNodeEntries";
 import { saveResults, type SaveableProcessEntryResult } from "./saveResults";
 import { markCachedEntriesProcessed } from "./nodeEntryCache";
 import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
-import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties";
+import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties/filterProperties";
 import { typedNodeEntry } from "~/types/dbColumns.types";
+import { APIError } from "openai";
+import { captureException } from "@sentry/node";
 
 const fetchNode = async ({ id }: { id: string }) =>
   prisma.node
@@ -92,9 +94,10 @@ export const processNode = defineTask<ProcessNodeJob>({
 
     await forwardAllOutputs();
 
+    const skipProcessEntry = nodeProperties.shouldSkipProcessEntry?.(node);
     const processEntry = nodeProperties.processEntry;
 
-    if (processEntry && nodeProperties.getConcurrency) {
+    if (processEntry && nodeProperties.getConcurrency && !skipProcessEntry) {
       const concurrency = nodeProperties.getConcurrency(node);
 
       while (true) {
@@ -160,12 +163,25 @@ export const processNode = defineTask<ProcessNodeJob>({
                 incomingInputHash: entry.inputHash,
                 incomingOutputHash: entry.outputHash,
               };
-            } catch (error) {
-              return {
-                nodeEntryId: entry.id,
-                status: "ERROR" as const,
-                error: (error as Error).message,
-              };
+            } catch (e) {
+              if (e instanceof APIError && e.status === 429) {
+                captureException(e);
+                return {
+                  status: NodeEntryStatus.PENDING,
+                  error: (e as Error).message ?? "Rate limited",
+                  nodeEntryId: entry.id,
+                  incomingInputHash: entry.inputHash,
+                  incomingOutputHash: entry.outputHash,
+                } as const;
+              } else {
+                return {
+                  status: NodeEntryStatus.ERROR,
+                  error: (e as Error).message ?? "Unknown error",
+                  nodeEntryId: entry.id,
+                  incomingInputHash: entry.inputHash,
+                  incomingOutputHash: entry.outputHash,
+                } as const;
+              }
             }
           }, concurrency),
           tap((result) => {

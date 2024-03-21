@@ -8,7 +8,7 @@ import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { TRPCError } from "@trpc/server";
 import { filtersSchema } from "~/types/shared.types";
-import { typedNode } from "~/server/utils/nodes/node.types";
+import { filterMode, judgementCriteria, typedNode } from "~/server/utils/nodes/node.types";
 import { success } from "~/utils/errorHandling/standardResponses";
 import { getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
@@ -201,7 +201,9 @@ export const monitorsRouter = createTRPCRouter({
           initialFilters: filtersSchema.optional(),
           sampleRate: z.number().optional(),
           maxOutputSize: z.number().optional(),
+          filterMode: filterMode.optional(),
           checkFilters: filtersSchema.optional(),
+          judgementCriteria: judgementCriteria.optional(),
           datasetManualRelabelNodeIds: z.array(z.string()).optional(),
         }),
         preserveCache: z.boolean().optional(),
@@ -215,7 +217,9 @@ export const monitorsRouter = createTRPCRouter({
           initialFilters,
           sampleRate,
           maxOutputSize,
+          filterMode,
           checkFilters,
+          judgementCriteria,
           datasetManualRelabelNodeIds,
         },
         preserveCache,
@@ -283,7 +287,9 @@ export const monitorsRouter = createTRPCRouter({
           type: "Filter",
           config: {
             ...filter.config,
+            filterMode: filterMode ?? filter.config.mode,
             filters: checkFilters ?? filter.config.filters,
+            judgementCriteria: judgementCriteria ?? filter.config.judgementCriteria,
           },
         }),
       });

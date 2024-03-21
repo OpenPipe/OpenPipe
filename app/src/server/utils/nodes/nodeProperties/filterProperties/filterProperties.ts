@@ -1,9 +1,11 @@
 import { sql } from "kysely";
+import { NodeEntryStatus } from "@prisma/client";
 
 import { kysely } from "~/server/db";
 import { constructNodeEntryFiltersQuery } from "~/server/utils/constructNodeEntryFiltersQuery";
-import { FilterOutput, type NodeProperties } from "./nodeProperties.types";
-import { filterNodeSchema } from "../node.types";
+import { FilterOutput, type NodeProperties } from "../nodeProperties.types";
+import { filterNodeSchema } from "../../node.types";
+import { getJudgement } from "./getJudgement";
 
 export const filterProperties: NodeProperties<"Filter"> = {
   schema: filterNodeSchema,
@@ -24,10 +26,19 @@ export const filterProperties: NodeProperties<"Filter"> = {
       },
     },
   ],
-  hashableFields: (node) => ({ filters: node.config.filters }),
-  getConcurrency: () => 2,
+  hashableFields: (node) =>
+    node.config.mode === "SQL"
+      ? {
+          filters: node.config.filters,
+        }
+      : {
+          judgementCriteria: node.config.judgementCriteria,
+        },
+  getConcurrency: (node) => node.config.maxLLMConcurrency,
   beforeProcessing: async (node) => {
-    const { filters } = node.config;
+    const { mode, filters } = node.config;
+
+    if (mode === "LLM") return;
 
     await kysely
       .updateTable("NodeEntry as ne")
@@ -125,5 +136,27 @@ export const filterProperties: NodeProperties<"Filter"> = {
       .whereRef("ne.dataChannelId", "=", "dc.id")
       .where("ne.status", "=", "PROCESSING")
       .execute();
+  },
+  shouldSkipProcessEntry: (node) => node.config.mode === "SQL",
+  processEntry: async ({ node, entry }) => {
+    const {
+      judgementCriteria: { model, instructions },
+    } = node.config;
+
+    const { tool_choice, tools, messages, response_format, output } = entry;
+
+    const judgementCompletion = await getJudgement({
+      projectId: node.projectId,
+      model,
+      instructions,
+      messages,
+      output,
+    });
+
+    return {
+      status: NodeEntryStatus.PROCESSED,
+      filterOutcome: judgementCompletion.judgement,
+      explanation: judgementCompletion.explanation,
+    } as const;
   },
 };

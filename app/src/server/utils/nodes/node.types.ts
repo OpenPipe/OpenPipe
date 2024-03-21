@@ -19,6 +19,13 @@ export const relabelOptions = [
   RelabelOption.SkipRelabel,
 ] as const;
 
+// TODO: replace with external model functions
+export const judgeModelOptions = [
+  RelabelOption.GPT351106,
+  RelabelOption.GPT41106,
+  RelabelOption.GPT40613,
+];
+
 export const archiveNodeSchema = z
   .object({
     type: z.literal("Archive"),
@@ -49,12 +56,22 @@ export const monitorNodeSchema = z
   })
   .passthrough();
 
+export const filterMode = z.enum(["SQL", "LLM"]);
+export const judgementCriteria = z.object({
+  model: z.string(),
+  instructions: z.string(),
+});
 export const filterNodeSchema = z
   .object({
     type: z.literal("Filter"),
     config: z
       .object({
+        mode: filterMode.default("SQL"),
         filters: filtersSchema,
+        judgementCriteria: judgementCriteria.default({
+          model: RelabelOption.GPT41106,
+          instructions: "",
+        }),
         maxLLMConcurrency: z.number().default(2),
       })
       .passthrough(),

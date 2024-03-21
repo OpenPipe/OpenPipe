@@ -1,24 +1,28 @@
-import React, { useState, useRef } from "react";
+import React, { useRef } from "react";
 import { Box, HStack, Text } from "@chakra-ui/react";
 
-type SwitchOption = {
-  value: string;
-  label?: string;
-  selectedBgColor?: string;
-  alternateTextColor?: string;
+type TextSwitchProps<T extends string> = {
+  options: ReadonlyArray<{
+    value: T;
+    label?: string;
+    selectedBgColor?: string;
+    alternateTextColor?: string;
+  }>;
+  selectedValue: T;
+  onSelect: (value: T) => void;
+  optionWidth?: number;
 };
 
-const TextSwitch = ({
+const TextSwitch = <T extends string>({
   options,
+  selectedValue,
+  onSelect,
   optionWidth = 60,
-}: {
-  options: SwitchOption[];
-  optionWidth?: number;
-}) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+}: TextSwitchProps<T>) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = options[selectedIndex];
+  const selectedOption = options.find((option) => option.value === selectedValue);
+  const selectedIndex = options.findIndex((option) => option.value === selectedValue);
 
   return (
     <HStack
@@ -51,7 +55,7 @@ const TextSwitch = ({
       {options.map((option, index) => (
         <Text
           key={option.value}
-          onClick={() => setSelectedIndex(index)}
+          onClick={() => onSelect(option.value)}
           position="relative"
           zIndex="2"
           color={
