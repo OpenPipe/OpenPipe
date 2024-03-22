@@ -1,3 +1,5 @@
+## **Note:** we’ve temporarily stopped development on the open-source version of OpenPipe to integrate some proprietary third-party code. We hope to make the non-proprietary parts of the repository open again under an open core model once we have the bandwidth to do so!
+
  <p align="center">
   <a href="https://openpipe.ai">
     <img height="70" src="https://github.com/openpipe/openpipe/assets/41524992/70af25fb-1f90-42d9-8a20-3606e3b5aaba" alt="logo">
