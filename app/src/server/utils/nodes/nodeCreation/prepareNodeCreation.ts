@@ -10,6 +10,7 @@ import {
   LLMRelabelOutput,
   ManualRelabelOutput,
   DatasetOutput,
+  FilterOutput,
 } from "../nodeProperties/nodeProperties.types";
 
 export const prepareArchiveCreation = ({
@@ -92,8 +93,8 @@ export const prepareFilterCreation = ({
   };
 }) => {
   const filterNodeId = nodeParams.id || uuidv4();
-  const passedOutputId = uuidv4();
-  const failedOutputId = uuidv4();
+  const matchOutputId = uuidv4();
+  const missOutputId = uuidv4();
   const prismaCreations: Prisma.PrismaPromise<unknown>[] = [
     prisma.node.create({
       data: checkNodeInput({
@@ -104,21 +105,21 @@ export const prepareFilterCreation = ({
     }),
     prisma.nodeOutput.create({
       data: {
-        id: passedOutputId,
+        id: matchOutputId,
         nodeId: filterNodeId,
-        label: "passed",
+        label: FilterOutput.Match,
       },
     }),
     prisma.nodeOutput.create({
       data: {
-        id: failedOutputId,
+        id: missOutputId,
         nodeId: filterNodeId,
-        label: "failed",
+        label: FilterOutput.Miss,
       },
     }),
   ];
 
-  return { prismaCreations, filterNodeId, passedOutputId, failedOutputId };
+  return { prismaCreations, filterNodeId, matchOutputId, missOutputId };
 };
 
 export const prepareLLMRelabelCreation = ({

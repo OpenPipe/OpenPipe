@@ -389,17 +389,17 @@ export interface Node {
 export interface NodeEntry {
   id: string;
   persistentId: string;
-  status: Generated<"ERROR" | "PENDING" | "PROCESSED" | "PROCESSING">;
+  status: Generated<"ERROR" | "PENDING" | "PROCESSED" | "PROCESSING" | "QUEUED">;
   error: string | null;
   split: "TEST" | "TRAIN";
   loggedCallId: string | null;
   inputHash: string;
   outputHash: string;
-  originalOutputHash: string | null;
   dataChannelId: string;
   parentNodeEntryId: string | null;
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
+  originalOutputHash: string | null;
 }
 
 export interface NodeOutput {

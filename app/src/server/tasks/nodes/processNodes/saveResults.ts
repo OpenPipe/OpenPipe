@@ -1,4 +1,5 @@
 import type { Node, NodeEntryStatus, Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 
 import {
   type ErrorProcessEntryResult,
@@ -21,10 +22,10 @@ export type SaveableProcessEntryResult =
 
 export const saveResults = async ({
   node,
-  resultsToProcess,
+  resultsToSave,
 }: {
   node: Pick<Node, "projectId" | "hash" | "type">;
-  resultsToProcess: SaveableProcessEntryResult[];
+  resultsToSave: SaveableProcessEntryResult[];
 }) => {
   const outputsToCreate: Prisma.DatasetEntryOutputCreateManyInput[] = [];
   const cachedProcessedEntriesToCreate: Prisma.CachedProcessedEntryCreateManyInput[] = [];
@@ -38,7 +39,7 @@ export const saveResults = async ({
 
   const nodeProperties = nodePropertiesByType[node.type];
 
-  for (const result of resultsToProcess) {
+  for (const result of resultsToSave) {
     if (result.status === "PROCESSED") {
       let outputHash;
       if (result.output) {
@@ -101,16 +102,52 @@ export const saveResults = async ({
       }),
     );
   }
-  if (cachedProcessedEntriesToCreate.length) {
-    prismaTransactionArgs.push(
-      prisma.cachedProcessedEntry.createMany({
-        data: cachedProcessedEntriesToCreate,
-        skipDuplicates: true,
-      }),
-    );
-  }
-
   await prisma.$transaction([...prismaTransactionArgs]);
+
+  for (const cachedProcessedEntry of cachedProcessedEntriesToCreate) {
+    // ensure matching cachedProcessedEntry does not exist before creating
+    await kysely.transaction().execute(async (trx) => {
+      let existingQuery = trx
+        .selectFrom("CachedProcessedEntry")
+        .where("projectId", "=", cachedProcessedEntry.projectId)
+        .where("nodeHash", "=", node.hash);
+
+      if (cachedProcessedEntry.nodeEntryPersistentId) {
+        existingQuery = existingQuery.where(
+          "nodeEntryPersistentId",
+          "=",
+          cachedProcessedEntry.nodeEntryPersistentId,
+        );
+      }
+      if (cachedProcessedEntry.incomingInputHash) {
+        existingQuery = existingQuery.where(
+          "incomingInputHash",
+          "=",
+          cachedProcessedEntry.incomingInputHash,
+        );
+      }
+      if (cachedProcessedEntry.incomingOutputHash) {
+        existingQuery = existingQuery.where(
+          "incomingOutputHash",
+          "=",
+          cachedProcessedEntry.incomingOutputHash,
+        );
+      }
+
+      const existingCachedProcessedEntry = await existingQuery.executeTakeFirst();
+
+      if (!existingCachedProcessedEntry) {
+        await trx
+          .insertInto("CachedProcessedEntry")
+          .values({
+            ...cachedProcessedEntry,
+            id: uuidv4(),
+            updatedAt: new Date(),
+          })
+          .execute();
+      }
+    });
+  }
 
   for (const nodeEntryUpdate of nodeEntriesToUpdate) {
     // ensure nodeEntry still exists before updating

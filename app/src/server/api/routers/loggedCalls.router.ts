@@ -21,11 +21,21 @@ export const loggedCallsRouter = createTRPCRouter({
         pageSize: z.number(),
         sampleRate: z.number().optional(),
         maxOutputSize: z.number().optional(),
+        skipCacheHits: z.boolean().optional(),
         orderBy: z.enum(["updatedAt", "requestedAt"]).optional().default("requestedAt"),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { projectId, filters, page, pageSize, sampleRate, maxOutputSize, orderBy } = input;
+      const {
+        projectId,
+        filters,
+        page,
+        pageSize,
+        sampleRate,
+        maxOutputSize,
+        skipCacheHits,
+        orderBy,
+      } = input;
 
       console.log({ maxOutputSize });
       await requireCanViewProject(projectId, ctx);
@@ -39,6 +49,7 @@ export const loggedCallsRouter = createTRPCRouter({
         projectId,
         sampleRate,
         maxOutputSize,
+        skipCacheHits,
       })
         .select((eb) => [
           "lc.id as id",
@@ -102,10 +113,11 @@ export const loggedCallsRouter = createTRPCRouter({
         filters: filtersSchema,
         sampleRate: z.number().optional(),
         maxOutputSize: z.number().optional(),
+        skipCacheHits: z.boolean().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { projectId, filters, sampleRate, maxOutputSize } = input;
+      const { projectId, filters, sampleRate, maxOutputSize, skipCacheHits } = input;
 
       await requireCanViewProject(projectId, ctx);
 
@@ -116,6 +128,7 @@ export const loggedCallsRouter = createTRPCRouter({
         projectId,
         sampleRate,
         maxOutputSize,
+        skipCacheHits,
       }).selectAll("lc");
 
       if (maxOutputSize) {

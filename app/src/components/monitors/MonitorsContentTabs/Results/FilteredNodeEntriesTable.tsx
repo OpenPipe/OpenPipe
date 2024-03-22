@@ -14,14 +14,14 @@ export const addFilterOutcomeFilter = ({
   filters?: FilterData[];
   filterOutcome?: FilterOutput;
 }) => {
-  if (!filterOutcome ?? []) return filters ?? [];
+  if (!filterOutcome) return filters ?? [];
   return [
     ...(filters ?? []),
     {
       id: "filter-outcome",
       field: GeneralFiltersDefaultFields.FilterOutcome,
       comparator: "=" as const,
-      value: filterOutcome as FilterOutput,
+      value: filterOutcome,
     },
   ];
 };

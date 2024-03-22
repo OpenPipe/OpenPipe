@@ -8,7 +8,7 @@ import { kysely, prisma } from "~/server/db";
 import { requireCanModifyProject, requireCanViewProject } from "~/utils/accessControl";
 import { TRPCError } from "@trpc/server";
 import { filtersSchema } from "~/types/shared.types";
-import { filterMode, judgementCriteria, typedNode } from "~/server/utils/nodes/node.types";
+import { judgementCriteria, typedNode } from "~/server/utils/nodes/node.types";
 import { success } from "~/utils/errorHandling/standardResponses";
 import { getDownstreamDatasets } from "~/server/utils/nodes/relationalQueries";
 import { checkNodeInput } from "~/server/utils/nodes/checkNodeInput";
@@ -66,22 +66,23 @@ export const monitorsRouter = createTRPCRouter({
 
     if (!filter) throw new TRPCError({ code: "NOT_FOUND" });
 
-    const numFilteredEntries = await kysely
+    const filteredEntryStats = await kysely
       .selectFrom(selectEntriesWithCache({ node: filter }).as("ne"))
-      .where("ne.status", "=", "PROCESSED")
       .select([
-        sql<number>`count(case when ne."filterOutcome" = ${FilterOutput.Passed} then 1 end)::int`.as(
-          "passed",
+        sql<number>`count(case when ne."filterOutcome" = ${FilterOutput.Match} then 1 end)::int`.as(
+          "numMatchedEntries",
         ),
-        sql<number>`count(case when ne."filterOutcome" = ${FilterOutput.Failed} then 1 end)::int`.as(
-          "failed",
+        sql<number>`count(case when ne.status = ${NodeEntryStatus.PROCESSED} or ne.status = ${NodeEntryStatus.ERROR} then 1 end)::int`.as(
+          "numProcessedEntries",
         ),
+        sql<number>`count(ne.*)::int`.as("numTotalEntries"),
       ])
       .executeTakeFirst();
 
     const datasets = await getDownstreamDatasets({
       monitorFilterNodeId: monitor.config.filterNodeId,
     })
+      .distinctOn(["datasetNode.id"])
       .selectAll("d")
       .select((eb) => [
         "datasetNode.config as nodeConfig",
@@ -125,9 +126,14 @@ export const monitorsRouter = createTRPCRouter({
 
     return {
       ...monitor,
-      filter,
-      numPassedEntries: numFilteredEntries?.passed ?? 0,
-      numFailedEntries: numFilteredEntries?.failed ?? 0,
+      filter: {
+        ...filter,
+        numFilteredEntries: filter.config.skipped
+          ? filteredEntryStats?.numProcessedEntries ?? 0
+          : filteredEntryStats?.numMatchedEntries ?? 0,
+        numProcessedEntries: filteredEntryStats?.numProcessedEntries ?? 0,
+        numTotalEntries: filteredEntryStats?.numTotalEntries ?? 0,
+      },
       datasets,
     };
   }),
@@ -160,8 +166,11 @@ export const monitorsRouter = createTRPCRouter({
       const numDatasets = await Promise.all(
         monitors.map((monitor) =>
           getDownstreamDatasets({ monitorFilterNodeId: monitor.config.filterNodeId })
-            .groupBy(["monitorFilterNode.id", "datasetNode.id"])
-            .select(sql<number>`count("datasetNode".id)::int`.as("count"))
+            .groupBy("monitorFilterNode.id")
+            .select([
+              "monitorFilterNode.id as filterId",
+              sql<number>`count(distinct "datasetNode".id)::int`.as("count"),
+            ])
             .executeTakeFirst(),
         ),
       );
@@ -201,8 +210,7 @@ export const monitorsRouter = createTRPCRouter({
           initialFilters: filtersSchema.optional(),
           sampleRate: z.number().optional(),
           maxOutputSize: z.number().optional(),
-          filterMode: filterMode.optional(),
-          checkFilters: filtersSchema.optional(),
+          skipFilter: z.boolean().optional(),
           judgementCriteria: judgementCriteria.optional(),
           datasetManualRelabelNodeIds: z.array(z.string()).optional(),
         }),
@@ -217,8 +225,7 @@ export const monitorsRouter = createTRPCRouter({
           initialFilters,
           sampleRate,
           maxOutputSize,
-          filterMode,
-          checkFilters,
+          skipFilter,
           judgementCriteria,
           datasetManualRelabelNodeIds,
         },
@@ -239,13 +246,13 @@ export const monitorsRouter = createTRPCRouter({
       const filter = await kysely
         .selectFrom("Node as n")
         .where("n.id", "=", monitor.config.filterNodeId)
-        .innerJoin("NodeOutput as passedNodeOutput", (join) =>
+        .innerJoin("NodeOutput as matchNodeOutput", (join) =>
           join
-            .onRef("passedNodeOutput.nodeId", "=", "n.id")
-            .on("passedNodeOutput.label", "=", FilterOutput.Passed),
+            .onRef("matchNodeOutput.nodeId", "=", "n.id")
+            .on("matchNodeOutput.label", "=", FilterOutput.Match),
         )
         .selectAll("n")
-        .select(["passedNodeOutput.id as passedNodeOutputId"])
+        .select(["matchNodeOutput.id as matchNodeOutputId"])
         .executeTakeFirst()
         .then((filter) => (filter ? typedNode({ ...filter, type: "Filter" }) : undefined));
 
@@ -270,7 +277,7 @@ export const monitorsRouter = createTRPCRouter({
 
       const hashUpdated = initialMonitorHash !== hashNode(updatedMonitorData);
       if (hashUpdated) reprocessingRequired = true;
-      const invalidateMonitor = hashUpdated && !preserveCache;
+      const monitorInvalidated = hashUpdated && !preserveCache;
 
       const updatedMonitor = await prisma.node
         .update({
@@ -287,16 +294,16 @@ export const monitorsRouter = createTRPCRouter({
           type: "Filter",
           config: {
             ...filter.config,
-            filterMode: filterMode ?? filter.config.mode,
-            filters: checkFilters ?? filter.config.filters,
+            mode: "LLM",
+            skipped: skipFilter ?? filter.config.skipped,
             judgementCriteria: judgementCriteria ?? filter.config.judgementCriteria,
           },
         }),
       });
 
-      const filterChecksUpdated = updatedFilterHash !== filter.hash;
+      const filterInvalidated = updatedFilterHash !== filter.hash;
 
-      if (filterChecksUpdated) {
+      if (filterInvalidated) {
         reprocessingRequired = true;
         if (preserveCache) {
           await convertCache({
@@ -334,7 +341,7 @@ export const monitorsRouter = createTRPCRouter({
           prismaCreations.push(
             ...prepareMonitorDatasetRelabelNode({
               projectId: monitor.projectId,
-              monitorFilterPassedOutputId: filter.passedNodeOutputId,
+              monitorFilterMatchOutputId: filter.matchNodeOutputId,
               datasetManualRelabelNodeId: manualRelabelNodeId,
             }).prismaCreations,
           );
@@ -360,7 +367,7 @@ export const monitorsRouter = createTRPCRouter({
 
       const monitorInitialized = !!updatedMonitor.config.initialFilters.length;
       if (reprocessingRequired && monitorInitialized)
-        await enqueueProcessNode({ nodeId: id, invalidateData: invalidateMonitor });
+        await enqueueProcessNode({ nodeId: id, invalidateData: monitorInvalidated });
 
       return success("Monitor updated");
     }),

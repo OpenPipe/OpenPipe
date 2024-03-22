@@ -3,6 +3,7 @@ import type { TaskSpec } from "graphile-worker";
 import type { ChatCompletionMessage } from "openai/resources";
 import { from, lastValueFrom } from "rxjs";
 import { mergeMap, tap } from "rxjs/operators";
+import { captureException } from "@sentry/node";
 
 import defineTask from "../../defineTask";
 import { monitorProperties } from "../../../utils/nodes/nodeProperties/monitorProperties";
@@ -21,7 +22,6 @@ import { type NodeProperties } from "~/server/utils/nodes/nodeProperties/nodePro
 import { filterProperties } from "~/server/utils/nodes/nodeProperties/filterProperties/filterProperties";
 import { typedNodeEntry } from "~/types/dbColumns.types";
 import { APIError } from "openai";
-import { captureException } from "@sentry/node";
 
 const fetchNode = async ({ id }: { id: string }) =>
   prisma.node
@@ -72,8 +72,25 @@ export const processNode = defineTask<ProcessNodeJob>({
       .from("DataChannel as dc")
       .where("dc.destinationId", "=", node.id)
       .whereRef("ne.dataChannelId", "=", "dc.id")
-      .where((eb) => eb.or([eb("ne.status", "=", "PROCESSING"), eb("ne.status", "=", "ERROR")]))
+      .where((eb) =>
+        eb.or([
+          eb("ne.status", "=", "QUEUED"),
+          eb("ne.status", "=", "PROCESSING"),
+          eb("ne.status", "=", "ERROR"),
+        ]),
+      )
       .execute();
+
+    if (!!nodeProperties.shouldSkipProcessing?.(node)) {
+      await kysely
+        .updateTable("NodeEntry as ne")
+        .from("DataChannel as dc")
+        .where("dc.destinationId", "=", node.id)
+        .whereRef("ne.dataChannelId", "=", "dc.id")
+        .set({ status: "PROCESSED" })
+        .where("ne.status", "=", "PENDING")
+        .execute();
+    }
 
     await markCachedEntriesProcessed({ node });
 
@@ -86,7 +103,7 @@ export const processNode = defineTask<ProcessNodeJob>({
         await forwardNodeEntries({
           node,
           nodeOutputLabel: output.label,
-          selectionCriteria: output.selectionCriteria,
+          selectionCriteria: output.getSelectionCriteria?.(node),
         });
       }
       await enqueueDescendants(nodeId);
@@ -94,10 +111,9 @@ export const processNode = defineTask<ProcessNodeJob>({
 
     await forwardAllOutputs();
 
-    const skipProcessEntry = nodeProperties.shouldSkipProcessEntry?.(node);
     const processEntry = nodeProperties.processEntry;
 
-    if (processEntry && nodeProperties.getConcurrency && !skipProcessEntry) {
+    if (processEntry && nodeProperties.getConcurrency) {
       const concurrency = nodeProperties.getConcurrency(node);
 
       while (true) {
@@ -139,10 +155,11 @@ export const processNode = defineTask<ProcessNodeJob>({
         let processEntryResults: SaveableProcessEntryResult[] = [];
 
         const saveAndForward = async () => {
-          const resultsToProcess = processEntryResults;
-          processEntryResults = processEntryResults.slice(resultsToProcess.length);
-          if (resultsToProcess.length) {
-            await saveResults({ node, resultsToProcess });
+          const resultsToSave = processEntryResults;
+          // reset the array, account for any new results that may have been added
+          processEntryResults = processEntryResults.slice(resultsToSave.length);
+          if (resultsToSave.length) {
+            await saveResults({ node, resultsToSave });
           }
           await forwardAllOutputs();
         };
@@ -166,6 +183,7 @@ export const processNode = defineTask<ProcessNodeJob>({
             } catch (e) {
               if (e instanceof APIError && e.status === 429) {
                 captureException(e);
+                console.log("\nRate limited\n");
                 return {
                   status: NodeEntryStatus.PENDING,
                   error: (e as Error).message ?? "Rate limited",
@@ -206,6 +224,20 @@ export const processNode = defineTask<ProcessNodeJob>({
 
     if (nodeProperties.afterAll) {
       await nodeProperties.afterAll(node);
+    }
+
+    const entriesAwaitingProcessing = await kysely
+      .selectFrom("NodeEntry as ne")
+      .innerJoin("DataChannel as dc", (join) =>
+        join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", node.id),
+      )
+      .where((eb) => eb.or([eb("ne.status", "=", "QUEUED"), eb("ne.status", "=", "PENDING")]))
+      .select("ne.id")
+      .executeTakeFirst()
+      .then((ne) => !!ne);
+
+    if (entriesAwaitingProcessing) {
+      await enqueueProcessNode({ nodeId });
     }
 
     await prisma.node.update({

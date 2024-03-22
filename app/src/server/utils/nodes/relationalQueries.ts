@@ -10,7 +10,7 @@ export const getDownstreamDatasets = ({ monitorFilterNodeId }: { monitorFilterNo
       "monitorFilterNodeOutput.nodeId",
       "monitorFilterNode.id",
     )
-    .where("monitorFilterNodeOutput.label", "=", FilterOutput.Passed)
+    .where("monitorFilterNodeOutput.label", "=", FilterOutput.Match)
     .innerJoin("DataChannel as dc0", "dc0.originId", "monitorFilterNodeOutput.id")
     .innerJoin("Node as llmRelabelNode", "llmRelabelNode.id", "dc0.destinationId")
     .innerJoin(
@@ -28,8 +28,7 @@ export const getDownstreamDatasets = ({ monitorFilterNodeId }: { monitorFilterNo
     )
     .innerJoin("DataChannel as dc2", "dc2.originId", "manualRelabelNodeOutput.id")
     .innerJoin("Node as datasetNode", "datasetNode.id", "dc2.destinationId")
-    .innerJoin("Dataset as d", "d.nodeId", "datasetNode.id")
-    .distinctOn(["datasetNode.id"]);
+    .innerJoin("Dataset as d", "d.nodeId", "datasetNode.id");
 };
 
 export const getSourceLLMRelabelNodes = ({

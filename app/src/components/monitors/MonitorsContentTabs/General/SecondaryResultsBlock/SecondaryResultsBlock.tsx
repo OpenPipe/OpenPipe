@@ -1,41 +1,46 @@
 import { useState } from "react";
-import { HStack, VStack, Collapse, Text, Button, Icon, Skeleton } from "@chakra-ui/react";
+import { HStack, VStack, Collapse, Text, Button, Icon, Skeleton, Box } from "@chakra-ui/react";
 import { FaChevronDown, FaChevronUp, FaExternalLinkAlt } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
 import FilteredNodeEntriesTable, {
   addFilterOutcomeFilter,
 } from "../../Results/FilteredNodeEntriesTable";
+import { FilterOutputSelector } from "../../Results/FilterOutputSelector";
 import { useMonitor } from "~/components/monitors/useMonitor";
 import { useMonitorFilters } from "../useMonitorFilters";
 import { LabelText } from "../styledText";
-import { FilterOutput } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
+import { type FilterOutput } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 import ActionButton from "~/components/ActionButton";
 import { MONITOR_RESULTS_KEY } from "../../MonitorsContentTabs";
 import { ProjectLink } from "~/components/ProjectLink";
 
 const SecondaryResultsBlock = () => {
   const [expanded, setExpanded] = useState(false);
+  const [selectedOutput, setSelectedOutput] = useState<FilterOutput | undefined>(undefined);
 
   const monitor = useMonitor().data;
 
   const processing = monitor?.status === "PROCESSING" || monitor?.filter.status === "PROCESSING";
-  const count = monitor?.numPassedEntries && !processing ? monitor.numPassedEntries : 0;
+  const count = processing ? 0 : monitor?.filter.numFilteredEntries ?? 0;
 
-  const outdated = !useMonitorFilters().noChanges;
+  const { noChanges, skipFilter } = useMonitorFilters();
 
   return (
     <VStack w="full" spacing={0}>
       <HStack as={Button} variant="ghost" w={80} onClick={() => setExpanded(!expanded)}>
-        <Text>{expanded ? "Hide" : "View"} Filtered Results</Text>
+        <Text>Created Entries</Text>
         <Skeleton isLoaded={!processing && count !== undefined}>
-          <Text>({count.toLocaleString()})</Text>
+          <Text>
+            ({count.toLocaleString()}
+            {!skipFilter && " matches"})
+          </Text>
         </Skeleton>
 
         <Icon as={expanded ? FaChevronUp : FaChevronDown} />
       </HStack>
       <HStack pt={2} spacing={1} h={4}>
-        {outdated && (
+        {!noChanges && (
           <>
             <Icon as={FiAlertTriangle} color="yellow.500" boxSize={3} />
             <LabelText fontSize="xs">Save filters to update results</LabelText>
@@ -45,7 +50,16 @@ const SecondaryResultsBlock = () => {
 
       <Collapse in={expanded} style={{ width: "100%" }}>
         <VStack w="full">
-          <HStack w="full" justifyContent="flex-end" pb={4}>
+          <HStack w="full" justifyContent="space-between" pb={4}>
+            <Box>
+              {!skipFilter && (
+                <FilterOutputSelector
+                  selectedOutput={selectedOutput}
+                  setSelectedOutput={setSelectedOutput}
+                />
+              )}
+            </Box>
+
             <ProjectLink
               href={{
                 pathname: "/monitors/[id]/[tab]",
@@ -57,7 +71,9 @@ const SecondaryResultsBlock = () => {
             </ProjectLink>
           </HStack>
           <FilteredNodeEntriesTable
-            filters={addFilterOutcomeFilter({ filterOutcome: FilterOutput.Passed })}
+            filters={addFilterOutcomeFilter({
+              filterOutcome: selectedOutput,
+            })}
           />
         </VStack>
       </Collapse>

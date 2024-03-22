@@ -19,6 +19,7 @@ const InitialResultsBlock = () => {
     filters: initialFilters,
     sampleRate,
     maxOutputSize,
+    skipCacheHits: true,
     disabled: !initialFilters.length,
   }).data?.count;
 
@@ -54,6 +55,7 @@ const InitialResultsBlock = () => {
             filters={initialFilters}
             sampleRate={sampleRate}
             maxOutputSize={maxOutputSize}
+            skipCacheHits
             showOptions={false}
             slowBatch
             orderBy="updatedAt"

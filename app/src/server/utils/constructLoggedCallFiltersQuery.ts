@@ -18,6 +18,7 @@ export const constructLoggedCallFiltersQuery = ({
   selectionParams,
   sampleRate,
   maxOutputSize,
+  skipCacheHits,
   baseQuery = BASE_QUERY,
 }: {
   filters: z.infer<typeof filtersSchema>;
@@ -30,6 +31,7 @@ export const constructLoggedCallFiltersQuery = ({
   };
   sampleRate?: number;
   maxOutputSize?: number;
+  skipCacheHits?: boolean;
   baseQuery?: WhereInterface<
     DB & {
       lc: LoggedCall;
@@ -113,6 +115,10 @@ export const constructLoggedCallFiltersQuery = ({
 
   if (maxOutputSize) {
     updatedBaseQuery = updatedBaseQuery.limit(maxOutputSize);
+  }
+
+  if (skipCacheHits) {
+    updatedBaseQuery = updatedBaseQuery.where(({ eb }) => eb("lc.cacheHit", "=", false));
   }
 
   if (selectionParams) {

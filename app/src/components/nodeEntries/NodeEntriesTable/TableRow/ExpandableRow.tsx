@@ -1,5 +1,5 @@
 import { Box, Td, Tr, HStack, VStack, Collapse, Heading, Icon, Text } from "@chakra-ui/react";
-import { MdError } from "react-icons/md";
+import { MdError, MdInfo } from "react-icons/md";
 
 import FormattedOutput from "../../FormattedOutput";
 import { typedDatasetEntryInput } from "~/types/dbColumns.types";
@@ -43,6 +43,23 @@ const ReadableInputOutput = ({ nodeEntry }: { nodeEntry: NodeEntryRow }) => {
             <Text fontWeight="bold">Processing Error</Text>
           </HStack>
           <Text>{nodeEntry.error}</Text>
+        </VStack>
+      )}
+      {nodeEntry.explanation && (
+        <VStack
+          w="full"
+          alignItems="flex-start"
+          bgColor="orange.50"
+          borderColor="orange.600"
+          p={4}
+          borderRadius={4}
+          borderWidth={1}
+        >
+          <HStack spacing={1} color="orange.600">
+            <Icon as={MdInfo} />
+            <Text fontWeight="bold">Filter Explanation</Text>
+          </HStack>
+          <Text>{nodeEntry.explanation}</Text>
         </VStack>
       )}
       <HStack w="full" alignItems="flex-start" spacing={4}>

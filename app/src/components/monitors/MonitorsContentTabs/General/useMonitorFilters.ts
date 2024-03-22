@@ -1,4 +1,4 @@
-import { useQueryParam, JsonParam, withDefault } from "use-query-params";
+import { useQueryParam, JsonParam, withDefault, BooleanParam } from "use-query-params";
 
 import { type FilterData } from "~/components/Filters/types";
 import { LoggedCallsFiltersDefaultFields } from "~/types/shared.types";
@@ -9,7 +9,6 @@ import { useFineTunes } from "~/utils/hooks";
 import { formatFTSlug } from "~/utils/utils";
 
 export const INITIAL_FILTERS_URL_KEY = "initial";
-export const SECONDARY_FILTERS_URL_KEY = "secondary";
 
 const stripInitialFilters = (filters: FilterData[]): FilterData[] => {
   return filters.filter(
@@ -27,15 +26,15 @@ export const useMonitorFilters = () => {
     sampleRate: number;
     maxOutputSize: number;
   }>("sampling", withDefault(JsonParam, { sampleRate: 0, maxOutputSize: 0 }));
-  const { filters: secondaryFilters, setFilters: setSecondaryFilters } = useFilters({
-    urlKey: SECONDARY_FILTERS_URL_KEY,
-  });
 
-  const [{ filterMode, model, instructions }, setJudgementParams] = useQueryParam<{
-    filterMode: "SQL" | "LLM";
+  const [skipFilter, setSkipFilter] = useQueryParam<boolean>(
+    "skipFilter",
+    withDefault(BooleanParam, false),
+  );
+  const [judgementCriteria, setJudgementCriteria] = useQueryParam<{
     model: string;
     instructions: string;
-  }>("judgement", withDefault(JsonParam, { filterMode: "SQL", model: "", instructions: "" }));
+  }>("judgement", withDefault(JsonParam, { model: "", instructions: "" }));
 
   const modelFilter = initialFilters.find(
     (filter) => filter.field === LoggedCallsFiltersDefaultFields.Model,
@@ -47,8 +46,7 @@ export const useMonitorFilters = () => {
   const savedInitialFilters = monitor?.config.initialFilters;
   const savedSampleRate = monitor?.config.sampleRate;
   const savedMaxOutputSize = monitor?.config.maxOutputSize;
-  const savedSecondaryFilters = monitor?.filter.config.filters;
-  const savedFilterMode = monitor?.filter.config.mode;
+  const savedSkipFilter = monitor?.filter.config.skipped;
   const savedJudgementCriteria = monitor?.filter.config.judgementCriteria;
 
   const initializeFilters = useCallback(() => {
@@ -56,8 +54,7 @@ export const useMonitorFilters = () => {
       !savedInitialFilters ||
       !savedSampleRate ||
       !savedMaxOutputSize ||
-      !savedFilterMode ||
-      !savedSecondaryFilters ||
+      savedSkipFilter === undefined ||
       !savedJudgementCriteria ||
       !fineTunes?.[0]
     )
@@ -83,15 +80,8 @@ export const useMonitorFilters = () => {
     }
 
     setSamplingCriteria({ sampleRate: savedSampleRate, maxOutputSize: savedMaxOutputSize });
-    setJudgementParams({
-      filterMode: savedFilterMode,
-      model: savedJudgementCriteria.model,
-      instructions: savedJudgementCriteria.instructions,
-    });
-
-    if (savedSecondaryFilters.length) {
-      setSecondaryFilters(addFilterIds(savedSecondaryFilters));
-    }
+    setSkipFilter(savedSkipFilter);
+    setJudgementCriteria(savedJudgementCriteria);
   }, [
     fineTunes,
     savedInitialFilters,
@@ -99,11 +89,10 @@ export const useMonitorFilters = () => {
     savedSampleRate,
     savedMaxOutputSize,
     setSamplingCriteria,
-    savedSecondaryFilters,
-    setSecondaryFilters,
-    savedFilterMode,
+    savedSkipFilter,
+    setSkipFilter,
     savedJudgementCriteria,
-    setJudgementParams,
+    setJudgementCriteria,
   ]);
 
   const filtersInitialized = !!initialFilters.length && sampleRate !== 0;
@@ -112,10 +101,9 @@ export const useMonitorFilters = () => {
     (!savedInitialFilters || filtersAreEqual(initialFilters, savedInitialFilters)) &&
     savedSampleRate === sampleRate &&
     savedMaxOutputSize === maxOutputSize &&
-    savedFilterMode === filterMode &&
-    (!savedSecondaryFilters || filtersAreEqual(secondaryFilters, savedSecondaryFilters)) &&
-    savedJudgementCriteria?.model === model &&
-    savedJudgementCriteria?.instructions === instructions;
+    savedJudgementCriteria?.model === judgementCriteria.model &&
+    savedSkipFilter === skipFilter &&
+    savedJudgementCriteria?.instructions === judgementCriteria.instructions;
 
   return {
     filtersInitialized,
@@ -131,11 +119,9 @@ export const useMonitorFilters = () => {
     sampleRate,
     maxOutputSize,
     setSamplingCriteria,
-    filterMode,
-    savedSecondaryFilters,
-    secondaryFilters,
-    judgementCriteria: { model, instructions },
-    setJudgementParams,
-    setSecondaryFilters,
+    skipFilter,
+    setSkipFilter,
+    judgementCriteria: judgementCriteria,
+    setJudgementCriteria,
   };
 };

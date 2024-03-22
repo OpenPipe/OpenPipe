@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   Card,
   VStack,
@@ -8,76 +9,73 @@ import {
   type FormControlProps,
 } from "@chakra-ui/react";
 
-import { type FilterOption } from "~/components/Filters/types";
-import { FilterContents } from "~/components/Filters/Filters";
 import { useMonitor } from "../../../useMonitor";
-import { GeneralFiltersDefaultFields } from "~/types/shared.types";
-import { LabelText } from "../styledText";
-import { SaveResetButtons } from "./SaveResetButtons";
-import { SECONDARY_FILTERS_URL_KEY, useMonitorFilters } from "../useMonitorFilters";
+import { CaptionText, LabelText } from "../styledText";
+import { useMonitorFilters } from "../useMonitorFilters";
 import { BlockProcessingIndicator } from "../BlockProcessingIndicator";
-import TextSwitch from "./TextSwitch";
+import { RelabelOption, judgementCriteria } from "~/server/utils/nodes/node.types";
+import InputDropdown from "~/components/InputDropdown";
+import AutoResizeTextArea from "~/components/AutoResizeTextArea";
 
-const secondaryFilterOptions: FilterOption[] = [
-  { type: "text", field: GeneralFiltersDefaultFields.Input, label: "Request" },
-  { type: "text", field: GeneralFiltersDefaultFields.Output, label: "Response" },
+// TODO: replace with external model functions
+export const judgeModelOptions = [
+  RelabelOption.GPT351106,
+  RelabelOption.GPT41106,
+  RelabelOption.GPT40613,
 ];
 
 const SecondaryFiltersBlock = () => {
   const checksProcessing = useMonitor().data?.filter.status === "PROCESSING";
 
   const {
-    savedSecondaryFilters,
-    secondaryFilters,
-    filterMode,
+    skipFilter,
     judgementCriteria: { model, instructions },
-    setJudgementParams,
+    setJudgementCriteria,
   } = useMonitorFilters();
 
-  const isLoaded = !!savedSecondaryFilters;
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    // set contents of textAreaRef to instructions
+    if (textAreaRef.current) {
+      textAreaRef.current.value = instructions;
+    }
+  }, [instructions]);
+
+  const isLoaded = !!judgementCriteria;
 
   return (
     <Card w="full">
       <Skeleton isLoaded={isLoaded}>
         <VStack alignItems="flex-start" padding={4} spacing={4} w="full">
-          <HStack w="full" justifyContent="space-between">
-            <VStack spacing={4} alignItems="flex-start">
-              <LabelText>Filter Mode</LabelText>
-              <TextSwitch
-                options={[
-                  { value: "SQL" },
-                  { value: "LLM", selectedBgColor: "blue.500", alternateTextColor: "white" },
-                ]}
-                selectedValue={filterMode}
-                onSelect={(value) =>
-                  setJudgementParams({
-                    filterMode: value,
-                    model,
-                    instructions,
-                  })
-                }
-              />
-            </VStack>
-            <BlockProcessingIndicator isProcessing={checksProcessing} />
-          </HStack>
-          <DisabledContainer isDisabled={filterMode !== "SQL"} w="full">
-            <VStack alignItems="flex-start">
-              <LabelText isDisabled={filterMode !== "SQL"}>SQL Filters</LabelText>
+          <DisabledContainer isDisabled={skipFilter} w="full">
+            <VStack w="full" alignItems="flex-start">
+              <HStack w="full" justifyContent="space-between" alignItems="flex-start">
+                <LabelText isDisabled={skipFilter}>Judge Model</LabelText>
+                <BlockProcessingIndicator isProcessing={checksProcessing && !skipFilter} />
+              </HStack>
 
-              <FilterContents
-                filters={secondaryFilters}
-                filterOptions={secondaryFilterOptions}
-                urlKey={SECONDARY_FILTERS_URL_KEY}
+              <InputDropdown
+                options={judgeModelOptions}
+                selectedOption={model}
+                onSelect={(option) => setJudgementCriteria({ model: option, instructions })}
+              />
+              <LabelText isDisabled={skipFilter} pt={4}>
+                Evaluation Instructions
+              </LabelText>
+              <CaptionText>
+                Give instructions on which entries this check should match, and which it should
+                miss. Only entries that match this check will be added to connected datasets.
+              </CaptionText>
+              <AutoResizeTextArea
+                ref={textAreaRef}
+                isDisabled={skipFilter}
+                onBlur={(e) => setJudgementCriteria({ model, instructions: e.target.value })}
+                placeholder="Match all entries whose outputs contain errors."
+                w="full"
               />
             </VStack>
           </DisabledContainer>
-          <DisabledContainer isDisabled={filterMode !== "LLM"} w="full">
-            <VStack w="full" alignItems="flex-start" pt={4}>
-              <LabelText isDisabled={filterMode !== "LLM"}>Judge Model</LabelText>
-            </VStack>
-          </DisabledContainer>
-
-          <SaveResetButtons />
         </VStack>
       </Skeleton>
     </Card>

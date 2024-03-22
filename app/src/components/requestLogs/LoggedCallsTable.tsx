@@ -11,6 +11,7 @@ export default function LoggedCallsTable({
   orderBy,
   sampleRate,
   maxOutputSize,
+  skipCacheHits,
   slowBatch,
 }: {
   showOptions?: boolean;
@@ -18,6 +19,7 @@ export default function LoggedCallsTable({
   orderBy?: LoggedCallsOrderBy;
   sampleRate?: number;
   maxOutputSize?: number;
+  skipCacheHits?: boolean;
   slowBatch?: boolean;
 }) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -27,6 +29,7 @@ export default function LoggedCallsTable({
     orderBy,
     slowBatch,
     sampleRate,
+    skipCacheHits,
     maxOutputSize,
   });
 

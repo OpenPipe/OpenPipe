@@ -127,6 +127,8 @@ export const nodeEntriesRouter = createTRPCRouter({
           "ne.parentNodeEntryId",
           "ne.dataChannelId",
           "ne.error",
+          "ne.filterOutcome",
+          "ne.explanation",
           "dei.messages as messages",
           "dei.tool_choice as tool_choice",
           "dei.tools as tools",

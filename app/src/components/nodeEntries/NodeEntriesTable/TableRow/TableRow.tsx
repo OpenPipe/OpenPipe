@@ -7,8 +7,9 @@ import { useIsClientInitialized } from "~/utils/hooks";
 import { SortableHeader } from "~/components/sorting";
 import type { NodeEntryRow, SortableField } from "./types";
 import ExpandableRow from "./ExpandableRow";
+import { FilterOutput } from "~/server/utils/nodes/nodeProperties/nodeProperties.types";
 
-export const TableHeader = ({ errorShown }: { errorShown: boolean }) => {
+export const TableHeader = ({ includeExtraColumn }: { includeExtraColumn: boolean }) => {
   const isClientInitialized = useIsClientInitialized();
   if (!isClientInitialized) return null;
 
@@ -16,7 +17,7 @@ export const TableHeader = ({ errorShown }: { errorShown: boolean }) => {
     <Thead>
       <Tr>
         <SortableHeader<SortableField> title="Imported At" field="persistentId" />
-        {errorShown && <Th />}
+        {includeExtraColumn && <Th />}
         <SortableHeader<SortableField> isNumeric title="Input Tokens" field="inputTokens" />
         <SortableHeader<SortableField> isNumeric title="Output Tokens" field="outputTokens" />
         <SortableHeader<SortableField> isNumeric title="Split" field="split" />
@@ -30,13 +31,13 @@ export const TableRow = ({
   isSelected,
   toggleSelected,
   expandable,
-  errorShown,
+  includeExtraColumn,
 }: {
   nodeEntry: NodeEntryRow;
   isSelected: boolean;
   toggleSelected: () => void;
   expandable: boolean;
-  errorShown: boolean;
+  includeExtraColumn: boolean;
 }) => {
   const createdAt = dayjs(nodeEntry.creationTime).format("MMMM D h:mm A");
   const fullTime = dayjs(nodeEntry.creationTime).toString();
@@ -68,7 +69,7 @@ export const TableRow = ({
             </Box>
           </Tooltip>
         </Td>
-        {errorShown && (
+        {includeExtraColumn && (
           <Td>
             {nodeEntry.error && (
               <HStack spacing={1} color="red.600">
@@ -78,6 +79,7 @@ export const TableRow = ({
                 </Text>
               </HStack>
             )}
+            {nodeEntry.filterOutcome && <FilterOutcome outcome={nodeEntry.filterOutcome} />}
           </Td>
         )}
         <Td isNumeric>
@@ -111,4 +113,20 @@ const EntrySplit = ({ split }: { split: string }) => {
       </Badge>
     </HStack>
   );
+};
+
+const FilterOutcome = ({ outcome }: { outcome: string }) => {
+  if (outcome === FilterOutput.Match)
+    return (
+      <Text color="green.600" fontWeight="bold">
+        match
+      </Text>
+    );
+  if (outcome === FilterOutput.Miss)
+    return (
+      <Text color="red.600" fontWeight="bold">
+        miss
+      </Text>
+    );
+  return <Text fontWeight="bold">{outcome}</Text>;
 };

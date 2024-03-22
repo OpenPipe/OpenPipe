@@ -85,11 +85,12 @@ export const prepareIntegratedMonitorCeation = ({
       projectId,
       config: {
         maxLLMConcurrency: 2,
-        mode: "SQL",
+        mode: "LLM",
+        skipped: true,
         filters: [],
         judgementCriteria: {
-          model: RelabelOption.GPT41106,
-          instructions: "Is the output a good match for the input?",
+          model: RelabelOption.GPT351106,
+          instructions: "Match all entries whose outputs contain errors.",
         },
       },
     },
@@ -189,11 +190,11 @@ export const prepareIntegratedDatasetCreation = ({
 
 export const prepareMonitorDatasetRelabelNode = ({
   projectId,
-  monitorFilterPassedOutputId,
+  monitorFilterMatchOutputId,
   datasetManualRelabelNodeId,
 }: {
   projectId: string;
-  monitorFilterPassedOutputId: string;
+  monitorFilterMatchOutputId: string;
   datasetManualRelabelNodeId: string;
 }) => {
   const prismaCreations: Prisma.PrismaPromise<unknown>[] = [];
@@ -214,7 +215,7 @@ export const prepareMonitorDatasetRelabelNode = ({
   prismaCreations.push(
     prisma.dataChannel.create({
       data: {
-        originId: monitorFilterPassedOutputId,
+        originId: monitorFilterMatchOutputId,
         destinationId: preparedLLMRelabelCreation.relabelNodeId,
       },
     }),

@@ -11,30 +11,33 @@ export const filterProperties: NodeProperties<"Filter"> = {
   schema: filterNodeSchema,
   cacheMatchFields: ["incomingInputHash", "incomingOutputHash"],
   cacheWriteFields: ["filterOutcome", "explanation"],
-  readBatchSize: 10000,
+  readBatchSize: 10,
   outputs: [
     {
-      label: FilterOutput.Passed,
-      selectionCriteria: {
-        filterOutcome: FilterOutput.Passed,
-      },
+      label: FilterOutput.Match,
+      getSelectionCriteria: (node) => ({
+        filterOutcome: node.config.skipped ? undefined : FilterOutput.Match,
+      }),
     },
     {
-      label: FilterOutput.Failed,
-      selectionCriteria: {
-        filterOutcome: FilterOutput.Failed,
-      },
+      label: FilterOutput.Miss,
+      getSelectionCriteria: () => ({
+        filterOutcome: FilterOutput.Miss,
+      }),
     },
   ],
   hashableFields: (node) =>
     node.config.mode === "SQL"
       ? {
+          skipped: node.config.skipped,
           filters: node.config.filters,
         }
       : {
+          skipped: node.config.skipped,
           judgementCriteria: node.config.judgementCriteria,
         },
   getConcurrency: (node) => node.config.maxLLMConcurrency,
+  shouldSkipProcessing: (node) => node.config.skipped,
   beforeProcessing: async (node) => {
     const { mode, filters } = node.config;
 
@@ -82,7 +85,7 @@ export const filterProperties: NodeProperties<"Filter"> = {
             eb.val(node.hash).as("nodeHash"),
             "ne.inputHash",
             "ne.outputHash",
-            eb.val(FilterOutput.Passed).as("filterOutcome"),
+            eb.val(FilterOutput.Match).as("filterOutcome"),
             eb.val(new Date()).as("updatedAt"),
           ]),
       )
@@ -122,7 +125,7 @@ export const filterProperties: NodeProperties<"Filter"> = {
             eb.val(node.hash).as("nodeHash"),
             "ne.inputHash",
             "ne.outputHash",
-            eb.val(FilterOutput.Failed).as("filterOutcome"),
+            eb.val(FilterOutput.Miss).as("filterOutcome"),
             eb.val(new Date()).as("updatedAt"),
           ]),
       )
@@ -137,7 +140,6 @@ export const filterProperties: NodeProperties<"Filter"> = {
       .where("ne.status", "=", "PROCESSING")
       .execute();
   },
-  shouldSkipProcessEntry: (node) => node.config.mode === "SQL",
   processEntry: async ({ node, entry }) => {
     const {
       judgementCriteria: { model, instructions },
@@ -150,6 +152,9 @@ export const filterProperties: NodeProperties<"Filter"> = {
       model,
       instructions,
       messages,
+      tool_choice,
+      tools,
+      response_format,
       output,
     });
 

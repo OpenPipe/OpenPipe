@@ -15,7 +15,7 @@ export const MonitorProcessingIndicator = () => {
   if (monitor?.status !== "IDLE") {
     processingMessage = "Processing initial filters";
   } else if (monitor?.filter.status !== "IDLE") {
-    processingMessage = "Processing secondary filters";
+    processingMessage = `Processing secondary filters (${monitor.filter.numProcessedEntries}/${monitor.filter.numTotalEntries})`;
   } else if (monitor?.datasets.some((dataset) => dataset.numUnrelabeledEntries > 0)) {
     processingMessage = "Relabeling entries";
   }

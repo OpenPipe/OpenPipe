@@ -15,8 +15,8 @@ export enum MonitorOutput {
 }
 
 export enum FilterOutput {
-  Passed = "passed",
-  Failed = "failed",
+  Match = "match",
+  Miss = "miss",
 }
 
 export enum LLMRelabelOutput {
@@ -62,7 +62,7 @@ export type NodeProperties<T extends NodeType> = {
   readBatchSize?: number;
   outputs: {
     label: string;
-    selectionCriteria?: OutputSelectionCriteria;
+    getSelectionCriteria?: (node: { config: InferNodeConfig<T> }) => OutputSelectionCriteria;
   }[];
   hashableFields?: (node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId">) => {
     [key: string]: unknown;
@@ -71,10 +71,10 @@ export type NodeProperties<T extends NodeType> = {
   beforeInvalidating?: (
     node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash">,
   ) => Promise<void>;
+  shouldSkipProcessing?: (node: { config: InferNodeConfig<T> }) => boolean;
   beforeProcessing?: (
     node: { config: InferNodeConfig<T> } & Pick<Node, "id" | "projectId" | "hash" | "type">,
   ) => Promise<void>;
-  shouldSkipProcessEntry?: (node: { config: InferNodeConfig<T> }) => boolean;
   processEntry?: ({
     node,
     entry,

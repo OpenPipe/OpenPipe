@@ -326,6 +326,7 @@ export const useLoggedCalls = (options?: {
   filters?: FilterData[];
   sampleRate?: number;
   maxOutputSize?: number;
+  skipCacheHits?: boolean;
   disabled?: boolean;
   orderBy?: LoggedCallsOrderBy;
   slowBatch?: boolean;
@@ -348,6 +349,7 @@ export const useLoggedCalls = (options?: {
       pageSize,
       sampleRate: options?.sampleRate,
       maxOutputSize: options?.maxOutputSize,
+      skipCacheHits: options?.skipCacheHits,
       orderBy: options?.orderBy,
     },
     {
@@ -369,6 +371,7 @@ export const useLoggedCallsCount = (options?: {
   disabled?: boolean;
   sampleRate?: number;
   maxOutputSize?: number;
+  skipCacheHits?: boolean;
 }) => {
   const selectedProjectId = useSelectedProject().data?.id;
 
@@ -387,6 +390,7 @@ export const useLoggedCallsCount = (options?: {
       filters: filtersWithValues,
       sampleRate: options?.sampleRate,
       maxOutputSize: options?.maxOutputSize,
+      skipCacheHits: options?.skipCacheHits,
     },
     {
       enabled: !!selectedProjectId && !options?.disabled,

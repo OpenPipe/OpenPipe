@@ -269,6 +269,7 @@ export const weightsFormats = ["fp32", "bf16", "fp16"] as const;
 export const weightsFormat = z.enum(weightsFormats);
 
 export const nodeEntryStatus = z.enum([
+  NodeEntryStatus.QUEUED,
   NodeEntryStatus.PENDING,
   NodeEntryStatus.PROCESSING,
   NodeEntryStatus.PROCESSED,

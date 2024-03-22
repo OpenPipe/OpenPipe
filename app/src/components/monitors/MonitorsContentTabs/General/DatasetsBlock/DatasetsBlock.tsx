@@ -120,13 +120,15 @@ const DatasetsBlock = () => {
       <Card width="100%">
         <Skeleton isLoaded={!!monitor}>
           <Table sx={{ "& td": { px: 4 }, "& th": { px: 4 } }}>
-            <Thead>
-              <Tr>
-                <Th>Name</Th>
-                <Th>Relabeling Method</Th>
-                <Th />
-              </Tr>
-            </Thead>
+            {!!currentDatasets?.length && (
+              <Thead>
+                <Tr>
+                  <Th>Name</Th>
+                  <Th>Relabeling Method</Th>
+                  <Th />
+                </Tr>
+              </Thead>
+            )}
             <Tbody fontSize="sm">
               {monitor &&
                 currentDatasets?.map((dataset) => {
@@ -257,7 +259,7 @@ const DatasetsBlock = () => {
             ? {
                 name: monitor.name,
                 relabelOption: datasetToRelabel.llmRelabelNode?.config.relabelLLM,
-                numTotalEntries: monitor.numPassedEntries,
+                numTotalEntries: monitor.filter.numFilteredEntries,
                 llmRelabelNodeId: datasetToRelabel.llmRelabelNode.id,
               }
             : null

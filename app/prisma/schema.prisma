@@ -772,6 +772,7 @@ model DataChannel {
 }
 
 enum NodeEntryStatus {
+    QUEUED
     PENDING
     PROCESSING
     ERROR
@@ -781,7 +782,7 @@ enum NodeEntryStatus {
 model NodeEntry {
     id           String            @id @default(uuid()) @db.Uuid
     persistentId String
-    status       NodeEntryStatus   @default(PENDING)
+    status       NodeEntryStatus   @default(QUEUED)
     error        String?
     split        DatasetEntrySplit
 

@@ -1,19 +1,20 @@
 import { useEffect } from "react";
-import { Button, HStack } from "@chakra-ui/react";
+import { Button, HStack, type StackProps } from "@chakra-ui/react";
 
-import { useMonitorFilters } from "../useMonitorFilters";
+import { useMonitorFilters } from "./useMonitorFilters";
 import { api } from "~/utils/api";
 import { useHandledAsyncCallback } from "~/utils/hooks";
 import { useMonitor } from "~/components/monitors/useMonitor";
 import { maybeReportError } from "~/utils/errorHandling/maybeReportError";
 
-export const SaveResetButtons = () => {
+export const SaveResetButtons = (props: StackProps) => {
   const {
     initialFilters,
     noChanges,
     sampleRate,
     maxOutputSize,
-    secondaryFilters,
+    skipFilter,
+    judgementCriteria,
     filtersInitialized,
     initializeFilters,
   } = useMonitorFilters();
@@ -39,7 +40,8 @@ export const SaveResetButtons = () => {
         initialFilters,
         sampleRate,
         maxOutputSize,
-        checkFilters: secondaryFilters,
+        skipFilter,
+        judgementCriteria,
       },
     });
 
@@ -55,11 +57,12 @@ export const SaveResetButtons = () => {
     initialFilters,
     sampleRate,
     maxOutputSize,
-    secondaryFilters,
+    skipFilter,
+    judgementCriteria,
   ]);
 
   return (
-    <HStack w="full" justifyContent="flex-end">
+    <HStack w="full" justifyContent="flex-end" {...props}>
       <Button
         onClick={() => {
           initializeFilters();
