@@ -63,6 +63,7 @@ export const prepareDatasetEntriesForImport = async ({
       messages: messages as object[],
       tool_choice: tool_choice as object,
       tools: tools as object[],
+      response_format: row.input.response_format,
       hash: inputHash,
     });
 
