@@ -56,6 +56,9 @@ export const monitorProperties: NodeProperties<"Monitor"> = {
   beforeProcessing: async (node) => {
     const { initialFilters, lastLoggedCallUpdatedAt, maxOutputSize, sampleRate } = node.config;
 
+    // node has not been initialized
+    if (!initialFilters.length) return;
+
     const inputDataChannelId = await kysely
       .selectFrom("DataChannel")
       .where("destinationId", "=", node.id)

@@ -226,17 +226,17 @@ export const processNode = defineTask<ProcessNodeJob>({
       await nodeProperties.afterAll(node);
     }
 
-    const entriesAwaitingProcessing = await kysely
+    const queuedEntries = await kysely
       .selectFrom("NodeEntry as ne")
       .innerJoin("DataChannel as dc", (join) =>
         join.onRef("dc.id", "=", "ne.dataChannelId").on("dc.destinationId", "=", node.id),
       )
-      .where((eb) => eb.or([eb("ne.status", "=", "QUEUED"), eb("ne.status", "=", "PENDING")]))
+      .where("ne.status", "=", "QUEUED")
       .select("ne.id")
       .executeTakeFirst()
       .then((ne) => !!ne);
 
-    if (entriesAwaitingProcessing) {
+    if (queuedEntries) {
       await enqueueProcessNode({ nodeId });
     }
 
