@@ -84,7 +84,7 @@ export const prepareIntegratedMonitorCeation = ({
       name: "Monitor Filter",
       projectId,
       config: {
-        maxLLMConcurrency: 2,
+        maxLLMConcurrency: 4,
         mode: "LLM",
         skipped: true,
         filters: [],

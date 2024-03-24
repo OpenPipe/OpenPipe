@@ -8,6 +8,14 @@ export const enqueueDescendants = async (nodeId: string) => {
     .innerJoin("NodeOutput as no", "no.nodeId", "parentNode.id")
     .innerJoin("DataChannel as dc", "dc.originId", "no.id")
     .innerJoin("Node as descendantNode", "descendantNode.id", "dc.destinationId")
+    .where((eb) =>
+      eb.exists(
+        kysely
+          .selectFrom("NodeEntry")
+          .where("dataChannelId", "=", "dc.id")
+          .where("status", "=", "QUEUED"),
+      ),
+    )
     .distinctOn("descendantNode.id")
     .select(["descendantNode.id", "no.id as nodeOutputId", "dc.id as dataChannelId"])
     .execute();

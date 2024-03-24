@@ -70,6 +70,16 @@ const runner = await run({
       },
     },
     {
+      task: feedMonitors.task.identifier,
+      // run once every ten minutes
+      match: "*/10 * * * *",
+      identifier: feedMonitors.task.identifier,
+      options: {
+        backfillPeriod: 1000 * 60,
+        queueName: "feed-monitors",
+      },
+    },
+    {
       task: generateInvoices.task.identifier,
       // run at 2:10 AM UTC, on the first day of each month
       match: "10 2 1 * *",
