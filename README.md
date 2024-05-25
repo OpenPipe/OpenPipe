@@ -47,8 +47,11 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 
 - [mistralai/Mixtral-8x7B-Instruct-v0.1](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1)
 - [OpenPipe/mistral-ft-optimized-1227](https://huggingface.co/OpenPipe/mistral-ft-optimized-1227)
-- [meta-llama/Llama-2-13b](https://huggingface.co/meta-llama/Llama-2-13b)
-- [gpt-3.5-turbo](https://openai.com/blog/gpt-3-5-turbo-fine-tuning-and-api-updates)
+- [meta-llama/Llama-3-8B](https://huggingface.co/meta-llama/Meta-Llama-3-8B)
+- [meta-llama/Llama-3-70B](https://huggingface.co/meta-llama/Meta-Llama-3-70B)
+- [gpt-3.5-turbo-0613](https://openai.com/blog/gpt-3-5-turbo-fine-tuning-and-api-updates)
+- [gpt-3.5-turbo-1106](https://openai.com/blog/gpt-3-5-turbo-fine-tuning-and-api-updates)
+- [gpt-3.5-turbo-0125](https://openai.com/blog/gpt-3-5-turbo-fine-tuning-and-api-updates)
 
 ## Documentation
 
