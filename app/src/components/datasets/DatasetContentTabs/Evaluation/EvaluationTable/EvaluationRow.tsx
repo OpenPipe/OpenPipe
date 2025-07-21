@@ -277,7 +277,7 @@ const PotentiallyPendingOutput = ({
           <AlertIcon />
           <AlertDescription>
             This completion was cut off because it reached the maximum number of tokens the base
-            model supports. It used <b>{entry.inputTokens ?? "uknown"}</b> input tokens and{" "}
+            model supports. It used <b>{entry.inputTokens ?? "unknown"}</b> input tokens and{" "}
             <b>{entry.outputTokens ?? "unknown"}</b> output tokens.
           </AlertDescription>
         </Alert>

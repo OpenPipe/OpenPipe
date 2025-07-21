@@ -82,7 +82,7 @@ const PaymentMethods = () => {
                       fontSize="sm"
                       px={1}
                       variant="ghost"
-                      _hover={{ bgColor: "transperent" }}
+                      _hover={{ bgColor: "transparent" }}
                       isLoading={setDefaultInProgress}
                     >
                       Set as default
@@ -97,7 +97,7 @@ const PaymentMethods = () => {
                       fontSize="sm"
                       px={1}
                       variant="ghost"
-                      _hover={{ bgColor: "transperent" }}
+                      _hover={{ bgColor: "transparent" }}
                       isLoading={deletionInProgress}
                     >
                       Delete
