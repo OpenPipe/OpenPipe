@@ -35,6 +35,7 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
   - [Python SDK](https://pypi.org/project/openpipe/)
   - [TypeScript SDK](https://www.npmjs.com/package/openpipe)
 - OpenAI-compatible chat completions endpoint.
+- Multi-provider support: proxy and log requests to OpenAI and [MiniMax](https://platform.minimaxi.com) through a single endpoint.
 - Fine-tune GPT 3.5, Mistral, and Llama 2 models. Host on-platform or download the weights.
   - Model output is OpenAI-compatible.
   - Switching from GPT 4 to a fine-tuned Mistral model only requires changing the model name.
@@ -65,6 +66,7 @@ Use powerful but expensive LLMs to fine-tune smaller and cheaper models suited t
 4. Clone this repository: `git clone https://github.com/openpipe/openpipe`
 5. Install the dependencies: `cd openpipe && pnpm install`
 6. Create a `.env` file (`cd app && cp .env.example .env`) and enter your `OPENAI_API_KEY`.
+   - Optionally, set `MINIMAX_API_KEY` to enable MiniMax model proxying (get your key at [platform.minimaxi.com](https://platform.minimaxi.com)).
 7. If you just installed postgres and wish to use the default `DATABASE_URL` run the following commands:
 
 ```sh
@@ -102,6 +104,27 @@ completion = client.chat.completions.create(
     },
 )
 ```
+
+### Using MiniMax Models
+
+To use MiniMax models through OpenPipe, prefix the model name with `minimax:`:
+
+```python
+completion = client.chat.completions.create(
+    model="minimax:MiniMax-M2.7",
+    messages=[{"role": "user", "content": "count to 10"}],
+    openpipe={
+        "tags": {"prompt_id": "counting"},
+        "log_request": True
+    },
+)
+```
+
+Supported MiniMax models:
+- `minimax:MiniMax-M2.7` — 1M context, latest generation
+- `minimax:MiniMax-M2.7-highspeed` — 1M context, optimized for speed
+- `minimax:MiniMax-M2.5` — 204K context
+- `minimax:MiniMax-M2.5-highspeed` — 204K context, optimized for speed
 
 ## Testing Locally
 

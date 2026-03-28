@@ -11,6 +11,7 @@ import { z } from "zod";
 import { getCompletion } from "~/modelProviders/fine-tuned/getCompletion";
 import { kysely, prisma } from "~/server/db";
 import { hashRequest } from "~/server/utils/hashObject";
+import { getMiniMaxCompletion, isMiniMaxModel } from "~/server/utils/minimax";
 import { getOpenaiCompletion } from "~/server/utils/openai";
 import { parseTags } from "~/server/utils/parseTags";
 import { statusCodeFromTrpcCode, trpcCodeFromHttpStatus } from "~/server/utils/trpcStatusCodes";
@@ -91,6 +92,7 @@ export const createChatCompletion = openApiProtectedProc
       }
 
       const isFineTune = inputPayload.model.startsWith("openpipe:");
+      const isMiniMax = isMiniMaxModel(inputPayload.model);
 
       // Default to true if not using a fine-tuned model
       logRequest =
@@ -98,7 +100,7 @@ export const createChatCompletion = openApiProtectedProc
         ctx.headers["op-log-request"] !== "false" &&
         !ctx.key.readOnly;
 
-      ongoingRequestId = await recordOngoingRequestStart(key.projectId, isFineTune);
+      ongoingRequestId = await recordOngoingRequestStart(key.projectId, isFineTune || isMiniMax);
 
       if (ctx.headers["op-tags"]) {
         try {
@@ -169,6 +171,24 @@ export const createChatCompletion = openApiProtectedProc
           console.error(error);
           throw new TRPCError({
             message: `Failed to get fine-tune completion: ${(error as Error).message}`,
+            code: "BAD_REQUEST",
+          });
+        }
+      } else if (isMiniMax) {
+        try {
+          completion = await getMiniMaxCompletion({
+            ...inputPayload,
+            stream: input.stream,
+          });
+        } catch (error: unknown) {
+          if (error instanceof APIError) {
+            throw new TRPCError({
+              message: error.message,
+              code: trpcCodeFromHttpStatus(error.status),
+            });
+          }
+          throw new TRPCError({
+            message: `Failed to get MiniMax completion: ${(error as Error).message}`,
             code: "BAD_REQUEST",
           });
         }
