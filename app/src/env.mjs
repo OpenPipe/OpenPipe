@@ -43,6 +43,7 @@ export const env = createEnv({
       .default("false")
       .transform((val) => val.toLowerCase() === "true"),
     FIREWORKS_API_KEY: z.string().optional(),
+    MINIMAX_API_KEY: z.string().optional(),
     WORKER_CONCURRENCY: z
       .string()
       .default("10")
@@ -126,6 +127,7 @@ export const env = createEnv({
     ANYSCALE_INFERENCE_API_KEY: process.env.ANYSCALE_INFERENCE_API_KEY,
     ANYSCALE_ENABLE_A100: process.env.ANYSCALE_ENABLE_A100,
     FIREWORKS_API_KEY: process.env.FIREWORKS_API_KEY,
+    MINIMAX_API_KEY: process.env.MINIMAX_API_KEY,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
