@@ -40,6 +40,13 @@ export const openAIRowSchema = z.object({
   split: z.enum(["TRAIN", "TEST"]).optional(),
 });
 
+export const questionAnswerRowSchema = z.object({
+  question: z.string().min(1),
+  answer: z.string().min(1),
+  system: z.string().optional(),
+  split: z.enum(["TRAIN", "TEST"]).optional(),
+});
+
 export type RowToImport = z.infer<typeof rowSchema>;
 
 export type ParseError = { line?: number; error: string };
@@ -113,6 +120,25 @@ export const validateRowToImport = (row: unknown): ParseError | RowToImport => {
       },
       split,
       output,
+    };
+  }
+
+  const parsedQuestionAnswerRow = questionAnswerRowSchema.safeParse(row);
+
+  if (parsedQuestionAnswerRow.success) {
+    const { question, answer, system, split } = parsedQuestionAnswerRow.data;
+    return {
+      input: {
+        messages: [
+          ...(system ? [{ role: "system" as const, content: system }] : []),
+          { role: "user" as const, content: question },
+        ],
+      },
+      output: {
+        role: "assistant",
+        content: answer,
+      },
+      split,
     };
   }
 
