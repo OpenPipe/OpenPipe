@@ -74,6 +74,31 @@ async function main() {
 main();
 ```
 
+### OpenAI-compatible gateways (optional)
+
+Point inference at any OpenAI-compatible Chat Completions `baseURL` while OpenPipe still logs the request. Example with [DaoXE](https://daoxe.com) (`https://daoxe.com/v1`; multi-model / multi-protocol gateway; model IDs are account-scoped; not available in mainland China):
+
+```js
+import OpenAI from "openpipe/openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.DAOXE_API_KEY,
+  baseURL: "https://daoxe.com/v1",
+  openpipe: {
+    apiKey: process.env.OPENPIPE_API_KEY,
+  },
+});
+
+const completion = await openai.chat.completions.create({
+  model: "YOUR_DAOXE_CHAT_MODEL_ID", // from your DaoXE account / GET /v1/models
+  messages: [{ role: "user", content: "Count to 10" }],
+  openpipe: {
+    tags: { prompt_id: "counting", provider: "daoxe" },
+    logRequest: true,
+  },
+});
+```
+
 ## FAQ
 
 <b><i>How do I report calls to my self-hosted instance?</i></b>

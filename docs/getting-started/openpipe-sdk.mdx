@@ -185,6 +185,72 @@ const completion = await openai.chat.completions.create({
   </Tab>
 </Tabs>
 
+## OpenAI-compatible gateways (optional)
+
+The OpenPipe SDK inherits the OpenAI client's `base_url` / `baseURL` option for **inference**. You can send chat completions to any OpenAI-compatible Chat Completions endpoint while OpenPipe still records those calls for fine-tuning (using your OpenPipe API key).
+
+[DaoXE](https://daoxe.com) is one such multi-model, multi-protocol gateway. Its OpenAI-compatible base URL is `https://daoxe.com/v1` (Chat Completions). DaoXE also exposes OpenAI Responses and Anthropic Messages for other clients; this SDK path uses Chat Completions only. Model IDs are account-scoped—use an ID available to your DaoXE key ([catalog / pricing](https://daoxe.com/pricing)). DaoXE is not available in mainland China.
+
+<Tabs>
+  <Tab title="Python">
+
+```python
+from openpipe import OpenAI
+import os
+
+client = OpenAI(
+    # DaoXE API key (or any OpenAI-compatible provider key)
+    api_key=os.environ["DAOXE_API_KEY"],
+    base_url="https://daoxe.com/v1",
+    openpipe={
+        # defaults to os.environ.get("OPENPIPE_API_KEY")
+        "api_key": os.environ["OPENPIPE_API_KEY"],
+    },
+)
+
+completion = client.chat.completions.create(
+    # Replace with a chat model ID available to your DaoXE account
+    model="YOUR_DAOXE_CHAT_MODEL_ID",
+    messages=[{"role": "user", "content": "count to 10"}],
+    openpipe={
+        "tags": {"prompt_id": "counting", "provider": "daoxe"},
+        "log_request": True,
+    },
+)
+```
+
+  </Tab>
+  <Tab title="NodeJS">
+
+```typescript
+import OpenAI from "openpipe/openai";
+
+const openai = new OpenAI({
+  // DaoXE API key (or any OpenAI-compatible provider key)
+  apiKey: process.env.DAOXE_API_KEY,
+  baseURL: "https://daoxe.com/v1",
+  openpipe: {
+    apiKey: process.env.OPENPIPE_API_KEY, // defaults to process.env["OPENPIPE_API_KEY"]
+  },
+});
+
+const completion = await openai.chat.completions.create({
+  // Replace with a chat model ID available to your DaoXE account
+  model: "YOUR_DAOXE_CHAT_MODEL_ID",
+  messages: [{ role: "user", content: "Count to 10" }],
+  openpipe: {
+    tags: {
+      prompt_id: "counting",
+      provider: "daoxe",
+    },
+    logRequest: true,
+  },
+});
+```
+
+  </Tab>
+</Tabs>
+
 ## Should I Wait to Enable Logging?
 
 We recommend keeping request logging turned on from the beginning. If you change your prompt you can just set a new `prompt_id` tag so you can select just the latest version when you're ready to create a dataset.

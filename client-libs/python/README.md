@@ -29,6 +29,27 @@ client = OpenAI(
 
 You can now use your new OpenAI client, which functions identically to the generic OpenAI client while also reporting calls to your OpenPipe instance.
 
+### OpenAI-compatible gateways (optional)
+
+Point inference at any OpenAI-compatible Chat Completions `base_url` while OpenPipe still logs the request. Example with [DaoXE](https://daoxe.com) (`https://daoxe.com/v1`; multi-model / multi-protocol gateway; model IDs are account-scoped; not available in mainland China):
+
+```python
+from openpipe import OpenAI
+import os
+
+client = OpenAI(
+    api_key=os.environ["DAOXE_API_KEY"],
+    base_url="https://daoxe.com/v1",
+    openpipe={"api_key": os.environ["OPENPIPE_API_KEY"]},
+)
+
+completion = client.chat.completions.create(
+    model="YOUR_DAOXE_CHAT_MODEL_ID",  # from your DaoXE account / GET /v1/models
+    messages=[{"role": "user", "content": "count to 10"}],
+    openpipe={"tags": {"prompt_id": "counting", "provider": "daoxe"}},
+)
+```
+
 ## Special Features
 
 ### Tagging
