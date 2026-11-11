@@ -57,6 +57,9 @@ export const createChatCompletion = openApiProtectedProc
       n: z.number().nullable().optional(),
       max_tokens: z.number().nullable().optional(),
       temperature: z.number().nullable().optional(),
+      logprobs: z.boolean().nullable().optional(),
+      top_logprobs: z.number().nullable().optional(),
+      logit_bias: z.record(z.number()).nullable().optional(),
       stream: z.boolean().default(false),
       response_format: z
         .object({

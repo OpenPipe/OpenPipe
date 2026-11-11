@@ -126,6 +126,9 @@ const chatCompletionInputBase = z.object({
   n: z.number().optional(),
   max_tokens: z.number().nullable().optional(),
   temperature: z.number().optional(),
+  logprobs: z.boolean().nullable().optional(),
+  top_logprobs: z.number().nullable().optional(),
+  logit_bias: z.record(z.number()).nullable().optional(),
   response_format: z
     .object({
       type: z.union([z.literal("text"), z.literal("json_object")]),
@@ -148,10 +151,12 @@ export const chatCompletionInput = z.union([
   chatCompletionInputNonStreaming.passthrough(),
 ]);
 
-export const chatCompletionInputReqPayload = z.object({
-  ...chatCompletionInputBase.shape,
-  stream: z.boolean().default(false),
-});
+export const chatCompletionInputReqPayload = z
+  .object({
+    ...chatCompletionInputBase.shape,
+    stream: z.boolean().default(false),
+  })
+  .passthrough();
 
 export const chatCompletionOutput = z.object({
   id: z.string(),
